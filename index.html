@@ -142,7 +142,7 @@
             <div id="login-otp-field" class="hidden space-y-2">
               <div class="flex justify-between items-center">
                 <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Código de Verificación (6 dígitos)</label>
-                <button type="button" onclick="showNotification('Código de verificación enviado a tu dispositivo')" class="text-[10px] text-kinet-neon hover:underline font-mono">Enviar Código</button>
+                <button type="button" onclick="showNotification('Código enviado a tu dispositivo')" class="text-[10px] text-kinet-neon hover:underline font-mono">Enviar Código</button>
               </div>
               <input type="text" maxlength="6" placeholder="123 456" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-3 text-xs text-center tracking-widest font-mono text-white focus:outline-none focus:border-kinet-neon transition">
             </div>
@@ -166,7 +166,7 @@
               <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Nombre de Perfil Único (@Username)</label>
               <div class="relative flex items-center">
                 <span class="absolute left-4 text-slate-500 text-xs font-mono">@</span>
-                <input type="text" required placeholder="tahribuezas" oninput="checkUsername(this.value)" class="w-full bg-[#12161C] border border-slate-800 rounded-xl pl-8 pr-4 py-3 text-xs text-white focus:outline-none focus:border-kinet-neon transition font-mono">
+                <input type="text" id="reg-username" required placeholder="tahribuezas" oninput="checkUsername(this.value)" class="w-full bg-[#12161C] border border-slate-800 rounded-xl pl-8 pr-4 py-3 text-xs text-white focus:outline-none focus:border-kinet-neon transition font-mono">
               </div>
               <p id="username-status" class="text-[9px] text-kinet-neon mt-1 font-mono hidden">✓ Tag disponible en la red KINET</p>
             </div>
@@ -224,7 +224,7 @@
         </button>
       </div>
       <p class="text-xs text-slate-400 leading-relaxed">
-        Introduce tu correo registrado o teléfono para enviarte un código seguro de restablecimiento de contraseña.
+        Introduce tu correo registrado para enviarte las instrucciones de restablecimiento.
       </p>
       <form onsubmit="handleRecoverySubmit(event)" class="space-y-3">
         <div>
@@ -266,7 +266,7 @@
     </div>
   </div>
 
-  <!-- NOTIFICACIÓN TOAST -->
+  <!-- TOAST -->
   <div id="toast-notification" class="fixed bottom-6 right-6 bg-slate-900 border border-kinet-neon text-white px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 text-xs hidden z-50">
     <i data-lucide="check-circle" class="w-4 h-4 text-kinet-neon"></i>
     <span id="toast-message">Notificación</span>
@@ -274,6 +274,13 @@
 
   <script>
     lucide.createIcons();
+
+    // Redirección robusta utilizando el directorio actual exacto
+    function redirectToApp() {
+      const path = window.location.pathname;
+      const baseDir = path.substring(0, path.lastIndexOf('/') + 1);
+      window.location.href = window.location.origin + baseDir + 'fase1.html';
+    }
 
     function switchMainTab(tab) {
       const loginBox = document.getElementById('container-login');
@@ -328,19 +335,22 @@
 
     function handleLoginSubmit(e) {
       e.preventDefault();
-      localStorage.setItem('kinet_user_logged', 'true');
-      window.location.href = 'fase1.html'; // Corregido a minúsculas
+      localStorage.setItem('kinet_mode', 'pro');
+      localStorage.setItem('kinet_username', 'AtletaPro');
+      redirectToApp();
     }
 
     function handleRegisterSubmit(e) {
       e.preventDefault();
-      localStorage.setItem('kinet_user_registered', 'true');
-      window.location.href = 'fase1.html'; // Corregido a minúsculas
+      localStorage.setItem('kinet_mode', 'pro');
+      localStorage.setItem('kinet_username', '@atleta');
+      redirectToApp();
     }
 
     function goToGuest() {
       localStorage.setItem('kinet_mode', 'guest');
-      window.location.href = 'fase1.html'; // Corregido a minúsculas
+      localStorage.removeItem('kinet_username');
+      redirectToApp();
     }
 
     function openRecoveryModal() {
@@ -367,8 +377,9 @@
 
     function confirmGoogleLogin(email) {
       closeGoogleSimModal();
-      localStorage.setItem('kinet_google_verified', email);
-      window.location.href = 'fase1.html'; // Corregido a minúsculas
+      localStorage.setItem('kinet_mode', 'pro');
+      localStorage.setItem('kinet_username', '@google_user');
+      redirectToApp();
     }
 
     function showNotification(msg) {
