@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KINET OS - Dashboard Atleta</title>
+  <title>KINET OS - Dashboard & Onboarding</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -45,15 +45,15 @@
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
     .modal-backdrop {
-      background: rgba(4, 6, 8, 0.85);
-      backdrop-filter: blur(16px);
+      background: rgba(4, 6, 8, 0.92);
+      backdrop-filter: blur(20px);
     }
   </style>
 </head>
 <body class="bg-cyber-pattern text-slate-100 font-sans min-h-screen flex items-center justify-center p-0 md:p-8">
 
-  <!-- CONTENEDOR PRINCIPAL DASHBOARD -->
-  <div class="relative w-full md:max-w-5xl h-screen md:h-[800px] bg-[#0A0C0E] md:rounded-[32px] border-0 md:border md:border-kinet-titanium-border shadow-[0_0_80px_rgba(0,0,0,0.9)] flex flex-col overflow-hidden">
+  <!-- ================= DASHBOARD PRINCIPAL (OCULTO UNTIL ONBOARDING DONE) ================= -->
+  <div id="main-dashboard" class="relative w-full md:max-w-6xl h-screen md:h-[820px] bg-[#0A0C0E] md:rounded-[32px] border-0 md:border md:border-kinet-titanium-border shadow-[0_0_80px_rgba(0,0,0,0.9)] flex flex-col overflow-hidden hidden">
     
     <!-- HEADER DE NAVEGACIÓN -->
     <div class="p-4 md:p-6 bg-[#11151B] border-b border-slate-800 flex justify-between items-center">
@@ -68,67 +68,63 @@
       </div>
 
       <div class="flex items-center space-x-2">
-        <button onclick="openProfileSetupModal()" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 hover:text-white transition flex items-center space-x-1.5">
-          <i data-lucide="user-cog" class="w-3.5 h-3.5 text-kinet-neon"></i>
-          <span class="hidden sm:inline">Editar Perfil</span>
+        <button onclick="reopenOnboarding()" class="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 hover:text-white transition flex items-center space-x-2">
+          <i data-lucide="user-cog" class="w-4 h-4 text-kinet-neon"></i>
+          <span class="hidden sm:inline font-mono">Cambiar Perfil</span>
         </button>
-        <button onclick="logout()" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-400 hover:text-white transition flex items-center space-x-1.5">
-          <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
-          <span class="hidden sm:inline">Salir</span>
+        <button onclick="logout()" class="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-400 hover:text-white transition flex items-center space-x-2">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+          <span class="hidden sm:inline font-mono">Salir</span>
         </button>
       </div>
     </div>
 
-    <!-- CONTENIDO CENTRAL -->
+    <!-- CONTENIDO CENTRAL DASHBOARD -->
     <div class="flex-1 p-4 md:p-8 overflow-y-auto space-y-6">
       
-      <!-- Banner de Bienvenida Personalizado -->
-      <div class="glass-card p-6 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div class="glass-card p-6 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border border-slate-800">
         <div class="space-y-1">
-          <div class="flex items-center space-x-2">
-            <h2 id="welcome-title" class="font-display font-bold text-lg md:text-xl text-white">Bienvenido, Atleta</h2>
-            <span id="user-sport-tag" class="text-[10px] px-2 py-0.5 rounded-md bg-slate-800 text-kinet-neon font-mono border border-slate-700">Sin Deporte</span>
+          <div class="flex items-center space-x-3">
+            <h2 id="welcome-title" class="font-display font-bold text-lg md:text-xl text-white">Bienvenido</h2>
+            <span id="user-sport-tag" class="text-[10px] px-2.5 py-0.5 rounded-md bg-slate-800 text-kinet-neon font-mono border border-slate-700">FÚTBOL</span>
           </div>
-          <p id="user-details-text" class="text-xs text-slate-400">Configura tu perfil para empezar a medir tu rendimiento.</p>
+          <p id="user-details-text" class="text-xs text-slate-400">Panel operativo centralizado de rendimiento.</p>
         </div>
-        <div class="px-3 py-1.5 rounded-xl bg-kinet-neon/10 border border-kinet-neon/30 text-kinet-neon text-xs font-mono">
-          GRL RATING: <span id="user-grl-val" class="font-bold">--.-</span>
+        <div class="px-4 py-2 rounded-xl bg-kinet-neon/10 border border-kinet-neon/30 text-kinet-neon text-xs font-mono tracking-widest">
+          GRL RATING: <span id="user-grl-val" class="font-bold text-sm">88.4 PRO</span>
         </div>
       </div>
 
-      <!-- Alerta si es Invitado -->
       <div id="guest-alert" class="hidden p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between">
         <div class="flex items-center space-x-3">
           <i data-lucide="alert-circle" class="w-5 h-5 text-amber-400 shrink-0"></i>
-          <p class="text-xs text-amber-300">Estás operando en <strong>Modo Invitado</strong>. Tus datos se guardan solo en este dispositivo.</p>
+          <p class="text-xs text-amber-300">Estás en <strong>Modo Invitado</strong>. La personalización se guardará localmente en este dispositivo.</p>
         </div>
         <button onclick="window.location.href='index.html'" class="px-3 py-1.5 rounded-xl bg-amber-500 text-black text-xs font-bold hover:bg-amber-400 transition shrink-0 ml-2">
           Crear Cuenta
         </button>
       </div>
 
-      <!-- MÓDULOS DEL SISTEMA -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        
-        <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-3">
-          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-kinet-neon flex items-center justify-center">
-            <i data-lucide="activity" class="w-4 h-4"></i>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-3">
+          <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-kinet-neon flex items-center justify-center">
+            <i data-lucide="activity" class="w-5 h-5"></i>
           </div>
           <h3 class="font-display font-bold text-sm text-white">Métricas Biométricas</h3>
           <p class="text-xs text-slate-400">Control de velocidad, resistencia y mapa de calor de partidos.</p>
         </div>
 
-        <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-3">
-          <div class="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-400 flex items-center justify-center">
-            <i data-lucide="cpu" class="w-4 h-4"></i>
+        <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-3">
+          <div class="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 flex items-center justify-center">
+            <i data-lucide="cpu" class="w-5 h-5"></i>
           </div>
           <h3 class="font-display font-bold text-sm text-white">IA KINET Coach</h3>
           <p class="text-xs text-slate-400">Recomendaciones de recuperación física basadas en tus datos.</p>
         </div>
 
-        <div onclick="checkSocialAccess()" class="glass-card p-5 rounded-2xl border border-slate-800 space-y-3 cursor-pointer hover:border-kinet-neon/50 transition relative group">
-          <div class="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/30 text-purple-400 flex items-center justify-center">
-            <i data-lucide="users" class="w-4 h-4"></i>
+        <div onclick="checkSocialAccess()" class="glass-card p-6 rounded-2xl border border-slate-800 space-y-3 cursor-pointer hover:border-kinet-neon/50 transition relative group">
+          <div class="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 flex items-center justify-center">
+            <i data-lucide="users" class="w-5 h-5"></i>
           </div>
           <div class="flex justify-between items-start">
             <h3 class="font-display font-bold text-sm text-white">Red Social & Scouting</h3>
@@ -136,84 +132,158 @@
           </div>
           <p class="text-xs text-slate-400">Conecta con ojeadores y comparte tu KINET Card con la comunidad.</p>
         </div>
-
       </div>
 
     </div>
-
   </div>
 
-  <!-- ================= MODAL DE CONFIGURACIÓN DE PERFIL (ONBOARDING PRIMER ACCESO) ================= -->
-  <div id="profile-setup-modal" class="fixed inset-0 modal-backdrop z-50 hidden flex items-center justify-center p-4">
-    <div class="glass-card w-full max-w-lg p-6 md:p-8 rounded-3xl border border-slate-700 shadow-2xl relative space-y-5">
+
+  <!-- ================= ONBOARDING INTERFAZ DE TARJETA PROFESIONAL (PANORÁMICA) ================= -->
+  <div id="onboarding-modal" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4">
+    
+    <!-- TARJETA CONTENEDORA DE ONBOARDING -->
+    <div class="relative w-full max-w-4xl bg-[#0A0C0E] md:rounded-[36px] border border-kinet-titanium-border shadow-[0_0_100px_rgba(0,0,0,0.95)] p-6 md:p-12 flex flex-col justify-between space-y-8 overflow-hidden">
       
-      <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+      <!-- TOP HEADER BRANDING -->
+      <div class="flex flex-col md:flex-row justify-between items-center border-b border-slate-800/80 pb-6 gap-4">
         <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-xl bg-kinet-neon/10 border border-kinet-neon/30 text-kinet-neon flex items-center justify-center font-display font-bold">
-            01
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-kinet-neon to-emerald-600 font-display font-black text-black text-2xl flex items-center justify-center shadow-[0_0_25px_rgba(0,255,102,0.4)]">
+            K
           </div>
           <div>
-            <h3 class="font-display font-bold text-base text-white">CONFIGURACIÓN DE PERFIL</h3>
-            <p class="text-[10px] text-slate-400 font-mono">Personaliza tu ficha técnica en KINET OS</p>
+            <h1 class="font-display font-black text-2xl tracking-[0.2em] text-white">KINET OS</h1>
+            <p class="text-[10px] text-kinet-neon font-mono tracking-widest uppercase">SPORTS TECH INITIAL CONFIGURATION</p>
           </div>
+        </div>
+        <div id="step-indicator" class="px-4 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-[11px] font-mono text-slate-400">
+          PASO <span class="text-kinet-neon font-bold">01</span> / 02
         </div>
       </div>
 
-      <form onsubmit="saveProfileSetup(event)" class="space-y-4">
-        
-        <!-- Nombre de Mostrar / Alias -->
-        <div>
-          <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Nombre o Apodo Deportivo</label>
-          <input type="text" id="setup-name" required placeholder="Ej: Alex Torres" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+      <!-- ================= PASO 1: SELECCIÓN DE LAS 3 TARJETAS DE ROL ================= -->
+      <div id="step-roles" class="space-y-6">
+        <div class="text-center md:text-left space-y-1">
+          <h2 class="font-display font-bold text-xl md:text-2xl text-white">SELECCIONA TU PERFIL OPERATIVO</h2>
+          <p class="text-xs text-slate-400">Elige cómo vas a utilizar la plataforma para adaptar la interfaz a tu rol deportivo.</p>
         </div>
 
-        <!-- Selección de Rol Deportivo -->
-        <div>
-          <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Tu Rol Principal</label>
-          <select id="setup-role" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
-            <option value="Atleta / Jugador">Atleta / Jugador</option>
-            <option value="Entrenador / Staff">Entrenador / Preparador Físico</option>
-            <option value="Ojeador / Scout">Ojeador / Scout / Club</option>
-          </select>
-        </div>
-
-        <!-- Deporte Principal & Posición -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Deporte Principal</label>
-            <select id="setup-sport" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
-              <option value="Fútbol">Fútbol</option>
-              <option value="Baloncesto">Baloncesto</option>
-              <option value="Pádel">Pádel</option>
-              <option value="Tenis">Tenis</option>
-              <option value="Running / Atletismo">Running / Atletismo</option>
-              <option value="Crossfit / Fitness">Crossfit / Fitness</option>
-            </select>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+          
+          <!-- Tarjeta 1: Atleta -->
+          <div onclick="selectRole('Atleta / Jugador')" id="role-athlete" class="glass-card p-6 rounded-2xl border-2 border-kinet-neon cursor-pointer transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between space-y-6 bg-kinet-neon/5 relative overflow-hidden group">
+            <div class="w-12 h-12 rounded-2xl bg-kinet-neon/10 border border-kinet-neon/30 flex items-center justify-center text-kinet-neon">
+              <i data-lucide="user" class="w-6 h-6"></i>
+            </div>
+            <div class="space-y-2">
+              <h3 class="font-display font-bold text-base text-white">Atleta / Jugador</h3>
+              <p class="text-xs text-slate-400 leading-relaxed">Seguimiento de Rating GRL, Staff IA personal, control de cargas y KINET Scouting Card.</p>
+            </div>
+            <div class="pt-2 border-t border-slate-800 text-[10px] font-mono text-kinet-neon font-bold uppercase tracking-wider flex items-center justify-between">
+              <span>ACCESO ATHLETE OS</span>
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </div>
           </div>
-          <div>
-            <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Posición / Especialidad</label>
-            <input type="text" id="setup-position" placeholder="Ej: Mediocentro / Delantero" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+
+          <!-- Tarjeta 2: Entrenador -->
+          <div onclick="selectRole('Entrenador / Staff')" id="role-coach" class="glass-card p-6 rounded-2xl border-2 border-slate-800 cursor-pointer transition-all duration-300 hover:border-slate-600 hover:scale-[1.02] flex flex-col justify-between space-y-6 relative overflow-hidden group">
+            <div class="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300">
+              <i data-lucide="users" class="w-6 h-6"></i>
+            </div>
+            <div class="space-y-2">
+              <h3 class="font-display font-bold text-base text-white">Entrenador / Staff</h3>
+              <p class="text-xs text-slate-400 leading-relaxed">Gestión integral de plantilla, análisis biomecánico, táctica y prevención de lesiones.</p>
+            </div>
+            <div class="pt-2 border-t border-slate-800 text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider flex items-center justify-between">
+              <span>ACCESO COACH OS</span>
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </div>
           </div>
+
+          <!-- Tarjeta 3: Club / Ojeador -->
+          <div onclick="selectRole('Ojeador / Scout')" id="role-scout" class="glass-card p-6 rounded-2xl border-2 border-slate-800 cursor-pointer transition-all duration-300 hover:border-slate-600 hover:scale-[1.02] flex flex-col justify-between space-y-6 relative overflow-hidden group">
+            <div class="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300">
+              <i data-lucide="search" class="w-6 h-6"></i>
+            </div>
+            <div class="space-y-2">
+              <h3 class="font-display font-bold text-base text-white">Club / Ojeador (B2B)</h3>
+              <p class="text-xs text-slate-400 leading-relaxed">Scouting de alto rendimiento, mercado de fichajes verificado e informes métricos.</p>
+            </div>
+            <div class="pt-2 border-t border-slate-800 text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider flex items-center justify-between">
+              <span>ACCESO SCOUT OS</span>
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </div>
+          </div>
+
         </div>
 
-        <!-- Nivel Deportivo -->
-        <div>
-          <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Nivel de Competición</label>
-          <select id="setup-level" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
-            <option value="Amateur / Recreativo">Amateur / Recreativo</option>
-            <option value="Federado / Cantera">Federado / Cantera</option>
-            <option value="Semiprofesional">Semiprofesional</option>
-            <option value="Profesional High-Performance">Profesional High-Performance</option>
-          </select>
-        </div>
-
-        <button type="submit" class="w-full py-3.5 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-wider uppercase hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(0,255,102,0.25)] mt-2">
-          GUARDAR PERFIL & ACTIVAR DASHBOARD
+        <button onclick="goToStepDetails()" class="w-full py-4 rounded-2xl bg-kinet-neon text-black font-display font-black text-xs tracking-wider uppercase hover:bg-emerald-400 transition shadow-[0_0_25px_rgba(0,255,102,0.3)] flex items-center justify-center space-x-2">
+          <span>CONTINUAR A LA CONFIGURACIÓN TÉCNICA</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
         </button>
-      </form>
+      </div>
+
+      <!-- ================= PASO 2: FORMULARIO DE DETALLES TÉCNICOS ================= -->
+      <div id="step-details" class="space-y-6 hidden">
+        <div class="text-center md:text-left space-y-1">
+          <h2 class="font-display font-bold text-xl md:text-2xl text-white">CALIBRACIÓN DE PROFILE ATHLETE</h2>
+          <p class="text-xs text-slate-400">Rellena tus datos para inicializar tus algoritmos de rendimiento biométrico.</p>
+        </div>
+
+        <form onsubmit="completeOnboarding(event)" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">Nombre Deportivo / Alias</label>
+              <input type="text" id="setup-name" required placeholder="Ej: Alex Torres" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+            </div>
+            <div>
+              <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">Deporte Principal</label>
+              <select id="setup-sport" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+                <option value="Fútbol">Fútbol</option>
+                <option value="Baloncesto">Baloncesto</option>
+                <option value="Pádel">Pádel</option>
+                <option value="Tenis">Tenis</option>
+                <option value="Running">Running / Atletismo</option>
+                <option value="Crossfit">Crossfit / Fitness</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">Posición / Especialidad</label>
+              <input type="text" id="setup-position" placeholder="Ej: Delantero / Mediocentro" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+            </div>
+            <div>
+              <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">Nivel Competitivo</label>
+              <select id="setup-level" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+                <option value="Amateur">Amateur / Recreativo</option>
+                <option value="Cantera">Federado / Cantera</option>
+                <option value="Semiprofesional">Semiprofesional</option>
+                <option value="Profesional">Profesional High-Performance</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="flex space-x-3 pt-4">
+            <button type="button" onclick="goBackToRoles()" class="w-1/3 py-4 rounded-xl bg-slate-900 border border-slate-800 text-xs font-bold text-slate-300 hover:text-white transition">
+              Atrás
+            </button>
+            <button type="submit" class="w-2/3 py-4 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-wider uppercase hover:bg-emerald-400 transition shadow-[0_0_25px_rgba(0,255,102,0.3)]">
+              GUARDAR & ACCEDER AL DASHBOARD
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- BOTTOM FOOTER -->
+      <div class="pt-4 border-t border-slate-800/80 text-center md:text-left flex justify-between items-center text-[10px] text-slate-500 font-mono">
+        <span>KINET OS • ATHLETE ENVIRONMENT V2.6</span>
+        <span class="hidden md:inline">ENCRIPTACIÓN LOCAL PERSISTENTE</span>
+      </div>
 
     </div>
   </div>
+
 
   <!-- MODAL BLOQUEO SOCIAL PARA INVITADOS -->
   <div id="social-lock-modal" class="fixed inset-0 modal-backdrop z-50 hidden flex items-center justify-center p-4">
@@ -223,7 +293,7 @@
       </div>
       <h3 class="font-display font-bold text-base text-white">Acceso Restringido a la Red Social</h3>
       <p class="text-xs text-slate-400 leading-relaxed">
-        Para interactuar en la comunidad y publicar tu KINET Card necesitas registrar un nombre de usuario único (<strong class="text-white">@username</strong>).
+        Para interactuar en la comunidad necesitas una cuenta registrada con tu @username.
       </p>
       <div class="space-y-2 pt-2">
         <button onclick="window.location.href='index.html'" class="w-full py-3 rounded-xl bg-kinet-neon text-black font-display font-black text-xs uppercase hover:bg-emerald-400 transition">
@@ -236,35 +306,96 @@
     </div>
   </div>
 
+
   <script>
     lucide.createIcons();
 
+    let selectedRoleValue = 'Atleta / Jugador';
     const userMode = localStorage.getItem('kinet_mode') || 'guest';
     const username = localStorage.getItem('kinet_username') || 'Invitado';
 
-    // Cargar perfil o disparar Onboarding de primer acceso
-    function initDashboard() {
+    function initApp() {
       const isCompleted = localStorage.getItem('kinet_profile_completed');
-
-      // Si no ha completado el perfil, abrir modal de selección obligatorio
       if (!isCompleted) {
-        openProfileSetupModal();
+        document.getElementById('onboarding-modal').classList.remove('hidden');
+        document.getElementById('main-dashboard').classList.add('hidden');
       } else {
-        renderUserData();
+        document.getElementById('onboarding-modal').classList.add('hidden');
+        document.getElementById('main-dashboard').classList.remove('hidden');
+        renderDashboardData();
       }
     }
 
-    function renderUserData() {
-      const displayName = localStorage.getItem('kinet_display_name') || username;
-      const sport = localStorage.getItem('kinet_sport') || 'Sin especificar';
+    function selectRole(role) {
+      selectedRoleValue = role;
+
+      // Reseteamos las 3 tarjetas
+      const cards = ['role-athlete', 'role-coach', 'role-scout'];
+      cards.forEach(cardId => {
+        const el = document.getElementById(cardId);
+        el.className = "glass-card p-6 rounded-2xl border-2 border-slate-800 cursor-pointer transition-all duration-300 hover:border-slate-600 hover:scale-[1.02] flex flex-col justify-between space-y-6 relative overflow-hidden group";
+        const footer = el.querySelector('div:last-child');
+        if (footer) footer.className = "pt-2 border-t border-slate-800 text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider flex items-center justify-between";
+      });
+
+      // Marcamos la tarjeta seleccionada con borde de neón
+      let activeCardId = 'role-athlete';
+      if (role.includes('Entrenador')) activeCardId = 'role-coach';
+      if (role.includes('Ojeador')) activeCardId = 'role-scout';
+
+      const activeEl = document.getElementById(activeCardId);
+      activeEl.className = "glass-card p-6 rounded-2xl border-2 border-kinet-neon cursor-pointer transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between space-y-6 bg-kinet-neon/5 relative overflow-hidden group";
+      const activeFooter = activeEl.querySelector('div:last-child');
+      if (activeFooter) activeFooter.className = "pt-2 border-t border-slate-800 text-[10px] font-mono text-kinet-neon font-bold uppercase tracking-wider flex items-center justify-between";
+    }
+
+    function goToStepDetails() {
+      document.getElementById('step-roles').classList.add('hidden');
+      document.getElementById('step-details').classList.remove('hidden');
+      document.getElementById('step-indicator').innerHTML = 'PASO <span class="text-kinet-neon font-bold">02</span> / 02';
+    }
+
+    function goBackToRoles() {
+      document.getElementById('step-details').classList.add('hidden');
+      document.getElementById('step-roles').classList.remove('hidden');
+      document.getElementById('step-indicator').innerHTML = 'PASO <span class="text-kinet-neon font-bold">01</span> / 02';
+    }
+
+    function completeOnboarding(e) {
+      e.preventDefault();
+      const name = document.getElementById('setup-name').value;
+      const sport = document.getElementById('setup-sport').value;
+      const position = document.getElementById('setup-position').value;
+      const level = document.getElementById('setup-level').value;
+
+      localStorage.setItem('kinet_display_name', name);
+      localStorage.setItem('kinet_role', selectedRoleValue);
+      localStorage.setItem('kinet_sport', sport);
+      localStorage.setItem('kinet_position', position);
+      localStorage.setItem('kinet_level', level);
+      localStorage.setItem('kinet_profile_completed', 'true');
+
+      document.getElementById('onboarding-modal').classList.add('hidden');
+      document.getElementById('main-dashboard').classList.remove('hidden');
+      renderDashboardData();
+    }
+
+    function reopenOnboarding() {
+      document.getElementById('main-dashboard').classList.add('hidden');
+      document.getElementById('onboarding-modal').classList.remove('hidden');
+      goBackToRoles();
+    }
+
+    function renderDashboardData() {
+      const name = localStorage.getItem('kinet_display_name') || username;
+      const sport = localStorage.getItem('kinet_sport') || 'Fútbol';
       const role = localStorage.getItem('kinet_role') || 'Atleta';
       const position = localStorage.getItem('kinet_position') || '';
       const level = localStorage.getItem('kinet_level') || '';
 
-      document.getElementById('welcome-title').textContent = "Bienvenido, " + displayName;
+      document.getElementById('welcome-title').textContent = "Bienvenido, " + name;
       document.getElementById('user-sport-tag').textContent = sport.toUpperCase();
       document.getElementById('user-details-text').textContent = role + " • " + (position ? position + " • " : "") + level;
-      document.getElementById('user-grl-val').textContent = (userMode === 'guest') ? "75.0" : "88.4";
 
       const userBadge = document.getElementById('user-role-badge');
       const guestAlert = document.getElementById('guest-alert');
@@ -282,33 +413,6 @@
       lucide.createIcons();
     }
 
-    function openProfileSetupModal() {
-      document.getElementById('profile-setup-modal').classList.remove('hidden');
-    }
-
-    function closeProfileSetupModal() {
-      document.getElementById('profile-setup-modal').classList.add('hidden');
-    }
-
-    function saveProfileSetup(e) {
-      e.preventDefault();
-      const name = document.getElementById('setup-name').value;
-      const role = document.getElementById('setup-role').value;
-      const sport = document.getElementById('setup-sport').value;
-      const position = document.getElementById('setup-position').value;
-      const level = document.getElementById('setup-level').value;
-
-      localStorage.setItem('kinet_display_name', name);
-      localStorage.setItem('kinet_role', role);
-      localStorage.setItem('kinet_sport', sport);
-      localStorage.setItem('kinet_position', position);
-      localStorage.setItem('kinet_level', level);
-      localStorage.setItem('kinet_profile_completed', 'true');
-
-      closeProfileSetupModal();
-      renderUserData();
-    }
-
     function checkSocialAccess() {
       if (userMode === 'guest') {
         document.getElementById('social-lock-modal').classList.remove('hidden');
@@ -324,6 +428,12 @@
     function logout() {
       localStorage.clear();
       window.location.href = 'index.html';
+    }
+
+    initApp();
+  </script>
+</body>
+</html>
     }
 
     // Inicializar al cargar
