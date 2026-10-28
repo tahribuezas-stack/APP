@@ -167,11 +167,21 @@
     const userMode = localStorage.getItem('kinet_mode') || 'guest';
     const username = localStorage.getItem('kinet_username') || 'Invitado';
 
+    function getCorrectOnboardingFile() {
+      const role = localStorage.getItem('kinet_role') || '';
+      if (role.includes('Entrenador') || role.includes('Staff') || role.includes('Preparador') || role.includes('Analista')) {
+        return 'onboarding_coach_pro.html';
+      }
+      if (role.includes('Director') || role.includes('Ojeador') || role.includes('Agencia') || role.includes('Scout')) {
+        return 'onboarding_scout_pro.html';
+      }
+      return 'onboarding_pro.html';
+    }
+
     function initApp() {
       const isCompleted = localStorage.getItem('kinet_profile_completed');
       if (!isCompleted) {
-        // Redirigir directamente al nuevo Onboarding Pro avanzado
-        window.location.href = 'onboarding_pro.html';
+        window.location.href = getCorrectOnboardingFile();
       } else {
         document.getElementById('main-dashboard').classList.remove('hidden');
         renderDashboardData();
@@ -179,7 +189,7 @@
     }
 
     function reopenOnboarding() {
-      window.location.href = 'onboarding_pro.html';
+      window.location.href = getCorrectOnboardingFile();
     }
 
     function renderDashboardData() {
