@@ -131,18 +131,18 @@
           <form onsubmit="handleLoginSubmit(event)" class="space-y-3 pt-1">
             <div>
               <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Email o Teléfono</label>
-              <input type="text" required placeholder="atleta@kinet.com o +34 600..." class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+              <input type="text" id="login-email-input" required placeholder="atleta@kinet.com o +34 600..." class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
             </div>
 
             <div id="login-pass-field">
               <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Contraseña</label>
-              <input type="password" placeholder="••••••••••••" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+              <input type="password" required placeholder="••••••••••••" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
             </div>
 
             <div id="login-otp-field" class="hidden space-y-2">
               <div class="flex justify-between items-center">
                 <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Código de Verificación (6 dígitos)</label>
-                <button type="button" onclick="showNotification('Código enviado a tu dispositivo')" class="text-[10px] text-kinet-neon hover:underline font-mono">Enviar Código</button>
+                <button type="button" onclick="showNotification('Código de verificación enviado a tu dispositivo')" class="text-[10px] text-kinet-neon hover:underline font-mono">Enviar Código</button>
               </div>
               <input type="text" maxlength="6" placeholder="123 456" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-3 text-xs text-center tracking-widest font-mono text-white focus:outline-none focus:border-kinet-neon transition">
             </div>
@@ -251,18 +251,18 @@
       </div>
       <div>
         <h3 class="font-bold text-base text-white">Inicia sesión con Google</h3>
-        <p class="text-xs text-slate-400 mt-1">Selecciona una cuenta para continuar en KINET OS</p>
+        <p class="text-xs text-slate-400 mt-1">Introduce tu correo de Google para continuar</p>
       </div>
-      <div class="space-y-2 text-left">
-        <button onclick="confirmGoogleLogin('atleta.ejemplo@gmail.com')" class="w-full p-3 rounded-xl bg-[#212630] hover:bg-[#2B3240] transition flex items-center space-x-3 border border-slate-700/60">
-          <div class="w-8 h-8 rounded-full bg-emerald-500 text-black font-bold flex items-center justify-center text-xs">A</div>
-          <div>
-            <p class="text-xs font-semibold text-white">Atleta Ejemplo</p>
-            <p class="text-[10px] text-slate-400">atleta.ejemplo@gmail.com</p>
-          </div>
+      <div class="space-y-3 text-left">
+        <div>
+          <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Correo de Google</label>
+          <input type="email" id="google-email-input" placeholder="tu.nombre@gmail.com" class="w-full bg-[#12161C] border border-slate-700 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+        </div>
+        <button onclick="confirmGoogleLogin()" class="w-full py-3 rounded-xl bg-kinet-neon text-black font-display font-bold text-xs uppercase hover:bg-emerald-400 transition">
+          Continuar con esta cuenta
         </button>
       </div>
-      <button onclick="closeGoogleSimModal()" class="text-xs text-slate-400 hover:text-white">Cancelar</button>
+      <button onclick="closeGoogleSimModal()" class="text-xs text-slate-400 hover:text-white pt-2">Cancelar</button>
     </div>
   </div>
 
@@ -274,13 +274,6 @@
 
   <script>
     lucide.createIcons();
-
-    // Redirección robusta utilizando el directorio actual exacto
-    function redirectToApp() {
-      const path = window.location.pathname;
-      const baseDir = path.substring(0, path.lastIndexOf('/') + 1);
-      window.location.href = window.location.origin + baseDir + 'fase1.html';
-    }
 
     function switchMainTab(tab) {
       const loginBox = document.getElementById('container-login');
@@ -335,22 +328,25 @@
 
     function handleLoginSubmit(e) {
       e.preventDefault();
+      const inputVal = document.getElementById('login-email-input').value;
       localStorage.setItem('kinet_mode', 'pro');
-      localStorage.setItem('kinet_username', 'AtletaPro');
-      redirectToApp();
+      localStorage.setItem('kinet_username', '@' + inputVal.split('@')[0]);
+      window.location.href = './fase1.html';
     }
 
     function handleRegisterSubmit(e) {
       e.preventDefault();
+      const user = document.getElementById('reg-username').value;
       localStorage.setItem('kinet_mode', 'pro');
-      localStorage.setItem('kinet_username', '@atleta');
-      redirectToApp();
+      localStorage.setItem('kinet_username', '@' + user);
+      window.location.href = './fase1.html';
     }
 
     function goToGuest() {
+      const guestId = 'guest_' + Math.random().toString(36).substring(2, 8);
       localStorage.setItem('kinet_mode', 'guest');
-      localStorage.removeItem('kinet_username');
-      redirectToApp();
+      localStorage.setItem('kinet_username', guestId);
+      window.location.href = './fase1.html';
     }
 
     function openRecoveryModal() {
@@ -375,11 +371,16 @@
       document.getElementById('google-modal').classList.add('hidden');
     }
 
-    function confirmGoogleLogin(email) {
+    function confirmGoogleLogin() {
+      const googleInput = document.getElementById('google-email-input').value;
+      if (!googleInput) {
+        showNotification('Por favor, introduce tu correo de Google');
+        return;
+      }
       closeGoogleSimModal();
       localStorage.setItem('kinet_mode', 'pro');
-      localStorage.setItem('kinet_username', '@google_user');
-      redirectToApp();
+      localStorage.setItem('kinet_username', '@' + googleInput.split('@')[0]);
+      window.location.href = './fase1.html';
     }
 
     function showNotification(msg) {
