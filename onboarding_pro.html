@@ -143,7 +143,7 @@
       </div>
     </div>
 
-    <!-- ================= PASO 1 (ANTIGUO PASO 2): SELECCIÓN DE DEPORTE ================= -->
+    <!-- ================= PASO 1: SELECCIÓN DE DEPORTE ================= -->
     <div id="step-2" class="space-y-6">
       <div class="flex justify-between items-center">
         <div class="space-y-1">
@@ -208,7 +208,7 @@
       </div>
     </div>
 
-    <!-- ================= PASO 2 (ANTIGUO PASO 3): CATEGORÍA ================= -->
+    <!-- ================= PASO 2: CATEGORÍA ================= -->
     <div id="step-3" class="space-y-6 hidden">
       <div class="flex justify-between items-center">
         <div class="space-y-1">
@@ -230,12 +230,12 @@
       </div>
     </div>
 
-    <!-- ================= PASO 3 (ANTIGUO PASO 4): CANCHA / POSICIÓN ================= -->
+    <!-- ================= PASO 3: CANCHA / POSICIÓN ESPECÍFICA POR DEPORTE ================= -->
     <div id="step-4" class="space-y-6 hidden">
       <div class="flex justify-between items-center">
         <div class="space-y-1">
-          <h2 id="pitch-title" class="font-display font-bold text-lg md:text-xl text-white tracking-wide">3. CAMPO DE FÚTBOL & POSICIONES</h2>
-          <p id="pitch-subtitle" class="text-xs text-slate-400">Toca tu zona o especialidad en el terreno.</p>
+          <h2 id="pitch-title" class="font-display font-bold text-lg md:text-xl text-white tracking-wide">3. POSICIÓN & TÁCTICA</h2>
+          <p id="pitch-subtitle" class="text-xs text-slate-400">Selecciona tu rol o demarcación específica.</p>
         </div>
         <button onclick="nextStep(3)" class="flex items-center space-x-1.5 bg-[#12161C] hover:bg-slate-800 border border-slate-700/80 px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-300 transition">
           <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
@@ -258,7 +258,7 @@
       </div>
     </div>
 
-    <!-- ================= PASO 4 (ANTIGUO PASO 5): BIOMETRÍA ================= -->
+    <!-- ================= PASO 4: BIOMETRÍA ================= -->
     <div id="step-5" class="space-y-6 hidden">
       <div class="flex justify-between items-center">
         <div class="space-y-1">
@@ -307,7 +307,7 @@
       </div>
     </div>
 
-    <!-- ================= PASO 5 (ANTIGUO PASO 6): CHAT ASISTENTE IA ================= -->
+    <!-- ================= PASO 5: CHAT ASISTENTE IA ================= -->
     <div id="step-6" class="space-y-6 hidden">
       <div class="flex justify-between items-center border-b border-slate-800 pb-4">
         <div class="flex items-center space-x-3">
@@ -399,37 +399,34 @@
       }
       setTimeout(() => {
         window.location.href = urlDestino;
-      }, 1200); // 1.2 segundos que dura la animación de salida
+      }, 250); 
     }
 
-  function nextStep(stepNum) {
-  const visualStep = stepNum - 1;
-  const stepNumEl = document.getElementById('step-num');
-  if (stepNumEl) stepNumEl.textContent = "0" + (visualStep > 0 ? visualStep : 1);
-  
-  // Ocultar todos los pasos y quitar la clase de animación
-  for (let i = 1; i <= 6; i++) {
-    const el = document.getElementById('step-' + i);
-    if (el) {
-      el.classList.add('hidden');
-      el.classList.remove('step-liquid-enter');
+    function nextStep(stepNum) {
+      const visualStep = stepNum - 1;
+      const stepNumEl = document.getElementById('step-num');
+      if (stepNumEl) stepNumEl.textContent = "0" + (visualStep > 0 ? visualStep : 1);
+      
+      for (let i = 1; i <= 6; i++) {
+        const el = document.getElementById('step-' + i);
+        if (el) {
+          el.classList.add('hidden');
+          el.classList.remove('step-liquid-enter');
+        }
+      }
+
+      const target = document.getElementById('step-' + stepNum);
+      if (target) {
+        target.classList.remove('hidden');
+        void target.offsetWidth;
+        target.classList.add('step-liquid-enter');
+      }
+
+      if (stepNum === 3) renderCategories();
+      else if (stepNum === 4) renderSportPitch();
+      else if (stepNum === 5 && typeof configureAgeAndBudgetScales === 'function') configureAgeAndBudgetScales();
+      else if (stepNum === 6) setupAiChatGreeting();
     }
-  }
-
-  // Mostrar el paso objetivo con la animación elástica rápida
-  const target = document.getElementById('step-' + stepNum);
-  if (target) {
-    target.classList.remove('hidden');
-    // Forzar el reinicio de la animación CSS
-    void target.offsetWidth;
-    target.classList.add('step-liquid-enter');
-  }
-
-  if (stepNum === 3) renderCategories();
-  else if (stepNum === 4) renderSportPitch ? renderSportPitch() : (renderScoutRadarOptions && renderScoutRadarOptions());
-  else if (stepNum === 5 && typeof configureAgeAndBudgetScales === 'function') configureAgeAndBudgetScales();
-  else if (stepNum === 6) setupAiChatGreeting ? setupAiChatGreeting() : (setupAiScoutGreeting && setupAiScoutGreeting());
-}
 
     function selectSport(val) {
       state.sport = val;
@@ -529,7 +526,66 @@
           </div>
         `;
         setSubOptions('Delantero', ['Delantero Centro (DC)', 'Falso 9', 'Mediapunta (10)']);
+      } else if (sport === 'Baloncesto') {
+        title.textContent = "3. PISTA DE BALONCESTO & POSICIONES";
+        subtitle.textContent = "Selecciona tu demarcación en la pista.";
+        container.className = "relative w-full h-[240px] pitch-futbol rounded-2xl p-4 flex flex-col justify-between overflow-hidden";
+        container.innerHTML = `
+          <div class="flex justify-around items-center z-10">
+            <button onclick="setSubOptions('Base / Perímetro', ['Base Organizador (PG)', 'Escolta Tirador (SG)'])" class="px-3 py-1.5 rounded-xl bg-emerald-500/20 border border-kinet-neon text-kinet-neon font-bold text-xs">EXTERIOR / PERÍMETRO</button>
+          </div>
+          <div class="flex justify-around items-center z-10">
+            <button onclick="setSubOptions('Alero', ['Alero Puro (SF)', 'Alero Alto / 3-4 Versátil'])" class="px-3 py-1.5 rounded-xl bg-emerald-500/20 border border-kinet-neon text-kinet-neon font-bold text-xs">ALERO (SF)</button>
+          </div>
+          <div class="flex justify-around items-center z-10">
+            <button onclick="setSubOptions('Interior / Pintura', ['Ala-Pívot (PF)', 'Pívot Fuerte (C)'])" class="px-3.5 py-1.5 rounded-xl bg-emerald-500/20 border border-kinet-neon text-kinet-neon font-bold text-xs">INTERIOR / PINTURA</button>
+          </div>
+        `;
+        setSubOptions('Base / Perímetro', ['Base Organizador (PG)', 'Escolta Tirador (SG)']);
+      } else if (sport === 'Pádel / Tenis') {
+        title.textContent = "3. PISTA & POSICIÓN EN LA RED";
+        subtitle.textContent = "Indica tu lado habitual en la pista.";
+        container.className = "relative w-full h-[240px] pitch-futbol rounded-2xl p-4 flex flex-col justify-center items-center space-y-4 overflow-hidden";
+        container.innerHTML = `
+          <div class="flex justify-center items-center space-x-3 z-10">
+            <button onclick="setSubOptions('Drive (Derecha)', ['Drive Clásico', 'Drive Agresivo'])" class="px-4 py-2 rounded-xl bg-emerald-500/20 border border-kinet-neon text-kinet-neon font-bold text-xs">DRIVE (DERECHA)</button>
+            <button onclick="setSubOptions('Revés (Izquierda)', ['Revés Defensivo', 'Revés Definidor'])" class="px-4 py-2 rounded-xl bg-emerald-500/20 border border-kinet-neon text-kinet-neon font-bold text-xs">REVÉS (IZQUIERDA)</button>
+          </div>
+          <div class="flex justify-center items-center z-10">
+            <button onclick="setSubOptions('Jugador Total / Polivalente', ['Cambio de Lado Frecuente', 'Estilo Libre'])" class="px-3.5 py-1.5 rounded-lg bg-slate-900/90 border border-slate-700 text-slate-200 text-xs">JUGADOR TOTAL / AMBOS</button>
+          </div>
+        `;
+        setSubOptions('Drive (Derecha)', ['Drive Clásico', 'Drive Agresivo']);
+      } else if (sport === 'Boxeo / MMA') {
+        title.textContent = "3. ESTILO DE COMBATE & GUARDIA";
+        subtitle.textContent = "Define tu estrategia principal en el ring.";
+        container.className = "relative w-full h-[240px] pitch-futbol rounded-2xl p-4 flex flex-col justify-center items-center space-y-4 overflow-hidden";
+        container.innerHTML = `
+          <div class="flex justify-center items-center space-x-3 z-10">
+            <button onclick="setSubOptions('Fajador / Puncher', ['Presión Constante', 'Pegador de K.O.'])" class="px-4 py-2 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-400 font-bold text-xs">FAJADOR / PRESIÓN</button>
+            <button onclick="setSubOptions('Estilista / Out-Boxer', ['Jabs a Distancia', 'Movilidad de Pies'])" class="px-4 py-2 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-400 font-bold text-xs">ESTILISTA / DISTANCIA</button>
+          </div>
+          <div class="flex justify-center items-center z-10">
+            <button onclick="setSubOptions('Contragolpeador / Lucha Total', ['Counter-Puncher', 'MMA All-Rounder (Grappling/Striking)'])" class="px-3.5 py-1.5 rounded-lg bg-slate-900/90 border border-slate-700 text-slate-200 text-xs">CONTRAGOLPEADOR / LUCHADOR TOTAL</button>
+          </div>
+        `;
+        setSubOptions('Fajador / Puncher', ['Presión Constante', 'Pegador de K.O.']);
+      } else if (sport === 'Running') {
+        title.textContent = "3. ESPECIALIDAD DE CARRERA";
+        subtitle.textContent = "Indica tu distancia o disciplina principal.";
+        container.className = "relative w-full h-[240px] pitch-futbol rounded-2xl p-4 flex flex-col justify-center items-center space-y-4 overflow-hidden";
+        container.innerHTML = `
+          <div class="flex justify-center items-center space-x-3 z-10">
+            <button onclick="setSubOptions('Velocista', ['100m - 200m', '400m Lisos / Vallas'])" class="px-4 py-2 rounded-xl bg-emerald-500/20 border border-kinet-neon text-kinet-neon font-bold text-xs">VELOCIDAD (100m - 400m)</button>
+            <button onclick="setSubOptions('Medio Fondo', ['800m', '1500m / 3000m Obstáculos'])" class="px-4 py-2 rounded-xl bg-emerald-500/20 border border-kinet-neon text-kinet-neon font-bold text-xs">MEDIO FONDO (800m - 1500m)</button>
+          </div>
+          <div class="flex justify-center items-center z-10">
+            <button onclick="setSubOptions('Fondo / Ruta', ['5k - 10k', 'Media Maratón / Maratón 42k'])" class="px-3.5 py-1.5 rounded-lg bg-slate-900/90 border border-slate-700 text-slate-200 text-xs">FONDO & RESISTENCIA (5k a Maratón)</button>
+          </div>
+        `;
+        setSubOptions('Velocista', ['100m - 200m', '400m Lisos / Vallas']);
       } else {
+        // Otros Deportes (Mantiene la opción libre personalizada)
         title.textContent = "3. IDENTIFICACIÓN DE TU DISCIPLINA";
         subtitle.textContent = "Escribe tu especialidad exacta.";
         subBox.classList.add('hidden');
