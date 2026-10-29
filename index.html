@@ -279,15 +279,13 @@
       const isCompleted = localStorage.getItem('kinet_profile_completed');
       const role = localStorage.getItem('kinet_role');
 
-      // Si ya completó su perfil antes y tiene rol guardado, va directo a su onboarding/dashboard
       if (isCompleted && role) {
         if (role.includes('Entrenador') || role.includes('Staff')) return 'onboarding_coach_pro.html';
         if (role.includes('Director') || role.includes('Ojeador') || role.includes('Club')) return 'onboarding_scout_pro.html';
         return 'onboarding_pro.html';
       }
 
-      // Si es primera vez o registro de nuevo usuario/invitado, abre la pantalla de Selección de Perfil (fase1.html)
-      return 'fase1.html';
+      return 'onboarding_pro.html'; // Salto directo al onboarding limpio sin pantallas repetidas intermedias
     }
 
     function switchMainTab(tab) {
@@ -352,58 +350,4 @@
     function handleRegisterSubmit(e) {
       e.preventDefault();
       const user = document.getElementById('reg-username').value;
-      localStorage.setItem('kinet_mode', 'pro');
-      localStorage.setItem('kinet_username', '@' + user);
-      window.location.href = 'fase1.html';
-    }
-
-    function goToGuest() {
-      const guestId = 'guest_' + Math.random().toString(36).substring(2, 8);
-      localStorage.setItem('kinet_mode', 'guest');
-      localStorage.setItem('kinet_username', guestId);
-      window.location.href = 'fase1.html';
-    }
-
-    function openRecoveryModal() {
-      document.getElementById('recovery-modal').classList.remove('hidden');
-    }
-
-    function closeRecoveryModal() {
-      document.getElementById('recovery-modal').classList.add('hidden');
-    }
-
-    function handleRecoverySubmit(e) {
-      e.preventDefault();
-      closeRecoveryModal();
-      showNotification('Enlace de recuperación enviado con éxito');
-    }
-
-    function openGoogleSimModal() {
-      document.getElementById('google-modal').classList.remove('hidden');
-    }
-
-    function closeGoogleSimModal() {
-      document.getElementById('google-modal').classList.add('hidden');
-    }
-
-    function confirmGoogleLogin() {
-      const googleInput = document.getElementById('google-email-input').value;
-      if (!googleInput) {
-        showNotification('Por favor, introduce tu correo de Google');
-        return;
-      }
-      closeGoogleSimModal();
-      localStorage.setItem('kinet_mode', 'pro');
-      localStorage.setItem('kinet_username', '@' + googleInput.split('@')[0]);
-      window.location.href = getNextDestination();
-    }
-
-    function showNotification(msg) {
-      const toast = document.getElementById('toast-notification');
-      document.getElementById('toast-message').textContent = msg;
-      toast.classList.remove('hidden');
-      setTimeout(() => toast.classList.add('hidden'), 3500);
-    }
-  </script>
-</body>
-</html>
+      localStorage.setItem('kinet_mode
