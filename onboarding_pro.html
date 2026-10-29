@@ -37,12 +37,21 @@
   <style>
     .bg-cyber-pattern {
       background-color: #080A0C;
-      background-image: radial-gradient(circle at 50% 0%, rgba(0, 255, 102, 0.12) 0%, transparent 60%);
+      background-image: radial-gradient(circle at 50% 0%, rgba(0, 255, 102, 0.08) 0%, transparent 60%);
     }
     .glass-card {
-      background: rgba(19, 23, 29, 0.85);
-      backdrop-filter: blur(14px);
+      background: rgba(14, 18, 24, 0.9);
+      backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.25s ease;
+    }
+    .glass-card:hover {
+      border-color: rgba(0, 255, 102, 0.3);
+    }
+    .glass-card.selected {
+      border-color: #00FF66 !important;
+      box-shadow: 0 0 20px rgba(0, 255, 102, 0.15);
+      background: rgba(0, 255, 102, 0.03);
     }
     .pitch-futbol {
       background: radial-gradient(circle, rgba(0, 255, 102, 0.15) 0%, rgba(10, 14, 18, 0.95) 80%),
@@ -67,107 +76,130 @@
       width: 20px;
       border-radius: 50%;
       background: #00FF66;
-      box-shadow: 0 0 10px rgba(0, 255, 102, 0.8);
+      box-shadow: 0 0 12px rgba(0, 255, 102, 0.8);
       cursor: pointer;
     }
   </style>
 </head>
 <body class="bg-cyber-pattern text-slate-100 font-sans min-h-screen flex items-center justify-center p-4">
 
-  <div class="relative w-full max-w-3xl bg-[#0A0C0E] rounded-[28px] border border-slate-800 shadow-[0_0_80px_rgba(0,0,0,0.95)] p-6 space-y-6">
+  <!-- CONTENEDOR PRINCIPAL FIJO Y UNIFICADO -->
+  <div class="relative w-full max-w-4xl bg-[#090B0E] rounded-[32px] border border-slate-800/80 shadow-[0_0_90px_rgba(0,0,0,0.9)] p-6 md:p-8 space-y-6">
     
-    <!-- HEADER -->
-    <div class="flex justify-between items-center border-b border-slate-800/80 pb-4">
+    <!-- HEADER UNIFICADO -->
+    <div class="flex items-center justify-between border-b border-slate-800/80 pb-4">
       <div class="flex items-center space-x-3">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-kinet-neon to-emerald-600 font-display font-black text-black text-lg flex items-center justify-center shadow-[0_0_15px_rgba(0,255,102,0.4)]">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-kinet-neon to-emerald-600 font-display font-black text-black text-lg flex items-center justify-center shadow-[0_0_15px_rgba(0,255,102,0.4)]">
           K
         </div>
         <div>
-          <h1 class="font-display font-black text-base tracking-[0.15em] text-white leading-none">KINET OS</h1>
-          <p class="text-[9px] text-kinet-neon font-mono tracking-widest uppercase mt-0.5">PRECISION CALIBRATION</p>
+          <h1 class="font-display font-black text-base md:text-xl tracking-[0.2em] text-white leading-none">KINET OS</h1>
+          <p class="text-[9px] text-kinet-neon font-mono tracking-widest uppercase mt-1">PRECISION CALIBRATION</p>
         </div>
       </div>
-      
-      <div class="flex items-center space-x-2">
-        <div class="px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs font-mono text-slate-400">
+
+      <div class="flex items-center space-x-3">
+        <div class="bg-slate-900 border border-slate-800 px-3.5 py-1 rounded-full text-xs font-mono text-slate-400">
           PASO <span id="step-num" class="text-kinet-neon font-bold">02</span> / 06
         </div>
       </div>
     </div>
 
-    <!-- PASO 2: SELECCIÓN DE DEPORTE -->
-    <div id="step-2" class="space-y-4">
+    <!-- ================= PASO 2: SELECCIÓN DE DEPORTE ================= -->
+    <div id="step-2" class="space-y-6">
       <div class="flex justify-between items-center">
         <div class="space-y-1">
-          <h2 class="font-display font-bold text-lg text-white">2. SELECCIONA TU DEPORTE</h2>
+          <h2 class="font-display font-bold text-lg md:text-xl text-white tracking-wide">2. SELECCIONA TU DEPORTE</h2>
           <p class="text-xs text-slate-400">La interfaz adaptará la categoría, el terreno y la táctica.</p>
         </div>
-        <button onclick="window.location.href='fase1.html'" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 hover:text-white transition flex items-center space-x-1.5">
+        <button onclick="window.location.href='fase1.html'" class="flex items-center space-x-1.5 bg-[#12161C] hover:bg-slate-800 border border-slate-700/80 px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-300 transition">
           <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
           <span>Volver a Perfil</span>
         </button>
       </div>
 
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
-        <div onclick="selectSport('Fútbol')" id="sport-futbol" class="glass-card p-4 rounded-2xl border-2 border-kinet-neon cursor-pointer transition text-center space-y-2 bg-kinet-neon/5">
-          <span class="text-3xl">⚽</span>
-          <p class="font-display font-bold text-xs text-white">Fútbol</p>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div onclick="selectSport('Fútbol')" id="sport-futbol" class="glass-card selected p-5 rounded-2xl cursor-pointer space-y-3 bg-kinet-neon/5">
+          <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-xl">⚽</div>
+          <div class="space-y-0.5">
+            <h3 class="font-display font-bold text-xs text-white">Fútbol</h3>
+            <p class="text-[10px] text-slate-400">Campo 11 y césped natural/artificial.</p>
+          </div>
         </div>
-        <div onclick="selectSport('Baloncesto')" id="sport-baloncesto" class="glass-card p-4 rounded-2xl border-2 border-slate-800 cursor-pointer transition text-center space-y-2 hover:border-slate-600">
-          <span class="text-3xl">🏀</span>
-          <p class="font-display font-bold text-xs text-white">Baloncesto</p>
+        <div onclick="selectSport('Baloncesto')" id="sport-baloncesto" class="glass-card p-5 rounded-2xl cursor-pointer space-y-3">
+          <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-xl">🏀</div>
+          <div class="space-y-0.5">
+            <h3 class="font-display font-bold text-xs text-white">Baloncesto</h3>
+            <p class="text-[10px] text-slate-400">Pista cubierta y alta intensidad.</p>
+          </div>
         </div>
-        <div onclick="selectSport('Pádel / Tenis')" id="sport-padel" class="glass-card p-4 rounded-2xl border-2 border-slate-800 cursor-pointer transition text-center space-y-2 hover:border-slate-600">
-          <span class="text-3xl">🎾</span>
-          <p class="font-display font-bold text-xs text-white">Pádel / Tenis</p>
+        <div onclick="selectSport('Pádel / Tenis')" id="sport-padel" class="glass-card p-5 rounded-2xl cursor-pointer space-y-3">
+          <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-xl">🎾</div>
+          <div class="space-y-0.5">
+            <h3 class="font-display font-bold text-xs text-white">Pádel / Tenis</h3>
+            <p class="text-[10px] text-slate-400">Pista de vidrio y moqueta.</p>
+          </div>
         </div>
-        <div onclick="selectSport('Boxeo / MMA')" id="sport-boxeo" class="glass-card p-4 rounded-2xl border-2 border-slate-800 cursor-pointer transition text-center space-y-2 hover:border-slate-600">
-          <span class="text-3xl">🥊</span>
-          <p class="font-display font-bold text-xs text-white">Boxeo / MMA</p>
+        <div onclick="selectSport('Boxeo / MMA')" id="sport-boxeo" class="glass-card p-5 rounded-2xl cursor-pointer space-y-3">
+          <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-xl">🥊</div>
+          <div class="space-y-0.5">
+            <h3 class="font-display font-bold text-xs text-white">Boxeo / MMA</h3>
+            <p class="text-[10px] text-slate-400">Ring, jaula y preparación de combate.</p>
+          </div>
         </div>
-        <div onclick="selectSport('Running')" id="sport-running" class="glass-card p-4 rounded-2xl border-2 border-slate-800 cursor-pointer transition text-center space-y-2 hover:border-slate-600">
-          <span class="text-3xl">🏃</span>
-          <p class="font-display font-bold text-xs text-white">Running / Atletismo</p>
+        <div onclick="selectSport('Running')" id="sport-running" class="glass-card p-5 rounded-2xl cursor-pointer space-y-3">
+          <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-xl">🏃</div>
+          <div class="space-y-0.5">
+            <h3 class="font-display font-bold text-xs text-white">Running / Atletismo</h3>
+            <p class="text-[10px] text-slate-400">Asfalto, pista y resistencia.</p>
+          </div>
         </div>
-        <div onclick="selectSport('Otros Deportes')" id="sport-otros" class="glass-card p-4 rounded-2xl border-2 border-slate-800 cursor-pointer transition text-center space-y-2 hover:border-slate-600">
-          <span class="text-3xl">🥇</span>
-          <p class="font-display font-bold text-xs text-white">Otros Deportes</p>
+        <div onclick="selectSport('Otros Deportes')" id="sport-otros" class="glass-card p-5 rounded-2xl cursor-pointer space-y-3">
+          <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-xl">🥇</div>
+          <div class="space-y-0.5">
+            <h3 class="font-display font-bold text-xs text-white">Otros Deportes</h3>
+            <p class="text-[10px] text-slate-400">Multidisciplina y personalización.</p>
+          </div>
         </div>
       </div>
 
-      <button onclick="nextStep(3)" class="w-full py-3.5 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-widest uppercase hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(0,255,102,0.25)]">
-        CONTINUAR A CATEGORÍA
-      </button>
+      <div>
+        <button onclick="nextStep(3)" class="w-full py-4 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(0,255,102,0.25)] text-center">
+          CONTINUAR A CATEGORÍA
+        </button>
+      </div>
     </div>
 
-    <!-- PASO 3: CATEGORÍA -->
-    <div id="step-3" class="space-y-4 hidden">
+    <!-- ================= PASO 3: CATEGORÍA ================= -->
+    <div id="step-3" class="space-y-6 hidden">
       <div class="flex justify-between items-center">
         <div class="space-y-1">
-          <h2 class="font-display font-bold text-lg text-white">3. NIVEL DE COMPETICIÓN</h2>
+          <h2 id="cat-title" class="font-display font-bold text-lg md:text-xl text-white tracking-wide">3. NIVEL DE COMPETICIÓN</h2>
           <p class="text-xs text-slate-400">Categorías adaptadas a tu disciplina deportiva.</p>
         </div>
-        <button onclick="nextStep(2)" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 hover:text-white transition flex items-center space-x-1.5">
+        <button onclick="nextStep(2)" class="flex items-center space-x-1.5 bg-[#12161C] hover:bg-slate-800 border border-slate-700/80 px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-300 transition">
           <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
           <span>Atrás</span>
         </button>
       </div>
 
-      <div id="categories-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+      <div id="categories-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
 
-      <button onclick="nextStep(4)" class="w-full py-3.5 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-widest uppercase hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(0,255,102,0.25)]">
-        CONTINUAR A POSICIÓN / TÁCTICA
-      </button>
+      <div>
+        <button onclick="nextStep(4)" class="w-full py-4 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(0,255,102,0.25)] text-center">
+          CONTINUAR A POSICIÓN / TÁCTICA
+        </button>
+      </div>
     </div>
 
-    <!-- PASO 4: CANCHA -->
-    <div id="step-4" class="space-y-4 hidden">
+    <!-- ================= PASO 4: CANCHA / POSICIÓN ================= -->
+    <div id="step-4" class="space-y-6 hidden">
       <div class="flex justify-between items-center">
         <div class="space-y-1">
-          <h2 id="pitch-title" class="font-display font-bold text-lg text-white">4. TÁCTICA Y POSICIÓN EN EL CAMPO</h2>
+          <h2 id="pitch-title" class="font-display font-bold text-lg md:text-xl text-white tracking-wide">4. CAMPO DE FÚTBOL & POSICIONES</h2>
           <p id="pitch-subtitle" class="text-xs text-slate-400">Toca tu zona o especialidad en el terreno.</p>
         </div>
-        <button onclick="nextStep(3)" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 hover:text-white transition flex items-center space-x-1.5">
+        <button onclick="nextStep(3)" class="flex items-center space-x-1.5 bg-[#12161C] hover:bg-slate-800 border border-slate-700/80 px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-300 transition">
           <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
           <span>Atrás</span>
         </button>
@@ -177,30 +209,32 @@
 
       <div id="sub-position-box" class="glass-card p-4 rounded-2xl border border-kinet-neon/40 space-y-2">
         <p class="text-[10px] font-mono text-kinet-neon uppercase">Especialidad seleccionada:</p>
-        <p id="selected-pos-display" class="font-display font-bold text-sm text-white">Selecciona una posición arriba</p>
+        <p id="selected-pos-display" class="font-display font-bold text-xs text-white">Selecciona una posición arriba</p>
         <div id="sub-position-options" class="flex flex-wrap gap-2 pt-1"></div>
       </div>
 
-      <button onclick="nextStep(5)" class="w-full py-3.5 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-widest uppercase hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(0,255,102,0.25)]">
-        CONTINUAR A DATOS FÍSICOS
-      </button>
+      <div>
+        <button onclick="nextStep(5)" class="w-full py-4 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(0,255,102,0.25)] text-center">
+          CONTINUAR A DATOS FÍSICOS
+        </button>
+      </div>
     </div>
 
-    <!-- PASO 5: BIOMETRÍA -->
-    <div id="step-5" class="space-y-4 hidden">
+    <!-- ================= PASO 5: BIOMETRÍA ================= -->
+    <div id="step-5" class="space-y-6 hidden">
       <div class="flex justify-between items-center">
         <div class="space-y-1">
-          <h2 class="font-display font-bold text-lg text-white">5. PARÁMETROS BIOMÉTRICOS</h2>
+          <h2 class="font-display font-bold text-lg md:text-xl text-white tracking-wide">5. PARÁMETROS BIOMÉTRICOS</h2>
           <p class="text-xs text-slate-400">Ajusta las líneas con tus métricas reales.</p>
         </div>
-        <button onclick="nextStep(4)" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 hover:text-white transition flex items-center space-x-1.5">
+        <button onclick="nextStep(4)" class="flex items-center space-x-1.5 bg-[#12161C] hover:bg-slate-800 border border-slate-700/80 px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-300 transition">
           <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
           <span>Atrás</span>
         </button>
       </div>
 
       <div class="space-y-4">
-        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2">
+        <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-2">
           <div class="flex justify-between items-center">
             <span class="text-xs font-mono text-slate-300 uppercase">Altura</span>
             <span id="val-altura" class="font-display font-bold text-xs text-kinet-neon">178 cm</span>
@@ -208,9 +242,9 @@
           <input type="range" id="slider-altura" min="100" max="220" value="178" oninput="document.getElementById('val-altura').textContent = this.value + ' cm'" class="w-full">
         </div>
 
-        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2">
+        <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-2">
           <div class="flex justify-between items-center">
-            <span class="text-xs font-mono text-slate-300 uppercase">Peso Corporal</span>
+            <span class="text-xs font-mono text-slate-300 uppercase">Peso Corporal (Báscula)</span>
             <div class="px-3 py-1 rounded-lg bg-slate-900 border border-kinet-neon/40 text-kinet-neon font-display font-bold text-xs flex items-center space-x-1.5">
               <i data-lucide="scale" class="w-3.5 h-3.5"></i>
               <span id="val-peso">72.5 kg</span>
@@ -219,7 +253,7 @@
           <input type="range" id="slider-peso" min="40" max="140" step="0.5" value="72.5" oninput="document.getElementById('val-peso').textContent = this.value + ' kg'" class="w-full">
         </div>
 
-        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2">
+        <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-2">
           <div class="flex justify-between items-center">
             <span class="text-xs font-mono text-slate-300 uppercase">Edad</span>
             <span id="val-edad" class="font-display font-bold text-xs text-kinet-neon">22 años</span>
@@ -228,36 +262,38 @@
         </div>
       </div>
 
-      <button onclick="nextStep(6)" class="w-full py-3.5 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-widest uppercase hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(0,255,102,0.25)]">
-        CONTINUAR AL ASISTENTE IA
-      </button>
+      <div>
+        <button onclick="nextStep(6)" class="w-full py-4 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(0,255,102,0.25)] text-center">
+          CONTINUAR AL ASISTENTE IA
+        </button>
+      </div>
     </div>
 
-    <!-- PASO 6: CHAT IA -->
-    <div id="step-6" class="space-y-4 hidden">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-        <div class="flex items-center space-x-2.5">
-          <div class="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 flex items-center justify-center font-bold">
-            <i data-lucide="bot" class="w-4 h-4"></i>
+    <!-- ================= PASO 6: CHAT ASISTENTE IA ================= -->
+    <div id="step-6" class="space-y-6 hidden">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+        <div class="flex items-center space-x-3">
+          <div class="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 flex items-center justify-center font-bold">
+            <i data-lucide="bot" class="w-5 h-5"></i>
           </div>
           <div>
             <h2 class="font-display font-bold text-xs text-white">KINET AI COACH SETUP</h2>
-            <p class="text-[9px] text-slate-400">Personalización de tus agentes de entrenamiento</p>
+            <p class="text-[10px] text-slate-400">Personalización de tus agentes de entrenamiento</p>
           </div>
         </div>
 
         <div class="flex items-center space-x-2">
-          <button onclick="nextStep(5)" class="px-3 py-1 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 hover:text-white transition flex items-center space-x-1">
-            <i data-lucide="arrow-left" class="w-3 h-3"></i>
+          <button onclick="nextStep(5)" class="flex items-center space-x-1.5 bg-[#12161C] hover:bg-slate-800 border border-slate-700/80 px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-300 transition">
+            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
             <span>Atrás</span>
           </button>
-          <button onclick="skipAiSetup()" class="px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold hover:bg-amber-500/20 transition">
+          <button onclick="skipAiSetup()" class="px-3.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold hover:bg-amber-500/20 transition">
             Saltar ⚡
           </button>
         </div>
       </div>
 
-      <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3 h-[190px] overflow-y-auto flex flex-col justify-between">
+      <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3 h-[200px] overflow-y-auto flex flex-col justify-between">
         <div class="space-y-2.5" id="chat-messages-container">
           <div class="flex items-start space-x-2.5">
             <div class="w-6 h-6 rounded-lg bg-kinet-neon/20 text-kinet-neon flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
@@ -282,13 +318,15 @@
         </div>
       </div>
 
-      <button onclick="finishOnboarding()" class="w-full py-3.5 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-widest uppercase hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(0,255,102,0.25)]">
-        FINALIZAR REGISTRO & ACTIVAR PERFIL
-      </button>
+      <div>
+        <button onclick="finishOnboarding()" class="w-full py-4 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(0,255,102,0.25)] text-center">
+          FINALIZAR REGISTRO & ACTIVAR PERFIL
+        </button>
+      </div>
     </div>
 
     <!-- FOOTER -->
-    <div class="pt-2 border-t border-slate-800/80 text-center text-[9px] text-slate-500 font-mono">
+    <div class="pt-3 border-t border-slate-800/80 text-center text-[9px] text-slate-500 font-mono">
       KINET OS • MULTI-SPORT ATHLETE CALIBRATION SYSTEM
     </div>
 
@@ -329,9 +367,9 @@
 
     function selectSport(val) {
       state.sport = val;
-      document.querySelectorAll('[id^="sport-"]').forEach(el => el.className = "glass-card p-4 rounded-2xl border-2 border-slate-800 cursor-pointer transition text-center space-y-2 hover:border-slate-600");
+      document.querySelectorAll('[id^="sport-"]').forEach(el => el.className = "glass-card p-5 rounded-2xl cursor-pointer space-y-3");
       const map = { 'Fútbol': 'futbol', 'Baloncesto': 'baloncesto', 'Pádel / Tenis': 'padel', 'Boxeo / MMA': 'boxeo', 'Running': 'running', 'Otros Deportes': 'otros' };
-      if (map[val]) document.getElementById('sport-' + map[val]).className = "glass-card p-4 rounded-2xl border-2 border-kinet-neon cursor-pointer transition text-center space-y-2 bg-kinet-neon/5";
+      if (map[val]) document.getElementById('sport-' + map[val]).className = "glass-card p-5 rounded-2xl cursor-pointer space-y-3 border-2 border-kinet-neon bg-kinet-neon/5";
     }
 
     function renderCategories() {
@@ -375,20 +413,20 @@
       catData.forEach((item, index) => {
         const div = document.createElement('div');
         div.className = index === 0 
-          ? "glass-card p-3.5 rounded-xl border-2 border-kinet-neon cursor-pointer transition bg-kinet-neon/5 flex items-center space-x-3"
-          : "glass-card p-3.5 rounded-xl border-2 border-slate-800 cursor-pointer transition hover:border-slate-600 flex items-center space-x-3";
+          ? "glass-card p-4 rounded-2xl border-2 border-kinet-neon cursor-pointer transition bg-kinet-neon/5 flex items-center space-x-3.5"
+          : "glass-card p-4 rounded-2xl border-2 border-slate-800 cursor-pointer transition hover:border-slate-600 flex items-center space-x-3.5";
 
         div.onclick = () => {
           state.category = item.title;
-          Array.from(container.children).forEach(c => c.className = "glass-card p-3.5 rounded-xl border-2 border-slate-800 cursor-pointer transition hover:border-slate-600 flex items-center space-x-3");
-          div.className = "glass-card p-3.5 rounded-xl border-2 border-kinet-neon cursor-pointer transition bg-kinet-neon/5 flex items-center space-x-3";
+          Array.from(container.children).forEach(c => c.className = "glass-card p-4 rounded-2xl border-2 border-slate-800 cursor-pointer transition hover:border-slate-600 flex items-center space-x-3.5");
+          div.className = "glass-card p-4 rounded-2xl border-2 border-kinet-neon cursor-pointer transition bg-kinet-neon/5 flex items-center space-x-3.5";
         };
 
         div.innerHTML = `
-          <span class="text-xl">${item.icon}</span>
+          <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-xl shrink-0">${item.icon}</div>
           <div>
-            <h3 class="font-bold text-xs text-white">${item.title}</h3>
-            <p class="text-[10px] text-slate-400">${item.desc}</p>
+            <h3 class="font-display font-bold text-xs text-white">${item.title}</h3>
+            <p class="text-[11px] text-slate-400 mt-0.5">${item.desc}</p>
           </div>
         `;
         container.appendChild(div);
@@ -405,7 +443,7 @@
       subBox.classList.remove('hidden');
 
       if (sport === 'Fútbol') {
-        title.textContent = "4. TÁCTICA Y POSICIÓN EN EL CAMPO";
+        title.textContent = "4. CAMPO DE FÚTBOL & POSICIONES";
         subtitle.textContent = "Toca tu zona o especialidad en el terreno.";
         container.className = "relative w-full h-[240px] pitch-futbol rounded-2xl p-4 flex flex-col justify-between overflow-hidden";
         container.innerHTML = `
