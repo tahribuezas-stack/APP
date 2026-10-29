@@ -402,20 +402,34 @@
       }, 1200); // 1.2 segundos que dura la animación de salida
     }
 
-    function nextStep(stepNum) {
-      const visualStep = stepNum - 1;
-      document.getElementById('step-num').textContent = "0" + visualStep;
-      
-      for (let i = 2; i <= 6; i++) {
-        const el = document.getElementById('step-' + i);
-        if (el) el.classList.add('hidden');
-      }
-      document.getElementById('step-' + stepNum).classList.remove('hidden');
-
-      if (stepNum === 3) renderCategories();
-      else if (stepNum === 4) renderSportPitch();
-      else if (stepNum === 6) setupAiChatGreeting();
+  function nextStep(stepNum) {
+  const visualStep = stepNum - 1;
+  const stepNumEl = document.getElementById('step-num');
+  if (stepNumEl) stepNumEl.textContent = "0" + (visualStep > 0 ? visualStep : 1);
+  
+  // Ocultar todos los pasos y quitar la clase de animación
+  for (let i = 1; i <= 6; i++) {
+    const el = document.getElementById('step-' + i);
+    if (el) {
+      el.classList.add('hidden');
+      el.classList.remove('step-liquid-enter');
     }
+  }
+
+  // Mostrar el paso objetivo con la animación elástica rápida
+  const target = document.getElementById('step-' + stepNum);
+  if (target) {
+    target.classList.remove('hidden');
+    // Forzar el reinicio de la animación CSS
+    void target.offsetWidth;
+    target.classList.add('step-liquid-enter');
+  }
+
+  if (stepNum === 3) renderCategories();
+  else if (stepNum === 4) renderSportPitch ? renderSportPitch() : (renderScoutRadarOptions && renderScoutRadarOptions());
+  else if (stepNum === 5 && typeof configureAgeAndBudgetScales === 'function') configureAgeAndBudgetScales();
+  else if (stepNum === 6) setupAiChatGreeting ? setupAiChatGreeting() : (setupAiScoutGreeting && setupAiScoutGreeting());
+}
 
     function selectSport(val) {
       state.sport = val;
