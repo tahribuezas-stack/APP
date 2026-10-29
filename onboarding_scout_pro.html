@@ -264,21 +264,21 @@
       </div>
 
       <div class="space-y-4">
-        <!-- Slider de Edad -->
+        <!-- Slider de Edad Personalizable (De 4 a 22 años en Canteras / 16 a 38 en Profesional) -->
         <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2">
           <div class="flex justify-between items-center">
             <span class="text-xs font-mono text-slate-300 uppercase">Límite de Edad Objetivo</span>
-            <span id="val-scout-edad" class="font-display font-bold text-xs text-blue-400">Hasta 24 años (Jóvenes Promesas)</span>
+            <span id="val-scout-edad" class="font-display font-bold text-xs text-blue-400">Hasta 18 años (Cantera Sub-18)</span>
           </div>
-          <input type="range" id="slider-scout-edad" min="16" max="38" value="24" oninput="updateAgeLabel(this.value)" class="w-full">
+          <input type="range" id="slider-scout-edad" min="4" max="22" value="18" oninput="updateAgeLabel(this.value)" class="w-full">
           <div class="flex justify-between text-[9px] font-mono text-slate-500">
-            <span>16 años</span>
-            <span>26 años</span>
-            <span>38 años</span>
+            <span id="age-min-label">4 años</span>
+            <span id="age-mid-label">12 años</span>
+            <span id="age-max-label">22 años</span>
           </div>
         </div>
 
-        <!-- Slider de Presupuesto Adaptativo Real (Cantera vs Profesional) -->
+        <!-- Slider de Presupuesto Adaptativo -->
         <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2">
           <div class="flex justify-between items-center">
             <span class="text-xs font-mono text-slate-300 uppercase">Presupuesto Máximo Estimado</span>
@@ -287,7 +287,7 @@
               <span id="val-scout-budget">50.0 k €</span>
             </div>
           </div>
-          <input type="range" id="slider-scout-budget" min="0.01" max="100" step="0.1" value="0.05" oninput="updateBudgetLabel(this.value)" class="w-full">
+          <input type="range" id="slider-scout-budget" min="0.01" max="0.2" step="0.005" value="0.05" oninput="updateBudgetLabel(this.value)" class="w-full">
           <div class="flex justify-between text-[9px] font-mono text-slate-500">
             <span id="budget-min-label">10k €</span>
             <span id="budget-mid-label">100k €</span>
@@ -346,7 +346,7 @@
               AI
             </div>
             <div id="ai-scout-greeting" class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-xs text-slate-200 leading-relaxed max-w-[88%]">
-              ¡Hola! Soy tu agente de Scouting KINET. He configurado tus filtros para buscar talento en el mercado. ¿Qué demarcación or perfil específico deseas priorizar en las alertas del sistema?
+              ¡Hola! Soy tu agente de Scouting KINET. He configurado tus filtros para buscar talento en el mercado. ¿Qué demarcación o perfil específico deseas priorizar en las alertas del sistema?
             </div>
           </div>
         </div>
@@ -386,7 +386,7 @@
       sport: 'Fútbol',
       category: 'Fútbol Base / Cantera / Juvenil DH',
       priority: 'Evaluación de Potencial y Proyección (Sub-21)',
-      maxAge: '24',
+      maxAge: '18',
       budget: '50 k €',
       minGrl: '78.0',
       aiCompleted: true
@@ -406,7 +406,7 @@
       } else if (stepNum === 4) {
         renderScoutRadarOptions();
       } else if (stepNum === 5) {
-        configureBudgetScale();
+        configureAgeAndBudgetScales();
       } else if (stepNum === 6) {
         setupAiScoutGreeting();
       }
@@ -561,42 +561,70 @@
       btnEl.className = "p-4 rounded-2xl text-left transition bg-blue-500/20 border-2 border-blue-400 text-white";
     }
 
-    function updateAgeLabel(val) {
-      scoutState.maxAge = val;
-      let label = "Hasta " + val + " años";
-      if (val <= 21) label += " (Sub-21 / Talento Joven)";
-      else if (val <= 26) label += " (Edad Prime / En Crecimiento)";
-      else label += " (Veteranía Consolidada)";
-      document.getElementById('val-scout-edad').textContent = label;
-    }
-
-    function configureBudgetScale() {
-      const slider = document.getElementById('slider-scout-budget');
+    function configureAgeAndBudgetScales() {
       const cat = scoutState.category;
+      const isBase = cat.includes('Base') || cat.includes('Cantera') || cat.includes('Sub-18') || cat.includes('Juniors') || cat.includes('Promesas Sub-18');
       
-      // Determinar si es categoría profesional/élite o base/cantera/amateur
+      // 1. Configurar Slider de EDAD
+      const ageSlider = document.getElementById('slider-scout-edad');
+      if (isBase) {
+        ageSlider.min = "4";
+        ageSlider.max = "22";
+        ageSlider.value = "18";
+        document.getElementById('age-min-label').textContent = "4 años";
+        document.getElementById('age-mid-label').textContent = "12 años";
+        document.getElementById('age-max-label').textContent = "22 años";
+      } else {
+        ageSlider.min = "16";
+        ageSlider.max = "38";
+        ageSlider.value = "25";
+        document.getElementById('age-min-label').textContent = "16 años";
+        document.getElementById('age-mid-label').textContent = "26 años";
+        document.getElementById('age-max-label').textContent = "38 años";
+      }
+      updateAgeLabel(ageSlider.value);
+
+      // 2. Configurar Slider de PRESUPUESTO
+      const budgetSlider = document.getElementById('slider-scout-budget');
       const isPro = cat.includes('Profesional') || cat.includes('Primera') || cat.includes('ACB') || cat.includes('Top') || cat.includes('Internacional') || cat.includes('SmartBank');
       
       if (isPro) {
-        // Profesional: de 100k € hasta 150 M €
-        slider.min = "0.1";
-        slider.max = "150";
-        slider.step = "0.5";
-        slider.value = "5.0";
+        budgetSlider.min = "0.1";
+        budgetSlider.max = "150";
+        budgetSlider.step = "0.5";
+        budgetSlider.value = "5.0";
         document.getElementById('budget-min-label').textContent = "100k €";
         document.getElementById('budget-mid-label').textContent = "75 M €";
         document.getElementById('budget-max-label').textContent = "150 M+ €";
       } else {
-        // Cantera / Base / Regional / Amateur: de 10k € hasta 200k €
-        slider.min = "0.01";
-        slider.max = "0.2";
-        slider.step = "0.005";
-        slider.value = "0.05";
+        budgetSlider.min = "0.01";
+        budgetSlider.max = "0.2";
+        budgetSlider.step = "0.005";
+        budgetSlider.value = "0.05";
         document.getElementById('budget-min-label').textContent = "10k €";
         document.getElementById('budget-mid-label').textContent = "100k €";
         document.getElementById('budget-max-label').textContent = "200k €";
       }
-      updateBudgetLabel(slider.value);
+      updateBudgetLabel(budgetSlider.value);
+    }
+
+    function updateAgeLabel(val) {
+      scoutState.maxAge = val;
+      const cat = scoutState.category;
+      const isBase = cat.includes('Base') || cat.includes('Cantera') || cat.includes('Sub-18') || cat.includes('Juniors') || cat.includes('Promesas Sub-18');
+
+      let label = "Hasta " + val + " años";
+      if (isBase) {
+        if (val <= 10) label += " (Iniciación / Fútbol 8)";
+        else if (val <= 15) label += " (Infantil / Cadete Base)";
+        else if (val <= 18) label += " (Juvenil División Honor)";
+        else label += " (Proyección Filial Sub-22)";
+      } else {
+        if (val <= 21) label += " (Sub-21 / Promesa)";
+        else if (val <= 26) label += " (Edad Prime / Crecimiento)";
+        else label += " (Veteranía Consolidada)";
+      }
+      document.getElementById('val-scout-edad').textContent = label;
     }
 
     function updateBudgetLabel(val) {
@@ -605,11 +633,9 @@
       const isPro = cat.includes('Profesional') || cat.includes('Primera') || cat.includes('ACB') || cat.includes('Top') || cat.includes('Internacional') || cat.includes('SmartBank');
 
       if (!isPro) {
-        // En modo base/cantera, mostramos en miles exactos (ej: 10k €, 50k €, 150k €)
         let euros = Math.round(displayVal * 1000);
         document.getElementById('val-scout-budget').textContent = euros + ' k €';
       } else {
-        // En modo profesional, mostramos en millones con decimales o k si es menor a 1M
         if (displayVal < 1) {
           document.getElementById('val-scout-budget').textContent = Math.round(displayVal * 1000) + ' k €';
         } else {
