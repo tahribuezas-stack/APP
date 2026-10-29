@@ -38,57 +38,15 @@
       }
     }
   </script>
-  <style>
-    .bg-cyber-pattern {
-      background-color: #080A0C;
-      background-image: radial-gradient(circle at 50% 0%, rgba(0, 255, 102, 0.15) 0%, transparent 60%);
-    }
-    .glass-card {
-      background: rgba(19, 23, 29, 0.85);
-      backdrop-filter: blur(14px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      transition: all 0.3s ease;
-    }
-    .glass-card:hover {
-      border-color: rgba(0, 255, 102, 0.45);
-      transform: translateY(-3px);
-      box-shadow: 0 0 30px rgba(0, 255, 102, 0.18);
-    }
-    .logo-glow:hover {
-      filter: drop-shadow(0 0 12px rgba(0, 255, 102, 0.65));
-      transform: scale(1.02);
-      transition: all 0.3s ease;
-    }
-
-    /* Adaptación inteligente exclusiva para móviles sin alterar PC */
-    @media screen and (max-width: 768px) {
-      body {
-        align-items: flex-start !important;
-        padding: 8px !important;
-      }
-      .main-box {
-        width: 100% !important;
-        max-width: 100% !important;
-        border-radius: 20px !important;
-        padding: 14px !important;
-        margin-top: 6px;
-        margin-bottom: 6px;
-        space-y: 4px !important;
-      }
-      .glass-card {
-        padding: 14px !important;
-      }
-    }
-  </style>
 </head>
 <body class="bg-cyber-pattern text-slate-100 font-sans min-h-screen flex items-center justify-center p-4">
 
-  <!-- CONTENEDOR PRINCIPAL FASE 1 -->
-  <div class="main-box relative w-full max-w-3xl bg-[#0A0C0E] rounded-[32px] border border-slate-800/80 shadow-[0_0_90px_rgba(0,0,0,0.95)] p-6 sm:p-8 space-y-6">
+  <!-- CONTENEDOR PRINCIPAL FASE 1 (Con animación de rebote de agua de 3s) -->
+  <div class="main-box card-liquid-transition relative w-full max-w-3xl bg-[#0A0C0E] rounded-[32px] border border-slate-800/80 shadow-[0_0_90px_rgba(0,0,0,0.95)] p-6 sm:p-8 space-y-6">
     
     <!-- HEADER LIMPIO -->
     <div class="flex justify-between items-center border-b border-slate-800/80 pb-3 sm:pb-4">
-      <div class="flex items-center space-x-3 logo-glow cursor-pointer" onclick="window.location.href='index.html'">
+      <div class="flex items-center space-x-3 logo-glow cursor-pointer" onclick="cambiarPagina(event, 'index.html')">
         <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-[#00FF66] to-emerald-600 font-display font-black text-black text-lg sm:text-xl flex items-center justify-center shadow-[0_0_20px_rgba(0,255,102,0.5)]">
           K
         </div>
@@ -98,7 +56,7 @@
         </div>
       </div>
       
-      <button onclick="window.location.href='index.html'" class="flex items-center space-x-1.5 bg-[#12161C] hover:bg-slate-800 border border-slate-700/80 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-300 transition">
+      <button onclick="cambiarPagina(event, 'index.html')" class="flex items-center space-x-1.5 bg-[#12161C] hover:bg-slate-800 border border-slate-700/80 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-300 transition">
         <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
         <span>Salir</span>
       </button>
@@ -173,14 +131,29 @@
   <script>
     lucide.createIcons();
 
-    function selectProfile(type) {
-      if (type === 'atleta') {
-        window.location.href = 'onboarding_pro.html';
-      } else if (type === 'staff') {
-        window.location.href = 'kinet_os_staff_coach_onboarding.html';
-      } else if (type === 'scout') {
-        window.location.href = 'onboarding_scout_pro.html';
+    // Función de transición suave de salida entre archivos HTML
+    function cambiarPagina(event, urlDestino) {
+      if (event) event.preventDefault();
+      const contenedor = document.querySelector('.main-box');
+      if (contenedor) {
+        contenedor.classList.add('page-exit');
       }
+      setTimeout(() => {
+        window.location.href = urlDestino;
+      }, 1200); // 1.2 segundos que dura la animación de salida
+    }
+
+    // Selección de perfil con transición fluida previa
+    function selectProfile(type) {
+      let target = '';
+      if (type === 'atleta') {
+        target = 'onboarding_pro.html';
+      } else if (type === 'staff') {
+        target = 'kinet_os_staff_coach_onboarding.html';
+      } else if (type === 'scout') {
+        target = 'onboarding_scout_pro.html';
+      }
+      cambiarPagina(null, target);
     }
   </script>
 </body>
