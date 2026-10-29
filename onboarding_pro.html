@@ -121,12 +121,12 @@
 </head>
 <body class="bg-cyber-pattern text-slate-100 font-sans min-h-screen flex items-center justify-center p-4">
 
-  <!-- CONTENEDOR PRINCIPAL FIJO Y UNIFICADO -->
-  <div class="relative w-full max-w-4xl bg-[#090B0E] rounded-[32px] border border-slate-800/80 shadow-[0_0_90px_rgba(0,0,0,0.9)] p-6 md:p-8 space-y-6">
+  <!-- CONTENEDOR PRINCIPAL FIJO Y UNIFICADO CON ANIMACIÓN DE REBOTE DE AGUA -->
+  <div class="relative w-full max-w-4xl card-liquid-transition bg-[#090B0E] rounded-[32px] border border-slate-800/80 shadow-[0_0_90px_rgba(0,0,0,0.9)] p-6 md:p-8 space-y-6">
     
     <!-- HEADER UNIFICADO -->
     <div class="flex items-center justify-between border-b border-slate-800/80 pb-4">
-      <div class="flex items-center space-x-3 logo-glow cursor-pointer" onclick="window.location.href='fase1.html'">
+      <div class="flex items-center space-x-3 logo-glow cursor-pointer" onclick="cambiarPagina(event, 'fase1.html')">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-kinet-neon to-emerald-600 font-display font-black text-black text-lg flex items-center justify-center shadow-[0_0_15px_rgba(0,255,102,0.4)]">
           K
         </div>
@@ -150,7 +150,7 @@
           <h2 class="font-display font-bold text-lg md:text-xl text-white tracking-wide">1. SELECCIONA TU DEPORTE</h2>
           <p class="text-xs text-slate-400">La interfaz adaptará la categoría, el terreno y la táctica.</p>
         </div>
-        <button onclick="window.location.href='fase1.html'" class="flex items-center space-x-1.5 bg-[#12161C] hover:bg-slate-800 border border-slate-700/80 px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-300 transition">
+        <button onclick="cambiarPagina(event, 'fase1.html')" class="flex items-center space-x-1.5 bg-[#12161C] hover:bg-slate-800 border border-slate-700/80 px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-300 transition">
           <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
           <span>Volver a Perfil</span>
         </button>
@@ -390,8 +390,19 @@
       renderSportPitch();
     });
 
+    // Función de transición suave de salida entre archivos HTML
+    function cambiarPagina(event, urlDestino) {
+      if (event) event.preventDefault();
+      const contenedor = document.querySelector('.card-liquid-transition');
+      if (contenedor) {
+        contenedor.classList.add('page-exit');
+      }
+      setTimeout(() => {
+        window.location.href = urlDestino;
+      }, 1200); // 1.2 segundos que dura la animación de salida
+    }
+
     function nextStep(stepNum) {
-      // stepNum real del DOM va de 2 a 6, pero visualmente mostramos de 01 a 05
       const visualStep = stepNum - 1;
       document.getElementById('step-num').textContent = "0" + visualStep;
       
@@ -576,7 +587,7 @@
       localStorage.setItem('kinet_edad', state.edad + ' años');
       localStorage.setItem('kinet_profile_completed', 'true');
 
-      window.location.href = 'fase1.html';
+      cambiarPagina(null, 'fase1.html');
     }
   </script>
 </body>
