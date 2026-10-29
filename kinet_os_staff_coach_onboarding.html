@@ -436,23 +436,29 @@
       }, 600); // 0.6 segundos equilibrados
     }
 
-    function nextCoachStep(stepNum) {
-      document.getElementById('step-num').textContent = "0" + stepNum;
-      for (let i = 1; i <= 5; i++) {
-        const el = document.getElementById('step-' + i);
-        if (el) el.classList.add('hidden');
-      }
-      const target = document.getElementById('step-' + stepNum);
-      if (target) target.classList.remove('hidden');
-
-      if (stepNum === 3) {
-        renderCoachCategories();
-      } else if (stepNum === 4) {
-        renderRoleFunctions();
-      } else if (stepNum === 5) {
-        setupCoachAiGreeting();
-      }
+  function nextCoachStep(stepNum) {
+  const stepNumEl = document.getElementById('step-num');
+  if (stepNumEl) stepNumEl.textContent = "0" + stepNum;
+  
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById('step-' + i);
+    if (el) {
+      el.classList.add('hidden');
+      el.classList.remove('step-liquid-enter');
     }
+  }
+  
+  const target = document.getElementById('step-' + stepNum);
+  if (target) {
+    target.classList.remove('hidden');
+    void target.offsetWidth;
+    target.classList.add('step-liquid-enter');
+  }
+
+  if (stepNum === 3) renderCoachCategories();
+  else if (stepNum === 4) renderRoleFunctions();
+  else if (stepNum === 5) setupCoachAiGreeting();
+}
 
     function selectCoachRole(val) {
       coachState.role = val;
