@@ -264,6 +264,7 @@
       </div>
 
       <div class="space-y-4">
+        <!-- Slider de Edad -->
         <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2">
           <div class="flex justify-between items-center">
             <span class="text-xs font-mono text-slate-300 uppercase">Límite de Edad Objetivo</span>
@@ -277,22 +278,24 @@
           </div>
         </div>
 
+        <!-- Slider de Presupuesto Adaptativo Real (Cantera vs Profesional) -->
         <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2">
           <div class="flex justify-between items-center">
             <span class="text-xs font-mono text-slate-300 uppercase">Presupuesto Máximo Estimado</span>
             <div class="px-3 py-1 rounded-lg bg-slate-900 border border-blue-500/40 text-blue-400 font-display font-bold text-xs flex items-center space-x-1.5">
               <i data-lucide="wallet" class="w-3.5 h-3.5"></i>
-              <span id="val-scout-budget">5.0 M €</span>
+              <span id="val-scout-budget">50.0 k €</span>
             </div>
           </div>
-          <input type="range" id="slider-scout-budget" min="0.1" max="100" step="0.5" value="5.0" oninput="document.getElementById('val-scout-budget').textContent = this.value + ' M €'" class="w-full">
+          <input type="range" id="slider-scout-budget" min="0.01" max="100" step="0.1" value="0.05" oninput="updateBudgetLabel(this.value)" class="w-full">
           <div class="flex justify-between text-[9px] font-mono text-slate-500">
-            <span>100k €</span>
-            <span>50 M €</span>
-            <span>100 M+ €</span>
+            <span id="budget-min-label">10k €</span>
+            <span id="budget-mid-label">100k €</span>
+            <span id="budget-max-label">200k €</span>
           </div>
         </div>
 
+        <!-- Slider de GRL Mínimo -->
         <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2">
           <div class="flex justify-between items-center">
             <span class="text-xs font-mono text-slate-300 uppercase">Rating GRL Mínimo en Base de Datos</span>
@@ -343,7 +346,7 @@
               AI
             </div>
             <div id="ai-scout-greeting" class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-xs text-slate-200 leading-relaxed max-w-[88%]">
-              ¡Hola! Soy tu agente de Scouting KINET. He configurado tus filtros para buscar talento en el mercado. ¿Qué demarcación o perfil específico deseas priorizar en las alertas del sistema?
+              ¡Hola! Soy tu agente de Scouting KINET. He configurado tus filtros para buscar talento en el mercado. ¿Qué demarcación or perfil específico deseas priorizar en las alertas del sistema?
             </div>
           </div>
         </div>
@@ -381,10 +384,10 @@
     let scoutState = {
       role: 'Director Deportivo / Head Scout',
       sport: 'Fútbol',
-      category: 'Segunda RFEF / Primera RFEF / Liga SmartBank',
+      category: 'Fútbol Base / Cantera / Juvenil DH',
       priority: 'Evaluación de Potencial y Proyección (Sub-21)',
       maxAge: '24',
-      budget: '5.0 M €',
+      budget: '50 k €',
       minGrl: '78.0',
       aiCompleted: true
     };
@@ -402,6 +405,8 @@
         renderScoutCategories();
       } else if (stepNum === 4) {
         renderScoutRadarOptions();
+      } else if (stepNum === 5) {
+        configureBudgetScale();
       } else if (stepNum === 6) {
         setupAiScoutGreeting();
       }
@@ -565,6 +570,54 @@
       document.getElementById('val-scout-edad').textContent = label;
     }
 
+    function configureBudgetScale() {
+      const slider = document.getElementById('slider-scout-budget');
+      const cat = scoutState.category;
+      
+      // Determinar si es categoría profesional/élite o base/cantera/amateur
+      const isPro = cat.includes('Profesional') || cat.includes('Primera') || cat.includes('ACB') || cat.includes('Top') || cat.includes('Internacional') || cat.includes('SmartBank');
+      
+      if (isPro) {
+        // Profesional: de 100k € hasta 150 M €
+        slider.min = "0.1";
+        slider.max = "150";
+        slider.step = "0.5";
+        slider.value = "5.0";
+        document.getElementById('budget-min-label').textContent = "100k €";
+        document.getElementById('budget-mid-label').textContent = "75 M €";
+        document.getElementById('budget-max-label').textContent = "150 M+ €";
+      } else {
+        // Cantera / Base / Regional / Amateur: de 10k € hasta 200k €
+        slider.min = "0.01";
+        slider.max = "0.2";
+        slider.step = "0.005";
+        slider.value = "0.05";
+        document.getElementById('budget-min-label').textContent = "10k €";
+        document.getElementById('budget-mid-label').textContent = "100k €";
+        document.getElementById('budget-max-label').textContent = "200k €";
+      }
+      updateBudgetLabel(slider.value);
+    }
+
+    function updateBudgetLabel(val) {
+      let displayVal = parseFloat(val);
+      const cat = scoutState.category;
+      const isPro = cat.includes('Profesional') || cat.includes('Primera') || cat.includes('ACB') || cat.includes('Top') || cat.includes('Internacional') || cat.includes('SmartBank');
+
+      if (!isPro) {
+        // En modo base/cantera, mostramos en miles exactos (ej: 10k €, 50k €, 150k €)
+        let euros = Math.round(displayVal * 1000);
+        document.getElementById('val-scout-budget').textContent = euros + ' k €';
+      } else {
+        // En modo profesional, mostramos en millones con decimales o k si es menor a 1M
+        if (displayVal < 1) {
+          document.getElementById('val-scout-budget').textContent = Math.round(displayVal * 1000) + ' k €';
+        } else {
+          document.getElementById('val-scout-budget').textContent = displayVal.toFixed(1) + ' M €';
+        }
+      }
+    }
+
     function setupAiScoutGreeting() {
       const msgBox = document.getElementById('ai-scout-greeting');
       msgBox.textContent = `¡Hola! Soy tu agente de Scouting KINET. He registrado tu perfil como ${scoutState.role} enfocado en ${scoutState.sport} (${scoutState.category}). ¿Quieres que activemos las alertas automáticas para jugadores con GRL superior a ${document.getElementById('slider-scout-grl').value}?`;
@@ -587,7 +640,7 @@
 
     function finishScoutOnboarding() {
       scoutState.maxAge = document.getElementById('slider-scout-edad').value;
-      scoutState.budget = document.getElementById('slider-scout-budget').value + ' M €';
+      scoutState.budget = document.getElementById('val-scout-budget').textContent;
       scoutState.minGrl = document.getElementById('slider-scout-grl').value + ' GRL';
 
       localStorage.setItem('kinet_role', scoutState.role);
