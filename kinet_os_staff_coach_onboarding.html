@@ -86,9 +86,8 @@
       filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.65));
       transform: scale(1.02);
     }
-    /* Pizarra superior recuperada */
-    .staff-pizarra-header {
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(15, 18, 21, 0.95));
+    .tactical-board-header {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(15, 18, 21, 0.95) 100%);
       border: 1px solid rgba(245, 158, 11, 0.3);
     }
   </style>
@@ -116,7 +115,7 @@
       </div>
     </div>
 
-    <!-- ================= PASO 1: ROL EN EL STAFF (CON PIZARRA Y 6 PROFESIONES) ================= -->
+    <!-- ================= PASO 1: ROL EN EL STAFF ================= -->
     <div id="step-1" class="space-y-3.5 my-auto">
       <div class="flex justify-between items-center">
         <div class="space-y-0.5">
@@ -129,21 +128,6 @@
         </button>
       </div>
 
-      <!-- Pizarra Superior Recuperada -->
-      <div class="staff-pizarra-header p-3.5 rounded-2xl flex items-center justify-between shadow-lg">
-        <div class="flex items-center space-x-3">
-          <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
-            <i data-lucide="clipboard" class="w-4 h-4"></i>
-          </div>
-          <div>
-            <p class="text-xs font-display font-bold text-white">Panel de Mando Táctico</p>
-            <p class="text-[10px] text-slate-400">Configuración avanzada para entrenadores, preparadores y especialistas.</p>
-          </div>
-        </div>
-        <span class="text-[10px] font-mono text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/30">ESTÁNDAR PRO</span>
-      </div>
-
-      <!-- Parrilla de 6 Profesiones (3x2) -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
         <div onclick="selectCoachRole('Primer Entrenador / Head Coach')" id="coach-role-1" class="glass-card selected p-3 rounded-xl cursor-pointer transition space-y-1 bg-amber-500/5 border-2 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.15)]">
           <div class="flex items-center space-x-2">
@@ -276,17 +260,34 @@
       </button>
     </div>
 
-    <!-- ================= PASO 4: METODOLOGÍA & ESTILO ================= -->
+    <!-- ================= PASO 4: METODOLOGÍA & ENFOQUE PERSONALIZADO POR PROFESIÓN Y DEPORTE ================= -->
     <div id="step-4" class="space-y-4 my-auto hidden">
       <div class="flex justify-between items-center">
         <div class="space-y-0.5">
           <h2 class="font-display font-bold text-sm sm:text-lg text-white">4. METODOLOGÍA & ENFOQUE PRINCIPAL</h2>
-          <p class="text-[11px] text-slate-400">Selecciona el pilar estratégico para configurar las métricas.</p>
+          <p class="text-[11px] text-slate-400">Opciones personalizadas según tu rol y disciplina.</p>
         </div>
         <button onclick="nextCoachStep(3)" class="flex items-center space-x-1.5 bg-[#12161C] hover:bg-slate-800 border border-slate-700/80 px-3 py-1 rounded-xl text-xs font-medium text-slate-300 transition">
           <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
           <span>Atrás</span>
         </button>
+      </div>
+
+      <!-- Pizarra / Elemento Táctico Visual Renovado -->
+      <div class="tactical-board-header p-3.5 rounded-2xl flex items-center justify-between shadow-lg">
+        <div class="flex items-center space-x-3">
+          <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
+            <i data-lucide="sliders" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <p class="text-xs font-display font-bold text-white">Matriz de Enfoque Metodológico</p>
+            <p class="text-[10px] text-slate-400">Calibración específica para tu perfil en el staff técnico.</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-1.5">
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          <span class="text-[9px] font-mono text-amber-400">SYNC ACTIVO</span>
+        </div>
       </div>
 
       <div id="coach-functions-container" class="space-y-3"></div>
@@ -498,14 +499,19 @@
 
       catData.forEach((item, index) => {
         const div = document.createElement('div');
-        div.className = index === 0 
-          ? "glass-card p-3 rounded-xl cursor-pointer transition bg-amber-500/5 border-2 border-amber-500 flex items-center space-x-3"
-          : "glass-card p-3 rounded-xl cursor-pointer transition flex items-center space-x-3";
+        const isThree = catData.length === 3;
+        const isLast = index === 2;
+        
+        div.className = (isThree && isLast) 
+          ? "glass-card p-3 rounded-xl cursor-pointer transition sm:col-span-2 bg-amber-500/5 border-2 border-amber-500 flex items-center space-x-3" 
+          : (index === 0 
+            ? "glass-card p-3 rounded-xl cursor-pointer transition bg-amber-500/5 border-2 border-amber-500 flex items-center space-x-3"
+            : "glass-card p-3 rounded-xl cursor-pointer transition flex items-center space-x-3");
 
         div.onclick = () => {
           coachState.category = item.title;
-          Array.from(container.children).forEach(c => c.className = "glass-card p-3 rounded-xl cursor-pointer transition flex items-center space-x-3");
-          div.className = "glass-card p-3 rounded-xl cursor-pointer transition bg-amber-500/5 border-2 border-amber-500 flex items-center space-x-3";
+          Array.from(container.children).forEach(c => c.className = c.className.replace('bg-amber-500/5 border-2 border-amber-500', ''));
+          div.className += " bg-amber-500/5 border-2 border-amber-500";
         };
 
         div.innerHTML = `
@@ -537,89 +543,116 @@
         return;
       }
 
+      // Matriz 4 opciones (2x2) personalizadas por Profesión y Deporte
       if (role.includes('Nutricionista')) {
         options = [
-          { title: 'Control de Composición Corporal & Cutting', desc: 'Seguimiento de % graso, masa muscular y pautas de peso.' },
-          { title: 'Nutrición de Rendimiento & Hidratación', desc: 'Planes de repostaje intra-entreno y recuperación post-esfuerzo.' }
+          { title: 'Control de Composición & Cutting', desc: 'Seguimiento estricto de % graso y masa muscular.' },
+          { title: 'Nutrición Intra-Competición & Hidratación', desc: 'Planes de repostaje energético durante el esfuerzo.' },
+          { title: 'Protocolos de Recuperación Post-Esfuerzo', desc: 'Nutrientes clave para acelerar la regeneración tisular.' },
+          { title: 'Suplementación Ersogénica Avanzada', desc: 'Pautas personalizadas según exigencia de la disciplina.' }
         ];
       } else if (role.includes('Psicólogo')) {
         options = [
-          { title: 'Gestión de Presión & Ansiedad Precompetitiva', desc: 'Técnicas de enfoque mental y control emocional.' },
-          { title: 'Cohesión de Equipo & Fortalecimiento Mental', desc: 'Dinámicas de liderazgo y resiliencia ante la fatiga.' }
+          { title: 'Gestión de Ansiedad & Presión Competitiva', desc: 'Técnicas de enfoque mental y control emocional bajo estrés.' },
+          { title: 'Cohesión de Equipo & Liderazgo en Plantilla', desc: 'Dinámicas de comunicación y fortaleza colectiva.' },
+          { title: 'Visualización Táctica & Enfoque de Rendimiento', desc: 'Preparación mental previa al evento o partido clave.' },
+          { title: 'Superación de Baches y Resiliencia', desc: 'Protocolos de recuperación tras derrotas o lesiones.' }
         ];
-      } else if (role.includes('Primer Entrenador')) {
+      } else if (role.includes('Preparador Físico')) {
+        options = [
+          { title: 'Monitorización de Carga GPS / RPE', desc: 'Control volumétrico de esfuerzos e intensidad semanal.' },
+          { title: 'Prevención de Lesiones & Core Stability', desc: 'Ejercicios compensatorios y isocinética preventiva.' },
+          { title: 'Optimización de Potencia & Fuerza Útil', desc: 'Programas de fuerza transferible al gesto técnico.' },
+          { title: 'Readaptación & Retorno Gradual a Pista', desc: 'Protocolos de alta exigencia post-lesión.' }
+        ];
+      } else if (role.includes('Analista Táctico')) {
         if (sport === 'Pádel / Tenis') {
           options = [
-            { title: 'Planificación de Giras & Circuitos', desc: 'Gestión de calendario de torneos y picos de rendimiento.' },
-            { title: 'Análisis de Oponentes & Pista', desc: 'Estrategia de juego según superficie y emparejamientos.' },
-            { title: 'Ajustes Técnicos & Estabilidad', desc: 'Corrección biomecánica de golpes y patrones tácticos.' }
+            { title: 'Mapeo de Zonas de Impacto & Saque', desc: 'Estadísticas de efectividad en servicios y red.' },
+            { title: 'Desglose de Patrones del Oponente', desc: 'Identificación de debilidades tácticas en diagonal.' },
+            { title: 'Eficiencia de Devolución bajo Presión', desc: 'Porcentaje de conversión en puntos de break.' },
+            { title: 'Informes de Scouting Automatizado', desc: 'Generación de fichas técnicas para el head coach.' }
           ];
         } else if (sport === 'Boxeo / MMA') {
           options = [
-            { title: 'Estrategia de Esquina & Plan de Combate', desc: 'Estudio del rival, distancia y planes A/B por asalto.' },
-            { title: 'Control de Peso & Cutting', desc: 'Supervisión del pesaje y recuperación física.' },
-            { title: 'Planificación de Campamentos & Sparring', desc: 'Organización de asaltos reales con sparrings específicos.' }
+            { title: 'Análisis de Conexión de Golpes & Jabs', desc: 'Porcentaje de impacto efectivo por asalto.' },
+            { title: 'Estudio de Patrones Defensivos del Rival', desc: 'Detección de aperturas en guardia y esquivas.' },
+            { title: 'Volumen de Ataque en Transiciones', desc: 'Estadísticas de desgaste físico del oponente.' },
+            { title: 'Scoring & Tarjetas de Esquina', desc: 'Evaluación algorítmica del round a round.' }
           ];
         } else if (sport === 'Running') {
           options = [
-            { title: 'Planificación de Ciclos & Carga', desc: 'Macrodatos de volumen, ritmos y picos para carreras clave.' },
-            { title: 'Estrategia de Ritmo (Pacing)', desc: 'Control de parciales en carrera y gestión de energía.' },
-            { title: 'Análisis Biomecánico de Zancada', desc: 'Optimización de eficiencia energética y técnica de carrera.' }
+            { title: 'Análisis de Cadencia & Oscilación', desc: 'Métricas biomecánicas de zancada en tiempo real.' },
+            { title: 'Estudio de Parciales & Pacing de Rival', desc: 'Comparativa de ritmos en sectores clave.' },
+            { title: 'Evolución de Frecuencia Cardíaca', desc: 'Zonas de umbral anaeróbico por intervalos.' },
+            { title: 'Análisis Altimétrico del Recorrido', desc: 'Desglose de pendientes y estrategia de esfuerzo.' }
           ];
         } else {
           options = [
-            { title: 'Juego de Posición & Posesión Dominante', desc: 'Salida limpia, control del ritmo y presión alta.' },
-            { title: 'Bloque Medio/Bajo & Transición Rápida', desc: 'Solidez defensiva y contraataque vertical.' },
-            { title: 'Entrenador Estricto / Disciplina Físico-Mental', desc: 'Control de minutos combinados con la carga RPE semanal.' }
+            { title: 'Análisis Avanzado xG, xA & Percentiles', desc: 'Métricas cuantitativas de rendimiento colectivo.' },
+            { title: 'Estudio de Jugadas de Estrategia (ABP)', desc: 'Desglose en vídeo de balón parado ofensivo y defensivo.' },
+            { title: 'Informes de Transiciones & Presión', desc: 'Mapeo de recuperación tras pérdida de balón.' },
+            { title: 'Scouting Individualizado de Oponentes', desc: 'Perfiles de rivales y mapas de calor por demarcación.' }
           ];
         }
       } else if (role.includes('Segundo Entrenador')) {
         if (sport === 'Pádel / Tenis') {
           options = [
-            { title: 'Soporte en Pista & Apoyo Emocional', desc: 'Feedback directo entre sets y control del estrés.' },
-            { title: 'Preparación de Sesiones de Peloteo', desc: 'Drills específicos de fondo, red y saques.' }
+            { title: 'Soporte Directo en Pista & Banquillo', desc: 'Feedback dinámico entre sets y ajuste táctico exprés.' },
+            { title: 'Diseño de Drills Específicos de Peloteo', desc: 'Sesiones enfocadas en salidas de pared y voleas.' },
+            { title: 'Control de Carga Técnica Individual', desc: 'Supervisión de repeticiones de golpeo por sesión.' },
+            { title: 'Asistencia Logística en Gira', desc: 'Coordinación de entrenamientos previos al torneo.' }
           ];
         } else if (sport === 'Boxeo / MMA') {
           options = [
-            { title: 'Asistencia de Esquina & Manoplas', desc: 'Trabajo de paos, velocidad de reacción y esquina.' },
-            { title: 'Control de Asaltos & Hidratación', desc: 'Asistencia física directa durante los descansos.' }
+            { title: 'Trabajo de Paos & Manoplas en Esquina', desc: 'Velocidad de reacción y combinación de golpes.' },
+            { title: 'Asistencia en Descansos & Hidratación', desc: 'Control de recuperación rápida entre asaltos.' },
+            { title: 'Sparring Dirigido & Simulación', desc: 'Control de intensidad con compañeros de cuadra.' },
+            { title: 'Soporte Táctico en Calentamiento', desc: 'Activación neuromuscular previa al combate.' }
           ];
         } else if (sport === 'Running') {
           options = [
-            { title: 'Control de Tiempos & Avituallamiento', desc: 'Tiempos de paso, avituallamiento y soporte logístico.' },
-            { title: 'Supervisión de Series en Pista', desc: 'Toma de cronos en tiempo real y corrección sobre la marcha.' }
+            { title: 'Control de Cronos en Series de Pista', desc: 'Toma de tiempos parciales y marcaje de ritmos.' },
+            { title: 'Gestión de Avituallamiento en Ruta', desc: 'Logística de hidratación durante rodajes largos.' },
+            { title: 'Acompañamiento en Rodaje de Control', desc: 'Soporte táctico y verbal durante el entrenamiento.' },
+            { title: 'Supervisión de Estiramientos Post-Sesión', desc: 'Protocolos de vuelta a la calma y descarga.' }
           ];
         } else {
           options = [
-            { title: 'Automatismos Tácticos & Apoyo Individual', desc: 'Trabajo específico por líneas y conceptos.' },
-            { title: 'Gestión de Minutos & Suplentes', desc: 'Análisis del rendimiento en banquillo y sustituciones.' }
+            { title: 'Automatismos Tácticos por Líneas', desc: 'Trabajo específico defensivo y ofensivo sectorial.' },
+            { title: 'Gestión de Cambios & Rendimiento Banquillo', desc: 'Evaluación del impacto de los suplentes en el juego.' },
+            { title: 'Balón Parado (ABP) & Acciones de Pizarra', desc: 'Coordinación de jugadas de estrategia ensayadas.' },
+            { title: 'Apoyo Individualizado al Jugador', desc: 'Correcciones tácticas personalizadas post-sesión.' }
           ];
         }
-      } else if (role.includes('Preparador Físico')) {
-        options = [
-          { title: 'Monitorización de Carga & Microciclo Estructurado', desc: 'Control de volumen e intensidad física.' },
-          { title: 'Prevención de Lesiones & Protocolo Fuerza/Core', desc: 'Semáforo de fatiga muscular y recuperación.' }
-        ];
-      } else { // Analista Scout
+      } else { // Primer Entrenador / Head Coach
         if (sport === 'Pádel / Tenis') {
           options = [
-            { title: 'Análisis de Zonas de Impacto & Saque', desc: 'Estadísticas de primeros servicios y puntos ganados en red.' },
-            { title: 'Patrones de Juego del Rival', desc: 'Mapeo de direcciones de bola y vulnerabilidades.' }
+            { title: 'Planificación Global de Giras & Picos', desc: 'Estrategia de calendario para torneos del circuito.' },
+            { title: 'Filosofía de Juego & Identidad en Pista', desc: 'Establecer el estilo agresivo o conservador principal.' },
+            { title: 'Gestión de Pareja & Química Táctica', desc: 'Sintonización de roles y comunicación en dobles.' },
+            { title: 'Toma de Decisiones bajo Alta Presión', desc: 'Liderazgo en momentos críticos de eliminatorias.' }
           ];
         } else if (sport === 'Boxeo / MMA') {
           options = [
-            { title: 'Mapeo de Golpes & Conexión de Jabs', desc: 'Análisis de porcentaje de acierto por asalto.' },
-            { title: 'Estudio de Hábitos Defensivos', desc: 'Detección de aperturas y patrones de esquiva del rival.' }
+            { title: 'Diseño del Plan de Combate (Gameplan)', desc: 'Estrategia maestra para neutralizar al oponente.' },
+            { title: 'Dirección de Esquina en Tiempo Real', desc: 'Órdenes precisas y correcciones entre asaltos.' },
+            { title: 'Planificación de Campamentos de Élite', desc: 'Estructuración de semanas de sparring y picos de forma.' },
+            { title: 'Disciplina Mental & Enfoque de Campeón', desc: 'Liderazgo y autoridad en la preparación del atleta.' }
           ];
         } else if (sport === 'Running') {
           options = [
-            { title: 'Métricas de Zancada & Frecuencia Cardíaca', desc: 'Análisis de cadencia, oscilación vertical y pulsaciones.' },
-            { title: 'Estudio del Perfil del Recorrido', desc: 'Desnivel acumulado, altimetría y estrategia de parciales.' }
+            { title: 'Macroplanificación de Ciclos Anuales', desc: 'Distribución de cargas hacia las maratones o carreras objetivo.' },
+            { title: 'Estrategia de Ritmo (Pacing) en Carrera', desc: 'Definición de parciales milimétricos por kilómetro.' },
+            { title: 'Optimización de Eficiencia & Zancada', desc: 'Coordinación con el staff para maximizar el rendimiento.' },
+            { title: 'Gestión de Descansos & Tapering', desc: 'Puesta a punto final previa a la competición.' }
           ];
         } else {
           options = [
-            { title: 'Análisis de Vídeo Rivales & ABP', desc: 'Vídeos individuales por posición y jugadas de estrategia.' },
-            { title: 'Métricas Avanzadas (xG, xA) & Percentiles', desc: 'Informes cuantitativos de rendimiento por partido.' }
+            { title: 'Modelo de Juego & Posesión Dominante', desc: 'Salida limpia, superioridades y control del ritmo.' },
+            { title: 'Bloque Defensivo & Transición Vertical', desc: 'Solidez táctica colectiva y contraataque rápido.' },
+            { title: 'Liderazgo Estricto & Disciplina RPE', desc: 'Exigencia máxima combinada con control de cargas.' },
+            { title: 'Gestión Integral del Vestuario & Cohesión', desc: 'Manejo de jerarquías y motivación del grupo.' }
           ];
         }
       }
@@ -678,5 +711,7 @@
       cambiarPagina(null, 'fase1.html');
     }
   </script>
+</body>
+</html>
 </body>
 </html>
