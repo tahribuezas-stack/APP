@@ -92,7 +92,7 @@
       background: rgba(19, 23, 29, 0.85);
       backdrop-filter: blur(14px);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      transition: all 0.25s ease;
+      transition: all 0.3s ease;
     }
     .glass-card:hover {
       border-color: rgba(59, 130, 246, 0.4);
@@ -101,9 +101,8 @@
     }
     .glass-card.selected {
       border-color: #3B82F6 !important;
-      box-shadow: 0 0 22px rgba(59, 130, 246, 0.25);
-      background: rgba(59, 130, 246, 0.08) !important;
-      transform: scale(1.01);
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+      background: rgba(59, 130, 246, 0.04);
     }
     .logo-glow {
       transition: all 0.3s ease;
@@ -132,10 +131,6 @@
       background: #3B82F6;
       box-shadow: 0 0 12px rgba(59, 130, 246, 0.8);
       cursor: pointer;
-      transition: transform 0.15s ease;
-    }
-    input[type=range]::-webkit-slider-thumb:hover {
-      transform: scale(1.15);
     }
   </style>
 </head>
@@ -313,12 +308,12 @@
       </button>
     </div>
 
-    <!-- ================= PASO 5: SLIDERS DE MERCADO ================= -->
+    <!-- ================= PASO 5: SLIDERS DE MERCADO Y BLOQUES GENERACIONALES ================= -->
     <div id="step-5" class="space-y-6 my-auto hidden">
       <div class="flex justify-between items-center">
         <div class="space-y-1">
           <h2 class="font-display font-bold text-sm sm:text-lg text-white">5. LÍMITES Y FILTROS DE MERCADO</h2>
-          <p class="text-xs text-slate-400">Ajusta los rangos de edad, presupuesto y GRL mínimo según la disciplina seleccionada.</p>
+          <p class="text-xs text-slate-400">Ajusta los bloques generacionales y escalas económicas de la disciplina seleccionada.</p>
         </div>
         <button onclick="nextStep(4)" class="flex items-center space-x-1.5 bg-[#12161C] hover:bg-slate-800 border border-slate-700/80 px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-300 transition">
           <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
@@ -327,34 +322,35 @@
       </div>
 
       <div class="space-y-4">
-        <!-- Slider de Edad Personalizable -->
+        <!-- Slider de Bloque Generacional adaptado -->
         <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2">
           <div class="flex justify-between items-center">
-            <span class="text-xs font-mono text-slate-300 uppercase">Límite de Edad Objetivo</span>
-            <span id="val-scout-edad" class="font-display font-bold text-xs text-blue-400">Hasta 18 años</span>
+            <span class="text-xs font-mono text-slate-300 uppercase">Bloque Generacional Objetivo</span>
+            <span id="val-scout-edad" class="font-display font-bold text-xs text-blue-400">Juvenil / Promesa (Sub-18)</span>
           </div>
-          <input type="range" id="slider-scout-edad" min="4" max="38" value="18" oninput="updateAgeLabel(this.value)" class="w-full">
+          <input type="range" id="slider-scout-edad" min="1" max="4" value="2" onchange="updateAgeLabel(this.value)" class="w-full">
           <div class="flex justify-between text-[9px] font-mono text-slate-500">
-            <span id="age-min-label">4 años</span>
-            <span id="age-mid-label">21 años</span>
-            <span id="age-max-label">38 años</span>
+            <span id="gen-min-label">Cantera / Base</span>
+            <span id="gen-mid1-label">Juvenil / Promesa</span>
+            <span id="gen-mid2-label">Prime / Desarrollo</span>
+            <span id="gen-max-label">Élite / Veteranía</span>
           </div>
         </div>
 
-        <!-- Slider de Presupuesto Adaptativo -->
+        <!-- Slider de Presupuesto / Valor de Mercado Especializado -->
         <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2">
           <div class="flex justify-between items-center">
-            <span class="text-xs font-mono text-slate-300 uppercase">Presupuesto Máximo Estimado</span>
+            <span id="budget-title-label" class="text-xs font-mono text-slate-300 uppercase">Presupuesto Máximo de Fichaje</span>
             <div class="px-3 py-1 rounded-lg bg-slate-900 border border-blue-500/40 text-blue-400 font-display font-bold text-xs flex items-center space-x-1.5">
               <i data-lucide="wallet" class="w-3.5 h-3.5"></i>
               <span id="val-scout-budget">50.0 k €</span>
             </div>
           </div>
-          <input type="range" id="slider-scout-budget" min="0.01" max="150" step="0.5" value="0.05" oninput="updateBudgetLabel(this.value)" class="w-full">
+          <input type="range" id="slider-scout-budget" min="0.01" max="0.2" step="0.005" value="0.05" oninput="updateBudgetLabel(this.value)" class="w-full">
           <div class="flex justify-between text-[9px] font-mono text-slate-500">
             <span id="budget-min-label">10k €</span>
-            <span id="budget-mid-label">50 M €</span>
-            <span id="budget-max-label">150 M+ €</span>
+            <span id="budget-mid-label">100k €</span>
+            <span id="budget-max-label">200k €</span>
           </div>
         </div>
 
@@ -449,7 +445,7 @@
       sport: 'Fútbol',
       category: 'Fútbol Base / Cantera / Juvenil DH',
       priority: 'Evaluación de Potencial y Proyección (Sub-21)',
-      maxAge: '18',
+      maxAge: 'Juvenil / Promesa',
       budget: '50 k €',
       minGrl: '78.0',
       aiCompleted: true
@@ -526,43 +522,30 @@
         catData = [
           { icon: '🥊', title: 'Promesas / Veladas Autonómicas', desc: 'Boxeo amateur en ascenso con récord positivo.' },
           { icon: '🥈', title: 'Campeonatos Nacionales', desc: 'Contendientes a títulos estatales y torneos FEB.' },
-          { icon: '🥇', title: 'Rankings Internacionales / Pro', desc: 'Púgiles en órbita WBC, WBA, UFC y promotoras.' },
-          { icon: '🏆', title: 'Campeones Mundiales / Élite', desc: 'Superestrellas con defensas titulares globales.' }
+          { icon: '🥇', title: 'Rankings Internacionales / Pro', desc: 'Púgiles en órbita WBC, WBA, UFC y grandes promotoras.' }
         ];
       } else if (sport === 'Pádel / Tenis') {
         catData = [
           { icon: '⚡', title: 'Promesas Sub-18 / Circuitos FEP', desc: 'Jóvenes valores de cantera y menores.' },
           { icon: '🥉', title: 'Fase previa / Challenger Tour', desc: 'Jugadores buscando consolidación en circuito profesional.' },
-          { icon: '🥈', title: 'Circuito Pro Regular (ATP / WTA / Premier)', desc: 'Tenistas y padelistas fijos en cuadros principales.' },
-          { icon: '🥇', title: 'Top 10 Mundial / Leyendas', desc: 'La máxima élite de los circuitos internacionales.' }
+          { icon: '🥇', title: 'Top 100 Premier Padel / ATP / WTA', desc: 'Élite absoluta del ranking internacional.' }
         ];
       } else if (sport === 'Baloncesto') {
         catData = [
           { icon: '🌱', title: 'Cantera / NCAA / Juniors', desc: 'Talento universitario y bases formativas.' },
-          { icon: '📜', title: 'LEB Oro / LEB Plata / Femenina', desc: 'Mercado nacional de alto rendimiento y rotación.' },
-          { icon: '🥈', title: 'ACB / Ligas Europeas Medias', desc: 'Jugadores profesionales consagrados.' },
-          { icon: '🥇', title: 'EuroLeague / NBA Franchise', desc: 'Estrellas globales de máximo nivel.' }
+          { icon: '📜', title: 'LEB Oro / LEB Plata / LEB Femenina', desc: 'Mercado nacional de alto rendimiento y rotación.' },
+          { icon: '🥇', title: 'ACB / EuroLeague / NBA', desc: 'Jugadores franquicia y élite global.' }
         ];
       } else if (sport === 'Running') {
         catData = [
-          { icon: '🏃', title: 'Atletas Sub-23 / Promesas RFEA', desc: 'Marcas mínimas en evolución formativa.' },
-          { icon: '🥈', title: 'Atletas Nacionales / Ruta y Pista', desc: 'Competidores absolutos en campeonatos estatales.' },
-          { icon: '🥇', title: 'Élite Internacional / World Athletics', desc: 'Atletas de mitings y carreras Diamond League.' },
-          { icon: '🏆', title: 'Atletas World Major Marathons', desc: 'Especialistas mundiales en maratón y gran fondo.' }
-        ];
-      } else if (sport === 'Otros Deportes') {
-        catData = [
-          { icon: '📍', title: 'Ámbito Local / Regional', desc: 'Competiciones autonómicas y territoriales.' },
-          { icon: '🥈', title: 'Nacional / Campeonatos Oficiales', desc: 'Deportistas federados en ligas estatales.' },
-          { icon: '🥇', title: 'Alto Rendimiento / Selección', desc: 'Atletas becados y preseleccionados nacionales.' },
-          { icon: '🏆', title: 'Circuito Mundial / Juegos', desc: 'Representación internacional de máximo nivel.' }
+          { icon: '🏃', title: 'Atletas Sub-23 / Promesas RFEA', desc: 'Marcas mínimas en evolución.' },
+          { icon: '🥇', title: 'Atletas Élite / World Athletics Gold', desc: 'Fichajes para meeting internacional y maratones World Major.' }
         ];
       } else {
         catData = [
           { icon: '⚡', title: 'Fútbol Base / Cantera / Juvenil DH', desc: 'Juveniles de máxima categoría y filiales.' },
-          { icon: '🥉', title: 'Segunda RFEF / Primera RFEF', desc: 'Mercado de bronce y plata competitivo.' },
-          { icon: '🥈', title: 'Liga SmartBank (Segunda Pro)', desc: 'Fútbol profesional de alta exigencia táctica.' },
-          { icon: '🥇', title: 'Primera División / Ligas Top', desc: 'Jugadores de máxima categoría europea.' }
+          { icon: '🥈', title: 'Segunda RFEF / Primera RFEF / 2ª División Profesional', desc: 'Mercado de plata y bronce competitivo.' },
+          { icon: '🥇', title: 'Primera División / Ligas Top Europeas', desc: 'Jugadores profesionales de máxima exigencia.' }
         ];
       }
 
@@ -645,41 +628,62 @@
     }
 
     function configureAgeAndBudgetScales() {
-      const cat = scoutState.category;
       const sport = scoutState.sport;
+      const role = scoutState.role;
+      const cat = scoutState.category;
       
-      // Detección precisa de si es categoría formativa/base o profesional/élite paraCualquier deporte
-      const isBase = cat.includes('Base') || cat.includes('Cantera') || cat.includes('Sub-18') || cat.includes('Sub-23') || cat.includes('Juniors') || cat.includes('Promesas') || cat.includes('Ámbito Local') || cat.includes('Veladas Autonómicas');
-      const isPro = cat.includes('Profesional') || cat.includes('Primera') || cat.includes('ACB') || cat.includes('Top') || cat.includes('Internacional') || cat.includes('SmartBank') || cat.includes('Mundiales') || cat.includes('Rankings');
+      const isPro = cat.includes('Profesional') || cat.includes('Primera') || cat.includes('ACB') || cat.includes('Top') || cat.includes('Internacional');
 
-      const ageSlider = document.getElementById('slider-scout-edad');
-      if (isBase) {
-        ageSlider.min = "4";
-        ageSlider.max = "23";
-        ageSlider.value = "18";
-        document.getElementById('age-min-label').textContent = "4 años";
-        document.getElementById('age-mid-label').textContent = "14 años";
-        document.getElementById('age-max-label').textContent = "23 años";
+      // Personalización dinámica de etiquetas para los bloques generacionales
+      const minLbl = document.getElementById('gen-min-label');
+      const mid1Lbl = document.getElementById('gen-mid1-label');
+      const mid2Lbl = document.getElementById('gen-mid2-label');
+      const maxLbl = document.getElementById('gen-max-label');
+
+      if (sport === 'Boxeo / MMA') {
+        minLbl.textContent = "Amateur / Base";
+        mid1Lbl.textContent = "Promesas Regionales";
+        mid2Lbl.textContent = "Contendientes Pro";
+        maxLbl.textContent = "Campeones Mundiales";
+      } else if (sport === 'Pádel / Tenis') {
+        minLbl.textContent = "Menores / FEP";
+        mid1Lbl.textContent = "Challenger / Previa";
+        mid2Lbl.textContent = "Circuito Pro Regular";
+        maxLbl.textContent = "Top 10 / Élite Global";
+      } else if (sport === 'Running') {
+        minLbl.textContent = "Sub-23 / Promesas";
+        mid1Lbl.textContent = "Ruta y Pista Nacional";
+        mid2Lbl.textContent = "Élite Internacional";
+        maxLbl.textContent = "World Majors";
       } else {
-        ageSlider.min = "16";
-        ageSlider.max = "40";
-        ageSlider.value = "26";
-        document.getElementById('age-min-label').textContent = "16 años";
-        document.getElementById('age-mid-label').textContent = "28 años";
-        document.getElementById('age-max-label').textContent = "40 años";
+        minLbl.textContent = "Cantera / Base";
+        mid1Lbl.textContent = "Juvenil / Promesa";
+        mid2Lbl.textContent = "Prime / Crecimiento";
+        maxLbl.textContent = "Élite / Veteranía";
       }
-      updateAgeLabel(ageSlider.value);
 
+      updateAgeLabel(document.getElementById('slider-scout-edad').value);
+
+      // Personalización de presupuestos o valor de mercado según rol y deporte
       const budgetSlider = document.getElementById('slider-scout-budget');
-      
-      if (isPro) {
+      const budgetTitle = document.getElementById('budget-title-label');
+
+      if (role.includes('Analista')) {
+        budgetTitle.textContent = "Rango de Valor de Mercado en BD";
+      } else if (role.includes('Agencia')) {
+        budgetTitle.textContent = "Valoración Cartera Representada";
+      } else {
+        budgetTitle.textContent = "Presupuesto Máximo de Fichaje";
+      }
+
+      if (isPro || sport === 'Boxeo / MMA') {
         budgetSlider.min = "0.1";
         budgetSlider.max = "150";
         budgetSlider.step = "0.5";
         budgetSlider.value = "5.0";
-        document.getElementById('budget-min-label').textContent = "100k €";
-        document.getElementById('budget-mid-label').textContent = "75 M €";
-        document.getElementById('budget-max-label').textContent = "150 M+ €";
+        document.getElementById('budget-min-label').textContent = sport === 'Boxeo / MMA' ? "5k bolsa" : "100k €";
+        document.getElementById('budget-mid-label').textContent = sport === 'Boxeo / MMA' ? "2M bolsa" : "75 M €";
+        document.getElementById('budget-max-label').textContent = sport === 'Boxeo / MMA' ? "20M+ bolsa" : "150 M+ €";
       } else {
         budgetSlider.min = "0.01";
         budgetSlider.max = "0.2";
@@ -693,37 +697,30 @@
     }
 
     function updateAgeLabel(val) {
-      scoutState.maxAge = val;
-      const cat = scoutState.category;
-      const isBase = cat.includes('Base') || cat.includes('Cantera') || cat.includes('Sub-18') || cat.includes('Sub-23') || cat.includes('Juniors') || cat.includes('Promesas') || cat.includes('Ámbito Local') || cat.includes('Veladas Autonómicas');
-
-      let label = "Hasta " + val + " años";
-      if (isBase) {
-        if (val <= 10) label += " (Iniciación / Formación)";
-        else if (val <= 15) label += " (Categoría Cadete / Base)";
-        else if (val <= 19) label += " (Juvenil / Promesa)";
-        else label += " (Filial / Sub-23)";
-      } else {
-        if (val <= 23) label += " (Joven Valor Pro)";
-        else if (val <= 29) label += " (Edad Prime / Crecimiento)";
-        else label += " (Veteranía Consolidada / Élite)";
-      }
-      document.getElementById('val-scout-edad').textContent = label;
+      const stages = {
+        '1': 'Base / Formación (Iniciación)',
+        '2': 'Juvenil / Promesa en Ascenso',
+        '3': 'Edad Prime / Crecimiento Deportivo',
+        '4': 'Consolidación / Élite / Veteranía'
+      };
+      scoutState.maxAge = stages[val];
+      document.getElementById('val-scout-edad').textContent = stages[val];
     }
 
     function updateBudgetLabel(val) {
       let displayVal = parseFloat(val);
       const cat = scoutState.category;
-      const isPro = cat.includes('Profesional') || cat.includes('Primera') || cat.includes('ACB') || cat.includes('Top') || cat.includes('Internacional') || cat.includes('SmartBank') || cat.includes('Mundiales') || cat.includes('Rankings');
+      const sport = scoutState.sport;
+      const isPro = cat.includes('Profesional') || cat.includes('Primera') || cat.includes('ACB') || cat.includes('Top') || cat.includes('Internacional');
 
-      if (!isPro) {
+      if (!isPro && sport !== 'Boxeo / MMA') {
         let euros = Math.round(displayVal * 1000);
         document.getElementById('val-scout-budget').textContent = euros + ' k €';
       } else {
         if (displayVal < 1) {
           document.getElementById('val-scout-budget').textContent = Math.round(displayVal * 1000) + ' k €';
         } else {
-          document.getElementById('val-scout-budget').textContent = displayVal.toFixed(1) + ' M €';
+          document.getElementById('val-scout-budget').textContent = displayVal.toFixed(1) + (sport === 'Boxeo / MMA' ? ' M Bolsas' : ' M €');
         }
       }
     }
@@ -749,7 +746,7 @@
     }
 
     function finishScoutOnboarding() {
-      scoutState.maxAge = document.getElementById('slider-scout-edad').value;
+      scoutState.maxAge = document.getElementById('val-scout-edad').textContent;
       scoutState.budget = document.getElementById('val-scout-budget').textContent;
       scoutState.minGrl = document.getElementById('slider-scout-grl').value + ' GRL';
 
@@ -757,8 +754,8 @@
       localStorage.setItem('kinet_sport', scoutState.sport);
       localStorage.setItem('kinet_category', scoutState.category);
       localStorage.setItem('kinet_position', scoutState.priority);
-      localStorage.setItem('kinet_altura', scoutState.maxAge + ' años (Edad máx)');
-      localStorage.setItem('kinet_peso', scoutState.budget + ' (Presupuesto)');
+      localStorage.setItem('kinet_altura', scoutState.maxAge);
+      localStorage.setItem('kinet_peso', scoutState.budget);
       localStorage.setItem('kinet_edad', scoutState.minGrl);
       localStorage.setItem('kinet_ai_completed', scoutState.aiCompleted);
       localStorage.setItem('kinet_profile_completed', 'true');
