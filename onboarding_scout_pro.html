@@ -26,20 +26,27 @@
     }
   }
 
-  /* Animaciones fluidas para los pasos del onboarding */
-  @keyframes stepLiquidFadeIn {
-    from {
+  /* Transición con efecto de rebote elástico (Spring Bounce) */
+  @keyframes kinetSpringBounce {
+    0% {
       opacity: 0;
-      transform: translateY(12px) scale(0.98);
+      transform: translateY(25px) scale(0.94);
     }
-    to {
+    55% {
+      opacity: 1;
+      transform: translateY(-6px) scale(1.015);
+    }
+    80% {
+      transform: translateY(3px) scale(0.995);
+    }
+    100% {
       opacity: 1;
       transform: translateY(0) scale(1);
     }
   }
 
   .step-liquid-enter {
-    animation: stepLiquidFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: kinetSpringBounce 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
   }
 </style>
   <meta charset="UTF-8">
@@ -83,18 +90,18 @@
       background: rgba(19, 23, 29, 0.85);
       backdrop-filter: blur(14px);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     .glass-card:hover {
       border-color: rgba(59, 130, 246, 0.4);
       box-shadow: 0 0 25px rgba(59, 130, 246, 0.15);
-      transform: translateY(-2px);
+      transform: translateY(-3px) scale(1.01);
     }
     .glass-card.selected {
       border-color: #3B82F6 !important;
-      box-shadow: 0 0 22px rgba(59, 130, 246, 0.25);
-      background: rgba(59, 130, 246, 0.07) !important;
-      transform: scale(1.01);
+      box-shadow: 0 0 25px rgba(59, 130, 246, 0.3);
+      background: rgba(59, 130, 246, 0.08) !important;
+      transform: scale(1.02);
     }
     .logo-glow {
       transition: all 0.3s ease;
@@ -123,10 +130,10 @@
       background: #3B82F6;
       box-shadow: 0 0 12px rgba(59, 130, 246, 0.8);
       cursor: pointer;
-      transition: transform 0.15s ease;
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     input[type=range]::-webkit-slider-thumb:hover {
-      transform: scale(1.15);
+      transform: scale(1.2);
     }
   </style>
 </head>
@@ -454,7 +461,6 @@
     function nextStep(stepNum) {
       document.getElementById('step-num').textContent = "0" + stepNum;
       
-      // Ocultar todos los pasos con transición
       for (let i = 1; i <= 6; i++) {
         const el = document.getElementById('step-' + i);
         if (el) {
@@ -463,11 +469,10 @@
         }
       }
       
-      // Mostrar el paso objetivo aplicando la animación fluida
       const target = document.getElementById('step-' + stepNum);
       if (target) {
         target.classList.remove('hidden');
-        void target.offsetWidth; // Forzar reflow para reiniciar la animación
+        void target.offsetWidth; // Forzar reflow para reiniciar la animación con rebote
         target.classList.add('step-liquid-enter');
       }
 
