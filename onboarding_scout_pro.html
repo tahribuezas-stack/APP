@@ -25,6 +25,22 @@
       padding: 12px !important;
     }
   }
+
+  /* Animaciones fluidas para los pasos del onboarding */
+  @keyframes stepLiquidFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .step-liquid-enter {
+    animation: stepLiquidFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
 </style>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -67,7 +83,6 @@
       background: rgba(19, 23, 29, 0.85);
       backdrop-filter: blur(14px);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      /* Transición fluida mejorada para hover y selección */
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .glass-card:hover {
@@ -139,7 +154,7 @@
     </div>
 
     <!-- ================= PASO 1: PERFIL DE SCOUTING ================= -->
-    <div id="step-1" class="space-y-6 my-auto">
+    <div id="step-1" class="space-y-6 my-auto step-liquid-enter">
       <div class="flex justify-between items-center">
         <div class="space-y-1">
           <h2 class="font-display font-bold text-sm sm:text-lg text-white">1. PERFIL DE SCOUTING & OJEADOR</h2>
@@ -438,12 +453,23 @@
 
     function nextStep(stepNum) {
       document.getElementById('step-num').textContent = "0" + stepNum;
+      
+      // Ocultar todos los pasos con transición
       for (let i = 1; i <= 6; i++) {
         const el = document.getElementById('step-' + i);
-        if (el) el.classList.add('hidden');
+        if (el) {
+          el.classList.add('hidden');
+          el.classList.remove('step-liquid-enter');
+        }
       }
+      
+      // Mostrar el paso objetivo aplicando la animación fluida
       const target = document.getElementById('step-' + stepNum);
-      if (target) target.classList.remove('hidden');
+      if (target) {
+        target.classList.remove('hidden');
+        void target.offsetWidth; // Forzar reflow para reiniciar la animación
+        target.classList.add('step-liquid-enter');
+      }
 
       if (stepNum === 3) {
         renderScoutCategories();
