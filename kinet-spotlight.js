@@ -1,5 +1,5 @@
 /**
- * KINET OS - Precision Spotlight Cursor Effect (Optimized Size & Color)
+ * KINET OS - Spotlight Cursor Effect (Fixed Syntax & Universal Target)
  */
 (function () {
   'use strict';
@@ -12,10 +12,10 @@
     .glass-card, [class*="card"], .rounded-2xl, .rounded-xl {
       position: relative !important;
       isolation: isolate;
-      /* Gradiente reducido a 180px para un aro de luz más preciso y elegante */
+      /* Sintaxis CSS corregida: circle 180px */
       background-image: radial-gradient(
-        180px circle at var(--mouse-x, -1000px) var(--mouse-y, -1000px),
-        var(--spotlight-color, rgba(0, 255, 102, 0.35)),
+        circle 180px at var(--mouse-x, -1000px) var(--mouse-y, -1000px),
+        var(--spotlight-color, rgba(0, 255, 102, 0.45)),
         transparent 80%
       ) !important;
     }
@@ -33,16 +33,16 @@
       el.style.setProperty('--mouse-x', `${x}px`);
       el.style.setProperty('--mouse-y', `${y}px`);
 
-      // Detección inteligente basada en la URL actual, la página o el contenido de la tarjeta
+      // Detección automática del color según la sección o página actual
       if (!el.dataset.spotlightConfigured) {
-        let color = 'rgba(0, 255, 102, 0.4)'; // Verde Neón por defecto (Atletas)
+        let color = 'rgba(0, 255, 102, 0.45)'; // Verde Neón (Atletas)
         
-        const pageContext = (window.location.href + document.title + document.body.className + el.outerHTML).toLowerCase();
+        const context = (window.location.href + document.title + document.body.className + el.outerHTML).toLowerCase();
 
-        if (pageContext.includes('staff') || pageContext.includes('coach') || pageContext.includes('amber')) {
-          color = 'rgba(245, 158, 11, 0.4)'; // Ámbar Técnico (Staff)
-        } else if (pageContext.includes('scout') || pageContext.includes('club') || pageContext.includes('blue')) {
-          color = 'rgba(59, 130, 246, 0.4)'; // Azul Corporativo (Scouts)
+        if (context.includes('staff') || context.includes('coach') || context.includes('amber')) {
+          color = 'rgba(245, 158, 11, 0.45)'; // Ámbar (Staff)
+        } else if (context.includes('scout') || context.includes('club') || context.includes('blue')) {
+          color = 'rgba(59, 130, 246, 0.45)'; // Azul (Scouts)
         }
 
         el.style.setProperty('--spotlight-color', color);
@@ -51,5 +51,5 @@
     });
   }, { passive: true });
 
-  console.log('KINET OS: Precision Spotlight Loaded ⚡');
+  console.log('KINET OS: Spotlight Fixed & Loaded ⚡');
 })();
