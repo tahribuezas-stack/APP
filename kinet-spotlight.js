@@ -1,11 +1,21 @@
 /**
- * KINET OS - Global Spotlight Cursor Effect Module (Versión Robusta con Sombra/Luz Interna)
+ * KINET OS - Global Spotlight Cursor Effect Module (Color Dinámico por Página)
  */
 (function () {
   'use strict';
 
   // Evitar duplicados si se carga dos veces
   if (document.getElementById('kinet-spotlight-global')) return;
+
+  // Detectar el color del spotlight según la página o el rol activo
+  let spotlightColor = 'rgba(0, 255, 102, 0.25)'; // Por defecto Verde Neón (Atleta)
+  
+  const path = window.location.pathname;
+  if (path.includes('staff') || path.includes('coach')) {
+    spotlightColor = 'rgba(245, 158, 11, 0.25)'; // Ámbar para Staff
+  } else if (path.includes('scout')) {
+    spotlightColor = 'rgba(59, 130, 246, 0.25)'; // Azul para Scout
+  }
 
   const style = document.createElement('style');
   style.id = 'kinet-spotlight-global';
@@ -16,14 +26,14 @@
       isolation: isolate;
     }
 
-    /* Halo de luz / sombra interior interactiva con el cursor */
+    /* Halo de luz interactivo con el color adaptado a la página */
     .glass-card::after {
       content: '';
       position: absolute;
       inset: 0;
       background: radial-gradient(
-        circle 200px at var(--mouse-x, -500px) var(--mouse-y, -500px),
-        var(--spotlight-color, rgba(0, 255, 102, 0.25)),
+        circle 220px at var(--mouse-x, -500px) var(--mouse-y, -500px),
+        ${spotlightColor},
         transparent 80%
       );
       opacity: 0;
@@ -57,5 +67,5 @@
     });
   }, { passive: true });
 
-  console.log('KINET OS: Spotlight Global Module Loaded Successfully ⚡');
+  console.log('KINET OS: Dynamic Spotlight Module Loaded Successfully ⚡');
 })();
