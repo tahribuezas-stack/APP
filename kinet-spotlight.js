@@ -4,28 +4,32 @@
 (function () {
   'use strict';
 
-  // 1. Inyectar favicon de KINET OS si no existe
-  if (!document.querySelector("link[rel*='icon']")) {
-    const link = document.createElement('link');
+  // 1. Inyección segura del Favicon de KINET OS en la pestaña
+  try {
+    let link = document.querySelector("link[rel*='icon']") || document.createElement('link');
     link.rel = 'icon';
     link.type = 'image/svg+xml';
     link.href = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2300FF66"><text y="18" font-size="18" font-weight="bold" font-family="monospace">K</text></svg>';
-    document.head.appendChild(link);
+    if (!document.querySelector("link[rel*='icon']")) {
+      document.head.appendChild(link);
+    }
+  } catch (e) {
+    console.warn('KINET OS: Favicon injection notice', e);
   }
 
   if (document.getElementById('kinet-card-spotlight-style')) return;
 
-  // 2. Definir los estilos CSS para que el haz de luz actúe solo dentro de las tarjetas
+  // 2. Definir los estilos CSS exclusivos para .glass-card
   const style = document.createElement('style');
   style.id = 'kinet-card-spotlight-style';
   style.innerHTML = `
-    .glass-card, [class*="card"], .rounded-2xl, .rounded-xl {
+    .glass-card {
       position: relative !important;
       overflow: hidden !important;
       isolation: isolate;
     }
 
-    .glass-card::after, [class*="card"]::after, .rounded-2xl::after, .rounded-xl::after {
+    .glass-card::after {
       content: '';
       position: absolute;
       inset: 0;
@@ -40,31 +44,31 @@
       z-index: 1;
     }
 
-    .glass-card:hover::after, [class*="card"]:hover::after, .rounded-2xl:hover::after, .rounded-xl:hover::after {
+    .glass-card:hover::after {
       opacity: 1;
     }
 
-    .glass-card > *, [class*="card"] > *, .rounded-2xl > *, .rounded-xl > * {
+    .glass-card > * {
       position: relative;
       z-index: 2;
     }
   `;
   document.head.appendChild(style);
 
-  // 3. Detectar coordenadas del ratón relativas a cada tarjeta y asignar color según la sección
+  // 3. Detección de coordenadas y color adaptativo por rol/sección
   document.addEventListener('mousemove', (e) => {
-    const elements = document.querySelectorAll('.glass-card, [class*="card'], .rounded-2xl, .rounded-xl');
+    const cards = document.querySelectorAll('.glass-card');
     
-    elements.forEach(el => {
-      const rect = el.getBoundingClientRect();
+    cards.forEach(card => {
+      const rect = card.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
       
-      el.style.setProperty('--mouse-x', `${x}px`);
-      el.style.setProperty('--mouse-y', `${y}px`);
+      card.style.setProperty('--mouse-x', `${x}px`);
+      card.style.setProperty('--mouse-y', `${y}px`);
 
-      if (!el.dataset.spotlightConfigured) {
-        let color = 'rgba(0, 255, 102, 0.35)'; // Verde Neón (Atletas / Fase 1)
+      if (!card.dataset.spotlightConfigured) {
+        let color = 'rgba(0, 255, 102, 0.35)'; // Verde Neón (Atleta / Fase 1)
         const context = (window.location.href + document.title).toLowerCase();
 
         if (context.includes('staff') || context.includes('coach')) {
@@ -73,11 +77,11 @@
           color = 'rgba(59, 130, 246, 0.35)'; // Azul (Scouts)
         }
 
-        el.style.setProperty('--spotlight-color', color);
-        el.dataset.spotlightConfigured = 'true';
+        card.style.setProperty('--spotlight-color', color);
+        card.dataset.spotlightConfigured = 'true';
       }
     });
   }, { passive: true });
 
-  console.log('KINET OS: Card-Only Spotlight Loaded ⚡');
+  console.log('KINET OS: Clean Card Spotlight Loaded ⚡');
 })();
