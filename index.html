@@ -95,8 +95,8 @@
   <header class="fixed top-0 left-0 right-0 z-50 glass-nav">
     <div class="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
       
-      <!-- LOGO CON EFECTO GLOW -->
-      <div class="flex items-center space-x-3 logo-glow cursor-pointer" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+      <!-- LOGO CON EFECTO GLOW Y SCROLL FLUIDO HASTA ARRIBA -->
+      <div class="flex items-center space-x-3 logo-glow cursor-pointer" onclick="scrollToTop()">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-kinet-neon to-emerald-600 font-display font-black text-black text-xl flex items-center justify-center shadow-[0_0_20px_rgba(0,255,102,0.4)]">
           K
         </div>
@@ -106,12 +106,12 @@
         </div>
       </div>
 
-      <!-- ENLACES DE NAVEGACIÓN -->
+      <!-- ENLACES DE NAVEGACIÓN SUPERIOR CON SCROLL FLUIDO -->
       <nav class="hidden md:flex items-center space-x-8 text-xs font-medium text-slate-300">
-        <a href="#ecosistema" class="hover:text-kinet-neon transition">Ecosistema & Perfiles</a>
-        <a href="#como-funciona" class="hover:text-kinet-neon transition">Cómo Funciona</a>
-        <a href="#arquitectura" class="hover:text-kinet-neon transition">Tecnología</a>
-        <a href="#precios" class="hover:text-kinet-neon transition">Planes</a>
+        <span onclick="scrollToSection('ecosistema')" class="cursor-pointer hover:text-kinet-neon transition">Ecosistema & Perfiles</span>
+        <span onclick="scrollToSection('como-funciona')" class="cursor-pointer hover:text-kinet-neon transition">Cómo Funciona</span>
+        <span onclick="scrollToSection('arquitectura')" class="cursor-pointer hover:text-kinet-neon transition">Tecnología</span>
+        <span onclick="scrollToSection('precios')" class="cursor-pointer hover:text-kinet-neon transition">Planes</span>
       </nav>
 
       <!-- ACCIÓN -->
@@ -405,8 +405,8 @@
       <div class="flex flex-wrap gap-6">
         <span onclick="cambiarPagina('login.html')" class="hover:text-slate-300 cursor-pointer">Iniciar Sesión</span>
         <span onclick="cambiarPagina('fase1.html')" class="hover:text-slate-300 cursor-pointer">Entrar como invitado</span>
-        <a href="#ecosistema" class="hover:text-slate-300">Perfiles</a>
-        <a href="#precios" class="hover:text-slate-300">Planes</a>
+        <span onclick="scrollToSection('ecosistema')" class="hover:text-slate-300 cursor-pointer">Perfiles</span>
+        <span onclick="scrollToSection('precios')" class="hover:text-slate-300 cursor-pointer">Planes</span>
       </div>
     </div>
   </footer>
@@ -425,6 +425,32 @@
     document.addEventListener("DOMContentLoaded", function() {
       document.body.style.opacity = '1';
     });
+
+    // Desplazamiento fluido hacia arriba al pulsar el logo
+    function scrollToTop() {
+      const startPosition = window.pageYOffset;
+      let startTime = null;
+      const duration = 750;
+
+      function animation(currentTime) {
+        if (startTime === null) startTime = currentTime;
+        const timeElapsed = currentTime - startTime;
+        const run = easeInOutQuad(timeElapsed, startPosition, -startPosition, duration);
+        window.scrollTo(0, run);
+        if (timeElapsed < duration) {
+          requestAnimationFrame(animation);
+        }
+      }
+
+      function easeInOutQuad(t, b, c, d) {
+        t /= d / 2;
+        if (t < 1) return c / 2 * t * t + b;
+        t--;
+        return -c / 2 * (t * (t - 2) - 1) + b;
+      }
+
+      requestAnimationFrame(animation);
+    }
 
     // Desplazamiento fluido personalizado (efecto rueda de ratón natural y suave)
     function scrollToSection(sectionId) {
