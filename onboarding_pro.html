@@ -5,20 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>KINET OS - Multi-Sport Precision Calibration</title>
   
-  <!-- Favicon / Logo en la pestaña -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%2300FF66%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%23000%22>K</text></svg>">
 
-  <!-- Estilos y librerías -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" href="kinet-motion.css">
-  
-  <!-- Script del Spotlight (debe ir en el head con defer) -->
-  <script src="kinet-spotlight.js" defer></script>
 
   <script>
     tailwind.config = {
@@ -40,7 +33,6 @@
       }
     }
   </script>
-
   <style>
     .bg-cyber-pattern {
       background-color: #080A0C;
@@ -51,6 +43,30 @@
       backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.08);
       transition: all 0.3s ease;
+      position: relative !important;
+      overflow: hidden !important;
+      isolation: isolate;
+    }
+    .glass-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        circle 180px at var(--mouse-x, -500px) var(--mouse-y, -500px),
+        var(--spotlight-color, rgba(0, 255, 102, 0.35)),
+        transparent 80%
+      );
+      opacity: 0;
+      transition: opacity 0.2s ease-in-out;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .glass-card:hover::after {
+      opacity: 1;
+    }
+    .glass-card > * {
+      position: relative;
+      z-index: 2;
     }
     .glass-card:hover {
       border-color: rgba(0, 255, 102, 0.4);
@@ -115,7 +131,6 @@
       box-shadow: 0 0 12px rgba(0, 255, 102, 0.8);
       cursor: pointer;
     }
-
     @media screen and (max-width: 768px) {
       body {
         align-items: flex-start !important;
@@ -140,9 +155,7 @@
     }
   </style>
 </head>
-
-<!-- EL BODY COMIENZA AQUÍ CORRECTAMENTE -->
-<body style="--spotlight-color: rgba(0, 255, 102, 0.4);" class="bg-cyber-pattern text-slate-100 font-sans min-h-screen flex items-center justify-center p-4">
+<body style="--spotlight-color: rgba(0, 255, 102, 0.35);" class="bg-cyber-pattern text-slate-100 font-sans min-h-screen flex items-center justify-center p-4">
 
   <div class="relative w-full max-w-4xl card-liquid-transition bg-[#090B0E] rounded-[32px] border border-slate-800/80 shadow-[0_0_90px_rgba(0,0,0,0.9)] p-6 md:p-8 space-y-6">
     
@@ -410,6 +423,18 @@
       renderSportPitch();
     });
 
+    // Efecto de luz dentro de las tarjetas (.glass-card)
+    document.addEventListener('mousemove', (e) => {
+      const cards = document.querySelectorAll('.glass-card');
+      cards.forEach(card => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        card.style.setProperty('--mouse-x', `${x}px`);
+        card.style.setProperty('--mouse-y', `${y}px`);
+      });
+    }, { passive: true });
+
     function cambiarPagina(event, urlDestino) {
       if (event) event.preventDefault();
       const contenedor = document.querySelector('.card-liquid-transition');
@@ -444,7 +469,7 @@
       if (stepNum === 3) renderCategories();
       else if (stepNum === 4) renderSportPitch();
       else if (stepNum === 5 && typeof configureAgeAndBudgetScales === 'function') configureAgeAndBudgetScales();
-      else if (stepNum === 6) setupAiChatGreeting();
+      else if (stepNum === 6) setupAiChatGreeting(); // <-- CORREGIDO: Activa el texto del chat correctamente
     }
 
     function selectSport(val) {
@@ -563,28 +588,144 @@
           </div>
         `;
         setSubOptions('Delantero', ['Delantero Centro (DC)', 'Falso 9', 'Mediapunta (10)', 'Segundo Delantero']);
+
+      } else if (sport === 'Baloncesto') {
+        title.textContent = "3. CANCHA DE BALONCESTO & ROL TÁCTICO";
+        subtitle.textContent = "Selecciona tu demarcación en la pista.";
+        container.className = "relative w-full h-[240px] pitch-basket rounded-2xl p-4 flex flex-col justify-between overflow-hidden";
+        container.innerHTML = `
+          <div class="flex justify-around items-center z-10 pt-1">
+            <button onclick="setSubOptions('Base (Point Guard)', ['Director de Juego', 'Base Anotador', 'Combo Guard'])" class="px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-bold text-xs">1. BASE (PG)</button>
+            <button onclick="setSubOptions('Escolta (Shooting Guard)', ['Tirador 3&D', 'Escolta Penetrador'])" class="px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-bold text-xs">2. ESCOLTA (SG)</button>
+          </div>
+          <div class="flex justify-center items-center z-10">
+            <button onclick="setSubOptions('Alero (Small Forward)', ['Alero Versátil', '3&D Especialista'])" class="px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-bold text-xs">3. ALERO (SF)</button>
+          </div>
+          <div class="flex justify-around items-center z-10 pb-1">
+            <button onclick="setSubOptions('Ala-Pívot (Power Forward)', ['Stretch-4', 'Poste Bajo Tradicional'])" class="px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-bold text-xs">4. ALA-PÍVOT (PF)</button>
+            <button onclick="setSubOptions('Pívot (Center)', ['Protector del Aro', 'Rim-Runner'])" class="px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-bold text-xs">5. PÍVOT (C)</button>
+          </div>
+        `;
+        setSubOptions('Base (Point Guard)', ['Director de Juego', 'Base Anotador', 'Combo Guard']);
+
+      } else if (sport === 'Pádel / Tenis') {
+        title.textContent = "3. PISTA DE PÁDEL / TENIS & LADO";
+        subtitle.textContent = "Indica tu lado o estilo en la pista.";
+        container.className = "relative w-full h-[240px] pitch-padel rounded-2xl p-4 flex flex-col justify-around items-center overflow-hidden";
+        container.innerHTML = `
+          <div class="flex justify-around w-full z-10">
+            <button onclick="setSubOptions('Jugador de Revés (Izquierda)', ['Rematador / Potencia', 'Creador de Juego', 'Agresivo de Red'])" class="px-4 py-2 rounded-xl bg-blue-500/20 border border-blue-400 text-blue-300 font-bold text-xs">REVÉS (LADO IZQUIERDO)</button>
+            <button onclick="setSubOptions('Jugador de Drive (Derecha)', ['Defensor / Táctico', 'Consistente', 'Muro de Contención'])" class="px-4 py-2 rounded-xl bg-blue-500/20 border border-blue-400 text-blue-300 font-bold text-xs">DRIVE (LADO DERECHO)</button>
+          </div>
+          <div class="z-10">
+            <button onclick="setSubOptions('Individuales / Polivalente', ['Fondo de Pista', 'Saque y Red', 'Jugador de Ataque'])" class="px-4 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-white font-bold text-xs">JUGADOR POLIVALENTE / TENIS SINGLE</button>
+          </div>
+        `;
+        setSubOptions('Jugador de Revés (Izquierda)', ['Rematador / Potencia', 'Creador de Juego', 'Agresivo de Red']);
+
+      } else if (sport === 'Boxeo / MMA') {
+        title.textContent = "3. RING & ESTILO DE COMBATE";
+        subtitle.textContent = "Define tu estrategia principal en el combate.";
+        container.className = "relative w-full h-[240px] pitch-boxeo rounded-2xl p-4 flex flex-col justify-around items-center overflow-hidden";
+        container.innerHTML = `
+          <div class="grid grid-cols-2 gap-3 w-full z-10">
+            <button onclick="setSubOptions('Out-Boxer / Estilista', ['Control Distancia', 'Jab Constante'])" class="p-3 rounded-xl bg-red-500/20 border border-red-500 text-red-300 font-bold text-xs">OUT-BOXER (ESTILISTA)</button>
+            <button onclick="setSubOptions('Swarmer / In-Fighter', ['Presión Constante', 'Ganchos Cuerpo'])" class="p-3 rounded-xl bg-red-500/20 border border-red-500 text-red-300 font-bold text-xs">SWARMER (IN-FIGHTER)</button>
+            <button onclick="setSubOptions('Slugger / Puncher', ['Potencia KO', 'Contragolpeador Físico'])" class="p-3 rounded-xl bg-red-500/20 border border-red-500 text-red-300 font-bold text-xs">SLUGGER (PEGADOR)</button>
+            <button onclick="setSubOptions('Counter-Puncher / MMA', ['Reflejos & Esquiva', 'Anticipación', 'Grappling & Striking'])" class="p-3 rounded-xl bg-red-500/20 border border-red-500 text-red-300 font-bold text-xs">COUNTER-PUNCHER / LUCHA</button>
+          </div>
+        `;
+        setSubOptions('Out-Boxer / Estilista', ['Control Distancia', 'Jab Constante']);
+
+      } else if (sport === 'Running') {
+        title.textContent = "3. ESPECIALIDAD DE CARRERA";
+        subtitle.textContent = "Indica tu distancia o disciplina principal.";
+        container.className = "relative w-full h-[240px] pitch-running rounded-2xl p-4 flex flex-col justify-around items-center overflow-hidden";
+        container.innerHTML = `
+          <div class="grid grid-cols-2 gap-3 w-full z-10">
+            <button onclick="setSubOptions('Velocista (Sprinter)', ['100m - 200m', '400m Llanos / Vallas'])" class="p-3 rounded-xl bg-purple-500/20 border border-purple-400 text-purple-300 font-bold text-xs">VELOCIDAD (100m - 400m)</button>
+            <button onclick="setSubOptions('Medio Fondo', ['800m - 1500m', '3000m Obstáculos'])" class="p-3 rounded-xl bg-purple-500/20 border border-purple-400 text-purple-300 font-bold text-xs">MEDIO FONDO (800m - 1500m)</button>
+            <button onclick="setSubOptions('Fondo / Ruta', ['5k / 10k', 'Media Maratón', 'Maratón 42k'])" class="p-3 rounded-xl bg-purple-500/20 border border-purple-400 text-purple-300 font-bold text-xs">FONDO / MARATÓN</button>
+            <button onclick="setSubOptions('Trail / Montaña', ['Ultra Trail', 'Kilómetro Vertical'])" class="p-3 rounded-xl bg-purple-500/20 border border-purple-400 text-purple-300 font-bold text-xs">TRAIL RUNNING</button>
+          </div>
+        `;
+        setSubOptions('Velocista (Sprinter)', ['100m - 200m', '400m Llanos / Vallas']);
+
+      } else {
+        title.textContent = "3. IDENTIFICACIÓN DE TU DISCIPLINA";
+        subtitle.textContent = "Escribe tu especialidad exacta.";
+        subBox.classList.add('hidden');
+        container.className = "relative w-full h-[240px] pitch-custom rounded-2xl p-4 flex flex-col justify-center items-center space-y-3 text-center overflow-hidden";
+        container.innerHTML = `
+          <div class="w-10 h-10 rounded-2xl bg-kinet-neon/10 border border-kinet-neon/30 text-kinet-neon flex items-center justify-center font-bold">
+            <i data-lucide="trophy" class="w-5 h-5"></i>
+          </div>
+          <div class="space-y-1">
+            <h3 class="font-display font-bold text-xs text-white">¿Cuál es tu posición o especialidad principal?</h3>
+          </div>
+          <input type="text" id="custom-sport-input" placeholder="Escribe aquí tu especialidad..." oninput="state.position = this.value" class="w-full max-w-sm bg-[#080A0C] border border-kinet-neon/40 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition text-center font-bold">
+        `;
+        lucide.createIcons();
       }
     }
 
-    function setSubOptions(mainPos, subList) {
-      state.position = mainPos + ' (' + subList[0] + ')';
-      document.getElementById('selected-pos-display').textContent = state.position;
+    function setSubOptions(mainTitle, opts) {
+      const display = document.getElementById('selected-pos-display');
       const box = document.getElementById('sub-position-options');
+      state.position = mainTitle + " (" + opts[0] + ")";
+      display.textContent = state.position;
       box.innerHTML = '';
-      subList.forEach((sub, i) => {
+      opts.forEach((opt, idx) => {
         const btn = document.createElement('button');
-        btn.className = i === 0 
-          ? "px-3 py-1 rounded-lg bg-kinet-neon text-black font-bold text-[10px]"
-          : "px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 text-[10px]";
+        btn.className = idx === 0 ? "px-3 py-1 rounded-xl bg-kinet-neon text-black font-bold text-xs" : "px-3 py-1 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 text-xs hover:text-white";
+        btn.textContent = opt;
         btn.onclick = () => {
-          state.position = mainPos + ' (' + sub + ')';
-          document.getElementById('selected-pos-display').textContent = state.position;
-          Array.from(box.children).forEach(b => b.className = "px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 text-[10px]");
-          btn.className = "px-3 py-1 rounded-lg bg-kinet-neon text-black font-bold text-[10px]";
+          state.position = mainTitle + " (" + opt + ")";
+          display.textContent = state.position;
+          Array.from(box.children).forEach(b => b.className = "px-3 py-1 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 text-xs hover:text-white");
+          btn.className = "px-3 py-1 rounded-xl bg-kinet-neon text-black font-bold text-xs";
         };
-        btn.textContent = sub;
         box.appendChild(btn);
       });
+    }
+
+    function setupAiChatGreeting() {
+      const msgBox = document.getElementById('ai-greeting-msg');
+      if (msgBox) {
+        msgBox.textContent = `¡Hola! Soy tu asistente biométrico KINET. He detectado que compites en ${state.sport} (${state.category}). ¿Cuál es tu objetivo principal esta temporada?`;
+      }
+    }
+
+    function skipAiSetup() {
+      state.aiCompleted = false;
+      document.getElementById('ai-incomplete-alert').classList.remove('hidden');
+    }
+
+    function sendAiResponse() {
+      const input = document.getElementById('ai-chat-input');
+      if (input.value.trim() !== '') {
+        state.aiCompleted = true;
+        document.getElementById('ai-incomplete-alert').classList.add('hidden');
+        alert('Respuesta registrada. Los agentes de IA han sido calibrados.');
+        input.value = '';
+      }
+    }
+
+    function finishOnboarding() {
+      state.altura = document.getElementById('slider-altura').value;
+      state.peso = document.getElementById('slider-peso').value;
+      state.edad = document.getElementById('slider-edad').value;
+
+      localStorage.setItem('kinet_role', state.role);
+      localStorage.setItem('kinet_sport', state.sport);
+      localStorage.setItem('kinet_category', state.category);
+      localStorage.setItem('kinet_position', state.position);
+      localStorage.setItem('kinet_altura', state.altura + ' cm');
+      localStorage.setItem('kinet_peso', state.peso + ' kg');
+      localStorage.setItem('kinet_edad', state.edad + ' años');
+      localStorage.setItem('kinet_profile_completed', 'true');
+
+      cambiarPagina(null, 'fase1.html');
     }
   </script>
 </body>
