@@ -1,5 +1,5 @@
 /**
- * KINET OS - Global Spotlight Cursor Effect Module (Versión Robusta)
+ * KINET OS - Global Spotlight Cursor Effect Module (Versión Robusta con Sombra/Luz Interna)
  */
 (function () {
   'use strict';
@@ -16,27 +16,27 @@
       isolation: isolate;
     }
 
-    /* Halo de luz con valores por defecto seguros para evitar fallos del navegador */
-    .glass-card::before {
+    /* Halo de luz / sombra interior interactiva con el cursor */
+    .glass-card::after {
       content: '';
       position: absolute;
       inset: 0;
       background: radial-gradient(
-        500px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-        rgba(59, 130, 246, 0.25),
-        transparent 60%
+        circle 200px at var(--mouse-x, -500px) var(--mouse-y, -500px),
+        var(--spotlight-color, rgba(0, 255, 102, 0.25)),
+        transparent 80%
       );
       opacity: 0;
-      transition: opacity 0.25s ease-in-out;
+      transition: opacity 0.2s ease-in-out;
       pointer-events: none;
       z-index: 1;
     }
 
-    .glass-card:hover::before {
+    .glass-card:hover::after {
       opacity: 1;
     }
 
-    /* Asegurar que el contenido interno esté siempre por encima del brillo */
+    /* Asegurar que el contenido interno esté siempre por encima del efecto */
     .glass-card > * {
       position: relative;
       z-index: 2;
