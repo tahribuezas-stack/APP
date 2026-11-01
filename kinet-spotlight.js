@@ -1,16 +1,15 @@
 /**
- * KINET OS - Global Spotlight Cursor Effect Module
- * Añade iluminación dinámica de cursor a todas las tarjetas de la aplicación sin alterar la lógica de negocio.
+ * KINET OS - Global Spotlight Cursor Effect Module (Corregido)
+ * Iluminación dinámica de cursor relativa a cada tarjeta.
  */
 
 (function () {
   'use strict';
 
-  // 1. Inyectar los estilos CSS necesarios de forma automática
+  // 1. Inyectar los estilos CSS necesarios con coordenadas seguras
   const spotlightStyles = document.createElement('style');
   spotlightStyles.id = 'kinet-global-spotlight-styles';
   spotlightStyles.innerHTML = `
-    /* Tarjetas con efecto Spotlight interactivo global */
     .glass-card {
       position: relative;
       background: rgba(19, 23, 29, 0.85);
@@ -20,12 +19,12 @@
       overflow: hidden;
     }
 
-    /* El foco de luz azul que sigue al cursor dentro de cada tarjeta */
+    /* Halo de luz que sigue al cursor de forma local dentro de la tarjeta */
     .glass-card::before {
       content: '';
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: radial-gradient(600px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(59, 130, 246, 0.18), transparent 40%);
+      background: radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(59, 130, 246, 0.22), transparent 50%);
       opacity: 0;
       transition: opacity 0.3s ease;
       pointer-events: none;
@@ -36,7 +35,6 @@
       opacity: 1;
     }
 
-    /* Asegurar que el contenido interno esté siempre por encima del foco de luz */
     .glass-card > * {
       position: relative;
       z-index: 2;
@@ -56,12 +54,14 @@
   `;
   document.head.appendChild(spotlightStyles);
 
-  // 2. Escáner de movimiento del cursor optimizado para todo el documento
+  // 2. Cálculo preciso de coordenadas locales (clientX - rect.left)
   document.addEventListener('mousemove', (e) => {
     const cards = document.getElementsByClassName('glass-card');
     for (let i = 0; i < cards.length; i++) {
       const card = cards[i];
       const rect = card.getBoundingClientRect();
+      
+      // Coordenadas relativas al interior de la tarjeta
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
@@ -70,5 +70,5 @@
     }
   }, { passive: true });
 
-  console.log('KINET OS: Spotlight Global Module Loaded Successfully ⚡');
+  console.log('KINET OS: Spotlight Global Module Loaded & Fixed ⚡');
 })();
