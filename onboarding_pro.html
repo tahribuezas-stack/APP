@@ -446,7 +446,7 @@
       }, 250); 
     }
 
-    function nextStep(stepNum) {
+   function nextStep(stepNum) {
       const visualStep = stepNum - 1;
       const stepNumEl = document.getElementById('step-num');
       if (stepNumEl) stepNumEl.textContent = "0" + (visualStep > 0 ? visualStep : 1);
@@ -458,6 +458,28 @@
           el.classList.remove('step-liquid-enter');
         }
       }
+
+      const target = document.getElementById('step-' + stepNum);
+      if (target) {
+        target.classList.remove('hidden');
+        void target.offsetWidth;
+        target.classList.add('step-liquid-enter');
+      }
+
+      if (stepNum === 3) {
+        renderCategories();
+      } else if (stepNum === 4) {
+        renderSportPitch();
+      } else if (stepNum === 5 && typeof configureAgeAndBudgetScales === 'function') {
+        configureAgeAndBudgetScales();
+      } else if (stepNum === 6) {
+        // FUERZA LA CARGA DEL MENSAJE DE LA IA INMEDIATAMENTE
+        const msgBox = document.getElementById('ai-greeting-msg');
+        if (msgBox) {
+          msgBox.textContent = `¡Hola! Soy tu asistente biométrico KINET. He detectado que compites en ${state.sport} (${state.category}). ¿Cuál es tu objetivo principal esta temporada?`;
+        }
+      }
+    }
 
       const target = document.getElementById('step-' + stepNum);
       if (target) {
