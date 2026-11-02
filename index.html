@@ -494,7 +494,7 @@
     </div>
   </footer>
 
-  <!-- SCRIPTS -->
+<!-- SCRIPTS -->
   <script>
     lucide.createIcons();
 
@@ -508,7 +508,7 @@
       document.body.style.opacity = '1';
     });
 
-    // FUNCIÓN DEFINITIVA: EXCLUSIÓN MUTUA ESTRICTA
+    // FUNCIÓN LIMPIA Y ESTRICTA: Solo abre la tarjeta seleccionada y cierra las demás
     function togglePlanDetail(planId) {
       const allPlans = ['plan-free', 'plan-pro', 'plan-club'];
       const targetCard = document.getElementById(planId);
@@ -516,9 +516,9 @@
 
       const targetDetail = targetCard.querySelector('.detail-content');
       const targetIcon = targetCard.querySelector('.icon-plan');
-      const willOpen = targetDetail.classList.contains('hidden');
+      const isAlreadyOpen = !targetDetail.classList.contains('hidden');
 
-      // 1. Primero cerramos y reseteamos ABSOLUTAMENTE TODAS las tarjetas
+      // Paso 1: Cierra y resetea las 3 tarjetas por completo
       allPlans.forEach(id => {
         const card = document.getElementById(id);
         if (card) {
@@ -530,8 +530,8 @@
         }
       });
 
-      // 2. Si la tarjeta seleccionada estaba cerrada, la abrimos exclusivamente
-      if (willOpen) {
+      // Paso 2: Si la tarjeta que pulsaste estaba cerrada, la abrimos exclusivamente
+      if (!isAlreadyOpen) {
         targetDetail.classList.remove('hidden');
         targetCard.classList.add('plan-expanded');
         if (targetIcon) targetIcon.style.transform = 'rotate(180deg)';
