@@ -508,34 +508,34 @@
       document.body.style.opacity = '1';
     });
 
-    // FUNCIÓN DE EXCLUSIÓN MUTUA: SOLO SE EXPANDE EL PLAN SELECCIONADO Y SE CIERRAN LOS DEMÁS
+    // FUNCIÓN DEFINITIVA: EXCLUSIÓN MUTUA ESTRICTA
     function togglePlanDetail(planId) {
-      const planes = ['plan-free', 'plan-pro', 'plan-club'];
+      const allPlans = ['plan-free', 'plan-pro', 'plan-club'];
+      const targetCard = document.getElementById(planId);
+      if (!targetCard) return;
 
-      planes.forEach(id => {
+      const targetDetail = targetCard.querySelector('.detail-content');
+      const targetIcon = targetCard.querySelector('.icon-plan');
+      const willOpen = targetDetail.classList.contains('hidden');
+
+      // 1. Primero cerramos y reseteamos ABSOLUTAMENTE TODAS las tarjetas
+      allPlans.forEach(id => {
         const card = document.getElementById(id);
-        if (!card) return;
-
-        const detail = card.querySelector('.detail-content');
-        const icon = card.querySelector('.icon-plan');
-
-        if (id === planId) {
-          if (detail.classList.contains('hidden')) {
-            detail.classList.remove('hidden');
-            card.classList.add('plan-expanded');
-            if (icon) icon.style.transform = 'rotate(180deg)';
-          } else {
-            detail.classList.add('hidden');
-            card.classList.remove('plan-expanded');
-            if (icon) icon.style.transform = 'rotate(0deg)';
-          }
-        } else {
-          detail.classList.add('hidden');
+        if (card) {
+          const detail = card.querySelector('.detail-content');
+          const icon = card.querySelector('.icon-plan');
+          if (detail) detail.classList.add('hidden');
           card.classList.remove('plan-expanded');
-          const otherIcon = card.querySelector('.icon-plan');
-          if (otherIcon) otherIcon.style.transform = 'rotate(0deg)';
+          if (icon) icon.style.transform = 'rotate(0deg)';
         }
       });
+
+      // 2. Si la tarjeta seleccionada estaba cerrada, la abrimos exclusivamente
+      if (willOpen) {
+        targetDetail.classList.remove('hidden');
+        targetCard.classList.add('plan-expanded');
+        if (targetIcon) targetIcon.style.transform = 'rotate(180deg)';
+      }
     }
 
     function scrollToTop() {
