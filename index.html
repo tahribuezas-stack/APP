@@ -1,8 +1,419 @@
-<!-- SCRIPTS DE NAVEGACIÓN Y TRANSICIONES CON DESPLAZAMIENTO FLUIDO (SMOOTH EASE-IN-OUT) -->
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-[#080A0C] scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>KINET OS - Inteligencia Artificial y Calibración para el Deporte de Élite</title>
+  
+  <!-- FAVICON OFICIAL EN LA PESTAÑA -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%2300FF66'/%3E%3Ctext x='50' y='72' font-size='65' font-weight='900' font-family='Arial, sans-serif' text-anchor='middle' fill='%23000000'%3EK%3C/text%3E%3C/svg%3E">
+
+  <!-- SOPORTE DE MOTION Y SPOTLIGHT -->
+  <link rel="stylesheet" href="kinet-motion.css">
+  <script src="kinet-spotlight.js" defer></script>
+
+  <!-- Tailwind CSS y Librerías -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            kinet: {
+              neon: '#00FF66',
+              titanium: '#0F1215',
+              'titanium-light': '#181C22',
+              'titanium-border': '#262D37',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Orbitron', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html {
+      scroll-padding-top: 100px;
+    }
+    .bg-cyber-pattern {
+      background-color: #080A0C;
+      background-image: radial-gradient(circle at 50% 15%, rgba(0, 255, 102, 0.12) 0%, rgba(59, 130, 246, 0.06) 45%, transparent 75%);
+    }
+    .glass-nav {
+      background: rgba(13, 17, 23, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card {
+      background: rgba(19, 23, 29, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 1.5rem;
+      overflow: hidden;
+      transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+                  border-color 0.25s ease, 
+                  box-shadow 0.25s ease !important;
+    }
+    .glass-card:hover {
+      transform: scale(1.025) translateY(-4px) !important;
+      border-color: rgba(0, 255, 102, 0.4) !important;
+      box-shadow: 0 12px 30px rgba(0, 255, 102, 0.2) !important;
+    }
+    .glass-card:active {
+      transform: scale(0.98) !important;
+    }
+    .logo-glow {
+      transition: all 0.3s ease;
+    }
+    .logo-glow:hover {
+      filter: drop-shadow(0 0 15px rgba(0, 255, 102, 0.7));
+      transform: scale(1.03);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body style="--spotlight-color: rgba(0, 255, 102, 0.25);" class="bg-cyber-pattern text-slate-100 font-sans min-h-screen flex flex-col selection:bg-kinet-neon selection:text-black opacity-0 transition-opacity duration-300">
+
+  <!-- NAVBAR FLOTANTE -->
+  <header class="fixed top-0 left-0 right-0 z-50 glass-nav">
+    <div class="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
+      
+      <div class="flex items-center space-x-3 logo-glow cursor-pointer" onclick="scrollToTop()">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-kinet-neon to-emerald-600 font-display font-black text-black text-xl flex items-center justify-center shadow-[0_0_20px_rgba(0,255,102,0.4)]">
+          K
+        </div>
+        <div>
+          <h1 class="font-display font-black text-lg tracking-[0.2em] text-white leading-none">KINET OS</h1>
+          <p class="text-[9px] text-kinet-neon font-mono tracking-widest uppercase mt-1">AI PRECISION INTELLIGENCE</p>
+        </div>
+      </div>
+
+      <nav class="hidden md:flex items-center space-x-6 text-xs font-medium text-slate-300">
+        <span onclick="scrollToSection('card-section')" class="cursor-pointer hover:text-kinet-neon transition">Kinet Card</span>
+        <span onclick="scrollToSection('vision-section')" class="cursor-pointer hover:text-kinet-neon transition">Vision Analytics</span>
+        <span onclick="scrollToSection('media-section')" class="cursor-pointer hover:text-kinet-neon transition">Media Studio</span>
+        <span onclick="scrollToSection('ecosistema')" class="cursor-pointer hover:text-kinet-neon transition">Agentes</span>
+        <span onclick="scrollToSection('precios')" class="cursor-pointer hover:text-kinet-neon transition text-kinet-neon font-bold">Planes</span>
+        <span onclick="cambiarPagina('soporte.html')" class="cursor-pointer hover:text-amber-400 transition font-bold">Soporte & Dudas</span>
+      </nav>
+
+      <div class="flex items-center space-x-3">
+        <button onclick="cambiarPagina('login.html')" class="px-5 py-2.5 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-wider uppercase hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(0,255,102,0.3)]">
+          Acceder al Sistema ⚡
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- CONTENEDOR PRINCIPAL -->
+  <main class="flex-grow pt-32 main-box card-liquid-transition space-y-24 pb-20">
+    
+    <!-- HERO SECTION -->
+    <section class="w-full max-w-6xl mx-auto px-4 py-16 md:py-20 text-center space-y-8 animate-fade-in">
+      <div class="spotlight-card inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#0B0E11]/60 border border-slate-800/80 text-xs font-mono text-slate-400 shadow-inner cursor-default">
+        <span class="w-2 h-2 rounded-full bg-kinet-neon animate-pulse"></span>
+        <span>KINET OS 2.8 • El Cuerpo Técnico de la Premier League en tu Bolsillo</span>
+      </div>
+
+      <div class="space-y-6 max-w-4xl mx-auto">
+        <h2 class="font-display font-black text-4xl sm:text-6xl md:text-7xl text-white tracking-tight leading-[1.05]">
+          Tu Staff de Élite Completo en <br class="hidden sm:block"/>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-kinet-neon via-emerald-400 to-blue-500">4 Agentes IA Especializados</span>[cite: 3]
+        </h2>
+        <p class="text-base sm:text-lg text-slate-400 leading-relaxed max-w-3xl mx-auto">
+          Las IAs genéricas prescriben hipertrofia inútil de los 90 que destruye la potencia elástica y aumenta las lesiones[cite: 3]. KINET simplifica el software corporativo de 10.000€ en un único ecosistema inteligente para atletas y clubes de base[cite: 3].
+        </p>
+      </div>
+
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+        <button onclick="cambiarPagina('login.html')" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-kinet-neon text-black font-display font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-400 transition shadow-[0_0_30px_rgba(0,255,102,0.4)] flex items-center justify-center space-x-3">
+          <span>Iniciar Sesión en Kinet</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+        <button onclick="cambiarPagina('fase1.html')" class="w-full sm:w-auto px-8 py-4 rounded-2xl glass-card border-slate-700 text-white font-display font-bold text-xs tracking-[0.2em] uppercase hover:border-slate-500 transition">
+          Entrar como invitado
+        </button>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- PUNTO APARTE 1: KINET ATHLETE CARD™ -->
+    <!-- ========================================== -->
+    <section id="card-section" class="w-full max-w-7xl mx-auto px-4 py-12 border-t border-slate-800/60">
+      <div class="glass-card p-8 md:p-14 rounded-[32px] grid grid-cols-1 md:grid-cols-2 gap-12 items-center border-slate-800">
+        <div class="space-y-6">
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-kinet-neon/10 border border-kinet-neon/30 text-kinet-neon text-xs font-mono uppercase">
+            <i data-lucide="shield" class="w-3.5 h-3.5"></i>
+            <span>Metodología de Estatus Visual</span>
+          </div>
+          <h3 class="font-display font-black text-3xl sm:text-4xl text-white">KINET Athlete Card™</h3>
+          <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            La evolución definitiva del tradicional gráfico de araña. Transformamos tu evolución en una carta coleccionable de rendimiento real, estructurada por niveles competitivos[cite: 6]:
+          </p>
+          <div class="space-y-3 font-mono text-xs">
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+              <span class="text-slate-400">1. Amateur / Local</span>
+              <span class="text-white font-bold">Gris Titanio / Bronce[cite: 6]</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+              <span class="text-blue-400">2. Nacional / Estatal</span>
+              <span class="text-white font-bold">Plata Metálica / Azul Cobalto[cite: 6]</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+              <span class="text-kinet-neon">3. Semiprofesional (RFEF)</span>
+              <span class="text-white font-bold">Oro Pulido / Neon Green[cite: 6]</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+              <span class="text-amber-400">4. Élite Profesional</span>
+              <span class="text-white font-bold">Platino / Holo Neón[cite: 6]</span>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-400">
+            <strong>Modo AI Verified:</strong> La IA emite métricas con el sello y holograma oficial <em>"KINET AI Verified Data"</em> para ojeadores y agencias[cite: 6].
+          </p>
+        </div>
+
+        <div class="bg-gradient-to-br from-[#121821] to-[#0A0D12] p-6 rounded-3xl border border-kinet-neon/40 shadow-[0_0_40px_rgba(0,255,102,0.15)] relative space-y-6">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+            <span class="font-mono text-[10px] text-kinet-neon uppercase tracking-wider">HOLO NEÓN ÉLITE // VERIFIED</span>
+            <span class="font-display font-black text-xl text-white">GRL 92</span>
+          </div>
+          <div class="flex items-center space-x-4">
+            <div class="w-20 h-24 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center font-display font-black text-2xl text-kinet-neon">
+              KA
+            </div>
+            <div class="space-y-1">
+              <h4 class="font-display font-bold text-base text-white">Alex Torres</h4>
+              <p class="text-xs text-slate-400">Extremo Izquierdo • KINET Pro</p>
+              <span class="inline-block px-2.5 py-0.5 rounded-md bg-kinet-neon/10 text-kinet-neon text-[10px] font-mono">AI VERIFIED DATA</span>
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-2 pt-2 font-mono text-[11px] text-center">
+            <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800"><span class="text-slate-500 block">PAC</span><strong class="text-white">94</strong></div>
+            <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800"><span class="text-slate-500 block">DRI</span><strong class="text-white">91</strong></div>
+            <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800"><span class="text-slate-500 block">PWR</span><strong class="text-white">88</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- PUNTO APARTE 2: KINET VISION ANALYTICS™ -->
+    <!-- ========================================== -->
+    <section id="vision-section" class="w-full max-w-7xl mx-auto px-4 py-12 border-t border-slate-800/60">
+      <div class="glass-card p-8 md:p-14 rounded-[32px] grid grid-cols-1 md:grid-cols-2 gap-12 items-center border-slate-800">
+        <div class="order-2 md:order-1 bg-gradient-to-br from-[#121821] to-[#0A0D12] p-8 rounded-3xl border border-blue-500/30 shadow-[0_0_40px_rgba(59,130,246,0.1)] space-y-4">
+          <div class="flex items-center space-x-2 text-blue-400 font-mono text-xs">
+            <i data-lucide="video" class="w-4 h-4"></i>
+            <span>MOTOR BIOMECÁNICO DE VÍDEO</span>
+          </div>
+          <h4 class="font-display font-bold text-lg text-white">Análisis Táctico en Tiempo Real</h4>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Sube clips de tus partidos o entrenamientos. El motor visual detecta patrones de zancada, toma de decisiones y errores posicionales sin necesidad de analistas dedicados[cite: 5, 7].
+          </p>
+          <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 font-mono text-[11px] text-slate-300 space-y-2">
+            <div class="flex justify-between"><span>Precisión Zancada:</span><strong class="text-blue-400">98.4%</strong></div>
+            <div class="flex justify-between"><span>Detección Fatiga:</span><strong class="text-blue-400">Activa (Módulo 1)</strong></div>
+            <div class="flex justify-between"><span>Ajuste Táctico:</span><strong class="text-blue-400">Recomendado</strong></div>
+          </div>
+        </div>
+
+        <div class="order-1 md:order-2 space-y-6">
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-mono uppercase">
+            <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+            <span>Visión Artificial Deportiva</span>
+          </div>
+          <h3 class="font-display font-black text-3xl sm:text-4xl text-white">KINET Vision Analytics™</h3>
+          <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            La herramienta unificada de procesamiento de vídeo para toda la estructura. Permite a los atletas detectar sobrecargas técnicas, a los entrenadores automatizar la lectura de partidos y a los ojeadores evaluar perfiles externos con rigor científico[cite: 5, 7].
+          </p>
+          <ul class="space-y-3 text-xs text-slate-300">
+            <li class="flex items-center space-x-3"><i data-lucide="check" class="w-4 h-4 text-blue-400 shrink-0"></i><span>Lectura automática de toma de decisiones en campo[cite: 5].</span></li>
+            <li class="flex items-center space-x-3"><i data-lucide="check" class="w-4 h-4 text-blue-400 shrink-0"></i><span>Generación de micro-dosis de ajuste táctico instantáneas[cite: 5].</span></li>
+            <li class="flex items-center space-x-3"><i data-lucide="check" class="w-4 h-4 text-blue-400 shrink-0"></i><span>Comparativa de rendimiento con rivales y objetivos[cite: 5, 7].</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- PUNTO APARTE 3: KINET MEDIA STUDIO & SPOTIFY -->
+    <!-- ========================================== -->
+    <section id="media-section" class="w-full max-w-7xl mx-auto px-4 py-12 border-t border-slate-800/60">
+      <div class="glass-card p-8 md:p-14 rounded-[32px] grid grid-cols-1 md:grid-cols-2 gap-12 items-center border-slate-800">
+        <div class="space-y-6">
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono uppercase">
+            <i data-lucide="music" class="w-3.5 h-3.5"></i>
+            <span>Viral Loop & Marca Personal</span>
+          </div>
+          <h3 class="font-display font-black text-3xl sm:text-4xl text-white">KINET Media Studio™ & Spotify Sync</h3>
+          <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            Convierte cada entrenamiento o partido en contenido profesional para redes sociales en cuestión de segundos[cite: 6]. 
+          </p>
+          <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            Conecta de forma nativa con la <strong>API oficial de Spotify</strong> para sincronizar la música que te motiva en el vestuario con el ritmo de tus vídeos, superponiendo overlays biométricos con el sello exclusivo <em>VERIFIED ATHLETE // KINET PERFORMANCE</em>[cite: 4, 6].
+          </p>
+        </div>
+
+        <div class="bg-gradient-to-br from-[#121821] to-[#0A0D12] p-8 rounded-3xl border border-emerald-500/30 shadow-[0_0_40px_rgba(16,185,129,0.1)] space-y-4">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">♫</div>
+            <div>
+              <h4 class="font-display font-bold text-sm text-white">Spotify Sync Active</h4>
+              <p class="text-[10px] text-slate-400 font-mono">Track: High Performance - KINET Beats</p>
+            </div>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-2 font-mono text-[11px]">
+            <div class="flex justify-between text-slate-400"><span>Overlay Gráfico:</span><strong class="text-emerald-400">Activo</strong></div>
+            <div class="flex justify-between text-slate-400"><span>Sello Oficial:</span><strong class="text-emerald-400">VERIFIED ATHLETE</strong></div>
+            <div class="flex justify-between text-slate-400"><span>Exportación:</span><strong class="text-emerald-400">TikTok / Reels (1 Clic)</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: ECOSISTEMA AGENTES -->
+    <section id="ecosistema" class="w-full max-w-7xl mx-auto px-4 py-20 border-t border-slate-800/60 space-y-16">
+      <div class="text-center space-y-4 max-w-3xl mx-auto">
+        <h2 class="font-display font-black text-2xl sm:text-4xl text-white">Ecosistema Multi-Agente & Perfiles</h2>
+        <p class="text-xs sm:text-sm text-slate-400">Cuatro cerebros especializados que debaten en segundo plano para ofrecer respuestas quirúrgicas[cite: 3, 5].</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="glass-card p-8 rounded-3xl space-y-6 flex flex-col justify-between">
+          <div class="space-y-4">
+            <div class="w-14 h-14 rounded-2xl bg-kinet-neon/10 border border-kinet-neon/30 text-kinet-neon flex items-center justify-center">
+              <i data-lucide="user" class="w-7 h-7"></i>
+            </div>
+            <h3 class="font-display font-bold text-lg text-white">Atletas & Jugadores</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Staff personal 24/7 (fisio, nutricionista, preparador, analista y potenciador de carrera) adaptado a ti[cite: 5, 7].
+            </p>
+          </div>
+          <span class="text-[11px] font-mono text-kinet-neon">Dashboard Personal + KINET Card</span>
+        </div>
+
+        <div class="glass-card p-8 rounded-3xl space-y-6 flex flex-col justify-between">
+          <div class="space-y-4">
+            <div class="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center">
+              <i data-lucide="users" class="w-7 h-7"></i>
+            </div>
+            <h3 class="font-display font-bold text-lg text-white">Cuerpos Técnicos & Entrenadores</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Equipos de bajo presupuesto equipados con un cuerpo técnico automatizado. Genera tareas exprés en 30 segundos[cite: 7].
+            </p>
+          </div>
+          <span class="text-[11px] font-mono text-amber-400">Copiloto Metodológico + Cargas</span>
+        </div>
+
+        <div class="glass-card p-8 rounded-3xl space-y-6 flex flex-col justify-between">
+          <div class="space-y-4">
+            <div class="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/30 text-blue-400 flex items-center justify-center">
+              <i data-lucide="search" class="w-7 h-7"></i>
+            </div>
+            <h3 class="font-display font-bold text-lg text-white">Scouts & Dirección Deportiva</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Scout Matrix, radar de fichajes global, control financiero de contratos y mapa de calor de lesiones del club[cite: 7].
+            </p>
+          </div>
+          <span class="text-[11px] font-mono text-blue-400">Scout Matrix & Radar Charts</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: PLANES Y SUSCRIPCIONES -->
+    <section id="precios" class="w-full max-w-6xl mx-auto px-4 py-20 border-t border-slate-800/60">
+      <div class="text-center space-y-4 max-w-3xl mx-auto mb-16">
+        <h2 class="font-display font-black text-2xl sm:text-4xl text-white">Planes y Versiones de KINET OS</h2>
+        <p class="text-xs sm:text-sm text-slate-400">Escoge desde el plan gratuito de acceso básico hasta las licencias profesionales y de club[cite: 7].</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div class="glass-card p-8 rounded-3xl flex flex-col justify-between space-y-6 border-slate-800">
+          <div class="space-y-4">
+            <span class="text-[10px] font-mono text-slate-400 uppercase bg-slate-800 px-3 py-1 rounded-full border border-slate-700">Iniciación</span>
+            <h3 class="font-display font-bold text-xl text-white">Plan Gratuito</h3>
+            <p class="text-xs text-slate-400">Chat diario 4 módulos, plan semanal básico, KINET Card Custom y Media Studio[cite: 7].</p>
+            <div class="pt-2">
+              <span class="font-display font-black text-4xl text-white">0€</span>
+              <span class="text-xs text-slate-500 font-mono"> / siempre[cite: 7]</span>
+            </div>
+          </div>
+          <button onclick="cambiarPagina('fase1.html')" class="w-full py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-display font-bold text-xs uppercase transition border border-slate-700">
+            Empezar Gratis
+          </button>
+        </div>
+
+        <div class="glass-card p-8 rounded-3xl flex flex-col justify-between space-y-6 border-slate-800">
+          <div class="space-y-4">
+            <span class="text-[10px] font-mono text-kinet-neon uppercase bg-kinet-neon/10 px-3 py-1 rounded-full border border-kinet-neon/30">B2C Popular</span>
+            <h3 class="font-display font-bold text-xl text-white">Pro Player</h3>
+            <p class="text-xs text-slate-400">Análisis de vídeo con IA, KINET Card AI Verified y edición sin marca de agua[cite: 7].</p>
+            <div class="pt-2">
+              <span class="font-display font-black text-4xl text-white">8,99€</span>
+              <span class="text-xs text-slate-500 font-mono"> / mes[cite: 7]</span>
+            </div>
+          </div>
+          <button onclick="cambiarPagina('login.html')" class="w-full py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-display font-bold text-xs uppercase transition border border-slate-700">
+            Elegir Pro Player
+          </button>
+        </div>
+
+        <div class="glass-card p-8 rounded-3xl flex flex-col justify-between space-y-6 border-amber-500/40 relative shadow-[0_0_30px_rgba(245,158,11,0.1)]">
+          <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-amber-500 text-black text-[9px] font-mono font-black uppercase px-3 py-0.5 rounded-full">Recomendado B2B</div>
+          <div class="space-y-4">
+            <span class="text-[10px] font-mono text-amber-400 uppercase bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/30">B2B Clubes</span>
+            <h3 class="font-display font-bold text-xl text-white">Club & Scout</h3>
+            <p class="text-xs text-slate-400">Cobro automático de cuotas, Scout Matrix ilimitado y gestión multiequipo[cite: 7].</p>
+            <div class="pt-2">
+              <span class="font-display font-black text-4xl text-white">29,99€</span>
+              <span class="text-xs text-slate-500 font-mono"> / mes[cite: 7]</span>
+            </div>
+          </div>
+          <button onclick="cambiarPagina('login.html')" class="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-display font-black text-xs uppercase transition shadow-[0_0_20px_rgba(245,158,11,0.3)]">
+            Elegir Club & Scout
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="w-full border-t border-slate-800/60 bg-[#06080A] py-12 px-4">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-slate-500 font-mono">
+      <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 rounded-lg bg-kinet-neon text-black font-display font-black flex items-center justify-center text-sm">K</div>
+        <span>© 2026 KINET OS • Todos los derechos reservados.</span>
+      </div>
+      <div class="flex flex-wrap gap-6">
+        <span onclick="cambiarPagina('login.html')" class="hover:text-slate-300 cursor-pointer">Iniciar Sesión</span>
+        <span onclick="cambiarPagina('soporte.html')" class="hover:text-amber-400 cursor-pointer font-bold">Soporte y Dudas</span>
+        <span onclick="scrollToSection('precios')" class="hover:text-slate-300 cursor-pointer">Planes</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- SCRIPTS CON NAVEGACIÓN Y DESPLAZAMIENTO FLUIDO (MATEMÁTICA EASE-IN-OUT) -->
   <script>
     lucide.createIcons();
 
-    // Sincroniza la opacidad al navegar o regresar de página
     window.addEventListener('pageshow', function(event) {
       document.body.style.opacity = '1';
       const caja = document.querySelector('.main-box');
@@ -13,11 +424,10 @@
       document.body.style.opacity = '1';
     });
 
-    // 1. DESPLAZAMIENTO FLUIDO HASTA ARRIBA (AL PULSAR EL LOGO)
     function scrollToTop() {
       const startPosition = window.pageYOffset;
       let startTime = null;
-      const duration = 750; // 750ms de deslizamiento suave
+      const duration = 750;
 
       function animation(currentTime) {
         if (startTime === null) startTime = currentTime;
@@ -39,11 +449,10 @@
       requestAnimationFrame(animation);
     }
 
-    // 2. DESPLAZAMIENTO FLUIDO A SECCIONES ESPECÍFICAS (CON COMPENSACIÓN DE HEADER)
     function scrollToSection(sectionId) {
       const element = document.getElementById(sectionId);
       if (element) {
-        const headerOffset = 95; // Compensación de la barra flotante superior
+        const headerOffset = 95;
         const elementPosition = element.getBoundingClientRect().top;
         const targetPosition = elementPosition + window.pageYOffset - headerOffset;
         const startPosition = window.pageYOffset;
@@ -72,7 +481,6 @@
       }
     }
 
-    // 3. TRANSICIÓN LÍQUIDA DE SALIDA ENTRE PÁGINAS (SIN CORTES BRUSCOS)
     function cambiarPagina(urlDestino) {
       const contenedor = document.querySelector('.main-box');
       if (contenedor) {
@@ -81,6 +489,8 @@
       document.body.style.opacity = '0';
       setTimeout(() => {
         window.location.href = urlDestino;
-      }, 500); // Sincronizado con kinet-motion.css
+      }, 500);
     }
   </script>
+</body>
+</html>
