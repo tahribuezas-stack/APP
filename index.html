@@ -345,7 +345,7 @@
       </div>
     </section>
 
- <!-- SECCIÓN: PLANES Y SUSCRIPCIONES (CON ZOOM, DETALLES EXPANDIBLES Y SIMETRÍA PERFECTA) -->
+    <!-- SECCIÓN: PLANES Y SUSCRIPCIONES (CON ZOOM, DETALLES EXPANDIBLES Y SIMETRÍA PERFECTA) -->
     <section id="precios" class="w-full max-w-6xl mx-auto px-4 py-20 border-t border-slate-800/60">
       <div class="text-center space-y-4 max-w-3xl mx-auto mb-16">
         <h2 class="font-display font-black text-2xl sm:text-4xl text-white">Planes y Versiones de KINET OS</h2>
@@ -508,23 +508,34 @@
       document.body.style.opacity = '1';
     });
 
-    // FUNCIÓN PARA DESPLEGAR / CONTRAER LA INFORMACIÓN DETALLADA DE CADA PLAN
+    // FUNCIÓN DE EXCLUSIÓN MUTUA: SOLO SE EXPANDE EL PLAN SELECCIONADO Y SE CIERRAN LOS DEMÁS
     function togglePlanDetail(planId) {
-      const card = document.getElementById(planId);
-      if (!card) return;
+      const planes = ['plan-free', 'plan-pro', 'plan-club'];
 
-      const detail = card.querySelector('.detail-content');
-      const icon = card.querySelector('.icon-plan');
+      planes.forEach(id => {
+        const card = document.getElementById(id);
+        if (!card) return;
 
-      if (detail.classList.contains('hidden')) {
-        detail.classList.remove('hidden');
-        card.classList.add('plan-expanded');
-        if (icon) icon.style.transform = 'rotate(180deg)';
-      } else {
-        detail.classList.add('hidden');
-        card.classList.remove('plan-expanded');
-        if (icon) icon.style.transform = 'rotate(0deg)';
-      }
+        const detail = card.querySelector('.detail-content');
+        const icon = card.querySelector('.icon-plan');
+
+        if (id === planId) {
+          if (detail.classList.contains('hidden')) {
+            detail.classList.remove('hidden');
+            card.classList.add('plan-expanded');
+            if (icon) icon.style.transform = 'rotate(180deg)';
+          } else {
+            detail.classList.add('hidden');
+            card.classList.remove('plan-expanded');
+            if (icon) icon.style.transform = 'rotate(0deg)';
+          }
+        } else {
+          detail.classList.add('hidden');
+          card.classList.remove('plan-expanded');
+          const otherIcon = card.querySelector('.icon-plan');
+          if (otherIcon) otherIcon.style.transform = 'rotate(0deg)';
+        }
+      });
     }
 
     function scrollToTop() {
