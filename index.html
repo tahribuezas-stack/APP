@@ -652,5 +652,106 @@
       }
     }
   </script>
+  <!-- LIBRERÍA LENIS PARA EL SCROLL FLUIDO -->
+<script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+
+<!-- CANVAS PARA LA MALLA INTERACTIVA DE PUNTOS -->
+<canvas id="dot-mesh-canvas" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
+
+<script>
+  // 1. INICIALIZACIÓN DE SMOOTH SCROLL (LENIS)
+  const lenis = new Lenis({
+    duration: 1.2,
+    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    smoothWheel: true,
+  });
+
+  function raf(time) {
+    lenis.raf(time);
+    requestAnimationFrame(raf);
+  }
+  requestAnimationFrame(raf);
+
+  // 2. EFECTO DE MALLA DE PUNTOS QUE SE DEFORMA CON EL CURSOR
+  const canvas = document.getElementById('dot-mesh-canvas');
+  const ctx = canvas.getContext('2d');
+
+  let width = canvas.width = window.innerWidth;
+  let height = canvas.height = window.innerHeight;
+
+  const mouse = { x: -1000, y: -1000, radius: 140 };
+
+  window.addEventListener('resize', () => {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+    initDots();
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+  });
+
+  const gap = 28; // Distancia entre puntos
+  let dots = [];
+
+  class Dot {
+    constructor(x, y) {
+      this.baseX = x;
+      this.baseY = y;
+      this.x = x;
+      this.y = y;
+      this.size = 1.2;
+    }
+
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fillStyle = '#00FF66'; // Verde Neón KINET
+      ctx.fill();
+    }
+
+    update() {
+      let dx = mouse.x - this.x;
+      let dy = mouse.y - this.y;
+      let distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance < mouse.radius) {
+        let force = (mouse.radius - distance) / mouse.radius;
+        let angle = Math.atan2(dy, dx);
+        let moveX = Math.cos(angle) * force * 25;
+        let moveY = Math.sin(angle) * force * 25;
+
+        this.x -= moveX;
+        this.y -= moveY;
+      } else {
+        // Retorno elástico suave
+        this.x += (this.baseX - this.x) * 0.1;
+        this.y += (this.baseY - this.y) * 0.1;
+      }
+    }
+  }
+
+  function initDots() {
+    dots = [];
+    for (let x = 0; x < width; x += gap) {
+      for (let y = 0; y < height; y += gap) {
+        dots.push(new Dot(x, y));
+      }
+    }
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, width, height);
+    dots.forEach(dot => {
+      dot.update();
+      dot.draw();
+    });
+    requestAnimationFrame(animate);
+  }
+
+  initDots();
+  animate();
+</script>
 </body>
 </html>
