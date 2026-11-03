@@ -3,35 +3,11 @@
 <head> 
   <meta charset="UTF-8">
   <title>KINET OS | Plataforma de Rendimiento</title>
-  <!-- Resto de metas y estilos -->
+  
   <!-- FAVICON OFICIAL EN LA PESTAÑA -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%2300FF66'/%3E%3Ctext x='50' y='72' font-size='65' font-weight='900' font-family='Arial, sans-serif' text-anchor='middle' fill='%23000000'%3EK%3C/text%3E%3C/svg%3E">
 
- <!-- BANNER FLOTANTE INFERIOR DE LA APP -->
-  <div id="app-banner" class="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:max-w-md z-[60] bg-[#0D1117]/95 backdrop-blur-xl border border-kinet-neon/40 p-3.5 rounded-2xl shadow-[0_10px_35px_rgba(0,0,0,0.9),0_0_20px_rgba(0,255,102,0.15)] transition-all duration-500 transform translate-y-0 animate-fade-in">
-    <div class="flex items-center justify-between gap-3 text-xs">
-      <div class="flex items-center space-x-3">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-kinet-neon to-emerald-600 font-display font-black text-black flex items-center justify-center text-sm shadow-[0_0_12px_rgba(0,255,102,0.4)] shrink-0">
-          K
-        </div>
-        <div>
-          <p class="font-display font-bold text-white text-xs uppercase tracking-wider">KINET OS App</p>
-          <p class="text-[10px] text-slate-400 font-mono">Mejor rendimiento y métricas en vivo</p>
-        </div>
-      </div>
-
-      <div class="flex items-center space-x-2">
-        <button onclick="cambiarPagina('app-redirect.html')" class="px-3.5 py-2 rounded-xl bg-kinet-neon text-black font-display font-black text-[10px] tracking-wider uppercase hover:bg-emerald-400 transition cursor-pointer shadow-[0_0_15px_rgba(0,255,102,0.35)] flex items-center space-x-1 shrink-0">
-          <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
-          <span>Abrir App</span>
-        </button>
-        <button onclick="cerrarBannerApp()" class="text-slate-500 hover:text-white p-1 text-sm font-mono cursor-pointer transition">
-          ✕
-        </button>
-      </div>
-    </div>
-  </div>
- <!-- SOPORTE DE MOTION Y SPOTLIGHT -->
+  <!-- SOPORTE DE MOTION Y SPOTLIGHT -->
   <link rel="stylesheet" href="kinet-motion.css">
   <script src="kinet-spotlight.js" defer></script>
 
@@ -62,6 +38,7 @@
       }
     }
   </script>
+
   <style>
     html {
       scroll-padding-top: 100px;
@@ -122,6 +99,22 @@
     .animate-fade-in {
       animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
+
+    /* ANIMACIONES BANNER INFERIOR APP GATEWAY */
+    @keyframes slideInRight {
+      0% { transform: translateX(120%); opacity: 0; }
+      100% { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOutRight {
+      0% { transform: translateX(0); opacity: 1; }
+      100% { transform: translateX(120%); opacity: 0; }
+    }
+    .banner-slide-in {
+      animation: slideInRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .banner-slide-out {
+      animation: slideOutRight 0.5s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+    }
   </style>
 </head>
 <body style="--spotlight-color: rgba(0, 255, 102, 0.25);" class="bg-cyber-pattern text-slate-100 font-sans min-h-screen flex flex-col selection:bg-kinet-neon selection:text-black opacity-0 transition-opacity duration-300">
@@ -159,33 +152,39 @@
   </header>
 
   <!-- CONTENEDOR PRINCIPAL -->
-  <main class="flex-grow pt-32 main-box card-liquid-transition space-y-24 pb-20">
+  <main class="flex-grow pt-20 main-box card-liquid-transition space-y-24 pb-20">
     
-    <!-- HERO SECTION -->
-    <section class="w-full max-w-6xl mx-auto px-4 py-16 md:py-20 text-center space-y-8 animate-fade-in">
-      <div class="spotlight-card inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#0B0E11]/60 border border-slate-800/80 text-xs font-mono text-slate-400 shadow-inner cursor-default">
-        <span class="w-2 h-2 rounded-full bg-kinet-neon animate-pulse"></span>
-        <span>KINET OS 2.8 • El Cuerpo Técnico de la Premier League en tu Bolsillo</span>
-      </div>
+    <!-- HERO SECTION (PUNTOS Y LUZ INTERACTIVA RESTRINGIDOS A ESTA SECCIÓN) -->
+    <section id="hero-section" class="relative overflow-hidden w-full max-w-6xl mx-auto px-4 py-20 md:py-28 text-center space-y-8 animate-fade-in rounded-3xl">
+      
+      <!-- CANVAS DE LA MALLA INTERACTIVA DE PUNTOS -->
+      <canvas id="dot-mesh-canvas" class="absolute inset-0 pointer-events-none z-0 opacity-40"></canvas>
 
-      <div class="space-y-6 max-w-4xl mx-auto">
-        <h2 class="font-display font-black text-4xl sm:text-6xl md:text-7xl text-white tracking-tight leading-[1.05]">
-          Tu Staff de Élite Completo en <br class="hidden sm:block"/>
-          <span class="text-transparent bg-clip-text bg-gradient-to-r from-kinet-neon via-emerald-400 to-blue-500">4 Agentes IA Especializados</span>
-        </h2>
-        <p class="text-base sm:text-lg text-slate-400 leading-relaxed max-w-3xl mx-auto">
-          Las IAs genéricas prescriben hipertrofia inútil de los 90 que destruye la potencia elástica y aumenta las lesiones. KINET simplifica el software corporativo de 10.000€ en un único ecosistema inteligente para atletas y clubes de base.
-        </p>
-      </div>
+      <div class="relative z-10 space-y-8">
+        <div class="spotlight-card inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#0B0E11]/60 border border-slate-800/80 text-xs font-mono text-slate-400 shadow-inner cursor-default">
+          <span class="w-2 h-2 rounded-full bg-kinet-neon animate-pulse"></span>
+          <span>KINET OS 2.8 • El Cuerpo Técnico de la Premier League en tu Bolsillo</span>
+        </div>
 
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-        <button onclick="cambiarPagina('login.html')" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-kinet-neon text-black font-display font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-400 transition shadow-[0_0_30px_rgba(0,255,102,0.4)] flex items-center justify-center space-x-3">
-          <span>Iniciar Sesión en Kinet</span>
-          <i data-lucide="arrow-right" class="w-4 h-4"></i>
-        </button>
-        <button onclick="cambiarPagina('fase1.html')" class="w-full sm:w-auto px-8 py-4 rounded-2xl glass-card border-slate-700 text-white font-display font-bold text-xs tracking-[0.2em] uppercase hover:border-slate-500 transition">
-          Entrar como invitado
-        </button>
+        <div class="space-y-6 max-w-4xl mx-auto">
+          <h2 class="font-display font-black text-4xl sm:text-6xl md:text-7xl text-white tracking-tight leading-[1.05]">
+            Tu Staff de Élite Completo en <br class="hidden sm:block"/>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-kinet-neon via-emerald-400 to-blue-500">4 Agentes IA Especializados</span>
+          </h2>
+          <p class="text-base sm:text-lg text-slate-400 leading-relaxed max-w-3xl mx-auto">
+            Las IAs genéricas prescriben hipertrofia inútil de los 90 que destruye la potencia elástica y aumenta las lesiones. KINET simplifica el software corporativo de 10.000€ en un único ecosistema inteligente para atletas y clubes de base.
+          </p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+          <button onclick="cambiarPagina('login.html')" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-kinet-neon text-black font-display font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-400 transition shadow-[0_0_30px_rgba(0,255,102,0.4)] flex items-center justify-center space-x-3">
+            <span>Iniciar Sesión en Kinet</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+          <button onclick="cambiarPagina('fase1.html')" class="w-full sm:w-auto px-8 py-4 rounded-2xl glass-card border-slate-700 text-white font-display font-bold text-xs tracking-[0.2em] uppercase hover:border-slate-500 transition">
+            Entrar como invitado
+          </button>
+        </div>
       </div>
     </section>
 
@@ -368,7 +367,7 @@
       </div>
     </section>
 
-    <!-- SECCIÓN: PLANES Y SUSCRIPCIONES (CON ZOOM, DETALLES EXPANDIBLES Y SIMETRÍA PERFECTA) -->
+    <!-- SECCIÓN: PLANES Y SUSCRIPCIONES -->
     <section id="precios" class="w-full max-w-6xl mx-auto px-4 py-20 border-t border-slate-800/60">
       <div class="text-center space-y-4 max-w-3xl mx-auto mb-16">
         <h2 class="font-display font-black text-2xl sm:text-4xl text-white">Planes y Versiones de KINET OS</h2>
@@ -377,7 +376,7 @@
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
         
-        <!-- PLAN 1: GRATUITO (ZOOM & EXPANDIBLE) -->
+        <!-- PLAN 1: GRATUITO -->
         <div onclick="togglePlanDetail('plan-free')" class="glass-card plan-card-zoom p-8 rounded-3xl flex flex-col justify-between space-y-6 border-slate-800 cursor-pointer relative group" id="plan-free">
           <div class="space-y-4">
             <div class="flex justify-between items-center">
@@ -394,13 +393,11 @@
               <span class="text-xs text-slate-500 font-mono"> / siempre</span>
             </div>
 
-            <!-- Lista rápida -->
             <ul class="space-y-2 text-xs text-slate-300 pt-3 border-t border-slate-800/80">
               <li class="flex items-center space-x-2"><i data-lucide="check" class="w-3.5 h-3.5 text-slate-400"></i><span>Acceso libre como invitado</span></li>
               <li class="flex items-center space-x-2"><i data-lucide="check" class="w-3.5 h-3.5 text-slate-400"></i><span>KINET Card Custom básica</span></li>
             </ul>
 
-            <!-- INFORMACIÓN DETALLADA EXPANDIBLE -->
             <div class="detail-content hidden pt-4 border-t border-slate-800/80 space-y-3 text-[11px] text-slate-400 animate-fade-in">
               <p class="font-bold text-slate-200 uppercase font-mono text-[10px]">Lo que incluye al detalle:</p>
               <ul class="space-y-1.5 list-disc pl-4">
@@ -417,7 +414,7 @@
           </button>
         </div>
 
-        <!-- PLAN 2: PRO PLAYER (ZOOM & EXPANDIBLE) -->
+        <!-- PLAN 2: PRO PLAYER -->
         <div onclick="togglePlanDetail('plan-pro')" class="glass-card plan-card-zoom p-8 rounded-3xl flex flex-col justify-between space-y-6 border-slate-800 cursor-pointer relative group" id="plan-pro">
           <div class="space-y-4">
             <div class="flex justify-between items-center">
@@ -434,13 +431,11 @@
               <span class="text-xs text-slate-500 font-mono"> / mes</span>
             </div>
 
-            <!-- Lista rápida -->
             <ul class="space-y-2 text-xs text-slate-300 pt-3 border-t border-slate-800/80">
               <li class="flex items-center space-x-2"><i data-lucide="check" class="w-3.5 h-3.5 text-kinet-neon"></i><span>KINET Vision Analytics (Vídeo IA)</span></li>
               <li class="flex items-center space-x-2"><i data-lucide="check" class="w-3.5 h-3.5 text-kinet-neon"></i><span>KINET Card AI Verified (Holograma)</span></li>
             </ul>
 
-            <!-- INFORMACIÓN DETALLADA EXPANDIBLE -->
             <div class="detail-content hidden pt-4 border-t border-slate-800/80 space-y-3 text-[11px] text-slate-400 animate-fade-in">
               <p class="font-bold text-slate-200 uppercase font-mono text-[10px]">Lo que incluye al detalle:</p>
               <ul class="space-y-1.5 list-disc pl-4 text-slate-300">
@@ -457,7 +452,7 @@
           </button>
         </div>
 
-        <!-- PLAN 3: CLUB & SCOUT (SIMÉTRICO, ZOOM & EXPANDIBLE) -->
+        <!-- PLAN 3: CLUB & SCOUT -->
         <div onclick="togglePlanDetail('plan-club')" class="glass-card plan-card-zoom p-8 rounded-3xl flex flex-col justify-between space-y-6 border-amber-500/40 cursor-pointer relative shadow-[0_0_30px_rgba(245,158,11,0.1)] group" id="plan-club">
           <div class="space-y-4">
             <div class="flex justify-between items-center">
@@ -474,13 +469,11 @@
               <span class="text-xs text-slate-500 font-mono"> / mes</span>
             </div>
 
-            <!-- Lista rápida -->
             <ul class="space-y-2 text-xs text-slate-300 pt-3 border-t border-slate-800/80">
               <li class="flex items-center space-x-2"><i data-lucide="check" class="w-3.5 h-3.5 text-amber-400"></i><span>Gestión Multiequipo & Cantera</span></li>
               <li class="flex items-center space-x-2"><i data-lucide="check" class="w-3.5 h-3.5 text-amber-400"></i><span>Cobro Automático Cuotas (Stripe)</span></li>
             </ul>
 
-            <!-- INFORMACIÓN DETALLADA EXPANDIBLE -->
             <div class="detail-content hidden pt-4 border-t border-slate-800/80 space-y-3 text-[11px] text-slate-400 animate-fade-in">
               <p class="font-bold text-slate-200 uppercase font-mono text-[10px]">Lo que incluye al detalle:</p>
               <ul class="space-y-1.5 list-disc pl-4 text-slate-300">
@@ -517,7 +510,34 @@
     </div>
   </footer>
 
-<!-- SCRIPTS -->
+  <!-- BANNER FLOTANTE INFERIOR DE LA APP (DESPLAZAMIENTO FLUIDO DESDE LA DERECHA) -->
+  <div id="app-banner" class="fixed bottom-4 right-4 z-[60] banner-slide-in hidden">
+    <div class="glass-card p-2.5 sm:p-3 rounded-2xl border border-kinet-neon/40 shadow-[0_10px_35px_rgba(0,0,0,0.9),0_0_20px_rgba(0,255,102,0.15)] flex items-center space-x-3 bg-[#0D1117]/95 backdrop-blur-xl">
+      
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-kinet-neon to-emerald-600 font-display font-black text-black text-sm flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(0,255,102,0.4)]">
+        K
+      </div>
+
+      <div class="text-left pr-2">
+        <div class="font-display font-bold text-xs text-white uppercase tracking-wider">KINET OS App</div>
+        <div class="text-[10px] text-slate-400 font-mono">Mejor rendimiento y métricas en vivo</div>
+      </div>
+
+      <button onclick="cambiarPagina('app-redirect.html')" class="px-3.5 py-2 rounded-xl bg-kinet-neon text-black font-display font-black text-[10px] tracking-wider uppercase hover:bg-emerald-400 transition cursor-pointer shadow-[0_0_15px_rgba(0,255,102,0.35)] flex items-center space-x-1 shrink-0">
+        <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
+        <span>Abrir App</span>
+      </button>
+
+      <button onclick="cerrarBannerApp()" class="p-1 text-slate-500 hover:text-white transition-colors text-sm font-mono cursor-pointer">
+        ✕
+      </button>
+    </div>
+  </div>
+
+  <!-- LIBRERÍA LENIS PARA EL SCROLL FLUIDO -->
+  <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+
+  <!-- SCRIPTS PRINCIPALES Y MESH INTERACTIVA -->
   <script>
     lucide.createIcons();
 
@@ -529,9 +549,18 @@
 
     document.addEventListener("DOMContentLoaded", function() {
       document.body.style.opacity = '1';
+
+      // Muestra el banner flotante a los 1.5s
+      if (!sessionStorage.getItem('appBannerDismissed')) {
+        setTimeout(() => {
+          const banner = document.getElementById('app-banner');
+          if (banner) {
+            banner.classList.remove('hidden');
+          }
+        }, 1500);
+      }
     });
 
-    // FUNCIÓN LIMPIA Y ESTRICTA: Solo abre la tarjeta seleccionada y cierra las demás
     function togglePlanDetail(planId) {
       const allPlans = ['plan-free', 'plan-pro', 'plan-club'];
       const targetCard = document.getElementById(planId);
@@ -541,7 +570,6 @@
       const targetIcon = targetCard.querySelector('.icon-plan');
       const isAlreadyOpen = !targetDetail.classList.contains('hidden');
 
-      // Paso 1: Cierra y resetea las 3 tarjetas por completo
       allPlans.forEach(id => {
         const card = document.getElementById(id);
         if (card) {
@@ -553,7 +581,6 @@
         }
       });
 
-      // Paso 2: Si la tarjeta que pulsaste estaba cerrada, la abrimos exclusivamente
       if (!isAlreadyOpen) {
         targetDetail.classList.remove('hidden');
         targetCard.classList.add('plan-expanded');
@@ -628,130 +655,118 @@
         window.location.href = urlDestino;
       }, 500);
     }
-    // Detección automática para mostrar el banner de la App
-    document.addEventListener("DOMContentLoaded", function() {
-      // Muestra el banner a los 1.5 segundos si no se ha cerrado antes en la sesión
-      if (!sessionStorage.getItem('appBannerDismissed')) {
-        setTimeout(() => {
-          const banner = document.getElementById('app-banner');
-          if (banner) {
-            banner.classList.remove('-translate-y-full');
-          }
-        }, 1500);
-      }
-    });
 
-  function cerrarBannerApp() {
+    function cerrarBannerApp() {
       const banner = document.getElementById('app-banner');
       if (banner) {
-        banner.style.transform = 'translateY(150%)';
-        banner.style.opacity = '0';
+        banner.classList.remove('banner-slide-in');
+        banner.classList.add('banner-slide-out');
+        sessionStorage.setItem('appBannerDismissed', 'true');
         setTimeout(() => {
-          banner.style.display = 'none';
+          banner.classList.add('hidden');
         }, 500);
       }
     }
-  </script>
-  <!-- LIBRERÍA LENIS PARA EL SCROLL FLUIDO -->
-<script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
 
-<!-- CANVAS PARA LA MALLA INTERACTIVA DE PUNTOS -->
-<canvas id="dot-mesh-canvas" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
-
-<script>
-  // 1. INICIALIZACIÓN DE SMOOTH SCROLL (LENIS)
-  const lenis = new Lenis({
-    duration: 1.2,
-    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-    smoothWheel: true,
-  });
-
-  function raf(time) {
-    lenis.raf(time);
-    requestAnimationFrame(raf);
-  }
-  requestAnimationFrame(raf);
-
-  // 2. EFECTO DE MALLA DE PUNTOS QUE SE DEFORMA CON EL CURSOR
-  const canvas = document.getElementById('dot-mesh-canvas');
-  const ctx = canvas.getContext('2d');
-
-  let width = canvas.width = window.innerWidth;
-  let height = canvas.height = window.innerHeight;
-
-  const mouse = { x: -1000, y: -1000, radius: 140 };
-
-  window.addEventListener('resize', () => {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-    initDots();
-  });
-
-  window.addEventListener('mousemove', (e) => {
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
-  });
-
-  const gap = 28; // Distancia entre puntos
-  let dots = [];
-
-  class Dot {
-    constructor(x, y) {
-      this.baseX = x;
-      this.baseY = y;
-      this.x = x;
-      this.y = y;
-      this.size = 1.2;
-    }
-
-    draw() {
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-      ctx.fillStyle = '#00FF66'; // Verde Neón KINET
-      ctx.fill();
-    }
-
-    update() {
-      let dx = mouse.x - this.x;
-      let dy = mouse.y - this.y;
-      let distance = Math.sqrt(dx * dx + dy * dy);
-
-      if (distance < mouse.radius) {
-        let force = (mouse.radius - distance) / mouse.radius;
-        let angle = Math.atan2(dy, dx);
-        let moveX = Math.cos(angle) * force * 25;
-        let moveY = Math.sin(angle) * force * 25;
-
-        this.x -= moveX;
-        this.y -= moveY;
-      } else {
-        // Retorno elástico suave
-        this.x += (this.baseX - this.x) * 0.1;
-        this.y += (this.baseY - this.y) * 0.1;
-      }
-    }
-  }
-
-  function initDots() {
-    dots = [];
-    for (let x = 0; x < width; x += gap) {
-      for (let y = 0; y < height; y += gap) {
-        dots.push(new Dot(x, y));
-      }
-    }
-  }
-
-  function animate() {
-    ctx.clearRect(0, 0, width, height);
-    dots.forEach(dot => {
-      dot.update();
-      dot.draw();
+    // 1. INICIALIZACIÓN DE LENIS SMOOTH SCROLL
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
     });
-    requestAnimationFrame(animate);
-  }
 
-  initDots();
-  animate();
-</script>
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+
+    // 2. EFECTO DE MALLA DE PUNTOS QUE REACCIONA SOLO DENTRO DE LA SECCIÓN HERO
+    const heroSection = document.getElementById('hero-section');
+    const canvas = document.getElementById('dot-mesh-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let width = canvas.width = heroSection.clientWidth;
+    let height = canvas.height = heroSection.clientHeight;
+
+    const mouse = { x: -1000, y: -1000, radius: 80 };
+
+    window.addEventListener('resize', () => {
+      width = canvas.width = heroSection.clientWidth;
+      height = canvas.height = heroSection.clientHeight;
+      initDots();
+    });
+
+    heroSection.addEventListener('mousemove', (e) => {
+      const rect = heroSection.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+    });
+
+    heroSection.addEventListener('mouseleave', () => {
+      mouse.x = -1000;
+      mouse.y = -1000;
+    });
+
+    const gap = 24;
+    let dots = [];
+
+    class Dot {
+      constructor(x, y) {
+        this.baseX = x;
+        this.baseY = y;
+        this.x = x;
+        this.y = y;
+        this.size = 1.1;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = '#00FF66';
+        ctx.fill();
+      }
+
+      update() {
+        let dx = mouse.x - this.x;
+        let dy = mouse.y - this.y;
+        let distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < mouse.radius) {
+          let force = (mouse.radius - distance) / mouse.radius;
+          let angle = Math.atan2(dy, dx);
+          let moveX = Math.cos(angle) * force * 18;
+          let moveY = Math.sin(angle) * force * 18;
+
+          this.x -= moveX;
+          this.y -= moveY;
+        } else {
+          this.x += (this.baseX - this.x) * 0.12;
+          this.y += (this.baseY - this.y) * 0.12;
+        }
+      }
+    }
+
+    function initDots() {
+      dots = [];
+      for (let x = 12; x < width; x += gap) {
+        for (let y = 12; y < height; y += gap) {
+          dots.push(new Dot(x, y));
+        }
+      }
+    }
+
+    function animateDots() {
+      ctx.clearRect(0, 0, width, height);
+      dots.forEach(dot => {
+        dot.update();
+        dot.draw();
+      });
+      requestAnimationFrame(animateDots);
+    }
+
+    initDots();
+    animateDots();
+  </script>
 </body>
 </html>
