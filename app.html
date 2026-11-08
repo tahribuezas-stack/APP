@@ -57,13 +57,9 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* SCROLL NATIVO ULTRA FLUIDO CON INERCIA Y ACELERACIÓN DE HARDWARE */
-        html {
-            scroll-behavior: smooth;
+        html, body {
             touch-action: pan-y pinch-zoom;
-        }
-
-        body {
+            -webkit-overflow-scrolling: touch;
             background-color: var(--bg-void);
             background-image: 
                 radial-gradient(circle at 50% -20%, rgba(var(--role-rgb), 0.14), transparent 60%),
@@ -74,8 +70,6 @@
             font-family: 'Inter', sans-serif;
             min-height: 100vh;
             overflow-x: hidden;
-            touch-action: pan-y pinch-zoom;
-            -webkit-overflow-scrolling: touch;
         }
 
         /* LAYOUT PRINCIPAL */
@@ -116,7 +110,7 @@
             padding: 6px;
             border-radius: 16px;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .brand-box:hover {
@@ -158,20 +152,22 @@
             display: block;
         }
 
+        /* CONTENEDORES DE MENÚ CON ESPACIADO UNIFORME Y TAMAÑOS EXACTOS */
         .sidebar-top-section {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
         }
 
         .sidebar-bottom-section {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            padding-top: 16px;
+            gap: 10px;
+            padding-top: 14px;
             border-top: 1px solid var(--border-subtle);
         }
 
+        /* OPCIONES LATERALES CON TAMAÑO IDÉNTICO Y SPOTLIGHT INTERNO */
         .side-link {
             display: flex;
             align-items: center;
@@ -184,20 +180,36 @@
             font-family: 'Inter', sans-serif;
             font-size: 0.85rem;
             font-weight: 600;
+            height: 46px; /* Altura unificada estricta para todas las opciones */
             cursor: pointer;
             text-decoration: none;
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
         }
 
         .side-link-left {
             display: flex;
             align-items: center;
             gap: 12px;
+            z-index: 1;
         }
 
+        /* Spotlight / Sombra de cursor en cada opción lateral */
+        .side-link::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(150px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(var(--role-rgb), 0.2), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .side-link:hover::before { opacity: 1; }
         .side-link:hover {
             color: var(--text-primary);
-            background: rgba(255, 255, 255, 0.04);
             border-color: rgba(var(--role-rgb), 0.45);
             transform: translateX(4px);
         }
@@ -209,7 +221,38 @@
             box-shadow: 0 0 20px rgba(var(--role-rgb), 0.18);
         }
 
-        /* ZONA PRINCIPAL CON DESPLAZAMIENTO FLUIDO INDEPENDIENTE */
+        /* WIDGET DE CONSEJO IA LATERAL (Encima de Mi Perfil y la línea gris) */
+        .sidebar-ai-tip-box {
+            background: rgba(var(--role-rgb), 0.06);
+            border: 1px solid rgba(var(--role-rgb), 0.25);
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 4px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .sidebar-ai-tip-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--role-color);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .sidebar-ai-tip-text {
+            font-size: 0.76rem;
+            color: #CBD5E1;
+            line-height: 1.45;
+        }
+
+        /* ZONA PRINCIPAL CON SCROLL FLUIDO E INDEPENDIENTE */
         .os-main {
             display: flex;
             flex-direction: column;
@@ -693,7 +736,7 @@
     <div class="os-layout">
         
         <!-- SIDEBAR FIJO (ESTÁTICA, NO SE MUEVE AL HACER SCROLL) -->
-        <aside class="os-sidebar">
+        <aside class="os-sidebar" id="sidebar-container">
             <div class="sidebar-top-section">
                 <a href="index.html" class="brand-box">
                     <div class="brand-logo-icon">K</div>
@@ -727,8 +770,18 @@
                 </nav>
             </div>
 
-            <!-- MI PERFIL Y DESPACHO & AJUSTES ABAJO DEL TODO -->
+            <!-- BLOQUE INFERIOR CON RECUADRO DE CONSEJO IA DINÁMICO Y OPCIONES DE PERFIL/AJUSTES -->
             <div class="sidebar-bottom-section">
+                <!-- Recuadro de consejo dinámico de la IA -->
+                <div class="sidebar-ai-tip-box" id="sidebar-dynamic-tip">
+                    <div class="sidebar-ai-tip-header">
+                        <span>⚡</span> <span id="tip-title">Directiva IA // Activa</span>
+                    </div>
+                    <div class="sidebar-ai-tip-text" id="tip-content">
+                        Analizando métricas y estado actual para recomendar tu siguiente acción táctica...
+                    </div>
+                </div>
+
                 <a href="perfil.html" class="side-link">
                     <span class="side-link-left"><span>👤</span> <span>Mi Perfil</span></span>
                     <span style="font-size:0.75rem;opacity:0.5;">→</span>
@@ -759,7 +812,7 @@
                     <a href="comunidad.html" class="topbar-community-btn">
                         <span>🌐</span> Comunidad
                     </a>
-                    <!-- INDICADOR DINÁMICO DEL ROL REAL (EJ: ATLETA, FISIOTERAPEUTA, ETC.) -->
+                    <!-- INDICADOR DINÁMICO DEL ROL REAL SELECCIONADO EN FASE 1 -->
                     <div class="active-role-indicator">
                         <span class="dot"></span>
                         <span class="active-role-text" id="topbar-role-title">ATLETA</span>
@@ -1002,9 +1055,16 @@
             const urlParams = new URLSearchParams(window.location.search);
             const roleParam = urlParams.get('role');
             
-            // Lectura robusta del rol real guardado en Fase 1
-            const rawRoleName = localStorage.getItem('kinet_role') || localStorage.getItem('kinet_active_role_name') || '';
+            // Lectura limpia del rol guardado en la Fase 1 o perfiles
+            let rawRoleName = localStorage.getItem('kinet_role') || localStorage.getItem('kinet_active_role_name') || '';
             const savedActiveRole = roleParam || localStorage.getItem('kinet_active_role');
+
+            if (!rawRoleName) {
+                const profilesDB = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
+                if (savedActiveRole && profilesDB[savedActiveRole]) {
+                    rawRoleName = profilesDB[savedActiveRole].title || profilesDB[savedActiveRole].name;
+                }
+            }
 
             if (savedActiveRole && ROLE_VIEW_CONFIG[savedActiveRole]) {
                 activeRoleKey = savedActiveRole;
@@ -1019,7 +1079,7 @@
             document.body.setAttribute('data-role', activeRoleKey);
             localStorage.setItem('kinet_active_role', activeRoleKey);
 
-            // Nombre personalizado exacto del rol en la parte superior derecha
+            // Nombre personalizado exacto en la esquina superior derecha
             const specificRoleTitle = rawRoleName || (activeRoleKey === 'staff' ? 'Entrenador / Staff' : activeRoleKey === 'scout' ? 'Ojeador / Scout' : 'Atleta Pro');
             const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
 
@@ -1042,7 +1102,9 @@
             sessionsState = JSON.parse(JSON.stringify(cfg.sessions));
             renderWeekStrip();
             renderSessions();
+            updateSidebarAiTip('high'); // Inicializar con consejo dinámico predeterminado
 
+            // Spotlight para paneles principales
             document.querySelectorAll('.kinet-panel').forEach(panel => {
                 panel.addEventListener('mousemove', (e) => {
                     const rect = panel.getBoundingClientRect();
@@ -1050,7 +1112,33 @@
                     panel.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
                 });
             });
+
+            // Spotlight dinámico para las opciones de la barra lateral
+            document.querySelectorAll('.side-link').forEach(link => {
+                link.addEventListener('mousemove', (e) => {
+                    const rect = link.getBoundingClientRect();
+                    link.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+                    link.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+                });
+            });
         });
+
+        // Actualizar el consejo dinámico lateral de la IA según la energía seleccionada
+        function updateSidebarAiTip(level) {
+            const titleEl = document.getElementById('tip-title');
+            const contentEl = document.getElementById('tip-content');
+
+            if (level === 'high') {
+                titleEl.textContent = '⚡ Directiva: Supercompensación';
+                contentEl.textContent = 'Energía óptima. El motor sugiere sesión de alta intensidad y carbohidratos complejos al finalizar.';
+            } else if (level === 'medium') {
+                titleEl.textContent = '🔥 Directiva: Carga Asimilada';
+                contentEl.textContent = 'Ritmo sostenido. Mantén control de fatiga y prioriza pautas de hidratación constante.';
+            } else {
+                titleEl.textContent = '🪫 Directiva: Alerta de Descarga';
+                contentEl.textContent = 'Fatiga alta detectada. Se recomienda saltar la sesión intensa de hoy y enfocar en masajes o estiramientos.';
+            }
+        }
 
         function renderWeekStrip() {
             const days = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
@@ -1097,6 +1185,9 @@
         function updateEnergyFeeling(level, btn) {
             document.querySelectorAll('.energy-chip').forEach(c => c.classList.remove('selected'));
             btn.classList.add('selected');
+
+            // Actualizar el widget lateral de consejo IA según el test
+            updateSidebarAiTip(level);
 
             const kpi1 = document.getElementById('kpi-1-val');
             const kpi3 = document.getElementById('kpi-3-val');
