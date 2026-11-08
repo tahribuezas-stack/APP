@@ -57,9 +57,13 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        html, body {
+        /* SCROLL NATIVO ULTRA FLUIDO CON INERCIA Y ACELERACIÓN DE HARDWARE */
+        html {
+            scroll-behavior: smooth;
             touch-action: pan-y pinch-zoom;
-            -webkit-overflow-scrolling: touch;
+        }
+
+        body {
             background-color: var(--bg-void);
             background-image: 
                 radial-gradient(circle at 50% -20%, rgba(var(--role-rgb), 0.14), transparent 60%),
@@ -70,6 +74,8 @@
             font-family: 'Inter', sans-serif;
             min-height: 100vh;
             overflow-x: hidden;
+            touch-action: pan-y pinch-zoom;
+            -webkit-overflow-scrolling: touch;
         }
 
         /* LAYOUT PRINCIPAL */
@@ -91,12 +97,13 @@
             padding: 22px 16px;
             display: flex;
             flex-direction: column;
-            justify-content: space-between; /* Separa la parte superior de la inferior */
+            justify-content: space-between;
             position: sticky;
             top: 0;
             height: 100vh;
             z-index: 90;
             overflow-y: auto;
+            will-change: transform;
         }
 
         @media (max-width: 960px) { .os-sidebar { display: none; } }
@@ -151,7 +158,6 @@
             display: block;
         }
 
-        /* Agrupación superior e inferior del menú lateral */
         .sidebar-top-section {
             display: flex;
             flex-direction: column;
@@ -203,12 +209,15 @@
             box-shadow: 0 0 20px rgba(var(--role-rgb), 0.18);
         }
 
-        /* TOPBAR (DERECHA CON SCROLL INDEPENDIENTE) */
+        /* ZONA PRINCIPAL CON DESPLAZAMIENTO FLUIDO INDEPENDIENTE */
         .os-main {
             display: flex;
             flex-direction: column;
             min-width: 0;
             overflow-y: auto;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            will-change: scroll-position;
         }
 
         .os-topbar {
@@ -685,7 +694,6 @@
         
         <!-- SIDEBAR FIJO (ESTÁTICA, NO SE MUEVE AL HACER SCROLL) -->
         <aside class="os-sidebar">
-            <!-- BLOQUE SUPERIOR (MARCA Y OPCIONES OPERATIVAS) -->
             <div class="sidebar-top-section">
                 <a href="index.html" class="brand-box">
                     <div class="brand-logo-icon">K</div>
@@ -719,7 +727,7 @@
                 </nav>
             </div>
 
-            <!-- BLOQUE INFERIOR (MI PERFIL Y DESPACHO & AJUSTES ABAJO DEL TODO) -->
+            <!-- MI PERFIL Y DESPACHO & AJUSTES ABAJO DEL TODO -->
             <div class="sidebar-bottom-section">
                 <a href="perfil.html" class="side-link">
                     <span class="side-link-left"><span>👤</span> <span>Mi Perfil</span></span>
@@ -732,7 +740,7 @@
             </div>
         </aside>
 
-        <!-- ZONA PRINCIPAL (CON SCROLL FLUIDO INDEPENDIENTE) -->
+        <!-- ZONA PRINCIPAL CON SCROLL FLUIDO E INDEPENDIENTE -->
         <div class="os-main">
             
             <!-- TOPBAR -->
@@ -751,7 +759,7 @@
                     <a href="comunidad.html" class="topbar-community-btn">
                         <span>🌐</span> Comunidad
                     </a>
-                    <!-- INDICADOR DINÁMICO DEL ROL REAL SELECCIONADO EN FASE 1 -->
+                    <!-- INDICADOR DINÁMICO DEL ROL REAL (EJ: ATLETA, FISIOTERAPEUTA, ETC.) -->
                     <div class="active-role-indicator">
                         <span class="dot"></span>
                         <span class="active-role-text" id="topbar-role-title">ATLETA</span>
@@ -993,14 +1001,16 @@
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const roleParam = urlParams.get('role');
-            const rawRoleName = localStorage.getItem('kinet_role') || '';
+            
+            // Lectura robusta del rol real guardado en Fase 1
+            const rawRoleName = localStorage.getItem('kinet_role') || localStorage.getItem('kinet_active_role_name') || '';
             const savedActiveRole = roleParam || localStorage.getItem('kinet_active_role');
 
             if (savedActiveRole && ROLE_VIEW_CONFIG[savedActiveRole]) {
                 activeRoleKey = savedActiveRole;
             } else if (rawRoleName.toLowerCase().includes('scout') || rawRoleName.toLowerCase().includes('director') || rawRoleName.toLowerCase().includes('ojeador')) {
                 activeRoleKey = 'scout';
-            } else if (rawRoleName.toLowerCase().includes('entrenador') || rawRoleName.toLowerCase().includes('coach') || rawRoleName.toLowerCase().includes('fisio')) {
+            } else if (rawRoleName.toLowerCase().includes('entrenador') || rawRoleName.toLowerCase().includes('coach') || rawRoleName.toLowerCase().includes('fisio') || rawRoleName.toLowerCase().includes('staff')) {
                 activeRoleKey = 'staff';
             } else {
                 activeRoleKey = 'athlete';
@@ -1009,7 +1019,7 @@
             document.body.setAttribute('data-role', activeRoleKey);
             localStorage.setItem('kinet_active_role', activeRoleKey);
 
-            // Cargar exactamente el nombre del rol guardado en Fase 1 (ej: "Atleta Pro", "Fisioterapeuta", "Director Deportivo", etc.)
+            // Nombre personalizado exacto del rol en la parte superior derecha
             const specificRoleTitle = rawRoleName || (activeRoleKey === 'staff' ? 'Entrenador / Staff' : activeRoleKey === 'scout' ? 'Ojeador / Scout' : 'Atleta Pro');
             const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
 
