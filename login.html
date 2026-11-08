@@ -444,5 +444,41 @@
       setTimeout(() => toast.classList.add('hidden'), 3500);
     }
   </script>
+  <script>
+  // Auto-redirección si el usuario entra a login.html pero ya tenía sesión activa
+  (function checkExistingSession() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('logout') === 'true') {
+      // Solo cerramos estado de conexión sin borrar sus perfiles creados en kinet_profiles_db
+      localStorage.removeItem('kinet_logged_in');
+      localStorage.removeItem('kinet_guest_session');
+      return;
+    }
+
+    const isLogged = localStorage.getItem('kinet_logged_in') === 'true' || localStorage.getItem('kinet_guest_session') === 'true';
+    const hasProfile = localStorage.getItem('kinet_profile_completed') === 'true';
+
+    if (isLogged && hasProfile) {
+      window.location.replace('app.html');
+    }
+  })();
+
+  // Función universal para login normal (llámala al enviar tu formulario de login)
+  function completeStandardLogin(email, name) {
+    localStorage.setItem('kinet_logged_in', 'true');
+    if (email) localStorage.setItem('kinet_user_email', email);
+    if (name) localStorage.setItem('kinet_user_name', name);
+    window.location.href = 'app-redirect.html';
+  }
+
+  // Función universal para Acceso como Invitado (sin machacar datos previos)
+  function continueAsGuest() {
+    localStorage.setItem('kinet_guest_session', 'true');
+    if (!localStorage.getItem('kinet_user_name')) {
+      localStorage.setItem('kinet_user_name', 'Atleta Invitado');
+    }
+    window.location.href = 'app-redirect.html';
+  }
+</script>
 </body>
 </html>
