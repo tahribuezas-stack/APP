@@ -695,17 +695,27 @@
       }
     }
 
-    function finishCoachOnboarding() {
-      localStorage.setItem('kinet_role', coachState.role);
-      localStorage.setItem('kinet_sport', coachState.sport);
-      localStorage.setItem('kinet_category', coachState.category);
-      localStorage.setItem('kinet_squad_size', coachState.squadSize);
-      localStorage.setItem('kinet_position', coachState.methodology);
-      localStorage.setItem('kinet_ai_completed', coachState.aiCompleted);
-      localStorage.setItem('kinet_profile_completed', 'true');
+  function finishCoachOnboarding() {
+  const profilesDB = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
 
-      cambiarPagina(null, 'fase1.html');
-    }
+  // Guardamos el perfil de Staff/Coach sin borrar Atleta ni Scout
+  profilesDB.staff = {
+    roleType: 'staff',
+    roleName: typeof coachState !== 'undefined' ? coachState.role : 'Head Coach / Staff',
+    sport: typeof coachState !== 'undefined' ? coachState.sport : 'Fútbol',
+    category: typeof coachState !== 'undefined' ? coachState.category : 'Plantilla Élite',
+    style: typeof coachState !== 'undefined' ? coachState.style : 'Presión Alta 4-3-3',
+    updatedAt: new Date().toISOString()
+  };
+
+  localStorage.setItem('kinet_profiles_db', JSON.stringify(profilesDB));
+  localStorage.setItem('kinet_active_role', 'staff');
+  localStorage.setItem('kinet_profile_completed', 'true');
+  localStorage.setItem('kinet_logged_in', 'true');
+
+  // Mandar directo a la App en modo Coach (Ámbar)
+  window.location.href = 'app.html?role=staff';
+}
   </script>
 </body>
 </html>
