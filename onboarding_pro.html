@@ -677,22 +677,27 @@
       }
     }
 
-    function finishOnboarding() {
-      state.altura = document.getElementById('slider-altura').value;
-      state.peso = document.getElementById('slider-peso').value;
-      state.edad = document.getElementById('slider-edad').value;
+  function finishOnboarding() {
+  const profilesDB = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
 
-      localStorage.setItem('kinet_role', state.role);
-      localStorage.setItem('kinet_sport', state.sport);
-      localStorage.setItem('kinet_category', state.category);
-      localStorage.setItem('kinet_position', state.position);
-      localStorage.setItem('kinet_altura', state.altura + ' cm');
-      localStorage.setItem('kinet_peso', state.peso + ' kg');
-      localStorage.setItem('kinet_edad', state.edad + ' años');
-      localStorage.setItem('kinet_profile_completed', 'true');
+  // Guardamos el perfil de Atleta sin borrar Coach ni Scout
+  profilesDB.athlete = {
+    roleType: 'athlete',
+    roleName: localStorage.getItem('kinet_role') || 'Atleta Pro',
+    sport: localStorage.getItem('kinet_sport') || 'Fútbol',
+    category: localStorage.getItem('kinet_category') || 'Alto Rendimiento',
+    position: localStorage.getItem('kinet_position') || 'Explosive Playmaker',
+    updatedAt: new Date().toISOString()
+  };
 
-      cambiarPagina(null, 'fase1.html');
-    }
+  localStorage.setItem('kinet_profiles_db', JSON.stringify(profilesDB));
+  localStorage.setItem('kinet_active_role', 'athlete');
+  localStorage.setItem('kinet_profile_completed', 'true');
+  localStorage.setItem('kinet_logged_in', 'true');
+
+  // Mandar directo a la App en modo Atleta (Verde)
+  window.location.href = 'app.html?role=athlete';
+}
   </script>
 </body>
 </html>
