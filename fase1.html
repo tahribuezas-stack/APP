@@ -189,6 +189,49 @@
   </script>
 </body>
 </html>
+window.addEventListener('DOMContentLoaded', () => {
+  // Leer los perfiles que el usuario ya tiene guardados en su cuenta
+  const profilesDB = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
+
+  // Comprobar cada rol individualmente
+  const hasAthlete = !!profilesDB.athlete || localStorage.getItem('kinet_role') === 'Atleta Pro';
+  const hasStaff = !!profilesDB.staff;
+  const hasScout = !!profilesDB.scout || localStorage.getItem('kinet_role')?.includes('Scout') || localStorage.getItem('kinet_role')?.includes('Director');
+
+  // Actualizar visualmente las tarjetas en fase1.html si ya están creadas
+  updateCardState('athlete', hasAthlete);
+  updateCardState('staff', hasStaff);
+  updateCardState('scout', hasScout);
+});
+
+function updateCardState(roleType, isCreated) {
+  // Buscamos el elemento visual correspondiente a cada rol en tu fase1.html
+  const cardElement = document.getElementById('card-' + roleType);
+  if (!cardElement) return;
+
+  const actionBtn = cardElement.querySelector('.role-action-btn') || cardElement.querySelector('button');
+  
+  if (isCreated) {
+    // Si ya existe el perfil, cambiamos el botón para entrar directamente sin duplicar
+    cardElement.classList.add('profile-already-exists');
+    if (actionBtn) {
+      actionBtn.textContent = '⚡ Entrar a Panel ' + roleType.toUpperCase();
+      actionBtn.style.background = getRoleColor(roleType);
+      actionBtn.onclick = (e) => {
+        e.stopPropagation();
+        localStorage.setItem('kinet_active_role', roleType);
+        window.location.href = 'app.html?role=' + roleType;
+      };
+    }
+  }
+}
+
+function getRoleColor(role) {
+  if (role === 'athlete') return '#10B981'; // Verde
+  if (role === 'staff') return '#F59E0B';   // Ámbar
+  if (role === 'scout') return '#3B82F6';   // Azul
+  return '#3B82F6';
+}
   </script>
 </body>
 </html>
