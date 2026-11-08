@@ -114,6 +114,14 @@
     .banner-slide-out {
       animation: slideOutRight 0.5s cubic-bezier(0.7, 0, 0.84, 0) forwards;
     }
+    /* Corrección de scroll táctil en portátiles y tablets */
+  html, body {
+    touch-action: pan-y pinch-zoom;
+    -webkit-overflow-scrolling: touch;
+  }
+  #dot-mesh-canvas {
+    pointer-events: none !important; /* Evita que el canvas bloquee el dedo o el trackpad */
+  }
   </style>
 </head>
 <body style="--spotlight-color: rgba(0, 255, 102, 0.25);" class="bg-cyber-pattern text-slate-100 font-sans min-h-screen flex flex-col selection:bg-kinet-neon selection:text-black opacity-0 transition-opacity duration-300">
@@ -784,6 +792,21 @@
 
     initDots();
     animateDots();
+    // 1. INICIALIZACIÓN DE LENIS SMOOTH SCROLL OPTIMIZADA PARA TÁCTIL Y TRACKPAD
+    const lenis = new Lenis({
+      duration: 1.0,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+      wheelMultiplier: 1.0,
+      touchMultiplier: 2.0, // Mejora la sensibilidad del dedo en tablets y pantallas táctiles
+      infinite: false,
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
   </script>
 </body>
 </html>
