@@ -43,14 +43,19 @@
   <style>
     html {
       scroll-padding-top: 100px;
-    }
-    /* Corrección de scroll táctil en portátiles y tablets */
-    html, body {
+      /* Scroll nativo ultra fluido y sin bloqueos táctiles */
+      scroll-behavior: smooth;
       touch-action: pan-y pinch-zoom;
       -webkit-overflow-scrolling: touch;
     }
+    
+    body {
+      touch-action: pan-y pinch-zoom;
+      -webkit-overflow-scrolling: touch;
+    }
+
     #dot-mesh-canvas {
-      pointer-events: none !important; /* Evita que el canvas bloquee el dedo o el trackpad */
+      pointer-events: none !important; /* Evita que el canvas bloquee gestos del dedo o trackpad */
     }
 
     .bg-cyber-pattern {
@@ -560,10 +565,7 @@
     </div>
   </div>
 
-  <!-- LIBRERÍA LENIS PARA EL SCROLL FLUIDO -->
-  <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
-
-  <!-- SCRIPTS PRINCIPALES Y MESH INTERACTIVA -->
+  <!-- SCRIPTS PRINCIPALES Y MESH INTERACTIVA (SIN LIBRERÍA LENIS PESADA) -->
   <script>
     lucide.createIcons();
 
@@ -616,28 +618,7 @@
     }
 
     function scrollToTop() {
-      const startPosition = window.pageYOffset;
-      let startTime = null;
-      const duration = 750;
-
-      function animation(currentTime) {
-        if (startTime === null) startTime = currentTime;
-        const timeElapsed = currentTime - startTime;
-        const run = easeInOutQuad(timeElapsed, startPosition, -startPosition, duration);
-        window.scrollTo(0, run);
-        if (timeElapsed < duration) {
-          requestAnimationFrame(animation);
-        }
-      }
-
-      function easeInOutQuad(t, b, c, d) {
-        t /= d / 2;
-        if (t < 1) return c / 2 * t * t + b;
-        t--;
-        return -c / 2 * (t * (t - 2) - 1) + b;
-      }
-
-      requestAnimationFrame(animation);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function scrollToSection(sectionId) {
@@ -645,30 +626,11 @@
       if (element) {
         const headerOffset = 95;
         const elementPosition = element.getBoundingClientRect().top;
-        const targetPosition = elementPosition + window.pageYOffset - headerOffset;
-        const startPosition = window.pageYOffset;
-        const distance = targetPosition - startPosition;
-        let startTime = null;
-        const duration = 750;
-
-        function animation(currentTime) {
-          if (startTime === null) startTime = currentTime;
-          const timeElapsed = currentTime - startTime;
-          const run = easeInOutQuad(timeElapsed, startPosition, distance, duration);
-          window.scrollTo(0, run);
-          if (timeElapsed < duration) {
-            requestAnimationFrame(animation);
-          }
-        }
-
-        function easeInOutQuad(t, b, c, d) {
-          t /= d / 2;
-          if (t < 1) return c / 2 * t * t + b;
-          t--;
-          return -c / 2 * (t * (t - 2) - 1) + b;
-        }
-
-        requestAnimationFrame(animation);
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
       }
     }
 
@@ -694,23 +656,7 @@
       }
     }
 
-    // 1. INICIALIZACIÓN DE LENIS SMOOTH SCROLL OPTIMIZADA PARA TÁCTIL Y TRACKPAD
-    const lenis = new Lenis({
-      duration: 1.0,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smoothWheel: true,
-      wheelMultiplier: 1.0,
-      touchMultiplier: 2.0, // Mejora la sensibilidad del dedo en tablets y pantallas táctiles
-      infinite: false,
-    });
-
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-    requestAnimationFrame(raf);
-
-    // 2. EFECTO DE MALLA DE PUNTOS EN ANCHO COMPLETO
+    // EFECTO DE MALLA DE PUNTOS EN ANCHO COMPLETO
     const heroSection = document.getElementById('hero-section');
     const canvas = document.getElementById('dot-mesh-canvas');
     const ctx = canvas.getContext('2d');
@@ -726,7 +672,6 @@
       initDots();
     });
 
-    // Solo registrar movimiento de ratón en escritorio para evitar bloqueos táctiles
     heroSection.addEventListener('mousemove', (e) => {
       const rect = heroSection.getBoundingClientRect();
       mouse.x = e.clientX - rect.left;
