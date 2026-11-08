@@ -782,24 +782,39 @@
       }
     }
 
-    function finishScoutOnboarding() {
-      scoutState.maxAge = document.getElementById('val-scout-edad').textContent;
-      scoutState.budget = document.getElementById('val-scout-budget').textContent;
-      scoutState.minGrl = document.getElementById('slider-scout-grl').value + ' GRL';
+  function finishScoutOnboarding() {
+  scoutState.maxAge = document.getElementById('val-scout-edad').textContent;
+  scoutState.budget = document.getElementById('val-scout-budget').textContent;
+  scoutState.minGrl = document.getElementById('slider-scout-grl').value + ' GRL';
 
-      localStorage.setItem('kinet_role', scoutState.role);
-      localStorage.setItem('kinet_active_role', 'scout');
-      localStorage.setItem('kinet_sport', scoutState.sport);
-      localStorage.setItem('kinet_category', scoutState.category);
-      localStorage.setItem('kinet_position', scoutState.priority);
-      localStorage.setItem('kinet_altura', scoutState.maxAge);
-      localStorage.setItem('kinet_peso', scoutState.budget);
-      localStorage.setItem('kinet_edad', scoutState.minGrl);
-      localStorage.setItem('kinet_ai_completed', scoutState.aiCompleted);
-      localStorage.setItem('kinet_profile_completed', 'true');
+  const profilesDB = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
 
-      window.location.href = 'fase1.html';
-    }
+  // Guardamos el perfil de Scout sin machacar el de Atleta o Coach
+  profilesDB.scout = {
+    roleType: 'scout',
+    roleName: scoutState.role,
+    sport: scoutState.sport,
+    category: scoutState.category,
+    priority: scoutState.priority,
+    maxAge: scoutState.maxAge,
+    budget: scoutState.budget,
+    minGrl: scoutState.minGrl,
+    aiCompleted: scoutState.aiCompleted,
+    updatedAt: new Date().toISOString()
+  };
+
+  localStorage.setItem('kinet_profiles_db', JSON.stringify(profilesDB));
+  localStorage.setItem('kinet_role', scoutState.role);
+  localStorage.setItem('kinet_sport', scoutState.sport);
+  localStorage.setItem('kinet_category', scoutState.category);
+  localStorage.setItem('kinet_position', scoutState.priority);
+  localStorage.setItem('kinet_active_role', 'scout');
+  localStorage.setItem('kinet_profile_completed', 'true');
+  localStorage.setItem('kinet_logged_in', 'true');
+
+  // Redirección directa a la App en modo Scout (Azul)
+  window.location.href = 'app.html?role=scout';
+}
   </script>
 </body>
 </html>
