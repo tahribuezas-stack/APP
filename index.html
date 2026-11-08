@@ -563,7 +563,7 @@
     </div>
   </div>
 
-  <!-- SCRIPTS PRINCIPALES CON ANIMACIÓN DE SCROLL FLUIDO -->
+  <!-- SCRIPTS PRINCIPALES CON ANIMACIÓN DE DESPLAZAMIENTO FLUIDO (CUSTOM SCROLL ANCLADO) -->
   <script>
     lucide.createIcons();
 
@@ -614,26 +614,44 @@
       }
     }
 
-    // ANIMACIÓN SUAVE AL SUBIR ARRIBA (SMOOTH SCROLL)
     function scrollToTop() {
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
+      smoothScrollTo(0, 750);
     }
 
-    // ANIMACIÓN SUAVE AL NAVEGAR A SECCIONES (SLIDE FLUIDO)
+    // ANIMACIÓN MATEMÁTICA DE DESPLAZAMIENTO VERTICAL FLUIDO (CUSTOM SLIDE)
     function scrollToSection(sectionId) {
       const element = document.getElementById(sectionId);
       if (element) {
         const headerOffset = 95;
         const elementPosition = element.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: 'smooth'
-        });
+        const targetPosition = elementPosition + window.pageYOffset - headerOffset;
+        smoothScrollTo(targetPosition, 750);
       }
+    }
+
+    function smoothScrollTo(targetPosition, duration) {
+      const startPosition = window.pageYOffset;
+      const distance = targetPosition - startPosition;
+      let startTime = null;
+
+      function animation(currentTime) {
+        if (startTime === null) startTime = currentTime;
+        const timeElapsed = currentTime - startTime;
+        const run = easeInOutQuad(timeElapsed, startPosition, distance, duration);
+        window.scrollTo(0, run);
+        if (timeElapsed < duration) {
+          requestAnimationFrame(animation);
+        }
+      }
+
+      function easeInOutQuad(t, b, c, d) {
+        t /= d / 2;
+        if (t < 1) return c / 2 * t * t + b;
+        t--;
+        return -c / 2 * (t * (t - 2) - 1) + b;
+      }
+
+      requestAnimationFrame(animation);
     }
 
     function cambiarPagina(urlDestino) {
