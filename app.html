@@ -6,8 +6,8 @@
     <meta name="theme-color" content="#06080E">
     <title>KINET OS // Core Terminal Pro</title>
     
-    <!-- Favicon Corporativo KINET Iluminado (Verde Original KINET) -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2310B981%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
+    <!-- Favicon Corporativo KINET Iluminado (Verde Original Brillante) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
 
     <!-- Tipografías de Alto Rendimiento -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,36 +17,36 @@
     <style>
         :root {
             --bg-void: #06080E;
-            --bg-panel: rgba(13, 17, 26, 0.85);
+            --bg-panel: rgba(13, 17, 26, 0.88);
             --border-subtle: rgba(255, 255, 255, 0.08);
             --text-primary: #F8FAFC;
             --text-secondary: #94A3B8;
             
-            /* Variables Dinámicas por Rol (Defecto: Verde KINET Original) */
-            --role-color: #10B981;
-            --role-rgb: 16, 185, 129;
-            --role-glow: rgba(16, 185, 129, 0.35);
-            --role-gradient: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            /* Verde KINET Original & Vibrante (#00FF88) */
+            --role-color: #00FF88;
+            --role-rgb: 0, 255, 136;
+            --role-glow: rgba(0, 255, 136, 0.4);
+            --role-gradient: linear-gradient(135deg, #00FF88 0%, #00B359 100%);
         }
 
         body[data-role="athlete"] {
-            --role-color: #10B981;
-            --role-rgb: 16, 185, 129;
-            --role-glow: rgba(16, 185, 129, 0.35);
-            --role-gradient: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            --role-color: #00FF88;
+            --role-rgb: 0, 255, 136;
+            --role-glow: rgba(0, 255, 136, 0.4);
+            --role-gradient: linear-gradient(135deg, #00FF88 0%, #00B359 100%);
         }
 
         body[data-role="staff"] {
             --role-color: #F59E0B;
             --role-rgb: 245, 158, 11;
-            --role-glow: rgba(245, 158, 11, 0.35);
+            --role-glow: rgba(245, 158, 11, 0.4);
             --role-gradient: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
         }
 
         body[data-role="scout"] {
             --role-color: #3B82F6;
             --role-rgb: 59, 130, 246;
-            --role-glow: rgba(59, 130, 246, 0.35);
+            --role-glow: rgba(59, 130, 246, 0.4);
             --role-gradient: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
         }
 
@@ -60,7 +60,7 @@
         body {
             background-color: var(--bg-void);
             background-image: 
-                radial-gradient(circle at 50% -20%, rgba(var(--role-rgb), 0.18), transparent 60%),
+                radial-gradient(circle at 50% -20%, rgba(var(--role-rgb), 0.12), transparent 60%),
                 linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
             background-size: 100% 100%, 40px 40px, 40px 40px;
@@ -68,20 +68,6 @@
             font-family: 'Inter', sans-serif;
             min-height: 100vh;
             overflow-x: hidden;
-            position: relative;
-        }
-
-        /* EFECTO SPOTLIGHT DEL CURSOR CORREGIDO (Fluido y tamaño moderado) */
-        #cursor-spotlight {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 9999;
-            transition: opacity 0.3s ease;
-            will-change: background;
         }
 
         /* ESTRUCTURA GENERAL */
@@ -210,7 +196,7 @@
 
         .sidebar-footer:hover { border-color: rgba(var(--role-rgb), 0.4); }
 
-        /* TOPBAR (Sin selector múltiple, muestra indicador de perfil único configurado) */
+        /* TOPBAR */
         .os-main {
             display: flex;
             flex-direction: column;
@@ -327,7 +313,7 @@
             box-shadow: 0 0 20px rgba(var(--role-rgb), 0.1);
         }
 
-        /* BENTO GRID */
+        /* BENTO GRID & PANELES CON SPOTLIGHT LOCALIZADO Y REDUCIDO */
         .bento-grid {
             display: grid;
             grid-template-columns: repeat(12, 1fr);
@@ -357,10 +343,22 @@
             box-shadow: 0 15px 35px rgba(0,0,0,0.5);
         }
 
+        /* Spotlight SOLO dentro del recuadro, más pequeño y elegante */
+        .kinet-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(280px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(var(--role-rgb), 0.18), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            pointer-events: none;
+        }
+
+        .kinet-panel:hover::before { opacity: 1; }
         .kinet-panel:hover {
             border-color: rgba(var(--role-rgb), 0.5);
             transform: translateY(-2px);
-            box-shadow: 0 20px 45px rgba(0,0,0,0.7), 0 0 30px rgba(var(--role-rgb), 0.15);
+            box-shadow: 0 20px 45px rgba(0,0,0,0.7), 0 0 25px rgba(var(--role-rgb), 0.15);
         }
 
         .panel-head {
@@ -486,9 +484,6 @@
 </head>
 <body data-role="athlete">
 
-    <!-- SPOTLIGHT DE CURSOR FLUIDO Y DE TAMAÑO ÓPTIMO -->
-    <div id="cursor-spotlight"></div>
-
     <div class="os-layout">
         
         <!-- SIDEBAR DE ESCRITORIO -->
@@ -532,7 +527,7 @@
         <!-- ZONA PRINCIPAL -->
         <div class="os-main">
             
-            <!-- TOPBAR CON INDICADOR DEL PERFIL ELEGIDO (Sin selector múltiple) -->
+            <!-- TOPBAR CON INDICADOR DEL PERFIL ÚNICO CONFIGURADO -->
             <header class="os-topbar">
                 <div class="mobile-brand">
                     <div class="brand-logo-icon" style="width:34px;height:34px;font-size:1rem;">K</div>
@@ -544,7 +539,6 @@
                     <span style="color:var(--role-color);font-weight:700;">● ONLINE</span>
                 </div>
 
-                <!-- INDICADOR FIJO DEL PERFIL ACTUAL (Elegido en Fase 1) -->
                 <div class="active-role-indicator">
                     <span class="dot"></span>
                     <span class="active-role-text" id="topbar-role-title">PERFIL: ATLETA</span>
@@ -684,13 +678,10 @@
     </nav>
 
     <script>
-        /* =========================================================================
-           BASE DE DATOS MAESTRA DE ROLES KINET OS (Atleta, Coach, Scout)
-           ========================================================================= */
         const ROLES_DATABASE = {
             athlete: {
                 name: 'Atleta',
-                colorHex: '#10B981',
+                colorHex: '#00FF88',
                 tagText: 'ECOSISTEMA ATLETA • RENDIMIENTO INDIVIDUAL',
                 tagIcon: '⚡',
                 title: 'Terminal Biométrica & IA',
@@ -820,7 +811,7 @@
                             <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle);border-radius:14px;padding:14px;margin-bottom:12px;">
                                 <div style="display:flex;justify-content:space-between;align-items:center;">
                                     <strong>Lucas Vance (19) • Extremo Zurdo</strong>
-                                    <span style="color:#10B981;font-family:'JetBrains Mono';font-size:0.75rem;">LIVE 78'</span>
+                                    <span style="color:#00FF88;font-family:'JetBrains Mono';font-size:0.75rem;">LIVE 78'</span>
                                 </div>
                                 <span style="font-size:0.8rem;color:var(--text-secondary);display:block;margin-top:4px;">1 Gol • 4 Regates • 34.6 km/h • OVR 88</span>
                             </div>
@@ -863,12 +854,9 @@
             }
         };
 
-        // INICIALIZACIÓN INTELIGENTE (Lee el perfil guardado en Fase 1 sin mostrar selector múltiple)
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             let roleFromUrl = urlParams.get('role');
-            
-            // Prioridad: URL > localStorage activo > Primer perfil de kinet_profiles_db > Atleta por defecto
             let activeRole = roleFromUrl || localStorage.getItem('kinet_active_role');
             
             if (!activeRole) {
@@ -880,22 +868,22 @@
 
             if (!ROLES_DATABASE[activeRole]) activeRole = 'athlete';
 
-            // Cargar configuración visual del rol
             applyRoleConfig(activeRole);
 
-            // Cargar nombre de usuario
             const userName = localStorage.getItem('kinet_user_name') || localStorage.getItem('athleteName');
             if (userName) {
                 document.getElementById('sidebar-user-name').textContent = userName;
             }
 
-            // Sincronizar spotlight del cursor de forma fluida
-            const spotlight = document.getElementById('cursor-spotlight');
+            // Spotlight inteligente y localizado exclusivamente dentro de cada panel .kinet-panel
             document.addEventListener('mousemove', (e) => {
-                const x = e.clientX;
-                const y = e.clientY;
-                const rgb = getComputedStyle(document.body).getPropertyValue('--role-rgb') || '16, 185, 129';
-                spotlight.style.background = `radial-gradient(450px circle at ${x}px ${y}px, rgba(${rgb}, 0.14), transparent 65%)`;
+                document.querySelectorAll('.kinet-panel').forEach(panel => {
+                    const rect = panel.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    panel.style.setProperty('--mouse-x', `${x}px`);
+                    panel.style.setProperty('--mouse-y', `${y}px`);
+                });
             });
         });
 
@@ -904,7 +892,6 @@
             localStorage.setItem('kinet_active_role', roleKey);
             document.body.setAttribute('data-role', roleKey);
 
-            // Textos superiores y de cabecera
             document.getElementById('topbar-role-title').textContent = `PERFIL: ${cfg.name.toUpperCase()}`;
             document.getElementById('header-tag-icon').textContent = cfg.tagIcon || '⚡';
             document.getElementById('header-tag-text').textContent = cfg.tagText;
@@ -912,14 +899,12 @@
             document.getElementById('header-badge').textContent = cfg.badgeText;
             document.getElementById('sidebar-active-role-label').textContent = cfg.sidebarRoleLabel;
 
-            // Inyectar Dashboard
             document.getElementById('dynamic-dashboard').innerHTML = cfg.dashboardHTML;
 
-            // Inyectar Agentes
             const agentsContainer = document.getElementById('agents-grid-container');
             if (agentsContainer) {
                 agentsContainer.innerHTML = cfg.agents.map(ag => `
-                    <div style="background:rgba(255,255,255,0.025);border:1px solid var(--border-subtle);border-radius:18px;padding:20px;transition:0.3s;" onmouseover="this.style.borderColor='var(--role-color)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--border-subtle)';this.style.transform='translateY(0)'">
+                    <div class="kinet-panel" style="padding:20px;">
                         <div style="width:44px;height:44px;border-radius:12px;background:rgba(var(--role-rgb),0.18);border:1px solid var(--role-color);display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:12px;">${ag.icon}</div>
                         <h4 style="font-family:'Orbitron',sans-serif;font-size:0.95rem;margin-bottom:6px;color:white;">${ag.name}</h4>
                         <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.4;">${ag.desc}</p>
@@ -928,7 +913,6 @@
             }
         }
 
-        // Navegación entre vistas
         function openView(viewName, clickedBtn) {
             document.querySelectorAll('.view-pane').forEach(v => v.classList.remove('active'));
             const target = document.getElementById('view-' + viewName);
