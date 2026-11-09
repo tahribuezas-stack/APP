@@ -6,8 +6,8 @@
     <meta name="theme-color" content="#06080E">
     <title>KINET OS // Vestuario & Centro de Mando</title>
     
-    <!-- Favicon Corporativo KINET Iluminado -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
+    <!-- Favicon Corporativo Dinámico por JavaScript -->
+    <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
 
     <!-- Tipografías Oficiales -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,7 +22,6 @@
             --text-primary: #F8FAFC;
             --text-secondary: #94A3B8;
             
-            /* Valores por defecto (Atleta - Verde) */
             --role-color: #00FF88;
             --role-rgb: 0, 255, 136;
             --role-glow: rgba(0, 255, 136, 0.38);
@@ -409,7 +408,6 @@
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        /* SPOTLIGHT DE CURSOR DINÁMICO ADAPTADO AL ROL */
         .kinet-panel::before {
             content: '';
             position: absolute;
@@ -697,7 +695,7 @@
                     <div class="brand-logo-icon">K</div>
                     <div class="brand-text">
                         <h1>KINET OS</h1>
-                        <span>AI PRECISION</span>
+                        <span id="sidebar-sport-subtitle">AI PRECISION // FÚTBOL</span>
                     </div>
                 </a>
 
@@ -924,7 +922,7 @@
     </div>
 
     <!-- MENÚ DESPLEGABLE MÓVIL (DRAWER) CON TODAS LAS OPCIONES -->
-    <div id="mobile-menu-drawer" class="mobile-menu-drawer" style="position:fixed;inset:0;background:rgba(6,8,14,0.97);backdrop-filter:blur(28px);z-index:200;display:flex;flex-direction:column;padding:20px 16px;justify-content:space-between;transform:translateY(-100%);transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);border-bottom:1px solid rgba(var(--role-rgb),0.2);">
+    <div id="mobile-menu-drawer" style="position:fixed;inset:0;background:rgba(6,8,14,0.97);backdrop-filter:blur(28px);z-index:200;display:flex;flex-direction:column;padding:20px 16px;justify-content:space-between;transform:translateY(-100%);transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);border-bottom:1px solid rgba(var(--role-rgb),0.2);">
         <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:12px;margin-bottom:12px;">
             <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:0.95rem;color:white;">KINET OS // MENÚ COMPLETO</div>
             <button onclick="toggleMobileDrawer()" style="background:none;border:none;color:white;font-size:1.3rem;cursor:pointer;">✕</button>
@@ -1047,15 +1045,22 @@
             document.body.setAttribute('data-role', activeRoleKey);
             localStorage.setItem('kinet_active_role', activeRoleKey);
 
+            // Sincronizar y personalizar dinámicamente con el deporte elegido
+            const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
+            document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${sportChosen.toUpperCase()}`;
+            document.getElementById('topbar-sport-tag').textContent = `● ${sportChosen.toUpperCase()}`;
+
+            // Actualizar Favicon dinámicamente según el rol/color activo
+            const faviconHex = activeRoleKey === 'staff' ? '%23F59E0B' : (activeRoleKey === 'scout' ? '%233B82F6' : '%2300FF88');
+            const faviconSvg = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22${faviconHex}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`;
+            document.getElementById('dynamic-favicon').setAttribute('href', faviconSvg);
+
             let specificRoleTitle = rawRoleName;
             if (!specificRoleTitle || specificRoleTitle.includes('DIRECTOR') && activeRoleKey === 'athlete') {
                 specificRoleTitle = activeRoleKey === 'athlete' ? 'Atleta Pro' : activeRoleKey === 'staff' ? 'Entrenador / Staff' : 'Ojeador / Scout';
             }
-            
-            const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
 
             document.getElementById('topbar-role-title').textContent = specificRoleTitle.toUpperCase();
-            document.getElementById('topbar-sport-tag').textContent = `● ${sportChosen.toUpperCase()}`;
 
             const cfg = ROLE_VIEW_CONFIG[activeRoleKey];
             document.getElementById('header-tag-text').textContent = `${cfg.tagText} • ${sportChosen.toUpperCase()}`;
