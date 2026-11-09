@@ -585,8 +585,51 @@
         }
 
         /* -------------------------------------------------------------------------- */
-        /* NAVEGACIÓN MÓVIL INFERIOR (VISIBLE SOLO EN MÓVIL) */
+        /* NAVEGACIÓN MÓVIL INFERIOR Y MENÚ DESPLEGABLE (DRAWER) */
         /* -------------------------------------------------------------------------- */
+        .mobile-menu-drawer {
+            position: fixed;
+            inset: 0;
+            background: rgba(6, 8, 14, 0.97);
+            backdrop-filter: blur(28px);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 16px;
+            justify-content: space-between;
+            transform: translateY(-100%);
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .mobile-menu-drawer.open {
+            transform: translateY(0);
+        }
+
+        .mobile-drawer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+            padding: 4px 0;
+            max-height: calc(100vh - 160px);
+        }
+
+        .mobile-drawer-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            color: #F8FAFC;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
         .mobile-bottom-nav {
             display: none;
             position: fixed;
@@ -623,6 +666,7 @@
             align-items: center;
             gap: 3px;
             text-decoration: none;
+            cursor: pointer;
             transition: 0.25s;
         }
 
@@ -866,7 +910,29 @@
         </div>
     </div>
 
-    <!-- NAVEGACIÓN MÓVIL INFERIOR (SOLO MÓVIL) -->
+    <!-- MENÚ DESPLEGABLE MÓVIL (DRAWER) CON TODAS LAS OPCIONES -->
+    <div id="mobile-menu-drawer" class="mobile-menu-drawer">
+        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:12px;margin-bottom:12px;">
+            <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:0.95rem;color:white;">KINET OS // MENÚ COMPLETO</div>
+            <button onclick="toggleMobileDrawer()" style="background:none;border:none;color:white;font-size:1.3rem;cursor:pointer;">✕</button>
+        </div>
+        <div class="mobile-drawer-links">
+            <a href="app.html" class="mobile-drawer-link active"><span>⚡ Vestuario</span><span>HOY</span></a>
+            <a href="cuerpo-tecnico.html" class="mobile-drawer-link"><span>🧠 Cuerpo Técnico IA</span><span>→</span></a>
+            <a href="ficha-pro.html" class="mobile-drawer-link"><span>🎴 Ficha & KINET Card</span><span>→</span></a>
+            <a href="ojeador-live.html" class="mobile-drawer-link"><span>📡 Ojeador & Laboratorio</span><span>→</span></a>
+            <a href="comunidad.html" class="mobile-drawer-link"><span>🌐 Comunidad / Red Social</span><span>→</span></a>
+            <a href="perfil.html" class="mobile-drawer-link"><span>👤 Mi Perfil</span><span>→</span></a>
+            <a href="despacho.html" class="mobile-drawer-link"><span>⚙️ Despacho & Ajustes</span><span>→</span></a>
+            <a href="comunidad.html" class="mobile-drawer-link" style="border-color:rgba(var(--role-rgb),0.3);background:rgba(var(--role-rgb),0.05);"><span>🌐 Config. Red Social</span><span>⚡</span></a>
+            <a href="despacho.html" class="mobile-drawer-link" style="background:var(--role-gradient);color:#04060A;font-weight:900;border:none;"><span>⚡ Pásate a KINET PRO</span><span>→</span></a>
+        </div>
+        <div style="text-align:center;font-size:0.65rem;color:var(--text-secondary);font-family:'JetBrains Mono';margin-top:10px;">
+            KINET OS • MOBILE VIEWPORT
+        </div>
+    </div>
+
+    <!-- NAVEGACIÓN MÓVIL INFERIOR CON LAS 4 OPCIONES PRINCIPALES + MENÚ DESPLEGABLE -->
     <nav class="mobile-bottom-nav">
         <a href="app.html" class="m-nav-btn active">
             <span style="font-size:1rem;">⚡</span>
@@ -876,21 +942,26 @@
             <span style="font-size:1rem;">🧠</span>
             <span>Técnicos</span>
         </a>
-        <a href="comunidad.html" class="m-nav-btn">
-            <span style="font-size:1rem;">🌐</span>
-            <span>Comunidad</span>
+        <a href="ficha-pro.html" class="m-nav-btn">
+            <span style="font-size:1rem;">🎴</span>
+            <span>Ficha</span>
         </a>
-        <a href="perfil.html" class="m-nav-btn">
-            <span style="font-size:1rem;">👤</span>
-            <span>Perfil</span>
+        <a href="ojeador-live.html" class="m-nav-btn">
+            <span style="font-size:1rem;">📡</span>
+            <span>Ojeador</span>
         </a>
-        <a href="despacho.html" class="m-nav-btn">
-            <span style="font-size:1rem;">⚙️</span>
-            <span>Ajustes</span>
-        </a>
+        <button onclick="toggleMobileDrawer()" class="m-nav-btn">
+            <span style="font-size:1rem;">☰</span>
+            <span>Menú</span>
+        </button>
     </nav>
 
     <script>
+        function toggleMobileDrawer() {
+            const drawer = document.getElementById('mobile-menu-drawer');
+            drawer.classList.toggle('open');
+        }
+
         const ROLE_VIEW_CONFIG = {
             athlete: {
                 tagText: 'VESTUARIO DEL JUGADOR • DÍA A DÍA',
@@ -900,7 +971,7 @@
                 kpi3: { val: 'BAJO', lbl: 'RIESGO SOBRECARGA' },
                 bar1Title: 'Nivel de Frescura Muscular',
                 bar2Title: 'Fatiga Acumulada de la Semana',
-                advice: '"Hoy tienes el depósito de energía al 92%. Aprovecha los primeros 30 minutos para trabajo explosivo y añade hidratación + carbohidratos al terminar."',
+                advice: '"Hoy tienes el depósito de energía al 92%. Aprovecha los primeros 30 minutos para trabajo explosivo y Prioriza hidratación + carbohidratos complejos al terminar."',
                 sessions: [
                     { time: '10:00', title: 'Gimnasio: Fuerza Explosiva & Core (45 min)', done: true },
                     { time: '18:30', title: 'Sesión de Campo: Táctica & Velocidad', done: false }
