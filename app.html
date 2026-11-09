@@ -6,10 +6,8 @@
     <meta name="theme-color" content="#06080E">
     <title>KINET OS // Vestuario & Centro de Mando</title>
     
-    <!-- Favicon Corporativo Dinámico por JavaScript -->
     <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
 
-    <!-- Tipografías Oficiales -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -28,35 +26,20 @@
             --role-gradient: linear-gradient(135deg, #00FF88 0%, #00B359 100%);
         }
 
-        body[data-role="athlete"] {
-            --role-color: #00FF88;
-            --role-rgb: 0, 255, 136;
-            --role-glow: rgba(0, 255, 136, 0.38);
-            --role-gradient: linear-gradient(135deg, #00FF88 0%, #00B359 100%);
+        body[data-role="athlete"] { --role-color: #00FF88; --role-rgb: 0, 255, 136; --role-glow: rgba(0, 255, 136, 0.38); --role-gradient: linear-gradient(135deg, #00FF88 0%, #00B359 100%); }
+        body[data-role="staff"] { --role-color: #F59E0B; --role-rgb: 245, 158, 11; --role-glow: rgba(245, 158, 11, 0.38); --role-gradient: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); }
+        body[data-role="scout"] { --role-color: #3B82F6; --role-rgb: 59, 130, 246; --role-glow: rgba(59, 130, 246, 0.38); --role-gradient: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        /* EVITA CUALQUIER FLASH BLANCO FORZANDO EL FONDO DESDE EL HTML */
+        html {
+            background-color: #06080E;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        body[data-role="staff"] {
-            --role-color: #F59E0B;
-            --role-rgb: 245, 158, 11;
-            --role-glow: rgba(245, 158, 11, 0.38);
-            --role-gradient: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-        }
-
-        body[data-role="scout"] {
-            --role-color: #3B82F6;
-            --role-rgb: 59, 130, 246;
-            --role-glow: rgba(59, 130, 246, 0.38);
-            --role-gradient: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        html, body {
+        body {
             background-color: var(--bg-void);
             background-image: 
                 radial-gradient(circle at 50% -20%, rgba(var(--role-rgb), 0.14), transparent 60%),
@@ -67,16 +50,17 @@
             font-family: 'Inter', sans-serif;
             height: 100vh;
             overflow: hidden;
-            transition: background-image 0.4s ease;
+            opacity: 0;
+            /* ANIMACIÓN LENTA, SUAVE Y ELEGANTE DE ENTRADA (0.9 segundos) */
+            animation: slowCinematicFadeIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* LAYOUT PRINCIPAL A PANTALLA COMPLETA ESTÁTICA */
-        .os-layout {
-            display: grid;
-            grid-template-columns: 270px 1fr;
-            height: 100vh;
-            overflow: hidden;
+        @keyframes slowCinematicFadeIn {
+            from { opacity: 0; transform: scale(0.985) translateY(10px); filter: blur(6px); }
+            to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
         }
+
+        .os-layout { display: grid; grid-template-columns: 270px 1fr; height: 100vh; overflow: hidden; }
 
         @media (max-width: 960px) {
             .os-layout { grid-template-columns: 1fr; height: auto; min-height: 100vh; overflow-y: auto; padding-bottom: 85px; }
@@ -84,611 +68,145 @@
             .os-main { height: auto !important; overflow: visible !important; }
         }
 
-        /* SIDEBAR FIJO ESTRICTO (ESCRITORIO) */
         .os-sidebar {
-            background: rgba(8, 11, 18, 0.95);
-            backdrop-filter: blur(24px);
-            border-right: 1px solid var(--border-subtle);
-            padding: 18px 16px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 100vh;
-            z-index: 90;
-            overflow: hidden;
+            background: rgba(8, 11, 18, 0.95); backdrop-filter: blur(24px); border-right: 1px solid var(--border-subtle);
+            padding: 18px 16px; display: flex; flex-direction: column; justify-content: space-between; height: 100vh; z-index: 90; overflow: hidden;
         }
 
         @media (max-width: 960px) { .os-sidebar { display: none !important; } }
 
         .brand-box {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-decoration: none;
-            padding: 4px;
-            border-radius: 14px;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            margin-bottom: 6px;
+            display: flex; align-items: center; gap: 12px; text-decoration: none; padding: 4px; border-radius: 14px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); margin-bottom: 6px;
         }
-
-        .brand-box:hover {
-            transform: scale(1.03);
-            filter: drop-shadow(0 0 16px var(--role-glow));
-        }
+        .brand-box:hover { transform: scale(1.04); filter: drop-shadow(0 0 20px var(--role-glow)); }
 
         .brand-logo-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 12px;
-            background: var(--role-gradient);
-            color: #04060A;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 900;
-            font-size: 1.15rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 18px var(--role-glow);
-            transition: background 0.4s ease, box-shadow 0.4s ease;
+            width: 36px; height: 36px; border-radius: 12px; background: var(--role-gradient); color: #04060A;
+            font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.15rem; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 18px var(--role-glow); transition: all 0.4s ease;
         }
+        .brand-box:hover .brand-logo-icon { box-shadow: 0 0 28px var(--role-color); transform: rotate(3deg); }
 
-        .brand-text h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 900;
-            font-size: 1rem;
-            letter-spacing: 0.15em;
-            color: white;
-            line-height: 1;
-        }
+        .brand-text h1 { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1rem; letter-spacing: 0.15em; color: white; line-height: 1; }
+        .brand-text span { font-size: 7.5px; font-family: 'JetBrains Mono', monospace; color: var(--role-color); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 3px; display: block; }
 
-        .brand-text span {
-            font-size: 7.5px;
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--role-color);
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            margin-top: 3px;
-            display: block;
-            transition: color 0.4s ease;
-        }
+        .sidebar-top-section { display: flex; flex-direction: column; }
+        .sidebar-bottom-section { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border-subtle); }
 
-        .sidebar-top-section {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar-bottom-section {
-            display: flex;
-            flex-direction: column;
-            gap: 8px; 
-            padding-top: 10px;
-            border-top: 1px solid var(--border-subtle);
-        }
-
-        /* ENLACES LATERALES CON SPOTLIGHT DINÁMICO DE ROL */
         .side-link {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 14px;
-            border-radius: 14px;
-            background: rgba(255, 255, 255, 0.015);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-secondary);
-            font-family: 'Inter', sans-serif;
-            font-size: 0.83rem;
-            font-weight: 600;
-            height: 44px; 
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-            overflow: hidden;
+            display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 14px;
+            background: rgba(255, 255, 255, 0.015); border: 1px solid var(--border-subtle); color: var(--text-secondary);
+            font-family: 'Inter', sans-serif; font-size: 0.83rem; font-weight: 600; height: 44px; cursor: pointer; text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden;
         }
+        .side-link-left { display: flex; align-items: center; gap: 12px; z-index: 1; }
+        .side-link:hover { color: var(--text-primary); border-color: rgba(var(--role-rgb), 0.45); transform: translateX(4px); }
+        .side-link.active { background: rgba(var(--role-rgb), 0.14); border-color: var(--role-color); color: var(--role-color); box-shadow: 0 0 18px rgba(var(--role-rgb), 0.18); }
 
-        .side-link-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            z-index: 1;
-        }
-
-        .side-link::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(150px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(var(--role-rgb), 0.22), transparent 70%);
-            opacity: 0;
-            transition: opacity 0.2s ease;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .side-link:hover::before { opacity: 1; }
-        .side-link:hover {
-            color: var(--text-primary);
-            border-color: rgba(var(--role-rgb), 0.45);
-            transform: translateX(3px);
-        }
-
-        .side-link.active {
-            background: rgba(var(--role-rgb), 0.14);
-            border-color: var(--role-color);
-            color: var(--role-color);
-            box-shadow: 0 0 18px rgba(var(--role-rgb), 0.18);
-        }
-
-        /* WIDGET DE CONSEJO IA */
         .sidebar-ai-tip-box {
-            background: rgba(var(--role-rgb), 0.05);
-            border: 1px solid rgba(var(--role-rgb), 0.24);
-            border-radius: 12px;
-            padding: 9px 12px;
-            margin-bottom: 2px;
-            position: relative;
+            background: rgba(var(--role-rgb), 0.05); border: 1px solid rgba(var(--role-rgb), 0.24); border-radius: 12px; padding: 9px 12px; margin-bottom: 2px;
             box-shadow: 0 4px 14px rgba(0,0,0,0.3);
-            transition: background 0.4s ease, border-color 0.4s ease;
         }
+        .sidebar-ai-tip-header { display: flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--role-color); text-transform: uppercase; margin-bottom: 3px; font-weight: 700; }
+        .sidebar-ai-tip-text { font-size: 0.72rem; color: #CBD5E1; line-height: 1.35; }
 
-        .sidebar-ai-tip-header {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.6rem;
-            color: var(--role-color);
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            margin-bottom: 3px;
-            font-weight: 700;
-            transition: color 0.4s ease;
-        }
-
-        .sidebar-ai-tip-text {
-            font-size: 0.72rem;
-            color: #CBD5E1;
-            line-height: 1.35;
-        }
-
-        /* ZONA PRINCIPAL */
-        .os-main {
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .os-topbar {
-            background: rgba(6, 8, 14, 0.88);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border-subtle);
-            padding: 12px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 16px;
-        }
-
+        .os-main { display: flex; flex-direction: column; min-width: 0; height: 100vh; overflow: hidden; }
+        .os-topbar { background: rgba(6, 8, 14, 0.88); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-subtle); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
         .mobile-brand { display: none; align-items: center; gap: 10px; text-decoration: none; color: white; }
         @media (max-width: 960px) { .mobile-brand { display: flex; } .os-topbar { padding: 12px 16px; } }
 
-        .topbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .topbar-actions { display: flex; align-items: center; gap: 12px; }
+        .active-role-indicator { display: flex; align-items: center; background: rgba(13, 17, 26, 0.95); border: 1px solid rgba(var(--role-rgb), 0.45); border-radius: 999px; padding: 6px 14px; gap: 8px; }
+        .active-role-indicator .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--role-color); box-shadow: 0 0 8px var(--role-color); }
+        .active-role-text { font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.68rem; color: var(--text-primary); letter-spacing: 0.08em; text-transform: uppercase; }
 
-        .active-role-indicator {
-            display: flex;
-            align-items: center;
-            background: rgba(13, 17, 26, 0.95);
-            border: 1px solid rgba(var(--role-rgb), 0.45);
-            border-radius: 999px;
-            padding: 6px 14px;
-            gap: 8px;
-            transition: border-color 0.4s ease;
-        }
+        .os-workspace { max-width: 1280px; width: 100%; margin: 0 auto; padding: 20px 24px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+        @media (max-width: 768px) { .os-workspace { padding: 14px; justify-content: flex-start; } }
 
-        .active-role-indicator .dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: var(--role-color);
-            box-shadow: 0 0 8px var(--role-color);
-            transition: background 0.4s ease, box-shadow 0.4s ease;
-        }
+        .context-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
+        .context-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--role-color); text-transform: uppercase; letter-spacing: 0.18em; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+        .context-title { font-family: 'Orbitron', sans-serif; font-size: clamp(1.3rem, 2.2vw, 1.9rem); font-weight: 900; letter-spacing: -0.02em; color: white; }
 
-        .active-role-text {
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 700;
-            font-size: 0.68rem;
-            color: var(--text-primary);
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-        }
+        .header-badges-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .verified-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; font-weight: 700; padding: 6px 12px; border-radius: 10px; background: rgba(var(--role-rgb), 0.12); border: 1px solid rgba(var(--role-rgb), 0.38); color: var(--role-color); display: inline-flex; align-items: center; gap: 6px; }
 
-        /* WORKSPACE */
-        .os-workspace {
-            max-width: 1280px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 20px 24px;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            animation: pageEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        @media (max-width: 768px) { 
-            .os-workspace { padding: 14px; justify-content: flex-start; } 
-        }
-
-        @keyframes pageEnter {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .context-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 18px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .context-tag {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem;
-            color: var(--role-color);
-            text-transform: uppercase;
-            letter-spacing: 0.18em;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 4px;
-            transition: color 0.4s ease;
-        }
-
-        .context-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: clamp(1.3rem, 2.2vw, 1.9rem);
-            font-weight: 900;
-            letter-spacing: -0.02em;
-            color: white;
-        }
-
-        .header-badges-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .verified-badge {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.68rem;
-            font-weight: 700;
-            padding: 6px 12px;
-            border-radius: 10px;
-            background: rgba(var(--role-rgb), 0.12);
-            border: 1px solid rgba(var(--role-rgb), 0.38);
-            color: var(--role-color);
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: background 0.4s ease, border-color 0.4s ease, color 0.4s ease;
-        }
-
-        /* BENTO GRID DE ALTO RENDIMIENTO CON SPOTLIGHT DINÁMICO */
-        .bento-grid {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 16px;
-        }
-
+        .bento-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
         .col-7 { grid-column: span 7; }
         .col-5 { grid-column: span 5; }
-
-        @media (max-width: 1024px) {
-            .col-7, .col-5 { grid-column: span 12; }
-        }
+        @media (max-width: 1024px) { .col-7, .col-5 { grid-column: span 12; } }
 
         .kinet-panel {
-            background: var(--bg-panel);
-            border: 1px solid var(--border-subtle);
-            border-radius: 20px;
-            padding: 20px;
-            backdrop-filter: blur(20px);
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.4);
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 20px;
+            backdrop-filter: blur(20px); position: relative; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
+        .kinet-panel:hover { border-color: rgba(var(--role-rgb), 0.48); transform: translateY(-3px); box-shadow: 0 18px 40px rgba(0,0,0,0.6), 0 0 24px rgba(var(--role-rgb), 0.15); }
 
-        .kinet-panel::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(220px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(var(--role-rgb), 0.18), transparent 70%);
-            opacity: 0;
-            transition: opacity 0.2s ease;
-            pointer-events: none;
-            z-index: 0;
-        }
+        .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
+        .panel-label { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--text-secondary); letter-spacing: 0.14em; text-transform: uppercase; }
 
-        .kinet-panel > * { position: relative; z-index: 1; }
-
-        .kinet-panel:hover::before { opacity: 1; }
-        .kinet-panel:hover {
-            border-color: rgba(var(--role-rgb), 0.48);
-            transform: translateY(-2px);
-            box-shadow: 0 16px 36px rgba(0,0,0,0.6), 0 0 22px rgba(var(--role-rgb), 0.14);
-        }
-
-        .panel-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 14px;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .panel-label {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.68rem;
-            color: var(--text-secondary);
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-        }
-
-        /* KPIs & BARRAS */
-        .kpi-row {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 14px;
-        }
-
+        .kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
         @media (max-width: 600px) { .kpi-row { grid-template-columns: 1fr; } }
-
-        .kpi-box {
-            background: rgba(255, 255, 255, 0.025);
-            border: 1px solid var(--border-subtle);
-            border-radius: 14px;
-            padding: 12px;
-            transition: border-color 0.2s ease, background 0.2s ease;
-        }
-
-        .kpi-box:hover {
-            border-color: rgba(var(--role-rgb), 0.4);
-            transform: scale(1.02);
-            background: rgba(var(--role-rgb), 0.04);
-        }
-
-        .kpi-val {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.4rem;
-            font-weight: 900;
-            color: white;
-            display: block;
-            margin-bottom: 2px;
-        }
-
-        .kpi-sub {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.64rem;
-            color: var(--role-color);
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            transition: color 0.4s ease;
-        }
+        .kpi-box { background: rgba(255, 255, 255, 0.025); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 12px; transition: 0.25s; }
+        .kpi-box:hover { border-color: rgba(var(--role-rgb), 0.4); transform: scale(1.02); background: rgba(var(--role-rgb), 0.04); }
+        .kpi-val { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; font-weight: 900; color: white; display: block; margin-bottom: 2px; }
+        .kpi-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.64rem; color: var(--role-color); letter-spacing: 0.05em; text-transform: uppercase; }
 
         .bar-group { margin-bottom: 10px; }
         .bar-meta { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; margin-bottom: 5px; color: #E2E8F0; }
         .bar-track { height: 7px; background: rgba(255, 255, 255, 0.06); border-radius: 99px; overflow: hidden; }
-        .bar-fill { height: 100%; background: var(--role-gradient); border-radius: 99px; box-shadow: 0 0 12px var(--role-glow); transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1), background 0.4s ease, box-shadow 0.4s ease; }
+        .bar-fill { height: 100%; background: var(--role-gradient); border-radius: 99px; box-shadow: 0 0 12px var(--role-glow); transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
 
-        /* CALENDARIO Y SESIONES */
-        .week-strip {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 6px;
-            margin-bottom: 14px;
-        }
-
-        .day-pill {
-            background: rgba(255, 255, 255, 0.025);
-            border: 1px solid var(--border-subtle);
-            border-radius: 12px;
-            padding: 8px 4px;
-            text-align: center;
-            cursor: pointer;
-            transition: border-color 0.2s ease;
-        }
-
+        .week-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 14px; }
+        .day-pill { background: rgba(255, 255, 255, 0.025); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 8px 4px; text-align: center; cursor: pointer; transition: 0.2s; }
         .day-pill:hover { border-color: rgba(var(--role-rgb), 0.4); transform: translateY(-2px); }
-        .day-pill.active {
-            background: rgba(var(--role-rgb), 0.15);
-            border-color: var(--role-color);
-            box-shadow: 0 0 16px rgba(var(--role-rgb), 0.2);
-        }
-
+        .day-pill.active { background: rgba(var(--role-rgb), 0.15); border-color: var(--role-color); box-shadow: 0 0 16px rgba(var(--role-rgb), 0.2); }
         .day-name { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--text-secondary); display: block; }
         .day-num { font-family: 'Orbitron', sans-serif; font-size: 0.88rem; font-weight: 800; color: white; margin-top: 2px; display: block; }
         .day-pill.active .day-name, .day-pill.active .day-num { color: var(--role-color); }
 
         .session-list { display: flex; flex-direction: column; gap: 8px; }
-        .session-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.025);
-            border: 1px solid var(--border-subtle);
-            border-left: 3px solid var(--role-color);
-            border-radius: 12px;
-            padding: 10px 14px;
-            gap: 10px;
-            transition: border-color 0.4s ease;
-        }
-
+        .session-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.025); border: 1px solid var(--border-subtle); border-left: 3px solid var(--role-color); border-radius: 12px; padding: 10px 14px; gap: 10px; transition: 0.3s; }
         .session-item.done { opacity: 0.72; border-left-color: #64748B; background: rgba(255, 255, 255, 0.01); }
-        .session-time { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--role-color); font-weight: 700; transition: color 0.4s ease; }
+        .session-time { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--role-color); font-weight: 700; }
         .session-title { font-weight: 700; font-size: 0.86rem; color: white; margin-top: 2px; }
 
-        .check-btn {
-            background: rgba(var(--role-rgb), 0.12);
-            border: 1px solid var(--role-color);
-            color: var(--role-color);
-            border-radius: 8px;
-            padding: 6px 10px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.66rem;
-            font-weight: 700;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: background 0.2s ease, color 0.2s ease, border-color 0.4s ease;
-        }
+        .check-btn { background: rgba(var(--role-rgb), 0.12); border: 1px solid var(--role-color); color: var(--role-color); border-radius: 8px; padding: 6px 10px; font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; font-weight: 700; cursor: pointer; white-space: nowrap; transition: 0.2s; }
         .check-btn:hover { background: var(--role-color); color: #04060A; }
 
-        .energy-checkin-box {
-            margin-top: 12px;
-            padding-top: 10px;
-            border-top: 1px solid var(--border-subtle);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
+        .energy-checkin-box { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
         .energy-btns { display: flex; gap: 6px; }
-        .energy-chip {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-secondary);
-            padding: 6px 10px;
-            border-radius: 8px;
-            font-size: 0.72rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
-        }
+        .energy-chip { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); color: var(--text-secondary); padding: 6px 10px; border-radius: 8px; font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .energy-chip:hover, .energy-chip.selected { border-color: var(--role-color); background: rgba(var(--role-rgb), 0.15); color: white; }
 
-        .energy-chip:hover, .energy-chip.selected {
-            border-color: var(--role-color);
-            background: rgba(var(--role-rgb), 0.15);
-            color: white;
-        }
-
-        /* CHAT Y ENRUTADOR */
         .quick-router-input-wrap { display: flex; gap: 8px; margin-top: 10px; }
-        .quick-input {
-            flex: 1;
-            background: rgba(4, 6, 10, 0.75);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            border-radius: 12px;
-            padding: 10px 14px;
-            color: white;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.84rem;
-            outline: none;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-
+        .quick-input { flex: 1; background: rgba(4, 6, 10, 0.75); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 12px; padding: 10px 14px; color: white; font-family: 'Inter', sans-serif; font-size: 0.84rem; outline: none; transition: 0.2s; }
         .quick-input:focus { border-color: var(--role-color); box-shadow: 0 0 14px rgba(var(--role-rgb), 0.15); }
         .quick-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
-        .q-tag {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-secondary);
-            font-size: 0.7rem;
-            padding: 5px 10px;
-            border-radius: 99px;
-            cursor: pointer;
-            transition: border-color 0.2s ease, color 0.2s ease;
-        }
-
+        .q-tag { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); color: var(--text-secondary); font-size: 0.7rem; padding: 5px 10px; border-radius: 99px; cursor: pointer; transition: 0.2s; }
         .q-tag:hover { border-color: var(--role-color); color: var(--role-color); }
 
         .btn-primary {
-            background: var(--role-gradient);
-            color: #04060A;
-            border: none;
-            border-radius: 12px;
-            padding: 11px 18px;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 800;
-            font-size: 0.74rem;
-            letter-spacing: 0.08em;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            text-decoration: none;
-            box-shadow: 0 0 18px var(--role-glow);
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            background: var(--role-gradient); color: #04060A; border: none; border-radius: 12px; padding: 11px 18px;
+            font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.74rem; letter-spacing: 0.08em; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none;
+            box-shadow: 0 0 18px var(--role-glow); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
+        .btn-primary:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 0 26px var(--role-glow); filter: brightness(1.08); }
 
-        .btn-primary:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 0 26px var(--role-glow);
-            filter: brightness(1.08);
-        }
-
-        /* NAVEGACIÓN MÓVIL */
         .mobile-bottom-nav {
-            display: none;
-            position: fixed;
-            bottom: 12px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: calc(100% - 24px);
-            max-width: 440px;
-            background: rgba(8, 11, 18, 0.95);
-            backdrop-filter: blur(24px);
-            border: 1px solid var(--border-subtle);
-            border-radius: 20px;
-            padding: 6px;
-            z-index: 120;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.85);
-            justify-content: space-around;
+            display: none; position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); width: calc(100% - 24px); max-width: 440px;
+            background: rgba(8, 11, 18, 0.95); backdrop-filter: blur(24px); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 6px; z-index: 120; box-shadow: 0 20px 40px rgba(0,0,0,0.85); justify-content: space-around;
         }
-
-        @media (max-width: 960px) { 
-            .mobile-bottom-nav { display: flex !important; } 
-        }
-
-        .m-nav-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            font-family: 'Inter', sans-serif;
-            font-size: 0.62rem;
-            font-weight: 700;
-            padding: 6px 8px;
-            border-radius: 14px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 3px;
-            text-decoration: none;
-            cursor: pointer;
-            transition: 0.25s;
-        }
-
+        @media (max-width: 960px) { .mobile-bottom-nav { display: flex !important; } }
+        .m-nav-btn { background: transparent; border: none; color: var(--text-secondary); font-family: 'Inter', sans-serif; font-size: 0.62rem; font-weight: 700; padding: 6px 8px; border-radius: 14px; display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; cursor: pointer; transition: 0.25s; }
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
 </head>
 <body data-role="athlete">
 
     <div class="os-layout">
-        
-        <!-- SIDEBAR FIJO (ESTÁTICA, IZQUIERDA - ESCRITORIO) -->
         <aside class="os-sidebar">
             <div class="sidebar-top-section">
                 <a href="index.html" class="brand-box">
@@ -704,9 +222,9 @@
                         <span class="side-link-left"><span>⚡</span> <span>Vestuario</span></span>
                         <span style="font-size:0.65rem;font-family:'JetBrains Mono';">HOY</span>
                     </a>
-                    <a href="cuerpo-tecnico.html" class="side-link" style="margin-bottom: 10px;">
+                    <a href="cuerpo-tecnico.html" id="link-cuerpo-tecnico" class="side-link" style="margin-bottom: 10px;">
                         <span class="side-link-left"><span>🧠</span> <span>Cuerpo Técnico IA</span></span>
-                        <span style="font-size:0.7rem;opacity:0.5;">→</span>
+                        <span style="font-size:0.7rem;opacity:0.8;">💬</span>
                     </a>
                     <a href="ficha-pro.html" class="side-link" style="margin-bottom: 10px;">
                         <span class="side-link-left"><span>🎴</span> <span>Ficha & KINET Card</span></span>
@@ -723,40 +241,18 @@
                 </nav>
             </div>
 
-            <!-- BLOQUE INFERIOR SIDEBAR -->
             <div class="sidebar-bottom-section">
                 <div class="sidebar-ai-tip-box" id="sidebar-dynamic-tip">
-                    <div class="sidebar-ai-tip-header">
-                        <span>💡</span> <span id="tip-title">Directiva IA // Activa</span>
-                    </div>
-                    <div class="sidebar-ai-tip-text" id="tip-content">
-                        Analizando métricas y estado actual para recomendar tu siguiente acción táctica...
-                    </div>
+                    <div class="sidebar-ai-tip-header"><span>💡</span> <span id="tip-title">Directiva IA // Activa</span></div>
+                    <div class="sidebar-ai-tip-text" id="tip-content">Analizando métricas y estado actual para recomendar tu siguiente acción táctica...</div>
                 </div>
 
-                <a href="perfil.html" class="side-link">
-                    <span class="side-link-left"><span>👤</span> <span>Mi Perfil</span></span>
-                    <span style="font-size:0.7rem;opacity:0.5;">→</span>
-                </a>
-                <a href="despacho.html" class="side-link">
-                    <span class="side-link-left"><span>⚙️</span> <span>Despacho & Ajustes</span></span>
-                    <span style="font-size:0.7rem;opacity:0.5;">→</span>
-                </a>
-                <a href="comunidad.html" class="side-link" style="border-color: rgba(var(--role-rgb), 0.3); background: rgba(var(--role-rgb), 0.05);">
-                    <span class="side-link-left"><span>🌐</span> <span>Config. Red Social</span></span>
-                    <span style="font-size:0.7rem;color:var(--role-color);">⚡</span>
-                </a>
-                <a href="despacho.html" class="side-link" style="background: var(--role-gradient); color: #04060A; font-weight: 900; border: none;">
-                    <span class="side-link-left"><span>⚡</span> <span>Pásate a KINET PRO</span></span>
-                    <span style="font-size:0.7rem;">→</span>
-                </a>
+                <a href="perfil.html" class="side-link"><span class="side-link-left"><span>👤</span> <span>Mi Perfil</span></span><span style="font-size:0.7rem;opacity:0.5;">→</span></a>
+                <a href="despacho.html" class="side-link"><span class="side-link-left"><span>⚙️</span> <span>Despacho & Ajustes</span></span><span style="font-size:0.7rem;opacity:0.5;">→</span></a>
             </div>
         </aside>
 
-        <!-- ZONA PRINCIPAL -->
         <div class="os-main">
-            
-            <!-- TOPBAR -->
             <header class="os-topbar">
                 <a href="index.html" class="mobile-brand">
                     <div class="brand-logo-icon" style="width:32px;height:32px;font-size:0.95rem;">K</div>
@@ -764,12 +260,11 @@
                 </a>
 
                 <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-secondary);display:flex;align-items:center;gap:10px;">
-                    <span>VESTUARIO CENTRAL</span>
+                    <span id="topbar-section-label">VESTUARIO CENTRAL</span>
                     <span style="color:var(--role-color);font-weight:700;" id="topbar-sport-tag">● FÚTBOL</span>
                 </div>
 
                 <div class="topbar-actions">
-                    <!-- INDICADOR DINÁMICO DEL ROL REAL -->
                     <div class="active-role-indicator">
                         <span class="dot"></span>
                         <span class="active-role-text" id="topbar-role-title">ATLETA</span>
@@ -777,15 +272,10 @@
                 </div>
             </header>
 
-            <!-- WORKSPACE -->
             <main class="os-workspace">
-                
                 <div class="context-header">
                     <div>
-                        <span class="context-tag">
-                            <span id="header-tag-icon">⚡</span> 
-                            <span id="header-tag-text">PARTE DIARIO DE RENDIMIENTO</span>
-                        </span>
+                        <span class="context-tag"><span id="header-tag-icon">⚡</span> <span id="header-tag-text">PARTE DIARIO DE RENDIMIENTO</span></span>
                         <h1 class="context-title" id="header-title">Vestuario & Control Diario</h1>
                     </div>
                     <div class="header-badges-group">
@@ -794,10 +284,7 @@
                     </div>
                 </div>
 
-                <!-- BENTO GRID -->
                 <div class="bento-grid">
-                    
-                    <!-- BLOQUE 1 -->
                     <div class="col-7">
                         <div class="kinet-panel" style="height:100%;">
                             <div class="panel-head">
@@ -806,39 +293,23 @@
                             </div>
 
                             <div class="kpi-row">
-                                <div class="kpi-box">
-                                    <span class="kpi-val" id="kpi-1-val">92%</span>
-                                    <span class="kpi-sub" id="kpi-1-lbl">ENERGÍA & BATERÍA</span>
-                                </div>
-                                <div class="kpi-box">
-                                    <span class="kpi-val" id="kpi-2-val">8.0 h</span>
-                                    <span class="kpi-sub" id="kpi-2-lbl">DESCANSO / SUEÑO</span>
-                                </div>
-                                <div class="kpi-box">
-                                    <span class="kpi-val" id="kpi-3-val">BAJO</span>
-                                    <span class="kpi-sub" id="kpi-3-lbl">RIESGO SOBRECARGA</span>
-                                </div>
+                                <div class="kpi-box"><span class="kpi-val" id="kpi-1-val">92%</span><span class="kpi-sub" id="kpi-1-lbl">ENERGÍA & BATERÍA</span></div>
+                                <div class="kpi-box"><span class="kpi-val" id="kpi-2-val">8.0 h</span><span class="kpi-sub" id="kpi-2-lbl">DESCANSO / SUEÑO</span></div>
+                                <div class="kpi-box"><span class="kpi-val" id="kpi-3-val">BAJO</span><span class="kpi-sub" id="kpi-3-lbl">RIESGO SOBRECARGA</span></div>
                             </div>
 
                             <div class="bar-group">
-                                <div class="bar-meta">
-                                    <span id="bar-1-title">Nivel de Frescura Muscular</span>
-                                    <span id="bar-1-pct">92%</span>
-                                </div>
+                                <div class="bar-meta"><span id="bar-1-title">Nivel de Frescura Muscular</span><span id="bar-1-pct">92%</span></div>
                                 <div class="bar-track"><div class="bar-fill" id="bar-1-fill" style="width:92%"></div></div>
                             </div>
 
                             <div class="bar-group" style="margin-bottom:0;">
-                                <div class="bar-meta">
-                                    <span id="bar-2-title">Carga Acumulada de la Semana</span>
-                                    <span id="bar-2-pct">35% (Óptima)</span>
-                                </div>
+                                <div class="bar-meta"><span id="bar-2-title">Carga Acumulada de la Semana</span><span id="bar-2-pct">35% (Óptima)</span></div>
                                 <div class="bar-track"><div class="bar-fill" id="bar-2-fill" style="width:35%"></div></div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- BLOQUE 2 -->
                     <div class="col-5">
                         <div class="kinet-panel" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
                             <div>
@@ -852,17 +323,12 @@
                             </div>
 
                             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;">
-                                <a href="ficha-pro.html" class="btn-primary" style="background:rgba(var(--role-rgb),0.14);color:var(--role-color);border:1px solid var(--role-color);box-shadow:none;padding:10px 14px;">
-                                    🎴 Ver Ficha 3D
-                                </a>
-                                <a href="perfil.html" class="btn-primary" style="background:rgba(255,255,255,0.04);color:white;border:1px solid var(--border-subtle);box-shadow:none;padding:10px 14px;">
-                                    👤 Mi Perfil
-                                </a>
+                                <a href="ficha-pro.html" class="btn-primary" style="background:rgba(var(--role-rgb),0.14);color:var(--role-color);border:1px solid var(--role-color);box-shadow:none;padding:10px 14px;">🎴 Ver Ficha 3D</a>
+                                <a href="perfil.html" class="btn-primary" style="background:rgba(255,255,255,0.04);color:white;border:1px solid var(--border-subtle);box-shadow:none;padding:10px 14px;">👤 Mi Perfil</a>
                             </div>
                         </div>
                     </div>
 
-                    <!-- BLOQUE 3 -->
                     <div class="col-7">
                         <div class="kinet-panel">
                             <div class="panel-head">
@@ -884,7 +350,6 @@
                         </div>
                     </div>
 
-                    <!-- BLOQUE 4 -->
                     <div class="col-5">
                         <div class="kinet-panel" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
                             <div>
@@ -892,9 +357,7 @@
                                     <span class="panel-label">LÍNEA DIRECTA CON TU CUERPO TÉCNICO IA</span>
                                     <span style="font-size:0.68rem;color:var(--text-secondary);">Auto-Asignación</span>
                                 </div>
-                                <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.4;">
-                                    Escribe cualquier duda y te abriré directamente el chat con el especialista que te toca:
-                                </p>
+                                <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.4;">Escribe cualquier duda y te abriré directamente el chat con el especialista que te toca:</p>
 
                                 <div class="quick-router-input-wrap">
                                     <input type="text" id="quick-doubt-input" class="quick-input" placeholder="Ej: Me noto cargado del gemelo..." onkeydown="if(event.key==='Enter') routeToAgent()">
@@ -910,115 +373,65 @@
 
                             <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border-subtle);display:flex;justify-content:space-between;align-items:center;">
                                 <span style="font-size:0.72rem;color:var(--text-secondary);">4 Especialistas en sala</span>
-                                <a href="cuerpo-tecnico.html" style="font-size:0.74rem;color:var(--role-color);font-weight:700;text-decoration:none;">Entrar →</a>
+                                <a href="cuerpo-tecnico.html" id="link-entrar-footer" style="font-size:0.74rem;color:var(--role-color);font-weight:700;text-decoration:none;">Entrar →</a>
                             </div>
                         </div>
                     </div>
-
                 </div>
-
             </main>
         </div>
     </div>
 
-    <!-- MENÚ DESPLEGABLE MÓVIL (DRAWER) CON TODAS LAS OPCIONES -->
-    <div id="mobile-menu-drawer" style="position:fixed;inset:0;background:rgba(6,8,14,0.97);backdrop-filter:blur(28px);z-index:200;display:flex;flex-direction:column;padding:20px 16px;justify-content:space-between;transform:translateY(-100%);transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);border-bottom:1px solid rgba(var(--role-rgb),0.2);">
+    <div id="mobile-menu-drawer" style="position:fixed;inset:0;background:rgba(6,8,14,0.97);backdrop-filter:blur(28px);z-index:200;display:flex;flex-direction:column;padding:20px 16px;justify-content:space-between;transform:translateY(-100%);transition:transform 0.4s cubic-bezier(0.16,1,0.3,1);border-bottom:1px solid rgba(var(--role-rgb),0.2);">
         <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:12px;margin-bottom:12px;">
             <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:0.95rem;color:white;">KINET OS // MENÚ COMPLETO</div>
             <button onclick="toggleMobileDrawer()" style="background:none;border:none;color:white;font-size:1.3rem;cursor:pointer;">✕</button>
         </div>
-        <div style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;padding:4px 0;max-height:calc(100vh - 160px);">
+        <div style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;padding:4px 0;">
             <a href="app.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(var(--role-rgb),0.15);border:1px solid var(--role-color);color:var(--role-color);text-decoration:none;font-weight:600;"><span>⚡ Vestuario</span><span>HOY</span></a>
-            <a href="cuerpo-tecnico.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🧠 Cuerpo Técnico IA</span><span>→</span></a>
+            <a href="cuerpo-tecnico.html" id="link-drawer-cuerpo" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🧠 Cuerpo Técnico IA</span><span>→</span></a>
             <a href="ficha-pro.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🎴 Ficha & KINET Card</span><span>→</span></a>
             <a href="ojeador-live.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>📡 Ojeador & Laboratorio</span><span>→</span></a>
-            <a href="comunidad.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Comunidad / Red Social</span><span>→</span></a>
             <a href="perfil.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>👤 Mi Perfil</span><span>→</span></a>
-            <a href="despacho.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>⚙️ Despacho & Ajustes</span><span>→</span></a>
-            <a href="comunidad.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(var(--role-rgb),0.05);border:1px solid rgba(var(--role-rgb),0.3);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Config. Red Social</span><span>⚡</span></a>
-            <a href="despacho.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:var(--role-gradient);color:#04060A;font-weight:900;text-decoration:none;"><span>⚡ Pásate a KINET PRO</span><span>→</span></a>
         </div>
-        <div style="text-align:center;font-size:0.65rem;color:var(--text-secondary);font-family:'JetBrains Mono';margin-top:10px;">
-            KINET OS • MOBILE VIEWPORT
-        </div>
+        <div style="text-align:center;font-size:0.65rem;color:var(--text-secondary);font-family:'JetBrains Mono';">KINET OS • MOBILE VIEWPORT</div>
     </div>
 
-    <!-- NAVEGACIÓN MÓVIL INFERIOR -->
     <nav class="mobile-bottom-nav">
-        <a href="app.html" class="m-nav-btn active">
-            <span style="font-size:1rem;">⚡</span>
-            <span>Vestuario</span>
-        </a>
-        <a href="cuerpo-tecnico.html" class="m-nav-btn">
-            <span style="font-size:1rem;">🧠</span>
-            <span>Técnicos</span>
-        </a>
-        <a href="ficha-pro.html" class="m-nav-btn">
-            <span style="font-size:1rem;">🎴</span>
-            <span>Ficha</span>
-        </a>
-        <a href="ojeador-live.html" class="m-nav-btn">
-            <span style="font-size:1rem;">📡</span>
-            <span>Ojeador</span>
-        </a>
-        <button onclick="toggleMobileDrawer()" class="m-nav-btn">
-            <span style="font-size:1rem;">☰</span>
-            <span>Menú</span>
-        </button>
+        <a href="app.html" class="m-nav-btn active"><span style="font-size:1rem;">⚡</span><span>Vestuario</span></a>
+        <a href="cuerpo-tecnico.html" id="link-mobile-tecnicos" class="m-nav-btn"><span style="font-size:1rem;">🧠</span><span>Técnicos</span></a>
+        <a href="ficha-pro.html" class="m-nav-btn"><span style="font-size:1rem;">🎴</span><span>Ficha</span></a>
+        <a href="ojeador-live.html" class="m-nav-btn"><span style="font-size:1rem;">📡</span><span>Ojeador</span></a>
+        <button onclick="toggleMobileDrawer()" class="m-nav-btn"><span style="font-size:1rem;">☰</span><span>Menú</span></button>
     </nav>
 
     <script>
         function toggleMobileDrawer() {
             const drawer = document.getElementById('mobile-menu-drawer');
-            if (drawer.style.transform === 'translateY(0px)') {
-                drawer.style.transform = 'translateY(-100%)';
-            } else {
-                drawer.style.transform = 'translateY(0px)';
-            }
+            drawer.style.transform = (drawer.style.transform === 'translateY(0px)') ? 'translateY(-100%)' : 'translateY(0px)';
         }
 
         const ROLE_VIEW_CONFIG = {
             athlete: {
-                tagText: 'VESTUARIO DEL JUGADOR • DÍA A DÍA',
-                title: 'Vestuario & Control Diario',
-                kpi1: { val: '92%', lbl: 'ENERGÍA & BATERÍA' },
-                kpi2: { val: '8.0 h', lbl: 'DESCANSO / SUEÑO' },
-                kpi3: { val: 'BAJO', lbl: 'RIESGO SOBRECARGA' },
-                bar1Title: 'Nivel de Frescura Muscular',
-                bar2Title: 'Fatiga Acumulada de la Semana',
-                advice: '"Hoy tienes el depósito de energía al 92%. Aprovecha los primeros 30 minutos para trabajo explosivo y Prioriza hidratación + carbohidratos complejos al terminar."',
-                sessions: [
-                    { time: '10:00', title: 'Gimnasio: Fuerza Explosiva & Core (45 min)', done: true },
-                    { time: '18:30', title: 'Sesión de Campo: Táctica & Velocidad', done: false }
-                ]
+                sectionLabel: 'VESTUARIO CENTRAL', tagText: 'VESTUARIO DEL JUGADOR • DÍA A DÍA', title: 'Vestuario & Control Diario',
+                kpi1: { val: '92%', lbl: 'ENERGÍA & BATERÍA' }, kpi2: { val: '8.0 h', lbl: 'DESCANSO / SUEÑO' }, kpi3: { val: 'BAJO', lbl: 'RIESGO SOBRECARGA' },
+                bar1Title: 'Nivel de Frescura Muscular', bar2Title: 'Fatiga Acumulada de la Semana',
+                advice: '"Hoy tienes el depósito de energía al 92%. Aprovecha los primeros 30 minutos de sesión para trabajo explosivo y Prioriza hidratación + carbohidratos complejos al terminar."',
+                sessions: [ { time: '10:00', title: 'Gimnasio: Fuerza Explosiva & Core (45 min)', done: true }, { time: '18:30', title: 'Sesión de Campo: Táctica & Velocidad', done: false } ]
             },
             staff: {
-                tagText: 'DESPACHO DEL ENTRENADOR • GESTIÓN DE PLANTILLA',
-                title: 'Pizarra & Control de Equipo',
-                kpi1: { val: '91%', lbl: 'PLANTILLA DISPONIBLE' },
-                kpi2: { val: '22 / 24', lbl: 'APTOS PARA ENTRENAR' },
-                kpi3: { val: '2 AVISOS', lbl: 'JUGADORES CARGADOS' },
-                bar1Title: 'Intensidad Grupal del Microciclo',
-                bar2Title: 'Fatiga Media del Vestuario',
-                advice: '"La plantilla asimiló bien el trabajo táctico de ayer. El Preparador Físico IA recomienda bajar 15 minutos la sesión de hoy para los dos laterales titulares."',
-                sessions: [
-                    { time: '09:30', title: 'Vídeo-Análisis Rival & Balón Parado (Staff)', done: true },
-                    { time: '11:00', title: 'Entrenamiento Grupal MD-2: Presión Alta', done: false }
-                ]
+                sectionLabel: 'DESPACHO TÉCNICO', tagText: 'DESPACHO DEL ENTRENADOR • GESTIÓN DE PLANTILLA', title: 'Pizarra & Control de Equipo',
+                kpi1: { val: '91%', lbl: 'PLANTILLA DISPONIBLE' }, kpi2: { val: '22 / 24', lbl: 'APTOS PARA ENTRENAR' }, kpi3: { val: '2 AVISOS', lbl: 'JUGADORES CARGADOS' },
+                bar1Title: 'Intensidad Grupal del Microciclo', bar2Title: 'Fatiga Media del Vestuario',
+                advice: '"La plantilla asimiló bien el trabajo táctico de ayer. El Preparador Físico IA recomienda bajar 15 minutos la sesión de hoy para dos laterales titulares."',
+                sessions: [ { time: '09:30', title: 'Vídeo-Análisis Rival & Balón Parado (Staff)', done: true }, { time: '11:00', title: 'Entrenamiento Grupal MD-2: Presión Alta', done: false } ]
             },
             scout: {
-                tagText: 'DIRECCIÓN DEPORTIVA • AGENDA DE SEGUIMIENTO',
-                title: 'Central de Scouting & Mercado',
-                kpi1: { val: '14', lbl: 'JUGADORES EN CARTERA' },
-                kpi2: { val: '3 HOY', lbl: 'PARTIDOS EN VIVO' },
-                kpi3: { val: '94%', lbl: 'PRECISIÓN DE FILTROS' },
-                bar1Title: 'Cobertura de Ligas Objetivo',
-                bar2Title: 'Presupuesto de Mercado Utilizado',
-                advice: '"El Radar Live detecta que 2 de tus objetivos Sub-21 juegan esta tarde. El Analista de Datos IA grabará sus métricas de velocidad y duelos ganados en tiempo real."',
-                sessions: [
-                    { time: '12:00', title: 'Revisión de Informes y Filtro de Percentiles', done: true },
-                    { time: '19:00', title: 'Seguimiento en Vivo: Lucas Vance (BeSoccer Sync)', done: false }
-                ]
+                sectionLabel: 'CENTRAL DE SCOUTING', tagText: 'DIRECCIÓN DEPORTIVA • AGENDA DE SEGUIMIENTO', title: 'Central de Scouting & Mercado',
+                kpi1: { val: '14', lbl: 'JUGADORES EN CARTERA' }, kpi2: { val: '3 HOY', lbl: 'PARTIDOS EN VIVO' }, kpi3: { val: '94%', lbl: 'PRECISIÓN DE FILTROS' },
+                bar1Title: 'Cobertura de Ligas Objetivo', bar2Title: 'Presupuesto de Mercado Utilizado',
+                advice: '"El Radar Live detecta que 2 de tus objetivos Sub-21 juegan esta tarde. El Analista de Datos IA grabará sus métricas de velocidad y duelos en tiempo real."',
+                sessions: [ { time: '12:00', title: 'Revisión de Informes y Filtro de Percentiles', done: true }, { time: '19:00', title: 'Seguimiento en Vivo: Lucas Vance (BeSoccer Sync)', done: false } ]
             }
         };
 
@@ -1030,12 +443,9 @@
             const sportParam = urlParams.get('sport') || urlParams.get('deporte');
             const roleParam = urlParams.get('role');
 
-            if (sportParam) {
-                localStorage.setItem('kinet_sport', sportParam);
-            }
+            if (sportParam) localStorage.setItem('kinet_sport', sportParam);
             
-            // Detección estricta y limpia del rol priorizando URL o rol activo guardado
-            let savedActiveRole = roleParam || localStorage.getItem('kinet_active_role');
+            let savedActiveRole = roleParam || localStorage.getItem('kinet_active_role') || localStorage.getItem('kinet_role');
             let rawRoleName = roleParam || localStorage.getItem('kinet_role') || '';
 
             if (savedActiveRole === 'atleta') savedActiveRole = 'athlete';
@@ -1051,29 +461,33 @@
                 activeRoleKey = 'athlete';
             }
 
-            // Guardar definitivamente el rol y aplicarlo al body
             localStorage.setItem('kinet_active_role', activeRoleKey);
             document.body.setAttribute('data-role', activeRoleKey);
 
-            // Definir título superior y textos según el rol activo real
+            const currentSportStored = localStorage.getItem('kinet_sport') || 'Fútbol';
+            const targetQuery = `?role=${activeRoleKey}&sport=${encodeURIComponent(currentSportStored)}`;
+            
+            ['link-cuerpo-tecnico', 'link-entrar-footer', 'link-drawer-cuerpo', 'link-mobile-tecnicos'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.href = `cuerpo-tecnico.html${targetQuery}`;
+            });
+
             let specificRoleTitle = 'Atleta Pro';
             if (activeRoleKey === 'staff') specificRoleTitle = 'Entrenador / Staff';
             else if (activeRoleKey === 'scout') specificRoleTitle = 'Director Deportivo / Scout';
-            else specificRoleTitle = 'Atleta Pro';
 
             document.getElementById('topbar-role-title').textContent = specificRoleTitle.toUpperCase();
 
-            // Deporte activo
-            const sportChosen = localStorage.getItem('kinet_sport') || localStorage.getItem('sport') || localStorage.getItem('selected_sport') || localStorage.getItem('deporte') || 'Fútbol';
+            const sportChosen = currentSportStored;
             document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${sportChosen.toUpperCase()}`;
             document.getElementById('topbar-sport-tag').textContent = `● ${sportChosen.toUpperCase()}`;
 
-            // Actualizar Favicon dinámicamente según el rol/color activo
             const faviconHex = activeRoleKey === 'staff' ? '%23F59E0B' : (activeRoleKey === 'scout' ? '%233B82F6' : '%2300FF88');
             const faviconSvg = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22${faviconHex}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`;
             document.getElementById('dynamic-favicon').setAttribute('href', faviconSvg);
 
             const cfg = ROLE_VIEW_CONFIG[activeRoleKey];
+            document.getElementById('topbar-section-label').textContent = cfg.sectionLabel;
             document.getElementById('header-tag-text').textContent = `${cfg.tagText} • ${sportChosen.toUpperCase()}`;
             document.getElementById('header-title').textContent = cfg.title;
             document.getElementById('kpi-1-val').textContent = cfg.kpi1.val;
@@ -1089,40 +503,7 @@
             sessionsState = JSON.parse(JSON.stringify(cfg.sessions));
             renderWeekStrip();
             renderSessions();
-            updateSidebarAiTip('high');
-
-            document.querySelectorAll('.kinet-panel').forEach(panel => {
-                panel.addEventListener('mousemove', (e) => {
-                    const rect = panel.getBoundingClientRect();
-                    panel.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
-                    panel.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
-                });
-            });
-
-            document.querySelectorAll('.side-link').forEach(link => {
-                link.addEventListener('mousemove', (e) => {
-                    const rect = link.getBoundingClientRect();
-                    link.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
-                    link.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
-                });
-            });
         });
-
-        function updateSidebarAiTip(level) {
-            const titleEl = document.getElementById('tip-title');
-            const contentEl = document.getElementById('tip-content');
-
-            if (level === 'high') {
-                titleEl.textContent = 'Directiva: Supercompensación';
-                contentEl.textContent = 'Energía óptima. Sugerencia: sesión de alta intensidad y carbohidratos complejos al finalizar.';
-            } else if (level === 'medium') {
-                titleEl.textContent = 'Directiva: Carga Asimilada';
-                contentEl.textContent = 'Ritmo sostenido. Mantén control de fatiga y pautas de hidratación constante.';
-            } else {
-                titleEl.textContent = 'Directiva: Alerta de Descarga';
-                contentEl.textContent = 'Fatiga alta. Se recomienda saltar la sesión intensa de hoy y enfocar en masajes o estiramientos.';
-            }
-        }
 
         function renderWeekStrip() {
             const days = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
@@ -1134,12 +515,7 @@
                 const dateObj = new Date(today);
                 dateObj.setDate(today.getDate() - currentDayIndex + idx);
                 const isToday = idx === currentDayIndex;
-                return `
-                    <div class="day-pill ${isToday ? 'active' : ''}">
-                        <span class="day-name">${d}</span>
-                        <span class="day-num">${dateObj.getDate()}</span>
-                    </div>
-                `;
+                return `<div class="day-pill ${isToday ? 'active' : ''}"><span class="day-name">${d}</span><span class="day-num">${dateObj.getDate()}</span></div>`;
             }).join('');
         }
 
@@ -1150,13 +526,8 @@
 
             list.innerHTML = sessionsState.map((s, i) => `
                 <div class="session-item ${s.done ? 'done' : ''}">
-                    <div>
-                        <span class="session-time">🕒 ${s.time} H</span>
-                        <div class="session-title">${s.title}</div>
-                    </div>
-                    <button class="check-btn" onclick="toggleSessionDone(${i})">
-                        ${s.done ? '✓ COMPLETADA' : 'MARCAR HECHA'}
-                    </button>
+                    <div><span class="session-time">🕒 ${s.time} H</span><div class="session-title">${s.title}</div></div>
+                    <button class="check-btn" onclick="toggleSessionDone(${i})">${s.done ? '✓ COMPLETADA' : 'MARCAR HECHA'}</button>
                 </div>
             `).join('');
         }
@@ -1169,68 +540,18 @@
         function updateEnergyFeeling(level, btn) {
             document.querySelectorAll('.energy-chip').forEach(c => c.classList.remove('selected'));
             btn.classList.add('selected');
-
-            updateSidebarAiTip(level);
-
-            const kpi1 = document.getElementById('kpi-1-val');
-            const kpi3 = document.getElementById('kpi-3-val');
-            const bar1Fill = document.getElementById('bar-1-fill');
-            const bar1Pct = document.getElementById('bar-1-pct');
-            const bar2Fill = document.getElementById('bar-2-fill');
-            const bar2Pct = document.getElementById('bar-2-pct');
-            const pill = document.getElementById('readiness-pill');
-
-            if (level === 'high') {
-                kpi1.textContent = '94%';
-                kpi3.textContent = 'BAJO';
-                bar1Fill.style.width = '94%';
-                bar1Pct.textContent = '94%';
-                bar2Fill.style.width = '30%';
-                bar2Pct.textContent = '30% (Óptima)';
-                pill.textContent = 'PICO DE FORMA (94%)';
-            } else if (level === 'medium') {
-                kpi1.textContent = '78%';
-                kpi3.textContent = 'MODERADO';
-                bar1Fill.style.width = '78%';
-                bar1Pct.textContent = '78%';
-                bar2Fill.style.width = '58%';
-                bar2Pct.textContent = '58% (Media)';
-                pill.textContent = 'CARGA ASIMILADA (78%)';
-            } else {
-                kpi1.textContent = '54%';
-                kpi3.textContent = 'ALTO (DESCARGA)';
-                bar1Fill.style.width = '54%';
-                bar1Pct.textContent = '54%';
-                bar2Fill.style.width = '82%';
-                bar2Pct.textContent = '82% (Alta Fatiga)';
-                pill.textContent = 'PRIORIZAR RECUPERACIÓN (54%)';
-            }
         }
 
         function routeToAgent() {
             const text = document.getElementById('quick-doubt-input').value.trim();
             if (!text) return;
-
-            const q = text.toLowerCase();
-            let targetAgent = 'physical';
-
-            if (q.includes('comer') || q.includes('cena') || q.includes('dieta') || q.includes('kcal')) {
-                targetAgent = 'nutrition';
-            } else if (q.includes('nervio') || q.includes('miedo') || q.includes('presion') || q.includes('mental')) {
-                targetAgent = 'mental';
-            } else if (q.includes('fichaje') || q.includes('contrato') || q.includes('mercado')) {
-                targetAgent = 'career';
-            }
-
-            localStorage.setItem('kinet_pending_question', text);
-            localStorage.setItem('kinet_target_agent', targetAgent);
-            window.location.href = `cuerpo-tecnico.html?agent=${targetAgent}`;
+            window.location.href = `cuerpo-tecnico.html?role=${activeRoleKey}&sport=${encodeURIComponent(localStorage.getItem('kinet_sport') || 'Fútbol')}`;
         }
 
         function quickAsk(agentType, sampleQuestion) {
             localStorage.setItem('kinet_pending_question', sampleQuestion);
             localStorage.setItem('kinet_target_agent', agentType);
-            window.location.href = `cuerpo-tecnico.html?agent=${agentType}`;
+            window.location.href = `cuerpo-tecnico.html?role=${activeRoleKey}&sport=${encodeURIComponent(localStorage.getItem('kinet_sport') || 'Fútbol')}&agent=${agentType}`;
         }
     </script>
 </body>
