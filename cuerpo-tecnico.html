@@ -497,23 +497,27 @@
 
         let currentChatKey = 'group';
 
-      window.addEventListener('DOMContentLoaded', () => {
-            // Sincronizar rol y deporte con el localStorage de forma robusta
-            const activeRole = localStorage.getItem('kinet_active_role') || 'athlete';
-            const sportChosen = localStorage.getItem('kinet_sport') || localStorage.getItem('sport') || 'Fútbol';
+ // Priorizamos el rol que viene por la URL o el guardado en memoria
+let savedActiveRole = roleParam || localStorage.getItem('kinet_active_role') || localStorage.getItem('kinet_role');
+let rawRoleName = roleParam || localStorage.getItem('kinet_role'] || '';
 
-            document.body.setAttribute('data-role', activeRole);
+// Normalizar 'atleta' en español a 'athlete' en inglés para que coincida con la configuración
+if (savedActiveRole === 'atleta') savedActiveRole = 'athlete';
+if (typeof rawRoleName === 'string' && rawRoleName.toLowerCase() === 'atleta') rawRoleName = 'athlete';
 
-            // Definir el título superior limpio según el rol real activo
-            let specificRoleTitle = 'Atleta Pro';
-            if (activeRole === 'athlete') specificRoleTitle = 'Atleta Pro';
-            else if (activeRole === 'staff') specificRoleTitle = 'Entrenador / Staff';
-            else if (activeRole === 'scout') specificRoleTitle = 'Director Deportivo / Scout';
+if (savedActiveRole && ROLE_VIEW_CONFIG[savedActiveRole]) {
+    activeRoleKey = savedActiveRole;
+} else if (rawRoleName.toLowerCase().includes('scout') || rawRoleName.toLowerCase().includes('director') || rawRoleName.toLowerCase().includes('ojeador')) {
+    activeRoleKey = 'scout';
+} else if (rawRoleName.toLowerCase().includes('entrenador') || rawRoleName.toLowerCase().includes('coach') || rawRoleName.toLowerCase().includes('fisio') || rawRoleName.toLowerCase().includes('staff')) {
+    activeRoleKey = 'staff';
+} else {
+    activeRoleKey = 'athlete';
+}
 
-            document.getElementById('topbar-role-title').textContent = specificRoleTitle.toUpperCase();
-            document.getElementById('topbar-sport-tag').textContent = `● ${sportChosen.toUpperCase()}`;
-            document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${sportChosen.toUpperCase()}`;
-...
+// Guardar siempre el rol normalizado correcto en el almacenamiento activo
+localStorage.setItem('kinet_active_role', activeRoleKey);
+document.body.setAttribute('data-role', activeRoleKey);
 
             // Si viene una pregunta pendiente desde el vestuario, cargarla
             const pendingQ = localStorage.getItem('kinet_pending_question');
