@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#06080E">
+    <title>KINET OS // Cuerpo Técnico IA</title>
+    
+    <!-- Favicon Corporativo Dinámico -->
+    <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
+
+    <!-- Tipografías Oficiales -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-void: #06080E;
+            --bg-panel: rgba(13, 17, 26, 0.88);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            
+            --role-color: #00FF88;
+            --role-rgb: 0, 255, 136;
+            --role-glow: rgba(0, 255, 136, 0.38);
+            --role-gradient: linear-gradient(135deg, #00FF88 0%, #00B359 100%);
+        }
+
+        body[data-role="athlete"] {
+            --role-color: #00FF88; --role-rgb: 0, 255, 136; --role-glow: rgba(0, 255, 136, 0.38); --role-gradient: linear-gradient(135deg, #00FF88 0%, #00B359 100%);
+        }
+        body[data-role="staff"] {
+            --role-color: #F59E0B; --role-rgb: 245, 158, 11; --role-glow: rgba(245, 158, 11, 0.38); --role-gradient: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        }
+        body[data-role="scout"] {
+            --role-color: #3B82F6; --role-rgb: 59, 130, 246; --role-glow: rgba(59, 130, 246, 0.38); --role-gradient: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        html, body {
+            background-color: var(--bg-void);
+            background-image: 
+                radial-gradient(circle at 50% -20%, rgba(var(--role-rgb), 0.14), transparent 60%),
+                linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* LAYOUT PRINCIPAL (Mantiene la barra izquierda idéntica a tu captura) */
+        .os-layout {
+            display: grid;
+            grid-template-columns: 270px 1fr;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        @media (max-width: 960px) {
+            .os-layout { grid-template-columns: 1fr; height: auto; min-height: 100vh; overflow-y: auto; padding-bottom: 85px; }
+            html, body { height: auto !important; overflow-y: auto !important; }
+            .os-main { height: auto !important; overflow: visible !important; }
+        }
+
+        /* SIDEBAR FIJO IZQUIERDA */
+        .os-sidebar {
+            background: rgba(8, 11, 18, 0.95);
+            backdrop-filter: blur(24px);
+            border-right: 1px solid var(--border-subtle);
+            padding: 18px 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100vh;
+            z-index: 90;
+            overflow: hidden;
+        }
+
+        @media (max-width: 960px) { .os-sidebar { display: none !important; } }
+
+        .brand-box {
+            display: flex; align-items: center; gap: 12px; text-decoration: none; padding: 4px; border-radius: 14px; margin-bottom: 6px;
+        }
+        .brand-logo-icon {
+            width: 36px; height: 36px; border-radius: 12px; background: var(--role-gradient); color: #04060A;
+            font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.15rem; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 18px var(--role-glow);
+        }
+        .brand-text h1 { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1rem; letter-spacing: 0.15em; color: white; line-height: 1; }
+        .brand-text span { font-size: 7.5px; font-family: 'JetBrains Mono', monospace; color: var(--role-color); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 3px; display: block; }
+
+        .sidebar-top-section { display: flex; flex-direction: column; }
+        .sidebar-bottom-section { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border-subtle); }
+
+        .side-link {
+            display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 14px;
+            background: rgba(255, 255, 255, 0.015); border: 1px solid var(--border-subtle); color: var(--text-secondary);
+            font-family: 'Inter', sans-serif; font-size: 0.83rem; font-weight: 600; height: 44px; cursor: pointer; text-decoration: none; transition: 0.2s;
+        }
+        .side-link-left { display: flex; align-items: center; gap: 12px; }
+        .side-link:hover { color: var(--text-primary); border-color: rgba(var(--role-rgb), 0.45); transform: translateX(3px); }
+        .side-link.active { background: rgba(var(--role-rgb), 0.14); border-color: var(--role-color); color: var(--role-color); box-shadow: 0 0 18px rgba(var(--role-rgb), 0.18); }
+
+        .sidebar-ai-tip-box {
+            background: rgba(var(--role-rgb), 0.05); border: 1px solid rgba(var(--role-rgb), 0.24); border-radius: 12px; padding: 9px 12px; margin-bottom: 2px;
+        }
+        .sidebar-ai-tip-header {
+            display: flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--role-color); text-transform: uppercase; margin-bottom: 3px; font-weight: 700;
+        }
+        .sidebar-ai-tip-text { font-size: 0.72rem; color: #CBD5E1; line-height: 1.35; }
+
+        /* ZONA PRINCIPAL */
+        .os-main { display: flex; flex-direction: column; min-width: 0; height: 100vh; overflow: hidden; }
+        .os-topbar {
+            background: rgba(6, 8, 14, 0.88); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-subtle); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .mobile-brand { display: none; align-items: center; gap: 10px; text-decoration: none; color: white; }
+        @media (max-width: 960px) { .mobile-brand { display: flex; } }
+
+        .active-role-indicator {
+            display: flex; align-items: center; background: rgba(13, 17, 26, 0.95); border: 1px solid rgba(var(--role-rgb), 0.45); border-radius: 999px; padding: 6px 14px; gap: 8px;
+        }
+        .active-role-indicator .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--role-color); box-shadow: 0 0 8px var(--role-color); }
+        .active-role-text { font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.68rem; color: var(--text-primary); text-transform: uppercase; }
+
+        /* CONTENEDOR WHATSAPP KINET (ZONA DERECHA) */
+        .os-workspace {
+            max-width: 1280px; width: 100%; margin: 0 auto; padding: 20px 24px; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        .chat-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            height: calc(100vh - 120px);
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+        }
+
+        @media (max-width: 850px) {
+            .chat-container { grid-template-columns: 1fr; height: calc(100vh - 140px); }
+            .chat-sidebar { display: none; } /* En móvil se puede alternar o ver directo */
+        }
+
+        /* LISTA DE CONTACTOS / CHATS (COLUMNA IZQ) */
+        .chat-sidebar {
+            background: rgba(8, 11, 18, 0.6);
+            border-right: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .chat-sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-subtle);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: white;
+            letter-spacing: 0.1em;
+        }
+
+        .contact-item {
+            display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; transition: 0.2s;
+            border-bottom: 1px solid rgba(255,255,255,0.02);
+        }
+        .contact-item:hover { background: rgba(255, 255, 255, 0.02); }
+        .contact-item.active { background: rgba(var(--role-rgb), 0.12); border-left: 3px solid var(--role-color); }
+
+        .contact-avatar {
+            width: 38px; height: 38px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle);
+            display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;
+        }
+        .contact-info { flex-grow: 1; min-width: 0; }
+        .contact-name { font-size: 0.84rem; font-weight: 700; color: white; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .contact-status { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; color: var(--text-secondary); display: block; margin-top: 2px; }
+
+        /* AREA DEL CHAT ACTIVO (COLUMNA DERECHA) */
+        .chat-main-area {
+            display: flex; flex-direction: column; background: rgba(6, 8, 14, 0.4); position: relative; overflow: hidden;
+        }
+
+        .chat-header-bar {
+            padding: 14px 20px; background: rgba(8, 11, 18, 0.8); border-bottom: 1px solid var(--border-subtle);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+
+        .chat-messages-scroll {
+            flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px;
+        }
+
+        /* BURBUJAS DE MENSAJE ESTILO KINET WHATSAPP */
+        .msg-bubble {
+            max-width: 75%; padding: 12px 16px; border-radius: 16px; font-size: 0.85rem; line-height: 1.45; position: relative;
+            animation: fadeIn 0.2s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+        .msg-bubble.incoming {
+            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); color: #E2E8F0; align-self: flex-start;
+            border-top-left-radius: 4px;
+        }
+        .msg-bubble.outgoing {
+            background: rgba(var(--role-rgb), 0.15); border: 1px solid rgba(var(--role-rgb), 0.4); color: white; align-self: flex-end;
+            border-top-right-radius: 4px; box-shadow: 0 4px 15px rgba(var(--role-rgb), 0.1);
+        }
+        .msg-time { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: var(--text-secondary); display: block; text-align: right; margin-top: 4px; }
+
+        /* BARRA INFERIOR DE ESCRITURA */
+        .chat-input-bar {
+            padding: 14px 20px; background: rgba(8, 11, 18, 0.8); border-top: 1px solid var(--border-subtle);
+            display: flex; align-items: center; gap: 12px;
+        }
+        .chat-input {
+            flex-grow: 1; background: rgba(4, 6, 10, 0.8); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px;
+            padding: 12px 16px; color: white; font-family: 'Inter', sans-serif; font-size: 0.85rem; outline: none; transition: 0.2s;
+        }
+        .chat-input:focus { border-color: var(--role-color); box-shadow: 0 0 12px rgba(var(--role-rgb), 0.15); }
+
+        .send-btn {
+            background: var(--role-gradient); color: #04060A; border: none; border-radius: 14px; width: 44px; height: 44px;
+            display: flex; align-items: center; justify-content: center; font-weight: 900; cursor: pointer; transition: 0.2s;
+            box-shadow: 0 0 15px var(--role-glow); flex-shrink: 0;
+        }
+        .send-btn:hover { transform: scale(1.05); filter: brightness(1.1); }
+
+        /* NAVEGACIÓN MÓVIL INFERIOR */
+        .mobile-bottom-nav {
+            display: none; position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); width: calc(100% - 20px); max-width: 440px;
+            background: rgba(8, 11, 18, 0.95); backdrop-filter: blur(24px); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 6px; z-index: 120; justify-content: space-around; box-shadow: 0 20px 40px rgba(0,0,0,0.85);
+        }
+        @media (max-width: 960px) { .mobile-bottom-nav { display: flex; } }
+        .m-nav-btn {
+            background: transparent; border: none; color: var(--text-secondary); font-family: 'Inter', sans-serif; font-size: 0.6rem; font-weight: 700;
+            padding: 6px 8px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 2px; text-decoration: none; cursor: pointer;
+        }
+        .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
+    </style>
+</head>
+<body data-role="athlete">
+
+    <div class="os-layout">
+        
+        <!-- SIDEBAR IZQUIERDA (Idéntica a tu captura) -->
+        <aside class="os-sidebar">
+            <div class="sidebar-top-section">
+                <a href="index.html" class="brand-box">
+                    <div class="brand-logo-icon">K</div>
+                    <div class="brand-text">
+                        <h1>KINET OS</h1>
+                        <span id="sidebar-sport-subtitle">AI PRECISION // FÚTBOL</span>
+                    </div>
+                </a>
+
+                <nav class="sidebar-nav">
+                    <a href="app.html" class="side-link" style="margin-bottom: 10px;">
+                        <span class="side-link-left"><span>⚡</span> <span>Vestuario</span></span>
+                        <span style="font-size:0.65rem;font-family:'JetBrains Mono';">HOY</span>
+                    </a>
+                    <a href="cuerpo-tecnico.html" class="side-link active" style="margin-bottom: 10px;">
+                        <span class="side-link-left"><span>🧠</span> <span>Cuerpo Técnico IA</span></span>
+                        <span style="font-size:0.7rem;opacity:0.8;">💬</span>
+                    </a>
+                    <a href="ficha-pro.html" class="side-link" style="margin-bottom: 10px;">
+                        <span class="side-link-left"><span>🎴</span> <span>Ficha & KINET Card</span></span>
+                        <span style="font-size:0.7rem;opacity:0.5;">→</span>
+                    </a>
+                    <a href="ojeador-live.html" class="side-link" style="margin-bottom: 10px;">
+                        <span class="side-link-left"><span>📡</span> <span>Ojeador & Laboratorio</span></span>
+                        <span style="font-size:0.7rem;opacity:0.5;">→</span>
+                    </a>
+                    <a href="comunidad.html" class="side-link">
+                        <span class="side-link-left"><span>🌐</span> <span>Comunidad / Red Social</span></span>
+                        <span style="font-size:0.7rem;opacity:0.5;">→</span>
+                    </a>
+                </nav>
+            </div>
+
+            <div class="sidebar-bottom-section">
+                <div class="sidebar-ai-tip-box" id="sidebar-dynamic-tip">
+                    <div class="sidebar-ai-tip-header">
+                        <span>💡</span> <span id="tip-title">Sala de Juntas IA</span>
+                    </div>
+                    <div class="sidebar-ai-tip-text" id="tip-content">
+                        Los 4 especialistas están sincronizados en tiempo real con tus biométricas.
+                    </div>
+                </div>
+
+                <a href="perfil.html" class="side-link">
+                    <span class="side-link-left"><span>👤</span> <span>Mi Perfil</span></span>
+                    <span style="font-size:0.7rem;opacity:0.5;">→</span>
+                </a>
+                <a href="despacho.html" class="side-link">
+                    <span class="side-link-left"><span>⚙️</span> <span>Despacho & Ajustes</span></span>
+                    <span style="font-size:0.7rem;opacity:0.5;">→</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- ZONA PRINCIPAL DERECHA (ESTILO WHATSAPP KINET) -->
+        <div class="os-main">
+            
+            <header class="os-topbar">
+                <a href="index.html" class="mobile-brand">
+                    <div class="brand-logo-icon" style="width:32px;height:32px;font-size:0.95rem;">K</div>
+                    <span style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:1rem;letter-spacing:0.1em;">KINET OS</span>
+                </a>
+
+                <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-secondary);display:flex;align-items:center;gap:10px;">
+                    <span>CUERPO TÉCNICO IA</span>
+                    <span style="color:var(--role-color);font-weight:700;" id="topbar-sport-tag">● FÚTBOL</span>
+                </div>
+
+                <div class="topbar-actions">
+                    <div class="active-role-indicator">
+                        <span class="dot"></span>
+                        <span class="active-role-text" id="topbar-role-title">ATLETA</span>
+                    </div>
+                </div>
+            </header>
+
+            <main class="os-workspace">
+                
+                <!-- CONTENEDOR CHAT WHATSAPP -->
+                <div class="chat-container">
+                    
+                    <!-- SIDEBAR DE CONVERSACIONES -->
+                    <div class="chat-sidebar">
+                        <div class="chat-sidebar-header">
+                            💬 CONVERSACIONES IA
+                        </div>
+                        
+                        <!-- Chat Grupal (Sala de Juntas) -->
+                        <div class="contact-item active" onclick="switchChat('group', this)">
+                            <div class="contact-avatar" style="background:rgba(var(--role-rgb),0.15); border-color:var(--role-color);">👥</div>
+                            <div class="contact-info">
+                                <span class="contact-name">Sala de Juntas KINET</span>
+                                <span class="contact-status" style="color:var(--role-color);">Los 4 Especialistas Activos</span>
+                            </div>
+                        </div>
+
+                        <!-- Agente 1 -->
+                        <div class="contact-item" onclick="switchChat('physical', this)">
+                            <div class="contact-avatar">⚡</div>
+                            <div class="contact-info">
+                                <span class="contact-name">Preparador Físico IA</span>
+                                <span class="contact-status">Carga, GPS y Recuperación</span>
+                            </div>
+                        </div>
+
+                        <!-- Agente 2 -->
+                        <div class="contact-item" onclick="switchChat('nutrition', this)">
+                            <div class="contact-avatar">🥗</div>
+                            <div class="contact-info">
+                                <span class="contact-name">Nutricionista IA</span>
+                                <span class="contact-status">Pautas Pre y Post Partido</span>
+                            </div>
+                        </div>
+
+                        <!-- Agente 3 -->
+                        <div class="contact-item" onclick="switchChat('mental', this)">
+                            <div class="contact-avatar">🧠</div>
+                            <div class="contact-info">
+                                <span class="contact-name">Psicólogo Deportivo IA</span>
+                                <span class="contact-status">Foco y Gestión de Presión</span>
+                            </div>
+                        </div>
+
+                        <!-- Agente 4 -->
+                        <div class="contact-item" onclick="switchChat('career', this)">
+                            <div class="contact-avatar">📊</div>
+                            <div class="contact-info">
+                                <span class="contact-name">Analista & Career IA</span>
+                                <span class="contact-status">Métricas y Rendimiento</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AREA PRINCIPAL DEL CHAT -->
+                    <div class="chat-main-area">
+                        
+                        <!-- Cabecera del chat activo -->
+                        <div class="chat-header-bar">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <div id="active-chat-icon" style="font-size:1.2rem;">👥</div>
+                                <div>
+                                    <h3 id="active-chat-title" style="font-family:'Orbitron',sans-serif; font-size:0.85rem; font-weight:800; color:white;">Sala de Juntas KINET</h3>
+                                    <span id="active-chat-status" style="font-family:'JetBrains Mono',monospace; font-size:0.62rem; color:var(--role-color);">Sincronizado con tus biométricas (92% Energía)</span>
+                                </div>
+                            </div>
+                            <div style="font-family:'JetBrains Mono',monospace; font-size:0.65rem; color:var(--text-secondary);">
+                                SECURE ENCRYPTED // KINET AI
+                            </div>
+                        </div>
+
+                        <!-- Mensajes del chat -->
+                        <div class="chat-messages-scroll" id="chat-messages-box">
+                            <!-- Los mensajes se cargarán dinámicamente aquí -->
+                        </div>
+
+                        <!-- Barra de escritura -->
+                        <div class="chat-input-bar">
+                            <input type="text" id="chat-user-input" class="chat-input" placeholder="Escribe tu consulta al cuerpo técnico..." onkeydown="if(event.key==='Enter') sendUserMessage()">
+                            <button class="send-btn" onclick="sendUserMessage()">→</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- NAVEGACIÓN MÓVIL INFERIOR -->
+    <nav class="mobile-bottom-nav">
+        <a href="app.html" class="m-nav-btn">
+            <span style="font-size:1rem;">⚡</span>
+            <span>Vestuario</span>
+        </a>
+        <a href="cuerpo-tecnico.html" class="m-nav-btn active">
+            <span style="font-size:1rem;">🧠</span>
+            <span>Técnicos</span>
+        </a>
+        <a href="ficha-pro.html" class="m-nav-btn">
+            <span style="font-size:1rem;">🎴</span>
+            <span>Ficha</span>
+        </a>
+        <a href="ojeador-live.html" class="m-nav-btn">
+            <span style="font-size:1rem;">📡</span>
+            <span>Ojeador</span>
+        </a>
+        <a href="perfil.html" class="m-nav-btn">
+            <span style="font-size:1rem;">👤</span>
+            <span>Perfil</span>
+        </a>
+    </nav>
+
+    <script>
+        // Base de datos de conversaciones simuladas de WhatsApp Kinet
+        const CHAT_DATA = {
+            group: {
+                title: "Sala de Juntas KINET (Los 4 Agentes)",
+                status: "Sistema Coordinado Activo",
+                icon: "👥",
+                messages: [
+                    { sender: "Preparador Físico IA", text: "¡Hola! Analizando tus biométricas de hoy, tienes el depósito al 92%. Excelente recuperación nocturna.", time: "10:00", incoming: true },
+                    { sender: "Nutricionista IA", text: "Ratifico el dato. He registrado tu desayuno y cumple perfectamente con los macros para el esfuerzo táctico de esta tarde.", time: "10:02", incoming: true },
+                    { sender: "Psicólogo Deportivo IA", text: "Canales de concentración despejados. Estás en zona de rendimiento óptimo.", time: "10:03", incoming: true },
+                    { sender: "Analista & Career", text: "Todo listo para cruzar tus métricas con la sesión de hoy. Pregúntanos lo que necesites.", time: "10:05", incoming: true }
+                ]
+            },
+            physical: {
+                title: "Preparador Físico IA",
+                status: "Monitoreo GPS y Cargas Activo",
+                icon: "⚡",
+                messages: [
+                    { sender: "Preparador Físico IA", text: "Hola Atleta. ¿Cómo sientes las piernas tras el esfuerzo de ayer?", time: "09:00", incoming: true },
+                    { sender: "Preparador Físico IA", text: "Recuerda que hoy toca trabajo explosivo y core. Avísame si notas cualquier sobrecarga en aductores.", time: "09:01", incoming: true }
+                ]
+            },
+            nutrition: {
+                title: "Nutricionista IA",
+                status: "Control Nutricional & Hidratación",
+                icon: "🥗",
+                messages: [
+                    { sender: "Nutricionista IA", text: "Hola. Para la sesión de hoy mantén una hidratación constante con sales minerales.", time: "08:30", incoming: true },
+                    { sender: "Nutricionista IA", text: "¿Tienes dudas sobre tu cena pre-partido de esta semana?", time: "08:31", incoming: true }
+                ]
+            },
+            mental: {
+                title: "Psicólogo Deportivo IA",
+                status: "Optimización de Foco & Presión",
+                icon: "🧠",
+                messages: [
+                    { sender: "Psicólogo Deportivo IA", text: "Saludos. La visualización previa al entrenamiento de hoy es clave para automatizar decisiones rápidas en el campo.", time: "Yesterday", incoming: true }
+                ]
+            },
+            career: {
+                title: "Analista & Career IA",
+                status: "Estadísticas & Métricas de Rendimiento",
+                icon: "📊",
+                messages: [
+                    { sender: "Analista & Career", text: "Tus percentiles de velocidad punta se han incrementado un 3.4% este mes. Gran trabajo.", time: "Yesterday", incoming: true }
+                ]
+            }
+        };
+
+        let currentChatKey = 'group';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // Sincronizar rol y deporte con el localStorage
+            const activeRole = localStorage.getItem('kinet_active_role') || 'athlete';
+            const sportChosen = localStorage.getItem('kinet_sport') || localStorage.getItem('sport') || 'Fútbol';
+            const roleName = localStorage.getItem('kinet_role') || 'Atleta Pro';
+
+            document.body.setAttribute('data-role', activeRole);
+            document.getElementById('topbar-role-title').textContent = roleName.toUpperCase();
+            document.getElementById('topbar-sport-tag').textContent = `● ${sportChosen.toUpperCase()}`;
+            document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${sportChosen.toUpperCase()}`;
+
+            // Si viene una pregunta pendiente desde el vestuario, cargarla
+            const pendingQ = localStorage.getItem('kinet_pending_question');
+            const targetAgent = localStorage.getItem('kinet_target_agent') || 'group';
+            
+            if (pendingQ) {
+                if (CHAT_DATA[targetAgent]) {
+                    currentChatKey = targetAgent;
+                }
+                // Seleccionar visualmente el chat correcto en la barra lateral
+                document.querySelectorAll('.contact-item').forEach(el => el.classList.remove('active'));
+                // Añadir lógica de render
+                localStorage.removeItem('kinet_pending_question');
+                localStorage.removeItem('kinet_target_agent');
+            }
+
+            renderCurrentChat();
+        });
+
+        function switchChat(chatKey, element) {
+            currentChatKey = chatKey;
+            document.querySelectorAll('.contact-item').forEach(el => el.classList.remove('active'));
+            if(element) element.classList.add('active');
+            renderCurrentChat();
+        }
+
+        function renderCurrentChat() {
+            const chat = CHAT_DATA[currentChatKey];
+            document.getElementById('active-chat-title').textContent = chat.title;
+            document.getElementById('active-chat-status').textContent = chat.status;
+            document.getElementById('active-chat-icon').textContent = chat.icon;
+
+            const box = document.getElementById('chat-messages-box');
+            box.innerHTML = chat.messages.map(m => `
+                <div class="msg-bubble ${m.incoming ? 'incoming' : 'outgoing'}">
+                    ${m.incoming ? `<strong style="font-size:0.7rem; color:var(--role-color); display:block; margin-bottom:2px;">${m.sender}</strong>` : ''}
+                    <div>${m.text}</div>
+                    <span class="msg-time">${m.time}</span>
+                </div>
+            `).join('');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function sendUserMessage() {
+            const input = document.getElementById('chat-user-input');
+            const text = input.value.trim();
+            if(!text) return;
+
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+            // Añadir mensaje del usuario
+            CHAT_DATA[currentChatKey].messages.push({
+                sender: "Tú",
+                text: text,
+                time: timeStr,
+                incoming: false
+            });
+
+            input.value = '';
+            renderCurrentChat();
+
+            // Simular respuesta automática inteligente de la IA tras 1 segundo
+            setTimeout(() => {
+                let replyText = "Entendido. He registrado tu comentario y ajustado los parámetros en tu panel de control.";
+                let senderName = CHAT_DATA[currentChatKey].title;
+
+                if(currentChatKey === 'group') {
+                    senderName = "Cuerpo Técnico IA (Conjunto)";
+                    replyText = "Recibido en la Sala de Juntas. El Preparador y el Nutricionista ya han sincronizado tu pauta para hoy.";
+                } else if(currentChatKey === 'physical') {
+                    replyText = "Registrado. Mantendremos el pulso de carga estable para evitar fatiga innecesaria.";
+                } else if(currentChatKey === 'nutrition') {
+                    replyText = "Anotado en tu plan nutricional. Asegúrate de cumplir con los tiempos de hidratación.";
+                }
+
+                CHAT_DATA[currentChatKey].messages.push({
+                    sender: senderName,
+                    text: replyText,
+                    time: `${String(new Date().getHours()).padStart(2,'0')}:${String(new Date().getMinutes()).padStart(2,'0')}`,
+                    incoming: true
+                });
+                renderCurrentChat();
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
