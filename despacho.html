@@ -70,6 +70,20 @@
             transition: background-image 0.4s ease;
         }
 
+        /* CURSOR GLOW SHADOW EFFECT LAYER */
+        #cursor-glow {
+            pointer-events: none;
+            position: fixed;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(var(--role-rgb), 0.12) 0%, transparent 70%);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.3s ease;
+            z-index: 999;
+            opacity: 1;
+        }
+
         /* LAYOUT PRINCIPAL */
         .os-layout {
             display: grid;
@@ -323,6 +337,20 @@
             transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
         }
 
+        .kinet-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(220px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(var(--role-rgb), 0.18), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .kinet-panel > * { position: relative; z-index: 1; }
+        .kinet-panel:hover::before { opacity: 1; }
+
         .kinet-panel:hover {
             border-color: rgba(var(--role-rgb), 0.35);
             box-shadow: 0 18px 40px rgba(0,0,0,0.7), 0 0 24px rgba(var(--role-rgb), 0.12);
@@ -381,19 +409,36 @@
         }
         .btn-danger:hover { background: rgba(239, 68, 68, 0.25); box-shadow: 0 0 16px rgba(239, 68, 68, 0.2); }
 
-        /* MODAL LEGAL & AVISO */
+        /* CUSTOM KINET MODAL OVERLAY (REPLACING NATIVE BROWSER ALERTS) */
+        .kinet-modal-overlay {
+            position: fixed; inset: 0; background: rgba(4, 6, 10, 0.82); backdrop-filter: blur(16px); z-index: 500;
+            display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .kinet-modal-overlay.open { opacity: 1; pointer-events: auto; }
+        .kinet-modal-box {
+            background: rgba(13, 17, 26, 0.96); border: 1px solid rgba(var(--role-rgb), 0.45); border-radius: 22px; max-width: 480px; width: calc(100% - 32px);
+            padding: 26px; box-shadow: 0 25px 60px rgba(0,0,0,0.85), 0 0 30px rgba(var(--role-rgb), 0.15);
+            transform: scale(0.95) translateY(10px); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; flex-direction: column; gap: 16px; text-align: left;
+        }
+        .kinet-modal-overlay.open .kinet-modal-box { transform: scale(1) translateY(0); }
+        .kinet-modal-header { font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 800; color: white; display: flex; align-items: center; gap: 10px; }
+        .kinet-modal-body { font-size: 0.88rem; color: #CBD5E1; line-height: 1.5; }
+        .kinet-modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
+
+        /* MODAL LEGAL & PRIVACIDAD */
         .modal-overlay {
             position: fixed; inset: 0; background: rgba(4, 6, 10, 0.85); backdrop-filter: blur(18px); z-index: 300;
             display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
         }
         .modal-overlay.open { opacity: 1; pointer-events: auto; }
         .modal-box {
-            background: rgba(13, 17, 26, 0.95); border: 1px solid rgba(var(--role-rgb), 0.4); border-radius: 24px; max-width: 640px; width: calc(100% - 32px);
+            background: rgba(13, 17, 26, 0.95); border: 1px solid rgba(var(--role-rgb), 0.4); border-radius: 24px; max-width: 680px; width: calc(100% - 32px);
             padding: 28px; box-shadow: 0 24px 60px rgba(0,0,0,0.8); transform: translateY(15px); transition: transform 0.3s ease; max-height: 85vh; display: flex; flex-direction: column;
         }
         .modal-overlay.open .modal-box { transform: translateY(0); }
         .modal-body { overflow-y: auto; margin-top: 14px; margin-bottom: 20px; font-size: 0.86rem; color: #CBD5E1; line-height: 1.6; padding-right: 6px; }
-        .modal-body h4 { font-family: 'Orbitron', sans-serif; color: white; margin: 14px 0 6px 0; font-size: 0.95rem; }
+        .modal-body h4 { font-family: 'Orbitron', sans-serif; color: white; margin: 16px 0 6px 0; font-size: 0.95rem; }
 
         /* NAVEGACIÓN MÓVIL */
         .mobile-bottom-nav {
@@ -406,6 +451,9 @@
     </style>
 </head>
 <body data-role="athlete">
+
+    <!-- CURSOR SHADOW GLOW LAYER -->
+    <div id="cursor-glow"></div>
 
     <div class="os-layout">
         
@@ -476,7 +524,7 @@
                 </div>
 
                 <div class="topbar-actions">
-                    <button class="btn-danger" style="padding: 6px 14px; font-size: 0.68rem;" onclick="cerrarSesion()">Cerrar Sesión</button>
+                    <button class="btn-danger" style="padding: 6px 14px; font-size: 0.68rem;" onclick="confirmLogout()">Cerrar Sesión</button>
                     <div class="active-role-indicator">
                         <span class="dot"></span>
                         <span class="active-role-text" id="topbar-role-title">ATLETA</span>
@@ -574,25 +622,25 @@
                                         <label>Cerrar Sesión Actual</label>
                                         <span>Finaliza la sesión y vuelve a la pantalla de acceso</span>
                                     </div>
-                                    <button class="btn-danger" onclick="cerrarSesion()">Cerrar Sesión</button>
+                                    <button class="btn-danger" onclick="confirmLogout()">Cerrar Sesión</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- CONTENIDO PESTAÑA 2: TEMA & PERSONALIZACIÓN -->
+                <!-- CONTENIDO PESTAÑA 2: TEMA & PERSONALIZACIÓN (GLOBAL) -->
                 <div id="tab-theme" class="tab-content">
                     <div class="settings-grid">
                         <div class="col-6">
                             <div class="kinet-panel">
                                 <div class="panel-head">
-                                    <span class="panel-label">🎨 Estética & Luces Neón</span>
+                                    <span class="panel-label">🎨 Estética & Luces Neón Globales</span>
                                 </div>
                                 <div class="setting-row">
                                     <div class="setting-info">
                                         <label>Efectos de Brillo Spotlight</label>
-                                        <span>Iluminación reactiva al pasar el ratón por los paneles</span>
+                                        <span>Iluminación reactiva en paneles de todo el OS</span>
                                     </div>
                                     <label class="switch">
                                         <input type="checkbox" id="setting-spotlight" checked onchange="toggleSpotlight(this.checked)">
@@ -601,13 +649,23 @@
                                 </div>
                                 <div class="setting-row">
                                     <div class="setting-info">
+                                        <label>Sombra & Resplandor de Cursor</label>
+                                        <span>Halo dinámico que sigue el cursor por toda la pantalla</span>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" id="setting-cursor-glow" checked onchange="toggleCursorGlow(this.checked)">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
                                         <label>Intensidad del Fondo Void</label>
-                                        <span>Profundidad visual de la cuadrícula de telemetría</span>
+                                        <span>Profundidad visual de la cuadrícula en todo KINET OS</span>
                                     </div>
                                     <select id="setting-bg-intensity" class="setting-select" onchange="changeBgIntensity(this.value)">
-                                        <option value="deep">Void Absoluto (#04060A)</option>
+                                        <option value="deep">Void Absoluto (#020305)</option>
                                         <option value="standard" selected>Estándar KINET (#06080E)</option>
-                                        <option value="contrast">Alto Contraste (#090D16)</option>
+                                        <option value="contrast">Alto Contraste (#0B101D)</option>
                                     </select>
                                 </div>
                             </div>
@@ -620,6 +678,18 @@
                                 </div>
                                 <div class="setting-row">
                                     <div class="setting-info">
+                                        <label>Color de Acento Principal</label>
+                                        <span>Personaliza el brillo de neón corporativo global</span>
+                                    </div>
+                                    <select id="setting-accent-color" class="setting-select" onchange="changeAccentColor(this.value)">
+                                        <option value="#00FF88" selected>Verde KINET (#00FF88)</option>
+                                        <option value="#3B82F6">Azul Ciclón (#3B82F6)</option>
+                                        <option value="#F59E0B">Ámbar Ejecutivo (#F59E0B)</option>
+                                        <option value="#EC4899">Magenta Fucsia (#EC4899)</option>
+                                    </select>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
                                         <label>Velocidad de Transiciones</label>
                                         <span>Fluidez en la apertura de paneles y menús</span>
                                     </div>
@@ -627,16 +697,6 @@
                                         <option>Cinematográfica (Suave)</option>
                                         <option selected>Instantánea (Alta Precisión)</option>
                                     </select>
-                                </div>
-                                <div class="setting-row">
-                                    <div class="setting-info">
-                                        <label>Favicon Dinámico por Rol</label>
-                                        <span>Cambiar color del icono de pestaña según el perfil</span>
-                                    </div>
-                                    <label class="switch">
-                                        <input type="checkbox" checked>
-                                        <span class="slider"></span>
-                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -727,19 +787,25 @@
                     </div>
                 </div>
 
-                <!-- CONTENIDO PESTAÑA 5: TÉRMINOS & CONDICIONES -->
+                <!-- CONTENIDO PESTAÑA 5: TÉRMINOS & CONDICIONES (OFICIAL Y COMPLETO) -->
                 <div id="tab-legal" class="tab-content">
                     <div class="settings-grid">
                         <div class="col-12">
                             <div class="kinet-panel">
                                 <div class="panel-head">
-                                    <span class="panel-label">📜 Términos de Servicio & Privacidad KINET OS</span>
-                                    <button class="btn-secondary" style="padding: 6px 12px; font-size: 0.68rem;" onclick="openModal()">Ampliar Documento</button>
+                                    <span class="panel-label">📜 Términos de Servicio, Privacidad & RGPD // KINET OS</span>
+                                    <button class="btn-secondary" style="padding: 6px 12px; font-size: 0.68rem;" onclick="openModal()">Ampliar Documento Legal</button>
                                 </div>
-                                <div style="font-size: 0.86rem; color: #CBD5E1; line-height: 1.6;">
-                                    <p style="margin-bottom: 12px;"><strong>1. Ámbito de Aplicación:</strong> KINET OS es una plataforma avanzada de gestión de rendimiento deportivo impulsada por inteligencia artificial. El acceso y uso de este software implica la aceptación estricta de los protocolos de seguridad y privacidad establecidos por KINET AI Technologies.</p>
-                                    <p style="margin-bottom: 12px;"><strong>2. Propiedad Intelectual:</strong> Todos los algoritmos de predicción de fatiga, interfaces bento, avatares de agentes y metodologías de scouting en tiempo real son propiedad exclusiva de la corporación. Queda prohibida su reproducción sin licencia expresa.</p>
-                                    <p><strong>3. Confidencialidad Biométrica:</strong> Los datos de rendimiento físico, sueño y nutrición ingresados en el Vestuario o en la Sala de Juntas están protegidos bajo estrictas leyes de secreto profesional y RGPD.</p>
+                                <div style="font-size: 0.86rem; color: #CBD5E1; line-height: 1.7;">
+                                    <p style="margin-bottom: 14px;"><strong>1. Objeto y Ámbito de Aplicación:</strong> Los presentes Términos y Condiciones regulan el acceso, navegación y uso de la plataforma KINET OS (en adelante, "el Sistema"), desarrollada por KINET AI Technologies. Al acceder a los módulos de Vestuario, Cuerpo Técnico IA y Despacho, el usuario acepta de manera vinculante e incondicional las disposiciones aquí descritas.</p>
+                                    
+                                    <p style="margin-bottom: 14px;"><strong>2. Confidencialidad y Tratamiento de Datos Biométricos (RGPD UE 2016/679):</strong> De conformidad con el Reglamento General de Protección de Datos, KINET OS implementa medidas técnicas y organizativas de nivel militar (cifrado AES-256 en reposo y en tránsito) para salvaguardar las métricas físicas, de sueño, nutrición y telemetría táctica introducidas por el usuario o capturadas mediante pasarelas sincronizadas (como BeSoccer Sync). Los datos nunca serán comercializados a terceros.</p>
+                                    
+                                    <p style="margin-bottom: 14px;"><strong>3. Propiedad Intelectual e Industrial:</strong> Todos los elementos gráficos, interfaces bento, algoritmos de supercompensación, avatares de agentes neuronales y marcas registradas son titularidad exclusiva de KINET AI Technologies. Queda estrictamente prohibida su ingeniería inversa, distribución o reproducción sin autorización previa y por escrito.</p>
+                                    
+                                    <p style="margin-bottom: 14px;"><strong>4. Limitación de Responsabilidad de la Inteligencia Artificial:</strong> Los diagnósticos preventivos de fatiga, pautas nutricionales y directivas tácticas emitidas por los agentes del Cuerpo Técnico IA tienen carácter analítico y de apoyo a la decisión. La responsabilidad clínica, médica y de gestión deportiva final recae en todo momento sobre el usuario o el staff técnico del club.</p>
+                                    
+                                    <p><strong>5. Suscripciones y Modo Invitado:</strong> Las cuentas bajo el régimen de "Modo Invitado" o "Cuenta Gratuita (Free)" operan bajo almacenamiento efímero local (`localStorage`), reconociendo el usuario que la alteración de roles o limpieza de caché conllevará el reinicio de los parámetros configurados.</p>
                                 </div>
                             </div>
                         </div>
@@ -750,7 +816,39 @@
         </div>
     </div>
 
-    <!-- MODAL DE TÉRMINOS AMPLIADOS -->
+    <!-- CUSTOM KINET MODAL: CONFIRMACIÓN DE CIERRE DE SESIÓN -->
+    <div id="logout-modal" class="kinet-modal-overlay">
+        <div class="kinet-modal-box">
+            <div class="kinet-modal-header" style="color: #EF4444;">
+                <span>⚠️</span> <span>CONFIRMAR CIERRE DE SESIÓN</span>
+            </div>
+            <div class="kinet-modal-body">
+                ¿Estás seguro de que deseas finalizar tu sesión actual en KINET OS? Tus datos protegidos permanecerán sincronizados en la nube corporativa.
+            </div>
+            <div class="kinet-modal-footer">
+                <button class="btn-secondary" onclick="closeKinetModal('logout-modal')">Cancelar</button>
+                <button class="btn-danger" onclick="executeLogout()">Cerrar Sesión</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOM KINET MODAL: AVISO DE CAMBIO DE ROL (INVITADO / FREE) -->
+    <div id="role-switch-modal" class="kinet-modal-overlay">
+        <div class="kinet-modal-box">
+            <div class="kinet-modal-header" style="color: var(--role-color);">
+                <span>🛡️</span> <span id="role-modal-title">ATENCIÓN: MODO DE SESIÓN ACTIVO</span>
+            </div>
+            <div class="kinet-modal-body" id="role-modal-text">
+                Te encuentras operando en una modalidad temporal. Al cambiar de rol, se borrarán todos los datos guardados en tu sesión actual y tendrás que repetir las opciones de configuración al volver a entrar. ¿Deseas continuar?
+            </div>
+            <div class="kinet-modal-footer">
+                <button class="btn-secondary" onclick="cancelRoleSwitch()">Cancelar</button>
+                <button class="btn-primary" onclick="confirmRoleSwitch()">Continuar y Reiniciar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL LEGAL AMPLIADO -->
     <div id="legal-modal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-box" onclick="event.stopPropagation()">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px;">
@@ -758,8 +856,8 @@
                 <button onclick="closeModal()" style="background: none; border: none; color: white; font-size: 1.3rem; cursor: pointer;">✕</button>
             </div>
             <div class="modal-body">
-                <h4>1. Protección de Datos Biométricos (RGPD y CCPA)</h4>
-                <p>KINET OS procesa métricas de carga muscular, sueño, frecuencia cardíaca y datos tácticos con el único fin de optimizar el rendimiento individual o de la plantilla supervisada. Los datos son alojados en servidores seguros con cifrado de grado bancario.</p>
+                <h4>1. Protección de Datos Biométricos (RGPD UE 2016/679)</h4>
+                <p>KINET OS procesa métricas de carga muscular, sueño, frecuencia cardíaca y datos tácticos con el único fin de optimizar el rendimiento individual o de la plantilla supervisada. Los datos son alojados en servidores seguros con cifrado de grado bancario AES-256.</p>
                 
                 <h4>2. Limitación de Responsabilidad de la IA</h4>
                 <p>Las recomendaciones emitidas por los agentes del Cuerpo Técnico IA (Preparador Físico, Nutricionista, Psicólogo y Analista) tienen carácter orientativo y analítico. Las decisiones de competición y salud clínica final corresponden siempre al staff médico o al propio usuario.</p>
@@ -783,12 +881,14 @@
     </nav>
 
     <script>
+        let pendingTargetRole = null;
+
         function normalizeRole(val) {
             if (!val) return null;
             const v = String(val).toLowerCase().trim();
             if (v === 'athlete' || v === 'atleta' || v.includes('atleta') || v.includes('jugador')) return 'athlete';
             if (v === 'staff' || v.includes('entrenador' ) || v.includes('coach') || v.includes('fisio') || v.includes('staff')) return 'staff';
-            if (v === 'scout' || v.includes('scout') || v.includes('director') || v.includes('ojeador')) return 'scout';
+            if (v.includes('scout') || v.includes('director') || v.includes('ojeador')) return 'scout';
             return null;
         }
 
@@ -820,6 +920,33 @@
             if (tierSelect) tierSelect.value = currentTier;
             updateTierUI(currentTier);
 
+            // Cargar preferencias globales de personalización guardadas si existen
+            const savedAccent = localStorage.getItem('kinet_accent_color');
+            if (savedAccent) {
+                const accentSelect = document.getElementById('setting-accent-color');
+                if (accentSelect) accentSelect.value = savedAccent;
+                applyAccentColor(savedAccent);
+            }
+
+            const savedBg = localStorage.getItem('kinet_bg_intensity');
+            if (savedBg) {
+                const bgSelect = document.getElementById('setting-bg-intensity');
+                if (bgSelect) bgSelect.value = savedBg;
+                changeBgIntensity(savedBg);
+            }
+
+            const savedSpotlight = localStorage.getItem('kinet_spotlight');
+            if (savedSpotlight === 'false') {
+                const spotCheck = document.getElementById('setting-spotlight');
+                if (spotCheck) { spotCheck.checked = false; toggleSpotlight(false); }
+            }
+
+            const savedCursorGlow = localStorage.getItem('kinet_cursor_glow');
+            if (savedCursorGlow === 'false') {
+                const glowCheck = document.getElementById('setting-cursor-glow');
+                if (glowCheck) { glowCheck.checked = false; toggleCursorGlow(false); }
+            }
+
             const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
             document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${sportChosen.toUpperCase()}`;
             document.getElementById('topbar-sport-tag').textContent = `● ${sportChosen.toUpperCase()}`;
@@ -843,6 +970,13 @@
             const faviconHex = activeRoleKey === 'staff' ? '%23F59E0B' : (activeRoleKey === 'scout' ? '%233B82F6' : '%2300FF88');
             const faviconSvg = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22${faviconHex}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`;
             document.getElementById('dynamic-favicon').setAttribute('href', faviconSvg);
+
+            // CURSOR GLOW MOUSE TRACKING LISTENER
+            const glowEl = document.getElementById('cursor-glow');
+            window.addEventListener('mousemove', (e) => {
+                glowEl.style.left = `${e.clientX}px`;
+                glowEl.style.top = `${e.clientY}px`;
+            });
         });
 
         function switchTab(tabId, btn) {
@@ -886,37 +1020,58 @@
 
         function promptRoleSwitch(newRole) {
             const currentTier = localStorage.getItem('kinet_account_tier') || 'pro';
+            pendingTargetRole = newRole;
 
             if (currentTier === 'guest' || currentTier === 'free') {
-                const confirmed = confirm("⚠️ ATENCIÓN: Te encuentras en " + (currentTier === 'guest' ? "Modo Invitado" : "Cuenta Gratuita") + ".\n\nAl cambiar de rol, se borrarán todos los datos guardados en tu sesión actual y tendrás que repetir las opciones de configuración al volver a entrar. ¿Deseas continuar?");
-                if (!confirmed) {
-                    // Revertir select al rol actual
-                    const activeRole = localStorage.getItem('kinet_active_role') || 'athlete';
-                    document.getElementById('setting-role-switcher').value = activeRole;
-                    return;
-                } else {
-                    // Borrar datos guardados por estar en tier libre/invitado
-                    localStorage.removeItem('kinet_pending_question');
-                    localStorage.removeItem('kinet_target_agent');
-                }
+                const titleText = currentTier === 'guest' ? '⚠️ ATENCIÓN: MODO INVITADO' : '⚠️ ATENCIÓN: CUENTA GRATUITA';
+                document.getElementById('role-modal-title').textContent = titleText;
+                document.getElementById('role-modal-text').innerHTML = `Te encuentras operando en <strong>${currentTier === 'guest' ? 'Modo Invitado' : 'Cuenta Gratuita'}</strong>.<br><br>Al cambiar de rol, <strong>se borrarán todos los datos guardados en tu sesión actual</strong> y tendrás que repetir las opciones de configuración al volver a entrar. ¿Deseas continuar?`;
+                document.getElementById('role-switch-modal').classList.add('open');
+            } else {
+                executeRoleSwitch(newRole);
             }
-
-            switchSystemRole(newRole);
         }
 
-        function switchSystemRole(newRole) {
+        function cancelRoleSwitch() {
+            document.getElementById('role-switch-modal').classList.remove('open');
+            const activeRole = localStorage.getItem('kinet_active_role') || 'athlete';
+            document.getElementById('setting-role-switcher').value = activeRole;
+            pendingTargetRole = null;
+        }
+
+        function confirmRoleSwitch() {
+            document.getElementById('role-switch-modal').classList.remove('open');
+            // Borrar datos temporales de sesión según solicitado
+            localStorage.removeItem('kinet_pending_question');
+            localStorage.removeItem('kinet_target_agent');
+            if (pendingTargetRole) {
+                executeRoleSwitch(pendingTargetRole);
+            }
+        }
+
+        function executeRoleSwitch(newRole) {
             localStorage.setItem('kinet_active_role', newRole);
             const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
             window.location.href = `despacho.html?role=${newRole}&sport=${encodeURIComponent(sportChosen)}`;
         }
 
         function toggleSpotlight(enabled) {
+            localStorage.setItem('kinet_spotlight', enabled);
             document.querySelectorAll('.kinet-panel').forEach(p => {
                 p.style.boxShadow = enabled ? '0 14px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)' : 'none';
             });
         }
 
+        function toggleCursorGlow(enabled) {
+            localStorage.setItem('kinet_cursor_glow', enabled);
+            const glowEl = document.getElementById('cursor-glow');
+            if (glowEl) {
+                glowEl.style.opacity = enabled ? '1' : '0';
+            }
+        }
+
         function changeBgIntensity(mode) {
+            localStorage.setItem('kinet_bg_intensity', mode);
             if (mode === 'deep') {
                 document.documentElement.style.setProperty('--bg-void', '#020305');
             } else if (mode === 'contrast') {
@@ -926,6 +1081,24 @@
             }
         }
 
+        function changeAccentColor(hexColor) {
+            localStorage.setItem('kinet_accent_color', hexColor);
+            applyAccentColor(hexColor);
+        }
+
+        function applyAccentColor(hexColor) {
+            let r = 0, g = 255, b = 136;
+            if (hexColor === '#3B82F6') { r = 59; g = 130; b = 246; }
+            else if (hexColor === '#F59E0B') { r = 245; g = 158; b = 11; }
+            else if (hexColor === '#EC4899') { r = 236; g = 72; b = 153; }
+            else if (hexColor === '#00FF88') { r = 0; g = 255; b = 136; }
+
+            document.documentElement.style.setProperty('--role-color', hexColor);
+            document.documentElement.style.setProperty('--role-rgb', `${r}, ${g}, ${b}`);
+            document.documentElement.style.setProperty('--role-glow', `rgba(${r}, ${g}, ${b}, 0.38)`);
+            document.documentElement.style.setProperty('--role-gradient', `linear-gradient(135deg, ${hexColor} 0%, rgba(${r},${g},${b},0.75) 100%)`);
+        }
+
         function saveUserData() {
             const name = document.getElementById('user-name-input').value;
             const email = document.getElementById('user-email-input').value;
@@ -933,11 +1106,17 @@
             localStorage.setItem('kinet_user_email', email);
         }
 
-        function cerrarSesion() {
-            if (confirm('¿Estás seguro de que deseas cerrar sesión en KINET OS?')) {
-                localStorage.removeItem('kinet_active_role');
-                window.location.href = 'index.html';
-            }
+        function confirmLogout() {
+            document.getElementById('logout-modal').classList.add('open');
+        }
+
+        function closeKinetModal(modalId) {
+            document.getElementById(modalId).classList.remove('open');
+        }
+
+        function executeLogout() {
+            localStorage.removeItem('kinet_active_role');
+            window.location.href = 'index.html';
         }
 
         function saveAllSettings() {
