@@ -1030,44 +1030,40 @@
             const sportParam = urlParams.get('sport') || urlParams.get('deporte');
             const roleParam = urlParams.get('role');
 
-            // Si viene un deporte por la URL, lo guardamos para que tenga prioridad
             if (sportParam) {
                 localStorage.setItem('kinet_sport', sportParam);
             }
             
-         // Priorizamos el rol que viene por la URL o el guardado en memoria
-let savedActiveRole = roleParam || localStorage.getItem('kinet_active_role') || localStorage.getItem('kinet_role');
-let rawRoleName = roleParam || localStorage.getItem('kinet_role'] || '';
+            // Detección estricta y limpia del rol priorizando URL o rol activo guardado
+            let savedActiveRole = roleParam || localStorage.getItem('kinet_active_role');
+            let rawRoleName = roleParam || localStorage.getItem('kinet_role') || '';
 
-// Normalizar 'atleta' en español a 'athlete' en inglés para que coincida con la configuración
-if (savedActiveRole === 'atleta') savedActiveRole = 'athlete';
-if (typeof rawRoleName === 'string' && rawRoleName.toLowerCase() === 'atleta') rawRoleName = 'athlete';
+            if (savedActiveRole === 'atleta') savedActiveRole = 'athlete';
+            if (typeof rawRoleName === 'string' && rawRoleName.toLowerCase() === 'atleta') rawRoleName = 'athlete';
 
-if (savedActiveRole && ROLE_VIEW_CONFIG[savedActiveRole]) {
-    activeRoleKey = savedActiveRole;
-} else if (rawRoleName.toLowerCase().includes('scout') || rawRoleName.toLowerCase().includes('director') || rawRoleName.toLowerCase().includes('ojeador')) {
-    activeRoleKey = 'scout';
-} else if (rawRoleName.toLowerCase().includes('entrenador') || rawRoleName.toLowerCase().includes('coach') || rawRoleName.toLowerCase().includes('fisio') || rawRoleName.toLowerCase().includes('staff')) {
-    activeRoleKey = 'staff';
-} else {
-    activeRoleKey = 'athlete';
-}
+            if (savedActiveRole && ROLE_VIEW_CONFIG[savedActiveRole]) {
+                activeRoleKey = savedActiveRole;
+            } else if (rawRoleName.toLowerCase().includes('scout') || rawRoleName.toLowerCase().includes('director') || rawRoleName.toLowerCase().includes('ojeador')) {
+                activeRoleKey = 'scout';
+            } else if (rawRoleName.toLowerCase().includes('entrenador') || rawRoleName.toLowerCase().includes('coach') || rawRoleName.toLowerCase().includes('fisio') || rawRoleName.toLowerCase().includes('staff')) {
+                activeRoleKey = 'staff';
+            } else {
+                activeRoleKey = 'athlete';
+            }
 
-// Guardar siempre el rol normalizado correcto en el almacenamiento activo
-localStorage.setItem('kinet_active_role', activeRoleKey);
-document.body.setAttribute('data-role', activeRoleKey);
-            // Definimos el título superior limpio según el rol real activo (sin mezclar textos raros)
-            let specificRoleTitle = "";
-            if (activeRoleKey === 'athlete') specificRoleTitle = 'Atleta Pro';
-            else if (activeRoleKey === 'staff') specificRoleTitle = 'Entrenador / Staff';
+            // Guardar definitivamente el rol y aplicarlo al body
+            localStorage.setItem('kinet_active_role', activeRoleKey);
+            document.body.setAttribute('data-role', activeRoleKey);
+
+            // Definir título superior y textos según el rol activo real
+            let specificRoleTitle = 'Atleta Pro';
+            if (activeRoleKey === 'staff') specificRoleTitle = 'Entrenador / Staff';
             else if (activeRoleKey === 'scout') specificRoleTitle = 'Director Deportivo / Scout';
+            else specificRoleTitle = 'Atleta Pro';
 
             document.getElementById('topbar-role-title').textContent = specificRoleTitle.toUpperCase();
 
-            document.body.setAttribute('data-role', activeRoleKey);
-            localStorage.setItem('kinet_active_role', activeRoleKey);
-
-            // Leer de forma dinámica el deporte activo actual
+            // Deporte activo
             const sportChosen = localStorage.getItem('kinet_sport') || localStorage.getItem('sport') || localStorage.getItem('selected_sport') || localStorage.getItem('deporte') || 'Fútbol';
             document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${sportChosen.toUpperCase()}`;
             document.getElementById('topbar-sport-tag').textContent = `● ${sportChosen.toUpperCase()}`;
@@ -1076,13 +1072,6 @@ document.body.setAttribute('data-role', activeRoleKey);
             const faviconHex = activeRoleKey === 'staff' ? '%23F59E0B' : (activeRoleKey === 'scout' ? '%233B82F6' : '%2300FF88');
             const faviconSvg = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22${faviconHex}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`;
             document.getElementById('dynamic-favicon').setAttribute('href', faviconSvg);
-
-            let specificRoleTitle = rawRoleName;
-            if (!specificRoleTitle || specificRoleTitle.includes('DIRECTOR') && activeRoleKey === 'athlete') {
-                specificRoleTitle = activeRoleKey === 'athlete' ? 'Atleta Pro' : activeRoleKey === 'staff' ? 'Entrenador / Staff' : 'Ojeador / Scout';
-            }
-
-            document.getElementById('topbar-role-title').textContent = specificRoleTitle.toUpperCase();
 
             const cfg = ROLE_VIEW_CONFIG[activeRoleKey];
             document.getElementById('header-tag-text').textContent = `${cfg.tagText} • ${sportChosen.toUpperCase()}`;
