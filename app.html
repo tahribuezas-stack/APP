@@ -1035,8 +1035,9 @@
                 localStorage.setItem('kinet_sport', sportParam);
             }
             
-            let rawRoleName = roleParam || localStorage.getItem('kinet_role') || '';
+         // Priorizamos el rol que viene por parámetro o el rol activo guardado explícitamente
             const savedActiveRole = roleParam || localStorage.getItem('kinet_active_role');
+            let rawRoleName = roleParam || localStorage.getItem('kinet_role') || '';
 
             if (savedActiveRole && ROLE_VIEW_CONFIG[savedActiveRole]) {
                 activeRoleKey = savedActiveRole;
@@ -1047,6 +1048,17 @@
             } else {
                 activeRoleKey = 'athlete';
             }
+
+            // Guardamos el rol activo correcto para que no vuelva a fallar
+            localStorage.setItem('kinet_active_role', activeRoleKey);
+
+            // Definimos el título superior limpio según el rol real activo (sin mezclar textos raros)
+            let specificRoleTitle = "";
+            if (activeRoleKey === 'athlete') specificRoleTitle = 'Atleta Pro';
+            else if (activeRoleKey === 'staff') specificRoleTitle = 'Entrenador / Staff';
+            else if (activeRoleKey === 'scout') specificRoleTitle = 'Director Deportivo / Scout';
+
+            document.getElementById('topbar-role-title').textContent = specificRoleTitle.toUpperCase();
 
             document.body.setAttribute('data-role', activeRoleKey);
             localStorage.setItem('kinet_active_role', activeRoleKey);
