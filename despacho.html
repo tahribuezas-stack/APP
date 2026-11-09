@@ -311,8 +311,8 @@
             .col-6 { grid-column: span 12; }
         }
 
-        /* CUADROS DE OPCIONES (KINET-PANELS) CON SPOTLIGHT INTERNO DEL CURSOR */
-        .kinet-panel {
+        /* CUADROS DE OPCIONES (KINET-PANELS) Y TARJETAS CON SPOTLIGHT INTERNO DEL CURSOR */
+        .kinet-panel, .pricing-card {
             background: var(--bg-panel);
             border: 1px solid var(--border-subtle);
             border-radius: 20px;
@@ -324,21 +324,21 @@
             transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
         }
 
-        .kinet-panel::before {
+        .kinet-panel::before, .pricing-card::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: radial-gradient(280px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(var(--role-rgb), 0.22), transparent 75%);
+            background: radial-gradient(300px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(var(--role-rgb), 0.22), transparent 75%);
             opacity: 0;
             transition: opacity 0.25s ease;
             pointer-events: none;
             z-index: 0;
         }
 
-        .kinet-panel > * { position: relative; z-index: 1; }
-        .kinet-panel:hover::before { opacity: 1; }
+        .kinet-panel > *, .pricing-card > * { position: relative; z-index: 1; }
+        .kinet-panel:hover::before, .pricing-card:hover::before { opacity: 1; }
 
-        .kinet-panel:hover {
+        .kinet-panel:hover, .pricing-card:hover {
             border-color: rgba(var(--role-rgb), 0.4);
             box-shadow: 0 18px 40px rgba(0,0,0,0.7), 0 0 26px rgba(var(--role-rgb), 0.15);
         }
@@ -357,27 +357,15 @@
 
         .pricing-card {
             background: #090D16;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 28px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.6);
         }
 
         .pricing-card.active-tier {
             border: 2px solid var(--role-color);
             box-shadow: 0 0 30px var(--role-glow), inset 0 0 20px rgba(var(--role-rgb), 0.15);
             background: linear-gradient(180deg, rgba(var(--role-rgb), 0.08) 0%, #090D16 60%);
-        }
-
-        .pricing-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(var(--role-rgb), 0.5);
         }
 
         .plan-badge {
@@ -707,11 +695,11 @@
                                 <div class="setting-row">
                                     <div class="setting-info">
                                         <label>Tipo de Cuenta Actual</label>
-                                        <span id="account-tier-label" style="color: var(--role-color); font-weight: 700;">Plan Gratuito (Básico)</span>
+                                        <span id="account-tier-label" style="color: var(--role-color); font-weight: 700;">KINET PRO (Datos Protegidos)</span>
                                     </div>
                                     <select id="setting-account-type" class="setting-select" onchange="updateAccountTier(this.value)">
-                                        <option value="free" selected>Plan Gratuito (Free)</option>
-                                        <option value="pro">Pro Player (PRO)</option>
+                                        <option value="free">Plan Gratuito (Free)</option>
+                                        <option value="pro" selected>Pro Player (PRO)</option>
                                         <option value="club">Club & Scout</option>
                                     </select>
                                 </div>
@@ -791,7 +779,7 @@
                     </div>
                 </div>
 
-                <!-- CONTENIDO PESTAÑA 3: SUBSCRIPCIONES & KINET PRO (ESTILO TARJETAS DE REFERENCIA) -->
+                <!-- CONTENIDO PESTAÑA 3: SUBSCRIPCIONES & KINET PRO (DINÁMICO SEGÚN TIER) -->
                 <div id="tab-subscription" class="tab-content">
                     <div class="pricing-cards-grid" id="pricing-cards-container">
                         <!-- Generado dinámicamente según el plan activo -->
@@ -1022,7 +1010,8 @@
             const faviconSvg = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22${faviconHex}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`;
             document.getElementById('dynamic-favicon').setAttribute('href', faviconSvg);
 
-            document.querySelectorAll('.kinet-panel').forEach(panel => {
+            // MOUSE TRACKING SPOTLIGHT SOLO DENTRO DE LOS CUADROS Y TARJETAS DE OPCIONES (.kinet-panel Y .pricing-card)
+            document.querySelectorAll('.kinet-panel, .pricing-card').forEach(panel => {
                 panel.addEventListener('mousemove', (e) => {
                     const rect = panel.getBoundingClientRect();
                     panel.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
@@ -1214,6 +1203,15 @@
                     `;
                 }
             }
+
+            // Reasignar el listener de spotlight a las tarjetas recién renderizadas
+            document.querySelectorAll('.kinet-panel, .pricing-card').forEach(panel => {
+                panel.addEventListener('mousemove', (e) => {
+                    const rect = panel.getBoundingClientRect();
+                    panel.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+                    panel.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+                });
+            });
         }
 
         function promptRoleSwitch(newRole) {
@@ -1260,7 +1258,7 @@
 
         function toggleSpotlight(enabled) {
             localStorage.setItem('kinet_spotlight', enabled);
-            document.querySelectorAll('.kinet-panel').forEach(p => {
+            document.querySelectorAll('.kinet-panel, .pricing-card').forEach(p => {
                 p.style.boxShadow = enabled ? '0 14px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)' : 'none';
             });
         }
