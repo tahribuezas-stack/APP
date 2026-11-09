@@ -1,43 +1,61 @@
 // kinet-theme.js - Sincronizador Global de Tema y Estética para KINET OS
 (function() {
-    const savedAccent = localStorage.getItem('kinet_accent_color');
-    const savedBg = localStorage.getItem('kinet_bg_intensity');
-    const savedSpotlight = localStorage.getItem('kinet_spotlight');
+    function applyGlobalAccent(hexColor) {
+        let r = 0, g = 255, b = 136;
+        if (hexColor === '#3B82F6') { r = 59; g = 130; b = 246; }
+        else if (hexColor === '#F59E0B') { r = 245; g = 158; b = 11; }
+        else if (hexColor === '#EC4899') { r = 236; g = 72; b = 153; }
+        else if (hexColor === '#00FF88') { r = 0; g = 255; b = 136; }
 
-    if (savedAccent) {
-        applyGlobalAccent(savedAccent);
+        const root = document.documentElement;
+        root.style.setProperty('--role-color', hexColor);
+        root.style.setProperty('--role-rgb', `${r}, ${g}, ${b}`);
+        root.style.setProperty('--role-glow', `rgba(${r}, ${g}, ${b}, 0.38)`);
+        root.style.setProperty('--role-gradient', `linear-gradient(135deg, ${hexColor} 0%, rgba(${r},${g},${b},0.75) 100%)`);
     }
 
-    if (savedBg) {
-        applyGlobalBg(savedBg);
+    function applyGlobalBg(mode) {
+        const root = document.documentElement;
+        if (mode === 'deep') {
+            root.style.setProperty('--bg-void', '#020305');
+        } else if (mode === 'contrast') {
+            root.style.setProperty('--bg-void', '#0B101D');
+        } else {
+            root.style.setProperty('--bg-void', '#06080E');
+        }
     }
 
-    if (savedSpotlight === 'false') {
-        document.documentElement.style.setProperty('--spotlight-opacity', '0');
+    // Exponer funciones globalmente en window para los eventos onchange de los HTML
+    window.applyGlobalAccent = applyGlobalAccent;
+    window.applyGlobalBg = applyGlobalBg;
+
+    // Aplicar automáticamente al cargar cualquier página del OS
+    function initTheme() {
+        const savedAccent = localStorage.getItem('kinet_accent_color');
+        const savedBg = localStorage.getItem('kinet_bg_intensity');
+        const savedSpotlight = localStorage.getItem('kinet_spotlight');
+
+        if (savedAccent) {
+            applyGlobalAccent(savedAccent);
+            const accentSelect = document.getElementById('setting-accent-color');
+            if (accentSelect) accentSelect.value = savedAccent;
+        }
+
+        if (savedBg) {
+            applyGlobalBg(savedBg);
+            const bgSelect = document.getElementById('setting-bg-intensity');
+            if (bgSelect) bgSelect.value = savedBg;
+        }
+
+        if (savedSpotlight === 'false') {
+            const spotCheck = document.getElementById('setting-spotlight');
+            if (spotCheck) spotCheck.checked = false;
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initTheme);
+    } else {
+        initTheme();
     }
 })();
-
-function applyGlobalAccent(hexColor) {
-    let r = 0, g = 255, b = 136;
-    if (hexColor === '#3B82F6') { r = 59; g = 130; b = 246; }
-    else if (hexColor === '#F59E0B') { r = 245; g = 158; b = 11; }
-    else if (hexColor === '#EC4899') { r = 236; g = 72; b = 153; }
-    else if (hexColor === '#00FF88') { r = 0; g = 255; b = 136; }
-
-    const root = document.documentElement;
-    root.style.setProperty('--role-color', hexColor);
-    root.style.setProperty('--role-rgb', `${r}, ${g}, ${b}`);
-    root.style.setProperty('--role-glow', `rgba(${r}, ${g}, ${b}, 0.38)`);
-    root.style.setProperty('--role-gradient', `linear-gradient(135deg, ${hexColor} 0%, rgba(${r},${g},${b},0.75) 100%)`);
-}
-
-function applyGlobalBg(mode) {
-    const root = document.documentElement;
-    if (mode === 'deep') {
-        root.style.setProperty('--bg-void', '#020305');
-    } else if (mode === 'contrast') {
-        root.style.setProperty('--bg-void', '#0B101D');
-    } else {
-        root.style.setProperty('--bg-void', '#06080E');
-    }
-}
