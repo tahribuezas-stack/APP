@@ -70,20 +70,6 @@
             transition: background-image 0.4s ease;
         }
 
-        /* CURSOR GLOW SHADOW EFFECT LAYER */
-        #cursor-glow {
-            pointer-events: none;
-            position: fixed;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(var(--role-rgb), 0.12) 0%, transparent 70%);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: opacity 0.3s ease;
-            z-index: 999;
-            opacity: 0;
-        }
-
         /* LAYOUT PRINCIPAL */
         .os-layout {
             display: grid;
@@ -409,7 +395,7 @@
         }
         .btn-danger:hover { background: rgba(239, 68, 68, 0.25); box-shadow: 0 0 16px rgba(239, 68, 68, 0.2); }
 
-        /* CUSTOM KINET MODAL OVERLAY (CENTRAL, SERIO Y ESTILIZADO) */
+        /* CUSTOM KINET MODAL OVERLAY */
         .kinet-modal-overlay {
             position: fixed; inset: 0; background: rgba(4, 6, 10, 0.85); backdrop-filter: blur(18px); z-index: 500;
             display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
@@ -690,38 +676,10 @@
                     </div>
                 </div>
 
-                <!-- CONTENIDO PESTAÑA 3: SUBSCRIPCIONES & KINET PRO -->
+                <!-- CONTENIDO PESTAÑA 3: SUBSCRIPCIONES & KINET PRO (DINÁMICO SEGÚN TIER) -->
                 <div id="tab-subscription" class="tab-content">
-                    <div class="settings-grid">
-                        <div class="col-12">
-                            <div class="kinet-panel" style="background: linear-gradient(135deg, rgba(var(--role-rgb), 0.12) 0%, rgba(13, 17, 26, 0.95) 70%); border-color: rgba(var(--role-rgb), 0.4);">
-                                <div class="panel-head" style="border-color: rgba(var(--role-rgb), 0.2);">
-                                    <span class="panel-label" style="color: var(--role-color);">⚡ LICENCIA EJECUTIVA // KINET PRO ACTIVE</span>
-                                    <span class="verified-badge" id="sub-status-badge" style="background: rgba(var(--role-rgb), 0.15); border: 1px solid var(--role-color); color: var(--role-color); padding: 4px 10px; border-radius: 8px; font-family:'JetBrains Mono'; font-size:0.7rem;">ESTADO: PROTEGIDO</span>
-                                </div>
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 10px;">
-                                    <div style="background: rgba(4,6,10,0.6); padding: 16px; border-radius: 14px; border: 1px solid var(--border-subtle);">
-                                        <span style="font-family:'JetBrains Mono'; font-size:0.68rem; color:var(--text-secondary);">PLAN CONTRATADO</span>
-                                        <h4 id="sub-plan-title" style="font-family:'Orbitron',sans-serif; font-size:1.1rem; color:white; margin-top:4px;">KINET PRO ENTERPRISE</h4>
-                                        <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:6px;">Renovación automática el 14 de Noviembre de 2027.</p>
-                                    </div>
-                                    <div style="background: rgba(4,6,10,0.6); padding: 16px; border-radius: 14px; border: 1px solid var(--border-subtle);">
-                                        <span style="font-family:'JetBrains Mono'; font-size:0.68rem; color:var(--role-color);">ESPECIALISTAS IA INCLUIDOS</span>
-                                        <h4 style="font-family:'Orbitron',sans-serif; font-size:1.1rem; color:white; margin-top:4px;">4 / 4 AGENTES EN SALA</h4>
-                                        <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:6px;">Acceso prioritario a Sala de Juntas y Ojeador Live.</p>
-                                    </div>
-                                    <div style="background: rgba(4,6,10,0.6); padding: 16px; border-radius: 14px; border: 1px solid var(--border-subtle);">
-                                        <span style="font-family:'JetBrains Mono'; font-size:0.68rem; color:var(--text-secondary);">CAPACIDAD CLOUD SYNC</span>
-                                        <h4 style="font-family:'Orbitron',sans-serif; font-size:1.1rem; color:white; margin-top:4px;">ILIMITADA (50 GB)</h4>
-                                        <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:6px;">Telemetría y exportación en formatos avanzados.</p>
-                                    </div>
-                                </div>
-                                <div style="margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
-                                    <button class="btn-primary" onclick="alert('Tu suscripción KINET PRO está al día. No se requieren acciones adicionales.')">Gestionar Facturación</button>
-                                    <button class="btn-secondary" onclick="alert('Módulo de actualización de plan disponible próximamente en el canal corporativo.')">Ver Planes Corporativos</button>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="settings-grid" id="subscription-grid-container">
+                        <!-- Se llena dinámicamente según si es Invitado, Free o Pro/Club/Scout -->
                     </div>
                 </div>
 
@@ -897,17 +855,14 @@
             const roleLabels = { athlete: "ATLETA PRO", staff: "ENTRENADOR / STAFF", scout: "DIRECTOR DEPORTIVO / SCOUT" };
             document.getElementById('topbar-role-title').textContent = roleLabels[activeRoleKey];
 
-            // Poner el selector de rol en el valor actual
             const roleSwitcher = document.getElementById('setting-role-switcher');
             if (roleSwitcher) roleSwitcher.value = activeRoleKey;
 
-            // Recuperar tipo de cuenta guardado (pro, free, guest)
             const currentTier = localStorage.getItem('kinet_account_tier') || 'pro';
             const tierSelect = document.getElementById('setting-account-type');
             if (tierSelect) tierSelect.value = currentTier;
             updateTierUI(currentTier);
 
-            // Cargar preferencias globales de personalización guardadas si existen
             const savedAccent = localStorage.getItem('kinet_accent_color');
             if (savedAccent) {
                 const accentSelect = document.getElementById('setting-accent-color');
@@ -942,22 +897,19 @@
                 }
             }
 
-            // Sincronizar enlaces de navegación con rol y deporte
             const queryParams = `?role=${activeRoleKey}&sport=${encodeURIComponent(sportChosen)}`;
             ['nav-vestuario', 'mob-vestuario'].forEach(id => { const el = document.getElementById(id); if (el) el.href = `app.html${queryParams}`; });
             ['nav-cuerpo-tecnico', 'mob-cuerpo'].forEach(id => { const el = document.getElementById(id); if (el) el.href = `cuerpo-tecnico.html${queryParams}`; });
 
-            // Favicon dinámico
             const faviconHex = activeRoleKey === 'staff' ? '%23F59E0B' : (activeRoleKey === 'scout' ? '%233B82F6' : '%2300FF88');
             const faviconSvg = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22${faviconHex}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`;
             document.getElementById('dynamic-favicon').setAttribute('href', faviconSvg);
 
-            // MOUSE TRACKING SPOTLIGHT SOLO DENTRO DE LOS CUADROS DE OPCIONES (KINET-PANELS)
             document.querySelectorAll('.kinet-panel').forEach(panel => {
                 panel.addEventListener('mousemove', (e) => {
                     const rect = panel.getBoundingClientRect();
                     panel.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
-                    panel.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+                    panel.style.setProperty('--mouse-y`, `${e.clientY - rect.top}px`);
                 });
             });
         });
@@ -983,21 +935,107 @@
 
         function updateTierUI(tier) {
             const label = document.getElementById('account-tier-label');
-            const subBadge = document.getElementById('sub-status-badge');
-            const subTitle = document.getElementById('sub-plan-title');
+            const container = document.getElementById('subscription-grid-container');
 
             if (tier === 'guest') {
                 if(label) { label.textContent = "Modo Invitado (Datos Temporales)"; label.style.color = "#EF4444"; }
-                if(subBadge) { subBadge.textContent = "ESTADO: INVITADO"; subBadge.style.color = "#EF4444"; subBadge.style.borderColor = "#EF4444"; }
-                if(subTitle) subTitle.textContent = "KINET GUEST ACCESS";
+                if(container) {
+                    container.innerHTML = `
+                        <div class="col-12">
+                            <div class="kinet-panel" style="background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.4);">
+                                <div class="panel-head">
+                                    <span class="panel-label" style="color: #EF4444;">🛡️ ACCESO INVITADO // SIN SUBSCRIPCIÓN ACTIVA</span>
+                                    <span class="verified-badge" style="background: rgba(239,68,68,0.15); color:#EF4444; border:1px solid rgba(239,68,68,0.4); padding:4px 10px; border-radius:8px; font-family:'JetBrains Mono'; font-size:0.7rem;">ESTADO: INVITADO</span>
+                                </div>
+                                <p style="font-size: 0.88rem; color: #CBD5E1; margin-bottom: 16px;">Estás navegando en modo temporal. Para desbloquear la Sala de Juntas IA completa, Ojeador Live y sincronización en la nube, elige un plan corporativo o pásate a PRO.</p>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;">
+                                    <div style="background: rgba(4,6,10,0.8); padding: 18px; border-radius: 14px; border: 1px solid var(--border-subtle);">
+                                        <span style="font-family:'JetBrains Mono'; font-size:0.68rem; color:var(--text-secondary);">PLAN BÁSICO</span>
+                                        <h4 style="font-family:'Orbitron',sans-serif; font-size:1rem; color:white; margin-top:4px;">KINET FREE</h4>
+                                        <p style="font-size:0.78rem; color:var(--text-secondary); margin:6px 0 12px 0;">Acceso limitado a 1 agente IA y almacenamiento local.</p>
+                                        <button class="btn-secondary" style="width:100%;" onclick="updateAccountTier('free'); alert('¡Te has cambiado a KINET Free!');">Seleccionar Free</button>
+                                    </div>
+                                    <div style="background: rgba(0,255,136,0.04); padding: 18px; border-radius: 14px; border: 1px solid rgba(0,255,136,0.3);">
+                                        <span style="font-family:'JetBrains Mono'; font-size:0.68rem; color:var(--role-color);">RECOMENDADO</span>
+                                        <h4 style="font-family:'Orbitron',sans-serif; font-size:1rem; color:white; margin-top:4px;">KINET PRO</h4>
+                                        <p style="font-size:0.78rem; color:var(--text-secondary); margin:6px 0 12px 0;">4 Agentes en sala, Ojeador Live y Cloud Sync ilimitado.</p>
+                                        <button class="btn-primary" style="width:100%;" onclick="updateAccountTier('pro'); alert('¡Bienvenido a KINET PRO! Suscripción activada.');">Suscribirse (19.99€/mes)</button>
+                                    </div>
+                                    <div style="background: rgba(4,6,10,0.8); padding: 18px; border-radius: 14px; border: 1px solid var(--border-subtle);">
+                                        <span style="font-family:'JetBrains Mono'; font-size:0.68rem; color:#3B82F6;">CORPORATIVO</span>
+                                        <h4 style="font-family:'Orbitron',sans-serif; font-size:1rem; color:white; margin-top:4px;">CLUB & SCOUT</h4>
+                                        <p style="font-size:0.78rem; color:var(--text-secondary); margin:6px 0 12px 0;">Gestión de plantillas completas y Big Data avanzado.</p>
+                                        <button class="btn-secondary" style="width:100%; border-color:#3B82F6; color:#3B82F6;" onclick="updateAccountTier('pro'); alert('¡Suscripción Scout Enterprise activada!');">Suscribirse (79.99€/mes)</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
             } else if (tier === 'free') {
                 if(label) { label.textContent = "Cuenta Gratuita (Restringida)"; label.style.color = "#F59E0B"; }
-                if(subBadge) { subBadge.textContent = "ESTADO: FREE"; subBadge.style.color = "#F59E0B"; subBadge.style.borderColor = "#F59E0B"; }
-                if(subTitle) subTitle.textContent = "KINET FREE TIER";
+                if(container) {
+                    container.innerHTML = `
+                        <div class="col-12">
+                            <div class="kinet-panel" style="background: rgba(245, 158, 11, 0.05); border-color: rgba(245, 158, 11, 0.4);">
+                                <div class="panel-head">
+                                    <span class="panel-label" style="color: #F59E0B;">⚡ CUENTA GRATUITA // CARACTERÍSTICAS LIMITADAS</span>
+                                    <span class="verified-badge" style="background: rgba(245,158,11,0.15); color:#F59E0B; border:1px solid rgba(245,158,11,0.4); padding:4px 10px; border-radius:8px; font-family:'JetBrains Mono'; font-size:0.7rem;">ESTADO: FREE</span>
+                                </div>
+                                <p style="font-size: 0.88rem; color: #CBD5E1; margin-bottom: 16px;">Estás en el plan gratuito. Pásate a la versión superior para desbloquear todo el potencial de KINET OS.</p>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+                                    <div style="background: rgba(4,6,10,0.8); padding: 18px; border-radius: 14px; border: 1px solid var(--border-subtle);">
+                                        <span style="font-family:'JetBrains Mono'; font-size:0.68rem; color:var(--text-secondary);">PLAN ACTUAL</span>
+                                        <h4 style="font-family:'Orbitron',sans-serif; font-size:1.1rem; color:white; margin-top:4px;">KINET FREE TIER</h4>
+                                        <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:6px;">Sin acceso prioritario a agentes avanzados.</p>
+                                    </div>
+                                    <div style="background: rgba(0,255,136,0.06); padding: 18px; border-radius: 14px; border: 1px solid rgba(0,255,136,0.4);">
+                                        <span style="font-family:'JetBrains Mono'; font-size:0.68rem; color:var(--role-color);">MEJORA RECOMENDADA</span>
+                                        <h4 style="font-family:'Orbitron',sans-serif; font-size:1.1rem; color:white; margin-top:4px;">KINET PRO ENTERPRISE</h4>
+                                        <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:6px;">Desbloquea los 4 agentes y Ojeador Live al instante.</p>
+                                        <button class="btn-primary" style="margin-top:14px; width:100%;" onclick="updateAccountTier('pro'); alert('¡Actualizado a KINET PRO con éxito!');">Pasarse a KINET PRO (19.99€)</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
             } else {
                 if(label) { label.textContent = "KINET PRO (Datos Protegidos)"; label.style.color = "var(--role-color)"; }
-                if(subBadge) { subBadge.textContent = "ESTADO: PROTEGIDO"; subBadge.style.color = "var(--role-color)"; subBadge.style.borderColor = "var(--role-color)"; }
-                if(subTitle) subTitle.textContent = "KINET PRO ENTERPRISE";
+                if(container) {
+                    container.innerHTML = `
+                        <div class="col-12">
+                            <div class="kinet-panel" style="background: linear-gradient(135deg, rgba(var(--role-rgb), 0.12) 0%, rgba(13, 17, 26, 0.95) 70%); border-color: rgba(var(--role-rgb), 0.4);">
+                                <div class="panel-head" style="border-color: rgba(var(--role-rgb), 0.2);">
+                                    <span class="panel-label" style="color: var(--role-color);">⚡ LICENCIA EJECUTIVA // KINET PRO ACTIVE</span>
+                                    <span class="verified-badge" id="sub-status-badge" style="background: rgba(var(--role-rgb), 0.15); border: 1px solid var(--role-color); color: var(--role-color); padding: 4px 10px; border-radius: 8px; font-family:'JetBrains Mono'; font-size:0.7rem;">ESTADO: PROTEGIDO</span>
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 10px;">
+                                    <div style="background: rgba(4,6,10,0.6); padding: 16px; border-radius: 14px; border: 1px solid var(--border-subtle);">
+                                        <span style="font-family:'JetBrains Mono'; font-size:0.68rem; color:var(--text-secondary);">PLAN CONTRATADO</span>
+                                        <h4 id="sub-plan-title" style="font-family:'Orbitron',sans-serif; font-size:1.1rem; color:white; margin-top:4px;">KINET PRO ENTERPRISE</h4>
+                                        <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:6px;">Renovación automática el 14 de Noviembre de 2027.</p>
+                                    </div>
+                                    <div style="background: rgba(4,6,10,0.6); padding: 16px; border-radius: 14px; border: 1px solid var(--border-subtle);">
+                                        <span style="font-family:'JetBrains Mono'; font-size:0.68rem; color:var(--role-color);">ESPECIALISTAS IA INCLUIDOS</span>
+                                        <h4 style="font-family:'Orbitron',sans-serif; font-size:1.1rem; color:white; margin-top:4px;">4 / 4 AGENTES EN SALA</h4>
+                                        <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:6px;">Acceso prioritario a Sala de Juntas y Ojeador Live.</p>
+                                    </div>
+                                    <div style="background: rgba(4,6,10,0.6); padding: 16px; border-radius: 14px; border: 1px solid var(--border-subtle);">
+                                        <span style="font-family:'JetBrains Mono'; font-size:0.68rem; color:var(--text-secondary);">CAPACIDAD CLOUD SYNC</span>
+                                        <h4 style="font-family:'Orbitron',sans-serif; font-size:1.1rem; color:white; margin-top:4px;">ILIMITADA (50 GB)</h4>
+                                        <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:6px;">Telemetría y exportación en formatos avanzados.</p>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
+                                    <button class="btn-primary" onclick="alert('Tu suscripción KINET PRO está al día. No se requieren acciones adicionales.')">Gestionar Facturación</button>
+                                    <button class="btn-secondary" onclick="if(confirm('¿Deseas cambiar a plan más económico (KINET Free)?')) { updateAccountTier('free'); }">Cambiar a Plan Más Barato (Free)</button>
+                                    <button class="btn-danger" onclick="if(confirm('¿Estás seguro de cancelar tu subscripción PRO? Perderás acceso a los agentes avanzados.')) { updateAccountTier('free'); alert('Suscripción cancelada con éxito.'); }">Cancelar Subscripción</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
             }
         }
 
@@ -1024,9 +1062,9 @@
 
         function confirmRoleSwitch() {
             document.getElementById('role-switch-modal').classList.remove('open');
-            // Limpiar datos y redirigir a index.html con parámetro para mostrar la selección de perfil/rol (Fase 1)
+            // Limpiar datos y redirigir a index.html (Fase 1 de personalización de rol)
             localStorage.clear();
-            window.location.href = 'fase1.html?select_role=true';
+            window.location.href = 'index.html';
         }
 
         function executeRoleSwitch(newRole) {
@@ -1088,7 +1126,7 @@
 
         function executeLogout() {
             localStorage.removeItem('kinet_active_role');
-            window.location.href = 'fase1.html?select_role=true';
+            window.location.href = 'index.html';
         }
 
         function saveAllSettings() {
