@@ -677,27 +677,37 @@
       }
     }
 
-  function finishOnboarding() {
-  const profilesDB = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
+function finishOnboarding() {
+    state.altura = document.getElementById('slider-altura').value;
+    state.peso = document.getElementById('slider-peso').value;
+    state.edad = document.getElementById('slider-edad').value;
 
-  // Guardamos el perfil de Atleta sin borrar Coach ni Scout
-  profilesDB.athlete = {
-    roleType: 'athlete',
-    roleName: localStorage.getItem('kinet_role') || 'Atleta Pro',
-    sport: localStorage.getItem('kinet_sport') || 'Fútbol',
-    category: localStorage.getItem('kinet_category') || 'Alto Rendimiento',
-    position: localStorage.getItem('kinet_position') || 'Explosive Playmaker',
-    updatedAt: new Date().toISOString()
-  };
+    const profilesDB = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
 
-  localStorage.setItem('kinet_profiles_db', JSON.stringify(profilesDB));
-  localStorage.setItem('kinet_active_role', 'athlete');
-  localStorage.setItem('kinet_profile_completed', 'true');
-  localStorage.setItem('kinet_logged_in', 'true');
+    profilesDB.athlete = {
+      roleType: 'athlete',
+      roleName: 'Atleta Pro',
+      sport: state.sport,
+      category: state.category,
+      position: state.position,
+      altura: state.altura,
+      peso: state.peso,
+      edad: state.edad,
+      aiCompleted: state.aiCompleted,
+      updatedAt: new Date().toISOString()
+    };
 
-  // Mandar directo a la App en modo Atleta (Verde)
-  window.location.href = 'app.html?role=athlete';
-}
+    localStorage.setItem('kinet_profiles_db', JSON.stringify(profilesDB));
+    localStorage.setItem('kinet_role', 'Atleta Pro');
+    localStorage.setItem('kinet_sport', state.sport);
+    localStorage.setItem('kinet_category', state.category);
+    localStorage.setItem('kinet_position', state.position);
+    localStorage.setItem('kinet_active_role', 'athlete');
+    localStorage.setItem('kinet_profile_completed', 'true');
+    localStorage.setItem('kinet_logged_in', 'true');
+
+    window.location.href = `app.html?role=athlete&sport=${encodeURIComponent(state.sport)}`;
+  }
   </script>
 </body>
 </html>
