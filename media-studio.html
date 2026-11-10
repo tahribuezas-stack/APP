@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#06080E">
+    <title>KINET OS // KINET Media Studio™ & Spotify Sync</title>
+    
+    <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-void: #06080E;
+            --bg-panel: rgba(13, 17, 26, 0.90);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --role-color: #00FF88;
+            --role-rgb: 0, 255, 136;
+            --role-glow: rgba(0, 255, 136, 0.38);
+            --role-gradient: linear-gradient(135deg, #00FF88 0%, #00B359 100%);
+        }
+
+        body[data-role="athlete"] { --role-color: #00FF88; --role-rgb: 0, 255, 136; --role-glow: rgba(0, 255, 136, 0.38); --role-gradient: linear-gradient(135deg, #00FF88 0%, #00B359 100%); }
+        body[data-role="staff"] { --role-color: #F59E0B; --role-rgb: 245, 158, 11; --role-glow: rgba(245, 158, 11, 0.38); --role-gradient: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); }
+        body[data-role="scout"] { --role-color: #3B82F6; --role-rgb: 59, 130, 246; --role-glow: rgba(59, 130, 246, 0.38); --role-gradient: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; text-decoration: none !important; }
+        html, body {
+            background-color: var(--bg-void);
+            background-image: 
+                radial-gradient(circle at 50% -20%, rgba(var(--role-rgb), 0.14), transparent 60%),
+                linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+            color: var(--text-primary); font-family: 'Inter', sans-serif; height: 100vh; overflow: hidden;
+        }
+
+        .os-layout { display: grid; grid-template-columns: 270px 1fr; height: 100vh; overflow: hidden; }
+        @media (max-width: 960px) { .os-layout { grid-template-columns: 1fr; height: auto; min-height: 100vh; overflow-y: auto; padding-bottom: 85px; } html, body { height: auto !important; overflow-y: auto !important; } .os-main { height: auto !important; overflow: visible !important; } }
+
+        /* SIDEBAR */
+        .os-sidebar {
+            background: rgba(8, 11, 18, 0.95); backdrop-filter: blur(24px); border-right: 1px solid var(--border-subtle);
+            padding: 18px 16px; display: flex; flex-direction: column; justify-content: space-between; height: 100vh; z-index: 90;
+        }
+        @media (max-width: 960px) { .os-sidebar { display: none !important; } }
+        
+        .brand-box { display: flex; align-items: center; gap: 12px; text-decoration: none !important; padding: 4px; border-radius: 14px; margin-bottom: 6px; transition: transform 0.3s ease; }
+        .brand-box:hover { transform: scale(1.02); }
+        .brand-logo-icon {
+            width: 36px; height: 36px; border-radius: 12px; background: var(--role-gradient); color: #04060A;
+            font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.15rem; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 18px var(--role-glow);
+        }
+        .brand-text h1 { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1rem; letter-spacing: 0.15em; color: white; line-height: 1; text-decoration: none !important; border: none !important; }
+        .brand-text span { font-size: 7.5px; font-family: 'JetBrains Mono', monospace; color: var(--role-color); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 3px; display: block; }
+
+        .side-link {
+            display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 14px;
+            background: rgba(255, 255, 255, 0.015); border: 1px solid var(--border-subtle); color: var(--text-secondary);
+            font-size: 0.83rem; font-weight: 600; height: 44px; text-decoration: none; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); margin-bottom: 8px;
+        }
+        .side-link-left { display: flex; align-items: center; gap: 12px; }
+        .side-link:hover { color: var(--text-primary); border-color: rgba(var(--role-rgb), 0.45); transform: translateX(3px); }
+        .side-link.active { background: rgba(var(--role-rgb), 0.14); border-color: var(--role-color); color: var(--role-color); box-shadow: 0 0 18px rgba(var(--role-rgb), 0.18); }
+
+        /* MAIN CONTENT */
+        .os-main { display: flex; flex-direction: column; min-width: 0; height: 100vh; overflow: hidden; }
+        
+        /* TOPBAR IDÉNTICO A DESPACHO */
+        .os-topbar {
+            background: rgba(6, 8, 14, 0.88); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-subtle);
+            padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px;
+        }
+        .topbar-actions { display: flex; align-items: center; gap: 12px; }
+        .active-role-indicator {
+            display: flex; align-items: center; background: rgba(13, 17, 26, 0.95); border: 1px solid rgba(var(--role-rgb), 0.45);
+            border-radius: 999px; padding: 6px 14px; gap: 8px;
+        }
+        .active-role-indicator .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--role-color); box-shadow: 0 0 8px var(--role-color); }
+        .active-role-text { font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.68rem; color: var(--text-primary); letter-spacing: 0.08em; text-transform: uppercase; }
+
+        .os-workspace { max-width: 1360px; width: 100%; margin: 0 auto; padding: 24px; flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; }
+        
+        /* SPOTLIGHT PANELS & CARDS CON SOMBRA DE CURSOR REACTIVA */
+        .kinet-panel, .pricing-card, .template-chip {
+            background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 20px;
+            backdrop-filter: blur(20px); position: relative; overflow: hidden; box-shadow: 0 14px 34px rgba(0,0,0,0.5);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .kinet-panel::before, .pricing-card::before, .template-chip::before {
+            content: ''; position: absolute; inset: 0; background: radial-gradient(300px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(var(--role-rgb), 0.24), transparent 75%);
+            opacity: 0; transition: opacity 0.25s ease; pointer-events: none; z-index: 0;
+        }
+        .kinet-panel > *, .pricing-card > *, .template-chip > * { position: relative; z-index: 1; }
+        .kinet-panel:hover::before, .pricing-card:hover::before, .template-chip:hover::before { opacity: 1; }
+        .kinet-panel:hover { border-color: rgba(var(--role-rgb), 0.45); box-shadow: 0 18px 45px rgba(0,0,0,0.7), 0 0 25px rgba(var(--role-rgb), 0.15); }
+
+        /* LÍNEA HORIZONTAL DE PLANTILLAS */
+        .templates-row-container { margin-bottom: 20px; }
+        .templates-row-title {
+            font-family: 'Orbitron', sans-serif; font-size: 0.82rem; font-weight: 800; color: white; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .templates-scroll-row {
+            display: flex; gap: 12px; overflow-x: auto; padding: 6px 4px 10px 4px; scrollbar-width: thin; scrollbar-color: var(--role-color) rgba(255,255,255,0.05);
+        }
+        .templates-scroll-row::-webkit-scrollbar { height: 6px; }
+        .templates-scroll-row::-webkit-scrollbar-thumb { background: rgba(var(--role-rgb), 0.4); border-radius: 4px; }
+
+        .template-chip {
+            min-width: 150px; height: 82px; background: #090D16 !important; border: 1px solid var(--border-subtle); border-radius: 14px;
+            padding: 12px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: all 0.25s ease; flex-shrink: 0;
+        }
+        .template-chip:hover { border-color: var(--role-color); transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.6), 0 0 18px var(--role-glow); }
+        .template-chip span { font-size: 0.75rem; font-weight: 700; color: white; }
+        .template-chip sub { font-size: 0.62rem; color: #94A3B8; font-family: 'JetBrains Mono'; }
+
+        /* EDITOR STUDIO PRINCIPAL */
+        .studio-main-grid { display: grid; grid-template-columns: 1fr 380px; gap: 20px; }
+        @media (max-width: 1024px) { .studio-main-grid { grid-template-columns: 1fr; } }
+
+        /* ZONA DE ARRASTRE ADAPTATIVA */
+        .dropzone-box {
+            background: #090D16; border: 2px dashed rgba(255, 255, 255, 0.15); border-radius: 18px; padding: 28px;
+            text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 190px;
+            cursor: pointer; transition: all 0.3s ease; margin-bottom: 16px; position: relative; overflow: hidden;
+        }
+        .dropzone-box:hover { border-color: var(--role-color); background: rgba(var(--role-rgb), 0.04); box-shadow: inset 0 0 25px rgba(var(--role-rgb), 0.08), 0 0 20px rgba(var(--role-rgb), 0.15); transform: translateY(-2px); }
+
+        /* SIMULADOR SPOTIFY & OVERLAY KINET */
+        .preview-simulation-panel {
+            background: #04060A; border: 1px solid rgba(var(--role-rgb), 0.3); border-radius: 16px; padding: 18px;
+            position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .spotify-player-bar {
+            background: rgba(29, 185, 84, 0.1); border: 1px solid rgba(29, 185, 84, 0.3); border-radius: 12px; padding: 10px 14px;
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: #1DB954;
+        }
+        .soundwave { display: flex; align-items: center; gap: 3px; height: 16px; }
+        .soundwave i { width: 3px; background: #1DB954; animation: pulseWave 1s infinite alternate; border-radius: 2px; }
+        .soundwave i:nth-child(2) { animation-delay: 0.2s; }
+        .soundwave i:nth-child(3) { animation-delay: 0.4s; }
+        .soundwave i:nth-child(4) { animation-delay: 0.1s; }
+        @keyframes pulseWave { from { height: 4px; } to { height: 16px; } }
+
+        .verified-watermark {
+            position: absolute; bottom: 20px; left: 20px; background: rgba(4, 6, 10, 0.88); border: 1px solid var(--role-color);
+            padding: 6px 12px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--role-color);
+            display: flex; align-items: center; gap: 6px; box-shadow: 0 0 12px var(--role-glow); text-transform: uppercase; letter-spacing: 0.1em;
+        }
+
+        /* BARRA INFERIOR FLOTANTE ESTILO INTERFAZ */
+        .floating-command-bar {
+            background: rgba(13, 17, 26, 0.95); border: 1px solid rgba(var(--role-rgb), 0.4); border-radius: 16px;
+            padding: 10px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); margin-top: 16px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .floating-command-bar:focus-within { border-color: var(--role-color); box-shadow: 0 0 20px var(--role-glow); }
+        .floating-command-bar input {
+            flex-grow: 1; background: transparent; border: none; color: white; font-family: 'Inter', sans-serif; font-size: 0.85rem; outline: none;
+        }
+        .floating-command-bar input::placeholder { color: var(--text-secondary); }
+
+        .btn-kinet {
+            background: var(--role-gradient); color: #04060A; border: none; border-radius: 10px; padding: 10px 18px;
+            font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.72rem; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 0 15px var(--role-glow);
+        }
+        .btn-kinet:hover { filter: brightness(1.15); transform: translateY(-2px); box-shadow: 0 0 22px var(--role-glow); }
+
+        .tier-badge-label { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; padding: 3px 8px; border-radius: 6px; }
+
+        /* MODALES KINET CENTRALES CON ANIMACIÓN DE ENTRADA */
+        .kinet-modal-overlay {
+            position: fixed; inset: 0; background: rgba(4, 6, 10, 0.85); backdrop-filter: blur(18px); z-index: 500;
+            display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .kinet-modal-overlay.open { opacity: 1; pointer-events: auto; }
+        .kinet-modal-box {
+            background: rgba(13, 17, 26, 0.98); border: 1px solid rgba(var(--role-rgb), 0.5); border-radius: 22px; max-width: 460px; width: calc(100% - 32px);
+            padding: 28px; box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 35px rgba(var(--role-rgb), 0.2);
+            transform: scale(0.95) translateY(12px); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; flex-direction: column; gap: 16px; text-align: left;
+        }
+        .kinet-modal-overlay.open .kinet-modal-box { transform: scale(1) translateY(0); }
+        .kinet-modal-header { font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 800; color: white; display: flex; align-items: center; gap: 10px; }
+        .kinet-modal-body { font-size: 0.88rem; color: #CBD5E1; line-height: 1.6; }
+        .kinet-modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+
+        .btn-primary {
+            background: var(--role-gradient); color: #04060A; border: none; border-radius: 12px; padding: 11px 20px;
+            font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.74rem; cursor: pointer; transition: all 0.25s ease;
+            box-shadow: 0 0 18px var(--role-glow); text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
+        }
+        .btn-primary:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 0 26px var(--role-glow); }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 11px 18px;
+            font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.74rem; cursor: pointer; transition: all 0.25s ease;
+        }
+        .btn-secondary:hover { border-color: rgba(var(--role-rgb), 0.4); background: rgba(var(--role-rgb), 0.08); transform: translateY(-1px); }
+
+        /* NAVEGACIÓN MÓVIL */
+        .mobile-bottom-nav { display: none; position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); width: calc(100% - 24px); max-width: 440px; background: rgba(8, 11, 18, 0.95); backdrop-filter: blur(24px); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 6px; z-index: 120; justify-content: space-around; box-shadow: 0 20px 40px rgba(0,0,0,0.85); }
+        @media (max-width: 960px) { .mobile-bottom-nav { display: flex !important; } }
+        .m-nav-btn { background: transparent; border: none; color: var(--text-secondary); font-family: 'Inter', sans-serif; font-size: 0.62rem; font-weight: 700; padding: 6px 8px; border-radius: 14px; display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; cursor: pointer; }
+        .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
+    </style>
+</head>
+<body data-role="athlete">
+
+    <div class="os-layout">
+        
+        <!-- SIDEBAR FIJO -->
+        <aside class="os-sidebar">
+            <div class="sidebar-top-section">
+                <a href="index.html" class="brand-box">
+                    <div class="brand-logo-icon">K</div>
+                    <div class="brand-text">
+                        <h1>KINET OS</h1>
+                        <span id="sidebar-sport-subtitle">AI PRECISION // FÚTBOL</span>
+                    </div>
+                </a>
+
+                <nav class="sidebar-nav">
+                    <a href="app.html" id="nav-vestuario" class="side-link" style="margin-bottom: 10px;">
+                        <span class="side-link-left"><span>⚡</span> <span>Vestuario</span></span>
+                        <span style="font-size:0.65rem;font-family:'JetBrains Mono';">HOY</span>
+                    </a>
+                    <a href="cuerpo-tecnico.html" id="nav-cuerpo-tecnico" class="side-link" style="margin-bottom: 10px;">
+                        <span class="side-link-left"><span>🧠</span> <span>Cuerpo Técnico IA</span></span>
+                        <span style="font-size:0.7rem;opacity:0.8;">→</span>
+                    </a>
+                    <a href="ficha-pro.html" class="side-link" style="margin-bottom: 10px;">
+                        <span class="side-link-left"><span>🎴</span> <span>Ficha & KINET Card</span></span>
+                        <span style="font-size:0.7rem;opacity:0.5;">→</span>
+                    </a>
+                    <a href="ojeador-live.html" class="side-link" style="margin-bottom: 10px;">
+                        <span class="side-link-left"><span>📡</span> <span>Ojeador & Laboratorio</span></span>
+                        <span style="font-size:0.7rem;opacity:0.5;">→</span>
+                    </a>
+                    <a href="comunidad.html" class="side-link" style="margin-bottom: 10px;">
+                        <span class="side-link-left"><span>🌐</span> <span>Comunidad / Red Social</span></span>
+                        <span style="font-size:0.7rem;opacity:0.5;">→</span>
+                    </a>
+                    <a href="media-studio.html" class="side-link active" style="margin-bottom: 10px;">
+                        <span class="side-link-left"><span>🎵</span> <span>KINET Media Studio™</span></span>
+                        <span style="font-size:0.7rem;color:var(--role-color);">●</span>
+                    </a>
+                </nav>
+            </div>
+
+            <div class="sidebar-bottom-section">
+                <div class="sidebar-ai-tip-box">
+                    <div class="sidebar-ai-tip-header"><span>⚙️</span> <span id="sidebar-role-tag">Despacho Ejecutivo</span></div>
+                    <div class="sidebar-ai-tip-text">Centro de control, subscripciones y seguridad de KINET OS.</div>
+                </div>
+
+                <a href="perfil.html" class="side-link">
+                    <span class="side-link-left"><span>👤</span> <span>Mi Perfil</span></span>
+                    <span style="font-size:0.7rem;opacity:0.5;">→</span>
+                </a>
+                <a href="despacho.html" class="side-link">
+                    <span class="side-link-left"><span>⚙️</span> <span>Despacho & Ajustes</span></span>
+                    <span style="font-size:0.7rem;opacity:0.5;">→</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- ZONA PRINCIPAL -->
+        <div class="os-main">
+            
+            <header class="os-topbar">
+                <a href="index.html" class="mobile-brand" style="text-decoration:none;">
+                    <div class="brand-logo-icon" style="width:32px;height:32px;font-size:0.95rem;">K</div>
+                    <span style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:1rem;letter-spacing:0.1em;color:white;">KINET OS</span>
+                </a>
+
+                <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-secondary);display:flex;align-items:center;gap:10px;">
+                    <span>KINET MEDIA STUDIO™ // CREATIVE SUITE</span>
+                    <span style="color:var(--role-color);font-weight:700;" id="topbar-sport-tag">● FÚTBOL</span>
+                </div>
+
+                <div class="topbar-actions">
+                    <div class="active-role-indicator">
+                        <span class="dot"></span>
+                        <span class="active-role-text" id="topbar-role-title">ATLETA</span>
+                    </div>
+                </div>
+            </header>
+
+            <main class="os-workspace">
+                
+                <!-- LÍNEA HORIZONTAL COMPACTA DE PLANTILLAS -->
+                <div class="templates-row-container">
+                    <div class="templates-row-title">
+                        <span>⚡ PLANTILLAS & TENDENCIAS VIRALES</span>
+                    </div>
+                    <div class="templates-scroll-row">
+                        <div class="template-chip" onclick="applyTemplate('Match Day Poster')">
+                            <span>🔥 Match Day</span>
+                            <sub>Plantilla PRO</sub>
+                        </div>
+                        <div class="template-chip" onclick="applyTemplate('Biometric Beat')">
+                            <span>🎵 Biometric Beat</span>
+                            <sub>Spotify Sync</sub>
+                        </div>
+                        <div class="template-chip" onclick="applyTemplate('Hologram Card')">
+                            <span>🎴 Hologram Edit</span>
+                            <sub>Viral Reel</sub>
+                        </div>
+                        <div class="template-chip" onclick="applyTemplate('Scout Report Graphic')">
+                            <span>📡 Scout Graphic</span>
+                            <sub>B2B Analytics</sub>
+                        </div>
+                        <div class="template-chip" onclick="applyTemplate('Victory Loop')">
+                            <span>⚡ Victory Loop</span>
+                            <sub>TikTok 1-Clic</sub>
+                        </div>
+                        <div class="template-chip" onclick="applyTemplate('Post-Match Stats')">
+                            <span>📊 Stats Breakdown</span>
+                            <sub>Infografía</sub>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GRID PRINCIPAL DEL ESTUDIO -->
+                <div class="studio-main-grid">
+                    
+                    <!-- ZONA IZQUIERDA: EDITOR & PREVISUALIZACIÓN -->
+                    <div class="kinet-panel">
+                        <div class="panel-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid var(--border-subtle); padding-bottom:10px;">
+                            <span style="font-family:'Orbitron'; font-size:0.8rem; font-weight:800; color:white;">🎨 ESTUDIO DE CREACIÓN & PREVISUALIZACIÓN</span>
+                            <span id="tier-indicator-badge" class="tier-badge-label" style="background:rgba(0,255,136,0.15); color:#00FF88; border:1px solid rgba(0,255,136,0.3);">PLAN GRATUITO (IMÁGENES)</span>
+                        </div>
+
+                        <!-- ZONA DE ARRASTRE DINÁMICA ADAPTATIVA SEGÚN VERSIÓN -->
+                        <div class="dropzone-box" id="dropzone-area" onclick="triggerFileSelect()">
+                            <div style="font-size: 2.2rem; margin-bottom: 8px;" id="dropzone-icon">🖼️</div>
+                            <h4 style="font-family:'Orbitron'; font-size:0.9rem; color:white; margin-bottom:4px;" id="dropzone-title">Arrastra aquí tu imagen</h4>
+                            <p style="font-size:0.75rem; color:#94A3B8;" id="dropzone-subtitle">Soporta PNG, JPG, WEBP (Edición de imágenes con música y marca personal)</p>
+                        </div>
+
+                        <!-- PANEL DE SIMULACIÓN SPOTIFY & OVERLAY KINET -->
+                        <div class="preview-simulation-panel">
+                            <div class="spotify-player-bar">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span>🎵 Spotify Sync:</span>
+                                    <span style="color:white; font-weight:700;">"High Performance (KINET Remix)"</span>
+                                </div>
+                                <div class="soundwave">
+                                    <i></i><i></i><i></i><i></i>
+                                </div>
+                            </div>
+
+                            <div style="height: 180px; background: linear-gradient(135deg, rgba(0,255,136,0.06), rgba(13,17,26,0.85)); border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative; border: 1px dashed rgba(255,255,255,0.12);">
+                                <span style="font-size: 0.8rem; color: #94A3B8; font-family:'JetBrains Mono'; text-align:center; padding:0 15px;">⚡ [ Simulación activa: Sincronización de beats musicales con overlay gráfico ]</span>
+                                
+                                <div class="verified-watermark">
+                                    <span>✓</span> <span>VERIFIED ATHLETE // KINET PERFORMANCE</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BARRA DE COMANDOS FLOTANTE INFERIOR -->
+                        <div class="floating-command-bar">
+                            <span style="color:var(--role-color); font-size:1rem;">✨</span>
+                            <input type="text" id="ai-prompt-input" placeholder="+ Describe un filtro o ajuste automático con IA (ej: Acento neón cyberpunk)">
+                            <button class="btn-kinet" onclick="generateAiEdit()">Generar 1-Clic</button>
+                        </div>
+                    </div>
+
+                    <!-- ZONA DERECHA: HERRAMIENTAS & CONTROLES -->
+                    <div class="kinet-panel" style="display:flex; flex-direction:column; justify-content:space-between;">
+                        <div>
+                            <div style="font-family:'Orbitron'; font-size:0.8rem; font-weight:800; color:white; margin-bottom:16px; border-bottom:1px solid var(--border-subtle); padding-bottom:10px;">
+                                ⚙️ CONTROLES & EXPORTACIÓN
+                            </div>
+
+                            <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
+                                <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:12px; padding:12px;">
+                                    <label style="font-size:0.78rem; font-weight:700; color:#E2E8F0; display:block; margin-bottom:6px;">Sincronización Musical (Spotify API)</label>
+                                    <select class="setting-select" style="width:100%; font-size:0.8rem; background:#04060A; border:1px solid rgba(255,255,255,0.14); border-radius:10px; padding:9px 14px; color:white;">
+                                        <option>High Performance - KINET Beats</option>
+                                        <option>Matchday Hype - Electronic Mix</option>
+                                        <option>Focus & Recovery - Ambient</option>
+                                    </select>
+                                </div>
+
+                                <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:12px; padding:12px;">
+                                    <label style="font-size:0.78rem; font-weight:700; color:#E2E8F0; display:block; margin-bottom:6px;">Sello Biométrico de Capa</label>
+                                    <select class="setting-select" style="width:100%; font-size:0.8rem; background:#04060A; border:1px solid rgba(255,255,255,0.14); border-radius:10px; padding:9px 14px; color:white;">
+                                        <option>VERIFIED ATHLETE (Holograma Verde)</option>
+                                        <option>KINET PERFORMANCE (Minimalista)</option>
+                                        <option>TACTICAL SCOUT BADGE (Ámbar)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <button class="btn-primary" style="width:100%; margin-bottom:10px; justify-content:center;" onclick="alert('✓ Contenido exportado y listo para compartir en Redes Sociales.')">🚀 Publicar / Exportar (1 Clic)</button>
+                            <button class="btn-secondary" style="width:100%; text-align:center;" onclick="checkTierUpgradePrompt()">⚡ Desbloquear Edición de Vídeo (PRO)</button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- MODAL UPGRADE PRO (ESTILO KINET CENTRAL) -->
+    <div id="upgrade-tier-modal" class="kinet-modal-overlay">
+        <div class="kinet-modal-box">
+            <div class="kinet-modal-header" style="color: var(--role-color);">
+                <span>⚡</span> <span>KINET PRO // ESTUDIO DE VÍDEO</span>
+            </div>
+            <div class="kinet-modal-body">
+                Tu cuenta actual está configurada en el <strong>Plan Gratuito</strong> (enfocado en edición de imágenes y beats musicales).<br><br>Para subir, recortar y procesar <strong>vídeos tácticos en alta definición</strong> con overlays dinámicos en movimiento, actualiza tu licencia a Pro Player o Club & Scout en el Despacho.
+            </div>
+            <div class="kinet-modal-footer">
+                <button class="btn-secondary" onclick="document.getElementById('upgrade-tier-modal').classList.remove('open')">Cerrar</button>
+                <a href="despacho.html" class="btn-primary" style="text-decoration:none;">Ir a Suscripciones</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVEGACIÓN MÓVIL -->
+    <nav class="mobile-bottom-nav">
+        <a href="app.html" id="mob-vestuario" class="m-nav-btn"><span style="font-size:1rem;">⚡</span><span>Vestuario</span></a>
+        <a href="cuerpo-tecnico.html" id="mob-cuerpo" class="m-nav-btn"><span style="font-size:1rem;">🧠</span><span>Técnicos</span></a>
+        <a href="media-studio.html" class="m-nav-btn active"><span style="font-size:1rem;">🎵</span><span>Studio</span></a>
+        <a href="ficha-pro.html" class="m-nav-btn"><span style="font-size:1rem;">🎴</span><span>Ficha</span></a>
+        <a href="despacho.html" class="m-nav-btn"><span style="font-size:1rem;">⚙️</span><span>Despacho</span></a>
+    </nav>
+
+    <script>
+        let pendingTargetRole = null;
+
+        function normalizeRole(val) {
+            if (!val) return null;
+            const v = String(val).toLowerCase().trim();
+            if (v === 'athlete' || v === 'atleta' || v.includes('atleta') || v.includes('jugador')) return 'athlete';
+            if (v === 'staff' || v.includes('entrenador' ) || v.includes('coach') || v.includes('fisio') || v.includes('staff')) return 'staff';
+            if (v.includes('scout') || v.includes('director') || v.includes('ojeador')) return 'scout';
+            return null;
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sportParam = urlParams.get('sport') || urlParams.get('deporte');
+            const roleParam = urlParams.get('role');
+
+            if (sportParam) localStorage.setItem('kinet_sport', sportParam);
+
+            const fromUrl = normalizeRole(roleParam);
+            const fromActiveStorage = normalizeRole(localStorage.getItem('kinet_active_role'));
+            const fromLegacyRole = normalizeRole(localStorage.getItem('kinet_role'));
+
+            const activeRoleKey = fromUrl || fromActiveStorage || fromLegacyRole || 'athlete';
+            document.body.setAttribute('data-role', activeRoleKey);
+            localStorage.setItem('kinet_active_role', activeRoleKey);
+
+            const roleLabels = { athlete: "ATLETA", staff: "STAFF", scout: "SCOUT" };
+            document.getElementById('topbar-role-title').textContent = roleLabels[activeRoleKey] || "ATLETA";
+
+            const currentTier = localStorage.getItem('kinet_account_tier') || 'free';
+            const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
+            document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${sportChosen.toUpperCase()}`;
+            document.getElementById('topbar-sport-tag').textContent = `● ${sportChosen.toUpperCase()}`;
+
+            // Adaptar zona de arrastre según la versión del plan actual
+            const dropTitle = document.getElementById('dropzone-title');
+            const dropSub = document.getElementById('dropzone-subtitle');
+            const dropIcon = document.getElementById('dropzone-icon');
+            const badgeLabel = document.getElementById('tier-indicator-badge');
+
+            if (tier === 'pro' || tier === 'club') {
+                dropTitle.textContent = "Arrastra aquí tu vídeo o imagen";
+                dropSub.textContent = "Soporta MP4, MOV, PNG, JPG (Edición completa de vídeo y audio sincronizado)";
+                dropIcon.textContent = "🎬";
+                badgeLabel.textContent = "KINET PRO (VÍDEO & IMAGEN)";
+                badgeLabel.style.color = "#00FF88";
+            } else {
+                dropTitle.textContent = "Arrastra aquí tu imagen";
+                dropSub.textContent = "Soporta PNG, JPG, WEBP (Plan Gratuito: Edición de imágenes y beats)";
+                dropIcon.textContent = "🖼️";
+                badgeLabel.textContent = "PLAN GRATUITO (IMÁGENES)";
+                badgeLabel.style.color = "#94A3B8";
+            }
+
+            // Seguimiento fluido del cursor y sombreado spotlight dentro de los paneles de opciones
+            document.querySelectorAll('.kinet-panel, .pricing-card, .template-chip').forEach(panel => {
+                panel.addEventListener('mousemove', (e) => {
+                    const rect = panel.getBoundingClientRect();
+                    panel.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+                    panel.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+                });
+            });
+        });
+
+        function applyTemplate(name) {
+            alert(`✓ Plantilla "${name}" aplicada correctamente al lienzo.`);
+        }
+
+        function triggerFileSelect() {
+            const tier = localStorage.getItem('kinet_account_tier') || 'free';
+            if (tier === 'free' || tier === 'guest') {
+                alert('Abriendo selector de imágenes y biblioteca musical...');
+            } else {
+                alert('Abriendo explorador multimedia (Vídeo & Imagen en alta definición)...');
+            }
+        }
+
+        function generateAiEdit() {
+            const prompt = document.getElementById('ai-prompt-input').value;
+            if(!prompt) {
+                alert('Por favor, escribe una descripción para el filtro de IA.');
+                return;
+            }
+            alert(`✨ Aplicando IA: "${prompt}" sincronizado con el ritmo de Spotify.`);
+        }
+
+        function checkTierUpgradePrompt() {
+            const tier = localStorage.getItem('kinet_account_tier') || 'free';
+            if (tier === 'free' || tier === 'guest') {
+                document.getElementById('upgrade-tier-modal').classList.add('open');
+            } else {
+                alert('✓ Tu cuenta ya dispone de la versión PRO con edición de vídeo habilitada.');
+            }
+        }
+    </script>
+</body>
+</html>
