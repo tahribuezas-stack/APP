@@ -321,8 +321,8 @@
             animation: pageEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        @media (max-width: 768px) { 
-            .os-workspace { padding: 14px; } 
+        @media (max-width: 850px) { 
+            .os-workspace { padding: 10px; } 
         }
 
         @keyframes pageEnter {
@@ -330,7 +330,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* CONTENEDOR CHAT WHATSAPP KINET CON SPOTLIGHT */
+        /* CONTENEDOR CHAT WHATSAPP KINET CON ESTILO MÓVIL ADAPTATIVO */
         .chat-container {
             display: grid;
             grid-template-columns: 310px 1fr;
@@ -350,9 +350,37 @@
             box-shadow: 0 16px 36px rgba(0,0,0,0.6), 0 0 22px rgba(var(--role-rgb), 0.1);
         }
 
+        /* VISTA MÓVIL VERTICAL TIPO WHATSAPP */
         @media (max-width: 850px) {
-            .chat-container { grid-template-columns: 1fr; height: calc(100vh - 150px); display: flex; flex-direction: column; }
-            .chat-sidebar { height: auto; max-height: 175px; border-right: none; border-bottom: 1px solid var(--border-subtle); flex-shrink: 0; }
+            .chat-container {
+                grid-template-columns: 1fr;
+                height: calc(100vh - 140px);
+                position: relative;
+            }
+            /* Por defecto en móvil mostramos la lista de chats y ocultamos el área de mensajes */
+            .chat-sidebar {
+                display: flex !important;
+                width: 100%;
+                height: 100%;
+                max-height: none !important;
+                border-right: none !important;
+                border-bottom: none !important;
+            }
+            .chat-main-area {
+                display: none !important;
+                width: 100%;
+                height: 100%;
+                position: absolute;
+                inset: 0;
+                z-index: 20;
+            }
+            /* Clases de estado dinámico en móvil */
+            .chat-container.mobile-chat-active .chat-sidebar {
+                display: none !important;
+            }
+            .chat-container.mobile-chat-active .chat-main-area {
+                display: flex !important;
+            }
         }
 
         .chat-sidebar {
@@ -361,11 +389,11 @@
             display: flex;
             flex-direction: column;
             overflow-y: auto;
-            overflow-x: hidden; /* ELIMINA LA BARRA DE DESPLAZAMIENTO HORIZONTAL NO DESEADA */
-            scrollbar-width: none; /* Oculta scrollbar en Firefox */
+            overflow-x: hidden;
+            scrollbar-width: none;
         }
         .chat-sidebar::-webkit-scrollbar {
-            display: none; /* Oculta scrollbar en Chrome/Safari */
+            display: none;
         }
 
         .chat-sidebar-header {
@@ -436,8 +464,8 @@
         }
 
         .chat-header-bar {
-            padding: 14px 20px;
-            background: rgba(8, 11, 18, 0.85);
+            padding: 14px 16px;
+            background: rgba(8, 11, 18, 0.95);
             border-bottom: 1px solid var(--border-subtle);
             display: flex;
             align-items: center;
@@ -445,9 +473,25 @@
             gap: 12px;
         }
 
+        /* BOTÓN DE RETROCESO (ESTILO WHATSAPP MÓVIL) */
+        .chat-back-btn {
+            display: none;
+            background: transparent;
+            border: none;
+            color: var(--role-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 4px 8px 4px 0;
+            align-items: center;
+            justify-content: center;
+        }
+        @media (max-width: 850px) {
+            .chat-back-btn { display: flex; }
+        }
+
         .chat-messages-scroll {
             flex-grow: 1;
-            padding: 20px;
+            padding: 16px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -455,7 +499,7 @@
         }
 
         .msg-bubble {
-            max-width: 75%;
+            max-width: 80%;
             padding: 12px 16px;
             border-radius: 16px;
             font-size: 0.85rem;
@@ -496,12 +540,12 @@
         }
 
         .chat-input-bar {
-            padding: 14px 20px;
-            background: rgba(8, 11, 18, 0.85);
+            padding: 12px 16px;
+            background: rgba(8, 11, 18, 0.95);
             border-top: 1px solid var(--border-subtle);
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .chat-input {
@@ -684,9 +728,9 @@
             <!-- WORKSPACE -->
             <main class="os-workspace">
                 
-                <div class="chat-container">
+                <div class="chat-container" id="chat-wrapper">
                     
-                    <!-- SIDEBAR DE CONVERSACIONES -->
+                    <!-- SIDEBAR DE CONVERSACIONES (BANDEJA DE ENTRADA TIPO WHATSAPP) -->
                     <div class="chat-sidebar">
                         <div class="chat-sidebar-header">
                             <span>💬 CONVERSACIONES IA</span>
@@ -734,18 +778,19 @@
                         </div>
                     </div>
 
-                    <!-- AREA PRINCIPAL DEL CHAT -->
+                    <!-- AREA PRINCIPAL DEL CHAT (CONVERSACIÓN ACTIVA) -->
                     <div class="chat-main-area">
                         
                         <div class="chat-header-bar">
                             <div style="display:flex; align-items:center; gap:10px;">
-                                <div id="active-chat-icon" style="font-size:1.25rem;">👥</div>
+                                <button class="chat-back-btn" onclick="backToChatList()">←</button>
+                                <div id="active-chat-icon" style="font-size:1.2rem;">👥</div>
                                 <div>
-                                    <h3 id="active-chat-title" style="font-family:'Orbitron',sans-serif; font-size:0.85rem; font-weight:800; color:white;">Sala de Juntas KINET</h3>
-                                    <span id="active-chat-status" style="font-family:'JetBrains Mono',monospace; font-size:0.62rem; color:var(--role-color);">Sincronizado con tus biométricas</span>
+                                    <h3 id="active-chat-title" style="font-family:'Orbitron',sans-serif; font-size:0.82rem; font-weight:800; color:white;">Sala de Juntas KINET</h3>
+                                    <span id="active-chat-status" style="font-family:'JetBrains Mono',monospace; font-size:0.6rem; color:var(--role-color);">Sincronizado con tus biométricas</span>
                                 </div>
                             </div>
-                            <div style="font-family:'JetBrains Mono',monospace; font-size:0.65rem; color:var(--text-secondary);">
+                            <div style="font-family:'JetBrains Mono',monospace; font-size:0.6rem; color:var(--text-secondary); display:none; @media(min-width:600px){display:block;}">
                                 SECURE ENCRYPTED // KINET AI
                             </div>
                         </div>
@@ -753,7 +798,7 @@
                         <div class="chat-messages-scroll" id="chat-messages-box"></div>
 
                         <div class="chat-input-bar">
-                            <input type="text" id="chat-user-input" class="chat-input" placeholder="Escribe tu consulta al cuerpo técnico..." onkeydown="if(event.key==='Enter') sendUserMessage()">
+                            <input type="text" id="chat-user-input" class="chat-input" placeholder="Escribe tu consulta..." onkeydown="if(event.key==='Enter') sendUserMessage()">
                             <button class="send-btn" onclick="sendUserMessage()">→</button>
                         </div>
 
@@ -1109,6 +1154,16 @@
             document.querySelectorAll('.contact-item').forEach(el => el.classList.remove('active'));
             if (element) element.classList.add('active');
             renderCurrentChat();
+
+            // En dispositivos móviles, al pulsar un chat activamos la vista de conversación a pantalla completa (estilo WhatsApp)
+            if (window.innerWidth <= 850) {
+                document.getElementById('chat-wrapper').classList.add('mobile-chat-active');
+            }
+        }
+
+        function backToChatList() {
+            // Vuelve a la bandeja de entrada de chats en móvil
+            document.getElementById('chat-wrapper').classList.remove('mobile-chat-active');
         }
 
         function renderCurrentChat() {
@@ -1185,6 +1240,15 @@
             setTimeout(() => {
                 pushAutoReply(text);
             }, 700);
+        }
+
+        function toggleMobileDrawer() {
+            const drawer = document.getElementById('mobile-menu-drawer');
+            if (drawer.style.transform === 'translateY(0px)') {
+                drawer.style.transform = 'translateY(-100%)';
+            } else {
+                drawer.style.transform = 'translateY(0px)';
+            }
         }
     </script>
 </body>
