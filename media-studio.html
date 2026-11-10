@@ -6,7 +6,10 @@
     <meta name="theme-color" content="#06080E">
     <title>KINET OS // KINET Media Studio™ & Spotify Sync</title>
     
+    <!-- Favicon Corporativo Dinámico por JavaScript -->
     <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
+
+    <!-- Tipografías Oficiales -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -14,21 +17,45 @@
     <style>
         :root {
             --bg-void: #06080E;
-            --bg-panel: rgba(13, 17, 26, 0.90);
+            --bg-panel: rgba(13, 17, 26, 0.88);
             --border-subtle: rgba(255, 255, 255, 0.08);
             --text-primary: #F8FAFC;
             --text-secondary: #94A3B8;
+            
             --role-color: #00FF88;
             --role-rgb: 0, 255, 136;
             --role-glow: rgba(0, 255, 136, 0.38);
             --role-gradient: linear-gradient(135deg, #00FF88 0%, #00B359 100%);
         }
 
-        body[data-role="athlete"] { --role-color: #00FF88; --role-rgb: 0, 255, 136; --role-glow: rgba(0, 255, 136, 0.38); --role-gradient: linear-gradient(135deg, #00FF88 0%, #00B359 100%); }
-        body[data-role="staff"] { --role-color: #F59E0B; --role-rgb: 245, 158, 11; --role-glow: rgba(245, 158, 11, 0.38); --role-gradient: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); }
-        body[data-role="scout"] { --role-color: #3B82F6; --role-rgb: 59, 130, 246; --role-glow: rgba(59, 130, 246, 0.38); --role-gradient: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); }
+        body[data-role="athlete"] {
+            --role-color: #00FF88;
+            --role-rgb: 0, 255, 136;
+            --role-glow: rgba(0, 255, 136, 0.38);
+            --role-gradient: linear-gradient(135deg, #00FF88 0%, #00B359 100%);
+        }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; text-decoration: none !important; }
+        body[data-role="staff"] {
+            --role-color: #F59E0B;
+            --role-rgb: 245, 158, 11;
+            --role-glow: rgba(245, 158, 11, 0.38);
+            --role-gradient: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        }
+
+        body[data-role="scout"] {
+            --role-color: #3B82F6;
+            --role-rgb: 59, 130, 246;
+            --role-glow: rgba(59, 130, 246, 0.38);
+            --role-gradient: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         html, body {
             background-color: var(--bg-void);
             background-image: 
@@ -36,144 +63,575 @@
                 linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
             background-size: 100% 100%, 40px 40px, 40px 40px;
-            color: var(--text-primary); font-family: 'Inter', sans-serif; height: 100vh; overflow: hidden;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            transition: background-image 0.4s ease;
         }
 
-        .os-layout { display: grid; grid-template-columns: 270px 1fr; height: 100vh; overflow: hidden; }
-        @media (max-width: 960px) { .os-layout { grid-template-columns: 1fr; height: auto; min-height: 100vh; overflow-y: auto; padding-bottom: 85px; } html, body { height: auto !important; overflow-y: auto !important; } .os-main { height: auto !important; overflow: visible !important; } }
+        /* LAYOUT PRINCIPAL A PANTALLA COMPLETA ESTÁTICA */
+        .os-layout {
+            display: grid;
+            grid-template-columns: 270px 1fr;
+            height: 100vh;
+            overflow: hidden;
+        }
 
-        /* SIDEBAR */
+        @media (max-width: 960px) {
+            .os-layout { grid-template-columns: 1fr; height: auto; min-height: 100vh; overflow-y: auto; padding-bottom: 85px; }
+            html, body { height: auto !important; overflow-y: auto !important; }
+            .os-main { height: auto !important; overflow: visible !important; }
+        }
+
+        /* SIDEBAR FIJO ESTRICTO (ESCRITORIO) */
         .os-sidebar {
-            background: rgba(8, 11, 18, 0.95); backdrop-filter: blur(24px); border-right: 1px solid var(--border-subtle);
-            padding: 18px 16px; display: flex; flex-direction: column; justify-content: space-between; height: 100vh; z-index: 90;
+            background: rgba(8, 11, 18, 0.95);
+            backdrop-filter: blur(24px);
+            border-right: 1px solid var(--border-subtle);
+            padding: 18px 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100vh;
+            z-index: 90;
+            overflow: hidden;
         }
+
         @media (max-width: 960px) { .os-sidebar { display: none !important; } }
-        
-        .brand-box { display: flex; align-items: center; gap: 12px; text-decoration: none !important; padding: 4px; border-radius: 14px; margin-bottom: 6px; transition: transform 0.3s ease; }
-        .brand-box:hover { transform: scale(1.02); }
+
+        .brand-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            padding: 4px;
+            border-radius: 14px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            margin-bottom: 6px;
+        }
+
+        .brand-box:hover {
+            transform: scale(1.03);
+            filter: drop-shadow(0 0 16px var(--role-glow));
+        }
+
         .brand-logo-icon {
-            width: 36px; height: 36px; border-radius: 12px; background: var(--role-gradient); color: #04060A;
-            font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.15rem; display: flex; align-items: center; justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background: var(--role-gradient);
+            color: #04060A;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 1.15rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             box-shadow: 0 0 18px var(--role-glow);
+            transition: background 0.4s ease, box-shadow 0.4s ease;
         }
-        .brand-text h1 { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1rem; letter-spacing: 0.15em; color: white; line-height: 1; text-decoration: none !important; border: none !important; }
-        .brand-text span { font-size: 7.5px; font-family: 'JetBrains Mono', monospace; color: var(--role-color); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 3px; display: block; }
 
+        .brand-text h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 1rem;
+            letter-spacing: 0.15em;
+            color: white;
+            line-height: 1;
+        }
+
+        .brand-text span {
+            font-size: 7.5px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--role-color);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-top: 3px;
+            display: block;
+            transition: color 0.4s ease;
+        }
+
+        .sidebar-top-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-bottom-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px; 
+            padding-top: 10px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        /* ENLACES LATERALES CON SPOTLIGHT DINÁMICO DE ROL */
         .side-link {
-            display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 14px;
-            background: rgba(255, 255, 255, 0.015); border: 1px solid var(--border-subtle); color: var(--text-secondary);
-            font-size: 0.83rem; font-weight: 600; height: 44px; text-decoration: none; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.83rem;
+            font-weight: 600;
+            height: 44px; 
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
         }
-        .side-link-left { display: flex; align-items: center; gap: 12px; }
-        .side-link:hover { color: var(--text-primary); border-color: rgba(var(--role-rgb), 0.45); transform: translateX(3px); }
-        .side-link.active { background: rgba(var(--role-rgb), 0.14); border-color: var(--role-color); color: var(--role-color); box-shadow: 0 0 18px rgba(var(--role-rgb), 0.18); }
 
-        /* MAIN CONTENT */
-        .os-main { display: flex; flex-direction: column; min-width: 0; height: 100vh; overflow: hidden; }
-        
-        /* TOPBAR IDÉNTICO A DESPACHO */
+        .side-link-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 1;
+        }
+
+        .side-link::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(150px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(var(--role-rgb), 0.22), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .side-link:hover::before { opacity: 1; }
+        .side-link:hover {
+            color: var(--text-primary);
+            border-color: rgba(var(--role-rgb), 0.45);
+            transform: translateX(3px);
+        }
+
+        .side-link.active {
+            background: rgba(var(--role-rgb), 0.14);
+            border-color: var(--role-color);
+            color: var(--role-color);
+            box-shadow: 0 0 18px rgba(var(--role-rgb), 0.18);
+        }
+
+        /* WIDGET DE CONSEJO IA */
+        .sidebar-ai-tip-box {
+            background: rgba(var(--role-rgb), 0.05);
+            border: 1px solid rgba(var(--role-rgb), 0.24);
+            border-radius: 12px;
+            padding: 9px 12px;
+            margin-bottom: 2px;
+            position: relative;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+            transition: background 0.4s ease, border-color 0.4s ease;
+        }
+
+        .sidebar-ai-tip-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--role-color);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+            font-weight: 700;
+            transition: color 0.4s ease;
+        }
+
+        .sidebar-ai-tip-text {
+            font-size: 0.72rem;
+            color: #CBD5E1;
+            line-height: 1.35;
+        }
+
+        /* ZONA PRINCIPAL */
+        .os-main {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
         .os-topbar {
-            background: rgba(6, 8, 14, 0.88); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-subtle);
-            padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px;
+            background: rgba(6, 8, 14, 0.88);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
         }
-        .topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+        .mobile-brand { display: none; align-items: center; gap: 10px; text-decoration: none; color: white; }
+        @media (max-width: 960px) { .mobile-brand { display: flex; } .os-topbar { padding: 12px 16px; } }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
         .active-role-indicator {
-            display: flex; align-items: center; background: rgba(13, 17, 26, 0.95); border: 1px solid rgba(var(--role-rgb), 0.45);
-            border-radius: 999px; padding: 6px 14px; gap: 8px;
+            display: flex;
+            align-items: center;
+            background: rgba(13, 17, 26, 0.95);
+            border: 1px solid rgba(var(--role-rgb), 0.45);
+            border-radius: 999px;
+            padding: 6px 14px;
+            gap: 8px;
+            transition: border-color 0.4s ease;
         }
-        .active-role-indicator .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--role-color); box-shadow: 0 0 8px var(--role-color); }
-        .active-role-text { font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.68rem; color: var(--text-primary); letter-spacing: 0.08em; text-transform: uppercase; }
 
-        .os-workspace { max-width: 1360px; width: 100%; margin: 0 auto; padding: 24px; flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; }
-        
-        /* SPOTLIGHT PANELS & CARDS CON SOMBRA DE CURSOR REACTIVA */
-        .kinet-panel, .pricing-card, .template-chip {
-            background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 20px;
-            backdrop-filter: blur(20px); position: relative; overflow: hidden; box-shadow: 0 14px 34px rgba(0,0,0,0.5);
-            transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        .active-role-indicator .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--role-color);
+            box-shadow: 0 0 8px var(--role-color);
+            transition: background 0.4s ease, box-shadow 0.4s ease;
         }
-        .kinet-panel::before, .pricing-card::before, .template-chip::before {
-            content: ''; position: absolute; inset: 0; background: radial-gradient(300px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(var(--role-rgb), 0.24), transparent 75%);
-            opacity: 0; transition: opacity 0.25s ease; pointer-events: none; z-index: 0;
-        }
-        .kinet-panel > *, .pricing-card > *, .template-chip > * { position: relative; z-index: 1; }
-        .kinet-panel:hover::before, .pricing-card:hover::before, .template-chip:hover::before { opacity: 1; }
-        .kinet-panel:hover { border-color: rgba(var(--role-rgb), 0.45); box-shadow: 0 18px 45px rgba(0,0,0,0.7), 0 0 25px rgba(var(--role-rgb), 0.15); }
 
-        /* LÍNEA HORIZONTAL DE PLANTILLAS */
-        .templates-row-container { margin-bottom: 20px; }
+        .active-role-text {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 0.68rem;
+            color: var(--text-primary);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        /* WORKSPACE IDÉNTICO A APP.HTML */
+        .os-workspace {
+            max-width: 1280px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px 24px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            animation: pageEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @media (max-width: 768px) { 
+            .os-workspace { padding: 14px; justify-content: flex-start; } 
+        }
+
+        @keyframes pageEnter {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .context-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .context-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--role-color);
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+            transition: color 0.4s ease;
+        }
+
+        .context-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.3rem, 2.2vw, 1.9rem);
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            color: white;
+        }
+
+        .header-badges-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .verified-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 10px;
+            background: rgba(var(--role-rgb), 0.12);
+            border: 1px solid rgba(var(--role-rgb), 0.38);
+            color: var(--role-color);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.4s ease, border-color 0.4s ease, color 0.4s ease;
+        }
+
+        /* PANELES & CHIPS CON SPOTLIGHT DINÁMICO */
+        .kinet-panel, .template-chip {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+        }
+
+        .kinet-panel::before, .template-chip::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(220px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(var(--role-rgb), 0.18), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .kinet-panel > *, .template-chip > * { position: relative; z-index: 1; }
+
+        .kinet-panel:hover::before, .template-chip:hover::before { opacity: 1; }
+        .kinet-panel:hover {
+            border-color: rgba(var(--role-rgb), 0.48);
+            transform: translateY(-2px);
+            box-shadow: 0 16px 36px rgba(0,0,0,0.6), 0 0 22px rgba(var(--role-rgb), 0.14);
+        }
+
+        .panel-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .panel-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        /* LÍNEA HORIZONTAL COMPACTA DE PLANTILLAS */
+        .templates-row-container { margin-bottom: 16px; }
         .templates-row-title {
-            font-family: 'Orbitron', sans-serif; font-size: 0.82rem; font-weight: 800; color: white; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .templates-scroll-row {
-            display: flex; gap: 12px; overflow-x: auto; padding: 6px 4px 10px 4px; scrollbar-width: thin; scrollbar-color: var(--role-color) rgba(255,255,255,0.05);
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding: 4px 2px 8px 2px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--role-color) rgba(255,255,255,0.05);
         }
         .templates-scroll-row::-webkit-scrollbar { height: 6px; }
         .templates-scroll-row::-webkit-scrollbar-thumb { background: rgba(var(--role-rgb), 0.4); border-radius: 4px; }
 
         .template-chip {
-            min-width: 150px; height: 82px; background: #090D16 !important; border: 1px solid var(--border-subtle); border-radius: 14px;
-            padding: 12px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: all 0.25s ease; flex-shrink: 0;
+            min-width: 150px;
+            height: 76px;
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+            flex-shrink: 0;
         }
-        .template-chip:hover { border-color: var(--role-color); transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.6), 0 0 18px var(--role-glow); }
-        .template-chip span { font-size: 0.75rem; font-weight: 700; color: white; }
-        .template-chip sub { font-size: 0.62rem; color: #94A3B8; font-family: 'JetBrains Mono'; }
+        .template-chip:hover {
+            border-color: var(--role-color);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6), 0 0 18px var(--role-glow);
+        }
+        .template-chip span { font-size: 0.76rem; font-weight: 700; color: white; }
+        .template-chip sub { font-size: 0.62rem; color: var(--role-color); font-family: 'JetBrains Mono', monospace; }
 
-        /* EDITOR STUDIO PRINCIPAL */
-        .studio-main-grid { display: grid; grid-template-columns: 1fr 380px; gap: 20px; }
-        @media (max-width: 1024px) { .studio-main-grid { grid-template-columns: 1fr; } }
+        /* GRID PRINCIPAL DEL ESTUDIO */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 16px;
+        }
+        .col-8 { grid-column: span 8; }
+        .col-4 { grid-column: span 4; }
+        @media (max-width: 1024px) { .col-8, .col-4 { grid-column: span 12; } }
 
         /* ZONA DE ARRASTRE ADAPTATIVA */
         .dropzone-box {
-            background: #090D16; border: 2px dashed rgba(255, 255, 255, 0.15); border-radius: 18px; padding: 28px;
-            text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 190px;
-            cursor: pointer; transition: all 0.3s ease; margin-bottom: 16px; position: relative; overflow: hidden;
+            background: rgba(255, 255, 255, 0.02);
+            border: 2px dashed rgba(var(--role-rgb), 0.35);
+            border-radius: 16px;
+            padding: 22px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 155px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 14px;
+            position: relative;
+            overflow: hidden;
         }
-        .dropzone-box:hover { border-color: var(--role-color); background: rgba(var(--role-rgb), 0.04); box-shadow: inset 0 0 25px rgba(var(--role-rgb), 0.08), 0 0 20px rgba(var(--role-rgb), 0.15); transform: translateY(-2px); }
+        .dropzone-box:hover {
+            border-color: var(--role-color);
+            background: rgba(var(--role-rgb), 0.05);
+            box-shadow: inset 0 0 25px rgba(var(--role-rgb), 0.08), 0 0 20px rgba(var(--role-rgb), 0.12);
+            transform: translateY(-2px);
+        }
 
         /* SIMULADOR SPOTIFY & OVERLAY KINET */
         .preview-simulation-panel {
-            background: #04060A; border: 1px solid rgba(var(--role-rgb), 0.3); border-radius: 16px; padding: 18px;
-            position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            background: rgba(4, 6, 10, 0.85);
+            border: 1px solid rgba(var(--role-rgb), 0.28);
+            border-radius: 16px;
+            padding: 14px;
+            position: relative;
+            overflow: hidden;
         }
         .spotify-player-bar {
-            background: rgba(29, 185, 84, 0.1); border: 1px solid rgba(29, 185, 84, 0.3); border-radius: 12px; padding: 10px 14px;
-            display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: #1DB954;
+            background: rgba(var(--role-rgb), 0.08);
+            border: 1px solid rgba(var(--role-rgb), 0.3);
+            border-radius: 12px;
+            padding: 9px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--role-color);
         }
         .soundwave { display: flex; align-items: center; gap: 3px; height: 16px; }
-        .soundwave i { width: 3px; background: #1DB954; animation: pulseWave 1s infinite alternate; border-radius: 2px; }
+        .soundwave i { width: 3px; background: var(--role-color); animation: pulseWave 1s infinite alternate; border-radius: 2px; }
         .soundwave i:nth-child(2) { animation-delay: 0.2s; }
         .soundwave i:nth-child(3) { animation-delay: 0.4s; }
         .soundwave i:nth-child(4) { animation-delay: 0.1s; }
         @keyframes pulseWave { from { height: 4px; } to { height: 16px; } }
 
         .verified-watermark {
-            position: absolute; bottom: 20px; left: 20px; background: rgba(4, 6, 10, 0.88); border: 1px solid var(--role-color);
-            padding: 6px 12px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--role-color);
-            display: flex; align-items: center; gap: 6px; box-shadow: 0 0 12px var(--role-glow); text-transform: uppercase; letter-spacing: 0.1em;
+            position: absolute;
+            bottom: 14px;
+            left: 14px;
+            background: rgba(4, 6, 10, 0.9);
+            border: 1px solid var(--role-color);
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.62rem;
+            color: var(--role-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 0 12px var(--role-glow);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
         }
 
-        /* BARRA INFERIOR FLOTANTE ESTILO INTERFAZ */
+        /* BARRA DE COMANDOS INFERIOR */
         .floating-command-bar {
-            background: rgba(13, 17, 26, 0.95); border: 1px solid rgba(var(--role-rgb), 0.4); border-radius: 16px;
-            padding: 10px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); margin-top: 16px;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            background: rgba(4, 6, 10, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 12px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
-        .floating-command-bar:focus-within { border-color: var(--role-color); box-shadow: 0 0 20px var(--role-glow); }
+        .floating-command-bar:focus-within {
+            border-color: var(--role-color);
+            box-shadow: 0 0 14px rgba(var(--role-rgb), 0.15);
+        }
         .floating-command-bar input {
-            flex-grow: 1; background: transparent; border: none; color: white; font-family: 'Inter', sans-serif; font-size: 0.85rem; outline: none;
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.84rem;
+            outline: none;
         }
         .floating-command-bar input::placeholder { color: var(--text-secondary); }
 
-        .btn-kinet {
-            background: var(--role-gradient); color: #04060A; border: none; border-radius: 10px; padding: 10px 18px;
-            font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.72rem; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 0 15px var(--role-glow);
+        .btn-primary {
+            background: var(--role-gradient);
+            color: #04060A;
+            border: none;
+            border-radius: 12px;
+            padding: 11px 18px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 800;
+            font-size: 0.74rem;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-decoration: none;
+            box-shadow: 0 0 18px var(--role-glow);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .btn-kinet:hover { filter: brightness(1.15); transform: translateY(-2px); box-shadow: 0 0 22px var(--role-glow); }
+        .btn-primary:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 0 26px var(--role-glow);
+            filter: brightness(1.08);
+        }
 
-        .tier-badge-label { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; padding: 3px 8px; border-radius: 6px; }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.04);
+            color: white;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 11px 18px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 0.74rem;
+            letter-spacing: 0.06em;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .btn-secondary:hover {
+            border-color: rgba(var(--role-rgb), 0.45);
+            background: rgba(var(--role-rgb), 0.08);
+            transform: translateY(-1px);
+        }
 
-        /* MODALES KINET CENTRALES CON ANIMACIÓN DE ENTRADA */
+        /* MODALES KINET CENTRALES */
         .kinet-modal-overlay {
             position: fixed; inset: 0; background: rgba(4, 6, 10, 0.85); backdrop-filter: blur(18px); z-index: 500;
             display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
@@ -190,23 +648,47 @@
         .kinet-modal-body { font-size: 0.88rem; color: #CBD5E1; line-height: 1.6; }
         .kinet-modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
 
-        .btn-primary {
-            background: var(--role-gradient); color: #04060A; border: none; border-radius: 12px; padding: 11px 20px;
-            font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.74rem; cursor: pointer; transition: all 0.25s ease;
-            box-shadow: 0 0 18px var(--role-glow); text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
-        }
-        .btn-primary:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 0 26px var(--role-glow); }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 11px 18px;
-            font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.74rem; cursor: pointer; transition: all 0.25s ease;
-        }
-        .btn-secondary:hover { border-color: rgba(var(--role-rgb), 0.4); background: rgba(var(--role-rgb), 0.08); transform: translateY(-1px); }
-
         /* NAVEGACIÓN MÓVIL */
-        .mobile-bottom-nav { display: none; position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); width: calc(100% - 24px); max-width: 440px; background: rgba(8, 11, 18, 0.95); backdrop-filter: blur(24px); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 6px; z-index: 120; justify-content: space-around; box-shadow: 0 20px 40px rgba(0,0,0,0.85); }
-        @media (max-width: 960px) { .mobile-bottom-nav { display: flex !important; } }
-        .m-nav-btn { background: transparent; border: none; color: var(--text-secondary); font-family: 'Inter', sans-serif; font-size: 0.62rem; font-weight: 700; padding: 6px 8px; border-radius: 14px; display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; cursor: pointer; }
+        .mobile-bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 24px);
+            max-width: 440px;
+            background: rgba(8, 11, 18, 0.95);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            padding: 6px;
+            z-index: 120;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.85);
+            justify-content: space-around;
+        }
+
+        @media (max-width: 960px) { 
+            .mobile-bottom-nav { display: flex !important; } 
+        }
+
+        .m-nav-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.62rem;
+            font-weight: 700;
+            padding: 6px 8px;
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.25s;
+        }
+
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
 </head>
@@ -214,7 +696,7 @@
 
     <div class="os-layout">
         
-        <!-- SIDEBAR FIJO -->
+        <!-- SIDEBAR FIJO (IDÉNTICO A APP.HTML) -->
         <aside class="os-sidebar">
             <div class="sidebar-top-section">
                 <a href="index.html" class="brand-box">
@@ -226,37 +708,42 @@
                 </a>
 
                 <nav class="sidebar-nav">
-                    <a href="app.html" id="nav-vestuario" class="side-link" style="margin-bottom: 10px;">
+                    <a href="app.html" id="nav-vestuario" class="side-link" style="margin-bottom: 8px;">
                         <span class="side-link-left"><span>⚡</span> <span>Vestuario</span></span>
                         <span style="font-size:0.65rem;font-family:'JetBrains Mono';">HOY</span>
                     </a>
-                    <a href="cuerpo-tecnico.html" id="nav-cuerpo-tecnico" class="side-link" style="margin-bottom: 10px;">
+                    <a href="cuerpo-tecnico.html" id="nav-cuerpo-tecnico" class="side-link" style="margin-bottom: 8px;">
                         <span class="side-link-left"><span>🧠</span> <span>Cuerpo Técnico IA</span></span>
-                        <span style="font-size:0.7rem;opacity:0.8;">→</span>
+                        <span style="font-size:0.7rem;opacity:0.5;">→</span>
                     </a>
-                    <a href="ficha-pro.html" class="side-link" style="margin-bottom: 10px;">
+                    <a href="ficha-pro.html" class="side-link" style="margin-bottom: 8px;">
                         <span class="side-link-left"><span>🎴</span> <span>Ficha & KINET Card</span></span>
                         <span style="font-size:0.7rem;opacity:0.5;">→</span>
                     </a>
-                    <a href="ojeador-live.html" class="side-link" style="margin-bottom: 10px;">
+                    <a href="ojeador-live.html" class="side-link" style="margin-bottom: 8px;">
                         <span class="side-link-left"><span>📡</span> <span>Ojeador & Laboratorio</span></span>
                         <span style="font-size:0.7rem;opacity:0.5;">→</span>
                     </a>
-                    <a href="comunidad.html" class="side-link" style="margin-bottom: 10px;">
+                    <a href="comunidad.html" class="side-link" style="margin-bottom: 8px;">
                         <span class="side-link-left"><span>🌐</span> <span>Comunidad / Red Social</span></span>
                         <span style="font-size:0.7rem;opacity:0.5;">→</span>
                     </a>
-                    <a href="media-studio.html" class="side-link active" style="margin-bottom: 10px;">
+                    <a href="media-studio.html" id="nav-media-studio" class="side-link active">
                         <span class="side-link-left"><span>🎵</span> <span>KINET Media Studio™</span></span>
                         <span style="font-size:0.7rem;color:var(--role-color);">●</span>
                     </a>
                 </nav>
             </div>
 
+            <!-- BLOQUE INFERIOR SIDEBAR COMPLETO (IDÉNTICO A APP.HTML) -->
             <div class="sidebar-bottom-section">
-                <div class="sidebar-ai-tip-box">
-                    <div class="sidebar-ai-tip-header"><span>⚙️</span> <span id="sidebar-role-tag">Despacho Ejecutivo</span></div>
-                    <div class="sidebar-ai-tip-text">Centro de control, subscripciones y seguridad de KINET OS.</div>
+                <div class="sidebar-ai-tip-box" id="sidebar-dynamic-tip">
+                    <div class="sidebar-ai-tip-header">
+                        <span>💡</span> <span id="tip-title">Directiva: Supercompensación</span>
+                    </div>
+                    <div class="sidebar-ai-tip-text" id="tip-content">
+                        Sincronización nativa con Spotify API activa para exportar tus métricas y highlights en 1 clic.
+                    </div>
                 </div>
 
                 <a href="perfil.html" class="side-link">
@@ -267,33 +754,58 @@
                     <span class="side-link-left"><span>⚙️</span> <span>Despacho & Ajustes</span></span>
                     <span style="font-size:0.7rem;opacity:0.5;">→</span>
                 </a>
+                <a href="comunidad.html" class="side-link" style="border-color: rgba(var(--role-rgb), 0.3); background: rgba(var(--role-rgb), 0.05);">
+                    <span class="side-link-left"><span>🌐</span> <span>Config. Red Social</span></span>
+                    <span style="font-size:0.7rem;color:var(--role-color);">⚡</span>
+                </a>
+                <a href="despacho.html" class="side-link" style="background: var(--role-gradient); color: #04060A; font-weight: 900; border: none;">
+                    <span class="side-link-left"><span>⚡</span> <span>Pásate a KINET PRO</span></span>
+                    <span style="font-size:0.7rem;">→</span>
+                </a>
             </div>
         </aside>
 
         <!-- ZONA PRINCIPAL -->
         <div class="os-main">
             
+            <!-- TOPBAR IDÉNTICO A APP.HTML -->
             <header class="os-topbar">
-                <a href="index.html" class="mobile-brand" style="text-decoration:none;">
+                <a href="index.html" class="mobile-brand">
                     <div class="brand-logo-icon" style="width:32px;height:32px;font-size:0.95rem;">K</div>
-                    <span style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:1rem;letter-spacing:0.1em;color:white;">KINET OS</span>
+                    <span style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:1rem;letter-spacing:0.1em;">KINET OS</span>
                 </a>
 
                 <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-secondary);display:flex;align-items:center;gap:10px;">
-                    <span>KINET MEDIA STUDIO™ // CREATIVE SUITE</span>
+                    <span>KINET MEDIA STUDIO™</span>
                     <span style="color:var(--role-color);font-weight:700;" id="topbar-sport-tag">● FÚTBOL</span>
                 </div>
 
                 <div class="topbar-actions">
                     <div class="active-role-indicator">
                         <span class="dot"></span>
-                        <span class="active-role-text" id="topbar-role-title">ATLETA</span>
+                        <span class="active-role-text" id="topbar-role-title">ATLETA PRO</span>
                     </div>
                 </div>
             </header>
 
+            <!-- WORKSPACE -->
             <main class="os-workspace">
                 
+                <!-- CONTEXT HEADER IDÉNTICO A APP.HTML -->
+                <div class="context-header">
+                    <div>
+                        <span class="context-tag">
+                            <span>🎵</span> 
+                            <span id="header-tag-text">VIRAL LOOP & MARCA PERSONAL • FÚTBOL</span>
+                        </span>
+                        <h1 class="context-title">KINET Media Studio™ & Spotify Sync</h1>
+                    </div>
+                    <div class="header-badges-group">
+                        <div class="verified-badge">🎵 SPOTIFY API: CONECTADA</div>
+                        <div class="verified-badge" id="tier-indicator-badge">⚡ PLAN GRATUITO (IMÁGENES)</div>
+                    </div>
+                </div>
+
                 <!-- LÍNEA HORIZONTAL COMPACTA DE PLANTILLAS -->
                 <div class="templates-row-container">
                     <div class="templates-row-title">
@@ -327,83 +839,97 @@
                     </div>
                 </div>
 
-                <!-- GRID PRINCIPAL DEL ESTUDIO -->
-                <div class="studio-main-grid">
+                <!-- BENTO GRID DEL ESTUDIO -->
+                <div class="bento-grid">
                     
                     <!-- ZONA IZQUIERDA: EDITOR & PREVISUALIZACIÓN -->
-                    <div class="kinet-panel">
-                        <div class="panel-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid var(--border-subtle); padding-bottom:10px;">
-                            <span style="font-family:'Orbitron'; font-size:0.8rem; font-weight:800; color:white;">🎨 ESTUDIO DE CREACIÓN & PREVISUALIZACIÓN</span>
-                            <span id="tier-indicator-badge" class="tier-badge-label" style="background:rgba(0,255,136,0.15); color:#00FF88; border:1px solid rgba(0,255,136,0.3);">PLAN GRATUITO (IMÁGENES)</span>
-                        </div>
+                    <div class="col-8">
+                        <div class="kinet-panel" style="height:100%;">
+                            <div class="panel-head">
+                                <span class="panel-label">ESTUDIO DE CREACIÓN & PREVISUALIZACIÓN</span>
+                                <span class="verified-badge" id="studio-mode-pill">MODO IMAGEN + BEATS</span>
+                            </div>
 
-                        <!-- ZONA DE ARRASTRE DINÁMICA ADAPTATIVA SEGÚN VERSIÓN -->
-                        <div class="dropzone-box" id="dropzone-area" onclick="triggerFileSelect()">
-                            <div style="font-size: 2.2rem; margin-bottom: 8px;" id="dropzone-icon">🖼️</div>
-                            <h4 style="font-family:'Orbitron'; font-size:0.9rem; color:white; margin-bottom:4px;" id="dropzone-title">Arrastra aquí tu imagen</h4>
-                            <p style="font-size:0.75rem; color:#94A3B8;" id="dropzone-subtitle">Soporta PNG, JPG, WEBP (Edición de imágenes con música y marca personal)</p>
-                        </div>
+                            <!-- ZONA DE ARRASTRE DINÁMICA ADAPTATIVA SEGÚN VERSIÓN -->
+                            <div class="dropzone-box" id="dropzone-area" onclick="triggerFileSelect()">
+                                <div style="font-size: 2rem; margin-bottom: 6px;" id="dropzone-icon">🖼️</div>
+                                <h4 style="font-family:'Orbitron'; font-size:0.88rem; color:white; margin-bottom:4px;" id="dropzone-title">Arrastra aquí tu imagen</h4>
+                                <p style="font-size:0.75rem; color:#94A3B8;" id="dropzone-subtitle">Soporta PNG, JPG, WEBP (Edición de imágenes con música y marca personal)</p>
+                            </div>
 
-                        <!-- PANEL DE SIMULACIÓN SPOTIFY & OVERLAY KINET -->
-                        <div class="preview-simulation-panel">
-                            <div class="spotify-player-bar">
-                                <div style="display:flex; align-items:center; gap:8px;">
-                                    <span>🎵 Spotify Sync:</span>
-                                    <span style="color:white; font-weight:700;">"High Performance (KINET Remix)"</span>
+                            <!-- PANEL DE SIMULACIÓN SPOTIFY & OVERLAY KINET -->
+                            <div class="preview-simulation-panel">
+                                <div class="spotify-player-bar">
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <span>🎵 Spotify Sync:</span>
+                                        <span style="color:white; font-weight:700;">"High Performance (KINET Remix)"</span>
+                                    </div>
+                                    <div class="soundwave">
+                                        <i></i><i></i><i></i><i></i>
+                                    </div>
                                 </div>
-                                <div class="soundwave">
-                                    <i></i><i></i><i></i><i></i>
+
+                                <div style="height: 135px; background: linear-gradient(135deg, rgba(var(--role-rgb),0.06), rgba(13,17,26,0.85)); border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative; border: 1px dashed rgba(255,255,255,0.12);">
+                                    <span style="font-size: 0.78rem; color: #94A3B8; font-family:'JetBrains Mono'; text-align:center; padding:0 15px;">⚡ [ Simulación activa: Sincronización de beats musicales con overlay gráfico ]</span>
+                                    
+                                    <div class="verified-watermark">
+                                        <span>✓</span> <span>VERIFIED ATHLETE // KINET PERFORMANCE</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div style="height: 180px; background: linear-gradient(135deg, rgba(0,255,136,0.06), rgba(13,17,26,0.85)); border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative; border: 1px dashed rgba(255,255,255,0.12);">
-                                <span style="font-size: 0.8rem; color: #94A3B8; font-family:'JetBrains Mono'; text-align:center; padding:0 15px;">⚡ [ Simulación activa: Sincronización de beats musicales con overlay gráfico ]</span>
-                                
-                                <div class="verified-watermark">
-                                    <span>✓</span> <span>VERIFIED ATHLETE // KINET PERFORMANCE</span>
-                                </div>
+                            <!-- BARRA DE COMANDOS INFERIOR -->
+                            <div class="floating-command-bar">
+                                <span style="color:var(--role-color); font-size:1rem;">✨</span>
+                                <input type="text" id="ai-prompt-input" placeholder="+ Describe un filtro o ajuste automático con IA (ej: Acento neón cyberpunk)" onkeydown="if(event.key==='Enter') generateAiEdit()">
+                                <button class="btn-primary" onclick="generateAiEdit()" style="padding:8px 14px;">Generar 1-Clic</button>
                             </div>
-                        </div>
-
-                        <!-- BARRA DE COMANDOS FLOTANTE INFERIOR -->
-                        <div class="floating-command-bar">
-                            <span style="color:var(--role-color); font-size:1rem;">✨</span>
-                            <input type="text" id="ai-prompt-input" placeholder="+ Describe un filtro o ajuste automático con IA (ej: Acento neón cyberpunk)">
-                            <button class="btn-kinet" onclick="generateAiEdit()">Generar 1-Clic</button>
                         </div>
                     </div>
 
                     <!-- ZONA DERECHA: HERRAMIENTAS & CONTROLES -->
-                    <div class="kinet-panel" style="display:flex; flex-direction:column; justify-content:space-between;">
-                        <div>
-                            <div style="font-family:'Orbitron'; font-size:0.8rem; font-weight:800; color:white; margin-bottom:16px; border-bottom:1px solid var(--border-subtle); padding-bottom:10px;">
-                                ⚙️ CONTROLES & EXPORTACIÓN
-                            </div>
-
-                            <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
-                                <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:12px; padding:12px;">
-                                    <label style="font-size:0.78rem; font-weight:700; color:#E2E8F0; display:block; margin-bottom:6px;">Sincronización Musical (Spotify API)</label>
-                                    <select class="setting-select" style="width:100%; font-size:0.8rem; background:#04060A; border:1px solid rgba(255,255,255,0.14); border-radius:10px; padding:9px 14px; color:white;">
-                                        <option>High Performance - KINET Beats</option>
-                                        <option>Matchday Hype - Electronic Mix</option>
-                                        <option>Focus & Recovery - Ambient</option>
-                                    </select>
+                    <div class="col-4">
+                        <div class="kinet-panel" style="height:100%; display:flex; flex-direction:column; justify-content:space-between;">
+                            <div>
+                                <div class="panel-head">
+                                    <span class="panel-label">CONTROLES & EXPORTACIÓN</span>
+                                    <span style="font-family:'JetBrains Mono';font-size:0.65rem;color:var(--role-color);">ACTIVO</span>
                                 </div>
 
-                                <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:12px; padding:12px;">
-                                    <label style="font-size:0.78rem; font-weight:700; color:#E2E8F0; display:block; margin-bottom:6px;">Sello Biométrico de Capa</label>
-                                    <select class="setting-select" style="width:100%; font-size:0.8rem; background:#04060A; border:1px solid rgba(255,255,255,0.14); border-radius:10px; padding:9px 14px; color:white;">
-                                        <option>VERIFIED ATHLETE (Holograma Verde)</option>
-                                        <option>KINET PERFORMANCE (Minimalista)</option>
-                                        <option>TACTICAL SCOUT BADGE (Ámbar)</option>
-                                    </select>
+                                <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
+                                    <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:12px; padding:12px;">
+                                        <label style="font-size:0.76rem; font-weight:700; color:#E2E8F0; display:block; margin-bottom:6px;">Sincronización Musical (Spotify API)</label>
+                                        <select style="width:100%; font-size:0.8rem; background:#04060A; border:1px solid rgba(255,255,255,0.14); border-radius:10px; padding:9px 12px; color:white; outline:none;">
+                                            <option>High Performance - KINET Beats</option>
+                                            <option>Matchday Hype - Electronic Mix</option>
+                                            <option>Focus & Recovery - Ambient</option>
+                                        </select>
+                                    </div>
+
+                                    <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:12px; padding:12px;">
+                                        <label style="font-size:0.76rem; font-weight:700; color:#E2E8F0; display:block; margin-bottom:6px;">Sello Biométrico de Capa</label>
+                                        <select style="width:100%; font-size:0.8rem; background:#04060A; border:1px solid rgba(255,255,255,0.14); border-radius:10px; padding:9px 12px; color:white; outline:none;">
+                                            <option>VERIFIED ATHLETE (Holograma Rol)</option>
+                                            <option>KINET PERFORMANCE (Minimalista)</option>
+                                            <option>TACTICAL SCOUT BADGE (Élite)</option>
+                                        </select>
+                                    </div>
+
+                                    <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:12px; padding:12px;">
+                                        <label style="font-size:0.76rem; font-weight:700; color:#E2E8F0; display:block; margin-bottom:6px;">Formato de Destino</label>
+                                        <select style="width:100%; font-size:0.8rem; background:#04060A; border:1px solid rgba(255,255,255,0.14); border-radius:10px; padding:9px 12px; color:white; outline:none;">
+                                            <option>TikTok / Instagram Reels (9:16)</option>
+                                            <option>Feed Post / Carrusel (4:5)</option>
+                                            <option>Ficha Ojeador Widescreen (16:9)</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div>
-                            <button class="btn-primary" style="width:100%; margin-bottom:10px; justify-content:center;" onclick="alert('✓ Contenido exportado y listo para compartir en Redes Sociales.')">🚀 Publicar / Exportar (1 Clic)</button>
-                            <button class="btn-secondary" style="width:100%; text-align:center;" onclick="checkTierUpgradePrompt()">⚡ Desbloquear Edición de Vídeo (PRO)</button>
+                            <div style="display:flex; flex-direction:column; gap:8px;">
+                                <button class="btn-primary" style="width:100%;" onclick="alert('✓ Contenido exportado y listo para compartir en Redes Sociales.')">🚀 Publicar / Exportar (1 Clic)</button>
+                                <button class="btn-secondary" style="width:100%;" onclick="checkTierUpgradePrompt()">⚡ Desbloquear Edición de Vídeo (PRO)</button>
+                            </div>
                         </div>
                     </div>
 
@@ -424,29 +950,74 @@
             </div>
             <div class="kinet-modal-footer">
                 <button class="btn-secondary" onclick="document.getElementById('upgrade-tier-modal').classList.remove('open')">Cerrar</button>
-                <a href="despacho.html" class="btn-primary" style="text-decoration:none;">Ir a Suscripciones</a>
+                <a href="despacho.html" class="btn-primary">Ir a Suscripciones</a>
             </div>
         </div>
     </div>
 
-    <!-- NAVEGACIÓN MÓVIL -->
+    <!-- MENÚ DESPLEGABLE MÓVIL (DRAWER) IDÉNTICO A APP.HTML -->
+    <div id="mobile-menu-drawer" style="position:fixed;inset:0;background:rgba(6,8,14,0.97);backdrop-filter:blur(28px);z-index:200;display:flex;flex-direction:column;padding:20px 16px;justify-content:space-between;transform:translateY(-100%);transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);border-bottom:1px solid rgba(var(--role-rgb),0.2);">
+        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:12px;margin-bottom:12px;">
+            <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:0.95rem;color:white;">KINET OS // MENÚ COMPLETO</div>
+            <button onclick="toggleMobileDrawer()" style="background:none;border:none;color:white;font-size:1.3rem;cursor:pointer;">✕</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;padding:4px 0;max-height:calc(100vh - 160px);">
+            <a href="app.html" id="drawer-vestuario" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>⚡ Vestuario</span><span>HOY</span></a>
+            <a href="cuerpo-tecnico.html" id="drawer-cuerpo-tecnico" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🧠 Cuerpo Técnico IA</span><span>→</span></a>
+            <a href="ficha-pro.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🎴 Ficha & KINET Card</span><span>→</span></a>
+            <a href="ojeador-live.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>📡 Ojeador & Laboratorio</span><span>→</span></a>
+            <a href="comunidad.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Comunidad / Red Social</span><span>→</span></a>
+            <a href="media-studio.html" id="drawer-media-studio" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(var(--role-rgb),0.15);border:1px solid var(--role-color);color:var(--role-color);text-decoration:none;font-weight:600;"><span>🎵 KINET Media Studio™</span><span>●</span></a>
+            <a href="perfil.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>👤 Mi Perfil</span><span>→</span></a>
+            <a href="despacho.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>⚙️ Despacho & Ajustes</span><span>→</span></a>
+            <a href="comunidad.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(var(--role-rgb),0.05);border:1px solid rgba(var(--role-rgb),0.3);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Config. Red Social</span><span>⚡</span></a>
+            <a href="despacho.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:var(--role-gradient);color:#04060A;font-weight:900;text-decoration:none;"><span>⚡ Pásate a KINET PRO</span><span>→</span></a>
+        </div>
+        <div style="text-align:center;font-size:0.65rem;color:var(--text-secondary);font-family:'JetBrains Mono';margin-top:10px;">
+            KINET OS • MOBILE VIEWPORT
+        </div>
+    </div>
+
+    <!-- NAVEGACIÓN MÓVIL INFERIOR -->
     <nav class="mobile-bottom-nav">
-        <a href="app.html" id="mob-vestuario" class="m-nav-btn"><span style="font-size:1rem;">⚡</span><span>Vestuario</span></a>
-        <a href="cuerpo-tecnico.html" id="mob-cuerpo" class="m-nav-btn"><span style="font-size:1rem;">🧠</span><span>Técnicos</span></a>
-        <a href="media-studio.html" class="m-nav-btn active"><span style="font-size:1rem;">🎵</span><span>Studio</span></a>
-        <a href="ficha-pro.html" class="m-nav-btn"><span style="font-size:1rem;">🎴</span><span>Ficha</span></a>
-        <a href="despacho.html" class="m-nav-btn"><span style="font-size:1rem;">⚙️</span><span>Despacho</span></a>
+        <a href="app.html" id="mob-vestuario" class="m-nav-btn">
+            <span style="font-size:1rem;">⚡</span>
+            <span>Vestuario</span>
+        </a>
+        <a href="cuerpo-tecnico.html" id="mob-cuerpo-tecnico" class="m-nav-btn">
+            <span style="font-size:1rem;">🧠</span>
+            <span>Técnicos</span>
+        </a>
+        <a href="media-studio.html" id="mob-media-studio" class="m-nav-btn active">
+            <span style="font-size:1rem;">🎵</span>
+            <span>Studio</span>
+        </a>
+        <a href="ficha-pro.html" class="m-nav-btn">
+            <span style="font-size:1rem;">🎴</span>
+            <span>Ficha</span>
+        </a>
+        <button onclick="toggleMobileDrawer()" class="m-nav-btn">
+            <span style="font-size:1rem;">☰</span>
+            <span>Menú</span>
+        </button>
     </nav>
 
     <script>
-        let pendingTargetRole = null;
+        function toggleMobileDrawer() {
+            const drawer = document.getElementById('mobile-menu-drawer');
+            if (drawer.style.transform === 'translateY(0px)') {
+                drawer.style.transform = 'translateY(-100%)';
+            } else {
+                drawer.style.transform = 'translateY(0px)';
+            }
+        }
 
         function normalizeRole(val) {
             if (!val) return null;
             const v = String(val).toLowerCase().trim();
             if (v === 'athlete' || v === 'atleta' || v.includes('atleta') || v.includes('jugador')) return 'athlete';
-            if (v === 'staff' || v.includes('entrenador' ) || v.includes('coach') || v.includes('fisio') || v.includes('staff')) return 'staff';
-            if (v.includes('scout') || v.includes('director') || v.includes('ojeador')) return 'scout';
+            if (v === 'staff' || v.includes('entrenador') || v.includes('coach') || v.includes('fisio') || v.includes('staff')) return 'staff';
+            if (v === 'scout' || v.includes('scout') || v.includes('director') || v.includes('ojeador')) return 'scout';
             return null;
         }
 
@@ -465,40 +1036,75 @@
             document.body.setAttribute('data-role', activeRoleKey);
             localStorage.setItem('kinet_active_role', activeRoleKey);
 
-            const roleLabels = { athlete: "ATLETA", staff: "STAFF", scout: "SCOUT" };
-            document.getElementById('topbar-role-title').textContent = roleLabels[activeRoleKey] || "ATLETA";
+            const roleLabels = {
+                athlete: 'ATLETA PRO',
+                staff: 'ENTRENADOR / STAFF',
+                scout: 'DIRECTOR DEPORTIVO / SCOUT'
+            };
+            document.getElementById('topbar-role-title').textContent = roleLabels[activeRoleKey] || 'ATLETA PRO';
 
-            const currentTier = localStorage.getItem('kinet_account_tier') || 'free';
-            const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
+            const sportChosen = localStorage.getItem('kinet_sport') || localStorage.getItem('sport') || 'Fútbol';
             document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${sportChosen.toUpperCase()}`;
             document.getElementById('topbar-sport-tag').textContent = `● ${sportChosen.toUpperCase()}`;
+            document.getElementById('header-tag-text').textContent = `VIRAL LOOP & MARCA PERSONAL • ${sportChosen.toUpperCase()}`;
+
+            // Sincronizar enlaces con rol y deporte activos
+            const queryParams = `?role=${activeRoleKey}&sport=${encodeURIComponent(sportChosen)}`;
+            ['nav-vestuario', 'drawer-vestuario', 'mob-vestuario'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.href = `app.html${queryParams}`;
+            });
+            ['nav-cuerpo-tecnico', 'drawer-cuerpo-tecnico', 'mob-cuerpo-tecnico'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.href = `cuerpo-tecnico.html${queryParams}`;
+            });
+            ['nav-media-studio', 'drawer-media-studio', 'mob-media-studio'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.href = `media-studio.html${queryParams}`;
+            });
+
+            // Actualizar Favicon dinámicamente según el rol activo
+            const faviconHex = activeRoleKey === 'staff' ? '%23F59E0B' : (activeRoleKey === 'scout' ? '%233B82F6' : '%2300FF88');
+            const faviconSvg = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22${faviconHex}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`;
+            document.getElementById('dynamic-favicon').setAttribute('href', faviconSvg);
 
             // Adaptar zona de arrastre según la versión del plan actual
+            const tier = localStorage.getItem('kinet_account_tier') || 'free';
             const dropTitle = document.getElementById('dropzone-title');
             const dropSub = document.getElementById('dropzone-subtitle');
             const dropIcon = document.getElementById('dropzone-icon');
             const badgeLabel = document.getElementById('tier-indicator-badge');
+            const studioPill = document.getElementById('studio-mode-pill');
 
             if (tier === 'pro' || tier === 'club') {
                 dropTitle.textContent = "Arrastra aquí tu vídeo o imagen";
                 dropSub.textContent = "Soporta MP4, MOV, PNG, JPG (Edición completa de vídeo y audio sincronizado)";
                 dropIcon.textContent = "🎬";
-                badgeLabel.textContent = "KINET PRO (VÍDEO & IMAGEN)";
-                badgeLabel.style.color = "#00FF88";
+                badgeLabel.textContent = "⚡ KINET PRO (VÍDEO & IMAGEN)";
+                studioPill.textContent = "MODO VÍDEO HD + BEATS";
             } else {
                 dropTitle.textContent = "Arrastra aquí tu imagen";
                 dropSub.textContent = "Soporta PNG, JPG, WEBP (Plan Gratuito: Edición de imágenes y beats)";
                 dropIcon.textContent = "🖼️";
-                badgeLabel.textContent = "PLAN GRATUITO (IMÁGENES)";
-                badgeLabel.style.color = "#94A3B8";
+                badgeLabel.textContent = "⚡ PLAN GRATUITO (IMÁGENES)";
+                studioPill.textContent = "MODO IMAGEN + BEATS";
             }
 
-            // Seguimiento fluido del cursor y sombreado spotlight dentro de los paneles de opciones
-            document.querySelectorAll('.kinet-panel, .pricing-card, .template-chip').forEach(panel => {
+            // Seguimiento fluido del cursor (Spotlight) en paneles y chips de plantillas
+            document.querySelectorAll('.kinet-panel, .template-chip').forEach(panel => {
                 panel.addEventListener('mousemove', (e) => {
                     const rect = panel.getBoundingClientRect();
                     panel.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
                     panel.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+                });
+            });
+
+            // Seguimiento fluido del cursor (Spotlight) en todas las opciones del menú lateral
+            document.querySelectorAll('.side-link').forEach(link => {
+                link.addEventListener('mousemove', (e) => {
+                    const rect = link.getBoundingClientRect();
+                    link.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+                    link.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
                 });
             });
         });
@@ -517,8 +1123,8 @@
         }
 
         function generateAiEdit() {
-            const prompt = document.getElementById('ai-prompt-input').value;
-            if(!prompt) {
+            const prompt = document.getElementById('ai-prompt-input').value.trim();
+            if (!prompt) {
                 alert('Por favor, escribe una descripción para el filtro de IA.');
                 return;
             }
