@@ -40,6 +40,33 @@
             --role-color: #3B82F6; --role-rgb: 59, 130, 246; --role-glow: rgba(59, 130, 246, 0.38); --role-gradient: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
         }
 
+        /* EFECTO ARCOÍRIS CHROMA RGB EN MOVIMIENTO [BETA] */
+        @keyframes rainbowFlowBg {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        body.rainbow-mode .btn-primary,
+        body.rainbow-mode .brand-logo-icon,
+        body.rainbow-mode .active-plan-banner,
+        body.rainbow-mode input:checked + .slider {
+            background: linear-gradient(270deg, #ff0055, #ff9900, #ffee00, #00ff88, #00e5ff, #7700ff, #ff00aa, #ff0055) !important;
+            background-size: 400% 400% !important;
+            animation: rainbowFlowBg 5s linear infinite !important;
+            color: #04060A !important;
+            border-color: transparent !important;
+        }
+
+        body.rainbow-mode .kinet-panel,
+        body.rainbow-mode .pricing-card.active-tier,
+        body.rainbow-mode .side-link.active,
+        body.rainbow-mode .d-tab.active,
+        body.rainbow-mode .active-role-indicator {
+            border-color: var(--role-color) !important;
+            box-shadow: 0 0 22px var(--role-glow) !important;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
         html, body {
@@ -53,7 +80,7 @@
             font-family: 'Inter', sans-serif;
             height: 100vh;
             overflow: hidden;
-            transition: background-color var(--transition-speed) ease, background-image var(--transition-speed) ease;
+            transition: background-color var(--transition-speed) ease;
         }
 
         body.scanlines-active::after {
@@ -245,8 +272,21 @@
 
         .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.035); gap: 12px; flex-wrap: wrap; }
         .setting-row:last-child { border-bottom: none; }
-        .setting-info label { font-size: 0.85rem; font-weight: 600; color: #E2E8F0; display: block; }
+        .setting-info label { font-size: 0.85rem; font-weight: 600; color: #E2E8F0; display: flex; align-items: center; gap: 8px; }
         .setting-info span { font-size: 0.72rem; color: var(--text-secondary); display: block; margin-top: 2px; }
+
+        .beta-pill {
+            background: linear-gradient(90deg, #ff0055, #ff9900, #00ff88, #00e5ff, #7700ff);
+            background-size: 200% 200%;
+            animation: rainbowFlowBg 3s linear infinite;
+            color: #04060A;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.55rem;
+            font-weight: 900;
+            padding: 2px 7px;
+            border-radius: 99px;
+            letter-spacing: 0.08em;
+        }
 
         .switch { position: relative; display: inline-block; width: 46px; height: 24px; flex-shrink: 0; }
         .switch input { opacity: 0; width: 0; height: 0; }
@@ -260,15 +300,35 @@
 
         .btn-primary { background: var(--role-gradient); color: #04060A; border: none; border-radius: 12px; padding: 11px 20px; font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.74rem; letter-spacing: 0.08em; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; box-shadow: 0 0 18px var(--role-glow); transition: 0.25s; }
         .btn-primary:hover { transform: translateY(-2px); filter: brightness(1.08); box-shadow: 0 0 26px var(--role-glow); }
+        .btn-primary.has-unsaved { animation: pulseSaveBtn 1.4s infinite alternate; }
+        @keyframes pulseSaveBtn { from { transform: scale(1); } to { transform: scale(1.05); filter: brightness(1.2); } }
+
         .btn-secondary { background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 10px 16px; font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.72rem; cursor: pointer; transition: 0.25s; }
         .btn-secondary:hover { border-color: rgba(var(--role-rgb), 0.4); background: rgba(var(--role-rgb), 0.08); }
         .btn-danger { background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 12px; padding: 10px 16px; font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.72rem; cursor: pointer; transition: 0.25s; }
         .btn-danger:hover { background: rgba(239, 68, 68, 0.25); box-shadow: 0 0 16px rgba(239, 68, 68, 0.2); }
 
+        /* TARJETAS DEL GESTOR MULTI-PERFIL EN MODAL */
+        .profile-slot-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            padding: 12px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .profile-slot-card.active-slot {
+            border-color: var(--role-color);
+            background: rgba(var(--role-rgb), 0.08);
+        }
+
         /* MODALES KINET CENTRALES */
         .kinet-modal-overlay { position: fixed; inset: 0; background: rgba(4, 6, 10, 0.85); backdrop-filter: blur(18px); z-index: 500; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         .kinet-modal-overlay.open { opacity: 1; pointer-events: auto; }
-        .kinet-modal-box { background: rgba(13, 17, 26, 0.98); border: 1px solid rgba(var(--role-rgb), 0.5); border-radius: 22px; max-width: 480px; width: calc(100% - 32px); padding: 28px; box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 35px rgba(var(--role-rgb), 0.2); transform: scale(0.95) translateY(12px); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; gap: 16px; text-align: left; }
+        .kinet-modal-box { background: rgba(13, 17, 26, 0.98); border: 1px solid rgba(var(--role-rgb), 0.5); border-radius: 22px; max-width: 500px; width: calc(100% - 32px); padding: 28px; box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 35px rgba(var(--role-rgb), 0.2); transform: scale(0.95) translateY(12px); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; gap: 16px; text-align: left; }
         .kinet-modal-overlay.open .kinet-modal-box { transform: scale(1) translateY(0); }
         .kinet-modal-header { font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 800; color: white; display: flex; align-items: center; gap: 10px; }
         .kinet-modal-body { font-size: 0.86rem; color: #CBD5E1; line-height: 1.6; }
@@ -294,7 +354,6 @@
         <!-- SIDEBAR FIJO -->
         <aside class="os-sidebar">
             <div class="sidebar-top-section">
-                <!-- EL LOGO REDIRIGE SIEMPRE A VESTUARIO (APP.HTML) -->
                 <a href="app.html" id="brand-logo-desktop" class="brand-box">
                     <div class="brand-logo-icon">K</div>
                     <div class="brand-text">
@@ -359,8 +418,8 @@
         <!-- ZONA PRINCIPAL -->
         <div class="os-main">
             
+            <!-- TOPBAR LIMPIA (SIN EL BOTÓN DE CERRAR SESIÓN DE ARRIBA) -->
             <header class="os-topbar">
-                <!-- EL LOGO MÓVIL REDIRIGE SIEMPRE A VESTUARIO (APP.HTML) -->
                 <a href="app.html" id="brand-logo-mobile" class="mobile-brand">
                     <div class="brand-logo-icon" style="width:32px;height:32px;font-size:0.95rem;">K</div>
                     <span style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:1rem;letter-spacing:0.1em;">KINET OS</span>
@@ -372,7 +431,6 @@
                 </div>
 
                 <div class="topbar-actions">
-                    <button class="btn-danger" style="padding: 6px 14px; font-size: 0.68rem;" onclick="confirmLogout()">Cerrar Sesión</button>
                     <div class="active-role-indicator">
                         <span class="dot"></span>
                         <span class="active-role-text" id="topbar-role-title">ATLETA</span>
@@ -388,7 +446,7 @@
                         <h1 class="context-title">Despacho & Ajustes</h1>
                     </div>
                     <div class="header-badges-group">
-                        <button class="btn-primary" onclick="saveAllSettings()">💾 Guardar Cambios</button>
+                        <button class="btn-primary" id="save-all-btn" onclick="saveAllSettings()">💾 Guardar Cambios</button>
                     </div>
                 </div>
 
@@ -414,21 +472,21 @@
                                         <label>Nombre de Usuario / Atleta</label>
                                         <span>Identificador corporativo en KINET OS</span>
                                     </div>
-                                    <input type="text" id="user-name-input" class="setting-input" value="Alex Vance" onchange="saveUserData()">
+                                    <input type="text" id="user-name-input" class="setting-input" value="Alex Vance" oninput="markPendingChanges()">
                                 </div>
                                 <div class="setting-row">
                                     <div class="setting-info">
                                         <label>Correo Electrónico</label>
                                         <span>Canal de notificaciones y alertas IA</span>
                                     </div>
-                                    <input type="email" id="user-email-input" class="setting-input" value="alex.vance@kinetos.pro" onchange="saveUserData()">
+                                    <input type="email" id="user-email-input" class="setting-input" value="alex.vance@kinetos.pro" oninput="markPendingChanges()">
                                 </div>
                                 <div class="setting-row">
                                     <div class="setting-info">
                                         <label>Disciplina Deportiva Principal</label>
-                                        <span>Ajusta el núcleo analítico de la IA</span>
+                                        <span>Ajusta el núcleo analítico de la IA (Al pulsar Guardar Cambios)</span>
                                     </div>
-                                    <select id="setting-sport" class="setting-select" onchange="updateSportPreference(this.value)">
+                                    <select id="setting-sport" class="setting-select" onchange="stageSportPreference(this.value)">
                                         <option value="Fútbol">Fútbol</option>
                                         <option value="Baloncesto">Baloncesto</option>
                                         <option value="Pádel / Tenis">Pádel / Tenis</option>
@@ -442,7 +500,7 @@
                                         <label>Sistema de Unidades de Telemetría</label>
                                         <span>Escala de velocidad GPS, peso y distancias</span>
                                     </div>
-                                    <select id="setting-units" class="setting-select" onchange="localStorage.setItem('kinet_units', this.value)">
+                                    <select id="setting-units" class="setting-select" onchange="stageSimplePref('units', this.value)">
                                         <option value="metric" selected>Métrico Europeo (km/h • kg • cm)</option>
                                         <option value="imperial">Imperial Anglosajón (mph • lbs • ft)</option>
                                     </select>
@@ -452,7 +510,7 @@
                                         <label>Idioma de la Interfaz & Agentes IA</label>
                                         <span>Lenguaje de voz y texto del Cuerpo Técnico IA</span>
                                     </div>
-                                    <select id="setting-lang" class="setting-select" onchange="localStorage.setItem('kinet_lang', this.value)">
+                                    <select id="setting-lang" class="setting-select" onchange="stageSimplePref('lang', this.value)">
                                         <option value="es" selected>Español (Oficial RFEF / PRO)</option>
                                         <option value="en">English (Premier League / NBA)</option>
                                         <option value="pt">Português (Élite)</option>
@@ -466,16 +524,13 @@
                                 <div class="panel-head">
                                     <span class="panel-label">⚡ Acciones Rápidas de Sesión & Sensores</span>
                                 </div>
+                                <!-- BOTÓN CAMBIAR ROL (GESTOR MULTI-PERFIL EN MODAL ESTILO KINET) -->
                                 <div class="setting-row">
                                     <div class="setting-info">
-                                        <label>Cambiar de Rol Activo</label>
-                                        <span>Alternar instantáneamente entre Atleta, Staff y Scout</span>
+                                        <label>Cambiar de Rol Activo / Perfiles</label>
+                                        <span>Gestiona tus perfiles creados (Atleta, Staff, Scout — Máx. 3)</span>
                                     </div>
-                                    <select id="setting-role-switcher" class="setting-select" onchange="promptRoleSwitch(this.value)">
-                                        <option value="athlete">Atleta Pro</option>
-                                        <option value="staff">Entrenador / Staff</option>
-                                        <option value="scout">Director / Scout</option>
-                                    </select>
+                                    <button class="btn-secondary" style="border-color:rgba(var(--role-rgb),0.45);color:var(--role-color);" onclick="openRoleManagerModal()">🔄 Cambiar Rol</button>
                                 </div>
                                 <div class="setting-row">
                                     <div class="setting-info">
@@ -493,14 +548,14 @@
                                         <label>Sincronización de Sensores & Wearables</label>
                                         <span>Chaleco GPS, Apple Watch, Garmin & BeSoccer Sync</span>
                                     </div>
-                                    <button class="btn-secondary" style="padding: 8px 14px; font-size: 0.68rem;" onclick="alert('📡 Buscando sensores Bluetooth / APIs deportivas cercanas... ¡Sincronización activa!')">📡 Sincronizar GPS</button>
+                                    <button class="btn-secondary" style="padding: 8px 14px; font-size: 0.68rem;" onclick="openInfoModal('📡 SINCRONIZACIÓN DE SENSORES ACTIVA', 'Se ha verificado el enlace con tus pasarelas deportivas (Garmin Connect, Apple Health, Strava y BeSoccer Sync).')">📡 Sincronizar GPS</button>
                                 </div>
                                 <div class="setting-row">
                                     <div class="setting-info">
                                         <label>Frecuencia de Informes del Cuerpo Técnico IA</label>
                                         <span>Notificaciones automáticas de supercompensación y fatiga</span>
                                     </div>
-                                    <select id="setting-ai-freq" class="setting-select" onchange="localStorage.setItem('kinet_ai_freq', this.value)">
+                                    <select id="setting-ai-freq" class="setting-select" onchange="stageSimplePref('aiFreq', this.value)">
                                         <option value="realtime" selected>En Tiempo Real (Post-Sesión)</option>
                                         <option value="daily">Resumen Diario (08:00 AM)</option>
                                         <option value="weekly">Microciclo Semanal</option>
@@ -518,23 +573,22 @@
                     </div>
                 </div>
 
-                <!-- CONTENIDO PESTAÑA 2: TEMA & PERSONALIZACIÓN (16 COLORES SINCRONIZADOS + FAVICON EN VIVO) -->
+                <!-- CONTENIDO PESTAÑA 2: TEMA & PERSONALIZACIÓN (CON GUARDADO AL PULSAR "GUARDAR CAMBIOS" + MODO ARCOÍRIS BETA) -->
                 <div id="tab-theme" class="tab-content">
                     <div class="settings-grid">
                         <div class="col-6">
                             <div class="kinet-panel">
                                 <div class="panel-head">
                                     <span class="panel-label">🎨 Estética & Paleta de 16 Colores Neón</span>
-                                    <button class="btn-secondary" style="padding:5px 10px; font-size:0.62rem;" onclick="resetRoleDefaultColor()">↺ Restaurar Color Rol</button>
+                                    <button class="btn-secondary" style="padding:5px 10px; font-size:0.62rem;" onclick="stageResetRoleColor()">↺ Restaurar Color Rol</button>
                                 </div>
 
-                                <!-- SELECTOR CON LOS 16 COLORES EXACTOS PARA QUE NUNCA QUEDE EN BLANCO -->
                                 <div class="setting-row">
                                     <div class="setting-info">
                                         <label>Color de Acento Principal (Selector Rápido)</label>
-                                        <span>Personaliza el brillo de neón y el icono de la pestaña en tiempo real</span>
+                                        <span>Selecciona tu color y pulsa "Guardar Cambios" arriba para aplicarlo</span>
                                     </div>
-                                    <select id="setting-accent-color" class="setting-select" onchange="selectCustomNeon(this.value, null)">
+                                    <select id="setting-accent-color" class="setting-select" onchange="stageCustomNeon(this.value)">
                                         <option value="#00FF88" selected>Verde KINET (#00FF88)</option>
                                         <option value="#10B981">Verde Esmeralda (#10B981)</option>
                                         <option value="#00E5FF">Cian Cyber (#00E5FF)</option>
@@ -557,24 +611,24 @@
 
                                 <!-- MATRIZ INTERACTIVA DE 16 COLORES NEÓN -->
                                 <div style="margin-top:8px;">
-                                    <span style="font-family:'JetBrains Mono'; font-size:0.64rem; color:var(--text-secondary); display:block;">TOCA CUALQUIER CÁPSULA DE COLOR PARA APLICARLO AL INSTANTE:</span>
+                                    <span style="font-family:'JetBrains Mono'; font-size:0.64rem; color:var(--text-secondary); display:block;">ELIGE UNA CÁPSULA DE COLOR (SE APLICARÁ AL PULSAR GUARDAR CAMBIOS):</span>
                                     <div class="color-swatches-grid" id="neon-swatches-box">
-                                        <button class="color-swatch-btn" data-hex="#00FF88" style="background:#00FF88;" onclick="selectCustomNeon('#00FF88', this)">KINET</button>
-                                        <button class="color-swatch-btn" data-hex="#10B981" style="background:#10B981;" onclick="selectCustomNeon('#10B981', this)">ESMERALDA</button>
-                                        <button class="color-swatch-btn" data-hex="#00E5FF" style="background:#00E5FF;" onclick="selectCustomNeon('#00E5FF', this)">CYBER</button>
-                                        <button class="color-swatch-btn" data-hex="#38BDF8" style="background:#38BDF8;" onclick="selectCustomNeon('#38BDF8', this)">HIELO</button>
-                                        <button class="color-swatch-btn" data-hex="#3B82F6" style="background:#3B82F6;" onclick="selectCustomNeon('#3B82F6', this)">SCOUT</button>
-                                        <button class="color-swatch-btn" data-hex="#6366F1" style="background:#6366F1;" onclick="selectCustomNeon('#6366F1', this)">ÍNDIGO</button>
-                                        <button class="color-swatch-btn" data-hex="#8B5CF6" style="background:#8B5CF6;" onclick="selectCustomNeon('#8B5CF6', this)">VIOLETA</button>
-                                        <button class="color-swatch-btn" data-hex="#A855F7" style="background:#A855F7;" onclick="selectCustomNeon('#A855F7', this)">PLASMA</button>
-                                        <button class="color-swatch-btn" data-hex="#D946EF" style="background:#D946EF;" onclick="selectCustomNeon('#D946EF', this)">ORQUÍDEA</button>
-                                        <button class="color-swatch-btn" data-hex="#EC4899" style="background:#EC4899;" onclick="selectCustomNeon('#EC4899', this)">FUCSIA</button>
-                                        <button class="color-swatch-btn" data-hex="#F43F5E" style="background:#F43F5E;" onclick="selectCustomNeon('#F43F5E', this)">CARMESÍ</button>
-                                        <button class="color-swatch-btn" data-hex="#EF4444" style="background:#EF4444;" onclick="selectCustomNeon('#EF4444', this)">NITRO</button>
-                                        <button class="color-swatch-btn" data-hex="#F97316" style="background:#F97316;" onclick="selectCustomNeon('#F97316', this)">MAGMA</button>
-                                        <button class="color-swatch-btn" data-hex="#F59E0B" style="background:#F59E0B;" onclick="selectCustomNeon('#F59E0B', this)">ÁMBAR</button>
-                                        <button class="color-swatch-btn" data-hex="#FFD700" style="background:#FFD700;" onclick="selectCustomNeon('#FFD700', this)">ORO 24K</button>
-                                        <button class="color-swatch-btn" data-hex="#84CC16" style="background:#84CC16;" onclick="selectCustomNeon('#84CC16', this)">VOLTIO</button>
+                                        <button class="color-swatch-btn" data-hex="#00FF88" style="background:#00FF88;" onclick="stageCustomNeon('#00FF88')">KINET</button>
+                                        <button class="color-swatch-btn" data-hex="#10B981" style="background:#10B981;" onclick="stageCustomNeon('#10B981')">ESMERALDA</button>
+                                        <button class="color-swatch-btn" data-hex="#00E5FF" style="background:#00E5FF;" onclick="stageCustomNeon('#00E5FF')">CYBER</button>
+                                        <button class="color-swatch-btn" data-hex="#38BDF8" style="background:#38BDF8;" onclick="stageCustomNeon('#38BDF8')">HIELO</button>
+                                        <button class="color-swatch-btn" data-hex="#3B82F6" style="background:#3B82F6;" onclick="stageCustomNeon('#3B82F6')">SCOUT</button>
+                                        <button class="color-swatch-btn" data-hex="#6366F1" style="background:#6366F1;" onclick="stageCustomNeon('#6366F1')">ÍNDIGO</button>
+                                        <button class="color-swatch-btn" data-hex="#8B5CF6" style="background:#8B5CF6;" onclick="stageCustomNeon('#8B5CF6')">VIOLETA</button>
+                                        <button class="color-swatch-btn" data-hex="#A855F7" style="background:#A855F7;" onclick="stageCustomNeon('#A855F7')">PLASMA</button>
+                                        <button class="color-swatch-btn" data-hex="#D946EF" style="background:#D946EF;" onclick="stageCustomNeon('#D946EF')">ORQUÍDEA</button>
+                                        <button class="color-swatch-btn" data-hex="#EC4899" style="background:#EC4899;" onclick="stageCustomNeon('#EC4899')">FUCSIA</button>
+                                        <button class="color-swatch-btn" data-hex="#F43F5E" style="background:#F43F5E;" onclick="stageCustomNeon('#F43F5E')">CARMESÍ</button>
+                                        <button class="color-swatch-btn" data-hex="#EF4444" style="background:#EF4444;" onclick="stageCustomNeon('#EF4444')">NITRO</button>
+                                        <button class="color-swatch-btn" data-hex="#F97316" style="background:#F97316;" onclick="stageCustomNeon('#F97316')">MAGMA</button>
+                                        <button class="color-swatch-btn" data-hex="#F59E0B" style="background:#F59E0B;" onclick="stageCustomNeon('#F59E0B')">ÁMBAR</button>
+                                        <button class="color-swatch-btn" data-hex="#FFD700" style="background:#FFD700;" onclick="stageCustomNeon('#FFD700')">ORO 24K</button>
+                                        <button class="color-swatch-btn" data-hex="#84CC16" style="background:#84CC16;" onclick="stageCustomNeon('#84CC16')">VOLTIO</button>
                                     </div>
                                 </div>
 
@@ -584,15 +638,17 @@
                                         <label>Selector de Color RGB Libre (Custom Hex)</label>
                                         <span>Elige exactamente el color oficial del escudo de tu club</span>
                                     </div>
-                                    <input type="color" id="custom-color-picker" value="#00FF88" oninput="selectCustomNeon(this.value, null)" style="width:48px; height:34px; border:1px solid var(--border-subtle); border-radius:8px; background:transparent; cursor:pointer;">
+                                    <input type="color" id="custom-color-picker" value="#00FF88" oninput="stageCustomNeon(this.value)" style="width:48px; height:34px; border:1px solid var(--border-subtle); border-radius:8px; background:transparent; cursor:pointer;">
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-6">
                             <div class="kinet-panel">
+                                <!-- CABECERA CON EL BOTÓN DE RESTABLECER OPCIONES EN ESTA SECCIÓN -->
                                 <div class="panel-head">
                                     <span class="panel-label">🎛️ Personalización Avanzada de UI & Atmósfera</span>
+                                    <button class="btn-secondary" style="padding:5px 10px; font-size:0.62rem;" onclick="stageResetAdvancedUI()">↺ Restablecer Opciones</button>
                                 </div>
                                 <div class="setting-row">
                                     <div class="setting-info">
@@ -600,7 +656,7 @@
                                         <span>Iluminación reactiva al cursor en los cuadros de opciones</span>
                                     </div>
                                     <label class="switch">
-                                        <input type="checkbox" id="setting-spotlight" checked onchange="toggleSpotlight(this.checked)">
+                                        <input type="checkbox" id="setting-spotlight" checked onchange="stageAdvancedUI('spotlight', this.checked)">
                                         <span class="slider"></span>
                                     </label>
                                 </div>
@@ -609,7 +665,7 @@
                                         <label>Intensidad del Fondo Void</label>
                                         <span>Profundidad visual de la cuadrícula en todo KINET OS</span>
                                     </div>
-                                    <select id="setting-bg-intensity" class="setting-select" onchange="changeBgIntensity(this.value)">
+                                    <select id="setting-bg-intensity" class="setting-select" onchange="stageAdvancedUI('bgIntensity', this.value)">
                                         <option value="deep">Void Absoluto OLED (#020305)</option>
                                         <option value="standard" selected>Estándar KINET (#06080E)</option>
                                         <option value="contrast">Alto Contraste Titanio (#0B1222)</option>
@@ -622,7 +678,7 @@
                                         <label>Estilo de Cajas Bento</label>
                                         <span>Acabado de cristal translúcido o borde láser intenso</span>
                                     </div>
-                                    <select id="setting-panel-style" class="setting-select" onchange="changePanelStyle(this.value)">
+                                    <select id="setting-panel-style" class="setting-select" onchange="stageAdvancedUI('panelStyle', this.value)">
                                         <option value="glass" selected>Cristal Translúcido (Glassmorphism)</option>
                                         <option value="carbon">Fibra de Carbono Opaca</option>
                                         <option value="neon-border">Borde Láser Neón Intenso</option>
@@ -633,7 +689,7 @@
                                         <label>Velocidad de Transiciones</label>
                                         <span>Fluidez en la apertura de paneles y menús</span>
                                     </div>
-                                    <select id="setting-transition-speed" class="setting-select" onchange="changeTransitionSpeed(this.value)">
+                                    <select id="setting-transition-speed" class="setting-select" onchange="stageAdvancedUI('transitionSpeed', this.value)">
                                         <option value="0.45s">Cinematográfica (Suave)</option>
                                         <option value="0.25s" selected>Instantánea (Alta Precisión)</option>
                                         <option value="0.1s">Turbo eSports (0.1s)</option>
@@ -644,7 +700,7 @@
                                         <label>Geometría de Bordes (Corner Radius)</label>
                                         <span>Curvatura de tarjetas y botones del sistema</span>
                                     </div>
-                                    <select id="setting-corner-radius" class="setting-select" onchange="changeCornerRadius(this.value)">
+                                    <select id="setting-corner-radius" class="setting-select" onchange="stageAdvancedUI('cornerRadius', this.value)">
                                         <option value="20px" selected>Redondeado Bento (20px)</option>
                                         <option value="10px">Táctico Semi-Recto (10px)</option>
                                         <option value="4px">Cyber Sharp Angular (4px)</option>
@@ -656,7 +712,21 @@
                                         <span>Superpone líneas sutiles de telemetría deportiva</span>
                                     </div>
                                     <label class="switch">
-                                        <input type="checkbox" id="setting-scanlines" onchange="toggleScanlines(this.checked)">
+                                        <input type="checkbox" id="setting-scanlines" onchange="stageAdvancedUI('scanlines', this.checked)">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <!-- NUEVA PERSONALIZACIÓN ARCOÍRIS EN MOVIMIENTO (BETA) -->
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>
+                                            <span>Modo Chroma RGB / Arcoíris en Movimiento</span>
+                                            <span class="beta-pill">BETA</span>
+                                        </label>
+                                        <span>Ciclo multicolor dinámico en bordes, botones, luces y pestaña</span>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" id="setting-rainbow" onchange="stageAdvancedUI('rainbow', this.checked)">
                                         <span class="slider"></span>
                                     </label>
                                 </div>
@@ -667,9 +737,7 @@
 
                 <!-- CONTENIDO PESTAÑA 3: SUBSCRIPCIONES & KINET PRO -->
                 <div id="tab-subscription" class="tab-content">
-                    <div class="pricing-cards-grid" id="pricing-cards-container">
-                        <!-- Generado dinámicamente según el plan activo -->
-                    </div>
+                    <div class="pricing-cards-grid" id="pricing-cards-container"></div>
                 </div>
 
                 <!-- CONTENIDO PESTAÑA 4: PRIVACIDAD & SEGURIDAD -->
@@ -692,14 +760,14 @@
                                         <label>Bloqueo Biométrico de Acceso</label>
                                         <span>Requerir autenticación facial o huella al abrir KINET OS</span>
                                     </div>
-                                    <label class="switch"><input type="checkbox" id="setting-bio" checked><span class="slider"></span></label>
+                                    <label class="switch"><input type="checkbox" id="setting-bio" checked onchange="markPendingChanges()"><span class="slider"></span></label>
                                 </div>
                                 <div class="setting-row">
                                     <div class="setting-info">
                                         <label>Visibilidad de Ficha en Radar Scout Matrix B2B</label>
                                         <span>Permitir que clubes y directores deportivos vean tu KINET Card</span>
                                     </div>
-                                    <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                                    <label class="switch"><input type="checkbox" checked onchange="markPendingChanges()"><span class="slider"></span></label>
                                 </div>
                             </div>
                         </div>
@@ -714,21 +782,14 @@
                                         <label>Compartir Telemetría Anónima</label>
                                         <span>Ayuda a mejorar los modelos de predicción de fatiga</span>
                                     </div>
-                                    <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                                    <label class="switch"><input type="checkbox" checked onchange="markPendingChanges()"><span class="slider"></span></label>
                                 </div>
                                 <div class="setting-row">
                                     <div class="setting-info">
                                         <label>Exportar Historial Completo</label>
                                         <span>Descargar copia de seguridad de entrenamientos y chats</span>
                                     </div>
-                                    <button class="btn-secondary" onclick="alert('Generando paquete seguro de exportación en formato .json y .csv...')">Descargar Datos</button>
-                                </div>
-                                <div class="setting-row">
-                                    <div class="setting-info">
-                                        <label>Restablecer Preferencias Estéticas de Fábrica</label>
-                                        <span>Devuelve colores, fondos y bordes al estándar original</span>
-                                    </div>
-                                    <button class="btn-secondary" onclick="resetAllThemeToDefault()">Restablecer UI</button>
+                                    <button class="btn-secondary" onclick="openInfoModal('📦 EXPORTACIÓN DE DATOS LISTA', 'Se ha generado tu paquete cifrado de entrenamientos, telemetría y conversaciones en formato .json y .csv.')">Descargar Datos</button>
                                 </div>
                             </div>
                         </div>
@@ -764,7 +825,37 @@
         </div>
     </div>
 
-    <!-- MODAL PASARELA DE PAGO STRIPE / CLAVE DE LICENCIA PARA ACTIVAR PRO O CLUB -->
+    <!-- MODAL KINET 1: CONFIRMACIÓN DE GUARDADO DE CAMBIOS -->
+    <div id="save-confirm-modal" class="kinet-modal-overlay">
+        <div class="kinet-modal-box">
+            <div class="kinet-modal-header" style="color: var(--role-color);">
+                <span>✓</span> <span id="save-modal-title">CONFIGURACIÓN APLICADA Y GUARDADA</span>
+            </div>
+            <div class="kinet-modal-body" id="save-modal-body">
+                Todos tus cambios de cuenta, estética, atmósfera visual y preferencias tácticas han sido aplicados y sincronizados en <strong>KINET OS</strong>.
+            </div>
+            <div class="kinet-modal-footer">
+                <button class="btn-primary" onclick="closeKinetModal('save-confirm-modal')">Entendido ⚡</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL KINET 2: GESTOR DE ROLES Y MULTI-PERFIL (MÁX. 3 PERFILES, NO REPETIDOS) -->
+    <div id="role-manager-modal" class="kinet-modal-overlay">
+        <div class="kinet-modal-box" style="max-width: 530px;">
+            <div class="kinet-modal-header" style="color: var(--role-color);">
+                <span>🔄</span> <span id="role-manager-title">GESTIÓN DE ROLES & PERFILES KINET OS</span>
+            </div>
+            <div class="kinet-modal-body" id="role-manager-body">
+                <!-- Se rellena dinámicamente según si es Free/Invitado o Pro/Club -->
+            </div>
+            <div class="kinet-modal-footer" id="role-manager-footer">
+                <button class="btn-secondary" onclick="closeKinetModal('role-manager-modal')">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL KINET 3: PASARELA DE PAGO STRIPE / CLAVE DE LICENCIA PARA ACTIVAR PRO O CLUB -->
     <div id="checkout-upgrade-modal" class="kinet-modal-overlay">
         <div class="kinet-modal-box">
             <div class="kinet-modal-header" style="color: var(--role-color);">
@@ -797,7 +888,7 @@
         </div>
     </div>
 
-    <!-- CUSTOM KINET MODAL: CONFIRMACIÓN DE CIERRE DE SESIÓN -->
+    <!-- MODAL KINET 4: CONFIRMACIÓN DE CIERRE DE SESIÓN -->
     <div id="logout-modal" class="kinet-modal-overlay">
         <div class="kinet-modal-box">
             <div class="kinet-modal-header" style="color: #EF4444;">
@@ -813,23 +904,7 @@
         </div>
     </div>
 
-    <!-- CUSTOM KINET MODAL: AVISO DE CAMBIO DE ROL (INVITADO / FREE) -->
-    <div id="role-switch-modal" class="kinet-modal-overlay">
-        <div class="kinet-modal-box">
-            <div class="kinet-modal-header" style="color: var(--role-color);">
-                <span>🛡️</span> <span id="role-modal-title">ATENCIÓN: MODO DE SESIÓN ACTIVO</span>
-            </div>
-            <div class="kinet-modal-body" id="role-modal-text">
-                Te encuentras operando en una modalidad temporal (Plan Gratuito). Al cambiar de rol, se borrarán los datos guardados en tu sesión actual y tendrás que repetir las opciones de configuración en Fase 1. ¿Deseas continuar?
-            </div>
-            <div class="kinet-modal-footer">
-                <button class="btn-secondary" onclick="cancelRoleSwitch()">Cancelar</button>
-                <button class="btn-primary" onclick="confirmRoleSwitch()">Continuar y Reiniciar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- CUSTOM KINET MODAL: CONFIRMACIÓN DE CANCELACIÓN DE PLAN -->
+    <!-- MODAL KINET 5: CONFIRMACIÓN DE CANCELACIÓN DE PLAN -->
     <div id="cancel-plan-modal" class="kinet-modal-overlay">
         <div class="kinet-modal-box">
             <div class="kinet-modal-header" style="color: #EF4444;">
@@ -878,8 +953,27 @@
     </nav>
 
     <script>
-        let pendingTargetRole = null;
         let pendingCheckoutTier = null;
+        let rainbowAnimId = null;
+        let rainbowHue = 0;
+
+        // ESTADO EN BORRADOR (NO SE APLICA NI GUARDA HASTA PULSAR "GUARDAR CAMBIOS")
+        let draftSettings = {
+            userName: 'Alex Vance',
+            userEmail: 'alex.vance@kinetos.pro',
+            sport: 'Fútbol',
+            units: 'metric',
+            lang: 'es',
+            aiFreq: 'realtime',
+            accentColor: null,
+            spotlight: true,
+            bgIntensity: 'standard',
+            panelStyle: 'glass',
+            transitionSpeed: '0.25s',
+            cornerRadius: '20px',
+            scanlines: false,
+            rainbow: false
+        };
 
         function normalizeRole(val) {
             if (!val) return null;
@@ -893,7 +987,6 @@
             return null;
         }
 
-        // Normaliza cualquier valor de tier ('guest', null, etc.) para que nunca quede en blanco
         function normalizeTier(rawTier) {
             if (rawTier === 'pro') return 'pro';
             if (rawTier === 'club') return 'club';
@@ -922,87 +1015,82 @@
             document.body.setAttribute('data-role', activeRoleKey);
             localStorage.setItem('kinet_active_role', activeRoleKey);
 
+            // Asegurar que el perfil actual exista registrado en kinet_profiles_db
+            ensureActiveProfileInDB(activeRoleKey);
+
             const roleLabels = { athlete: "ATLETA PRO", staff: "ENTRENADOR / STAFF", scout: "DIRECTOR DEPORTIVO / SCOUT" };
             document.getElementById('topbar-role-title').textContent = roleLabels[activeRoleKey];
 
-            const savedName = localStorage.getItem('kinet_user_name');
-            if (savedName) document.getElementById('user-name-input').value = savedName;
-            const savedEmail = localStorage.getItem('kinet_user_email');
-            if (savedEmail) document.getElementById('user-email-input').value = savedEmail;
+            // Cargar valores guardados en draftSettings y en los inputs
+            draftSettings.userName = localStorage.getItem('kinet_user_name') || 'Alex Vance';
+            draftSettings.userEmail = localStorage.getItem('kinet_user_email') || 'alex.vance@kinetos.pro';
+            draftSettings.sport = localStorage.getItem('kinet_sport') || 'Fútbol';
+            draftSettings.units = localStorage.getItem('kinet_units') || 'metric';
+            draftSettings.lang = localStorage.getItem('kinet_lang') || 'es';
+            draftSettings.aiFreq = localStorage.getItem('kinet_ai_freq') || 'realtime';
+            draftSettings.accentColor = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color') || null;
+            draftSettings.spotlight = localStorage.getItem('kinet_spotlight') !== 'false';
+            draftSettings.bgIntensity = localStorage.getItem('kinet_bg_intensity') || 'standard';
+            draftSettings.panelStyle = localStorage.getItem('kinet_panel_style') || 'glass';
+            draftSettings.transitionSpeed = localStorage.getItem('kinet_transition_speed') || '0.25s';
+            draftSettings.cornerRadius = localStorage.getItem('kinet_corner_radius') || '20px';
+            draftSettings.scanlines = localStorage.getItem('kinet_scanlines') === 'true';
+            draftSettings.rainbow = localStorage.getItem('kinet_rainbow_mode') === 'true';
 
-            const roleSwitcher = document.getElementById('setting-role-switcher');
-            if (roleSwitcher) roleSwitcher.value = activeRoleKey;
-
-            // Normalizar siempre el tier para que nunca salga vacío ni el select ni la pestaña de suscripciones
-            const currentTier = normalizeTier(localStorage.getItem('kinet_account_tier'));
-            localStorage.setItem('kinet_account_tier', currentTier);
-            updateTierUI(currentTier);
-
-            // Color base del rol o personalizado guardado
-            const defaultRoleHex = activeRoleKey === 'staff' ? '#F59E0B' : (activeRoleKey === 'scout' ? '#3B82F6' : '#00FF88');
-            const savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
-            if (savedAccent) {
-                selectCustomNeon(savedAccent, null);
-            } else {
-                updateDynamicFavicon(defaultRoleHex);
-                syncColorControlsUI(defaultRoleHex);
-            }
-
-            const savedBg = localStorage.getItem('kinet_bg_intensity');
-            if (savedBg) {
-                changeBgIntensity(savedBg);
-                const bgSelect = document.getElementById('setting-bg-intensity');
-                if (bgSelect) bgSelect.value = savedBg;
-            }
-
-            const savedPanelStyle = localStorage.getItem('kinet_panel_style');
-            if (savedPanelStyle) {
-                changePanelStyle(savedPanelStyle);
-                const psSelect = document.getElementById('setting-panel-style');
-                if (psSelect) psSelect.value = savedPanelStyle;
-            }
-
-            const savedRadius = localStorage.getItem('kinet_corner_radius');
-            if (savedRadius) {
-                changeCornerRadius(savedRadius);
-                const radSelect = document.getElementById('setting-corner-radius');
-                if (radSelect) radSelect.value = savedRadius;
-            }
-
-            const savedSpeed = localStorage.getItem('kinet_transition_speed');
-            if (savedSpeed) {
-                changeTransitionSpeed(savedSpeed);
-                const spdSelect = document.getElementById('setting-transition-speed');
-                if (spdSelect) spdSelect.value = savedSpeed;
-            }
-
-            const savedSpotlight = localStorage.getItem('kinet_spotlight');
-            if (savedSpotlight === 'false') {
-                const spotCheck = document.getElementById('setting-spotlight');
-                if (spotCheck) { spotCheck.checked = false; toggleSpotlight(false); }
-            }
-
-            const savedScanlines = localStorage.getItem('kinet_scanlines');
-            if (savedScanlines === 'true') {
-                const scanCheck = document.getElementById('setting-scanlines');
-                if (scanCheck) { scanCheck.checked = true; toggleScanlines(true); }
-            }
-
-            const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
-            document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${sportChosen.toUpperCase()}`;
-            document.getElementById('topbar-sport-tag').textContent = `● ${sportChosen.toUpperCase()}`;
+            // Poblar controles visuales con lo que hay guardado actualmente
+            document.getElementById('user-name-input').value = draftSettings.userName;
+            document.getElementById('user-email-input').value = draftSettings.userEmail;
+            document.getElementById('setting-units').value = draftSettings.units;
+            document.getElementById('setting-lang').value = draftSettings.lang;
+            document.getElementById('setting-ai-freq').value = draftSettings.aiFreq;
+            document.getElementById('setting-spotlight').checked = draftSettings.spotlight;
+            document.getElementById('setting-bg-intensity').value = draftSettings.bgIntensity;
+            document.getElementById('setting-panel-style').value = draftSettings.panelStyle;
+            document.getElementById('setting-transition-speed').value = draftSettings.transitionSpeed;
+            document.getElementById('setting-corner-radius').value = draftSettings.cornerRadius;
+            document.getElementById('setting-scanlines').checked = draftSettings.scanlines;
+            document.getElementById('setting-rainbow').checked = draftSettings.rainbow;
 
             const sportSelect = document.getElementById('setting-sport');
             if (sportSelect) {
                 for (let opt of sportSelect.options) {
-                    if (opt.value.toLowerCase() === sportChosen.toLowerCase()) {
+                    if (opt.value.toLowerCase() === draftSettings.sport.toLowerCase()) {
                         opt.selected = true;
                         break;
                     }
                 }
             }
 
-            // Sincronizar enlaces + Logo hacia Vestuario (app.html)
+            const defaultRoleHex = activeRoleKey === 'staff' ? '#F59E0B' : (activeRoleKey === 'scout' ? '#3B82F6' : '#00FF88');
+            syncColorControlsUI(draftSettings.accentColor || defaultRoleHex);
+
+            // Aplicar en pantalla únicamente lo que ya estaba guardado previamente
+            applyCommittedSettingsToDOM();
+
+            const currentTier = normalizeTier(localStorage.getItem('kinet_account_tier'));
+            localStorage.setItem('kinet_account_tier', currentTier);
+            updateTierUI(currentTier);
+
+            updateNavigationLinks(activeRoleKey, draftSettings.sport);
+            initSpotlightListeners();
+        });
+
+        function ensureActiveProfileInDB(roleKey) {
+            const db = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
+            if (!db[roleKey]) {
+                const defaultNames = { athlete: 'Atleta Pro', staff: 'Entrenador / Staff', scout: 'Director Deportivo / Scout' };
+                db[roleKey] = {
+                    roleType: roleKey,
+                    roleName: defaultNames[roleKey] || 'Atleta Pro',
+                    sport: localStorage.getItem('kinet_sport') || 'Fútbol',
+                    category: localStorage.getItem('kinet_category') || 'Profesional High-Performance',
+                    updatedAt: new Date().toISOString()
+                };
+                localStorage.setItem('kinet_profiles_db', JSON.stringify(db));
+            }
+        }
+
+        function updateNavigationLinks(activeRoleKey, sportChosen) {
             const queryParams = `?role=${activeRoleKey}&sport=${encodeURIComponent(sportChosen)}`;
             const navMap = {
                 'brand-logo-desktop': 'app.html', 'brand-logo-mobile': 'app.html',
@@ -1019,9 +1107,7 @@
                 const el = document.getElementById(id);
                 if (el) el.href = `${navMap[id]}${queryParams}`;
             });
-
-            initSpotlightListeners();
-        });
+        }
 
         function initSpotlightListeners() {
             document.querySelectorAll('.kinet-panel, .pricing-card, .side-link').forEach(panel => {
@@ -1040,12 +1126,408 @@
             if (btn) btn.classList.add('active');
         }
 
-        function updateSportPreference(newSport) {
-            localStorage.setItem('kinet_sport', newSport);
-            document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${newSport.toUpperCase()}`;
-            document.getElementById('topbar-sport-tag').textContent = `● ${newSport.toUpperCase()}`;
+        // =========================================================================
+        // SISTEMA DE BORRADOR: NO APLICA CAMBIOS HASTA PULSAR "GUARDAR CAMBIOS"
+        // =========================================================================
+        function markPendingChanges() {
+            const btn = document.getElementById('save-all-btn');
+            if (btn) {
+                btn.classList.add('has-unsaved');
+                btn.textContent = '💾 Guardar Cambios ●';
+            }
         }
 
+        function stageSportPreference(newSport) {
+            draftSettings.sport = newSport;
+            markPendingChanges();
+        }
+
+        function stageSimplePref(key, val) {
+            draftSettings[key] = val;
+            markPendingChanges();
+        }
+
+        function stageCustomNeon(hexColor) {
+            if (!hexColor || hexColor === 'custom') return;
+            const upperHex = hexColor.toUpperCase();
+            draftSettings.accentColor = upperHex;
+            // Si elige un color fijo manualmente, desmarcamos el modo arcoíris en borrador
+            draftSettings.rainbow = false;
+            const rainbowCheck = document.getElementById('setting-rainbow');
+            if (rainbowCheck) rainbowCheck.checked = false;
+
+            syncColorControlsUI(upperHex);
+            markPendingChanges();
+        }
+
+        function stageResetRoleColor() {
+            draftSettings.accentColor = null;
+            draftSettings.rainbow = false;
+            const rainbowCheck = document.getElementById('setting-rainbow');
+            if (rainbowCheck) rainbowCheck.checked = false;
+
+            const activeRoleKey = localStorage.getItem('kinet_active_role') || 'athlete';
+            const defaultHex = activeRoleKey === 'staff' ? '#F59E0B' : (activeRoleKey === 'scout' ? '#3B82F6' : '#00FF88');
+            syncColorControlsUI(defaultHex);
+            markPendingChanges();
+        }
+
+        function stageAdvancedUI(key, val) {
+            draftSettings[key] = val;
+            markPendingChanges();
+        }
+
+        // Botón "↺ Restablecer Opciones" dentro de Personalización Avanzada de UI & Atmósfera
+        function stageResetAdvancedUI() {
+            draftSettings.spotlight = true;
+            draftSettings.bgIntensity = 'standard';
+            draftSettings.panelStyle = 'glass';
+            draftSettings.transitionSpeed = '0.25s';
+            draftSettings.cornerRadius = '20px';
+            draftSettings.scanlines = false;
+            draftSettings.rainbow = false;
+
+            document.getElementById('setting-spotlight').checked = true;
+            document.getElementById('setting-bg-intensity').value = 'standard';
+            document.getElementById('setting-panel-style').value = 'glass';
+            document.getElementById('setting-transition-speed').value = '0.25s';
+            document.getElementById('setting-corner-radius').value = '20px';
+            document.getElementById('setting-scanlines').checked = false;
+            document.getElementById('setting-rainbow').checked = false;
+
+            markPendingChanges();
+        }
+
+        // GUARDAR CAMBIOS DEFINITIVOS Y MOSTRAR MODAL KINET DE CONFIRMACIÓN
+        function saveAllSettings() {
+            draftSettings.userName = document.getElementById('user-name-input').value.trim() || 'Alex Vance';
+            draftSettings.userEmail = document.getElementById('user-email-input').value.trim() || 'alex.vance@kinetos.pro';
+
+            localStorage.setItem('kinet_user_name', draftSettings.userName);
+            localStorage.setItem('kinet_user_email', draftSettings.userEmail);
+            localStorage.setItem('kinet_sport', draftSettings.sport);
+            localStorage.setItem('kinet_units', draftSettings.units);
+            localStorage.setItem('kinet_lang', draftSettings.lang);
+            localStorage.setItem('kinet_ai_freq', draftSettings.aiFreq);
+
+            if (draftSettings.accentColor) {
+                localStorage.setItem('kinet_custom_accent_override', draftSettings.accentColor);
+                localStorage.setItem('kinet_accent_color', draftSettings.accentColor);
+            } else {
+                localStorage.removeItem('kinet_custom_accent_override');
+                localStorage.removeItem('kinet_accent_color');
+            }
+
+            localStorage.setItem('kinet_spotlight', String(draftSettings.spotlight));
+            localStorage.setItem('kinet_bg_intensity', draftSettings.bgIntensity);
+            localStorage.setItem('kinet_panel_style', draftSettings.panelStyle);
+            localStorage.setItem('kinet_transition_speed', draftSettings.transitionSpeed);
+            localStorage.setItem('kinet_corner_radius', draftSettings.cornerRadius);
+            localStorage.setItem('kinet_scanlines', String(draftSettings.scanlines));
+            localStorage.setItem('kinet_rainbow_mode', String(draftSettings.rainbow));
+
+            // Aplicar ahora sí todos los cambios al DOM
+            applyCommittedSettingsToDOM();
+
+            const activeRoleKey = localStorage.getItem('kinet_active_role') || 'athlete';
+            updateNavigationLinks(activeRoleKey, draftSettings.sport);
+
+            const btn = document.getElementById('save-all-btn');
+            if (btn) {
+                btn.classList.remove('has-unsaved');
+                btn.textContent = '💾 Guardar Cambios';
+            }
+
+            document.getElementById('save-modal-title').textContent = 'CONFIGURACIÓN APLICADA Y GUARDADA';
+            document.getElementById('save-modal-body').innerHTML = `Tus ajustes de cuenta, disciplina (<strong>${draftSettings.sport}</strong>), colores neón y atmósfera visual se han aplicado con éxito en todo el ecosistema <strong>KINET OS</strong>.`;
+            document.getElementById('save-confirm-modal').classList.add('open');
+        }
+
+        function openInfoModal(title, bodyHtml) {
+            document.getElementById('save-modal-title').textContent = title;
+            document.getElementById('save-modal-body').innerHTML = bodyHtml;
+            document.getElementById('save-confirm-modal').classList.add('open');
+        }
+
+        function applyCommittedSettingsToDOM() {
+            const activeRoleKey = localStorage.getItem('kinet_active_role') || 'athlete';
+            const defaultRoleHex = activeRoleKey === 'staff' ? '#F59E0B' : (activeRoleKey === 'scout' ? '#3B82F6' : '#00FF88');
+
+            document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${draftSettings.sport.toUpperCase()}`;
+            document.getElementById('topbar-sport-tag').textContent = `● ${draftSettings.sport.toUpperCase()}`;
+
+            // Modo Arcoíris BETA vs Color Fijo
+            stopRainbowLoop();
+            if (draftSettings.rainbow) {
+                document.body.classList.add('rainbow-mode');
+                startRainbowLoop();
+            } else {
+                document.body.classList.remove('rainbow-mode');
+                if (draftSettings.accentColor) {
+                    applyAccentColorToDOM(draftSettings.accentColor);
+                } else {
+                    document.body.style.removeProperty('--role-color');
+                    document.body.style.removeProperty('--role-rgb');
+                    document.body.style.removeProperty('--role-glow');
+                    document.body.style.removeProperty('--role-gradient');
+                    updateDynamicFavicon(defaultRoleHex);
+                }
+            }
+
+            // Spotlight
+            document.querySelectorAll('.kinet-panel, .pricing-card').forEach(p => {
+                p.style.boxShadow = draftSettings.spotlight ? '0 14px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)' : 'none';
+            });
+
+            // Fondo Void
+            const bgMap = { deep: '#020305', contrast: '#0B1222', emerald: '#04120E', crimson: '#120509', standard: '#06080E' };
+            document.documentElement.style.setProperty('--bg-void', bgMap[draftSettings.bgIntensity] || '#06080E');
+
+            // Estilo de Cajas Bento
+            if (draftSettings.panelStyle === 'carbon') {
+                document.documentElement.style.setProperty('--bg-panel', 'rgba(8, 10, 15, 0.98)');
+                document.documentElement.style.setProperty('--border-subtle', 'rgba(255, 255, 255, 0.14)');
+            } else if (draftSettings.panelStyle === 'neon-border') {
+                document.documentElement.style.setProperty('--bg-panel', 'rgba(10, 14, 22, 0.92)');
+                document.documentElement.style.setProperty('--border-subtle', 'rgba(var(--role-rgb), 0.38)');
+            } else {
+                document.documentElement.style.setProperty('--bg-panel', 'rgba(13, 17, 26, 0.90)');
+                document.documentElement.style.setProperty('--border-subtle', 'rgba(255, 255, 255, 0.08)');
+            }
+
+            // Transiciones, Bordes y Scanlines
+            document.documentElement.style.setProperty('--transition-speed', draftSettings.transitionSpeed);
+            document.documentElement.style.setProperty('--panel-radius', draftSettings.cornerRadius);
+            document.body.classList.toggle('scanlines-active', draftSettings.scanlines);
+        }
+
+        // MOTOR ARCOÍRIS CHROMA RGB EN MOVIMIENTO (BETA)
+        function hslToHexAndRgb(h, s, l) {
+            s /= 100; l /= 100;
+            const k = n => (n + h / 30) % 12;
+            const a = s * Math.min(l, 1 - l);
+            const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+            const r = Math.round(255 * f(0));
+            const g = Math.round(255 * f(8));
+            const b = Math.round(255 * f(4));
+            const hex = '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('').toUpperCase();
+            return { r, g, b, hex };
+        }
+
+        function startRainbowLoop() {
+            let lastFavUpdate = 0;
+            function step(timestamp) {
+                rainbowHue = (rainbowHue + 1.4) % 360;
+                const c1 = hslToHexAndRgb(rainbowHue, 100, 54);
+                const c2 = hslToHexAndRgb((rainbowHue + 60) % 360, 100, 48);
+
+                document.body.style.setProperty('--role-color', c1.hex);
+                document.body.style.setProperty('--role-rgb', `${c1.r}, ${c1.g}, ${c1.b}`);
+                document.body.style.setProperty('--role-glow', `rgba(${c1.r}, ${c1.g}, ${c1.b}, 0.45)`);
+                document.body.style.setProperty('--role-gradient', `linear-gradient(135deg, ${c1.hex} 0%, ${c2.hex} 100%)`);
+
+                if (timestamp - lastFavUpdate > 350) {
+                    updateDynamicFavicon(c1.hex);
+                    lastFavUpdate = timestamp;
+                }
+                rainbowAnimId = requestAnimationFrame(step);
+            }
+            rainbowAnimId = requestAnimationFrame(step);
+        }
+
+        function stopRainbowLoop() {
+            if (rainbowAnimId) {
+                cancelAnimationFrame(rainbowAnimId);
+                rainbowAnimId = null;
+            }
+        }
+
+        function syncColorControlsUI(hexColor) {
+            const upperHex = (hexColor || '#00FF88').toUpperCase();
+            document.querySelectorAll('.color-swatch-btn').forEach(b => {
+                if ((b.getAttribute('data-hex') || '').toUpperCase() === upperHex) b.classList.add('active');
+                else b.classList.remove('active');
+            });
+
+            const sel = document.getElementById('setting-accent-color');
+            if (sel) {
+                let matched = false;
+                for (let opt of sel.options) {
+                    if (opt.value.toUpperCase() === upperHex) {
+                        opt.selected = true;
+                        matched = true;
+                        break;
+                    }
+                }
+                if (!matched) {
+                    const customOpt = document.getElementById('custom-hex-option');
+                    if (customOpt) {
+                        customOpt.hidden = false;
+                        customOpt.value = upperHex;
+                        customOpt.textContent = `Color Personalizado (${upperHex})`;
+                        customOpt.selected = true;
+                    }
+                }
+            }
+
+            const picker = document.getElementById('custom-color-picker');
+            if (picker && upperHex.startsWith('#') && upperHex.length === 7) {
+                picker.value = upperHex;
+            }
+        }
+
+        function applyAccentColorToDOM(hexColor) {
+            const clean = hexColor.replace('#', '');
+            const num = parseInt(clean, 16);
+            const r = (num >> 16) & 255;
+            const g = (num >> 8) & 255;
+            const b = num & 255;
+
+            document.body.style.setProperty('--role-color', hexColor);
+            document.body.style.setProperty('--role-rgb', `${r}, ${g}, ${b}`);
+            document.body.style.setProperty('--role-glow', `rgba(${r}, ${g}, ${b}, 0.42)`);
+            document.body.style.setProperty('--role-gradient', `linear-gradient(135deg, ${hexColor} 0%, rgba(${r},${g},${b},0.75) 100%)`);
+            updateDynamicFavicon(hexColor);
+        }
+
+        // =========================================================================
+        // GESTOR DE ROLES Y PERFILES EN VENTANA KINET (FREE VS PRO/CLUB, MÁX 3)
+        // =========================================================================
+        function openRoleManagerModal() {
+            const currentTier = normalizeTier(localStorage.getItem('kinet_account_tier'));
+            const activeRoleKey = localStorage.getItem('kinet_active_role') || 'athlete';
+            const titleEl = document.getElementById('role-manager-title');
+            const bodyEl = document.getElementById('role-manager-body');
+            const footerEl = document.getElementById('role-manager-footer');
+
+            if (currentTier === 'free') {
+                titleEl.textContent = 'ATENCIÓN: CAMBIO DE ROL (MODO INVITADO / GRATUITO)';
+                bodyEl.innerHTML = `
+                    Te encuentras operando en el <strong>Plan Gratuito / Modo Invitado</strong>.<br><br>
+                    En esta versión solo se almacena <strong>1 perfil activo</strong>. Si continúas hacia el selector de perfiles (<code>fase1.html</code>), <strong>se borrarán los datos de tu sesión actual</strong> y tendrás que calibrar el nuevo rol desde cero.<br><br>
+                    <span style="font-size:0.78rem;color:var(--text-secondary);">*(Actualiza a Pro Player o Club & Scout para guardar hasta 3 perfiles simultáneos sin perder tus datos).*</span>
+                `;
+                footerEl.innerHTML = `
+                    <button class="btn-secondary" onclick="closeKinetModal('role-manager-modal')">Cancelar</button>
+                    <button class="btn-danger" onclick="confirmGuestRoleReset()">Borrar Datos e Ir a Fase 1 →</button>
+                `;
+            } else {
+                // Versión de pago (Pro / Club): Gestor de hasta 3 perfiles únicos (Atleta, Staff, Scout)
+                const db = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
+                const allRolesMeta = {
+                    athlete: { icon: '⚡', label: 'Atleta / Deportista Pro', color: '#00FF88', onboarding: 'onboarding_pro.html' },
+                    staff: { icon: '🧠', label: 'Entrenador / Cuerpo Técnico', color: '#F59E0B', onboarding: 'kinet_os_staff_coach_onboarding.html' },
+                    scout: { icon: '📡', label: 'Director Deportivo / Scout B2B', color: '#3B82F6', onboarding: 'onboarding_scout_pro.html' }
+                };
+
+                const createdKeys = Object.keys(allRolesMeta).filter(k => !!db[k]);
+                const missingKeys = Object.keys(allRolesMeta).filter(k => !db[k]);
+
+                titleEl.textContent = `GESTOR MULTI-PERFIL PRO (${createdKeys.length} / 3 CREADOS)`;
+
+                let createdHtml = createdKeys.map(k => {
+                    const info = allRolesMeta[k];
+                    const prof = db[k];
+                    const isCurrent = (k === activeRoleKey);
+                    return `
+                        <div class="profile-slot-card ${isCurrent ? 'active-slot' : ''}">
+                            <div>
+                                <div style="font-family:'Orbitron';font-size:0.82rem;font-weight:800;color:white;display:flex;align-items:center;gap:6px;">
+                                    <span>${info.icon}</span> <span>${info.label}</span>
+                                    ${isCurrent ? `<span style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);border:1px solid var(--role-color);padding:1px 6px;border-radius:6px;">ACTIVO</span>` : ''}
+                                </div>
+                                <div style="font-size:0.72rem;color:var(--text-secondary);margin-top:2px;">
+                                    Deporte: <strong>${prof.sport || 'Fútbol'}</strong> • ${prof.category || 'Élite'}
+                                </div>
+                            </div>
+                            <div style="display:flex;gap:6px;align-items:center;">
+                                ${!isCurrent ? `<button class="btn-primary" style="padding:7px 12px;font-size:0.66rem;" onclick="switchActiveProProfile('${k}')">Activar</button>` : ''}
+                                <button class="btn-danger" style="padding:7px 10px;font-size:0.66rem;" onclick="deleteSavedProProfile('${k}')">🗑️ Eliminar</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                let missingHtml = '';
+                if (missingKeys.length > 0) {
+                    missingHtml = `
+                        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border-subtle);">
+                            <span style="font-family:'JetBrains Mono';font-size:0.65rem;color:var(--role-color);display:block;margin-bottom:8px;">➕ CREAR NUEVO PERFIL ADICIONAL (RANURAS DISPONIBLES: ${missingKeys.length}):</span>
+                            ${missingKeys.map(k => {
+                                const info = allRolesMeta[k];
+                                return `
+                                    <div class="profile-slot-card" style="background:rgba(255,255,255,0.015);">
+                                        <div style="font-size:0.8rem;font-weight:700;color:#CBD5E1;">${info.icon} ${info.label}</div>
+                                        <button class="btn-secondary" style="padding:7px 12px;font-size:0.66rem;border-color:${info.color};color:${info.color};" onclick="window.location.href='${info.onboarding}'">➕ Crear Perfil</button>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                } else {
+                    missingHtml = `
+                        <div style="margin-top:10px;padding:10px;border-radius:10px;background:rgba(var(--role-rgb),0.08);border:1px solid rgba(var(--role-rgb),0.3);font-family:'JetBrains Mono';font-size:0.68rem;color:var(--role-color);text-align:center;">
+                            ✓ Has alcanzado el máximo de 3 perfiles únicos (Atleta, Staff y Scout).
+                        </div>
+                    `;
+                }
+
+                bodyEl.innerHTML = `
+                    <p style="margin-bottom:10px;font-size:0.8rem;color:var(--text-secondary);">
+                        Con tu licencia activa puedes mantener hasta <strong>3 perfiles únicos</strong> sincronizados sin duplicados:
+                    </p>
+                    ${createdHtml}
+                    ${missingHtml}
+                `;
+                footerEl.innerHTML = `
+                    <button class="btn-secondary" onclick="closeKinetModal('role-manager-modal')">Cerrar Ventana</button>
+                `;
+            }
+
+            document.getElementById('role-manager-modal').classList.add('open');
+        }
+
+        function confirmGuestRoleReset() {
+            closeKinetModal('role-manager-modal');
+            localStorage.removeItem('kinet_profiles_db');
+            localStorage.removeItem('kinet_profile_completed');
+            localStorage.removeItem('kinet_active_role');
+            window.location.href = 'fase1.html';
+        }
+
+        function switchActiveProProfile(roleKey) {
+            const db = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
+            const prof = db[roleKey];
+            localStorage.setItem('kinet_active_role', roleKey);
+            if (prof && prof.sport) localStorage.setItem('kinet_sport', prof.sport);
+            const sportChosen = (prof && prof.sport) || localStorage.getItem('kinet_sport') || 'Fútbol';
+            window.location.href = `despacho.html?role=${roleKey}&sport=${encodeURIComponent(sportChosen)}`;
+        }
+
+        function deleteSavedProProfile(roleKey) {
+            const db = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
+            delete db[roleKey];
+            localStorage.setItem('kinet_profiles_db', JSON.stringify(db));
+
+            const remainingKeys = Object.keys(db);
+            if (remainingKeys.length === 0) {
+                localStorage.removeItem('kinet_active_role');
+                window.location.href = 'fase1.html';
+                return;
+            }
+
+            const currentActive = localStorage.getItem('kinet_active_role');
+            if (currentActive === roleKey) {
+                const nextRole = remainingKeys[0];
+                localStorage.setItem('kinet_active_role', nextRole);
+                document.body.setAttribute('data-role', nextRole);
+            }
+            openRoleManagerModal();
+        }
+
+        // =========================================================================
+        // GESTIÓN DE SUSCRIPCIONES Y PASARELA DE VERIFICACIÓN
+        // =========================================================================
         function handleAccountTypeSelectChange(targetTier) {
             const currentTier = normalizeTier(localStorage.getItem('kinet_account_tier'));
             if (targetTier === 'free') {
@@ -1081,7 +1563,7 @@
             const cardVal = (document.getElementById('card-num-input').value || '').trim();
 
             if (!keyVal && cardVal.length < 8) {
-                alert('⚠️ Introduce un código de licencia válido (ej: KINET-PRO-2026) o los dígitos de tu tarjeta para activar el plan.');
+                openInfoModal('⚠️ VALIDACIÓN REQUERIDA', 'Introduce un código de licencia válido (ej: <strong>KINET-PRO-2026</strong>) o los dígitos de tu tarjeta bancaria para activar el plan.');
                 return;
             }
 
@@ -1092,7 +1574,7 @@
                 localStorage.setItem('kinet_video_mins_used', '0');
             }
             updateTierUI(newTier);
-            alert(`✓ ¡Licencia ${newTier === 'club' ? 'Club & Scout B2B' : 'Pro Player'} verificada y activada!`);
+            openInfoModal('✓ LICENCIA VERIFICADA Y ACTIVADA', `Tu cuenta ha sido actualizada a <strong>${newTier === 'club' ? 'Club & Scout B2B' : 'Pro Player'}</strong>. Se han desbloqueado Vision Analytics™, Media Studio HD, el gestor de 3 perfiles y el sello AI Verified.`);
         }
 
         function updateTierUI(rawTier) {
@@ -1223,7 +1705,6 @@
                     `;
                 }
             } else {
-                // Por defecto: Plan Gratuito (cubre 'free', 'guest' o cualquier otro estado inicial)
                 if (label) { label.textContent = "Plan Gratuito (Básico)"; label.style.color = "var(--role-color)"; }
                 if (container) {
                     container.innerHTML = `
@@ -1254,7 +1735,7 @@
                                     <li>60 min/mes de Vídeo IA (Vision Analytics™)</li>
                                     <li>KINET Card ✓ AI Verified (Oro 24K & Holo)</li>
                                     <li>Media Studio Vídeo HD + Spotify Sync</li>
-                                    <li>Chat IA Ilimitado + Multi-Rol en nube</li>
+                                    <li>Chat IA Ilimitado + 3 Perfiles en nube</li>
                                 </ul>
                             </div>
                             <button class="btn-pricing btn-select-pro" onclick="requestPlanUpgrade('pro')">CAMBIAR A PRO PLAYER (8,99€)</button>
@@ -1282,32 +1763,6 @@
             initSpotlightListeners();
         }
 
-        function promptRoleSwitch(newRole) {
-            const currentTier = normalizeTier(localStorage.getItem('kinet_account_tier'));
-            pendingTargetRole = newRole;
-
-            if (currentTier === 'free') {
-                document.getElementById('role-switch-modal').classList.add('open');
-            } else {
-                executeRoleSwitch(newRole);
-            }
-        }
-
-        function cancelRoleSwitch() {
-            document.getElementById('role-switch-modal').classList.remove('open');
-            const activeRole = localStorage.getItem('kinet_active_role') || 'athlete';
-            document.getElementById('setting-role-switcher').value = activeRole;
-            pendingTargetRole = null;
-        }
-
-        function confirmRoleSwitch() {
-            document.getElementById('role-switch-modal').classList.remove('open');
-            localStorage.removeItem('kinet_profiles_db');
-            localStorage.removeItem('kinet_profile_completed');
-            localStorage.removeItem('kinet_active_role');
-            window.location.href = 'fase1.html';
-        }
-
         function promptCancelPlan(planName) {
             document.getElementById('cancel-modal-title').textContent = `CANCELAR SUBSCRIPCIÓN // ${planName.toUpperCase()}`;
             document.getElementById('cancel-plan-modal').classList.add('open');
@@ -1317,156 +1772,7 @@
             closeKinetModal('cancel-plan-modal');
             localStorage.setItem('kinet_account_tier', 'free');
             updateTierUI('free');
-            alert('✓ Suscripción cancelada con éxito. Has pasado al Plan Gratuito.');
-        }
-
-        function executeRoleSwitch(newRole) {
-            localStorage.setItem('kinet_active_role', newRole);
-            const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
-            window.location.href = `despacho.html?role=${newRole}&sport=${encodeURIComponent(sportChosen)}`;
-        }
-
-        // Sincroniza el <select>, las 16 cápsulas y el color picker sin dejar nunca el <select> en blanco
-        function syncColorControlsUI(hexColor) {
-            const upperHex = hexColor.toUpperCase();
-            document.querySelectorAll('.color-swatch-btn').forEach(b => {
-                if ((b.getAttribute('data-hex') || '').toUpperCase() === upperHex) b.classList.add('active');
-                else b.classList.remove('active');
-            });
-
-            const sel = document.getElementById('setting-accent-color');
-            if (sel) {
-                let matched = false;
-                for (let opt of sel.options) {
-                    if (opt.value.toUpperCase() === upperHex) {
-                        opt.selected = true;
-                        matched = true;
-                        break;
-                    }
-                }
-                if (!matched) {
-                    const customOpt = document.getElementById('custom-hex-option');
-                    if (customOpt) {
-                        customOpt.hidden = false;
-                        customOpt.value = upperHex;
-                        customOpt.textContent = `Color Personalizado (${upperHex})`;
-                        customOpt.selected = true;
-                    }
-                }
-            }
-
-            const picker = document.getElementById('custom-color-picker');
-            if (picker && upperHex.startsWith('#') && upperHex.length === 7) {
-                picker.value = upperHex;
-            }
-        }
-
-        function selectCustomNeon(hexColor, btnEl) {
-            if (!hexColor || hexColor === 'custom') return;
-            const upperHex = hexColor.toUpperCase();
-            localStorage.setItem('kinet_custom_accent_override', upperHex);
-            localStorage.setItem('kinet_accent_color', upperHex);
-
-            syncColorControlsUI(upperHex);
-            applyAccentColor(upperHex);
-        }
-
-        function resetRoleDefaultColor() {
-            localStorage.removeItem('kinet_custom_accent_override');
-            localStorage.removeItem('kinet_accent_color');
-            document.body.style.removeProperty('--role-color');
-            document.body.style.removeProperty('--role-rgb');
-            document.body.style.removeProperty('--role-glow');
-            document.body.style.removeProperty('--role-gradient');
-
-            const activeRoleKey = localStorage.getItem('kinet_active_role') || 'athlete';
-            const defaultHex = activeRoleKey === 'staff' ? '#F59E0B' : (activeRoleKey === 'scout' ? '#3B82F6' : '#00FF88');
-            syncColorControlsUI(defaultHex);
-            updateDynamicFavicon(defaultHex);
-        }
-
-        function applyAccentColor(hexColor) {
-            const clean = hexColor.replace('#', '');
-            const num = parseInt(clean, 16);
-            const r = (num >> 16) & 255;
-            const g = (num >> 8) & 255;
-            const b = num & 255;
-
-            document.body.style.setProperty('--role-color', hexColor);
-            document.body.style.setProperty('--role-rgb', `${r}, ${g}, ${b}`);
-            document.body.style.setProperty('--role-glow', `rgba(${r}, ${g}, ${b}, 0.42)`);
-            document.body.style.setProperty('--role-gradient', `linear-gradient(135deg, ${hexColor} 0%, rgba(${r},${g},${b},0.75) 100%)`);
-
-            // Actualizar también el icono de la pestaña del navegador (Favicon) al mismo color
-            updateDynamicFavicon(hexColor);
-        }
-
-        function toggleSpotlight(enabled) {
-            localStorage.setItem('kinet_spotlight', enabled);
-            document.querySelectorAll('.kinet-panel, .pricing-card').forEach(p => {
-                p.style.boxShadow = enabled ? '0 14px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)' : 'none';
-            });
-        }
-
-        function changeBgIntensity(mode) {
-            localStorage.setItem('kinet_bg_intensity', mode);
-            if (mode === 'deep') {
-                document.documentElement.style.setProperty('--bg-void', '#020305');
-            } else if (mode === 'contrast') {
-                document.documentElement.style.setProperty('--bg-void', '#0B1222');
-            } else if (mode === 'emerald') {
-                document.documentElement.style.setProperty('--bg-void', '#04120E');
-            } else if (mode === 'crimson') {
-                document.documentElement.style.setProperty('--bg-void', '#120509');
-            } else {
-                document.documentElement.style.setProperty('--bg-void', '#06080E');
-            }
-        }
-
-        function changePanelStyle(styleMode) {
-            localStorage.setItem('kinet_panel_style', styleMode);
-            if (styleMode === 'carbon') {
-                document.documentElement.style.setProperty('--bg-panel', 'rgba(8, 10, 15, 0.98)');
-                document.documentElement.style.setProperty('--border-subtle', 'rgba(255, 255, 255, 0.14)');
-            } else if (styleMode === 'neon-border') {
-                document.documentElement.style.setProperty('--bg-panel', 'rgba(10, 14, 22, 0.92)');
-                document.documentElement.style.setProperty('--border-subtle', 'rgba(var(--role-rgb), 0.38)');
-            } else {
-                document.documentElement.style.setProperty('--bg-panel', 'rgba(13, 17, 26, 0.90)');
-                document.documentElement.style.setProperty('--border-subtle', 'rgba(255, 255, 255, 0.08)');
-            }
-        }
-
-        function changeTransitionSpeed(speedVal) {
-            localStorage.setItem('kinet_transition_speed', speedVal);
-            document.documentElement.style.setProperty('--transition-speed', speedVal);
-        }
-
-        function changeCornerRadius(radVal) {
-            localStorage.setItem('kinet_corner_radius', radVal);
-            document.documentElement.style.setProperty('--panel-radius', radVal);
-        }
-
-        function toggleScanlines(enabled) {
-            localStorage.setItem('kinet_scanlines', enabled);
-            document.body.classList.toggle('scanlines-active', enabled);
-        }
-
-        function resetAllThemeToDefault() {
-            resetRoleDefaultColor();
-            changeBgIntensity('standard');
-            changePanelStyle('glass');
-            changeCornerRadius('20px');
-            toggleScanlines(false);
-            toggleSpotlight(true);
-            alert('✓ Todas las opciones estéticas han vuelto al diseño original de KINET OS.');
-        }
-
-        function saveUserData() {
-            const name = document.getElementById('user-name-input').value;
-            const email = document.getElementById('user-email-input').value;
-            localStorage.setItem('kinet_user_name', name);
-            localStorage.setItem('kinet_user_email', email);
+            openInfoModal('✓ SUSCRIPCIÓN CANCELADA', 'Tu cuenta ha vuelto al <strong>Plan Gratuito</strong>.');
         }
 
         function confirmLogout() {
@@ -1481,18 +1787,6 @@
             localStorage.removeItem('kinet_logged_in');
             localStorage.removeItem('kinet_guest_session');
             window.location.href = 'login.html?logout=true';
-        }
-
-        function saveAllSettings() {
-            saveUserData();
-            const btn = document.querySelector('.context-header .btn-primary');
-            const originalText = btn.textContent;
-            btn.textContent = "✓ ¡Guardado con Éxito!";
-            btn.style.filter = "brightness(1.2)";
-            setTimeout(() => {
-                btn.textContent = originalText;
-                btn.style.filter = "none";
-            }, 1800);
         }
 
         function openModal() {
