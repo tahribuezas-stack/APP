@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#06080E">
+    <title>KINET OS // Mi Perfil & Expediente Biométrico</title>
+    
+    <!-- Favicon Corporativo Dinámico por JavaScript -->
+    <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
+
+    <!-- Tipografías Oficiales -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-void: #06080E;
+            --bg-panel: rgba(13, 17, 26, 0.88);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            
+            --role-color: #00FF88;
+            --role-rgb: 0, 255, 136;
+            --role-glow: rgba(0, 255, 136, 0.38);
+            --role-gradient: linear-gradient(135deg, #00FF88 0%, #00B359 100%);
+        }
+
+        body[data-role="athlete"] {
+            --role-color: #00FF88;
+            --role-rgb: 0, 255, 136;
+            --role-glow: rgba(0, 255, 136, 0.38);
+            --role-gradient: linear-gradient(135deg, #00FF88 0%, #00B359 100%);
+        }
+
+        body[data-role="staff"] {
+            --role-color: #F59E0B;
+            --role-rgb: 245, 158, 11;
+            --role-glow: rgba(245, 158, 11, 0.38);
+            --role-gradient: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        }
+
+        body[data-role="scout"] {
+            --role-color: #3B82F6;
+            --role-rgb: 59, 130, 246;
+            --role-glow: rgba(59, 130, 246, 0.38);
+            --role-gradient: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            background-color: var(--bg-void);
+            background-image: 
+                radial-gradient(circle at 50% -20%, rgba(var(--role-rgb), 0.14), transparent 60%),
+                linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            transition: background-image 0.4s ease;
+        }
+
+        /* LAYOUT PRINCIPAL A PANTALLA COMPLETA ESTÁTICA */
+        .os-layout {
+            display: grid;
+            grid-template-columns: 270px 1fr;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        @media (max-width: 960px) {
+            .os-layout { grid-template-columns: 1fr; height: auto; min-height: 100vh; overflow-y: auto; padding-bottom: 85px; }
+            html, body { height: auto !important; overflow-y: auto !important; }
+            .os-main { height: auto !important; overflow: visible !important; }
+        }
+
+        /* SIDEBAR FIJO ESTRICTO (ESCRITORIO) */
+        .os-sidebar {
+            background: rgba(8, 11, 18, 0.95);
+            backdrop-filter: blur(24px);
+            border-right: 1px solid var(--border-subtle);
+            padding: 18px 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100vh;
+            z-index: 90;
+            overflow: hidden;
+        }
+
+        @media (max-width: 960px) { .os-sidebar { display: none !important; } }
+
+        .brand-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            padding: 4px;
+            border-radius: 14px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            margin-bottom: 6px;
+        }
+
+        .brand-box:hover {
+            transform: scale(1.03);
+            filter: drop-shadow(0 0 16px var(--role-glow));
+        }
+
+        .brand-logo-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background: var(--role-gradient);
+            color: #04060A;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 1.15rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 18px var(--role-glow);
+            transition: background 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        .brand-text h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 1rem;
+            letter-spacing: 0.15em;
+            color: white;
+            line-height: 1;
+        }
+
+        .brand-text span {
+            font-size: 7.5px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--role-color);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-top: 3px;
+            display: block;
+            transition: color 0.4s ease;
+        }
+
+        .sidebar-top-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-bottom-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px; 
+            padding-top: 10px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        /* ENLACES LATERALES CON SPOTLIGHT DINÁMICO DE ROL */
+        .side-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.83rem;
+            font-weight: 600;
+            height: 44px; 
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .side-link-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 1;
+        }
+
+        .side-link::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(150px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(var(--role-rgb), 0.22), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .side-link:hover::before { opacity: 1; }
+        .side-link:hover {
+            color: var(--text-primary);
+            border-color: rgba(var(--role-rgb), 0.45);
+            transform: translateX(3px);
+        }
+
+        .side-link.active {
+            background: rgba(var(--role-rgb), 0.14);
+            border-color: var(--role-color);
+            color: var(--role-color);
+            box-shadow: 0 0 18px rgba(var(--role-rgb), 0.18);
+        }
+
+        /* WIDGET DE CONSEJO IA */
+        .sidebar-ai-tip-box {
+            background: rgba(var(--role-rgb), 0.05);
+            border: 1px solid rgba(var(--role-rgb), 0.24);
+            border-radius: 12px;
+            padding: 9px 12px;
+            margin-bottom: 2px;
+            position: relative;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+            transition: background 0.4s ease, border-color 0.4s ease;
+        }
+
+        .sidebar-ai-tip-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--role-color);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+            font-weight: 700;
+            transition: color 0.4s ease;
+        }
+
+        .sidebar-ai-tip-text {
+            font-size: 0.72rem;
+            color: #CBD5E1;
+            line-height: 1.35;
+        }
+
+        /* ZONA PRINCIPAL */
+        .os-main {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .os-topbar {
+            background: rgba(6, 8, 14, 0.88);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .mobile-brand { display: none; align-items: center; gap: 10px; text-decoration: none; color: white; }
+        @media (max-width: 960px) { .mobile-brand { display: flex; } .os-topbar { padding: 12px 16px; } }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .active-role-indicator {
+            display: flex;
+            align-items: center;
+            background: rgba(13, 17, 26, 0.95);
+            border: 1px solid rgba(var(--role-rgb), 0.45);
+            border-radius: 999px;
+            padding: 6px 14px;
+            gap: 8px;
+            transition: border-color 0.4s ease;
+        }
+
+        .active-role-indicator .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--role-color);
+            box-shadow: 0 0 8px var(--role-color);
+            transition: background 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        .active-role-text {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 0.68rem;
+            color: var(--text-primary);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        /* WORKSPACE IDÉNTICO A APP.HTML */
+        .os-workspace {
+            max-width: 1280px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px 24px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            animation: pageEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @media (max-width: 768px) { 
+            .os-workspace { padding: 14px; justify-content: flex-start; } 
+        }
+
+        @keyframes pageEnter {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .context-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .context-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--role-color);
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+            transition: color 0.4s ease;
+        }
+
+        .context-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.3rem, 2.2vw, 1.9rem);
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            color: white;
+        }
+
+        .header-badges-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .verified-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 10px;
+            background: rgba(var(--role-rgb), 0.12);
+            border: 1px solid rgba(var(--role-rgb), 0.38);
+            color: var(--role-color);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.4s ease, border-color 0.4s ease, color 0.4s ease;
+        }
+
+        /* BENTO GRID & PANELES CON SPOTLIGHT DINÁMICO */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 16px;
+        }
+
+        .col-4 { grid-column: span 4; }
+        .col-5 { grid-column: span 5; }
+        .col-6 { grid-column: span 6; }
+        .col-7 { grid-column: span 7; }
+        .col-8 { grid-column: span 8; }
+        .col-12 { grid-column: span 12; }
+
+        @media (max-width: 1024px) {
+            .col-4, .col-5, .col-6, .col-7, .col-8 { grid-column: span 12; }
+        }
+
+        .kinet-panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+        }
+
+        .kinet-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(220px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(var(--role-rgb), 0.18), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .kinet-panel > * { position: relative; z-index: 1; }
+
+        .kinet-panel:hover::before { opacity: 1; }
+        .kinet-panel:hover {
+            border-color: rgba(var(--role-rgb), 0.48);
+            transform: translateY(-2px);
+            box-shadow: 0 16px 36px rgba(0,0,0,0.6), 0 0 22px rgba(var(--role-rgb), 0.14);
+        }
+
+        .panel-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .panel-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .btn-primary {
+            background: var(--role-gradient);
+            color: #04060A;
+            border: none;
+            border-radius: 12px;
+            padding: 11px 18px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 800;
+            font-size: 0.74rem;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-decoration: none;
+            box-shadow: 0 0 18px var(--role-glow);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 0 26px var(--role-glow);
+            filter: brightness(1.08);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.04);
+            color: white;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 10px 16px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-decoration: none;
+            transition: all 0.25s ease;
+        }
+        .btn-secondary:hover {
+            border-color: rgba(var(--role-rgb), 0.45);
+            background: rgba(var(--role-rgb), 0.08);
+            transform: translateY(-1px);
+        }
+
+        .bar-group { margin-bottom: 10px; }
+        .bar-meta { display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 600; margin-bottom: 5px; color: #E2E8F0; }
+        .bar-track { height: 7px; background: rgba(255, 255, 255, 0.06); border-radius: 99px; overflow: hidden; }
+        .bar-fill { height: 100%; background: var(--role-gradient); border-radius: 99px; box-shadow: 0 0 12px var(--role-glow); transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        /* MODALES KINET CENTRALES */
+        .kinet-modal-overlay {
+            position: fixed; inset: 0; background: rgba(4, 6, 10, 0.85); backdrop-filter: blur(18px); z-index: 500;
+            display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .kinet-modal-overlay.open { opacity: 1; pointer-events: auto; }
+        .kinet-modal-box {
+            background: rgba(13, 17, 26, 0.98); border: 1px solid rgba(var(--role-rgb), 0.5); border-radius: 22px; max-width: 460px; width: calc(100% - 32px);
+            padding: 28px; box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 35px rgba(var(--role-rgb), 0.2);
+            transform: scale(0.95) translateY(12px); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; flex-direction: column; gap: 16px; text-align: left;
+        }
+        .kinet-modal-overlay.open .kinet-modal-box { transform: scale(1) translateY(0); }
+        .kinet-modal-header { font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 800; color: white; display: flex; align-items: center; gap: 10px; }
+        .kinet-modal-body { font-size: 0.88rem; color: #CBD5E1; line-height: 1.6; }
+        .kinet-modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+
+        /* NAVEGACIÓN MÓVIL */
+        .mobile-bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 24px);
+            max-width: 440px;
+            background: rgba(8, 11, 18, 0.95);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            padding: 6px;
+            z-index: 120;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.85);
+            justify-content: space-around;
+        }
+
+        @media (max-width: 960px) { 
+            .mobile-bottom-nav { display: flex !important; } 
+        }
+
+        .m-nav-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.62rem;
+            font-weight: 700;
+            padding: 6px 8px;
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.25s;
+        }
+
+        .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
+
+
+        .profile-hero-row {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-subtle);
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .profile-avatar-big {
+            width: 74px;
+            height: 74px;
+            border-radius: 20px;
+            background: var(--role-gradient);
+            color: #04060A;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 1.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 24px var(--role-glow);
+            flex-shrink: 0;
+        }
+        .bio-field-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        @media (max-width: 640px) { .bio-field-grid { grid-template-columns: 1fr; } }
+        .bio-field-box {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 10px 12px;
+        }
+        .bio-field-box label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.62rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .bio-input {
+            width: 100%;
+            background: rgba(4, 6, 10, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            padding: 7px 10px;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            outline: none;
+        }
+        .bio-input:focus {
+            border-color: var(--role-color);
+        }
+
+    </style>
+</head>
+<body data-role="athlete">
+
+    <div class="os-layout">
+        
+        <!-- SIDEBAR FIJO (IDÉNTICO EN TODAS LAS PÁGINAS CON INDICADOR ACTIVO) -->
+        <aside class="os-sidebar">
+            <div class="sidebar-top-section">
+                <a href="index.html" class="brand-box">
+                    <div class="brand-logo-icon">K</div>
+                    <div class="brand-text">
+                        <h1>KINET OS</h1>
+                        <span id="sidebar-sport-subtitle">AI PRECISION // FÚTBOL</span>
+                    </div>
+                </a>
+
+                <nav class="sidebar-nav">
+                    <a href="app.html" id="nav-vestuario" class="side-link" style="margin-bottom: 8px;">
+                        <span class="side-link-left"><span>⚡</span> <span>Vestuario</span></span>
+                        <span style="font-size:0.65rem;font-family:'JetBrains Mono';">HOY</span>
+                    </a>
+                    <a href="cuerpo-tecnico.html" id="nav-cuerpo-tecnico" class="side-link" style="margin-bottom: 8px;">
+                        <span class="side-link-left"><span>🧠</span> <span>Cuerpo Técnico IA</span></span>
+                        <span style="font-size:0.7rem;opacity:0.5;">→</span>
+                    </a>
+                    <a href="ficha-pro.html" id="nav-ficha-pro" class="side-link" style="margin-bottom: 8px;">
+                        <span class="side-link-left"><span>🎴</span> <span>Ficha & KINET Card</span></span>
+                        <span style="font-size:0.7rem;opacity:0.5;">→</span>
+                    </a>
+                    <a href="ojeador-live.html" id="nav-ojeador-live" class="side-link" style="margin-bottom: 8px;">
+                        <span class="side-link-left"><span>📡</span> <span>Ojeador & Laboratorio</span></span>
+                        <span style="font-size:0.7rem;opacity:0.5;">→</span>
+                    </a>
+                    <a href="comunidad.html" id="nav-comunidad" class="side-link" style="margin-bottom: 8px;">
+                        <span class="side-link-left"><span>🌐</span> <span>Comunidad / Red Social</span></span>
+                        <span style="font-size:0.7rem;opacity:0.5;">→</span>
+                    </a>
+                    <a href="media-studio.html" id="nav-media-studio" class="side-link">
+                        <span class="side-link-left"><span>🎵</span> <span>KINET Media Studio™</span></span>
+                        <span style="font-size:0.7rem;opacity:0.5;">→</span>
+                    </a>
+                </nav>
+            </div>
+
+            <!-- BLOQUE INFERIOR SIDEBAR COMPLETO -->
+            <div class="sidebar-bottom-section">
+                <div class="sidebar-ai-tip-box" id="sidebar-dynamic-tip">
+                    <div class="sidebar-ai-tip-header">
+                        <span>💡</span> <span id="tip-title">Pasaporte // Verificado</span>
+                    </div>
+                    <div class="sidebar-ai-tip-text" id="tip-content">
+                        Tus parámetros biométricos calibran las respuestas de los 4 agentes IA.
+                    </div>
+                </div>
+
+                <a href="perfil.html" id="nav-perfil" class="side-link active">
+                    <span class="side-link-left"><span>👤</span> <span>Mi Perfil</span></span>
+                    <span style="font-size:0.7rem;color:var(--role-color);">●</span>
+                </a>
+                <a href="despacho.html" id="nav-despacho" class="side-link">
+                    <span class="side-link-left"><span>⚙️</span> <span>Despacho & Ajustes</span></span>
+                    <span style="font-size:0.7rem;opacity:0.5;">→</span>
+                </a>
+                <a href="comunidad.html" class="side-link" style="border-color: rgba(var(--role-rgb), 0.3); background: rgba(var(--role-rgb), 0.05);">
+                    <span class="side-link-left"><span>🌐</span> <span>Config. Red Social</span></span>
+                    <span style="font-size:0.7rem;color:var(--role-color);">⚡</span>
+                </a>
+                <a href="despacho.html" class="side-link" style="background: var(--role-gradient); color: #04060A; font-weight: 900; border: none;">
+                    <span class="side-link-left"><span>⚡</span> <span>Pásate a KINET PRO</span></span>
+                    <span style="font-size:0.7rem;">→</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- ZONA PRINCIPAL -->
+        <div class="os-main">
+            
+            <!-- TOPBAR IDÉNTICO A APP.HTML -->
+            <header class="os-topbar">
+                <a href="index.html" class="mobile-brand">
+                    <div class="brand-logo-icon" style="width:32px;height:32px;font-size:0.95rem;">K</div>
+                    <span style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:1rem;letter-spacing:0.1em;">KINET OS</span>
+                </a>
+
+                <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-secondary);display:flex;align-items:center;gap:10px;">
+                    <span>MI PERFIL & EXPEDIENTE IA</span>
+                    <span style="color:var(--role-color);font-weight:700;" id="topbar-sport-tag">● FÚTBOL</span>
+                </div>
+
+                <div class="topbar-actions">
+                    <div class="active-role-indicator">
+                        <span class="dot"></span>
+                        <span class="active-role-text" id="topbar-role-title">ATLETA PRO</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- WORKSPACE -->
+            <main class="os-workspace">
+                <div class="context-header">
+                    <div>
+                        <span class="context-tag">
+                            <span>👤</span> 
+                            <span id="header-tag-text">EXPEDIENTE BIOMÉTRICO & PASAPORTE DEPORTIVO • FÚTBOL</span>
+                        </span>
+                        <h1 class="context-title">Mi Perfil & Calibración IA</h1>
+                    </div>
+                    <div class="header-badges-group">
+                        <div class="verified-badge" id="profile-calibration-badge">✓ CALIBRACIÓN IA: 100% COMPLETA</div>
+                        <button class="btn-primary" onclick="saveProfileChanges()">💾 Guardar Expediente</button>
+                    </div>
+                </div>
+
+                <div class="bento-grid">
+                    <!-- COLUMNA IZQUIERDA: IDENTIDAD DIGITAL & DATOS BIOMÉTRICOS EDITABLES -->
+                    <div class="col-7">
+                        <div class="kinet-panel" style="height:100%; display:flex; flex-direction:column; justify-content:space-between;">
+                            <div>
+                                <div class="panel-head">
+                                    <span class="panel-label">IDENTIDAD DIGITAL VERIFICADA & PARÁMETROS DEL PERFIL</span>
+                                    <span style="font-family:'JetBrains Mono';font-size:0.65rem;color:var(--role-color);" id="profile-role-badge">ATLETA PRO</span>
+                                </div>
+
+                                <div class="profile-hero-row">
+                                    <div class="profile-avatar-big" id="profile-avatar-initials">AV</div>
+                                    <div style="flex:1;">
+                                        <h2 style="font-family:'Orbitron'; font-size:1.25rem; font-weight:900; color:white;" id="profile-display-name">Alex Vance</h2>
+                                        <p style="font-family:'JetBrains Mono'; font-size:0.72rem; color:var(--role-color); margin-top:2px;" id="profile-display-handle">@alexvance • KINET ID #8841-PRO</p>
+                                        <p style="font-size:0.78rem; color:var(--text-secondary); margin-top:4px;" id="profile-display-summary">Disciplina: Fútbol • Categoría: Profesional High-Performance</p>
+                                    </div>
+                                </div>
+
+                                <div class="bio-field-grid">
+                                    <div class="bio-field-box">
+                                        <label>Nombre Completo / Identificador</label>
+                                        <input type="text" id="prof-name-in" class="bio-input" value="Alex Vance">
+                                    </div>
+                                    <div class="bio-field-box">
+                                        <label>Tag Único (@Username)</label>
+                                        <input type="text" id="prof-user-in" class="bio-input" value="@alexvance">
+                                    </div>
+                                    <div class="bio-field-box">
+                                        <label>Demarcación / Especialidad Táctica</label>
+                                        <input type="text" id="prof-pos-in" class="bio-input" value="Extremo Izquierdo (A Banda Cambiada)">
+                                    </div>
+                                    <div class="bio-field-box">
+                                        <label>Categoría Competitiva</label>
+                                        <input type="text" id="prof-cat-in" class="bio-input" value="Profesional High-Performance">
+                                    </div>
+                                    <div class="bio-field-box">
+                                        <label>Altura / Envergadura (cm)</label>
+                                        <input type="text" id="prof-height-in" class="bio-input" value="178 cm">
+                                    </div>
+                                    <div class="bio-field-box">
+                                        <label>Peso Corporal en Báscula (kg)</label>
+                                        <input type="text" id="prof-weight-in" class="bio-input" value="72.5 kg">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="margin-top:16px; padding-top:12px; border-top:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                                <span style="font-size:0.74rem; color:var(--text-secondary);">¿Quieres recalibrar desde cero tu rol o deporte con el asistente?</span>
+                                <a href="fase1.html" class="btn-secondary" style="padding:7px 12px; font-size:0.68rem;">🔄 Recalibrar Perfil en Fase 1 →</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- COLUMNA DERECHA: HISTORIAL MÉDICO, RACHAS & CV PORTÁTIL -->
+                    <div class="col-5">
+                        <div style="display:flex; flex-direction:column; gap:16px; height:100%;">
+                            
+                            <div class="kinet-panel">
+                                <div class="panel-head">
+                                    <span class="panel-label">🛡️ AUDITORÍA BIOMÉDICA & DISPONIBILIDAD</span>
+                                    <span style="font-family:'JetBrains Mono';font-size:0.65rem;color:var(--role-color);">ÓPTIMO</span>
+                                </div>
+
+                                <div class="bar-group">
+                                    <div class="bar-meta"><span>Disponibilidad de Temporada (Cero Bajas)</span><span>98%</span></div>
+                                    <div class="bar-track"><div class="bar-fill" style="width:98%"></div></div>
+                                </div>
+                                <div class="bar-group">
+                                    <div class="bar-meta"><span>Adherencia Nutricional & Sueño</span><span>92%</span></div>
+                                    <div class="bar-track"><div class="bar-fill" style="width:92%"></div></div>
+                                </div>
+                                <div class="bar-group" style="margin-bottom:0;">
+                                    <div class="bar-meta"><span>Sincronización con los 4 Agentes IA</span><span>100%</span></div>
+                                    <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+                                </div>
+                            </div>
+
+                            <div class="kinet-panel" style="flex-grow:1; display:flex; flex-direction:column; justify-content:space-between;">
+                                <div>
+                                    <div class="panel-head">
+                                        <span class="panel-label">📄 CV DIGITAL PORTÁTIL PARA AGENCIAS & CLUBES</span>
+                                        <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);">VERIFIED</span>
+                                    </div>
+                                    <p style="font-size:0.8rem; color:#CBD5E1; line-height:1.5; margin-bottom:12px;">
+                                        Tu expediente incluye tu <strong>KINET Athlete Card™</strong>, métricas biomecánicas de KINET Vision Analytics™ y el informe de disponibilidad auditado por los 4 agentes.
+                                    </p>
+                                </div>
+
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                                    <a href="ficha-pro.html" class="btn-primary" style="padding:10px;">🎴 Ver Mi KINET Card</a>
+                                    <button class="btn-secondary" onclick="alert('✓ Descargando dossier deportivo oficial KINET OS en formato PDF verificado...')">📥 Descargar CV PDF</button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+
+
+    <!-- MENÚ DESPLEGABLE MÓVIL (DRAWER) IDÉNTICO A APP.HTML -->
+    <div id="mobile-menu-drawer" style="position:fixed;inset:0;background:rgba(6,8,14,0.97);backdrop-filter:blur(28px);z-index:200;display:flex;flex-direction:column;padding:20px 16px;justify-content:space-between;transform:translateY(-100%);transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);border-bottom:1px solid rgba(var(--role-rgb),0.2);">
+        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:12px;margin-bottom:12px;">
+            <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:0.95rem;color:white;">KINET OS // MENÚ COMPLETO</div>
+            <button onclick="toggleMobileDrawer()" style="background:none;border:none;color:white;font-size:1.3rem;cursor:pointer;">✕</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;padding:4px 0;max-height:calc(100vh - 160px);">
+            <a href="app.html" id="drawer-vestuario" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>⚡ Vestuario</span><span>HOY</span></a>
+            <a href="cuerpo-tecnico.html" id="drawer-cuerpo-tecnico" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🧠 Cuerpo Técnico IA</span><span>→</span></a>
+            <a href="ficha-pro.html" id="drawer-ficha-pro" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🎴 Ficha & KINET Card</span><span>→</span></a>
+            <a href="ojeador-live.html" id="drawer-ojeador-live" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>📡 Ojeador & Laboratorio</span><span>→</span></a>
+            <a href="comunidad.html" id="drawer-comunidad" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Comunidad / Red Social</span><span>→</span></a>
+            <a href="media-studio.html" id="drawer-media-studio" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🎵 KINET Media Studio™</span><span>→</span></a>
+            <a href="perfil.html" id="drawer-perfil" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(var(--role-rgb),0.15);border:1px solid var(--role-color);color:var(--role-color);text-decoration:none;font-weight:600;"><span>👤 Mi Perfil</span><span>●</span></a>
+            <a href="despacho.html" id="drawer-despacho" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>⚙️ Despacho & Ajustes</span><span>→</span></a>
+            <a href="comunidad.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(var(--role-rgb),0.05);border:1px solid rgba(var(--role-rgb),0.3);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Config. Red Social</span><span>⚡</span></a>
+            <a href="despacho.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:var(--role-gradient);color:#04060A;font-weight:900;text-decoration:none;"><span>⚡ Pásate a KINET PRO</span><span>→</span></a>
+        </div>
+        <div style="text-align:center;font-size:0.65rem;color:var(--text-secondary);font-family:'JetBrains Mono';margin-top:10px;">
+            KINET OS • MOBILE VIEWPORT
+        </div>
+    </div>
+
+    <!-- NAVEGACIÓN MÓVIL INFERIOR -->
+    <nav class="mobile-bottom-nav">
+        <a href="app.html" id="mob-vestuario" class="m-nav-btn">
+            <span style="font-size:1rem;">⚡</span>
+            <span>Vestuario</span>
+        </a>
+        <a href="cuerpo-tecnico.html" id="mob-cuerpo-tecnico" class="m-nav-btn">
+            <span style="font-size:1rem;">🧠</span>
+            <span>Técnicos</span>
+        </a>
+        <a href="ficha-pro.html" id="mob-ficha-pro" class="m-nav-btn">
+            <span style="font-size:1rem;">🎴</span>
+            <span>Ficha</span>
+        </a>
+        <a href="ojeador-live.html" id="mob-ojeador-live" class="m-nav-btn">
+            <span style="font-size:1rem;">📡</span>
+            <span>Ojeador</span>
+        </a>
+        <button onclick="toggleMobileDrawer()" class="m-nav-btn">
+            <span style="font-size:1rem;">☰</span>
+            <span>Menú</span>
+        </button>
+    </nav>
+
+    <script>
+        function toggleMobileDrawer() {
+            const drawer = document.getElementById('mobile-menu-drawer');
+            if (drawer.style.transform === 'translateY(0px)') {
+                drawer.style.transform = 'translateY(-100%)';
+            } else {
+                drawer.style.transform = 'translateY(0px)';
+            }
+        }
+
+        function normalizeRole(val) {
+            if (!val) return null;
+            const v = String(val).toLowerCase().trim();
+            if (v === 'athlete' || v === 'atleta' || v.includes('atleta') || v.includes('jugador')) return 'athlete';
+            if (v === 'staff' || v.includes('entrenador') || v.includes('coach') || v.includes('fisio') || v.includes('staff')) return 'staff';
+            if (v === 'scout' || v.includes('scout') || v.includes('director') || v.includes('ojeador')) return 'scout';
+            return null;
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sportParam = urlParams.get('sport') || urlParams.get('deporte');
+            const roleParam = urlParams.get('role');
+
+            if (sportParam) localStorage.setItem('kinet_sport', sportParam);
+
+            const fromUrl = normalizeRole(roleParam);
+            const fromActiveStorage = normalizeRole(localStorage.getItem('kinet_active_role'));
+            const fromLegacyRole = normalizeRole(localStorage.getItem('kinet_role'));
+
+            const activeRoleKey = fromUrl || fromActiveStorage || fromLegacyRole || 'athlete';
+            document.body.setAttribute('data-role', activeRoleKey);
+            localStorage.setItem('kinet_active_role', activeRoleKey);
+
+            const roleLabels = {
+                athlete: 'ATLETA PRO',
+                staff: 'ENTRENADOR / STAFF',
+                scout: 'DIRECTOR DEPORTIVO / SCOUT'
+            };
+            document.getElementById('topbar-role-title').textContent = roleLabels[activeRoleKey] || 'ATLETA PRO';
+
+            const sportChosen = localStorage.getItem('kinet_sport') || localStorage.getItem('sport') || 'Fútbol';
+            document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${sportChosen.toUpperCase()}`;
+            document.getElementById('topbar-sport-tag').textContent = `● ${sportChosen.toUpperCase()}`;
+
+            // Sincronizar enlaces con rol y deporte activos
+            const queryParams = `?role=${activeRoleKey}&sport=${encodeURIComponent(sportChosen)}`;
+            const navMap = {
+                'nav-vestuario': 'app.html', 'drawer-vestuario': 'app.html', 'mob-vestuario': 'app.html',
+                'nav-cuerpo-tecnico': 'cuerpo-tecnico.html', 'drawer-cuerpo-tecnico': 'cuerpo-tecnico.html', 'mob-cuerpo-tecnico': 'cuerpo-tecnico.html',
+                'nav-ficha-pro': 'ficha-pro.html', 'drawer-ficha-pro': 'ficha-pro.html', 'mob-ficha-pro': 'ficha-pro.html',
+                'nav-ojeador-live': 'ojeador-live.html', 'drawer-ojeador-live': 'ojeador-live.html', 'mob-ojeador-live': 'ojeador-live.html',
+                'nav-comunidad': 'comunidad.html', 'drawer-comunidad': 'comunidad.html',
+                'nav-media-studio': 'media-studio.html', 'drawer-media-studio': 'media-studio.html',
+                'nav-perfil': 'perfil.html', 'drawer-perfil': 'perfil.html',
+                'nav-despacho': 'despacho.html', 'drawer-despacho': 'despacho.html'
+            };
+            Object.keys(navMap).forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.href = `${navMap[id]}${queryParams}`;
+            });
+
+            // Actualizar Favicon dinámicamente según el rol activo
+            const faviconHex = activeRoleKey === 'staff' ? '%23F59E0B' : (activeRoleKey === 'scout' ? '%233B82F6' : '%2300FF88');
+            const faviconSvg = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22${faviconHex}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`;
+            document.getElementById('dynamic-favicon').setAttribute('href', faviconSvg);
+
+            // Spotlight dinámico en paneles y enlaces laterales
+            document.querySelectorAll('.kinet-panel, .side-link').forEach(el => {
+                el.addEventListener('mousemove', (e) => {
+                    const rect = el.getBoundingClientRect();
+                    el.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+                    el.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+                });
+            });
+
+            if (typeof initPageModule === 'function') {
+                initPageModule(activeRoleKey, sportChosen);
+            }
+        });
+
+
+        function initPageModule(roleKey, sportChosen) {
+            document.getElementById('header-tag-text').textContent = `EXPEDIENTE BIOMÉTRICO & PASAPORTE DEPORTIVO • ${sportChosen.toUpperCase()}`;
+            
+            const roleNames = { athlete: 'ATLETA PRO', staff: 'ENTRENADOR / STAFF', scout: 'DIRECTOR DEPORTIVO / SCOUT' };
+            document.getElementById('profile-role-badge').textContent = roleNames[roleKey] || 'ATLETA PRO';
+
+            const name = localStorage.getItem('kinet_user_name') || 'Alex Vance';
+            const username = localStorage.getItem('kinet_username') || '@alexvance';
+            const category = localStorage.getItem('kinet_category') || 'Profesional High-Performance';
+            const position = localStorage.getItem('kinet_position') || 'Extremo Izquierdo (A Banda Cambiada)';
+
+            document.getElementById('prof-name-in').value = name;
+            document.getElementById('prof-user-in').value = username;
+            document.getElementById('prof-cat-in').value = category;
+            document.getElementById('prof-pos-in').value = position;
+
+            refreshHeroDisplay(name, username, sportChosen, category);
+        }
+
+        function refreshHeroDisplay(name, username, sport, category) {
+            document.getElementById('profile-display-name').textContent = name;
+            document.getElementById('profile-display-handle').textContent = `${username} • KINET ID #8841-PRO`;
+            document.getElementById('profile-display-summary').textContent = `Disciplina: ${sport} • Categoría: ${category}`;
+            const parts = name.trim().split(' ');
+            const initials = parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : name.slice(0,2).toUpperCase();
+            document.getElementById('profile-avatar-initials').textContent = initials;
+        }
+
+        function saveProfileChanges() {
+            const name = document.getElementById('prof-name-in').value.trim() || 'Alex Vance';
+            const user = document.getElementById('prof-user-in').value.trim() || '@alexvance';
+            const pos = document.getElementById('prof-pos-in').value.trim();
+            const cat = document.getElementById('prof-cat-in').value.trim();
+            const sport = localStorage.getItem('kinet_sport') || 'Fútbol';
+
+            localStorage.setItem('kinet_user_name', name);
+            localStorage.setItem('kinet_username', user);
+            localStorage.setItem('kinet_position', pos);
+            localStorage.setItem('kinet_category', cat);
+
+            refreshHeroDisplay(name, user, sport, cat);
+            alert('✓ Expediente biométrico y táctico actualizado en KINET OS.');
+        }
+
+    </script>
+</body>
+</html>
