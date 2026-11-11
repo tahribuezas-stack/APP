@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
-    <title>KINET OS // Ojeador Live & Laboratorio IA</title>
+    <title>KINET OS // Ojeador Live & Vision Analytics™</title>
     
     <!-- Favicon Corporativo Dinámico por JavaScript -->
     <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
@@ -14,6 +14,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     
+    <!-- Librería Oficial para Exportación Real de Informes de Scouting y Biomecánica en PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <style>
         :root {
             --bg-void: #06080E;
@@ -54,6 +57,13 @@
             margin: 0;
             padding: 0;
             -webkit-tap-highlight-color: transparent;
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+        *::-webkit-scrollbar {
+            width: 0px !important;
+            height: 0px !important;
+            display: none !important;
         }
 
         html, body {
@@ -70,7 +80,7 @@
             transition: background-image 0.4s ease;
         }
 
-        /* LAYOUT PRINCIPAL A PANTALLA COMPLETA ESTÁTICA */
+        /* LAYOUT PRINCIPAL A PANTALLA COMPLETA */
         .os-layout {
             display: grid;
             grid-template-columns: 270px 1fr;
@@ -79,9 +89,16 @@
         }
 
         @media (max-width: 960px) {
-            .os-layout { grid-template-columns: 1fr; height: auto; min-height: 100vh; overflow-y: auto; padding-bottom: 85px; }
+            .os-layout {
+                grid-template-columns: 1fr;
+                height: auto;
+                min-height: 100vh;
+                overflow-y: auto;
+                padding-bottom: 135px;
+            }
             html, body { height: auto !important; overflow-y: auto !important; }
             .os-main { height: auto !important; overflow: visible !important; }
+            .os-workspace { overflow: visible !important; height: auto !important; padding: 14px 14px 40px 14px !important; justify-content: flex-start !important; }
         }
 
         /* SIDEBAR FIJO ESTRICTO (ESCRITORIO) */
@@ -152,20 +169,9 @@
             transition: color 0.4s ease;
         }
 
-        .sidebar-top-section {
-            display: flex;
-            flex-direction: column;
-        }
+        .sidebar-top-section { display: flex; flex-direction: column; }
+        .sidebar-bottom-section { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border-subtle); }
 
-        .sidebar-bottom-section {
-            display: flex;
-            flex-direction: column;
-            gap: 8px; 
-            padding-top: 10px;
-            border-top: 1px solid var(--border-subtle);
-        }
-
-        /* ENLACES LATERALES CON SPOTLIGHT DINÁMICO DE ROL */
         .side-link {
             display: flex;
             align-items: center;
@@ -186,12 +192,7 @@
             overflow: hidden;
         }
 
-        .side-link-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            z-index: 1;
-        }
+        .side-link-left { display: flex; align-items: center; gap: 12px; z-index: 1; }
 
         .side-link::before {
             content: '';
@@ -218,7 +219,6 @@
             box-shadow: 0 0 18px rgba(var(--role-rgb), 0.18);
         }
 
-        /* WIDGET DE CONSEJO IA */
         .sidebar-ai-tip-box {
             background: rgba(var(--role-rgb), 0.05);
             border: 1px solid rgba(var(--role-rgb), 0.24);
@@ -227,7 +227,6 @@
             margin-bottom: 2px;
             position: relative;
             box-shadow: 0 4px 14px rgba(0,0,0,0.3);
-            transition: background 0.4s ease, border-color 0.4s ease;
         }
 
         .sidebar-ai-tip-header {
@@ -241,23 +240,12 @@
             text-transform: uppercase;
             margin-bottom: 3px;
             font-weight: 700;
-            transition: color 0.4s ease;
         }
 
-        .sidebar-ai-tip-text {
-            font-size: 0.72rem;
-            color: #CBD5E1;
-            line-height: 1.35;
-        }
+        .sidebar-ai-tip-text { font-size: 0.72rem; color: #CBD5E1; line-height: 1.35; }
 
         /* ZONA PRINCIPAL */
-        .os-main {
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            height: 100vh;
-            overflow: hidden;
-        }
+        .os-main { display: flex; flex-direction: column; min-width: 0; height: 100vh; overflow: hidden; }
 
         .os-topbar {
             background: rgba(6, 8, 14, 0.88);
@@ -268,16 +256,13 @@
             justify-content: space-between;
             align-items: center;
             gap: 16px;
+            flex-shrink: 0;
         }
 
         .mobile-brand { display: none; align-items: center; gap: 10px; text-decoration: none; color: white; }
         @media (max-width: 960px) { .mobile-brand { display: flex; } .os-topbar { padding: 12px 16px; } }
 
-        .topbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .topbar-actions { display: flex; align-items: center; gap: 12px; }
 
         .active-role-indicator {
             display: flex;
@@ -287,7 +272,6 @@
             border-radius: 999px;
             padding: 6px 14px;
             gap: 8px;
-            transition: border-color 0.4s ease;
         }
 
         .active-role-indicator .dot {
@@ -296,7 +280,6 @@
             border-radius: 50%;
             background: var(--role-color);
             box-shadow: 0 0 8px var(--role-color);
-            transition: background 0.4s ease, box-shadow 0.4s ease;
         }
 
         .active-role-text {
@@ -308,21 +291,20 @@
             text-transform: uppercase;
         }
 
-        /* WORKSPACE IDÉNTICO A APP.HTML */
+        /* =========================================================================
+           WORKSPACE CENTRADO VERTICALMENTE IGUAL QUE VESTUARIO Y MEDIA STUDIO
+           ========================================================================= */
         .os-workspace {
             max-width: 1280px;
             width: 100%;
             margin: 0 auto;
-            padding: 20px 24px;
+            padding: 18px 24px;
             flex-grow: 1;
             display: flex;
             flex-direction: column;
+            justify-content: center;
             overflow-y: auto;
             animation: pageEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        @media (max-width: 768px) { 
-            .os-workspace { padding: 14px; justify-content: flex-start; } 
         }
 
         @keyframes pageEnter {
@@ -334,7 +316,7 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             flex-wrap: wrap;
             gap: 12px;
         }
@@ -349,7 +331,6 @@
             align-items: center;
             gap: 8px;
             margin-bottom: 4px;
-            transition: color 0.4s ease;
         }
 
         .context-title {
@@ -360,12 +341,7 @@
             color: white;
         }
 
-        .header-badges-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
+        .header-badges-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
         .verified-badge {
             font-family: 'JetBrains Mono', monospace;
@@ -379,14 +355,14 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            transition: background 0.4s ease, border-color 0.4s ease, color 0.4s ease;
         }
 
-        /* BENTO GRID & PANELES CON SPOTLIGHT DINÁMICO */
+        /* BENTO GRID */
         .bento-grid {
             display: grid;
             grid-template-columns: repeat(12, 1fr);
             gap: 16px;
+            align-items: stretch;
         }
 
         .col-5 { grid-column: span 5; }
@@ -400,7 +376,7 @@
             background: var(--bg-panel);
             border: 1px solid var(--border-subtle);
             border-radius: 20px;
-            padding: 20px;
+            padding: 18px 20px;
             backdrop-filter: blur(20px);
             position: relative;
             overflow: hidden;
@@ -420,7 +396,6 @@
         }
 
         .kinet-panel > * { position: relative; z-index: 1; }
-
         .kinet-panel:hover::before { opacity: 1; }
         .kinet-panel:hover {
             border-color: rgba(var(--role-rgb), 0.48);
@@ -432,7 +407,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             gap: 10px;
             flex-wrap: wrap;
         }
@@ -495,163 +470,149 @@
             transform: translateY(-1px);
         }
 
-        /* FILTROS & CONTROL DE CUOTA API */
-        .filter-strip {
-            display: flex;
+        /* BARRA DE FILTROS SCOUT MATRIX */
+        .scout-filter-bar {
+            display: grid;
+            grid-template-columns: 1fr auto auto auto;
             gap: 10px;
-            flex-wrap: wrap;
             margin-bottom: 14px;
-            align-items: center;
         }
-        .filter-input, .filter-select {
-            background: rgba(4, 6, 10, 0.8);
+        @media (max-width: 768px) {
+            .scout-filter-bar { grid-template-columns: 1fr 1fr; }
+            .scout-filter-bar input { grid-column: span 2; }
+        }
+        .kinet-input, .kinet-select {
+            background: rgba(4, 6, 10, 0.85);
             border: 1px solid rgba(255, 255, 255, 0.14);
             border-radius: 12px;
             padding: 9px 14px;
             color: white;
             font-family: 'Inter', sans-serif;
-            font-size: 0.8rem;
+            font-size: 0.82rem;
             outline: none;
             transition: border-color 0.2s;
         }
-        .filter-input:focus, .filter-select:focus {
+        .kinet-input:focus, .kinet-select:focus {
             border-color: var(--role-color);
             box-shadow: 0 0 12px rgba(var(--role-rgb), 0.18);
         }
 
-        .scout-list {
+        /* VISOR VISION ANALYTICS */
+        .vision-hud-viewport {
+            background: radial-gradient(circle at 50% 40%, rgba(var(--role-rgb), 0.14), rgba(4, 6, 10, 0.96));
+            border: 1px solid rgba(var(--role-rgb), 0.38);
+            border-radius: 16px;
+            padding: 16px;
+            min-height: 195px;
             display: flex;
             flex-direction: column;
-            gap: 9px;
-        }
-        .scout-player-row {
-            display: flex;
             justify-content: space-between;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.025);
-            border: 1px solid var(--border-subtle);
-            border-left: 3px solid var(--role-color);
-            border-radius: 14px;
-            padding: 10px 12px;
-            gap: 10px;
-            transition: all 0.22s ease;
-            position: relative;
-        }
-        .scout-player-row:hover {
-            background: rgba(var(--role-rgb), 0.06);
-            border-color: rgba(var(--role-rgb), 0.45);
-            transform: translateX(3px);
-        }
-        .scout-player-row.locked-row {
-            opacity: 0.65;
-            border-left-color: #64748B;
-            background: rgba(4, 6, 10, 0.6);
-        }
-
-        .grl-pill {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.84rem;
-            font-weight: 900;
-            background: rgba(var(--role-rgb), 0.16);
-            border: 1px solid var(--role-color);
-            color: var(--role-color);
-            padding: 5px 8px;
-            border-radius: 10px;
-            min-width: 48px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        .vision-hud-box {
-            background: radial-gradient(circle at 50% 40%, rgba(var(--role-rgb), 0.15), rgba(4, 6, 10, 0.96));
-            border: 1px solid rgba(var(--role-rgb), 0.42);
-            border-radius: 16px;
-            padding: 20px;
             position: relative;
             overflow: hidden;
-            min-height: 245px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
         .vision-scanline {
             position: absolute;
-            left: 0;
-            right: 0;
+            left: 0; right: 0;
             height: 2px;
             background: var(--role-color);
             box-shadow: 0 0 14px var(--role-color);
             animation: scanMove 3.2s ease-in-out infinite alternate;
-            opacity: 0.65;
             pointer-events: none;
         }
-        @keyframes scanMove {
-            from { top: 12%; }
-            to { top: 88%; }
+        @keyframes scanMove { from { top: 10%; } to { top: 88%; } }
+
+        .telemetry-pills {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
         }
+        @media (max-width: 600px) { .telemetry-pills { grid-template-columns: repeat(2, 1fr); } }
+        .t-pill {
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 9px 10px;
+        }
+        .t-pill span { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: var(--text-secondary); display: block; }
+        .t-pill strong { font-family: 'Orbitron', sans-serif; font-size: 0.95rem; color: white; margin-top: 2px; display: block; }
 
         /* BARRA DE CUOTA MENSUAL DE VÍDEO IA */
         .quota-bar-box {
             background: rgba(4, 6, 10, 0.78);
-            border: 1px solid rgba(var(--role-rgb), 0.28);
+            border: 1px solid var(--border-subtle);
             border-radius: 12px;
-            padding: 10px 14px;
-            margin-bottom: 14px;
+            padding: 9px 12px;
+            margin-bottom: 11px;
         }
-        .quota-bar-meta {
+        .quota-meta {
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.64rem;
-            color: #E2E8F0;
-            margin-bottom: 6px;
+            font-size: 0.65rem;
+            margin-bottom: 5px;
         }
         .quota-track {
             height: 6px;
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255,255,255,0.08);
             border-radius: 99px;
             overflow: hidden;
         }
         .quota-fill {
             height: 100%;
             background: var(--role-gradient);
-            box-shadow: 0 0 10px var(--role-glow);
-            transition: width 0.35s ease;
+            border-radius: 99px;
+            transition: width 0.4s ease;
         }
 
-        /* TELEMETRÍA EN 4 COLUMNAS PARA EL PANEL GRANDE */
-        .telemetry-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
+        /* TABLA DE JUGADORES EN CARTERA */
+        .scout-player-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-subtle);
+            border-left: 3px solid var(--role-color);
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: 0.2s;
             gap: 10px;
         }
-        @media (max-width: 768px) {
-            .telemetry-grid { grid-template-columns: repeat(2, 1fr); }
+        .scout-player-row:hover {
+            background: rgba(var(--role-rgb), 0.08);
+            transform: translateX(3px);
         }
-        .telemetry-card {
-            background: rgba(255, 255, 255, 0.025);
-            border: 1px solid var(--border-subtle);
-            border-radius: 12px;
-            padding: 11px 12px;
+        .scout-grl-badge {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 0.9rem;
+            background: rgba(var(--role-rgb), 0.16);
+            border: 1px solid var(--role-color);
+            color: var(--role-color);
+            padding: 6px 10px;
+            border-radius: 10px;
         }
 
         /* MODALES KINET CENTRALES */
         .kinet-modal-overlay {
-            position: fixed; inset: 0; background: rgba(4, 6, 10, 0.85); backdrop-filter: blur(18px); z-index: 500;
+            position: fixed; inset: 0; background: rgba(4, 6, 10, 0.86); backdrop-filter: blur(18px); z-index: 500;
             display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+            padding: 14px;
         }
         .kinet-modal-overlay.open { opacity: 1; pointer-events: auto; }
         .kinet-modal-box {
-            background: rgba(13, 17, 26, 0.98); border: 1px solid rgba(var(--role-rgb), 0.5); border-radius: 22px; max-width: 480px; width: calc(100% - 32px);
-            padding: 28px; box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 35px rgba(var(--role-rgb), 0.2);
+            background: rgba(13, 17, 26, 0.98); border: 1px solid rgba(var(--role-rgb), 0.5); border-radius: 22px; max-width: 480px; width: 100%;
+            padding: 24px; box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 35px rgba(var(--role-rgb), 0.2);
             transform: scale(0.95) translateY(12px); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            display: flex; flex-direction: column; gap: 16px; text-align: left;
+            display: flex; flex-direction: column; gap: 14px; text-align: left;
         }
         .kinet-modal-overlay.open .kinet-modal-box { transform: scale(1) translateY(0); }
-        .kinet-modal-header { font-family: 'Orbitron', sans-serif; font-size: 0.98rem; font-weight: 800; color: white; display: flex; align-items: center; gap: 10px; }
-        .kinet-modal-body { font-size: 0.85rem; color: #CBD5E1; line-height: 1.6; }
+        .kinet-modal-header { font-family: 'Orbitron', sans-serif; font-size: 0.96rem; font-weight: 800; color: white; display: flex; align-items: center; gap: 10px; }
+        .kinet-modal-body { font-size: 0.85rem; color: #CBD5E1; line-height: 1.55; }
         .kinet-modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
 
         /* NAVEGACIÓN MÓVIL */
@@ -700,12 +661,15 @@
 </head>
 <body data-role="athlete">
 
+    <!-- INPUT OCULTO PARA SUBIR CLIP REAL A VISION ANALYTICS -->
+    <input type="file" id="hidden-vision-file-input" accept="video/*" style="display:none;" onchange="handleVisionClipFileSelected(this)">
+
     <div class="os-layout">
         
-        <!-- SIDEBAR FIJO (IDÉNTICO EN TODAS LAS PÁGINAS CON INDICADOR ACTIVO) -->
+        <!-- SIDEBAR FIJO -->
         <aside class="os-sidebar">
             <div class="sidebar-top-section">
-                <a href="app.html" class="brand-box">
+                <a href="app.html" id="brand-logo-desktop" class="brand-box">
                     <div class="brand-logo-icon">K</div>
                     <div class="brand-text">
                         <h1>KINET OS</h1>
@@ -741,14 +705,14 @@
                 </nav>
             </div>
 
-            <!-- BLOQUE INFERIOR SIDEBAR COMPLETO -->
+            <!-- BLOQUE INFERIOR SIDEBAR (IDÉNTICO A VESTUARIO, KINET CARD Y MEDIA STUDIO) -->
             <div class="sidebar-bottom-section">
                 <div class="sidebar-ai-tip-box" id="sidebar-dynamic-tip">
                     <div class="sidebar-ai-tip-header">
                         <span>💡</span> <span id="tip-title">Radar Live // Vision IA</span>
                     </div>
                     <div class="sidebar-ai-tip-text" id="tip-content">
-                        Filtra jugadores por percentiles verificados y escanea su biomecánica en vídeo.
+                        Filtra deportistas por percentiles verificados y escanea su biomecánica a 120 FPS.
                     </div>
                 </div>
 
@@ -760,13 +724,15 @@
                     <span class="side-link-left"><span>⚙️</span> <span>Despacho & Ajustes</span></span>
                     <span style="font-size:0.7rem;opacity:0.5;">→</span>
                 </a>
-                <a href="comunidad.html" id="nav-config-social" class="side-link" style="border-color: rgba(var(--role-rgb), 0.3); background: rgba(var(--role-rgb), 0.05);">
+                <!-- SE OCULTA AUTOMÁTICAMENTE SI LA RED SOCIAL YA FUE CONFIGURADA -->
+                <a href="comunidad.html?setup=true" id="nav-config-social" class="side-link" style="border-color: rgba(var(--role-rgb), 0.3); background: rgba(var(--role-rgb), 0.05);">
                     <span class="side-link-left"><span>🌐</span> <span>Config. Red Social</span></span>
                     <span style="font-size:0.7rem;color:var(--role-color);">⚡</span>
                 </a>
-                <a href="despacho.html" id="sidebar-upgrade-btn" class="side-link" style="background: var(--role-gradient); color: #04060A; font-weight: 900; border: none;">
-                    <span class="side-link-left"><span id="sidebar-upgrade-icon">⚡</span> <span id="sidebar-upgrade-text">Pásate a KINET PRO</span></span>
-                    <span style="font-size:0.7rem;" id="sidebar-upgrade-arrow">→</span>
+                <!-- SE OCULTA POR COMPLETO SI YA ERES PRO O CLUB -->
+                <a href="despacho.html?tab=subscription" id="nav-upgrade-pro" class="side-link" style="background: var(--role-gradient); color: #04060A; font-weight: 900; border: none;">
+                    <span class="side-link-left"><span>⚡</span> <span>Pásate a KINET PRO</span></span>
+                    <span style="font-size:0.7rem;">→</span>
                 </a>
             </div>
         </aside>
@@ -774,9 +740,9 @@
         <!-- ZONA PRINCIPAL -->
         <div class="os-main">
             
-            <!-- TOPBAR IDÉNTICO A APP.HTML -->
+            <!-- TOPBAR -->
             <header class="os-topbar">
-                <a href="app.html" class="mobile-brand">
+                <a href="app.html" id="brand-logo-mobile" class="mobile-brand">
                     <div class="brand-logo-icon" style="width:32px;height:32px;font-size:0.95rem;">K</div>
                     <span style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:1rem;letter-spacing:0.1em;">KINET OS</span>
                 </a>
@@ -794,120 +760,119 @@
                 </div>
             </header>
 
-            <!-- WORKSPACE -->
+            <!-- WORKSPACE CENTRADO VERTICALMENTE EN LA PANTALLA -->
             <main class="os-workspace">
                 <div class="context-header">
                     <div>
                         <span class="context-tag">
-                            <span>📡</span> 
+                            <span id="header-tag-icon">📡</span> 
                             <span id="header-tag-text">SCOUT MATRIX B2B & KINET VISION ANALYTICS™ • FÚTBOL</span>
                         </span>
-                        <h1 class="context-title" id="ojeador-main-title">Ojeador Live & Laboratorio IA</h1>
+                        <h1 class="context-title" id="header-main-title">Ojeador Live & Laboratorio de Vídeo IA</h1>
                     </div>
                     <div class="header-badges-group">
-                        <div class="verified-badge" id="header-quota-badge">🎥 CUOTA VÍDEO IA: DEMO (PLAN GRATUITO)</div>
-                        <div class="verified-badge" id="header-tier-badge">🔒 MODO BÁSICO</div>
+                        <div class="verified-badge" id="video-quota-pill">🎥 CUOTA VÍDEO IA: 45 / 60 MIN DISP.</div>
+                        <button class="btn-secondary" style="padding:6px 12px;font-size:0.65rem;" onclick="openBonusPackModal()">➕ Bono Minutos Extra</button>
                     </div>
                 </div>
 
-                <!-- BARRA DE FILTROS DE SCOUTING -->
-                <div class="filter-strip">
-                    <input type="text" id="scout-search-input" class="filter-input" style="flex:1; min-width:200px;" placeholder="🔍 Buscar deportista, posición o club (ej: Lucas Vance, Sub-21...)" oninput="filterScoutTable()">
-                    <select id="scout-min-grl" class="filter-select" onchange="filterScoutTable()">
+                <!-- BARRA DE FILTROS DE SCOUT MATRIX -->
+                <div class="scout-filter-bar">
+                    <input type="text" id="scout-search-input" class="kinet-input" placeholder="🔍 Buscar deportista, posición o club..." oninput="filterScoutList()">
+                    <select id="scout-grl-filter" class="kinet-select" onchange="filterScoutList()">
                         <option value="0">GRL Mínimo: Todos</option>
-                        <option value="80">GRL 80+ (Competitivo)</option>
-                        <option value="85">GRL 85+ (Alto Rendimiento)</option>
-                        <option value="90">GRL 90+ (Élite Top)</option>
+                        <option value="85">GRL 85+ (Semipro)</option>
+                        <option value="90">GRL 90+ (Élite Top 5%)</option>
                     </select>
-                    <select id="scout-verified-filter" class="filter-select" onchange="filterScoutTable()">
+                    <select id="scout-verified-filter" class="kinet-select" onchange="filterScoutList()">
+                        <option value="all">✓ Solo AI Verified</option>
                         <option value="all">Todos los Perfiles</option>
-                        <option value="verified" selected>✓ Solo AI Verified</option>
                     </select>
-                    <button class="btn-secondary" style="padding:9px 14px;" onclick="openCompareModal()">⚖️ Comparar 2 Perfiles</button>
+                    <button class="btn-secondary" onclick="exportScoutReportPDF()">📄 Exportar Radar PDF</button>
                 </div>
 
                 <div class="bento-grid">
-                    <!-- COLUMNA IZQUIERDA (GRANDE col-7): LABORATORIO KINET VISION ANALYTICS -->
+                    <!-- COLUMNA IZQUIERDA (7 COL): LABORATORIO KINET VISION ANALYTICS -->
                     <div class="col-7">
                         <div class="kinet-panel" style="height:100%; display:flex; flex-direction:column; justify-content:space-between;">
                             <div>
                                 <div class="panel-head">
                                     <span class="panel-label">LABORATORIO KINET VISION ANALYTICS™</span>
-                                    <span class="verified-badge" id="vision-target-name">OBJETIVO: LUCAS VANCE</span>
+                                    <span class="verified-badge" id="vision-active-subject">OBJETIVO: LUCAS VANCE</span>
                                 </div>
 
-                                <!-- BARRA DE CUOTA COMPUTACIONAL DE VÍDEO IA (CONTROL DE COSTES DE API) -->
+                                <!-- BARRA DE CUOTA DE USO DE VÍDEO IA -->
                                 <div class="quota-bar-box">
-                                    <div class="quota-bar-meta">
-                                        <span id="quota-label-left">CUOTA MENSUAL MOTOR VÍDEO (120 FPS)</span>
-                                        <span id="quota-label-right" style="color:var(--role-color);font-weight:700;">0 / 0 MIN (SOLO DEMO)</span>
+                                    <div class="quota-meta">
+                                        <span style="color:#E2E8F0;">CUOTA MENSUAL MOTOR VÍDEO (120 FPS)</span>
+                                        <span id="quota-meta-right" style="color:var(--role-color);">45 MIN DISPONIBLES</span>
                                     </div>
                                     <div class="quota-track">
-                                        <div class="quota-fill" id="quota-bar-fill" style="width:100%;"></div>
+                                        <div class="quota-fill" id="quota-fill-bar" style="width:75%"></div>
                                     </div>
                                 </div>
 
-                                <div class="vision-hud-box">
+                                <div class="vision-hud-viewport">
                                     <div class="vision-scanline"></div>
                                     <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono'; font-size:0.65rem; color:var(--role-color);">
-                                        <span id="vision-rec-tag">[REC ● ESCANEO BIOMECÁNICO IA]</span>
-                                        <span id="vision-fps-tag">120 FPS // TRACKING</span>
+                                        <span>[REC ● ESCANEO BIOMECÁNICO IA]</span>
+                                        <span>120 FPS // TRACKING</span>
                                     </div>
 
-                                    <div style="text-align:center; padding:22px 12px;">
-                                        <div style="font-size:2.4rem; margin-bottom:8px;" id="vision-center-icon">🎯</div>
-                                        <div style="font-family:'Orbitron'; font-size:1.05rem; font-weight:800; color:white;" id="vision-main-status">Vector de Aceleración & Zancada Óptimo</div>
-                                        <div style="font-family:'JetBrains Mono'; font-size:0.74rem; color:#94A3B8; margin-top:6px;" id="vision-sub-status">Sin asimetrías articulares detectadas en sprint máximo</div>
+                                    <div style="text-align:center; padding:12px 0;">
+                                        <div style="font-size:1.75rem; margin-bottom:4px;">🎯</div>
+                                        <div style="font-family:'Orbitron'; font-size:0.9rem; font-weight:800; color:white;" id="vision-status-title">Vector de Aceleración & Zancada Óptimo</div>
+                                        <div style="font-size:0.74rem; color:var(--text-secondary); margin-top:4px;" id="vision-status-desc">Sin asimetrías articulares detectadas en sprint máximo</div>
                                     </div>
 
-                                    <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono'; font-size:0.65rem; color:var(--text-secondary);">
-                                        <span id="vision-seal-tag">SELLO: AI VERIFIED</span>
-                                        <span style="color:var(--role-color);" id="vision-risk-tag">RIESGO LESIONAL: BAJO (4%)</span>
+                                    <div style="display:flex; justify-content:space-between; align-items:center; font-family:'JetBrains Mono'; font-size:0.62rem; color:#CBD5E1;">
+                                        <span>SELLO: AI VERIFIED</span>
+                                        <span style="color:var(--role-color);">RIESGO LESIONAL: BAJO (4%)</span>
                                     </div>
                                 </div>
 
-                                <div class="telemetry-grid">
-                                    <div class="telemetry-card">
-                                        <span style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--text-secondary);display:block;">PRECISIÓN ZANCADA</span>
-                                        <strong style="font-family:'Orbitron';font-size:1.1rem;color:white;" id="tel-val-1">98.4%</strong>
+                                <div class="telemetry-pills">
+                                    <div class="t-pill">
+                                        <span id="t-lbl-1">PRECISIÓN BIOMEC.</span>
+                                        <strong id="t-val-1">98.4%</strong>
                                     </div>
-                                    <div class="telemetry-card">
-                                        <span style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--text-secondary);display:block;">PICO VELOCIDAD</span>
-                                        <strong style="font-family:'Orbitron';font-size:1.1rem;color:var(--role-color);" id="tel-val-2">34.2 km/h</strong>
+                                    <div class="t-pill">
+                                        <span id="t-lbl-2">PICO RENDIMIENTO</span>
+                                        <strong id="t-val-2" style="color:var(--role-color);">34.2 km/h</strong>
                                     </div>
-                                    <div class="telemetry-card">
-                                        <span style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--text-secondary);display:block;">LECTURA TÁCTICA IQ</span>
-                                        <strong style="font-family:'Orbitron';font-size:1.1rem;color:white;" id="tel-val-3">Top 4%</strong>
+                                    <div class="t-pill">
+                                        <span id="t-lbl-3">LECTURA TÁCTICA IQ</span>
+                                        <strong id="t-val-3">Top 4%</strong>
                                     </div>
-                                    <div class="telemetry-card">
-                                        <span style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--text-secondary);display:block;" id="tel-lbl-4">VALOR / CLÁUSULA</span>
-                                        <strong style="font-family:'Orbitron';font-size:1.1rem;color:var(--role-color);" id="tel-val-4">120k €</strong>
+                                    <div class="t-pill">
+                                        <span id="t-lbl-4">VALOR / CLÁUSULA</span>
+                                        <strong id="t-val-4" style="color:var(--role-color);">120k €</strong>
                                     </div>
                                 </div>
                             </div>
 
-                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px;">
-                                <button class="btn-primary" id="btn-analyze-clip" onclick="triggerVideoAnalysis()">📹 Analizar Clip IA</button>
-                                <button class="btn-secondary" id="btn-export-report" onclick="triggerExportReport()">📊 Exportar Informe</button>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                                <button class="btn-primary" onclick="handleVisionUploadAttempt()">🎥 Subir Clip a Vision IA</button>
+                                <button class="btn-secondary" onclick="exportScoutReportPDF()">📥 Exportar Informe PDF</button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- COLUMNA DERECHA (MÁS PEQUEÑA col-5): PLANTILLA & SCOUT MATRIX -->
+                    <!-- COLUMNA DERECHA (5 COL): CARTERA DE OBJETIVOS EN SCOUT MATRIX -->
                     <div class="col-5">
                         <div class="kinet-panel" style="height:100%; display:flex; flex-direction:column; justify-content:space-between;">
                             <div>
                                 <div class="panel-head">
-                                    <span class="panel-label" id="matrix-panel-label">PLANTILLA & SEGUIMIENTO EN VIVO</span>
-                                    <span style="font-family:'JetBrains Mono';font-size:0.65rem;color:var(--role-color);" id="scout-count-label">5 PERFILES EN RADAR</span>
+                                    <span class="panel-label" id="matrix-panel-title">CARTERA DE OBJETIVOS // SCOUT MATRIX</span>
+                                    <span style="font-family:'JetBrains Mono';font-size:0.65rem;color:var(--role-color);" id="scout-count-badge">4 PERFILES EN RADAR</span>
                                 </div>
 
-                                <div class="scout-list" id="scout-players-container"></div>
+                                <div id="scout-players-list"></div>
                             </div>
 
-                            <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-                                <span style="font-size:0.72rem; color:var(--text-secondary);" id="matrix-footer-note">Toca cualquier jugador para cargarlo en el visor</span>
-                                <a href="cuerpo-tecnico.html?agent=career" id="nav-cuerpo-footer" class="btn-secondary" style="padding:7px 12px; font-size:0.66rem;">🧠 Consultar al Analista IA →</a>
+                            <div style="margin-top:12px; padding-top:10px; border-top:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                                <span style="font-size:0.72rem; color:var(--text-secondary);">Toca cualquier deportista para cargarlo en el visor</span>
+                                <a href="cuerpo-tecnico.html" id="nav-cuerpo-footer" style="font-size:0.74rem; color:var(--role-color); font-weight:700; text-decoration:none;">Consultar al Analista IA →</a>
                             </div>
                         </div>
                     </div>
@@ -916,84 +881,56 @@
         </div>
     </div>
 
-    <!-- MODAL 1: BLOQUEO DE FUNCIÓN PRO / LÍMITE DE CUOTA DE VÍDEO IA -->
+    <!-- MODAL 1: BLOQUEO PLAN GRATUITO -->
     <div id="vision-upgrade-modal" class="kinet-modal-overlay">
         <div class="kinet-modal-box">
             <div class="kinet-modal-header" style="color: var(--role-color);">
-                <span>🔒</span> <span id="vision-modal-title">MOTOR KINET VISION ANALYTICS™ BLOQUEADO</span>
+                <span>🔒</span> <span>KINET VISION ANALYTICS™ // BLOQUEADO</span>
             </div>
-            <div class="kinet-modal-body" id="vision-modal-body">
-                El procesamiento biomecánico de vídeo a 120 FPS y el acceso completo a los expedientes de <strong>Scout Matrix B2B</strong> requieren servidores GPU dedicados.<br><br>
-                • <strong>Plan Pro Player (8,99€/mes):</strong> Incluye <strong>60 min/mes</strong> de análisis de vídeo IA (20-40 clips de jugada) y sello <em>AI Verified</em>.<br>
-                • <strong>Plan Club & Scout (29,99€/mes):</strong> Incluye <strong>240 min/mes</strong> de vídeo táctico, comparador B2B y acceso total al radar.
+            <div class="kinet-modal-body">
+                El procesamiento biomecánico de vídeo a 120 FPS requiere servidores GPU dedicados y no está incluido en el <strong>Plan Gratuito</strong>.<br><br>
+                Actualiza a <strong>Pro Player (8,99€/mes — 60 min/mes)</strong> o adquiere un <strong>Bono de Minutos Extra (*Pay-As-You-Go*)</strong> para analizar tus propios vídeos.
             </div>
             <div class="kinet-modal-footer">
-                <button class="btn-secondary" onclick="closeModal('vision-upgrade-modal')">Cerrar</button>
-                <a href="despacho.html" id="modal-despacho-link" class="btn-primary">Desbloquear en Suscripciones →</a>
+                <button class="btn-secondary" onclick="document.getElementById('vision-upgrade-modal').classList.remove('open')">Cerrar</button>
+                <button class="btn-secondary" onclick="document.getElementById('vision-upgrade-modal').classList.remove('open'); openBonusPackModal();">➕ Comprar Bono Vídeo</button>
+                <a href="despacho.html?tab=subscription" id="modal-sub-link" class="btn-primary">⚡ Ver Planes Pro →</a>
             </div>
         </div>
     </div>
 
-    <!-- MODAL 2: SUBIDA DE CLIP DE JUGADA (PARA USUARIOS PRO / CLUB CON CONTROL DE MINUTOS) -->
-    <div id="clip-upload-modal" class="kinet-modal-overlay">
+    <!-- MODAL 2: BONOS PAY-AS-YOU-GO DE VÍDEO IA -->
+    <div id="payg-vision-modal" class="kinet-modal-overlay">
         <div class="kinet-modal-box">
             <div class="kinet-modal-header" style="color: var(--role-color);">
-                <span>📹</span> <span>SUBIR CLIP AL LABORATORIO BIOMECÁNICO</span>
+                <span>⚡</span> <span>RECARGAR BONOS DE VÍDEO IA (120 FPS)</span>
             </div>
             <div class="kinet-modal-body">
-                Selecciona la duración del corte de jugada o acción táctica que deseas procesar con <strong>KINET Vision Analytics™</strong> (máx. 5 min por clip para optimizar tu cuota mensual):
-                <div style="margin-top:12px; display:flex; flex-direction:column; gap:8px;">
-                    <label style="font-family:'JetBrains Mono'; font-size:0.7rem; color:var(--text-secondary);">TIPO DE CORTE & DURACIÓN DE API:</label>
-                    <select id="clip-duration-select" class="filter-select" style="width:100%;">
-                        <option value="2">Sprint / Duelo Individual (Consume 2 min de cuota IA)</option>
-                        <option value="3" selected>Secuencia Táctica / ABP (Consume 3 min de cuota IA)</option>
-                        <option value="5">Resumen de Acciones Completo (Consume 5 min de cuota IA)</option>
-                    </select>
+                Añade minutos extra de análisis biomecánico para Vision Analytics™ sin fecha de caducidad mensual:
+                <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle);border-radius:12px;padding:10px 12px;">
+                        <div>
+                            <div style="font-weight:800;color:white;font-size:0.82rem;">🎬 Bono Sprint: +30 Minutos Vision IA</div>
+                            <div style="font-size:0.68rem;color:var(--text-secondary);">Ideal para auditar 10-15 clips tácticos</div>
+                        </div>
+                        <button class="btn-primary" style="padding:7px 12px;font-size:0.68rem;" onclick="addVisionBonusMinutes(30)">4,99 €</button>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(var(--role-rgb),0.08);border:1px solid var(--role-color);border-radius:12px;padding:10px 12px;">
+                        <div>
+                            <div style="font-weight:800;color:white;font-size:0.82rem;">🚀 Pack Scouting: +100 Minutos Vision IA</div>
+                            <div style="font-size:0.68rem;color:#CBD5E1;">El más rentable • No caduca a fin de mes</div>
+                        </div>
+                        <button class="btn-primary" style="padding:7px 12px;font-size:0.68rem;" onclick="addVisionBonusMinutes(100)">11,99 €</button>
+                    </div>
                 </div>
             </div>
             <div class="kinet-modal-footer">
-                <button class="btn-secondary" onclick="closeModal('clip-upload-modal')">Cancelar</button>
-                <button class="btn-primary" onclick="confirmClipProcessing()">⚡ Procesar Vídeo a 120 FPS</button>
+                <button class="btn-secondary" onclick="document.getElementById('payg-vision-modal').classList.remove('open')">Cerrar</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL 3: COMPARADOR CARA A CARA (SCOUT MATRIX) -->
-    <div id="compare-players-modal" class="kinet-modal-overlay">
-        <div class="kinet-modal-box" style="max-width:540px;">
-            <div class="kinet-modal-header" style="color: var(--role-color);">
-                <span>⚖️</span> <span>COMPARATIVA ALGORÍTMICA DE PERFILES</span>
-            </div>
-            <div class="kinet-modal-body">
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; text-align:center;">
-                    <div style="background:rgba(255,255,255,0.03); border:1px solid var(--role-color); border-radius:14px; padding:12px;">
-                        <strong style="font-family:'Orbitron'; color:white; font-size:0.9rem; display:block;">Lucas Vance</strong>
-                        <span style="font-family:'JetBrains Mono'; font-size:0.65rem; color:var(--role-color);">92 GRL • Sub-21</span>
-                        <hr style="border:none; border-top:1px solid rgba(255,255,255,0.08); margin:8px 0;">
-                        <div style="font-size:0.76rem;">Pico Vel: <strong>34.2 km/h</strong></div>
-                        <div style="font-size:0.76rem;">Zancada: <strong>98.4%</strong></div>
-                        <div style="font-size:0.76rem;">Cláusula: <strong>120k €</strong></div>
-                    </div>
-                    <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:14px; padding:12px;">
-                        <strong style="font-family:'Orbitron'; color:white; font-size:0.9rem; display:block;">Alex Torres</strong>
-                        <span style="font-family:'JetBrains Mono'; font-size:0.65rem; color:#94A3B8;">90 GRL • Pro</span>
-                        <hr style="border:none; border-top:1px solid rgba(255,255,255,0.08); margin:8px 0;">
-                        <div style="font-size:0.76rem;">Pico Vel: <strong>32.8 km/h</strong></div>
-                        <div style="font-size:0.76rem;">Zancada: <strong>96.9%</strong></div>
-                        <div style="font-size:0.76rem;">Cláusula: <strong>185k €</strong></div>
-                    </div>
-                </div>
-                <p style="font-size:0.76rem; color:var(--role-color); margin-top:12px; font-family:'JetBrains Mono';">
-                    💡 Veredicto IA: Lucas Vance ofrece un +35% de retorno sobre inversión (ROI) por punto de velocidad y edad.
-                </p>
-            </div>
-            <div class="kinet-modal-footer">
-                <button class="btn-primary" onclick="closeModal('compare-players-modal')">Entendido</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MENÚ DESPLEGABLE MÓVIL (DRAWER) IDÉNTICO A APP.HTML -->
+    <!-- MENÚ DESPLEGABLE MÓVIL (DRAWER) -->
     <div id="mobile-menu-drawer" style="position:fixed;inset:0;background:rgba(6,8,14,0.97);backdrop-filter:blur(28px);z-index:200;display:flex;flex-direction:column;padding:20px 16px;justify-content:space-between;transform:translateY(-100%);transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);border-bottom:1px solid rgba(var(--role-rgb),0.2);">
         <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:12px;margin-bottom:12px;">
             <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:0.95rem;color:white;">KINET OS // MENÚ COMPLETO</div>
@@ -1008,8 +945,8 @@
             <a href="media-studio.html" id="drawer-media-studio" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🎵 KINET Media Studio™</span><span>→</span></a>
             <a href="perfil.html" id="drawer-perfil" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>👤 Mi Perfil</span><span>→</span></a>
             <a href="despacho.html" id="drawer-despacho" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>⚙️ Despacho & Ajustes</span><span>→</span></a>
-            <a href="comunidad.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(var(--role-rgb),0.05);border:1px solid rgba(var(--role-rgb),0.3);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Config. Red Social</span><span>⚡</span></a>
-            <a href="despacho.html" id="drawer-upgrade-btn" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:var(--role-gradient);color:#04060A;font-weight:900;text-decoration:none;"><span>⚡ Pásate a KINET PRO</span><span>→</span></a>
+            <a href="comunidad.html?setup=true" id="drawer-config-social" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(var(--role-rgb),0.05);border:1px solid rgba(var(--role-rgb),0.3);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Config. Red Social</span><span>⚡</span></a>
+            <a href="despacho.html?tab=subscription" id="drawer-upgrade-pro" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:var(--role-gradient);color:#04060A;font-weight:900;text-decoration:none;"><span>⚡ Pásate a KINET PRO</span><span>→</span></a>
         </div>
         <div style="text-align:center;font-size:0.65rem;color:var(--text-secondary);font-family:'JetBrains Mono';margin-top:10px;">
             KINET OS • MOBILE VIEWPORT
@@ -1041,8 +978,70 @@
     </nav>
 
     <script>
-        let currentAccountTier = 'free';
-        let activeRoleGlobal = 'athlete';
+        const SPORT_SCOUT_DATABASES = {
+            'fútbol': {
+                lbl2: 'PICO VELOCIDAD',
+                lbl4: 'VALOR / CLÁUSULA',
+                players: [
+                    { name: 'Lucas Vance', pos: 'Extremo Izquierdo', cat: 'Sub-21', grl: 92, speed: '34.2 km/h', acc: '98.4%', iq: 'Top 3%', clause: '120k €', desc: 'Vector de Aceleración & Zancada Óptimo en Sprint' },
+                    { name: 'Alex Torres', pos: 'Mediocentro Creador', cat: 'Pro RFEF', grl: 90, speed: '32.8 km/h', acc: '96.1%', iq: 'Top 2%', clause: '185k €', desc: 'Frecuencia de Escaneo Cognitivo 360° Superior' },
+                    { name: 'Mateo Silva', pos: 'Central Zurdo', cat: 'Sub-23', grl: 87, speed: '33.5 km/h', acc: '94.8%', iq: 'Top 6%', clause: '95k €', desc: 'Potencia de Salto y Anticipación Defensiva Verificada' },
+                    { name: 'Hugo Mendoza', pos: 'Delantero Centro', cat: 'Juvenil DH', grl: 84, speed: '33.9 km/h', acc: '93.2%', iq: 'Top 8%', clause: '60k €', desc: 'Desmarque de Ruptura y Golpeo a Primer Toque' }
+                ]
+            },
+            'boxeo': {
+                lbl2: 'VEL. IMPACTO',
+                lbl4: 'BOLSA / CONTRATO',
+                players: [
+                    { name: 'Javier Morales', pos: 'Peso Welter (77 kg)', cat: 'Pro 8-1', grl: 94, speed: '11.4 m/s', acc: '97.8%', iq: 'Top 2%', clause: '45k €', desc: 'Transferencia Rotacional de Cadera en Jab-Cross Óptima' },
+                    { name: 'Álex Vega', pos: 'Peso Ligero (61 kg)', cat: 'Invicto 6-0', grl: 91, speed: '12.1 m/s', acc: '96.5%', iq: 'Top 3%', clause: '35k €', desc: 'Tiempo de Reacción en Esquiva y Contragolpe (0.18s)' },
+                    { name: 'Marco "Roca" Díaz', pos: 'Peso Medio (84 kg)', cat: 'Pro MMA', grl: 88, speed: '10.6 m/s', acc: '94.2%', iq: 'Top 5%', clause: '30k €', desc: 'Defensa de Derribo (Sprawl) y Presión en Jaula' },
+                    { name: 'Santi Romero', pos: 'Peso Pluma (65 kg)', cat: 'Sub-23', grl: 85, speed: '11.8 m/s', acc: '93.0%', iq: 'Top 7%', clause: '18k €', desc: 'Alto Volumen de Combinaciones sin Caída de Guardia' }
+                ]
+            },
+            'baloncesto': {
+                lbl2: 'SALTO / TS%',
+                lbl4: 'VALOR / BECA',
+                players: [
+                    { name: 'Devin Marcos', pos: 'Combo Guard (1.93m)', cat: 'LEB Plata', grl: 92, speed: '66.8% TS', acc: '98.1%', iq: 'Top 3%', clause: '95k €', desc: 'Liberación de Tiro en 0.42s con Arco de 47° Verificado' },
+                    { name: 'Kobe Diallo', pos: 'Alero Físico (2.01m)', cat: 'Sub-22', grl: 90, speed: '104 cm Vert', acc: '96.4%', iq: 'Top 4%', clause: '110k €', desc: 'Explosividad Vertical en Transición y Protección de Aro' },
+                    { name: 'Pau Ribas Jr.', pos: 'Base Director (1.89m)', cat: 'Sub-20', grl: 87, speed: '63.5% TS', acc: '95.0%', iq: 'Top 2%', clause: '70k €', desc: 'Lectura de Pick & Roll y Ratio AST/TOV de 4.2' },
+                    { name: 'Nikola Vukovic', pos: 'Ala-Pívot (2.06m)', cat: 'EBA Élite', grl: 85, speed: '94 cm Vert', acc: '93.4%', iq: 'Top 6%', clause: '55k €', desc: 'Amenaza de Tiro Abierto (Pick & Pop) y Rebote Ofensivo' }
+                ]
+            },
+            'pádel': {
+                lbl2: 'VEL. REMATE X3',
+                lbl4: 'RANKING / PATROC.',
+                players: [
+                    { name: 'Lucía Navarro', pos: 'Jugadora de Revés', cat: 'Top 35 FIP', grl: 93, speed: '148 km/h', acc: '98.2%', iq: 'Top 3%', clause: '65k €', desc: 'Punto de Impacto en Bandeja a 2.48m y Cobertura de Red' },
+                    { name: 'Martín Diestro', pos: 'Jugador de Drive', cat: 'Premier Pro', grl: 90, speed: '142 km/h', acc: '96.7%', iq: 'Top 2%', clause: '55k €', desc: 'Defensa de Doble Pared y Precisión de Globo Profundo' },
+                    { name: 'Álvaro Cepero V.', pos: 'Revés Agresivo', cat: 'Sub-23', grl: 88, speed: '154 km/h', acc: '94.5%', iq: 'Top 5%', clause: '40k €', desc: 'Eficacia del 92% en Remate Por Tres (X3) y Víbora' },
+                    { name: 'Carla Mesa P.', pos: 'Drive Táctico', cat: 'Sub-21', grl: 85, speed: '136 km/h', acc: '93.8%', iq: 'Top 6%', clause: '28k €', desc: 'Velocidad de Reacción en Split-Step en Volea' }
+                ]
+            },
+            'running': {
+                lbl2: 'VO2 MAX / RITMO',
+                lbl4: 'BECA / PATROCINIO',
+                players: [
+                    { name: 'Mateo Kipchoge V.', pos: 'Fondista 10K / Media', cat: 'Sub 2:55/km', grl: 94, speed: '82 ml/kg', acc: '98.7%', iq: 'Top 2%', clause: '50k €', desc: 'Cadencia Estable (186 spm) y Tiempo de Contacto 170ms' },
+                    { name: 'Sofía Valiente', pos: '1500m & 5000m Pista', cat: 'Sub-23 Pro', grl: 91, speed: '78 ml/kg', acc: '97.2%', iq: 'Top 3%', clause: '42k €', desc: 'Reactividad Elástica de Tobillo en Cambio de Ritmo Final' },
+                    { name: 'Yago Domínguez', pos: 'Maratón Ruta', cat: 'Élite Nac.', grl: 89, speed: '80 ml/kg', acc: '95.6%', iq: 'Top 4%', clause: '35k €', desc: 'Economía de Zancada en Zona 4 (Umbral de Lactato)' },
+                    { name: 'Elena Chebet', pos: 'Cross & 10K Ruta', cat: 'Sub-20', grl: 86, speed: '75 ml/kg', acc: '94.1%', iq: 'Top 6%', clause: '24k €', desc: 'Alineación Biomecánica de Cadera-Rodilla sin Valgo' }
+                ]
+            }
+        };
+
+        let activeScoutDB = SPORT_SCOUT_DATABASES['fútbol'];
+        let currentLoadedPlayer = null;
+
+        function resolveScoutSportDB(sportName) {
+            const s = (sportName || 'fútbol').toLowerCase();
+            if (s.includes('boxeo') || s.includes('mma') || s.includes('combate')) return SPORT_SCOUT_DATABASES['boxeo'];
+            if (s.includes('baloncesto') || s.includes('basket')) return SPORT_SCOUT_DATABASES['baloncesto'];
+            if (s.includes('pádel') || s.includes('padel') || s.includes('tenis')) return SPORT_SCOUT_DATABASES['pádel'];
+            if (s.includes('running') || s.includes('atletismo') || s.includes('carrera')) return SPORT_SCOUT_DATABASES['running'];
+            return SPORT_SCOUT_DATABASES['fútbol'];
+        }
 
         function toggleMobileDrawer() {
             const drawer = document.getElementById('mobile-menu-drawer');
@@ -1053,29 +1052,25 @@
             }
         }
 
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('open');
-        }
-
         function normalizeRole(val) {
             if (!val) return null;
             const v = String(val).toLowerCase().trim();
-            if (v === 'athlete' || v === 'atleta') return 'athlete';
-            if (v === 'staff') return 'staff';
-            if (v === 'scout') return 'scout';
-            if (v.includes('atleta') || v.includes('jugador')) return 'athlete';
-            if (v.includes('entrenador') || v.includes('coach') || v.includes('fisio') || v.includes('preparador') || v.includes('analista') || v.includes('staff')) return 'staff';
-            if (v.includes('director') || v.includes('ojeador') || v.includes('agencia') || v.includes('scout')) return 'scout';
+            if (v === 'athlete' || v === 'atleta' || v.includes('atleta') || v.includes('jugador')) return 'athlete';
+            if (v === 'staff' || v.includes('entrenador') || v.includes('coach') || v.includes('fisio') || v.includes('staff')) return 'staff';
+            if (v === 'scout' || v.includes('scout') || v.includes('director') || v.includes('ojeador')) return 'scout';
             return null;
         }
 
-        const SCOUT_DB = [
-            { name: 'Lucas Vance', pos: 'Extremo Izquierdo • Sub-21', grl: 92, verified: true, speed: '34.2 km/h', stride: '98.4%', iq: 'Top 4%', val: '120k €', staffLoad: '92% Frescura (Apto)', status: 'Vector de Aceleración & Zancada Óptimo' },
-            { name: 'Alex Torres', pos: 'Mediocentro Creador • Pro', grl: 90, verified: true, speed: '32.8 km/h', stride: '96.9%', iq: 'Top 2%', val: '185k €', staffLoad: '88% Frescura (Apto)', status: 'Visión Periférica & Pases Progresivos Élite' },
-            { name: 'Mateo Silva', pos: 'Central con Salida • Sub-23', grl: 87, verified: true, speed: '33.1 km/h', stride: '95.2%', iq: 'Top 6%', val: '95k €', staffLoad: '74% Carga Media', status: 'Anticipación Defensiva & Duelos Aéreos 89%' },
-            { name: 'Hugo Mendoza', pos: 'Delantero Centro • Juvenil DH', grl: 84, verified: true, speed: '33.6 km/h', stride: '94.0%', iq: 'Top 8%', val: '60k €', staffLoad: '62% Aviso Isquios', status: 'Desmarque de Ruptura & Definición al Primer Toque' },
-            { name: 'Dani Ríos', pos: 'Lateral Ofensivo • Regional', grl: 79, verified: false, speed: '31.9 km/h', stride: '91.5%', iq: 'Top 15%', val: 'Libre', staffLoad: '90% Frescura (Apto)', status: 'Gran Recorrido Aeróbico (Pendiente Verificación IA)' }
-        ];
+        function isPaidOrBonusAccount() {
+            const tier = localStorage.getItem('kinet_account_tier') || 'free';
+            const bonusMins = parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0');
+            return tier === 'pro' || tier === 'club' || bonusMins > 0;
+        }
+
+        function isStrictProOrClub() {
+            const tier = localStorage.getItem('kinet_account_tier') || 'free';
+            return tier === 'pro' || tier === 'club';
+        }
 
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
@@ -1084,76 +1079,71 @@
 
             if (sportParam) localStorage.setItem('kinet_sport', sportParam);
 
-            // Priorizar siempre el parámetro explícito de URL o kinet_active_role para no cambiar de perfil accidentalmente
             const fromUrl = normalizeRole(roleParam);
             const fromActiveStorage = normalizeRole(localStorage.getItem('kinet_active_role'));
             const fromLegacyRole = normalizeRole(localStorage.getItem('kinet_role'));
 
-            activeRoleGlobal = fromUrl || fromActiveStorage || fromLegacyRole || 'athlete';
-            document.body.setAttribute('data-role', activeRoleGlobal);
-            localStorage.setItem('kinet_active_role', activeRoleGlobal);
-
-            // Aplicar personalización global si el usuario eligió tema/color en Despacho
-            applySavedThemeCustomizations();
+            const activeRoleKey = fromUrl || fromActiveStorage || fromLegacyRole || 'athlete';
+            document.body.setAttribute('data-role', activeRoleKey);
+            localStorage.setItem('kinet_active_role', activeRoleKey);
+            localStorage.setItem('kinet_role', activeRoleKey);
 
             const roleLabels = {
                 athlete: 'ATLETA PRO',
                 staff: 'ENTRENADOR / STAFF',
                 scout: 'DIRECTOR DEPORTIVO / SCOUT'
             };
-            document.getElementById('topbar-role-title').textContent = roleLabels[activeRoleGlobal] || 'ATLETA PRO';
+            document.getElementById('topbar-role-title').textContent = roleLabels[activeRoleKey] || 'ATLETA PRO';
 
             const sportChosen = localStorage.getItem('kinet_sport') || localStorage.getItem('sport') || 'Fútbol';
             document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${sportChosen.toUpperCase()}`;
             document.getElementById('topbar-sport-tag').textContent = `● ${sportChosen.toUpperCase()}`;
 
-            // Adaptar textos contextuales según si entra Atleta, Staff o Scout manteniendo su color de rol
-            if (activeRoleGlobal === 'staff') {
-                document.getElementById('header-tag-text').textContent = `LABORATORIO TÁCTICO DE PLANTILLA & VISION IA • ${sportChosen.toUpperCase()}`;
-                document.getElementById('ojeador-main-title').textContent = 'Laboratorio Táctico & Ojeador de Plantilla';
-                document.getElementById('matrix-panel-label').textContent = 'PLANTILLA & SEMÁFORO DE CARGAS';
-                document.getElementById('tel-lbl-4').textContent = 'ESTADO DE CARGA';
-            } else if (activeRoleGlobal === 'athlete') {
-                document.getElementById('header-tag-text').textContent = `LABORATORIO BIOMECÁNICO PERSONAL & RADAR • ${sportChosen.toUpperCase()}`;
-                document.getElementById('ojeador-main-title').textContent = 'Laboratorio Vision Analytics™ & Radar';
-                document.getElementById('matrix-panel-label').textContent = 'RADAR & VISIBILIDAD ANTE CLUBES';
-            } else {
-                document.getElementById('header-tag-text').textContent = `SCOUT MATRIX B2B & KINET VISION ANALYTICS™ • ${sportChosen.toUpperCase()}`;
-                document.getElementById('ojeador-main-title').textContent = 'Ojeador Live & Laboratorio IA';
-                document.getElementById('matrix-panel-label').textContent = 'CARTERA SCOUT MATRIX B2B';
-            }
-
-            // Sincronizar enlaces con rol y deporte activos
-            const queryParams = `?role=${activeRoleGlobal}&sport=${encodeURIComponent(sportChosen)}`;
+            const queryParams = `?role=${activeRoleKey}&sport=${encodeURIComponent(sportChosen)}`;
             const navMap = {
+                'brand-logo-desktop': 'app.html', 'brand-logo-mobile': 'app.html',
                 'nav-vestuario': 'app.html', 'drawer-vestuario': 'app.html', 'mob-vestuario': 'app.html',
-                'nav-cuerpo-tecnico': 'cuerpo-tecnico.html', 'drawer-cuerpo-tecnico': 'cuerpo-tecnico.html', 'mob-cuerpo-tecnico': 'cuerpo-tecnico.html',
+                'nav-cuerpo-tecnico': 'cuerpo-tecnico.html', 'nav-cuerpo-footer': 'cuerpo-tecnico.html', 'drawer-cuerpo-tecnico': 'cuerpo-tecnico.html', 'mob-cuerpo-tecnico': 'cuerpo-tecnico.html',
                 'nav-ficha-pro': 'ficha-pro.html', 'drawer-ficha-pro': 'ficha-pro.html', 'mob-ficha-pro': 'ficha-pro.html',
                 'nav-ojeador-live': 'ojeador-live.html', 'drawer-ojeador-live': 'ojeador-live.html', 'mob-ojeador-live': 'ojeador-live.html',
-                'nav-comunidad': 'comunidad.html', 'drawer-comunidad': 'comunidad.html', 'nav-config-social': 'comunidad.html',
+                'nav-comunidad': 'comunidad.html', 'drawer-comunidad': 'comunidad.html',
                 'nav-media-studio': 'media-studio.html', 'drawer-media-studio': 'media-studio.html',
                 'nav-perfil': 'perfil.html', 'drawer-perfil': 'perfil.html',
-                'nav-despacho': 'despacho.html', 'drawer-despacho': 'despacho.html',
-                'sidebar-upgrade-btn': 'despacho.html', 'drawer-upgrade-btn': 'despacho.html', 'modal-despacho-link': 'despacho.html'
+                'nav-despacho': 'despacho.html', 'drawer-despacho': 'despacho.html'
             };
             Object.keys(navMap).forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.href = `${navMap[id]}${queryParams}`;
             });
 
-            const footerChatLink = document.getElementById('nav-cuerpo-footer');
-            if (footerChatLink) footerChatLink.href = `cuerpo-tecnico.html${queryParams}&agent=career`;
+            const subUrl = `despacho.html${queryParams}&tab=subscription`;
+            ['nav-upgrade-pro', 'drawer-upgrade-pro', 'modal-sub-link'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.href = subUrl;
+            });
 
-            // Configurar estado del Plan (Free vs Pro vs Club) y cuotas de vídeo IA
-            currentAccountTier = localStorage.getItem('kinet_account_tier') || 'free';
-            applySubscriptionRules(currentAccountTier);
+            const socialSetupUrl = `comunidad.html${queryParams}&setup=true`;
+            ['nav-config-social', 'drawer-config-social'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.href = socialSetupUrl;
+            });
 
-            // Actualizar Favicon dinámicamente según el rol activo
-            const faviconHex = activeRoleGlobal === 'staff' ? '%23F59E0B' : (activeRoleGlobal === 'scout' ? '%233B82F6' : '%2300FF88');
-            const faviconSvg = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22${faviconHex}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`;
-            document.getElementById('dynamic-favicon').setAttribute('href', faviconSvg);
+            // 1. OCULTAR "Config. Red Social" SI YA FUE CONFIGURADA
+            if (localStorage.getItem('kinet_social_configured') === 'true' || localStorage.getItem('kinet_user_name')) {
+                const navSoc = document.getElementById('nav-config-social');
+                const drwSoc = document.getElementById('drawer-config-social');
+                if (navSoc) navSoc.style.display = 'none';
+                if (drwSoc) drwSoc.style.display = 'none';
+            }
 
-            // Spotlight dinámico en paneles y enlaces laterales
+            // 2. OCULTAR POR COMPLETO EL BOTÓN DE LICENCIA PRO SI YA ERES PRO O CLUB
+            if (isStrictProOrClub()) {
+                const navUp = document.getElementById('nav-upgrade-pro');
+                const drwUp = document.getElementById('drawer-upgrade-pro');
+                if (navUp) navUp.style.setProperty('display', 'none', 'important');
+                if (drwUp) drwUp.style.setProperty('display', 'none', 'important');
+            }
+
             document.querySelectorAll('.kinet-panel, .side-link').forEach(el => {
                 el.addEventListener('mousemove', (e) => {
                     const rect = el.getBoundingClientRect();
@@ -1162,198 +1152,195 @@
                 });
             });
 
-            filterScoutTable();
-            loadPlayerInVision(0);
+            initPageModule(activeRoleKey, sportChosen);
         });
 
-        function applySavedThemeCustomizations() {
-            const savedBg = localStorage.getItem('kinet_bg_intensity');
-            if (savedBg === 'deep') document.documentElement.style.setProperty('--bg-void', '#020305');
-            else if (savedBg === 'contrast') document.documentElement.style.setProperty('--bg-void', '#0B101D');
+        function initPageModule(roleKey, sportChosen) {
+            activeScoutDB = resolveScoutSportDB(sportChosen);
+            document.getElementById('t-lbl-2').textContent = activeScoutDB.lbl2;
+            document.getElementById('t-lbl-4').textContent = activeScoutDB.lbl4;
 
-            const savedAccent = localStorage.getItem('kinet_custom_accent_override');
-            if (savedAccent) {
-                const rgb = hexToRgbString(savedAccent);
-                document.body.style.setProperty('--role-color', savedAccent);
-                document.body.style.setProperty('--role-rgb', rgb);
-                document.body.style.setProperty('--role-glow', `rgba(${rgb}, 0.38)`);
-                document.body.style.setProperty('--role-gradient', `linear-gradient(135deg, ${savedAccent} 0%, rgba(${rgb}, 0.75) 100%)`);
-            }
-        }
-
-        function hexToRgbString(hex) {
-            const clean = hex.replace('#', '');
-            const num = parseInt(clean, 16);
-            return `${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}`;
-        }
-
-        function applySubscriptionRules(tier) {
-            const sideUpBtn = document.getElementById('sidebar-upgrade-btn');
-            const drawUpBtn = document.getElementById('drawer-upgrade-btn');
-            const headerQuota = document.getElementById('header-quota-badge');
-            const headerTier = document.getElementById('header-tier-badge');
-            const quotaRight = document.getElementById('quota-label-right');
-            const quotaFill = document.getElementById('quota-bar-fill');
-            const btnAnalyze = document.getElementById('btn-analyze-clip');
-
-            const usedMins = parseInt(localStorage.getItem('kinet_video_mins_used') || '12', 10);
-
-            if (tier === 'pro' || tier === 'club') {
-                const maxMins = tier === 'club' ? 240 : 60;
-                const remaining = Math.max(0, maxMins - usedMins);
-                const pct = Math.min(100, Math.round((remaining / maxMins) * 100));
-
-                // Ocultar mensaje de "Pásate a KINET PRO" y mostrar licencia activa
-                if (sideUpBtn) {
-                    sideUpBtn.style.background = 'rgba(var(--role-rgb), 0.12)';
-                    sideUpBtn.style.color = 'var(--role-color)';
-                    sideUpBtn.style.border = '1px solid var(--role-color)';
-                    document.getElementById('sidebar-upgrade-icon').textContent = '✓';
-                    document.getElementById('sidebar-upgrade-text').textContent = tier === 'club' ? 'LICENCIA CLUB & SCOUT' : 'LICENCIA KINET PRO';
-                    document.getElementById('sidebar-upgrade-arrow').textContent = '●';
-                }
-                if (drawUpBtn) {
-                    drawUpBtn.innerHTML = `<span>✓ ${tier === 'club' ? 'Licencia Club & Scout Activa' : 'Licencia KINET PRO Activa'}</span><span>●</span>`;
-                }
-
-                headerQuota.textContent = `🎥 CUOTA VÍDEO IA: ${remaining} / ${maxMins} MIN DISP.`;
-                headerTier.textContent = tier === 'club' ? '🏆 PLAN CLUB & SCOUT B2B' : '⚡ PLAN PRO PLAYER ACTIVO';
-                quotaRight.textContent = `${remaining} MIN DISPONIBLES DE ${maxMins} MIN`;
-                quotaFill.style.width = `${pct}%`;
-                btnAnalyze.textContent = '📹 Subir Clip a Vision IA';
+            if (roleKey === 'athlete') {
+                document.getElementById('header-tag-text').textContent = `LABORATORIO BIOMECÁNICO PERSONAL & RADAR • ${sportChosen.toUpperCase()}`;
+                document.getElementById('header-main-title').textContent = 'Laboratorio Vision Analytics™ & Radar';
+                document.getElementById('matrix-panel-title').textContent = 'RADAR & VISIBILIDAD ANTE CLUBES';
+            } else if (roleKey === 'staff') {
+                document.getElementById('header-tag-text').textContent = `LABORATORIO DE VÍDEO TÁCTICO & PLANTILLA • ${sportChosen.toUpperCase()}`;
+                document.getElementById('header-main-title').textContent = 'Vision Analytics™ & Auditoría de Equipo';
+                document.getElementById('matrix-panel-title').textContent = 'JUGADORES MONITORIZADOS EN PLANTILLA';
             } else {
-                // Plan Gratuito
-                headerQuota.textContent = '🎥 CUOTA VÍDEO IA: 0 MIN (SOLO DEMO)';
-                headerTier.textContent = '🔒 PLAN GRATUITO (VISTA LIMITADA)';
-                quotaRight.textContent = 'BLOQUEADO EN PLAN GRATUITO (0 MIN)';
-                quotaFill.style.width = '12%';
-                btnAnalyze.textContent = '🔒 Analizar Clip IA (PRO)';
+                document.getElementById('header-tag-text').textContent = `SCOUT MATRIX B2B & KINET VISION ANALYTICS™ • ${sportChosen.toUpperCase()}`;
+            }
+
+            refreshVideoQuotaUI();
+            filterScoutList();
+            if (activeScoutDB.players.length > 0) {
+                loadPlayerInVision(activeScoutDB.players[0]);
             }
         }
 
-        function filterScoutTable() {
-            const q = (document.getElementById('scout-search-input').value || '').toLowerCase();
-            const minGrl = parseInt(document.getElementById('scout-min-grl').value || '0', 10);
-            const verFilter = document.getElementById('scout-verified-filter').value;
-            const isFree = (currentAccountTier !== 'pro' && currentAccountTier !== 'club');
+        function refreshVideoQuotaUI() {
+            const tier = localStorage.getItem('kinet_account_tier') || 'free';
+            const bonusMins = parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0');
+            const usedMins = parseFloat(localStorage.getItem('kinet_video_mins_used') || '15');
 
-            const filtered = SCOUT_DB.filter(p => {
-                const matchText = p.name.toLowerCase().includes(q) || p.pos.toLowerCase().includes(q);
-                const matchGrl = p.grl >= minGrl;
-                const matchVer = (verFilter === 'all') || (verFilter === 'verified' && p.verified);
-                return matchText && matchGrl && matchVer;
-            });
+            const quotaPill = document.getElementById('video-quota-pill');
+            const quotaRight = document.getElementById('quota-meta-right');
+            const quotaBar = document.getElementById('quota-fill-bar');
 
-            document.getElementById('scout-count-label').textContent = `${filtered.length} PERFILES EN RADAR`;
-            const container = document.getElementById('scout-players-container');
+            const baseMax = tier === 'club' ? 240 : (tier === 'pro' ? 60 : 0);
+            const totalMax = baseMax + bonusMins;
 
-            container.innerHTML = filtered.map((p, index) => {
-                const lockedForFree = isFree && index >= 3;
-                const badgeHtml = p.verified
-                    ? `<span style="font-family:'JetBrains Mono';font-size:0.55rem;color:var(--role-color);border:1px solid rgba(var(--role-rgb),0.4);padding:1px 5px;border-radius:5px;">✓ AI</span>`
-                    : `<span style="font-family:'JetBrains Mono';font-size:0.55rem;color:#94A3B8;">CUSTOM</span>`;
+            if (totalMax > 0) {
+                const avail = Math.max(0, +(totalMax - usedMins).toFixed(1));
+                const pct = Math.min(100, Math.round((avail / totalMax) * 100));
+                quotaPill.textContent = `🎥 CUOTA VÍDEO IA: ${avail} / ${totalMax} MIN DISP.`;
+                quotaRight.textContent = `${avail} MIN DISPONIBLES DE ${totalMax} MIN`;
+                quotaBar.style.width = `${pct}%`;
+            } else {
+                quotaPill.textContent = '🔒 CUOTA VÍDEO IA: 0 MIN (PLAN FREE)';
+                quotaRight.textContent = 'REQUIERE PRO O BONO DE VÍDEO';
+                quotaBar.style.width = '0%';
+            }
+        }
 
-                if (lockedForFree) {
-                    return `
-                    <div class="scout-player-row locked-row" onclick="openUpgradeModal('El acceso completo a todos los perfiles del Radar Scout Matrix B2B está reservado para cuentas Pro Player y Club & Scout.')" style="cursor:pointer;">
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <div class="grl-pill" style="border-color:#64748B;color:#94A3B8;background:rgba(255,255,255,0.05);">🔒</div>
-                            <div>
-                                <div style="font-weight:800; font-size:0.8rem; color:#94A3B8;">Perfil Protegido (${p.grl} GRL)</div>
-                                <div style="font-size:0.68rem; color:#64748B; margin-top:2px;">Desbloquea KINET PRO para ver ficha</div>
-                            </div>
-                        </div>
-                        <button class="btn-secondary" style="padding:5px 8px; font-size:0.6rem;">🔒 PRO</button>
-                    </div>`;
-                }
+        function handleVisionUploadAttempt() {
+            if (!isPaidOrBonusAccount()) {
+                document.getElementById('vision-upgrade-modal').classList.add('open');
+                return;
+            }
+            document.getElementById('hidden-vision-file-input').click();
+        }
 
-                const extraMeta = activeRoleGlobal === 'staff' ? p.staffLoad : p.val;
+        function handleVisionClipFileSelected(input) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
 
-                return `
-                <div class="scout-player-row" onclick="loadPlayerInVision(${SCOUT_DB.indexOf(p)})" style="cursor:pointer;">
-                    <div style="display:flex; align-items:center; gap:10px; min-width:0;">
-                        <div class="grl-pill">${p.grl}</div>
-                        <div style="min-width:0;">
-                            <div style="font-weight:800; font-size:0.82rem; color:white; display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
-                                <span>${p.name}</span>
-                                ${badgeHtml}
-                            </div>
-                            <div style="font-size:0.68rem; color:var(--text-secondary); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.pos} • <strong style="color:#E2E8F0;">${extraMeta}</strong></div>
+            const prevUsed = parseFloat(localStorage.getItem('kinet_video_mins_used') || '15');
+            localStorage.setItem('kinet_video_mins_used', String(+(prevUsed + 2).toFixed(1)));
+            refreshVideoQuotaUI();
+
+            document.getElementById('vision-status-title').textContent = `✓ Clip Auditado: ${file.name}`;
+            document.getElementById('vision-status-desc').textContent = 'Escaneo a 120 FPS completado (-2 min de cuota). Sello AI Verified actualizado.';
+            input.value = '';
+        }
+
+        function openBonusPackModal() {
+            document.getElementById('payg-vision-modal').classList.add('open');
+        }
+
+        function addVisionBonusMinutes(mins) {
+            const prev = parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0');
+            localStorage.setItem('kinet_bonus_video_mins', String(prev + mins));
+            document.getElementById('payg-vision-modal').classList.remove('open');
+            refreshVideoQuotaUI();
+        }
+
+        function renderScoutList(list) {
+            const box = document.getElementById('scout-players-list');
+            document.getElementById('scout-count-badge').textContent = `${list.length} PERFILES EN RADAR`;
+
+            box.innerHTML = list.map((p) => `
+                <div class="scout-player-row" onclick='loadPlayerInVision(${JSON.stringify(p)})'>
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <span class="scout-grl-badge">${p.grl}</span>
+                        <div>
+                            <div style="font-weight:800; font-size:0.86rem; color:white;">${p.name} <span style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);">✓ AI</span></div>
+                            <div style="font-size:0.72rem; color:var(--text-secondary);">${p.pos} • ${p.cat} • <strong style="color:#E2E8F0;">${p.clause}</strong></div>
                         </div>
                     </div>
-                    <button class="btn-secondary" style="padding:5px 9px; font-size:0.62rem; flex-shrink:0;" onclick="event.stopPropagation(); loadPlayerInVision(${SCOUT_DB.indexOf(p)})">Ver 🎥</button>
+                    <button class="btn-secondary" style="padding:6px 10px; font-size:0.65rem;">Ver 🎥</button>
                 </div>
-                `;
-            }).join('');
+            `).join('');
         }
 
-        function loadPlayerInVision(idx) {
-            const p = SCOUT_DB[idx];
-            if (!p) return;
-            document.getElementById('vision-target-name').textContent = `OBJETIVO: ${p.name.toUpperCase()}`;
-            document.getElementById('vision-main-status').textContent = p.status;
-            document.getElementById('tel-val-1').textContent = p.stride;
-            document.getElementById('tel-val-2').textContent = p.speed;
-            document.getElementById('tel-val-3').textContent = p.iq;
-            document.getElementById('tel-val-4').textContent = activeRoleGlobal === 'staff' ? p.staffLoad : p.val;
+        function filterScoutList() {
+            const q = document.getElementById('scout-search-input').value.toLowerCase();
+            const minGrl = parseInt(document.getElementById('scout-grl-filter').value, 10);
+
+            const filtered = activeScoutDB.players.filter(p => {
+                const matchText = p.name.toLowerCase().includes(q) || p.pos.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q);
+                const matchGrl = p.grl >= minGrl;
+                return matchText && matchGrl;
+            });
+            renderScoutList(filtered);
         }
 
-        function triggerVideoAnalysis() {
-            if (currentAccountTier !== 'pro' && currentAccountTier !== 'club') {
-                openUpgradeModal('En el <strong>Plan Gratuito</strong> solo puedes visualizar la telemetría de demostración.<br><br>Debido al alto coste computacional de los servidores GPU de visión artificial a 120 FPS, la subida de vídeos reales requiere <strong>Pro Player (60 min/mes)</strong> o <strong>Club & Scout (240 min/mes)</strong>.');
-                return;
-            }
-            document.getElementById('clip-upload-modal').classList.add('open');
+        function loadPlayerInVision(p) {
+            currentLoadedPlayer = p;
+            document.getElementById('vision-active-subject').textContent = `OBJETIVO: ${p.name.toUpperCase()}`;
+            document.getElementById('vision-status-title').textContent = p.desc;
+            document.getElementById('vision-status-desc').textContent = `${p.pos} (${p.cat}) — Sello KINET AI Verified activo`;
+            document.getElementById('t-val-1').textContent = p.acc;
+            document.getElementById('t-val-2').textContent = p.speed;
+            document.getElementById('t-val-3').textContent = p.iq;
+            document.getElementById('t-val-4').textContent = p.clause;
         }
 
-        function confirmClipProcessing() {
-            const clipMins = parseInt(document.getElementById('clip-duration-select').value, 10);
-            const maxMins = currentAccountTier === 'club' ? 240 : 60;
-            const usedMins = parseInt(localStorage.getItem('kinet_video_mins_used') || '12', 10);
+        function exportScoutReportPDF() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-            if (usedMins + clipMins > maxMins) {
-                closeModal('clip-upload-modal');
-                openUpgradeModal(`Has alcanzado el límite mensual de tu cuota de vídeo IA (${maxMins} min/mes). Puedes adquirir un <strong>Bono de Recarga de +60 min por 2,99€</strong> o ampliar tu licencia en el Despacho.`);
-                return;
-            }
+            const sportChosen = (localStorage.getItem('kinet_sport') || 'Fútbol').toUpperCase();
+            const p = currentLoadedPlayer || activeScoutDB.players[0];
 
-            const newUsed = usedMins + clipMins;
-            localStorage.setItem('kinet_video_mins_used', String(newUsed));
-            closeModal('clip-upload-modal');
-            applySubscriptionRules(currentAccountTier);
+            pdf.setFillColor(6, 8, 14);
+            pdf.rect(0, 0, 210, 297, 'F');
 
-            document.getElementById('vision-rec-tag').textContent = `[PROCESANDO CLIP DE ${clipMins} MIN ● 120 FPS]`;
-            document.getElementById('vision-main-status').textContent = 'Nuevo Escaneo Biomecánico Completado con Éxito';
-            document.getElementById('vision-sub-status').textContent = `Se han descontado ${clipMins} min de tu cuota mensual de GPU Vision Analytics™`;
+            pdf.setFillColor(13, 17, 26);
+            pdf.roundedRect(14, 14, 182, 26, 4, 4, 'F');
+            pdf.setTextColor(0, 255, 136);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(14);
+            pdf.text('KINET VISION ANALYTICS™ // INFORME DE SCOUTING & BIOMECANICA', 20, 25);
+
+            pdf.setTextColor(203, 213, 225);
+            pdf.setFontSize(9.2);
+            pdf.text(`DISCIPLINA: ${sportChosen}   |   OBJETIVO ANALIZADO: ${p.name.toUpperCase()} (GRL ${p.grl})`, 20, 34);
+
+            pdf.setFillColor(13, 17, 26);
+            pdf.roundedRect(14, 48, 182, 58, 4, 4, 'F');
+            pdf.setTextColor(0, 255, 136);
+            pdf.setFontSize(11);
+            pdf.text('1. TELEMETRIA BIOMECANICA AUDITADA A 120 FPS', 20, 60);
+
+            pdf.setTextColor(248, 250, 252);
+            pdf.setFontSize(9.5);
+            pdf.text(`• Demarcacion / Categoria: ${p.pos} (${p.cat})`, 20, 71);
+            pdf.text(`• Diagnostico Cinemático: ${p.desc}`, 20, 80);
+            pdf.text(`• Precision Biomecanica: ${p.acc}   |   Pico de Rendimiento: ${p.speed}`, 20, 89);
+            pdf.text(`• Lectura Tactica IQ: ${p.iq}   |   Valor / Clausula Estimada: ${p.clause}`, 20, 98);
+
+            pdf.setFillColor(13, 17, 26);
+            pdf.roundedRect(14, 114, 182, 95, 4, 4, 'F');
+            pdf.setTextColor(0, 255, 136);
+            pdf.setFontSize(11);
+            pdf.text(`2. CARTERA COMPLETA EN SCOUT MATRIX B2B (${sportChosen})`, 20, 126);
+
+            let y = 138;
+            activeScoutDB.players.forEach((item, idx) => {
+                pdf.setTextColor(241, 245, 249);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(9.5);
+                pdf.text(`${idx + 1}. ${item.name}  [GRL ${item.grl}]  —  ${item.pos} (${item.cat})`, 20, y);
+                pdf.setFont('helvetica', 'normal');
+                pdf.setTextColor(148, 163, 184);
+                pdf.setFontSize(8.8);
+                pdf.text(`   Métrica: ${item.speed}  |  Precisión: ${item.acc}  |  IQ: ${item.iq}  |  Valor: ${item.clause}`, 20, y + 6);
+                y += 16;
+            });
+
+            pdf.setTextColor(148, 163, 184);
+            pdf.setFontSize(8);
+            pdf.text('Informe oficial generado por KINET Vision Analytics™ & Scout Matrix B2B • kinetos.es', 14, 285);
+
+            pdf.save(`Informe_Vision_Analytics_${p.name.replace(/\s+/g, '_')}.pdf`);
         }
 
-        function triggerExportReport() {
-            if (currentAccountTier !== 'pro' && currentAccountTier !== 'club') {
-                openUpgradeModal('La exportación de informes biomecánicos y comparativas de scouting en PDF oficial requiere una cuenta <strong>Pro Player</strong> o <strong>Club & Scout</strong>.');
-                return;
-            }
-            alert('📊 Informe técnico verificado exportado en PDF con métricas de KINET Vision Analytics™.');
-        }
-
-        function openCompareModal() {
-            if (currentAccountTier !== 'pro' && currentAccountTier !== 'club') {
-                openUpgradeModal('El comparador algorítmico cara a cara de Scout Matrix está disponible en los planes <strong>Pro Player</strong> y <strong>Club & Scout</strong>.');
-                return;
-            }
-            document.getElementById('compare-players-modal').classList.add('open');
-        }
-
-        function openUpgradeModal(customHtml) {
-            if (customHtml) {
-                document.getElementById('vision-modal-body').innerHTML = customHtml;
-            }
-            document.getElementById('vision-upgrade-modal').classList.add('open');
-        }
         // =========================================================================
-        // MOTOR GLOBAL DE PERSONALIZACIÓN KINET OS (ARCOÍRIS BETA, SCANLINES Y TEMA)
+        // MOTOR GLOBAL DE COLOR DE ROL Y REEMPLAZO FORZADO DE FAVICON EN NAVEGADOR
         // =========================================================================
         (function initGlobalKinetPersonalization() {
-            // Inyectar estilos globales de Arcoíris y Scanlines si la página no los tiene
             const styleTag = document.createElement('style');
             styleTag.innerHTML = `
                 @keyframes kinetRainbowFlowBg {
@@ -1371,7 +1358,6 @@
                 }
                 body.rainbow-mode .btn-primary,
                 body.rainbow-mode .brand-logo-icon,
-                body.rainbow-mode .bar-fill,
                 body.rainbow-mode .quota-fill {
                     background: linear-gradient(270deg, #ff0055, #ff9900, #ffee00, #00ff88, #00e5ff, #7700ff, #ff00aa, #ff0055) !important;
                     background-size: 400% 400% !important;
@@ -1382,7 +1368,6 @@
                 body.rainbow-mode .kinet-panel,
                 body.rainbow-mode .side-link.active,
                 body.rainbow-mode .active-role-indicator,
-                body.rainbow-mode .day-pill.active,
                 body.rainbow-mode .verified-badge {
                     border-color: var(--role-color) !important;
                     box-shadow: 0 0 20px var(--role-glow) !important;
@@ -1400,22 +1385,35 @@
                 return { r, g, b, hex };
             }
 
-            function setFavicon(hexColor) {
+            function forceUpdateTabFavicon(hexColor) {
                 const clean = (hexColor || '#00FF88').replace('#', '');
-                const fav = document.getElementById('dynamic-favicon');
-                if (fav) {
-                    fav.setAttribute('href', `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%23${clean}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`);
-                }
+                const svgHref = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%23${clean}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`;
+                document.querySelectorAll("link[rel*='icon']").forEach(el => el.remove());
+                const newFav = document.createElement('link');
+                newFav.id = 'dynamic-favicon';
+                newFav.rel = 'icon';
+                newFav.type = 'image/svg+xml';
+                newFav.href = svgHref;
+                document.head.appendChild(newFav);
             }
 
             window.addEventListener('DOMContentLoaded', () => {
-                // 1. Scanlines HUD (Monitor Táctico)
                 const scanlinesOn = localStorage.getItem('kinet_scanlines') === 'true';
                 document.body.classList.toggle('scanlines-active', scanlinesOn);
 
-                // 2. Modo Arcoíris BETA vs Color Fijo Personalizado
+                const urlRole = new URLSearchParams(window.location.search).get('role');
+                const activeRole = normalizeRole(urlRole) || document.body.getAttribute('data-role') || localStorage.getItem('kinet_active_role') || 'athlete';
+                const roleHexMap = { athlete: '#00FF88', staff: '#F59E0B', scout: '#3B82F6' };
+                const defaultRoleHex = roleHexMap[activeRole] || '#00FF88';
+
+                let savedAccent = localStorage.getItem('kinet_custom_accent_override');
+                if (activeRole !== 'athlete' && savedAccent && savedAccent.toUpperCase() === '#00FF88') {
+                    localStorage.removeItem('kinet_custom_accent_override');
+                    localStorage.removeItem('kinet_accent_color');
+                    savedAccent = null;
+                }
+
                 const rainbowOn = localStorage.getItem('kinet_rainbow_mode') === 'true';
-                const savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
 
                 if (rainbowOn) {
                     document.body.classList.add('rainbow-mode');
@@ -1428,7 +1426,7 @@
                         document.body.style.setProperty('--role-rgb', `${c1.r}, ${c1.g}, ${c1.b}`);
                         document.body.style.setProperty('--role-glow', `rgba(${c1.r}, ${c1.g}, ${c1.b}, 0.45)`);
                         document.body.style.setProperty('--role-gradient', `linear-gradient(135deg, ${c1.hex} 0%, ${c2.hex} 100%)`);
-                        if (ts - lastFav > 350) { setFavicon(c1.hex); lastFav = ts; }
+                        if (ts - lastFav > 500) { forceUpdateTabFavicon(c1.hex); lastFav = ts; }
                         requestAnimationFrame(stepRainbow);
                     }
                     requestAnimationFrame(stepRainbow);
@@ -1440,10 +1438,15 @@
                     document.body.style.setProperty('--role-rgb', `${r}, ${g}, ${b}`);
                     document.body.style.setProperty('--role-glow', `rgba(${r}, ${g}, ${b}, 0.42)`);
                     document.body.style.setProperty('--role-gradient', `linear-gradient(135deg, ${savedAccent} 0%, rgba(${r},${g},${b},0.75) 100%)`);
-                    setFavicon(savedAccent);
+                    forceUpdateTabFavicon(savedAccent);
+                } else {
+                    document.body.style.removeProperty('--role-color');
+                    document.body.style.removeProperty('--role-rgb');
+                    document.body.style.removeProperty('--role-glow');
+                    document.body.style.removeProperty('--role-gradient');
+                    forceUpdateTabFavicon(defaultRoleHex);
                 }
 
-                // 3. Fondo Void, Estilo de Paneles y Bordes
                 const savedBg = localStorage.getItem('kinet_bg_intensity');
                 const bgMap = { deep: '#020305', contrast: '#0B1222', emerald: '#04120E', crimson: '#120509', standard: '#06080E' };
                 if (savedBg && bgMap[savedBg]) document.documentElement.style.setProperty('--bg-void', bgMap[savedBg]);
@@ -1460,19 +1463,6 @@
                 const savedRadius = localStorage.getItem('kinet_corner_radius');
                 if (savedRadius) {
                     document.querySelectorAll('.kinet-panel').forEach(p => p.style.borderRadius = savedRadius);
-                }
-
-                // 4. Ocultar "Pásate a KINET PRO" si ya es Pro o Club
-                const currentTier = localStorage.getItem('kinet_account_tier');
-                if (currentTier === 'pro' || currentTier === 'club') {
-                    document.querySelectorAll('a[href^="despacho.html"]').forEach(a => {
-                        if (a.textContent.includes('Pásate a KINET PRO')) {
-                            a.style.background = 'rgba(var(--role-rgb), 0.12)';
-                            a.style.color = 'var(--role-color)';
-                            a.style.border = '1px solid var(--role-color)';
-                            a.innerHTML = `<span class="side-link-left"><span>✓</span> <span>${currentTier === 'club' ? 'LICENCIA CLUB & SCOUT' : 'LICENCIA KINET PRO'}</span></span><span style="font-size:0.7rem;">●</span>`;
-                        }
-                    });
                 }
             });
         })();
