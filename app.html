@@ -7,7 +7,7 @@
     <title>KINET OS // Vestuario & Centro de Mando</title>
     
     <!-- Favicon Corporativo Dinámico por JavaScript -->
-    <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
+    <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%233B82F6%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
 
     <!-- Tipografías Oficiales -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -54,6 +54,13 @@
             margin: 0;
             padding: 0;
             -webkit-tap-highlight-color: transparent;
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+        *::-webkit-scrollbar {
+            width: 0px !important;
+            height: 0px !important;
+            display: none !important;
         }
 
         html, body {
@@ -70,7 +77,7 @@
             transition: background-image 0.4s ease;
         }
 
-        /* LAYOUT PRINCIPAL A PANTALLA COMPLETA ESTÁTICA */
+        /* LAYOUT PRINCIPAL A PANTALLA COMPLETA */
         .os-layout {
             display: grid;
             grid-template-columns: 270px 1fr;
@@ -79,9 +86,16 @@
         }
 
         @media (max-width: 960px) {
-            .os-layout { grid-template-columns: 1fr; height: auto; min-height: 100vh; overflow-y: auto; padding-bottom: 85px; }
+            .os-layout {
+                grid-template-columns: 1fr;
+                height: auto;
+                min-height: 100vh;
+                overflow-y: auto;
+                padding-bottom: 135px;
+            }
             html, body { height: auto !important; overflow-y: auto !important; }
             .os-main { height: auto !important; overflow: visible !important; }
+            .os-workspace { overflow: visible !important; height: auto !important; padding: 14px 14px 40px 14px !important; justify-content: flex-start !important; }
         }
 
         /* SIDEBAR FIJO ESTRICTO (ESCRITORIO) */
@@ -152,20 +166,9 @@
             transition: color 0.4s ease;
         }
 
-        .sidebar-top-section {
-            display: flex;
-            flex-direction: column;
-        }
+        .sidebar-top-section { display: flex; flex-direction: column; }
+        .sidebar-bottom-section { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border-subtle); }
 
-        .sidebar-bottom-section {
-            display: flex;
-            flex-direction: column;
-            gap: 8px; 
-            padding-top: 10px;
-            border-top: 1px solid var(--border-subtle);
-        }
-
-        /* ENLACES LATERALES CON SPOTLIGHT DINÁMICO DE ROL */
         .side-link {
             display: flex;
             align-items: center;
@@ -186,12 +189,7 @@
             overflow: hidden;
         }
 
-        .side-link-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            z-index: 1;
-        }
+        .side-link-left { display: flex; align-items: center; gap: 12px; z-index: 1; }
 
         .side-link::before {
             content: '';
@@ -218,7 +216,6 @@
             box-shadow: 0 0 18px rgba(var(--role-rgb), 0.18);
         }
 
-        /* WIDGET DE CONSEJO IA */
         .sidebar-ai-tip-box {
             background: rgba(var(--role-rgb), 0.05);
             border: 1px solid rgba(var(--role-rgb), 0.24);
@@ -318,11 +315,8 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
+            overflow-y: auto;
             animation: pageEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        @media (max-width: 768px) { 
-            .os-workspace { padding: 14px; justify-content: flex-start; } 
         }
 
         @keyframes pageEnter {
@@ -406,6 +400,10 @@
             overflow: hidden;
             box-shadow: 0 12px 30px rgba(0,0,0,0.4);
             transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+        }
+
+        @media (max-width: 640px) {
+            .kinet-panel { padding: 16px 14px; }
         }
 
         .kinet-panel::before {
@@ -691,7 +689,7 @@
         <!-- SIDEBAR FIJO (ESTÁTICA, IZQUIERDA - ESCRITORIO) -->
         <aside class="os-sidebar">
             <div class="sidebar-top-section">
-                <a href="app.html" class="brand-box">
+                <a href="app.html" id="brand-logo-desktop" class="brand-box">
                     <div class="brand-logo-icon">K</div>
                     <div class="brand-text">
                         <h1>KINET OS</h1>
@@ -727,7 +725,7 @@
                 </nav>
             </div>
 
-            <!-- BLOQUE INFERIOR SIDEBAR -->
+            <!-- BLOQUE INFERIOR SIDEBAR (IDÉNTICO A FICHA-PRO, COMUNIDAD Y MEDIA STUDIO) -->
             <div class="sidebar-bottom-section">
                 <div class="sidebar-ai-tip-box" id="sidebar-dynamic-tip">
                     <div class="sidebar-ai-tip-header">
@@ -746,11 +744,13 @@
                     <span class="side-link-left"><span>⚙️</span> <span>Despacho & Ajustes</span></span>
                     <span style="font-size:0.7rem;opacity:0.5;">→</span>
                 </a>
-                <a href="comunidad.html" class="side-link" style="border-color: rgba(var(--role-rgb), 0.3); background: rgba(var(--role-rgb), 0.05);">
+                <!-- SE OCULTA AUTOMÁTICAMENTE SI LA RED SOCIAL YA FUE CONFIGURADA -->
+                <a href="comunidad.html?setup=true" id="nav-config-social" class="side-link" style="border-color: rgba(var(--role-rgb), 0.3); background: rgba(var(--role-rgb), 0.05);">
                     <span class="side-link-left"><span>🌐</span> <span>Config. Red Social</span></span>
                     <span style="font-size:0.7rem;color:var(--role-color);">⚡</span>
                 </a>
-                <a href="despacho.html" class="side-link" style="background: var(--role-gradient); color: #04060A; font-weight: 900; border: none;">
+                <!-- SE OCULTA POR COMPLETO SI YA ERES PRO O CLUB (NUNCA MUESTRA "✓ LICENCIA KINET PRO") -->
+                <a href="despacho.html?tab=subscription" id="nav-upgrade-pro" class="side-link" style="background: var(--role-gradient); color: #04060A; font-weight: 900; border: none;">
                     <span class="side-link-left"><span>⚡</span> <span>Pásate a KINET PRO</span></span>
                     <span style="font-size:0.7rem;">→</span>
                 </a>
@@ -762,7 +762,7 @@
             
             <!-- TOPBAR -->
             <header class="os-topbar">
-                <a href="app.html" class="mobile-brand">
+                <a href="app.html" id="brand-logo-mobile" class="mobile-brand">
                     <div class="brand-logo-icon" style="width:32px;height:32px;font-size:0.95rem;">K</div>
                     <span style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:1rem;letter-spacing:0.1em;">KINET OS</span>
                 </a>
@@ -850,15 +850,15 @@
                                     <span style="font-family:'JetBrains Mono';font-size:0.65rem;color:var(--role-color);">ACTIVO</span>
                                 </div>
                                 <p id="daily-ai-advice" style="font-size:0.86rem;line-height:1.5;color:#CBD5E1;background:rgba(255,255,255,0.02);padding:12px;border-radius:12px;border-left:3px solid var(--role-color);">
-                                    "Hoy tienes el depósito de energía al 92%. Aprovecha los primeros 30 minutos de sesión para trabajo explosivo y Prioriza hidratación + carbohidratos complejos al terminar."
+                                    "Hoy tienes el depósito de energía al 92%. Aprovecha los primeros 30 minutos de sesión para trabajo explosivo y prioriza hidratación + carbohidratos complejos al terminar."
                                 </p>
                             </div>
 
                             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;">
-                                <a href="ficha-pro.html" class="btn-primary" style="background:rgba(var(--role-rgb),0.14);color:var(--role-color);border:1px solid var(--role-color);box-shadow:none;padding:10px 14px;">
+                                <a href="ficha-pro.html" id="btn-vestuario-card" class="btn-primary" style="background:rgba(var(--role-rgb),0.14);color:var(--role-color);border:1px solid var(--role-color);box-shadow:none;padding:10px 14px;">
                                     🎴 Ver Ficha 3D
                                 </a>
-                                <a href="perfil.html" class="btn-primary" style="background:rgba(255,255,255,0.04);color:white;border:1px solid var(--border-subtle);box-shadow:none;padding:10px 14px;">
+                                <a href="perfil.html" id="btn-vestuario-profile" class="btn-primary" style="background:rgba(255,255,255,0.04);color:white;border:1px solid var(--border-subtle);box-shadow:none;padding:10px 14px;">
                                     👤 Mi Perfil
                                 </a>
                             </div>
@@ -877,7 +877,7 @@
                             <div class="session-list" id="daily-sessions-list"></div>
 
                             <div class="energy-checkin-box">
-                                <span style="font-size:0.76rem;color:var(--text-secondary);font-weight:600;">¿Cómo te sientes de energía ahora mismo?</span>
+                                <span style="font-size:0.76rem;color:var(--text-secondary);font-weight:600;" id="energy-question-lbl">¿Cómo te sientes de energía ahora mismo?</span>
                                 <div class="energy-btns">
                                     <button class="energy-chip selected" onclick="updateEnergyFeeling('high', this)">⚡ A Tope</button>
                                     <button class="energy-chip" onclick="updateEnergyFeeling('medium', this)">🔥 Normal</button>
@@ -896,7 +896,7 @@
                                     <span style="font-size:0.68rem;color:var(--text-secondary);">Auto-Asignación</span>
                                 </div>
                                 <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.4;">
-                                    Escribe cualquier duda y te abriré directamente el chat con el especialista que te toca:
+                                    Escribe cualquier duda sobre tu disciplina y te abriré directamente el chat con el especialista que te toca:
                                 </p>
 
                                 <div class="quick-router-input-wrap">
@@ -904,9 +904,9 @@
                                     <button class="btn-primary" onclick="routeToAgent()" style="padding:10px 14px;">Ir →</button>
                                 </div>
 
-                                <div class="quick-tags">
+                                <div class="quick-tags" id="sport-quick-tags">
                                     <button class="q-tag" onclick="quickAsk('physical', 'Tengo sobrecarga muscular')">⚡ Sobrecarga</button>
-                                    <button class="q-tag" onclick="quickAsk('nutrition', '¿Qué ceno hoy antes del partido?')">🥗 Nutrición</button>
+                                    <button class="q-tag" onclick="quickAsk('nutrition', '¿Qué ceno hoy antes de competir?')">🥗 Nutrición</button>
                                     <button class="q-tag" onclick="quickAsk('mental', 'Rutina de concentración')">🧘‍♂️ Foco</button>
                                 </div>
                             </div>
@@ -924,7 +924,7 @@
         </div>
     </div>
 
-    <!-- MENÚ DESPLEGABLE MÓVIL (DRAWER) CON TODAS LAS OPCIONES -->
+    <!-- MENÚ DESPLEGABLE MÓVIL (DRAWER) -->
     <div id="mobile-menu-drawer" style="position:fixed;inset:0;background:rgba(6,8,14,0.97);backdrop-filter:blur(28px);z-index:200;display:flex;flex-direction:column;padding:20px 16px;justify-content:space-between;transform:translateY(-100%);transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);border-bottom:1px solid rgba(var(--role-rgb),0.2);">
         <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:12px;margin-bottom:12px;">
             <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:0.95rem;color:white;">KINET OS // MENÚ COMPLETO</div>
@@ -939,8 +939,8 @@
             <a href="media-studio.html" id="drawer-media-studio" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🎵 KINET Media Studio™</span><span>→</span></a>
             <a href="perfil.html" id="drawer-perfil" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>👤 Mi Perfil</span><span>→</span></a>
             <a href="despacho.html" id="drawer-despacho" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>⚙️ Despacho & Ajustes</span><span>→</span></a>
-            <a href="comunidad.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(var(--role-rgb),0.05);border:1px solid rgba(var(--role-rgb),0.3);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Config. Red Social</span><span>⚡</span></a>
-            <a href="despacho.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:var(--role-gradient);color:#04060A;font-weight:900;text-decoration:none;"><span>⚡ Pásate a KINET PRO</span><span>→</span></a>
+            <a href="comunidad.html?setup=true" id="drawer-config-social" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(var(--role-rgb),0.05);border:1px solid rgba(var(--role-rgb),0.3);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Config. Red Social</span><span>⚡</span></a>
+            <a href="despacho.html?tab=subscription" id="drawer-upgrade-pro" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:var(--role-gradient);color:#04060A;font-weight:900;text-decoration:none;"><span>⚡ Pásate a KINET PRO</span><span>→</span></a>
         </div>
         <div style="text-align:center;font-size:0.65rem;color:var(--text-secondary);font-family:'JetBrains Mono';margin-top:10px;">
             KINET OS • MOBILE VIEWPORT
@@ -981,53 +981,322 @@
             }
         }
 
-        const ROLE_VIEW_CONFIG = {
-            athlete: {
-                roleLabel: 'ATLETA PRO',
-                tagText: 'VESTUARIO DEL JUGADOR • DÍA A DÍA',
-                title: 'Vestuario & Control Diario',
-                kpi1: { val: '92%', lbl: 'ENERGÍA & BATERÍA' },
-                kpi2: { val: '8.0 h', lbl: 'DESCANSO / SUEÑO' },
-                kpi3: { val: 'BAJO', lbl: 'RIESGO SOBRECARGA' },
-                bar1Title: 'Nivel de Frescura Muscular',
-                bar2Title: 'Fatiga Acumulada de la Semana',
-                advice: '"Hoy tienes el depósito de energía al 92%. Aprovecha los primeros 30 minutos para trabajo explosivo y Prioriza hidratación + carbohidratos complejos al terminar."',
-                sessions: [
-                    { time: '10:00', title: 'Gimnasio: Fuerza Explosiva & Core (45 min)', done: true },
-                    { time: '18:30', title: 'Sesión de Campo: Táctica & Velocidad', done: false }
-                ]
-            },
-            staff: {
-                roleLabel: 'ENTRENADOR / STAFF',
-                tagText: 'DESPACHO DEL ENTRENADOR • GESTIÓN DE PLANTILLA',
-                title: 'Pizarra & Control de Equipo',
-                kpi1: { val: '91%', lbl: 'PLANTILLA DISPONIBLE' },
-                kpi2: { val: '22 / 24', lbl: 'APTOS PARA ENTRENAR' },
-                kpi3: { val: '2 AVISOS', lbl: 'JUGADORES CARGADOS' },
-                bar1Title: 'Intensidad Grupal del Microciclo',
-                bar2Title: 'Fatiga Media del Vestuario',
-                advice: '"La plantilla asimiló bien el trabajo táctico de ayer. El Preparador Físico IA recomienda bajar 15 minutos la sesión de hoy para los dos laterales titulares."',
-                sessions: [
-                    { time: '09:30', title: 'Vídeo-Análisis Rival & Balón Parado (Staff)', done: true },
-                    { time: '11:00', title: 'Entrenamiento Grupal MD-2: Presión Alta', done: false }
-                ]
-            },
-            scout: {
-                roleLabel: 'DIRECTOR DEPORTIVO / SCOUT',
-                tagText: 'DIRECCIÓN DEPORTIVA • AGENDA DE SEGUIMIENTO',
-                title: 'Central de Scouting & Mercado',
-                kpi1: { val: '14', lbl: 'JUGADORES EN CARTERA' },
-                kpi2: { val: '3 HOY', lbl: 'PARTIDOS EN VIVO' },
-                kpi3: { val: '94%', lbl: 'PRECISIÓN DE FILTROS' },
-                bar1Title: 'Cobertura de Ligas Objetivo',
-                bar2Title: 'Presupuesto de Mercado Utilizado',
-                advice: '"El Radar Live detecta que 2 de tus objetivos Sub-21 juegan esta tarde. El Analista de Datos IA grabará sus métricas de velocidad y duelos ganados en tiempo real."',
-                sessions: [
-                    { time: '12:00', title: 'Revisión de Informes y Filtro de Percentiles', done: true },
-                    { time: '19:00', title: 'Seguimiento en Vivo: Lucas Vance (BeSoccer Sync)', done: false }
-                ]
-            }
-        };
+        // =========================================================================
+        // MATRIZ DE PERSONALIZACIÓN DEL VESTUARIO POR DEPORTE Y POR ROL
+        // =========================================================================
+        function buildSportRoleVestuarioConfig(sportRaw, roleKey) {
+            const s = (sportRaw || 'Fútbol').toLowerCase();
+            let sportKey = 'futbol';
+            if (s.includes('running') || s.includes('atletismo') || s.includes('carrera')) sportKey = 'running';
+            else if (s.includes('boxeo') || s.includes('mma') || s.includes('combate')) sportKey = 'boxeo';
+            else if (s.includes('baloncesto') || s.includes('basket')) sportKey = 'baloncesto';
+            else if (s.includes('pádel') || s.includes('padel') || s.includes('tenis')) sportKey = 'padel';
+
+            const ROLE_NAMES = {
+                athlete: 'ATLETA PRO',
+                staff: 'ENTRENADOR / STAFF',
+                scout: 'DIRECTOR DEPORTIVO / SCOUT'
+            };
+
+            const MATRIX = {
+                futbol: {
+                    countdown: '⏱️ PRÓX. PARTIDO: SÁB 18:00',
+                    placeholder: 'Ej: Me noto cargado del isquio tras los sprints...',
+                    quickTags: [
+                        { agent: 'physical', label: '⚡ Sobrecarga Isquios', q: 'Tengo sobrecarga en los isquiotibiales tras el entreno' },
+                        { agent: 'nutrition', label: '🥗 Carga Glucógeno MD-1', q: '¿Qué ceno hoy antes del partido de mañana?' },
+                        { agent: 'mental', label: '🧘‍♂️ Foco Pre-Partido', q: 'Rutina de activación mental antes de saltar al campo' }
+                    ],
+                    athlete: {
+                        tagText: 'VESTUARIO DEL JUGADOR • DÍA A DÍA',
+                        title: 'Vestuario & Control Diario',
+                        panel1Title: 'ESTADO FÍSICO & DISPONIBILIDAD DE HOY',
+                        readiness: 'LISTO PARA COMPETIR (92%)',
+                        kpi1: { val: '92%', lbl: 'ENERGÍA & BATERÍA' },
+                        kpi2: { val: '34.2 km/h', lbl: 'PICO VELOCIDAD GPS' },
+                        kpi3: { val: 'BAJO', lbl: 'RIESGO LESIONAL' },
+                        bar1Title: 'Nivel de Frescura Muscular (Tren Inferior)',
+                        bar2Title: 'Carga Acumulada del Microciclo',
+                        advice: '"Hoy tienes el depósito de energía al 92%. Aprovecha los primeros 30 minutos de campo para sprints repetidos y prioriza recarga de carbohidratos complejos al terminar."',
+                        sessions: [
+                            { time: '10:00', title: 'Gimnasio: Fuerza Explosiva & Prevención Isquios (45m)', done: true },
+                            { time: '18:30', title: 'Sesión de Campo MD-2: Finalización & Transiciones', done: false }
+                        ]
+                    },
+                    staff: {
+                        tagText: 'DESPACHO DEL ENTRENADOR • GESTIÓN DE PLANTILLA',
+                        title: 'Pizarra & Control de Equipo',
+                        panel1Title: 'DISPONIBILIDAD DE LA PLANTILLA & CARGAS GPS',
+                        readiness: 'PLANTILLA AL 91%',
+                        kpi1: { val: '91%', lbl: 'PLANTILLA DISPONIBLE' },
+                        kpi2: { val: '22 / 24', lbl: 'APTOS PARA ENTRENAR' },
+                        kpi3: { val: '2 AVISOS', lbl: 'JUGADORES CARGADOS' },
+                        bar1Title: 'Intensidad Táctica del Microciclo',
+                        bar2Title: 'Fatiga Neuromuscular Media del Vestuario',
+                        advice: '"La plantilla asimiló bien el trabajo táctico de ayer. El Preparador Físico IA recomienda reducir 15 minutos el rondo de presión alta para los dos laterales titulares."',
+                        sessions: [
+                            { time: '09:30', title: 'Vídeo-Análisis Rival & Balón Parado ABP (Staff)', done: true },
+                            { time: '11:00', title: 'Entrenamiento Grupal MD-2: Salida de Balón y Presión', done: false }
+                        ]
+                    },
+                    scout: {
+                        tagText: 'DIRECCIÓN DEPORTIVA • AGENDA DE SEGUIMIENTO',
+                        title: 'Central de Scouting & Mercado',
+                        panel1Title: 'RADAR DE CAPTACIÓN & COBERTURA DE MERCADO',
+                        readiness: 'RADAR LIVE ACTIVO (94%)',
+                        kpi1: { val: '14', lbl: 'FUTBOLISTAS EN CARTERA' },
+                        kpi2: { val: '3 HOY', lbl: 'PARTIDOS EN VIVO' },
+                        kpi3: { val: '94%', lbl: 'PRECISIÓN DE FILTROS' },
+                        bar1Title: 'Cobertura de Ligas & Canteras Objetivo',
+                        bar2Title: 'Presupuesto de Fichajes Utilizado',
+                        advice: '"El Radar Live detecta que 2 de tus objetivos Sub-21 juegan esta tarde. El Analista IA registrará sus picos de velocidad GPS y duelos ganados en tiempo real."',
+                        sessions: [
+                            { time: '12:00', title: 'Auditoría de Informes y Filtro de Percentiles GRL', done: true },
+                            { time: '19:00', title: 'Seguimiento en Vivo: Lucas Vance (BeSoccer Sync)', done: false }
+                        ]
+                    }
+                },
+                running: {
+                    countdown: '⏱️ PRÓX. CARRERA: DOM 09:00',
+                    placeholder: 'Ej: Tengo sobrecarga en el sóleo tras las series de 1000m...',
+                    quickTags: [
+                        { agent: 'physical', label: '⚡ Descarga Sóleo/Aquiles', q: 'Noto sobrecarga en el sóleo tras las series en pista' },
+                        { agent: 'nutrition', label: '🥗 Geles & Carga Maratón', q: 'Estrategia de geles e hidratación por kilómetro' },
+                        { agent: 'mental', label: '🧘‍♂️ Ritmo Umbral', q: 'Cómo mantener el foco mental en el kilómetro 30' }
+                    ],
+                    athlete: {
+                        tagText: 'CENTRO DEL CORREDOR • TELEMETRÍA & RITMOS',
+                        title: 'Vestuario & Control de Carrera',
+                        panel1Title: 'BIOMETRÍA AERÓBICA, HRV & ECONOMÍA DE ZANCADA',
+                        readiness: 'VO2 MAX ÓPTIMO (94%)',
+                        kpi1: { val: '82 ml/kg', lbl: 'VO2 MÁX ESTIMADO' },
+                        kpi2: { val: '186 spm', lbl: 'CADENCIA MEDIA' },
+                        kpi3: { val: 'BAJO', lbl: 'IMPACTO ARTICULAR' },
+                        bar1Title: 'Recuperación Autonómica (HRV & Frescura de Piernas)',
+                        bar2Title: 'Volumen Kilométrico Semanal (85 / 110 km)',
+                        advice: '"Tu variabilidad cardíaca (HRV) está en el 94%. Hoy es el día idóneo para la sesión de series a ritmo sub-3:00/km en pista sin riesgo de sobrecarga en el tendón de Aquiles."',
+                        sessions: [
+                            { time: '08:30', title: 'Pista: 8x1000m a Ritmo Umbral Anaeróbico (Rec 90s)', done: true },
+                            { time: '18:30', title: 'Movilidad de Cadera, Técnica de Pisada & Core', done: false }
+                        ]
+                    },
+                    staff: {
+                        tagText: 'DIRECCIÓN TÉCNICA RUNNING • CONTROL DE CORREDORES',
+                        title: 'Planificación de Ciclos & Ritmos',
+                        panel1Title: 'ESTADO DEL EQUIPO DE FONDO & CARGA KILOMÉTRICA',
+                        readiness: 'EQUIPO APTO (93%)',
+                        kpi1: { val: '93%', lbl: 'CORREDORES APTOS' },
+                        kpi2: { val: '18 / 19', lbl: 'EN UMBRAL ÓPTIMO' },
+                        kpi3: { val: '1 AVISO', lbl: 'FATIGA SÓLEO/TIBIAL' },
+                        bar1Title: 'Asimilación del Bloque de Volumen Aeróbico',
+                        bar2Title: 'Índice de Fatiga Muscular del Grupo',
+                        advice: '"El grupo de media maratón ha mejorado un 3.2% su economía de carrera esta semana. Se recomienda sesión regenerativa en césped para los atletas con carga tibial."',
+                        sessions: [
+                            { time: '09:00', title: 'Control de Lactato y Ritmos en Pista de Atletismo', done: true },
+                            { time: '17:30', title: 'Revisión de Telemetría Garmin & Strava del Equipo', done: false }
+                        ]
+                    },
+                    scout: {
+                        tagText: 'CAPTACIÓN ATLETISMO & RUNNING • AGENDA DE SEGUIMIENTO',
+                        title: 'Central de Scouting & Marcas',
+                        panel1Title: 'RADAR DE FONDISTAS, MARCAS & TELEMETRÍA OFICIAL',
+                        readiness: 'RADAR RUNNING ACTIVO (95%)',
+                        kpi1: { val: '16', lbl: 'ATLETAS EN CARTERA' },
+                        kpi2: { val: '2 HOY', lbl: 'MEETINGS / CARRERAS' },
+                        kpi3: { val: '95%', lbl: 'PRECISIÓN BIOMÉTRICA' },
+                        bar1Title: 'Cobertura de Pruebas Nacionales & World Athletics',
+                        bar2Title: 'Presupuesto de Becas y Patrocinios Utilizado',
+                        advice: '"El Radar Live detecta que 2 de tus fondistas Sub-23 compiten hoy en 10K Ruta. El Analista IA auditará sus parciales cada 2 km, cadencia (SPM) y VO2 Max en tiempo real."',
+                        sessions: [
+                            { time: '11:30', title: 'Auditoría de Marcas 10K / Maratón y Percentiles VO2', done: true },
+                            { time: '18:30', title: 'Seguimiento en Vivo: Mateo Kipchoge (Garmin & Strava Sync)', done: false }
+                        ]
+                    }
+                },
+                boxeo: {
+                    countdown: '⏱️ PRÓX. COMBATE: SÁB 22:00',
+                    placeholder: 'Ej: Cómo ajustar el corte de peso sin perder pegada...',
+                    quickTags: [
+                        { agent: 'physical', label: '🥊 Explosividad & Pegada', q: 'Rutina de potencia explosiva para mejorar el jab-cross' },
+                        { agent: 'nutrition', label: '🥗 Corte de Peso & Rehidratación', q: 'Protocolo seguro de corte de peso e hidratación para el pesaje' },
+                        { agent: 'mental', label: '🧘‍♂️ Control Adrenalina Ring', q: 'Visualización y control de pulsaciones antes de subir al ring' }
+                    ],
+                    athlete: {
+                        tagText: 'FIGHT CAMP • CONTROL DE COMBATE & PESO',
+                        title: 'Vestuario & Fight Camp',
+                        panel1Title: 'BIOMETRÍA DE COMBATE, PEGADA & CORTE DE PESO',
+                        readiness: 'LISTO PARA SPARRING (93%)',
+                        kpi1: { val: '93%', lbl: 'ENERGÍA & CARDIO 12R' },
+                        kpi2: { val: '76.8 kg', lbl: 'PESO ACTUAL (WELTER)' },
+                        kpi3: { val: 'ÓPTIMO', lbl: 'REFLEJOS & GUARDIA' },
+                        bar1Title: 'Potencia de Impacto & Velocidad de Manos',
+                        bar2Title: 'Carga Acumulada del Fight Camp',
+                        advice: '"Estás a solo 200g del peso pactado con un 93% de batería neuromuscular. Prioriza velocidad de manos en manoplas hoy y evita asaltos de castigo innecesario."',
+                        sessions: [
+                            { time: '10:30', title: 'Preparación Física: Cuello, Core & Explosividad Rotacional', done: true },
+                            { time: '18:00', title: 'Sparring Técnico (6 Asaltos) + Trabajo de Manoplas', done: false }
+                        ]
+                    },
+                    staff: {
+                        tagText: 'ESQUINA TÉCNICA • GESTIÓN DEL GIMNASIO DE COMBATE',
+                        title: 'Pizarra de Combate & Esquina',
+                        panel1Title: 'ESTADO DE LOS PELEADORES & CONTROL DE PESAJES',
+                        readiness: 'EQUIPO EN PESO (92%)',
+                        kpi1: { val: '92%', lbl: 'PELEADORES APTOS' },
+                        kpi2: { val: '12 / 12', lbl: 'EN RANGO DE PESO' },
+                        kpi3: { val: '0 BAJAS', lbl: 'CONTROL MÉDICO OK' },
+                        bar1Title: 'Asimilación de Sparring de la Semana',
+                        bar2Title: 'Fatiga del Sistema Nervioso Central',
+                        advice: '"Todos los peleadores de la cartelera del sábado están en rango óptimo de hidratación. Reducir el sparring de contacto hoy y centrar la sesión en estrategia y defensa."',
+                        sessions: [
+                            { time: '11:00', title: 'Vídeo-Análisis de Guardia y Patrones del Rival', done: true },
+                            { time: '17:30', title: 'Sesión de Manoplas, Defensa de Derribos y Pesaje Control', done: false }
+                        ]
+                    },
+                    scout: {
+                        tagText: 'MATCHMAKING & PROMOTORA • RADAR DE PELEADORES',
+                        title: 'Central de Scouting Boxeo & MMA',
+                        panel1Title: 'CARTERA DE PELEADORES, RÉCORDS & CARTELERAS',
+                        readiness: 'RADAR COMBATE ACTIVO (95%)',
+                        kpi1: { val: '18', lbl: 'PELEADORES EN RADAR' },
+                        kpi2: { val: '2 HOY', lbl: 'VELADAS EN VIVO' },
+                        kpi3: { val: '95%', lbl: 'PRECISIÓN MATCHMAKING' },
+                        bar1Title: 'Cobertura de Divisiones de Peso Objetivo',
+                        bar2Title: 'Presupuesto de Bolsas de Velada Utilizado',
+                        advice: '"El Radar detecta a 2 prospectos invictos (77 kg) haciendo sparring verificado hoy. El Analista IA auditará su volumen de golpes significativos por minuto y cardio."',
+                        sessions: [
+                            { time: '12:00', title: 'Revisión de Récords, Fichas Médicas y Percentiles KO', done: true },
+                            { time: '20:00', title: 'Seguimiento en Vivo: Javier Morales (Fight Telemetry Sync)', done: false }
+                        ]
+                    }
+                },
+                baloncesto: {
+                    countdown: '⏱️ PRÓX. PARTIDO: SÁB 20:30',
+                    placeholder: 'Ej: Cómo mejorar mi explosividad vertical en el último cuarto...',
+                    quickTags: [
+                        { agent: 'physical', label: '🏀 Salto Vertical & Rodillas', q: 'Protocolo para cuidar el tendón rotuliano y ganar salto vertical' },
+                        { agent: 'nutrition', label: '🥗 Hidratación 4 Cuartos', q: 'Bebida isotónica y recarga entre cuartos de partido' },
+                        { agent: 'mental', label: '🧘‍♂️ Rutina Tiros Libres / Clutch', q: 'Rutina mental para mantener un 90% en tiros libres bajo presión' }
+                    ],
+                    athlete: {
+                        tagText: 'VESTUARIO DE PISTA • SHOOTING LAB & BIOMETRÍA',
+                        title: 'Vestuario & Control de Pista',
+                        panel1Title: 'EXPLOSIVIDAD VERTICAL, TIRO & DISPONIBILIDAD',
+                        readiness: 'LISTO PARA PISTA (93%)',
+                        kpi1: { val: '93%', lbl: 'ENERGÍA & SALTO' },
+                        kpi2: { val: '66.4%', lbl: 'TRUE SHOOTING %' },
+                        kpi3: { val: 'BAJO', lbl: 'CARGA ROTULIANA' },
+                        bar1Title: 'Frescura de Tren Inferior & Reactividad de Tobillos',
+                        bar2Title: 'Carga de Minutos y Saltos de la Semana',
+                        advice: '"Tu estabilidad de tren inferior está al 93%. Aprovecha la sesión de tiro de hoy para trabajar el Catch & Shoot tras bote a máxima velocidad de pies."',
+                        sessions: [
+                            { time: '10:30', title: 'Shooting Lab: 250 Triples tras Bote & Mecánica de Tiro', done: true },
+                            { time: '18:00', title: 'Entrenamiento 5v5: Sistemas Ofensivos y Transición', done: false }
+                        ]
+                    },
+                    staff: {
+                        tagText: 'PIZARRA DEL COACH • GESTIÓN DE ROTACIONES Y CARGAS',
+                        title: 'Pizarra & Control de Roster',
+                        panel1Title: 'DISPONIBILIDAD DEL ROSTER & EFICIENCIA OFENSIVA',
+                        readiness: 'ROSTER AL 92%',
+                        kpi1: { val: '92%', lbl: 'ROSTER DISPONIBLE' },
+                        kpi2: { val: '11 / 12', lbl: 'APTOS PARA PISTA' },
+                        kpi3: { val: '114.2', lbl: 'ORTG (EFIC. OFENSIVA)' },
+                        bar1Title: 'Ritmo de Posesiones (Pace) & Defensa en Ayudas',
+                        bar2Title: 'Carga Articular Media del Equipo',
+                        advice: '"El quinteto titular acumula alta carga de saltos esta semana. Se recomienda limitar a 20 minutos el 5v5 con contacto hoy y priorizar ajuste de bloqueos directos (Pick & Roll)."',
+                        sessions: [
+                            { time: '10:00', title: 'Scouting Vídeo: Defensa de Pick & Roll y Espacios', done: true },
+                            { time: '17:30', title: 'Sesión de Pista: Sistemas de Final de Posesión (Clutch)', done: false }
+                        ]
+                    },
+                    scout: {
+                        tagText: 'DIRECCIÓN DEPORTIVA HOOPS • RADAR DE PROSPECTOS',
+                        title: 'Central de Scouting Baloncesto',
+                        panel1Title: 'CARTERA DE JUGADORES, ENVERGADURA & ADVANCED STATS',
+                        readiness: 'RADAR FIBA/NCAA ACTIVO (94%)',
+                        kpi1: { val: '15', lbl: 'PROSPECTOS EN CARTERA' },
+                        kpi2: { val: '4 HOY', lbl: 'PARTIDOS EN VIVO' },
+                        kpi3: { val: '94%', lbl: 'PRECISIÓN DE FILTROS' },
+                        bar1Title: 'Cobertura de Ligas FEB, ACB & NCAA',
+                        bar2Title: 'Presupuesto de Plantilla Utilizado',
+                        advice: '"El Radar detecta a 2 bases Sub-20 con un True Shooting superior al 64% jugando esta tarde. El Analista IA registrará su ratio asistencias/pérdidas en vivo."',
+                        sessions: [
+                            { time: '12:00', title: 'Auditoría de Advanced Stats (PER, TS%, USG%)', done: true },
+                            { time: '19:30', title: 'Seguimiento en Vivo: Devin Marcos (Hoops Telemetry Sync)', done: false }
+                        ]
+                    }
+                },
+                padel: {
+                    countdown: '⏱️ PRÓX. PARTIDO TORNEO: SÁB 17:00',
+                    placeholder: 'Ej: Siento sobrecarga en el epicóndilo / hombro tras rematar...',
+                    quickTags: [
+                        { agent: 'physical', label: '🎾 Prevención Codo/Hombro', q: 'Ejercicios para descargar el hombro y prevenir epicondilitis' },
+                        { agent: 'nutrition', label: '🥗 Sales & Hidratación Torneo', q: 'Pauta de hidratación y electrolitos para torneo de fin de semana' },
+                        { agent: 'mental', label: '🧘‍♂️ Gestión Punto de Oro / Tie-Break', q: 'Cómo mantener la calma y decidir bien en los puntos de oro' }
+                    ],
+                    athlete: {
+                        tagText: 'VESTUARIO DE PISTA • VOLEA, SMASH & BIOMETRÍA',
+                        title: 'Vestuario & Control en Pista',
+                        panel1Title: 'REACTIVIDAD SPLIT-STEP, HOMBRO & DISPONIBILIDAD',
+                        readiness: 'LISTO PARA TORNEO (94%)',
+                        kpi1: { val: '94%', lbl: 'ENERGÍA & SPLIT-STEP' },
+                        kpi2: { val: '91%', lbl: 'EFICACIA EN RED' },
+                        kpi3: { val: 'BAJO', lbl: 'CARGA HOMBRO / CODO' },
+                        bar1Title: 'Velocidad de Reacción & Frescura de Tren Superior',
+                        bar2Title: 'Carga de Partidos y Bandejas de la Semana',
+                        advice: '"Tu articulación glenohumeral y codo están sin sobrecarga (94%). Excelente día para entrenar la transición defensa-ataque tras bajada de pared y el remate por tres (X3)."',
+                        sessions: [
+                            { time: '10:00', title: 'Físico Específico: Desplazamientos Laterales & Manguito Rotador', done: true },
+                            { time: '18:00', title: 'Pista: Cesto de Bandejas, Víbora y Partido Condicionado', done: false }
+                        ]
+                    },
+                    staff: {
+                        tagText: 'ACADEMIA DE PÁDEL / TENIS • CONTROL DE JUGADORES',
+                        title: 'Pizarra & Control de Parejas',
+                        panel1Title: 'ESTADO DE JUGADORES, COMPENETRACIÓN & CARGAS',
+                        readiness: 'ACADEMIA AL 93%',
+                        kpi1: { val: '93%', lbl: 'JUGADORES APTOS' },
+                        kpi2: { val: '8 PAREJAS', lbl: 'LISTAS PARA CUADRO' },
+                        kpi3: { val: '0 BAJAS', lbl: 'SALUD ARTICULAR OK' },
+                        bar1Title: 'Volumen de Golpeo & Precisión en Red del Grupo',
+                        bar2Title: 'Fatiga Acumulada de Torneo',
+                        advice: '"Las parejas principales mantienen un 88% de puntos ganados con primer servicio. Hoy conviene trabajar la defensa de dobles paredes y comunicación en el globo."',
+                        sessions: [
+                            { time: '09:30', title: 'Vídeo-Análisis de Posicionamiento en Red yCobertura de Globo', done: true },
+                            { time: '17:00', title: 'Entrenamiento Táctico de Parejas: Punto de Oro y Tie-Break', done: false }
+                        ]
+                    },
+                    scout: {
+                        tagText: 'DIRECCIÓN DEPORTIVA RACKET • SEGUIMIENTO DE CIRCUITOS',
+                        title: 'Central de Scouting Pádel & Tenis',
+                        panel1Title: 'CARTERA DE TALENTOS, RANKING FIP/ATP & MÉTRICAS',
+                        readiness: 'RADAR CIRCUITO ACTIVO (95%)',
+                        kpi1: { val: '12', lbl: 'JUGADORES EN CARTERA' },
+                        kpi2: { val: '3 HOY', lbl: 'PARTIDOS DE CUADRO' },
+                        kpi3: { val: '95%', lbl: 'PRECISIÓN DE FILTROS' },
+                        bar1Title: 'Cobertura de Torneos FIP, Premier & Circuito Nacional',
+                        bar2Title: 'Presupuesto de Patrocinios Utilizado',
+                        advice: '"El Radar detecta que 2 de tus jugadores Sub-21 disputan hoy octavos de final. El Analista IA registrará su ratio de winners / errores no forzados en tiempo real."',
+                        sessions: [
+                            { time: '11:30', title: 'Auditoría de Estadísticas de Winners en Red y Resto', done: true },
+                            { time: '18:30', title: 'Seguimiento en Vivo: Lucía Navarro (Court Vision Sync)', done: false }
+                        ]
+                    }
+                }
+            };
+
+            const sportData = MATRIX[sportKey] || MATRIX.futbol;
+            const roleData = sportData[roleKey] || sportData.athlete;
+
+            return {
+                roleLabel: ROLE_NAMES[roleKey] || 'ATLETA PRO',
+                countdown: sportData.countdown,
+                placeholder: sportData.placeholder,
+                quickTags: sportData.quickTags,
+                ...roleData
+            };
+        }
 
         let activeRoleKey = 'athlete';
         let sessionsState = [];
@@ -1039,6 +1308,11 @@
             if (v === 'staff' || v.includes('entrenador') || v.includes('coach') || v.includes('fisio') || v.includes('staff')) return 'staff';
             if (v === 'scout' || v.includes('scout') || v.includes('director') || v.includes('ojeador')) return 'scout';
             return null;
+        }
+
+        function isPaidAccount() {
+            const tier = localStorage.getItem('kinet_account_tier') || 'free';
+            return tier === 'pro' || tier === 'club';
         }
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -1055,27 +1329,28 @@
             const fromLegacyRole = normalizeRole(localStorage.getItem('kinet_role'));
 
             activeRoleKey = fromUrl || fromActiveStorage || fromLegacyRole || 'athlete';
-
-            const cfg = ROLE_VIEW_CONFIG[activeRoleKey];
             document.body.setAttribute('data-role', activeRoleKey);
             localStorage.setItem('kinet_active_role', activeRoleKey);
-            localStorage.setItem('kinet_role', cfg.roleLabel);
+            localStorage.setItem('kinet_role', activeRoleKey);
 
-            const sportChosen = localStorage.getItem('kinet_sport') || localStorage.getItem('sport') || localStorage.getItem('selected_sport') || localStorage.getItem('deporte') || 'Fútbol';
+            const sportChosen = localStorage.getItem('kinet_sport') || localStorage.getItem('sport') || 'Fútbol';
+            const cfg = buildSportRoleVestuarioConfig(sportChosen, activeRoleKey);
+
             document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${sportChosen.toUpperCase()}`;
             document.getElementById('topbar-sport-tag').textContent = `● ${sportChosen.toUpperCase()}`;
             document.getElementById('topbar-role-title').textContent = cfg.roleLabel;
 
-            // Sincronizar todos los enlaces de navegación manteniendo rol y deporte
+            // Sincronizar TODOS los enlaces de navegación manteniendo rol y deporte
             const queryParams = `?role=${activeRoleKey}&sport=${encodeURIComponent(sportChosen)}`;
             const navMap = {
+                'brand-logo-desktop': 'app.html', 'brand-logo-mobile': 'app.html',
                 'nav-vestuario': 'app.html', 'drawer-vestuario': 'app.html', 'mob-vestuario': 'app.html',
                 'nav-cuerpo-tecnico': 'cuerpo-tecnico.html', 'nav-cuerpo-footer': 'cuerpo-tecnico.html', 'drawer-cuerpo-tecnico': 'cuerpo-tecnico.html', 'mob-cuerpo-tecnico': 'cuerpo-tecnico.html',
-                'nav-ficha-pro': 'ficha-pro.html', 'drawer-ficha-pro': 'ficha-pro.html', 'mob-ficha-pro': 'ficha-pro.html',
+                'nav-ficha-pro': 'ficha-pro.html', 'drawer-ficha-pro': 'ficha-pro.html', 'mob-ficha-pro': 'ficha-pro.html', 'btn-vestuario-card': 'ficha-pro.html',
                 'nav-ojeador-live': 'ojeador-live.html', 'drawer-ojeador-live': 'ojeador-live.html', 'mob-ojeador-live': 'ojeador-live.html',
                 'nav-comunidad': 'comunidad.html', 'drawer-comunidad': 'comunidad.html',
-                'nav-media-studio': 'media-studio.html', 'drawer-media-studio': 'media-studio.html', 'mob-media-studio': 'media-studio.html',
-                'nav-perfil': 'perfil.html', 'drawer-perfil': 'perfil.html',
+                'nav-media-studio': 'media-studio.html', 'drawer-media-studio': 'media-studio.html',
+                'nav-perfil': 'perfil.html', 'drawer-perfil': 'perfil.html', 'btn-vestuario-profile': 'perfil.html',
                 'nav-despacho': 'despacho.html', 'drawer-despacho': 'despacho.html'
             };
             Object.keys(navMap).forEach(id => {
@@ -1083,13 +1358,40 @@
                 if (el) el.href = `${navMap[id]}${queryParams}`;
             });
 
-            // Actualizar Favicon dinámicamente según el rol/color activo
-            const faviconHex = activeRoleKey === 'staff' ? '%23F59E0B' : (activeRoleKey === 'scout' ? '%233B82F6' : '%2300FF88');
-            const faviconSvg = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22${faviconHex}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`;
-            document.getElementById('dynamic-favicon').setAttribute('href', faviconSvg);
+            const subUrl = `despacho.html${queryParams}&tab=subscription`;
+            ['nav-upgrade-pro', 'drawer-upgrade-pro'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.href = subUrl;
+            });
 
+            const socialSetupUrl = `comunidad.html${queryParams}&setup=true`;
+            ['nav-config-social', 'drawer-config-social'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.href = socialSetupUrl;
+            });
+
+            // 1. OCULTAR AUTOMÁTICAMENTE "Config. Red Social" SI YA FUE CONFIGURADA (IGUAL QUE EN KINET CARD)
+            if (localStorage.getItem('kinet_social_configured') === 'true') {
+                const navSoc = document.getElementById('nav-config-social');
+                const drwSoc = document.getElementById('drawer-config-social');
+                if (navSoc) navSoc.style.display = 'none';
+                if (drwSoc) drwSoc.style.display = 'none';
+            }
+
+            // 2. OCULTAR POR COMPLETO EL BOTÓN DE LICENCIA PRO SI EL USUARIO YA ES PRO O CLUB (IGUAL QUE EN KINET CARD)
+            if (isPaidAccount()) {
+                const navUp = document.getElementById('nav-upgrade-pro');
+                const drwUp = document.getElementById('drawer-upgrade-pro');
+                if (navUp) navUp.style.setProperty('display', 'none', 'important');
+                if (drwUp) drwUp.style.setProperty('display', 'none', 'important');
+            }
+
+            // Poblar toda la interfaz del Vestuario personalizada por Deporte + Rol
             document.getElementById('header-tag-text').textContent = `${cfg.tagText} • ${sportChosen.toUpperCase()}`;
             document.getElementById('header-title').textContent = cfg.title;
+            document.getElementById('countdown-badge').textContent = cfg.countdown;
+            document.getElementById('bio-panel-title').textContent = cfg.panel1Title;
+            document.getElementById('readiness-pill').textContent = cfg.readiness;
             document.getElementById('kpi-1-val').textContent = cfg.kpi1.val;
             document.getElementById('kpi-1-lbl').textContent = cfg.kpi1.lbl;
             document.getElementById('kpi-2-val').textContent = cfg.kpi2.val;
@@ -1099,42 +1401,44 @@
             document.getElementById('bar-1-title').textContent = cfg.bar1Title;
             document.getElementById('bar-2-title').textContent = cfg.bar2Title;
             document.getElementById('daily-ai-advice').textContent = cfg.advice;
+            document.getElementById('quick-doubt-input').placeholder = cfg.placeholder;
+
+            // Renderizar píldoras rápidas del deporte activo
+            const tagsBox = document.getElementById('sport-quick-tags');
+            if (tagsBox && cfg.quickTags) {
+                tagsBox.innerHTML = cfg.quickTags.map(t =>
+                    `<button class="q-tag" onclick="quickAsk('${t.agent}', '${t.q}')">${t.label}</button>`
+                ).join('');
+            }
 
             sessionsState = JSON.parse(JSON.stringify(cfg.sessions));
             renderWeekStrip();
             renderSessions();
-            updateSidebarAiTip('high');
+            updateSidebarAiTip('high', sportChosen);
 
-            document.querySelectorAll('.kinet-panel').forEach(panel => {
-                panel.addEventListener('mousemove', (e) => {
-                    const rect = panel.getBoundingClientRect();
-                    panel.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
-                    panel.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
-                });
-            });
-
-            document.querySelectorAll('.side-link').forEach(link => {
-                link.addEventListener('mousemove', (e) => {
-                    const rect = link.getBoundingClientRect();
-                    link.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
-                    link.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+            document.querySelectorAll('.kinet-panel, .side-link').forEach(el => {
+                el.addEventListener('mousemove', (e) => {
+                    const rect = el.getBoundingClientRect();
+                    el.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+                    el.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
                 });
             });
         });
 
-        function updateSidebarAiTip(level) {
+        function updateSidebarAiTip(level, sportChosen) {
             const titleEl = document.getElementById('tip-title');
             const contentEl = document.getElementById('tip-content');
+            const sp = (sportChosen || localStorage.getItem('kinet_sport') || 'Fútbol').toUpperCase();
 
             if (level === 'high') {
-                titleEl.textContent = 'Directiva: Supercompensación';
-                contentEl.textContent = 'Energía óptima. Sugerencia: sesión de alta intensidad y carbohidratos complejos al finalizar.';
+                titleEl.textContent = `Directiva // ${sp}`;
+                contentEl.textContent = 'Estado óptimo (94%). Prioriza bloques de máxima calidad técnica y recarga energética al finalizar.';
             } else if (level === 'medium') {
-                titleEl.textContent = 'Directiva: Carga Asimilada';
-                contentEl.textContent = 'Ritmo sostenido. Mantén control de fatiga y pautas de hidratación constante.';
+                titleEl.textContent = `Carga Asimilada // ${sp}`;
+                contentEl.textContent = 'Ritmo sostenido. Mantén control de fatiga neuromuscular e hidratación constante.';
             } else {
-                titleEl.textContent = 'Directiva: Alerta de Descarga';
-                contentEl.textContent = 'Fatiga alta. Se recomienda saltar la sesión intensa de hoy y enfocar en masajes o estiramientos.';
+                titleEl.textContent = `Alerta Descarga // ${sp}`;
+                contentEl.textContent = 'Fatiga elevada. Reduce el volumen de impacto hoy y prioriza fisioterapia y movilidad.';
             }
         }
 
@@ -1186,8 +1490,6 @@
 
             updateSidebarAiTip(level);
 
-            const kpi1 = document.getElementById('kpi-1-val');
-            const kpi3 = document.getElementById('kpi-3-val');
             const bar1Fill = document.getElementById('bar-1-fill');
             const bar1Pct = document.getElementById('bar-1-pct');
             const bar2Fill = document.getElementById('bar-2-fill');
@@ -1195,24 +1497,18 @@
             const pill = document.getElementById('readiness-pill');
 
             if (level === 'high') {
-                kpi1.textContent = '94%';
-                kpi3.textContent = 'BAJO';
                 bar1Fill.style.width = '94%';
                 bar1Pct.textContent = '94%';
                 bar2Fill.style.width = '30%';
                 bar2Pct.textContent = '30% (Óptima)';
                 pill.textContent = 'PICO DE FORMA (94%)';
             } else if (level === 'medium') {
-                kpi1.textContent = '78%';
-                kpi3.textContent = 'MODERADO';
                 bar1Fill.style.width = '78%';
                 bar1Pct.textContent = '78%';
                 bar2Fill.style.width = '58%';
                 bar2Pct.textContent = '58% (Media)';
                 pill.textContent = 'CARGA ASIMILADA (78%)';
             } else {
-                kpi1.textContent = '54%';
-                kpi3.textContent = 'ALTO (DESCARGA)';
                 bar1Fill.style.width = '54%';
                 bar1Pct.textContent = '54%';
                 bar2Fill.style.width = '82%';
@@ -1228,11 +1524,11 @@
             const q = text.toLowerCase();
             let targetAgent = 'physical';
 
-            if (q.includes('comer') || q.includes('cena') || q.includes('dieta') || q.includes('kcal')) {
+            if (q.includes('comer') || q.includes('cena') || q.includes('dieta') || q.includes('gel') || q.includes('peso') || q.includes('kcal')) {
                 targetAgent = 'nutrition';
-            } else if (q.includes('nervio') || q.includes('miedo') || q.includes('presion') || q.includes('mental')) {
+            } else if (q.includes('nervio') || q.includes('miedo') || q.includes('presion') || q.includes('mental') || q.includes('foco')) {
                 targetAgent = 'mental';
-            } else if (q.includes('fichaje') || q.includes('contrato') || q.includes('mercado')) {
+            } else if (q.includes('fichaje') || q.includes('contrato') || q.includes('mercado') || q.includes('beca')) {
                 targetAgent = 'career';
             }
 
@@ -1248,61 +1544,11 @@
             localStorage.setItem('kinet_target_agent', agentType);
             window.location.href = `cuerpo-tecnico.html?role=${activeRoleKey}&sport=${encodeURIComponent(sportChosen)}&agent=${agentType}`;
         }
-        // CARGAR PERSONALIZACIÓN ESTÉTICA GUARDADA EN DESPACHO (COLOR, FONDO, BORDES, SCANLINES Y FAVICON)
-        (function applyGlobalKinetTheme() {
-            window.addEventListener('DOMContentLoaded', () => {
-                const savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
-                if (savedAccent) {
-                    const clean = savedAccent.replace('#', '');
-                    const num = parseInt(clean, 16);
-                    const r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
-                    document.body.style.setProperty('--role-color', savedAccent);
-                    document.body.style.setProperty('--role-rgb', `${r}, ${g}, ${b}`);
-                    document.body.style.setProperty('--role-glow', `rgba(${r}, ${g}, ${b}, 0.42)`);
-                    document.body.style.setProperty('--role-gradient', `linear-gradient(135deg, ${savedAccent} 0%, rgba(${r},${g},${b},0.75) 100%)`);
 
-                    const favEl = document.getElementById('dynamic-favicon');
-                    if (favEl) {
-                        favEl.setAttribute('href', `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%23${clean}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`);
-                    }
-                }
-
-                const savedBg = localStorage.getItem('kinet_bg_intensity');
-                const bgMap = { deep: '#020305', contrast: '#0B1222', emerald: '#04120E', crimson: '#120509', standard: '#06080E' };
-                if (savedBg && bgMap[savedBg]) document.documentElement.style.setProperty('--bg-void', bgMap[savedBg]);
-
-                const savedPanelStyle = localStorage.getItem('kinet_panel_style');
-                if (savedPanelStyle === 'carbon') {
-                    document.documentElement.style.setProperty('--bg-panel', 'rgba(8, 10, 15, 0.98)');
-                    document.documentElement.style.setProperty('--border-subtle', 'rgba(255, 255, 255, 0.14)');
-                } else if (savedPanelStyle === 'neon-border') {
-                    document.documentElement.style.setProperty('--bg-panel', 'rgba(10, 14, 22, 0.92)');
-                    document.documentElement.style.setProperty('--border-subtle', 'rgba(var(--role-rgb), 0.38)');
-                }
-
-                const savedRadius = localStorage.getItem('kinet_corner_radius');
-                if (savedRadius) {
-                    document.querySelectorAll('.kinet-panel').forEach(p => p.style.borderRadius = savedRadius);
-                }
-
-                const currentTier = localStorage.getItem('kinet_account_tier');
-                if (currentTier === 'pro' || currentTier === 'club') {
-                    document.querySelectorAll('a[href="despacho.html"]').forEach(a => {
-                        if (a.textContent.includes('Pásate a KINET PRO')) {
-                            a.style.background = 'rgba(var(--role-rgb), 0.12)';
-                            a.style.color = 'var(--role-color)';
-                            a.style.border = '1px solid var(--role-color)';
-                            a.innerHTML = `<span class="side-link-left"><span>✓</span> <span>${currentTier === 'club' ? 'LICENCIA CLUB & SCOUT' : 'LICENCIA KINET PRO'}</span></span><span style="font-size:0.7rem;">●</span>`;
-                        }
-                    });
-                }
-            });
-        })();
         // =========================================================================
-        // MOTOR GLOBAL DE PERSONALIZACIÓN KINET OS (ARCOÍRIS BETA, SCANLINES Y TEMA)
+        // MOTOR GLOBAL DE COLOR DE ROL Y REEMPLAZO FORZADO DE FAVICON EN NAVEGADOR
         // =========================================================================
         (function initGlobalKinetPersonalization() {
-            // Inyectar estilos globales de Arcoíris y Scanlines si la página no los tiene
             const styleTag = document.createElement('style');
             styleTag.innerHTML = `
                 @keyframes kinetRainbowFlowBg {
@@ -1349,22 +1595,35 @@
                 return { r, g, b, hex };
             }
 
-            function setFavicon(hexColor) {
-                const clean = (hexColor || '#00FF88').replace('#', '');
-                const fav = document.getElementById('dynamic-favicon');
-                if (fav) {
-                    fav.setAttribute('href', `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%23${clean}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`);
-                }
+            function forceUpdateTabFavicon(hexColor) {
+                const clean = (hexColor || '#3B82F6').replace('#', '');
+                const svgHref = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%23${clean}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`;
+                document.querySelectorAll("link[rel*='icon']").forEach(el => el.remove());
+                const newFav = document.createElement('link');
+                newFav.id = 'dynamic-favicon';
+                newFav.rel = 'icon';
+                newFav.type = 'image/svg+xml';
+                newFav.href = svgHref;
+                document.head.appendChild(newFav);
             }
 
             window.addEventListener('DOMContentLoaded', () => {
-                // 1. Scanlines HUD (Monitor Táctico)
                 const scanlinesOn = localStorage.getItem('kinet_scanlines') === 'true';
                 document.body.classList.toggle('scanlines-active', scanlinesOn);
 
-                // 2. Modo Arcoíris BETA vs Color Fijo Personalizado
+                const urlRole = new URLSearchParams(window.location.search).get('role');
+                const activeRole = normalizeRole(urlRole) || document.body.getAttribute('data-role') || localStorage.getItem('kinet_active_role') || 'athlete';
+                const roleHexMap = { athlete: '#00FF88', staff: '#F59E0B', scout: '#3B82F6' };
+                const defaultRoleHex = roleHexMap[activeRole] || '#00FF88';
+
+                let savedAccent = localStorage.getItem('kinet_custom_accent_override');
+                if (activeRole !== 'athlete' && savedAccent && savedAccent.toUpperCase() === '#00FF88') {
+                    localStorage.removeItem('kinet_custom_accent_override');
+                    localStorage.removeItem('kinet_accent_color');
+                    savedAccent = null;
+                }
+
                 const rainbowOn = localStorage.getItem('kinet_rainbow_mode') === 'true';
-                const savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
 
                 if (rainbowOn) {
                     document.body.classList.add('rainbow-mode');
@@ -1377,7 +1636,7 @@
                         document.body.style.setProperty('--role-rgb', `${c1.r}, ${c1.g}, ${c1.b}`);
                         document.body.style.setProperty('--role-glow', `rgba(${c1.r}, ${c1.g}, ${c1.b}, 0.45)`);
                         document.body.style.setProperty('--role-gradient', `linear-gradient(135deg, ${c1.hex} 0%, ${c2.hex} 100%)`);
-                        if (ts - lastFav > 350) { setFavicon(c1.hex); lastFav = ts; }
+                        if (ts - lastFav > 500) { forceUpdateTabFavicon(c1.hex); lastFav = ts; }
                         requestAnimationFrame(stepRainbow);
                     }
                     requestAnimationFrame(stepRainbow);
@@ -1389,10 +1648,15 @@
                     document.body.style.setProperty('--role-rgb', `${r}, ${g}, ${b}`);
                     document.body.style.setProperty('--role-glow', `rgba(${r}, ${g}, ${b}, 0.42)`);
                     document.body.style.setProperty('--role-gradient', `linear-gradient(135deg, ${savedAccent} 0%, rgba(${r},${g},${b},0.75) 100%)`);
-                    setFavicon(savedAccent);
+                    forceUpdateTabFavicon(savedAccent);
+                } else {
+                    document.body.style.removeProperty('--role-color');
+                    document.body.style.removeProperty('--role-rgb');
+                    document.body.style.removeProperty('--role-glow');
+                    document.body.style.removeProperty('--role-gradient');
+                    forceUpdateTabFavicon(defaultRoleHex);
                 }
 
-                // 3. Fondo Void, Estilo de Paneles y Bordes
                 const savedBg = localStorage.getItem('kinet_bg_intensity');
                 const bgMap = { deep: '#020305', contrast: '#0B1222', emerald: '#04120E', crimson: '#120509', standard: '#06080E' };
                 if (savedBg && bgMap[savedBg]) document.documentElement.style.setProperty('--bg-void', bgMap[savedBg]);
@@ -1409,19 +1673,6 @@
                 const savedRadius = localStorage.getItem('kinet_corner_radius');
                 if (savedRadius) {
                     document.querySelectorAll('.kinet-panel').forEach(p => p.style.borderRadius = savedRadius);
-                }
-
-                // 4. Ocultar "Pásate a KINET PRO" si ya es Pro o Club
-                const currentTier = localStorage.getItem('kinet_account_tier');
-                if (currentTier === 'pro' || currentTier === 'club') {
-                    document.querySelectorAll('a[href^="despacho.html"]').forEach(a => {
-                        if (a.textContent.includes('Pásate a KINET PRO')) {
-                            a.style.background = 'rgba(var(--role-rgb), 0.12)';
-                            a.style.color = 'var(--role-color)';
-                            a.style.border = '1px solid var(--role-color)';
-                            a.innerHTML = `<span class="side-link-left"><span>✓</span> <span>${currentTier === 'club' ? 'LICENCIA CLUB & SCOUT' : 'LICENCIA KINET PRO'}</span></span><span style="font-size:0.7rem;">●</span>`;
-                        }
-                    });
                 }
             });
         })();
