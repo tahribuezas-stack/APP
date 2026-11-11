@@ -96,9 +96,10 @@
         .os-layout { display: grid; grid-template-columns: 270px 1fr; height: 100vh; overflow: hidden; }
 
         @media (max-width: 960px) {
-            .os-layout { grid-template-columns: 1fr; height: auto; min-height: 100vh; overflow-y: auto; padding-bottom: 85px; }
+            .os-layout { grid-template-columns: 1fr; height: auto; min-height: 100vh; overflow-y: auto; padding-bottom: 95px; }
             html, body { height: auto !important; overflow-y: auto !important; }
             .os-main { height: auto !important; overflow: visible !important; }
+            .os-workspace { overflow: visible !important; height: auto !important; padding: 16px 14px !important; }
         }
 
         /* SIDEBAR FIJO IZQUIERDA */
@@ -149,7 +150,7 @@
             padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px;
         }
         .mobile-brand { display: none; align-items: center; gap: 10px; text-decoration: none; color: white; }
-        @media (max-width: 960px) { .mobile-brand { display: flex; } }
+        @media (max-width: 960px) { .mobile-brand { display: flex; } .os-topbar { padding: 12px 16px; } }
 
         .topbar-actions { display: flex; align-items: center; gap: 12px; }
         .active-role-indicator {
@@ -170,8 +171,27 @@
         .context-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--role-color); text-transform: uppercase; letter-spacing: 0.18em; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
         .context-title { font-family: 'Orbitron', sans-serif; font-size: clamp(1.3rem, 2.2vw, 1.9rem); font-weight: 900; letter-spacing: -0.02em; color: white; }
 
-        /* PESTAÑAS DEL DESPACHO */
-        .despacho-tabs { display: flex; gap: 8px; margin-bottom: 18px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px; flex-wrap: wrap; }
+        /* PESTAÑAS DEL DESPACHO (COMPATIBLE CON ESCRITORIO Y MÓVIL) */
+        .despacho-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 18px;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        @media (max-width: 768px) {
+            .despacho-tabs {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 10px;
+            }
+            .d-tab {
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+        }
         .d-tab {
             background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-subtle); color: var(--text-secondary);
             font-family: 'Orbitron', sans-serif; font-size: 0.72rem; font-weight: 700; padding: 9px 16px; border-radius: 12px; cursor: pointer; transition: all var(--transition-speed) ease;
@@ -270,10 +290,34 @@
         .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 11px; gap: 8px; flex-wrap: wrap; }
         .panel-label { font-family: 'Orbitron', sans-serif; font-size: 0.8rem; font-weight: 800; color: white; letter-spacing: 0.08em; display: flex; align-items: center; gap: 8px; }
 
-        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.035); gap: 12px; flex-wrap: wrap; }
+        /* FILAS DE AJUSTES CON ALINEACIÓN ESTRICTA A LA DERECHA */
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 13px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            gap: 16px;
+            flex-wrap: nowrap;
+        }
         .setting-row:last-child { border-bottom: none; }
-        .setting-info label { font-size: 0.85rem; font-weight: 600; color: #E2E8F0; display: flex; align-items: center; gap: 8px; }
-        .setting-info span { font-size: 0.72rem; color: var(--text-secondary); display: block; margin-top: 2px; }
+        .setting-info { flex: 1; min-width: 0; padding-right: 8px; }
+        .setting-info label { font-size: 0.85rem; font-weight: 600; color: #E2E8F0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .setting-info span { font-size: 0.72rem; color: var(--text-secondary); display: block; margin-top: 3px; line-height: 1.35; }
+
+        @media (max-width: 640px) {
+            .setting-row {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            .setting-info {
+                flex: 1 1 100%;
+                padding-right: 0;
+            }
+            .setting-select, .setting-input {
+                width: 100%;
+            }
+        }
 
         .beta-pill {
             background: linear-gradient(90deg, #ff0055, #ff9900, #00ff88, #00e5ff, #7700ff);
@@ -288,26 +332,40 @@
             letter-spacing: 0.08em;
         }
 
-        .switch { position: relative; display: inline-block; width: 46px; height: 24px; flex-shrink: 0; }
+        .switch { position: relative; display: inline-block; width: 46px; height: 24px; flex-shrink: 0; margin-left: auto; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; inset: 0; background-color: rgba(255,255,255,0.1); transition: 0.3s; border-radius: 999px; border: 1px solid var(--border-subtle); }
         .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: 0.3s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--role-color); border-color: var(--role-color); }
         input:checked + .slider:before { transform: translateX(22px); background-color: #04060A; }
 
-        .setting-select, .setting-input { background: rgba(4, 6, 10, 0.85); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 10px; padding: 8px 13px; color: white; font-family: 'Inter', sans-serif; font-size: 0.82rem; outline: none; transition: border-color 0.2s; }
+        .setting-select, .setting-input {
+            background: rgba(4, 6, 10, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 10px;
+            padding: 8px 13px;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+            outline: none;
+            transition: border-color 0.2s;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
         .setting-select:focus, .setting-input:focus { border-color: var(--role-color); box-shadow: 0 0 10px rgba(var(--role-rgb), 0.2); }
 
-        .btn-primary { background: var(--role-gradient); color: #04060A; border: none; border-radius: 12px; padding: 11px 20px; font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.74rem; letter-spacing: 0.08em; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; box-shadow: 0 0 18px var(--role-glow); transition: 0.25s; }
+        .btn-primary { background: var(--role-gradient); color: #04060A; border: none; border-radius: 12px; padding: 11px 20px; font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.74rem; letter-spacing: 0.08em; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; box-shadow: 0 0 18px var(--role-glow); transition: 0.25s; flex-shrink: 0; }
         .btn-primary:hover { transform: translateY(-2px); filter: brightness(1.08); box-shadow: 0 0 26px var(--role-glow); }
         .btn-primary.has-unsaved { animation: pulseSaveBtn 1.4s infinite alternate; }
         @keyframes pulseSaveBtn { from { transform: scale(1); } to { transform: scale(1.05); filter: brightness(1.2); } }
 
-        .btn-secondary { background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 10px 16px; font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.72rem; cursor: pointer; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+        .btn-secondary { background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 10px 16px; font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.72rem; cursor: pointer; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); flex-shrink: 0; margin-left: auto; }
         .btn-secondary:hover { border-color: rgba(var(--role-rgb), 0.55); background: rgba(var(--role-rgb), 0.1); transform: scale(1.06) translateY(-2px); box-shadow: 0 6px 18px rgba(var(--role-rgb), 0.18); }
         .btn-secondary:active { transform: scale(0.98); }
-        .btn-danger { background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 12px; padding: 10px 16px; font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.72rem; cursor: pointer; transition: 0.25s; }
-        .btn-danger:hover { background: rgba(239, 68, 68, 0.25); box-shadow: 0 0 16px rgba(239, 68, 68, 0.2); }
+
+        .btn-danger { background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 12px; padding: 10px 16px; font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.72rem; cursor: pointer; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); flex-shrink: 0; margin-left: auto; }
+        .btn-danger:hover { background: rgba(239, 68, 68, 0.25); transform: scale(1.06) translateY(-2px); box-shadow: 0 6px 16px rgba(239, 68, 68, 0.25); }
+        .btn-danger:active { transform: scale(0.98); }
 
         /* TARJETAS DEL GESTOR MULTI-PERFIL EN MODAL */
         .profile-slot-card {
@@ -419,7 +477,7 @@
         <!-- ZONA PRINCIPAL -->
         <div class="os-main">
             
-            <!-- TOPBAR LIMPIA (SIN EL BOTÓN DE CERRAR SESIÓN DE ARRIBA) -->
+            <!-- TOPBAR LIMPIA -->
             <header class="os-topbar">
                 <a href="app.html" id="brand-logo-mobile" class="mobile-brand">
                     <div class="brand-logo-icon" style="width:32px;height:32px;font-size:0.95rem;">K</div>
@@ -525,13 +583,15 @@
                                 <div class="panel-head">
                                     <span class="panel-label">⚡ Acciones Rápidas de Sesión & Sensores</span>
                                 </div>
-                                <!-- BOTÓN CAMBIAR ROL (GESTOR MULTI-PERFIL EN MODAL ESTILO KINET) -->
+                                <!-- 1. FILA CAMBIAR ROL (CON SU CIERRE </div> CORRECTO Y ALINEADO A LA DERECHA) -->
                                 <div class="setting-row">
                                     <div class="setting-info">
                                         <label>Cambiar de Rol Activo / Perfiles</label>
                                         <span>Gestiona tus perfiles creados (Atleta, Staff, Scout — Máx. 3)</span>
                                     </div>
                                     <button class="btn-secondary" style="border-color:rgba(var(--role-rgb),0.45);color:var(--role-color);" onclick="openRoleManagerModal()">🔄 Cambiar Rol</button>
+                                </div>
+                                <!-- 2. FILA TIPO DE CUENTA -->
                                 <div class="setting-row">
                                     <div class="setting-info">
                                         <label>Tipo de Cuenta Actual</label>
@@ -543,13 +603,15 @@
                                         <option value="club">Club & Scout (B2B - 29,99€)</option>
                                     </select>
                                 </div>
+                                <!-- 3. FILA SINCRONIZAR GPS -->
                                 <div class="setting-row">
                                     <div class="setting-info">
                                         <label>Sincronización de Sensores & Wearables</label>
                                         <span>Chaleco GPS, Apple Watch, Garmin & BeSoccer Sync</span>
                                     </div>
-                                   <button class="btn-secondary" style="padding: 8px 14px; font-size: 0.68rem;" onclick="openInfoModal('📡 SINCRONIZACIÓN DE SENSORES ACTIVA', 'Se ha verificado el enlace con tus pasarelas deportivas (Garmin Connect, Apple Health, Strava y BeSoccer Sync).')">📡 Sincronizar GPS</button>
+                                    <button class="btn-secondary" onclick="openInfoModal('📡 SINCRONIZACIÓN DE SENSORES ACTIVA', 'Se ha verificado el enlace con tus pasarelas deportivas (Garmin Connect, Apple Health, Strava y BeSoccer Sync).')">📡 Sincronizar GPS</button>
                                 </div>
+                                <!-- 4. FILA FRECUENCIA DE INFORMES -->
                                 <div class="setting-row">
                                     <div class="setting-info">
                                         <label>Frecuencia de Informes del Cuerpo Técnico IA</label>
@@ -561,6 +623,7 @@
                                         <option value="weekly">Microciclo Semanal</option>
                                     </select>
                                 </div>
+                                <!-- 5. FILA CERRAR SESIÓN -->
                                 <div class="setting-row">
                                     <div class="setting-info">
                                         <label>Cerrar Sesión Actual</label>
@@ -573,7 +636,7 @@
                     </div>
                 </div>
 
-                <!-- CONTENIDO PESTAÑA 2: TEMA & PERSONALIZACIÓN (CON GUARDADO AL PULSAR "GUARDAR CAMBIOS" + MODO ARCOÍRIS BETA) -->
+                <!-- CONTENIDO PESTAÑA 2: TEMA & PERSONALIZACIÓN -->
                 <div id="tab-theme" class="tab-content">
                     <div class="settings-grid">
                         <div class="col-6">
@@ -638,14 +701,13 @@
                                         <label>Selector de Color RGB Libre (Custom Hex)</label>
                                         <span>Elige exactamente el color oficial del escudo de tu club</span>
                                     </div>
-                                    <input type="color" id="custom-color-picker" value="#00FF88" oninput="stageCustomNeon(this.value)" style="width:48px; height:34px; border:1px solid var(--border-subtle); border-radius:8px; background:transparent; cursor:pointer;">
+                                    <input type="color" id="custom-color-picker" value="#00FF88" oninput="stageCustomNeon(this.value)" style="width:48px; height:34px; border:1px solid var(--border-subtle); border-radius:8px; background:transparent; cursor:pointer; flex-shrink:0; margin-left:auto;">
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-6">
                             <div class="kinet-panel">
-                                <!-- CABECERA CON EL BOTÓN DE RESTABLECER OPCIONES EN ESTA SECCIÓN -->
                                 <div class="panel-head">
                                     <span class="panel-label">🎛️ Personalización Avanzada de UI & Atmósfera</span>
                                     <button class="btn-secondary" style="padding:5px 10px; font-size:0.62rem;" onclick="stageResetAdvancedUI()">↺ Restablecer Opciones</button>
@@ -716,7 +778,6 @@
                                         <span class="slider"></span>
                                     </label>
                                 </div>
-                                <!-- NUEVA PERSONALIZACIÓN ARCOÍRIS EN MOVIMIENTO (BETA) -->
                                 <div class="setting-row">
                                     <div class="setting-info">
                                         <label>
@@ -825,6 +886,27 @@
         </div>
     </div>
 
+    <!-- MENÚ DESPLEGABLE MÓVIL (DRAWER COMPLETO) -->
+    <div id="mobile-menu-drawer" style="position:fixed;inset:0;background:rgba(6,8,14,0.97);backdrop-filter:blur(28px);z-index:200;display:flex;flex-direction:column;padding:20px 16px;justify-content:space-between;transform:translateY(-100%);transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);border-bottom:1px solid rgba(var(--role-rgb),0.2);">
+        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:12px;margin-bottom:12px;">
+            <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:0.95rem;color:white;">KINET OS // MENÚ COMPLETO</div>
+            <button onclick="toggleMobileDrawer()" style="background:none;border:none;color:white;font-size:1.3rem;cursor:pointer;">✕</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;padding:4px 0;max-height:calc(100vh - 160px);">
+            <a href="app.html" id="drawer-vestuario" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>⚡ Vestuario</span><span>HOY</span></a>
+            <a href="cuerpo-tecnico.html" id="drawer-cuerpo-tecnico" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🧠 Cuerpo Técnico IA</span><span>→</span></a>
+            <a href="ficha-pro.html" id="drawer-ficha-pro" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🎴 Ficha & KINET Card</span><span>→</span></a>
+            <a href="ojeador-live.html" id="drawer-ojeador-live" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>📡 Ojeador & Laboratorio</span><span>→</span></a>
+            <a href="comunidad.html" id="drawer-comunidad" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Comunidad / Red Social</span><span>→</span></a>
+            <a href="media-studio.html" id="drawer-media-studio" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🎵 KINET Media Studio™</span><span>→</span></a>
+            <a href="perfil.html" id="drawer-perfil" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>👤 Mi Perfil</span><span>→</span></a>
+            <a href="despacho.html" id="drawer-despacho" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(var(--role-rgb),0.15);border:1px solid var(--role-color);color:var(--role-color);text-decoration:none;font-weight:600;"><span>⚙️ Despacho & Ajustes</span><span>●</span></a>
+        </div>
+        <div style="text-align:center;font-size:0.65rem;color:var(--text-secondary);font-family:'JetBrains Mono';margin-top:10px;">
+            KINET OS • MOBILE VIEWPORT
+        </div>
+    </div>
+
     <!-- MODAL KINET 1: CONFIRMACIÓN DE GUARDADO DE CAMBIOS -->
     <div id="save-confirm-modal" class="kinet-modal-overlay">
         <div class="kinet-modal-box">
@@ -840,22 +922,20 @@
         </div>
     </div>
 
-    <!-- MODAL KINET 2: GESTOR DE ROLES Y MULTI-PERFIL (MÁX. 3 PERFILES, NO REPETIDOS) -->
+    <!-- MODAL KINET 2: GESTOR DE ROLES Y MULTI-PERFIL -->
     <div id="role-manager-modal" class="kinet-modal-overlay">
         <div class="kinet-modal-box" style="max-width: 530px;">
             <div class="kinet-modal-header" style="color: var(--role-color);">
                 <span>🔄</span> <span id="role-manager-title">GESTIÓN DE ROLES & PERFILES KINET OS</span>
             </div>
-            <div class="kinet-modal-body" id="role-manager-body">
-                <!-- Se rellena dinámicamente según si es Free/Invitado o Pro/Club -->
-            </div>
+            <div class="kinet-modal-body" id="role-manager-body"></div>
             <div class="kinet-modal-footer" id="role-manager-footer">
                 <button class="btn-secondary" onclick="closeKinetModal('role-manager-modal')">Cerrar</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL KINET 3: PASARELA DE PAGO STRIPE / CLAVE DE LICENCIA PARA ACTIVAR PRO O CLUB -->
+    <!-- MODAL KINET 3: PASARELA DE PAGO STRIPE / CLAVE DE LICENCIA -->
     <div id="checkout-upgrade-modal" class="kinet-modal-overlay">
         <div class="kinet-modal-box">
             <div class="kinet-modal-header" style="color: var(--role-color);">
@@ -876,8 +956,8 @@
                     <label style="font-family:'JetBrains Mono'; font-size:0.65rem; color:#94A3B8; display:block; margin-bottom:6px;">OPCIÓN B: TARJETA BANCARIA (STRIPE CONNECT)</label>
                     <input type="text" id="card-num-input" class="setting-input" style="width:100%; margin-bottom:8px;" placeholder="4532 •••• •••• 8891">
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-                        <input type="text" class="setting-input" placeholder="MM/AA (08/29)">
-                        <input type="text" class="setting-input" placeholder="CVC (•••)">
+                        <input type="text" class="setting-input" style="width:100%;" placeholder="MM/AA (08/29)">
+                        <input type="text" class="setting-input" style="width:100%;" placeholder="CVC (•••)">
                     </div>
                 </div>
             </div>
@@ -949,7 +1029,7 @@
         <a href="cuerpo-tecnico.html" id="mob-cuerpo-tecnico" class="m-nav-btn"><span style="font-size:1rem;">🧠</span><span>Técnicos</span></a>
         <a href="ficha-pro.html" id="mob-ficha-pro" class="m-nav-btn"><span style="font-size:1rem;">🎴</span><span>Ficha</span></a>
         <a href="ojeador-live.html" id="mob-ojeador-live" class="m-nav-btn"><span style="font-size:1rem;">📡</span><span>Ojeador</span></a>
-        <a href="despacho.html" id="mob-despacho" class="m-nav-btn active"><span style="font-size:1rem;">⚙️</span><span>Despacho</span></a>
+        <button onclick="toggleMobileDrawer()" class="m-nav-btn active"><span style="font-size:1rem;">☰</span><span>Menú</span></button>
     </nav>
 
     <script>
@@ -957,7 +1037,6 @@
         let rainbowAnimId = null;
         let rainbowHue = 0;
 
-        // ESTADO EN BORRADOR (NO SE APLICA NI GUARDA HASTA PULSAR "GUARDAR CAMBIOS")
         let draftSettings = {
             userName: 'Alex Vance',
             userEmail: 'alex.vance@kinetos.pro',
@@ -974,6 +1053,16 @@
             scanlines: false,
             rainbow: false
         };
+
+        function toggleMobileDrawer() {
+            const drawer = document.getElementById('mobile-menu-drawer');
+            if (!drawer) return;
+            if (drawer.style.transform === 'translateY(0px)') {
+                drawer.style.transform = 'translateY(-100%)';
+            } else {
+                drawer.style.transform = 'translateY(0px)';
+            }
+        }
 
         function normalizeRole(val) {
             if (!val) return null;
@@ -1015,13 +1104,11 @@
             document.body.setAttribute('data-role', activeRoleKey);
             localStorage.setItem('kinet_active_role', activeRoleKey);
 
-            // Asegurar que el perfil actual exista registrado en kinet_profiles_db
             ensureActiveProfileInDB(activeRoleKey);
 
             const roleLabels = { athlete: "ATLETA PRO", staff: "ENTRENADOR / STAFF", scout: "DIRECTOR DEPORTIVO / SCOUT" };
             document.getElementById('topbar-role-title').textContent = roleLabels[activeRoleKey];
 
-            // Cargar valores guardados en draftSettings y en los inputs
             draftSettings.userName = localStorage.getItem('kinet_user_name') || 'Alex Vance';
             draftSettings.userEmail = localStorage.getItem('kinet_user_email') || 'alex.vance@kinetos.pro';
             draftSettings.sport = localStorage.getItem('kinet_sport') || 'Fútbol';
@@ -1037,7 +1124,6 @@
             draftSettings.scanlines = localStorage.getItem('kinet_scanlines') === 'true';
             draftSettings.rainbow = localStorage.getItem('kinet_rainbow_mode') === 'true';
 
-            // Poblar controles visuales con lo que hay guardado actualmente
             document.getElementById('user-name-input').value = draftSettings.userName;
             document.getElementById('user-email-input').value = draftSettings.userEmail;
             document.getElementById('setting-units').value = draftSettings.units;
@@ -1064,7 +1150,6 @@
             const defaultRoleHex = activeRoleKey === 'staff' ? '#F59E0B' : (activeRoleKey === 'scout' ? '#3B82F6' : '#00FF88');
             syncColorControlsUI(draftSettings.accentColor || defaultRoleHex);
 
-            // Aplicar en pantalla únicamente lo que ya estaba guardado previamente
             applyCommittedSettingsToDOM();
 
             const currentTier = normalizeTier(localStorage.getItem('kinet_account_tier'));
@@ -1094,14 +1179,14 @@
             const queryParams = `?role=${activeRoleKey}&sport=${encodeURIComponent(sportChosen)}`;
             const navMap = {
                 'brand-logo-desktop': 'app.html', 'brand-logo-mobile': 'app.html',
-                'nav-vestuario': 'app.html', 'mob-vestuario': 'app.html',
-                'nav-cuerpo-tecnico': 'cuerpo-tecnico.html', 'mob-cuerpo-tecnico': 'cuerpo-tecnico.html',
-                'nav-ficha-pro': 'ficha-pro.html', 'mob-ficha-pro': 'ficha-pro.html',
-                'nav-ojeador-live': 'ojeador-live.html', 'mob-ojeador-live': 'ojeador-live.html',
-                'nav-comunidad': 'comunidad.html', 'nav-config-social': 'comunidad.html',
-                'nav-media-studio': 'media-studio.html',
-                'nav-perfil': 'perfil.html',
-                'nav-despacho': 'despacho.html', 'mob-despacho': 'despacho.html'
+                'nav-vestuario': 'app.html', 'drawer-vestuario': 'app.html', 'mob-vestuario': 'app.html',
+                'nav-cuerpo-tecnico': 'cuerpo-tecnico.html', 'drawer-cuerpo-tecnico': 'cuerpo-tecnico.html', 'mob-cuerpo-tecnico': 'cuerpo-tecnico.html',
+                'nav-ficha-pro': 'ficha-pro.html', 'drawer-ficha-pro': 'ficha-pro.html', 'mob-ficha-pro': 'ficha-pro.html',
+                'nav-ojeador-live': 'ojeador-live.html', 'drawer-ojeador-live': 'ojeador-live.html', 'mob-ojeador-live': 'ojeador-live.html',
+                'nav-comunidad': 'comunidad.html', 'drawer-comunidad': 'comunidad.html', 'nav-config-social': 'comunidad.html',
+                'nav-media-studio': 'media-studio.html', 'drawer-media-studio': 'media-studio.html',
+                'nav-perfil': 'perfil.html', 'drawer-perfil': 'perfil.html',
+                'nav-despacho': 'despacho.html', 'drawer-despacho': 'despacho.html'
             };
             Object.keys(navMap).forEach(id => {
                 const el = document.getElementById(id);
@@ -1126,9 +1211,6 @@
             if (btn) btn.classList.add('active');
         }
 
-        // =========================================================================
-        // SISTEMA DE BORRADOR: NO APLICA CAMBIOS HASTA PULSAR "GUARDAR CAMBIOS"
-        // =========================================================================
         function markPendingChanges() {
             const btn = document.getElementById('save-all-btn');
             if (btn) {
@@ -1151,7 +1233,6 @@
             if (!hexColor || hexColor === 'custom') return;
             const upperHex = hexColor.toUpperCase();
             draftSettings.accentColor = upperHex;
-            // Si elige un color fijo manualmente, desmarcamos el modo arcoíris en borrador
             draftSettings.rainbow = false;
             const rainbowCheck = document.getElementById('setting-rainbow');
             if (rainbowCheck) rainbowCheck.checked = false;
@@ -1177,7 +1258,6 @@
             markPendingChanges();
         }
 
-        // Botón "↺ Restablecer Opciones" dentro de Personalización Avanzada de UI & Atmósfera
         function stageResetAdvancedUI() {
             draftSettings.spotlight = true;
             draftSettings.bgIntensity = 'standard';
@@ -1198,7 +1278,6 @@
             markPendingChanges();
         }
 
-        // GUARDAR CAMBIOS DEFINITIVOS Y MOSTRAR MODAL KINET DE CONFIRMACIÓN
         function saveAllSettings() {
             draftSettings.userName = document.getElementById('user-name-input').value.trim() || 'Alex Vance';
             draftSettings.userEmail = document.getElementById('user-email-input').value.trim() || 'alex.vance@kinetos.pro';
@@ -1226,7 +1305,6 @@
             localStorage.setItem('kinet_scanlines', String(draftSettings.scanlines));
             localStorage.setItem('kinet_rainbow_mode', String(draftSettings.rainbow));
 
-            // Aplicar ahora sí todos los cambios al DOM
             applyCommittedSettingsToDOM();
 
             const activeRoleKey = localStorage.getItem('kinet_active_role') || 'athlete';
@@ -1256,7 +1334,6 @@
             document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${draftSettings.sport.toUpperCase()}`;
             document.getElementById('topbar-sport-tag').textContent = `● ${draftSettings.sport.toUpperCase()}`;
 
-            // Modo Arcoíris BETA vs Color Fijo
             stopRainbowLoop();
             if (draftSettings.rainbow) {
                 document.body.classList.add('rainbow-mode');
@@ -1274,16 +1351,13 @@
                 }
             }
 
-            // Spotlight
             document.querySelectorAll('.kinet-panel, .pricing-card').forEach(p => {
                 p.style.boxShadow = draftSettings.spotlight ? '0 14px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)' : 'none';
             });
 
-            // Fondo Void
             const bgMap = { deep: '#020305', contrast: '#0B1222', emerald: '#04120E', crimson: '#120509', standard: '#06080E' };
             document.documentElement.style.setProperty('--bg-void', bgMap[draftSettings.bgIntensity] || '#06080E');
 
-            // Estilo de Cajas Bento
             if (draftSettings.panelStyle === 'carbon') {
                 document.documentElement.style.setProperty('--bg-panel', 'rgba(8, 10, 15, 0.98)');
                 document.documentElement.style.setProperty('--border-subtle', 'rgba(255, 255, 255, 0.14)');
@@ -1295,13 +1369,11 @@
                 document.documentElement.style.setProperty('--border-subtle', 'rgba(255, 255, 255, 0.08)');
             }
 
-            // Transiciones, Bordes y Scanlines
             document.documentElement.style.setProperty('--transition-speed', draftSettings.transitionSpeed);
             document.documentElement.style.setProperty('--panel-radius', draftSettings.cornerRadius);
             document.body.classList.toggle('scanlines-active', draftSettings.scanlines);
         }
 
-        // MOTOR ARCOÍRIS CHROMA RGB EN MOVIMIENTO (BETA)
         function hslToHexAndRgb(h, s, l) {
             s /= 100; l /= 100;
             const k = n => (n + h / 30) % 12;
@@ -1390,9 +1462,6 @@
             updateDynamicFavicon(hexColor);
         }
 
-        // =========================================================================
-        // GESTOR DE ROLES Y PERFILES EN VENTANA KINET (FREE VS PRO/CLUB, MÁX 3)
-        // =========================================================================
         function openRoleManagerModal() {
             const currentTier = normalizeTier(localStorage.getItem('kinet_account_tier'));
             const activeRoleKey = localStorage.getItem('kinet_active_role') || 'athlete';
@@ -1412,7 +1481,6 @@
                     <button class="btn-danger" onclick="confirmGuestRoleReset()">Borrar Datos e Ir a Fase 1 →</button>
                 `;
             } else {
-                // Versión de pago (Pro / Club): Gestor de hasta 3 perfiles únicos (Atleta, Staff, Scout)
                 const db = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
                 const allRolesMeta = {
                     athlete: { icon: '⚡', label: 'Atleta / Deportista Pro', color: '#00FF88', onboarding: 'onboarding_pro.html' },
@@ -1525,9 +1593,6 @@
             openRoleManagerModal();
         }
 
-        // =========================================================================
-        // GESTIÓN DE SUSCRIPCIONES Y PASARELA DE VERIFICACIÓN
-        // =========================================================================
         function handleAccountTypeSelectChange(targetTier) {
             const currentTier = normalizeTier(localStorage.getItem('kinet_account_tier'));
             if (targetTier === 'free') {
