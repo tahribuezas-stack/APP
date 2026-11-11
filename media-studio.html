@@ -14,6 +14,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     
+    <!-- Librerías Oficiales para Descarga Real en PDF / Alta Resolución -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <style>
         :root {
             --bg-void: #06080E;
@@ -70,7 +74,7 @@
             transition: background-image 0.4s ease;
         }
 
-        /* LAYOUT PRINCIPAL A PANTALLA COMPLETA ESTÁTICA */
+        /* LAYOUT PRINCIPAL A PANTALLA COMPLETA */
         .os-layout {
             display: grid;
             grid-template-columns: 270px 1fr;
@@ -79,9 +83,16 @@
         }
 
         @media (max-width: 960px) {
-            .os-layout { grid-template-columns: 1fr; height: auto; min-height: 100vh; overflow-y: auto; padding-bottom: 85px; }
+            .os-layout {
+                grid-template-columns: 1fr;
+                height: auto;
+                min-height: 100vh;
+                overflow-y: auto;
+                padding-bottom: 135px;
+            }
             html, body { height: auto !important; overflow-y: auto !important; }
             .os-main { height: auto !important; overflow: visible !important; }
+            .os-workspace { overflow: visible !important; height: auto !important; padding: 14px 14px 40px 14px !important; }
         }
 
         /* SIDEBAR FIJO ESTRICTO (ESCRITORIO) */
@@ -152,20 +163,9 @@
             transition: color 0.4s ease;
         }
 
-        .sidebar-top-section {
-            display: flex;
-            flex-direction: column;
-        }
+        .sidebar-top-section { display: flex; flex-direction: column; }
+        .sidebar-bottom-section { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border-subtle); }
 
-        .sidebar-bottom-section {
-            display: flex;
-            flex-direction: column;
-            gap: 8px; 
-            padding-top: 10px;
-            border-top: 1px solid var(--border-subtle);
-        }
-
-        /* ENLACES LATERALES CON SPOTLIGHT DINÁMICO DE ROL */
         .side-link {
             display: flex;
             align-items: center;
@@ -186,12 +186,7 @@
             overflow: hidden;
         }
 
-        .side-link-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            z-index: 1;
-        }
+        .side-link-left { display: flex; align-items: center; gap: 12px; z-index: 1; }
 
         .side-link::before {
             content: '';
@@ -218,7 +213,6 @@
             box-shadow: 0 0 18px rgba(var(--role-rgb), 0.18);
         }
 
-        /* WIDGET DE CONSEJO IA */
         .sidebar-ai-tip-box {
             background: rgba(var(--role-rgb), 0.05);
             border: 1px solid rgba(var(--role-rgb), 0.24);
@@ -227,7 +221,6 @@
             margin-bottom: 2px;
             position: relative;
             box-shadow: 0 4px 14px rgba(0,0,0,0.3);
-            transition: background 0.4s ease, border-color 0.4s ease;
         }
 
         .sidebar-ai-tip-header {
@@ -241,23 +234,12 @@
             text-transform: uppercase;
             margin-bottom: 3px;
             font-weight: 700;
-            transition: color 0.4s ease;
         }
 
-        .sidebar-ai-tip-text {
-            font-size: 0.72rem;
-            color: #CBD5E1;
-            line-height: 1.35;
-        }
+        .sidebar-ai-tip-text { font-size: 0.72rem; color: #CBD5E1; line-height: 1.35; }
 
         /* ZONA PRINCIPAL */
-        .os-main {
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            height: 100vh;
-            overflow: hidden;
-        }
+        .os-main { display: flex; flex-direction: column; min-width: 0; height: 100vh; overflow: hidden; }
 
         .os-topbar {
             background: rgba(6, 8, 14, 0.88);
@@ -273,11 +255,7 @@
         .mobile-brand { display: none; align-items: center; gap: 10px; text-decoration: none; color: white; }
         @media (max-width: 960px) { .mobile-brand { display: flex; } .os-topbar { padding: 12px 16px; } }
 
-        .topbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .topbar-actions { display: flex; align-items: center; gap: 10px; }
 
         .active-role-indicator {
             display: flex;
@@ -287,7 +265,6 @@
             border-radius: 999px;
             padding: 6px 14px;
             gap: 8px;
-            transition: border-color 0.4s ease;
         }
 
         .active-role-indicator .dot {
@@ -296,7 +273,6 @@
             border-radius: 50%;
             background: var(--role-color);
             box-shadow: 0 0 8px var(--role-color);
-            transition: background 0.4s ease, box-shadow 0.4s ease;
         }
 
         .active-role-text {
@@ -308,21 +284,16 @@
             text-transform: uppercase;
         }
 
-        /* WORKSPACE IDÉNTICO A APP.HTML */
         .os-workspace {
             max-width: 1280px;
             width: 100%;
             margin: 0 auto;
-            padding: 20px 24px;
+            padding: 18px 24px;
             flex-grow: 1;
             display: flex;
             flex-direction: column;
             overflow-y: auto;
             animation: pageEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        @media (max-width: 768px) { 
-            .os-workspace { padding: 14px; justify-content: flex-start; } 
         }
 
         @keyframes pageEnter {
@@ -334,7 +305,7 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             flex-wrap: wrap;
             gap: 12px;
         }
@@ -349,27 +320,21 @@
             align-items: center;
             gap: 8px;
             margin-bottom: 4px;
-            transition: color 0.4s ease;
         }
 
         .context-title {
             font-family: 'Orbitron', sans-serif;
-            font-size: clamp(1.3rem, 2.2vw, 1.9rem);
+            font-size: clamp(1.25rem, 2.2vw, 1.85rem);
             font-weight: 900;
             letter-spacing: -0.02em;
             color: white;
         }
 
-        .header-badges-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
+        .header-badges-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
         .verified-badge {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.68rem;
+            font-size: 0.66rem;
             font-weight: 700;
             padding: 6px 12px;
             border-radius: 10px;
@@ -379,20 +344,77 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            transition: background 0.4s ease, border-color 0.4s ease, color 0.4s ease;
         }
 
-        /* PANELES & CHIPS CON SPOTLIGHT DINÁMICO */
+        /* =========================================================================
+           SELECTOR CONMUTADOR INTERACTIVO "🎬 VÍDEO / 🖼️ IMAGEN"
+           ========================================================================= */
+        .media-type-switcher-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            background: rgba(13, 17, 26, 0.92);
+            border: 1px solid var(--border-subtle);
+            border-radius: 18px;
+            padding: 10px 14px;
+            margin-bottom: 14px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+        }
+
+        .media-toggle-pills {
+            display: inline-flex;
+            background: rgba(4, 6, 10, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            padding: 4px;
+            gap: 6px;
+        }
+
+        @media (max-width: 580px) {
+            .media-toggle-pills { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+        }
+
+        .media-mode-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-secondary);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 9px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .media-mode-btn:hover { color: white; }
+
+        .media-mode-btn.active {
+            background: var(--role-gradient);
+            color: #04060A;
+            box-shadow: 0 0 16px var(--role-glow);
+        }
+
         .kinet-panel, .template-chip {
             background: var(--bg-panel);
             border: 1px solid var(--border-subtle);
             border-radius: 20px;
-            padding: 20px;
+            padding: 18px;
             backdrop-filter: blur(20px);
             position: relative;
             overflow: hidden;
             box-shadow: 0 12px 30px rgba(0,0,0,0.4);
             transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+        }
+
+        @media (max-width: 640px) {
+            .kinet-panel { padding: 14px; }
         }
 
         .kinet-panel::before, .template-chip::before {
@@ -407,36 +429,20 @@
         }
 
         .kinet-panel > *, .template-chip > * { position: relative; z-index: 1; }
-
         .kinet-panel:hover::before, .template-chip:hover::before { opacity: 1; }
         .kinet-panel:hover {
             border-color: rgba(var(--role-rgb), 0.48);
-            transform: translateY(-2px);
             box-shadow: 0 16px 36px rgba(0,0,0,0.6), 0 0 22px rgba(var(--role-rgb), 0.14);
         }
 
-        .panel-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 14px;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
+        .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px; flex-wrap: wrap; }
+        .panel-label { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--text-secondary); letter-spacing: 0.14em; text-transform: uppercase; }
 
-        .panel-label {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.68rem;
-            color: var(--text-secondary);
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-        }
-
-        /* LÍNEA HORIZONTAL COMPACTA DE PLANTILLAS */
-        .templates-row-container { margin-bottom: 16px; }
+        /* LÍNEA HORIZONTAL DE PLANTILLAS */
+        .templates-row-container { margin-bottom: 14px; }
         .templates-row-title {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.68rem;
+            font-size: 0.66rem;
             color: var(--text-secondary);
             letter-spacing: 0.14em;
             text-transform: uppercase;
@@ -447,7 +453,7 @@
         }
         .templates-scroll-row {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             overflow-x: auto;
             padding: 4px 2px 8px 2px;
             scrollbar-width: thin;
@@ -457,51 +463,47 @@
         .templates-scroll-row::-webkit-scrollbar-thumb { background: rgba(var(--role-rgb), 0.4); border-radius: 4px; }
 
         .template-chip {
-            min-width: 150px;
-            height: 76px;
+            min-width: 148px;
+            height: 72px;
             background: rgba(255, 255, 255, 0.025);
             border: 1px solid var(--border-subtle);
             border-radius: 14px;
-            padding: 12px;
+            padding: 10px 12px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             cursor: pointer;
             flex-shrink: 0;
         }
-        .template-chip:hover {
+        .template-chip.active, .template-chip:hover {
             border-color: var(--role-color);
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(0,0,0,0.6), 0 0 18px var(--role-glow);
         }
-        .template-chip span { font-size: 0.76rem; font-weight: 700; color: white; }
-        .template-chip sub { font-size: 0.62rem; color: var(--role-color); font-family: 'JetBrains Mono', monospace; }
+        .template-chip span { font-size: 0.75rem; font-weight: 700; color: white; }
+        .template-chip sub { font-size: 0.6rem; color: var(--role-color); font-family: 'JetBrains Mono', monospace; }
 
         /* GRID PRINCIPAL DEL ESTUDIO */
-        .bento-grid {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 16px;
-        }
+        .bento-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
         .col-8 { grid-column: span 8; }
         .col-4 { grid-column: span 4; }
         @media (max-width: 1024px) { .col-8, .col-4 { grid-column: span 12; } }
 
-        /* ZONA DE ARRASTRE ADAPTATIVA */
+        /* ZONA DE ARRASTRE DINÁMICA */
         .dropzone-box {
             background: rgba(255, 255, 255, 0.02);
-            border: 2px dashed rgba(var(--role-rgb), 0.35);
+            border: 2px dashed rgba(var(--role-rgb), 0.38);
             border-radius: 16px;
-            padding: 22px;
+            padding: 18px;
             text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 155px;
+            min-height: 130px;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             position: relative;
             overflow: hidden;
         }
@@ -509,67 +511,89 @@
             border-color: var(--role-color);
             background: rgba(var(--role-rgb), 0.05);
             box-shadow: inset 0 0 25px rgba(var(--role-rgb), 0.08), 0 0 20px rgba(var(--role-rgb), 0.12);
-            transform: translateY(-2px);
         }
 
-        /* SIMULADOR SPOTIFY & OVERLAY KINET */
+        /* LIENZO DE SIMULACIÓN SPOTIFY & TELEMETRÍA (EXPORTABLE A PDF) */
         .preview-simulation-panel {
-            background: rgba(4, 6, 10, 0.85);
-            border: 1px solid rgba(var(--role-rgb), 0.28);
+            background: radial-gradient(circle at 50% 25%, rgba(var(--role-rgb), 0.16), rgba(4, 6, 10, 0.96));
+            border: 1px solid rgba(var(--role-rgb), 0.36);
             border-radius: 16px;
             padding: 14px;
             position: relative;
             overflow: hidden;
         }
+
         .spotify-player-bar {
-            background: rgba(var(--role-rgb), 0.08);
-            border: 1px solid rgba(var(--role-rgb), 0.3);
-            border-radius: 12px;
-            padding: 9px 14px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.72rem;
-            color: var(--role-color);
-        }
-        .soundwave { display: flex; align-items: center; gap: 3px; height: 16px; }
-        .soundwave i { width: 3px; background: var(--role-color); animation: pulseWave 1s infinite alternate; border-radius: 2px; }
-        .soundwave i:nth-child(2) { animation-delay: 0.2s; }
-        .soundwave i:nth-child(3) { animation-delay: 0.4s; }
-        .soundwave i:nth-child(4) { animation-delay: 0.1s; }
-        @keyframes pulseWave { from { height: 4px; } to { height: 16px; } }
-
-        .verified-watermark {
-            position: absolute;
-            bottom: 14px;
-            left: 14px;
-            background: rgba(4, 6, 10, 0.9);
-            border: 1px solid var(--role-color);
-            padding: 5px 10px;
-            border-radius: 8px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.62rem;
-            color: var(--role-color);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 0 12px var(--role-glow);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-        }
-
-        /* BARRA DE COMANDOS INFERIOR */
-        .floating-command-bar {
-            background: rgba(4, 6, 10, 0.75);
-            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(var(--role-rgb), 0.1);
+            border: 1px solid rgba(var(--role-rgb), 0.35);
             border-radius: 12px;
             padding: 8px 12px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--role-color);
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .soundwave { display: flex; align-items: center; gap: 3px; height: 15px; }
+        .soundwave i { width: 3px; background: var(--role-color); animation: pulseWave 1s infinite alternate; border-radius: 2px; }
+        .soundwave i:nth-child(2) { animation-delay: 0.2s; }
+        .soundwave i:nth-child(3) { animation-delay: 0.4s; }
+        .soundwave i:nth-child(4) { animation-delay: 0.1s; }
+        @keyframes pulseWave { from { height: 4px; } to { height: 15px; } }
+
+        .studio-canvas-viewport {
+            min-height: 175px;
+            background: linear-gradient(145deg, rgba(var(--role-rgb), 0.09), rgba(8, 11, 18, 0.95));
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border: 1px solid rgba(var(--role-rgb), 0.28);
+            padding: 18px 14px 44px 14px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .verified-watermark {
+            position: absolute;
+            bottom: 10px;
+            left: 12px;
+            right: 12px;
+            background: rgba(4, 6, 10, 0.92);
+            border: 1px solid var(--role-color);
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--role-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            box-shadow: 0 0 12px var(--role-glow);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            flex-wrap: wrap;
+        }
+
+        /* BARRA DE COMANDOS IA RESPONSIVE (NO CORTA TEXTO EN MÓVIL) */
+        .floating-command-bar {
+            background: rgba(4, 6, 10, 0.82);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 12px;
+            padding: 8px 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             margin-top: 12px;
+            flex-wrap: wrap;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
         .floating-command-bar:focus-within {
@@ -577,12 +601,13 @@
             box-shadow: 0 0 14px rgba(var(--role-rgb), 0.15);
         }
         .floating-command-bar input {
-            flex-grow: 1;
+            flex: 1;
+            min-width: 170px;
             background: transparent;
             border: none;
             color: white;
             font-family: 'Inter', sans-serif;
-            font-size: 0.84rem;
+            font-size: 0.8rem;
             outline: none;
         }
         .floating-command-bar input::placeholder { color: var(--text-secondary); }
@@ -592,11 +617,11 @@
             color: #04060A;
             border: none;
             border-radius: 12px;
-            padding: 11px 18px;
+            padding: 10px 16px;
             font-family: 'Orbitron', sans-serif;
             font-weight: 800;
-            font-size: 0.74rem;
-            letter-spacing: 0.08em;
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
@@ -605,9 +630,10 @@
             text-decoration: none;
             box-shadow: 0 0 18px var(--role-glow);
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            text-align: center;
         }
         .btn-primary:hover {
-            transform: translateY(-2px) scale(1.02);
+            transform: translateY(-2px);
             box-shadow: 0 0 26px var(--role-glow);
             filter: brightness(1.08);
         }
@@ -617,13 +643,19 @@
             color: white;
             border: 1px solid var(--border-subtle);
             border-radius: 12px;
-            padding: 11px 18px;
+            padding: 10px 14px;
             font-family: 'Orbitron', sans-serif;
             font-weight: 700;
-            font-size: 0.74rem;
-            letter-spacing: 0.06em;
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
             cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-decoration: none;
             transition: all 0.25s ease;
+            text-align: center;
         }
         .btn-secondary:hover {
             border-color: rgba(var(--role-rgb), 0.45);
@@ -633,20 +665,21 @@
 
         /* MODALES KINET CENTRALES */
         .kinet-modal-overlay {
-            position: fixed; inset: 0; background: rgba(4, 6, 10, 0.85); backdrop-filter: blur(18px); z-index: 500;
+            position: fixed; inset: 0; background: rgba(4, 6, 10, 0.86); backdrop-filter: blur(18px); z-index: 500;
             display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+            padding: 14px;
         }
         .kinet-modal-overlay.open { opacity: 1; pointer-events: auto; }
         .kinet-modal-box {
-            background: rgba(13, 17, 26, 0.98); border: 1px solid rgba(var(--role-rgb), 0.5); border-radius: 22px; max-width: 460px; width: calc(100% - 32px);
-            padding: 28px; box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 35px rgba(var(--role-rgb), 0.2);
+            background: rgba(13, 17, 26, 0.98); border: 1px solid rgba(var(--role-rgb), 0.5); border-radius: 22px; max-width: 480px; width: 100%;
+            padding: 24px; box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 35px rgba(var(--role-rgb), 0.2);
             transform: scale(0.95) translateY(12px); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            display: flex; flex-direction: column; gap: 16px; text-align: left;
+            display: flex; flex-direction: column; gap: 14px; text-align: left;
         }
         .kinet-modal-overlay.open .kinet-modal-box { transform: scale(1) translateY(0); }
-        .kinet-modal-header { font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 800; color: white; display: flex; align-items: center; gap: 10px; }
-        .kinet-modal-body { font-size: 0.88rem; color: #CBD5E1; line-height: 1.6; }
-        .kinet-modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+        .kinet-modal-header { font-family: 'Orbitron', sans-serif; font-size: 0.96rem; font-weight: 900; color: white; display: flex; align-items: center; gap: 10px; }
+        .kinet-modal-body { font-size: 0.84rem; color: #CBD5E1; line-height: 1.55; }
+        .kinet-modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
 
         /* NAVEGACIÓN MÓVIL */
         .mobile-bottom-nav {
@@ -667,9 +700,7 @@
             justify-content: space-around;
         }
 
-        @media (max-width: 960px) { 
-            .mobile-bottom-nav { display: flex !important; } 
-        }
+        @media (max-width: 960px) { .mobile-bottom-nav { display: flex !important; } }
 
         .m-nav-btn {
             background: transparent;
@@ -688,18 +719,20 @@
             cursor: pointer;
             transition: 0.25s;
         }
-
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
 </head>
 <body data-role="athlete">
 
+    <!-- INPUT OCULTO PARA SUBIDA REAL DE VÍDEO O IMAGEN -->
+    <input type="file" id="hidden-media-file-input" style="display:none;" accept="image/*,video/*" onchange="handleStudioFileSelected(this)">
+
     <div class="os-layout">
         
-        <!-- SIDEBAR FIJO (IDÉNTICO A APP.HTML) -->
+        <!-- SIDEBAR FIJO -->
         <aside class="os-sidebar">
             <div class="sidebar-top-section">
-                <a href="app.html" class="brand-box">
+                <a href="app.html" id="brand-logo-desktop" class="brand-box">
                     <div class="brand-logo-icon">K</div>
                     <div class="brand-text">
                         <h1>KINET OS</h1>
@@ -716,15 +749,15 @@
                         <span class="side-link-left"><span>🧠</span> <span>Cuerpo Técnico IA</span></span>
                         <span style="font-size:0.7rem;opacity:0.5;">→</span>
                     </a>
-                    <a href="ficha-pro.html" class="side-link" style="margin-bottom: 8px;">
+                    <a href="ficha-pro.html" id="nav-ficha-pro" class="side-link" style="margin-bottom: 8px;">
                         <span class="side-link-left"><span>🎴</span> <span>Ficha & KINET Card</span></span>
                         <span style="font-size:0.7rem;opacity:0.5;">→</span>
                     </a>
-                    <a href="ojeador-live.html" class="side-link" style="margin-bottom: 8px;">
+                    <a href="ojeador-live.html" id="nav-ojeador-live" class="side-link" style="margin-bottom: 8px;">
                         <span class="side-link-left"><span>📡</span> <span>Ojeador & Laboratorio</span></span>
                         <span style="font-size:0.7rem;opacity:0.5;">→</span>
                     </a>
-                    <a href="comunidad.html" class="side-link" style="margin-bottom: 8px;">
+                    <a href="comunidad.html" id="nav-comunidad" class="side-link" style="margin-bottom: 8px;">
                         <span class="side-link-left"><span>🌐</span> <span>Comunidad / Red Social</span></span>
                         <span style="font-size:0.7rem;opacity:0.5;">→</span>
                     </a>
@@ -735,30 +768,32 @@
                 </nav>
             </div>
 
-            <!-- BLOQUE INFERIOR SIDEBAR COMPLETO (IDÉNTICO A APP.HTML) -->
+            <!-- BLOQUE INFERIOR SIDEBAR COMPLETO -->
             <div class="sidebar-bottom-section">
                 <div class="sidebar-ai-tip-box" id="sidebar-dynamic-tip">
                     <div class="sidebar-ai-tip-header">
-                        <span>💡</span> <span id="tip-title">Directiva: Supercompensación</span>
+                        <span>💡</span> <span id="tip-title">Directiva: Media Studio</span>
                     </div>
                     <div class="sidebar-ai-tip-text" id="tip-content">
-                        Sincronización nativa con Spotify API activa para exportar tus métricas y highlights en 1 clic.
+                        Elige entre Modo Vídeo o Modo Imagen arriba y exporta tu pieza con Spotify Sync o en PDF.
                     </div>
                 </div>
 
-                <a href="perfil.html" class="side-link">
+                <a href="perfil.html" id="nav-perfil" class="side-link">
                     <span class="side-link-left"><span>👤</span> <span>Mi Perfil</span></span>
                     <span style="font-size:0.7rem;opacity:0.5;">→</span>
                 </a>
-                <a href="despacho.html" class="side-link">
+                <a href="despacho.html" id="nav-despacho" class="side-link">
                     <span class="side-link-left"><span>⚙️</span> <span>Despacho & Ajustes</span></span>
                     <span style="font-size:0.7rem;opacity:0.5;">→</span>
                 </a>
-                <a href="comunidad.html" class="side-link" style="border-color: rgba(var(--role-rgb), 0.3); background: rgba(var(--role-rgb), 0.05);">
+                <!-- SE OCULTA AUTOMÁTICAMENTE SI LA RED SOCIAL YA FUE CONFIGURADA -->
+                <a href="comunidad.html?setup=true" id="nav-config-social" class="side-link" style="border-color: rgba(var(--role-rgb), 0.3); background: rgba(var(--role-rgb), 0.05);">
                     <span class="side-link-left"><span>🌐</span> <span>Config. Red Social</span></span>
                     <span style="font-size:0.7rem;color:var(--role-color);">⚡</span>
                 </a>
-                <a href="despacho.html" class="side-link" style="background: var(--role-gradient); color: #04060A; font-weight: 900; border: none;">
+                <!-- SE OCULTA POR COMPLETO SI YA ERES PRO O CLUB -->
+                <a href="despacho.html?tab=subscription" id="nav-upgrade-pro" class="side-link" style="background: var(--role-gradient); color: #04060A; font-weight: 900; border: none;">
                     <span class="side-link-left"><span>⚡</span> <span>Pásate a KINET PRO</span></span>
                     <span style="font-size:0.7rem;">→</span>
                 </a>
@@ -768,9 +803,9 @@
         <!-- ZONA PRINCIPAL -->
         <div class="os-main">
             
-            <!-- TOPBAR IDÉNTICO A APP.HTML -->
+            <!-- TOPBAR -->
             <header class="os-topbar">
-                <a href="app.html" class="mobile-brand">
+                <a href="app.html" id="brand-logo-mobile" class="mobile-brand">
                     <div class="brand-logo-icon" style="width:32px;height:32px;font-size:0.95rem;">K</div>
                     <span style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:1rem;letter-spacing:0.1em;">KINET OS</span>
                 </a>
@@ -791,7 +826,7 @@
             <!-- WORKSPACE -->
             <main class="os-workspace">
                 
-                <!-- CONTEXT HEADER IDÉNTICO A APP.HTML -->
+                <!-- CONTEXT HEADER -->
                 <div class="context-header">
                     <div>
                         <span class="context-tag">
@@ -802,37 +837,59 @@
                     </div>
                     <div class="header-badges-group">
                         <div class="verified-badge">🎵 SPOTIFY API: CONECTADA</div>
-                        <div class="verified-badge" id="tier-indicator-badge">⚡ PLAN GRATUITO (IMÁGENES)</div>
+                        <div class="verified-badge" id="tier-indicator-badge">⚡ CARGANDO LICENCIA...</div>
+                    </div>
+                </div>
+
+                <!-- =========================================================================
+                     SELECTOR CONMUTADOR PRINCIPAL: "🎬 VÍDEO" vs "🖼️ IMAGEN"
+                     ========================================================================= -->
+                <div class="media-type-switcher-bar">
+                    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                        <span style="font-family:'JetBrains Mono';font-size:0.66rem;color:var(--text-secondary);letter-spacing:0.1em;text-transform:uppercase;">ELIGE EL FORMATO A CREAR:</span>
+                        <div class="media-toggle-pills">
+                            <button class="media-mode-btn" id="btn-mode-video" onclick="selectStudioFormatMode('video')">
+                                <span>🎬</span> <span id="lbl-mode-video">Modo Vídeo (Reel HD/4K)</span>
+                            </button>
+                            <button class="media-mode-btn active" id="btn-mode-image" onclick="selectStudioFormatMode('image')">
+                                <span>🖼️</span> <span>Modo Imagen (Póster / Card)</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                        <span style="font-family:'JetBrains Mono';font-size:0.65rem;color:#CBD5E1;" id="video-minutes-counter">Cuota Vídeo IA: 48 / 60 min disp.</span>
+                        <button class="btn-secondary" style="padding:6px 10px;font-size:0.62rem;" onclick="openPayAsYouGoModal()">➕ Bono Minutos Extra</button>
                     </div>
                 </div>
 
                 <!-- LÍNEA HORIZONTAL COMPACTA DE PLANTILLAS -->
                 <div class="templates-row-container">
                     <div class="templates-row-title">
-                        <span>⚡ PLANTILLAS & TENDENCIAS VIRALES</span>
+                        <span>⚡ PLANTILLAS & TENDENCIAS VIRALES (CLIC PARA APLICAR AL LIENZO)</span>
                     </div>
                     <div class="templates-scroll-row">
-                        <div class="template-chip" onclick="applyTemplate('Match Day Poster')">
+                        <div class="template-chip active" onclick="applyTemplate('Match Day Poster', '🔥 MATCH DAY // TELEMETRÍA OFICIAL', this)">
                             <span>🔥 Match Day</span>
                             <sub>Plantilla PRO</sub>
                         </div>
-                        <div class="template-chip" onclick="applyTemplate('Biometric Beat')">
+                        <div class="template-chip" onclick="applyTemplate('Biometric Beat', '🎵 BIOMETRIC BEAT // SPOTIFY SYNC 128 BPM', this)">
                             <span>🎵 Biometric Beat</span>
                             <sub>Spotify Sync</sub>
                         </div>
-                        <div class="template-chip" onclick="applyTemplate('Hologram Card')">
+                        <div class="template-chip" onclick="applyTemplate('Hologram Edit', '🎴 HOLOGRAM EDIT // KINET CARD 92 GRL', this)">
                             <span>🎴 Hologram Edit</span>
                             <sub>Viral Reel</sub>
                         </div>
-                        <div class="template-chip" onclick="applyTemplate('Scout Report Graphic')">
+                        <div class="template-chip" onclick="applyTemplate('Scout Graphic', '📡 SCOUT GRAPHIC // PERCENTIL TOP 3%', this)">
                             <span>📡 Scout Graphic</span>
                             <sub>B2B Analytics</sub>
                         </div>
-                        <div class="template-chip" onclick="applyTemplate('Victory Loop')">
+                        <div class="template-chip" onclick="applyTemplate('Victory Loop', '⚡ VICTORY LOOP // HIGHLIGHT 120 FPS', this)">
                             <span>⚡ Victory Loop</span>
                             <sub>TikTok 1-Clic</sub>
                         </div>
-                        <div class="template-chip" onclick="applyTemplate('Post-Match Stats')">
+                        <div class="template-chip" onclick="applyTemplate('Stats Breakdown', '📊 STATS BREAKDOWN // INFORME POST-PARTIDO', this)">
                             <span>📊 Stats Breakdown</span>
                             <sub>Infografía</sub>
                         </div>
@@ -844,91 +901,102 @@
                     
                     <!-- ZONA IZQUIERDA: EDITOR & PREVISUALIZACIÓN -->
                     <div class="col-8">
-                        <div class="kinet-panel" style="height:100%;">
-                            <div class="panel-head">
-                                <span class="panel-label">ESTUDIO DE CREACIÓN & PREVISUALIZACIÓN</span>
-                                <span class="verified-badge" id="studio-mode-pill">MODO IMAGEN + BEATS</span>
-                            </div>
-
-                            <!-- ZONA DE ARRASTRE DINÁMICA ADAPTATIVA SEGÚN VERSIÓN -->
-                            <div class="dropzone-box" id="dropzone-area" onclick="triggerFileSelect()">
-                                <div style="font-size: 2rem; margin-bottom: 6px;" id="dropzone-icon">🖼️</div>
-                                <h4 style="font-family:'Orbitron'; font-size:0.88rem; color:white; margin-bottom:4px;" id="dropzone-title">Arrastra aquí tu imagen</h4>
-                                <p style="font-size:0.75rem; color:#94A3B8;" id="dropzone-subtitle">Soporta PNG, JPG, WEBP (Edición de imágenes con música y marca personal)</p>
-                            </div>
-
-                            <!-- PANEL DE SIMULACIÓN SPOTIFY & OVERLAY KINET -->
-                            <div class="preview-simulation-panel">
-                                <div class="spotify-player-bar">
-                                    <div style="display:flex; align-items:center; gap:8px;">
-                                        <span>🎵 Spotify Sync:</span>
-                                        <span style="color:white; font-weight:700;">"High Performance (KINET Remix)"</span>
-                                    </div>
-                                    <div class="soundwave">
-                                        <i></i><i></i><i></i><i></i>
-                                    </div>
+                        <div class="kinet-panel" style="height:100%; display:flex; flex-direction:column; justify-content:space-between;">
+                            <div>
+                                <div class="panel-head">
+                                    <span class="panel-label">ESTUDIO DE CREACIÓN & PREVISUALIZACIÓN</span>
+                                    <span class="verified-badge" id="studio-mode-pill">MODO IMAGEN + BEATS</span>
                                 </div>
 
-                                <div style="height: 135px; background: linear-gradient(135deg, rgba(var(--role-rgb),0.06), rgba(13,17,26,0.85)); border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative; border: 1px dashed rgba(255,255,255,0.12);">
-                                    <span style="font-size: 0.78rem; color: #94A3B8; font-family:'JetBrains Mono'; text-align:center; padding:0 15px;">⚡ [ Simulación activa: Sincronización de beats musicales con overlay gráfico ]</span>
-                                    
-                                    <div class="verified-watermark">
-                                        <span>✓</span> <span>VERIFIED ATHLETE // KINET PERFORMANCE</span>
+                                <!-- ZONA DE ARRASTRE DINÁMICA SEGÚN MODO VÍDEO / IMAGEN -->
+                                <div class="dropzone-box" id="dropzone-area" onclick="triggerFileSelect()">
+                                    <div style="font-size: 2rem; margin-bottom: 6px;" id="dropzone-icon">🖼️</div>
+                                    <h4 style="font-family:'Orbitron'; font-size:0.86rem; color:white; margin-bottom:4px;" id="dropzone-title">Haz clic o arrastra aquí tu Imagen</h4>
+                                    <p style="font-size:0.74rem; color:#94A3B8;" id="dropzone-subtitle">Soporta PNG, JPG, WEBP con overlay de telemetría y Spotify Sync</p>
+                                </div>
+
+                                <!-- LIENZO ACTIVO (EXPORTABLE A PDF WYSIWYG) -->
+                                <div class="preview-simulation-panel" id="studio-exportable-canvas">
+                                    <div class="spotify-player-bar">
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <span>🎵 Spotify Sync:</span>
+                                            <span style="color:white; font-weight:700;" id="active-track-label">"High Performance (KINET Remix)"</span>
+                                        </div>
+                                        <div class="soundwave">
+                                            <i></i><i></i><i></i><i></i>
+                                        </div>
+                                    </div>
+
+                                    <div class="studio-canvas-viewport" id="canvas-preview-box">
+                                        <div style="font-family:'Orbitron';font-size:0.9rem;font-weight:900;color:white;text-align:center;margin-bottom:4px;" id="canvas-main-headline">
+                                            🔥 MATCH DAY // TELEMETRÍA OFICIAL
+                                        </div>
+                                        <span style="font-size: 0.74rem; color: #CBD5E1; font-family:'JetBrains Mono'; text-align:center; padding:0 10px;" id="canvas-sub-status">
+                                            ⚡ [ Lienzo Activo: Sincronización de beats musicales con overlay de telemetría ]
+                                        </span>
+                                        
+                                        <div class="verified-watermark">
+                                            <span id="watermark-left-text">✓ VERIFIED ATHLETE // KINET PERFORMANCE</span>
+                                            <span id="watermark-right-sport">92 GRL • AI VERIFIED</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- BARRA DE COMANDOS INFERIOR -->
+                            <!-- BARRA DE COMANDOS INFERIOR IA -->
                             <div class="floating-command-bar">
                                 <span style="color:var(--role-color); font-size:1rem;">✨</span>
-                                <input type="text" id="ai-prompt-input" placeholder="+ Describe un filtro o ajuste automático con IA (ej: Acento neón cyberpunk)" onkeydown="if(event.key==='Enter') generateAiEdit()">
-                                <button class="btn-primary" onclick="generateAiEdit()" style="padding:8px 14px;">Generar 1-Clic</button>
+                                <input type="text" id="ai-prompt-input" placeholder="Describe un filtro IA (ej: Acento neón cyberpunk, Cámara lenta 120fps, Destello Oro 24K)..." onkeydown="if(event.key==='Enter') generateAiEdit()">
+                                <button class="btn-primary" onclick="generateAiEdit()" style="padding:8px 14px;">Aplicar IA 1-Clic</button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- ZONA DERECHA: HERRAMIENTAS & CONTROLES -->
+                    <!-- ZONA DERECHA: HERRAMIENTAS & EXPORTACIÓN -->
                     <div class="col-4">
                         <div class="kinet-panel" style="height:100%; display:flex; flex-direction:column; justify-content:space-between;">
                             <div>
                                 <div class="panel-head">
                                     <span class="panel-label">CONTROLES & EXPORTACIÓN</span>
-                                    <span style="font-family:'JetBrains Mono';font-size:0.65rem;color:var(--role-color);">ACTIVO</span>
+                                    <span style="font-family:'JetBrains Mono';font-size:0.65rem;color:var(--role-color);" id="quality-status-tag">1080p / 4K READY</span>
                                 </div>
 
-                                <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
-                                    <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:12px; padding:12px;">
-                                        <label style="font-size:0.76rem; font-weight:700; color:#E2E8F0; display:block; margin-bottom:6px;">Sincronización Musical (Spotify API)</label>
-                                        <select style="width:100%; font-size:0.8rem; background:#04060A; border:1px solid rgba(255,255,255,0.14); border-radius:10px; padding:9px 12px; color:white; outline:none;">
-                                            <option>High Performance - KINET Beats</option>
-                                            <option>Matchday Hype - Electronic Mix</option>
-                                            <option>Focus & Recovery - Ambient</option>
+                                <div style="display:flex; flex-direction:column; gap:11px; margin-bottom:16px;">
+                                    <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:12px; padding:11px;">
+                                        <label style="font-size:0.74rem; font-weight:700; color:#E2E8F0; display:block; margin-bottom:5px;">Sincronización Musical (Spotify API)</label>
+                                        <select id="spotify-track-select" onchange="updateCanvasFromControls()" style="width:100%; font-size:0.78rem; background:#04060A; border:1px solid rgba(255,255,255,0.14); border-radius:10px; padding:8px 10px; color:white; outline:none;">
+                                            <option value="High Performance (KINET Remix)">High Performance - KINET Beats</option>
+                                            <option value="Matchday Hype (128 BPM Mix)">Matchday Hype - Electronic Mix</option>
+                                            <option value="Combat & Power Phonk (140 BPM)">Combat & Power Phonk - 140 BPM</option>
+                                            <option value="Focus & Recovery (Ambient)">Focus & Recovery - Ambient</option>
                                         </select>
                                     </div>
 
-                                    <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:12px; padding:12px;">
-                                        <label style="font-size:0.76rem; font-weight:700; color:#E2E8F0; display:block; margin-bottom:6px;">Sello Biométrico de Capa</label>
-                                        <select style="width:100%; font-size:0.8rem; background:#04060A; border:1px solid rgba(255,255,255,0.14); border-radius:10px; padding:9px 12px; color:white; outline:none;">
-                                            <option>VERIFIED ATHLETE (Holograma Rol)</option>
-                                            <option>KINET PERFORMANCE (Minimalista)</option>
-                                            <option>TACTICAL SCOUT BADGE (Élite)</option>
+                                    <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:12px; padding:11px;">
+                                        <label style="font-size:0.74rem; font-weight:700; color:#E2E8F0; display:block; margin-bottom:5px;">Sello Biométrico de Capa</label>
+                                        <select id="watermark-select" onchange="updateCanvasFromControls()" style="width:100%; font-size:0.78rem; background:#04060A; border:1px solid rgba(255,255,255,0.14); border-radius:10px; padding:8px 10px; color:white; outline:none;">
+                                            <option value="✓ VERIFIED ATHLETE // KINET PERFORMANCE">VERIFIED ATHLETE (Holograma Rol)</option>
+                                            <option value="⚡ KINET AI TELEMETRY // 120 FPS VERIFIED">KINET AI TELEMETRY (120 FPS)</option>
+                                            <option value="📡 TACTICAL SCOUT BADGE // TOP 3% ÉLITE">TACTICAL SCOUT BADGE (Élite)</option>
                                         </select>
                                     </div>
 
-                                    <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:12px; padding:12px;">
-                                        <label style="font-size:0.76rem; font-weight:700; color:#E2E8F0; display:block; margin-bottom:6px;">Formato de Destino</label>
-                                        <select style="width:100%; font-size:0.8rem; background:#04060A; border:1px solid rgba(255,255,255,0.14); border-radius:10px; padding:9px 12px; color:white; outline:none;">
-                                            <option>TikTok / Instagram Reels (9:16)</option>
-                                            <option>Feed Post / Carrusel (4:5)</option>
-                                            <option>Ficha Ojeador Widescreen (16:9)</option>
+                                    <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:12px; padding:11px;">
+                                        <label style="font-size:0.74rem; font-weight:700; color:#E2E8F0; display:block; margin-bottom:5px;">Formato & Resolución de Salida</label>
+                                        <select id="aspect-ratio-select" style="width:100%; font-size:0.78rem; background:#04060A; border:1px solid rgba(255,255,255,0.14); border-radius:10px; padding:8px 10px; color:white; outline:none;">
+                                            <option>TikTok / Reels Vertical (9:16 • 1080p/4K)</option>
+                                            <option>Póster / Carrusel Feed (4:5 • Alta Res)</option>
+                                            <option>Ficha Ojeador Widescreen (16:9 • 4K)</option>
                                         </select>
                                     </div>
                                 </div>
                             </div>
 
                             <div style="display:flex; flex-direction:column; gap:8px;">
-                                <button class="btn-primary" style="width:100%;" onclick="alert('✓ Contenido exportado y listo para compartir en Redes Sociales.')">🚀 Publicar / Exportar (1 Clic)</button>
-                                <button class="btn-secondary" style="width:100%;" onclick="checkTierUpgradePrompt()">⚡ Desbloquear Edición de Vídeo (PRO)</button>
+                                <button class="btn-primary" style="width:100%;" onclick="exportAndShareCreation()">🚀 Publicar / Exportar Creación (1 Clic)</button>
+                                <button class="btn-secondary" id="btn-download-studio-pdf" style="width:100%;" onclick="downloadStudioCreationPDF()">📥 Descargar Póster / Informe en PDF</button>
+                                <!-- ESTE BOTÓN SOLO SE MUESTRA SI EL USUARIO ES FREE; EN PRO/CLUB SE OCULTA POR COMPLETO -->
+                                <button class="btn-secondary" id="btn-unlock-video-pro" style="width:100%; border-color:rgba(var(--role-rgb),0.45); color:var(--role-color);" onclick="checkTierUpgradePrompt()">⚡ Desbloquear Edición de Vídeo (PRO)</button>
                             </div>
                         </div>
                     </div>
@@ -939,23 +1007,56 @@
         </div>
     </div>
 
-    <!-- MODAL UPGRADE PRO (ESTILO KINET CENTRAL) -->
+    <!-- MODAL 1: UPGRADE PRO PARA MODO VÍDEO (SOLO EN CUENTAS GRATUITAS) -->
     <div id="upgrade-tier-modal" class="kinet-modal-overlay">
         <div class="kinet-modal-box">
             <div class="kinet-modal-header" style="color: var(--role-color);">
-                <span>⚡</span> <span>KINET PRO // ESTUDIO DE VÍDEO</span>
+                <span>🎬</span> <span>DESBLOQUEAR MODO VÍDEO HD/4K (PRO)</span>
             </div>
             <div class="kinet-modal-body">
-                Tu cuenta actual está configurada en el <strong>Plan Gratuito</strong> (enfocado en edición de imágenes y beats musicales).<br><br>Para subir, recortar y procesar <strong>vídeos tácticos en alta definición</strong> con overlays dinámicos en movimiento, actualiza tu licencia a Pro Player o Club & Scout en el Despacho.
+                Tu cuenta actual está en el <strong>Plan Gratuito</strong> (con Modo Imagen y Spotify Sync habilitados).<br><br>
+                Para activar el <strong>Modo Vídeo (Reels 120 FPS, recorte inteligente con IA y telemetría en movimiento sin marca de agua)</strong>, pásate a <strong>KINET PRO</strong> o adquiere un <strong>Bono de Minutos de Vídeo (*Pay-As-You-Go*)</strong>.
             </div>
             <div class="kinet-modal-footer">
-                <button class="btn-secondary" onclick="document.getElementById('upgrade-tier-modal').classList.remove('open')">Cerrar</button>
-                <a href="despacho.html" class="btn-primary">Ir a Suscripciones</a>
+                <button class="btn-secondary" onclick="document.getElementById('upgrade-tier-modal').classList.remove('open')">Seguir en Modo Imagen</button>
+                <button class="btn-secondary" onclick="document.getElementById('upgrade-tier-modal').classList.remove('open'); openPayAsYouGoModal();">➕ Comprar Bono Vídeo</button>
+                <a href="despacho.html?tab=subscription" id="modal-sub-link" class="btn-primary">⚡ Pásate a KINET PRO →</a>
             </div>
         </div>
     </div>
 
-    <!-- MENÚ DESPLEGABLE MÓVIL (DRAWER) IDÉNTICO A APP.HTML -->
+    <!-- MODAL 2: BONOS DE PAGO FLEXIBLES (PAY-AS-YOU-GO) PARA MINUTOS EXTRA DE VÍDEO Y ANÁLISIS -->
+    <div id="payg-bonus-modal" class="kinet-modal-overlay">
+        <div class="kinet-modal-box">
+            <div class="kinet-modal-header" style="color: var(--role-color);">
+                <span>⚡</span> <span>BONOS EXTRA DE VÍDEO & IA (PAY-AS-YOU-GO)</span>
+            </div>
+            <div class="kinet-modal-body">
+                Añade minutos adicionales de renderizado de vídeo HD/4K, generación de Reels con IA y análisis biomecánico sin cambiar de plan mensual:
+                <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle);border-radius:12px;padding:10px 12px;">
+                        <div>
+                            <div style="font-weight:800;color:white;font-size:0.82rem;">🎬 Pack Sprint: +30 Minutos de Vídeo IA</div>
+                            <div style="font-size:0.68rem;color:var(--text-secondary);">Habilita Modo Vídeo HD + Telemetría 120 FPS</div>
+                        </div>
+                        <button class="btn-primary" style="padding:7px 12px;font-size:0.68rem;" onclick="purchaseVideoBonus(30, '4,99 €')">4,99 €</button>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(var(--role-rgb),0.08);border:1px solid var(--role-color);border-radius:12px;padding:10px 12px;">
+                        <div>
+                            <div style="font-weight:800;color:white;font-size:0.82rem;">🚀 Pack Pro Match: +100 Minutos Vídeo + 25 Análisis IA</div>
+                            <div style="font-size:0.68rem;color:#CBD5E1;">El más rentable • No caduca a fin de mes</div>
+                        </div>
+                        <button class="btn-primary" style="padding:7px 12px;font-size:0.68rem;" onclick="purchaseVideoBonus(100, '11,99 €')">11,99 €</button>
+                    </div>
+                </div>
+            </div>
+            <div class="kinet-modal-footer">
+                <button class="btn-secondary" onclick="document.getElementById('payg-bonus-modal').classList.remove('open')">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MENÚ DESPLEGABLE MÓVIL (DRAWER) -->
     <div id="mobile-menu-drawer" style="position:fixed;inset:0;background:rgba(6,8,14,0.97);backdrop-filter:blur(28px);z-index:200;display:flex;flex-direction:column;padding:20px 16px;justify-content:space-between;transform:translateY(-100%);transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);border-bottom:1px solid rgba(var(--role-rgb),0.2);">
         <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:12px;margin-bottom:12px;">
             <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:0.95rem;color:white;">KINET OS // MENÚ COMPLETO</div>
@@ -964,14 +1065,14 @@
         <div style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;padding:4px 0;max-height:calc(100vh - 160px);">
             <a href="app.html" id="drawer-vestuario" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>⚡ Vestuario</span><span>HOY</span></a>
             <a href="cuerpo-tecnico.html" id="drawer-cuerpo-tecnico" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🧠 Cuerpo Técnico IA</span><span>→</span></a>
-            <a href="ficha-pro.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🎴 Ficha & KINET Card</span><span>→</span></a>
-            <a href="ojeador-live.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>📡 Ojeador & Laboratorio</span><span>→</span></a>
-            <a href="comunidad.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Comunidad / Red Social</span><span>→</span></a>
+            <a href="ficha-pro.html" id="drawer-ficha-pro" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🎴 Ficha & KINET Card</span><span>→</span></a>
+            <a href="ojeador-live.html" id="drawer-ojeador-live" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>📡 Ojeador & Laboratorio</span><span>→</span></a>
+            <a href="comunidad.html" id="drawer-comunidad" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Comunidad / Red Social</span><span>→</span></a>
             <a href="media-studio.html" id="drawer-media-studio" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(var(--role-rgb),0.15);border:1px solid var(--role-color);color:var(--role-color);text-decoration:none;font-weight:600;"><span>🎵 KINET Media Studio™</span><span>●</span></a>
-            <a href="perfil.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>👤 Mi Perfil</span><span>→</span></a>
-            <a href="despacho.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>⚙️ Despacho & Ajustes</span><span>→</span></a>
-            <a href="comunidad.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(var(--role-rgb),0.05);border:1px solid rgba(var(--role-rgb),0.3);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Config. Red Social</span><span>⚡</span></a>
-            <a href="despacho.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:var(--role-gradient);color:#04060A;font-weight:900;text-decoration:none;"><span>⚡ Pásate a KINET PRO</span><span>→</span></a>
+            <a href="perfil.html" id="drawer-perfil" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>👤 Mi Perfil</span><span>→</span></a>
+            <a href="despacho.html" id="drawer-despacho" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>⚙️ Despacho & Ajustes</span><span>→</span></a>
+            <a href="comunidad.html?setup=true" id="drawer-config-social" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(var(--role-rgb),0.05);border:1px solid rgba(var(--role-rgb),0.3);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Config. Red Social</span><span>⚡</span></a>
+            <a href="despacho.html?tab=subscription" id="drawer-upgrade-pro" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:var(--role-gradient);color:#04060A;font-weight:900;text-decoration:none;"><span>⚡ Pásate a KINET PRO</span><span>→</span></a>
         </div>
         <div style="text-align:center;font-size:0.65rem;color:var(--text-secondary);font-family:'JetBrains Mono';margin-top:10px;">
             KINET OS • MOBILE VIEWPORT
@@ -992,7 +1093,7 @@
             <span style="font-size:1rem;">🎵</span>
             <span>Studio</span>
         </a>
-        <a href="ficha-pro.html" class="m-nav-btn">
+        <a href="ficha-pro.html" id="mob-ficha-pro" class="m-nav-btn">
             <span style="font-size:1rem;">🎴</span>
             <span>Ficha</span>
         </a>
@@ -1003,6 +1104,8 @@
     </nav>
 
     <script>
+        let currentStudioFormat = 'image'; // 'video' o 'image'
+
         function toggleMobileDrawer() {
             const drawer = document.getElementById('mobile-menu-drawer');
             if (drawer.style.transform === 'translateY(0px)') {
@@ -1019,6 +1122,17 @@
             if (v === 'staff' || v.includes('entrenador') || v.includes('coach') || v.includes('fisio') || v.includes('staff')) return 'staff';
             if (v === 'scout' || v.includes('scout') || v.includes('director') || v.includes('ojeador')) return 'scout';
             return null;
+        }
+
+        function isPaidOrBonusAccount() {
+            const tier = localStorage.getItem('kinet_account_tier') || 'free';
+            const bonusMins = parseInt(localStorage.getItem('kinet_bonus_video_mins') || '0', 10);
+            return tier === 'pro' || tier === 'club' || bonusMins > 0;
+        }
+
+        function isStrictProOrClub() {
+            const tier = localStorage.getItem('kinet_account_tier') || 'free';
+            return tier === 'pro' || tier === 'club';
         }
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -1047,153 +1161,282 @@
             document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${sportChosen.toUpperCase()}`;
             document.getElementById('topbar-sport-tag').textContent = `● ${sportChosen.toUpperCase()}`;
             document.getElementById('header-tag-text').textContent = `VIRAL LOOP & MARCA PERSONAL • ${sportChosen.toUpperCase()}`;
+            document.getElementById('watermark-right-sport').textContent = `${sportChosen.toUpperCase()} • 92 GRL`;
 
-            // Sincronizar enlaces con rol y deporte activos
+            // Sincronizar TODOS los enlaces del sidebar y menú móvil
             const queryParams = `?role=${activeRoleKey}&sport=${encodeURIComponent(sportChosen)}`;
-            ['nav-vestuario', 'drawer-vestuario', 'mob-vestuario'].forEach(id => {
+            const navMap = {
+                'brand-logo-desktop': 'app.html', 'brand-logo-mobile': 'app.html',
+                'nav-vestuario': 'app.html', 'drawer-vestuario': 'app.html', 'mob-vestuario': 'app.html',
+                'nav-cuerpo-tecnico': 'cuerpo-tecnico.html', 'drawer-cuerpo-tecnico': 'cuerpo-tecnico.html', 'mob-cuerpo-tecnico': 'cuerpo-tecnico.html',
+                'nav-ficha-pro': 'ficha-pro.html', 'drawer-ficha-pro': 'ficha-pro.html', 'mob-ficha-pro': 'ficha-pro.html',
+                'nav-ojeador-live': 'ojeador-live.html', 'drawer-ojeador-live': 'ojeador-live.html',
+                'nav-comunidad': 'comunidad.html', 'drawer-comunidad': 'comunidad.html',
+                'nav-media-studio': 'media-studio.html', 'drawer-media-studio': 'media-studio.html', 'mob-media-studio': 'media-studio.html',
+                'nav-perfil': 'perfil.html', 'drawer-perfil': 'perfil.html',
+                'nav-despacho': 'despacho.html', 'drawer-despacho': 'despacho.html'
+            };
+            Object.keys(navMap).forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.href = `app.html${queryParams}`;
-            });
-            ['nav-cuerpo-tecnico', 'drawer-cuerpo-tecnico', 'mob-cuerpo-tecnico'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.href = `cuerpo-tecnico.html${queryParams}`;
-            });
-            ['nav-media-studio', 'drawer-media-studio', 'mob-media-studio'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.href = `media-studio.html${queryParams}`;
+                if (el) el.href = `${navMap[id]}${queryParams}`;
             });
 
-            // Actualizar Favicon dinámicamente según el rol activo
-            const faviconHex = activeRoleKey === 'staff' ? '%23F59E0B' : (activeRoleKey === 'scout' ? '%233B82F6' : '%2300FF88');
-            const faviconSvg = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22${faviconHex}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`;
-            document.getElementById('dynamic-favicon').setAttribute('href', faviconSvg);
+            const subUrl = `despacho.html${queryParams}&tab=subscription`;
+            ['nav-upgrade-pro', 'drawer-upgrade-pro', 'modal-sub-link'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.href = subUrl;
+            });
 
-            // Adaptar zona de arrastre según la versión del plan actual
-            const tier = localStorage.getItem('kinet_account_tier') || 'free';
-            const dropTitle = document.getElementById('dropzone-title');
-            const dropSub = document.getElementById('dropzone-subtitle');
-            const dropIcon = document.getElementById('dropzone-icon');
-            const badgeLabel = document.getElementById('tier-indicator-badge');
-            const studioPill = document.getElementById('studio-mode-pill');
+            const socialSetupUrl = `comunidad.html${queryParams}&setup=true`;
+            ['nav-config-social', 'drawer-config-social'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.href = socialSetupUrl;
+            });
 
-            if (tier === 'pro' || tier === 'club') {
-                dropTitle.textContent = "Arrastra aquí tu vídeo o imagen";
-                dropSub.textContent = "Soporta MP4, MOV, PNG, JPG (Edición completa de vídeo y audio sincronizado)";
-                dropIcon.textContent = "🎬";
-                badgeLabel.textContent = "⚡ KINET PRO (VÍDEO & IMAGEN)";
-                studioPill.textContent = "MODO VÍDEO HD + BEATS";
-            } else {
-                dropTitle.textContent = "Arrastra aquí tu imagen";
-                dropSub.textContent = "Soporta PNG, JPG, WEBP (Plan Gratuito: Edición de imágenes y beats)";
-                dropIcon.textContent = "🖼️";
-                badgeLabel.textContent = "⚡ PLAN GRATUITO (IMÁGENES)";
-                studioPill.textContent = "MODO IMAGEN + BEATS";
+            // OCULTAR AUTOMÁTICAMENTE "Config. Red Social" SI YA FUE CONFIGURADA
+            if (localStorage.getItem('kinet_social_configured') === 'true') {
+                const navSoc = document.getElementById('nav-config-social');
+                const drwSoc = document.getElementById('drawer-config-social');
+                if (navSoc) navSoc.style.display = 'none';
+                if (drwSoc) drwSoc.style.display = 'none';
             }
 
-            // Seguimiento fluido del cursor (Spotlight) en paneles y chips de plantillas
-            document.querySelectorAll('.kinet-panel, .template-chip').forEach(panel => {
-                panel.addEventListener('mousemove', (e) => {
-                    const rect = panel.getBoundingClientRect();
-                    panel.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
-                    panel.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
-                });
-            });
+            // OCULTAR POR COMPLETO EL BOTÓN DE KINET PRO EN EL SIDEBAR SI YA ES PRO O CLUB
+            if (isStrictProOrClub()) {
+                const navUp = document.getElementById('nav-upgrade-pro');
+                const drwUp = document.getElementById('drawer-upgrade-pro');
+                if (navUp) navUp.style.setProperty('display', 'none', 'important');
+                if (drwUp) drwUp.style.setProperty('display', 'none', 'important');
+            }
 
-            // Seguimiento fluido del cursor (Spotlight) en todas las opciones del menú lateral
-            document.querySelectorAll('.side-link').forEach(link => {
-                link.addEventListener('mousemove', (e) => {
-                    const rect = link.getBoundingClientRect();
-                    link.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
-                    link.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+            // Inicializar permisos de KINET Media Studio™ según cuenta Free vs Pro/Club
+            syncStudioAccountPermissions();
+
+            document.querySelectorAll('.kinet-panel, .template-chip, .side-link').forEach(el => {
+                el.addEventListener('mousemove', (e) => {
+                    const rect = el.getBoundingClientRect();
+                    el.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+                    el.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
                 });
             });
         });
 
-        function applyTemplate(name) {
-            alert(`✓ Plantilla "${name}" aplicada correctamente al lienzo.`);
+        function syncStudioAccountPermissions() {
+            const tier = localStorage.getItem('kinet_account_tier') || 'free';
+            const bonusMins = parseInt(localStorage.getItem('kinet_bonus_video_mins') || '0', 10);
+            const badgeLabel = document.getElementById('tier-indicator-badge');
+            const unlockBtn = document.getElementById('btn-unlock-video-pro');
+            const videoCounter = document.getElementById('video-minutes-counter');
+            const lblModeVideo = document.getElementById('lbl-mode-video');
+            const qualityTag = document.getElementById('quality-status-tag');
+
+            if (tier === 'pro' || tier === 'club') {
+                // Cuenta PRO o CLUB: Desbloqueado al 100%, sin botón de bloqueo
+                const baseMins = tier === 'club' ? 300 : 60;
+                const totalMins = baseMins + bonusMins;
+                badgeLabel.textContent = tier === 'club' ? '🏆 LICENCIA CLUB & SCOUT (VÍDEO 4K + IMAGEN)' : '⚡ LICENCIA KINET PRO (VÍDEO HD/4K + IMAGEN)';
+                if (unlockBtn) unlockBtn.style.display = 'none';
+                if (videoCounter) videoCounter.textContent = `Cuota Vídeo IA: ${totalMins} min disp.`;
+                if (lblModeVideo) lblModeVideo.textContent = 'Modo Vídeo (Reel HD/4K)';
+                if (qualityTag) qualityTag.textContent = '4K 120FPS UNLOCKED';
+                selectStudioFormatMode('video', true);
+            } else if (bonusMins > 0) {
+                // Cuenta Free pero con Bono Pay-As-You-Go activo
+                badgeLabel.textContent = `⚡ BONO VÍDEO ACTIVO (${bonusMins} MIN DISP.)`;
+                if (unlockBtn) unlockBtn.style.display = 'none';
+                if (videoCounter) videoCounter.textContent = `Bono Vídeo IA: ${bonusMins} min disp.`;
+                if (lblModeVideo) lblModeVideo.textContent = 'Modo Vídeo (Bono Activo)';
+                if (qualityTag) qualityTag.textContent = '1080p BONO ACTIVO';
+                selectStudioFormatMode('video', true);
+            } else {
+                // Cuenta Gratuita estándar
+                badgeLabel.textContent = '⚡ PLAN GRATUITO (IMÁGENES + BEATS)';
+                if (unlockBtn) unlockBtn.style.display = 'inline-flex';
+                if (videoCounter) videoCounter.textContent = 'Cuota Vídeo IA: 0 min (Plan Free)';
+                if (lblModeVideo) lblModeVideo.textContent = '🔒 Modo Vídeo (PRO / Bono)';
+                if (qualityTag) qualityTag.textContent = 'MODO IMAGEN FREE';
+                selectStudioFormatMode('image', true);
+            }
+        }
+
+        // =========================================================================
+        // SELECTOR INTERACTIVO "🎬 MODO VÍDEO" vs "🖼️ MODO IMAGEN"
+        // =========================================================================
+        function selectStudioFormatMode(mode, skipPrompt) {
+            if (mode === 'video' && !isPaidOrBonusAccount()) {
+                if (!skipPrompt) {
+                    document.getElementById('upgrade-tier-modal').classList.add('open');
+                }
+                return;
+            }
+
+            currentStudioFormat = mode;
+            const btnVideo = document.getElementById('btn-mode-video');
+            const btnImage = document.getElementById('btn-mode-image');
+            const dropIcon = document.getElementById('dropzone-icon');
+            const dropTitle = document.getElementById('dropzone-title');
+            const dropSub = document.getElementById('dropzone-subtitle');
+            const studioPill = document.getElementById('studio-mode-pill');
+            const subStatus = document.getElementById('canvas-sub-status');
+            const fileInput = document.getElementById('hidden-media-file-input');
+
+            if (mode === 'video') {
+                btnVideo.classList.add('active');
+                btnImage.classList.remove('active');
+                dropIcon.textContent = '🎬';
+                dropTitle.textContent = 'Haz clic o arrastra aquí tu Vídeo (MP4, MOV, WEBM)';
+                dropSub.textContent = 'Modo Vídeo Pro: Sincronización automática de cortes al ritmo de Spotify y telemetría 120 FPS';
+                studioPill.textContent = '🎬 MODO VÍDEO HD/4K + BEATS';
+                subStatus.textContent = '🎬 [ Modo Vídeo Activo: Renderizado de Reel 120 FPS con telemetría dinámica y Spotify Sync ]';
+                if (fileInput) fileInput.setAttribute('accept', 'video/*,image/*');
+            } else {
+                btnImage.classList.add('active');
+                btnVideo.classList.remove('active');
+                dropIcon.textContent = '🖼️';
+                dropTitle.textContent = 'Haz clic o arrastra aquí tu Imagen (PNG, JPG, WEBP)';
+                dropSub.textContent = 'Modo Imagen: Creación de Pósters Match Day, KINET Cards e infografías con música';
+                studioPill.textContent = '🖼️ MODO IMAGEN + BEATS';
+                subStatus.textContent = '🖼️ [ Modo Imagen Activo: Póster de alto contraste con sello biométrico y Spotify Sync ]';
+                if (fileInput) fileInput.setAttribute('accept', 'image/*');
+            }
         }
 
         function triggerFileSelect() {
-            const tier = localStorage.getItem('kinet_account_tier') || 'free';
-            if (tier === 'free' || tier === 'guest') {
-                alert('Abriendo selector de imágenes y biblioteca musical...');
-            } else {
-                alert('Abriendo explorador multimedia (Vídeo & Imagen en alta definición)...');
+            const fileInput = document.getElementById('hidden-media-file-input');
+            if (fileInput) fileInput.click();
+        }
+
+        function handleStudioFileSelected(input) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            const isVideoFile = file.type.startsWith('video/');
+
+            if (isVideoFile && !isPaidOrBonusAccount()) {
+                document.getElementById('upgrade-tier-modal').classList.add('open');
+                input.value = '';
+                return;
             }
+
+            document.getElementById('canvas-main-headline').textContent =
+                `${isVideoFile ? '🎬 VÍDEO CARGADO:' : '🖼️ IMAGEN CARGADA:'} ${file.name.toUpperCase()}`;
+            document.getElementById('canvas-sub-status').textContent =
+                `✓ Archivo "${file.name}" sincronizado con telemetría KINET y pista musical activa.`;
+
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const box = document.getElementById('canvas-preview-box');
+                    box.style.backgroundImage = `linear-gradient(rgba(6,8,14,0.65), rgba(6,8,14,0.85)), url(${e.target.result})`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function applyTemplate(name, headlineText, chipEl) {
+            document.querySelectorAll('.template-chip').forEach(c => c.classList.remove('active'));
+            if (chipEl) chipEl.classList.add('active');
+
+            document.getElementById('canvas-main-headline').textContent = headlineText;
+            document.getElementById('canvas-sub-status').textContent =
+                `⚡ [ Plantilla "${name}" activa en modo ${currentStudioFormat === 'video' ? 'Vídeo HD/4K' : 'Imagen Pro'} ]`;
+        }
+
+        function updateCanvasFromControls() {
+            const track = document.getElementById('spotify-track-select').value;
+            const wm = document.getElementById('watermark-select').value;
+            document.getElementById('active-track-label').textContent = `"${track}"`;
+            document.getElementById('watermark-left-text').textContent = wm;
         }
 
         function generateAiEdit() {
             const prompt = document.getElementById('ai-prompt-input').value.trim();
-            if (!prompt) {
-                alert('Por favor, escribe una descripción para el filtro de IA.');
-                return;
-            }
-            alert(`✨ Aplicando IA: "${prompt}" sincronizado con el ritmo de Spotify.`);
+            if (!prompt) return;
+            document.getElementById('canvas-sub-status').textContent =
+                `✨ Filtro IA Aplicado (${currentStudioFormat.toUpperCase()}): "${prompt}"`;
+            document.getElementById('ai-prompt-input').value = '';
         }
 
         function checkTierUpgradePrompt() {
-            const tier = localStorage.getItem('kinet_account_tier') || 'free';
-            if (tier === 'free' || tier === 'guest') {
+            if (!isPaidOrBonusAccount()) {
                 document.getElementById('upgrade-tier-modal').classList.add('open');
             } else {
-                alert('✓ Tu cuenta ya dispone de la versión PRO con edición de vídeo habilitada.');
+                selectStudioFormatMode('video');
             }
         }
-        // CARGAR PERSONALIZACIÓN ESTÉTICA GUARDADA EN DESPACHO (COLOR, FONDO, BORDES, SCANLINES Y FAVICON)
-        (function applyGlobalKinetTheme() {
-            window.addEventListener('DOMContentLoaded', () => {
-                const savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
-                if (savedAccent) {
-                    const clean = savedAccent.replace('#', '');
-                    const num = parseInt(clean, 16);
-                    const r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
-                    document.body.style.setProperty('--role-color', savedAccent);
-                    document.body.style.setProperty('--role-rgb', `${r}, ${g}, ${b}`);
-                    document.body.style.setProperty('--role-glow', `rgba(${r}, ${g}, ${b}, 0.42)`);
-                    document.body.style.setProperty('--role-gradient', `linear-gradient(135deg, ${savedAccent} 0%, rgba(${r},${g},${b},0.75) 100%)`);
 
-                    const favEl = document.getElementById('dynamic-favicon');
-                    if (favEl) {
-                        favEl.setAttribute('href', `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%23${clean}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`);
-                    }
-                }
+        function openPayAsYouGoModal() {
+            document.getElementById('payg-bonus-modal').classList.add('open');
+        }
 
-                const savedBg = localStorage.getItem('kinet_bg_intensity');
-                const bgMap = { deep: '#020305', contrast: '#0B1222', emerald: '#04120E', crimson: '#120509', standard: '#06080E' };
-                if (savedBg && bgMap[savedBg]) document.documentElement.style.setProperty('--bg-void', bgMap[savedBg]);
+        function purchaseVideoBonus(minutes, priceLabel) {
+            const currentBonus = parseInt(localStorage.getItem('kinet_bonus_video_mins') || '0', 10);
+            const updatedBonus = currentBonus + minutes;
+            localStorage.setItem('kinet_bonus_video_mins', String(updatedBonus));
+            document.getElementById('payg-bonus-modal').classList.remove('open');
+            syncStudioAccountPermissions();
+        }
 
-                const savedPanelStyle = localStorage.getItem('kinet_panel_style');
-                if (savedPanelStyle === 'carbon') {
-                    document.documentElement.style.setProperty('--bg-panel', 'rgba(8, 10, 15, 0.98)');
-                    document.documentElement.style.setProperty('--border-subtle', 'rgba(255, 255, 255, 0.14)');
-                } else if (savedPanelStyle === 'neon-border') {
-                    document.documentElement.style.setProperty('--bg-panel', 'rgba(10, 14, 22, 0.92)');
-                    document.documentElement.style.setProperty('--border-subtle', 'rgba(var(--role-rgb), 0.38)');
-                }
+        function exportAndShareCreation() {
+            const headline = document.getElementById('canvas-main-headline').textContent;
+            document.getElementById('canvas-sub-status').textContent =
+                `✓ Pieza "${headline}" renderizada en modo ${currentStudioFormat.toUpperCase()} y lista para tu Red Social KINET.`;
+        }
 
-                const savedRadius = localStorage.getItem('kinet_corner_radius');
-                if (savedRadius) {
-                    document.querySelectorAll('.kinet-panel').forEach(p => p.style.borderRadius = savedRadius);
-                }
+        // =========================================================================
+        // DESCARGA REAL EN PDF DE ALTA RESOLUCIÓN DEL PÓSTER / CREACIÓN DEL ESTUDIO
+        // =========================================================================
+        async function downloadStudioCreationPDF() {
+            const btn = document.getElementById('btn-download-studio-pdf');
+            const prevTxt = btn.innerHTML;
+            btn.innerHTML = '⏳ Generando PDF...';
+            btn.disabled = true;
 
-                const currentTier = localStorage.getItem('kinet_account_tier');
-                if (currentTier === 'pro' || currentTier === 'club') {
-                    document.querySelectorAll('a[href="despacho.html"]').forEach(a => {
-                        if (a.textContent.includes('Pásate a KINET PRO')) {
-                            a.style.background = 'rgba(var(--role-rgb), 0.12)';
-                            a.style.color = 'var(--role-color)';
-                            a.style.border = '1px solid var(--role-color)';
-                            a.innerHTML = `<span class="side-link-left"><span>✓</span> <span>${currentTier === 'club' ? 'LICENCIA CLUB & SCOUT' : 'LICENCIA KINET PRO'}</span></span><span style="font-size:0.7rem;">●</span>`;
-                        }
-                    });
-                }
-            });
-        })();
+            try {
+                const target = document.getElementById('studio-exportable-canvas');
+                const canvas = await html2canvas(target, {
+                    scale: 3,
+                    backgroundColor: '#06080E',
+                    useCORS: true,
+                    logging: false
+                });
+
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+                pdf.setFillColor(6, 8, 14);
+                pdf.rect(0, 0, 297, 210, 'F');
+
+                pdf.setTextColor(0, 255, 136);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(14);
+                pdf.text('KINET MEDIA STUDIO™ // EXPORTACION OFICIAL DE MARCA PERSONAL', 14, 18);
+
+                const sportChosen = (localStorage.getItem('kinet_sport') || 'Fútbol').toUpperCase();
+                const userName = (localStorage.getItem('kinet_user_name') || 'ALEX VANCE').toUpperCase();
+                pdf.setTextColor(203, 213, 225);
+                pdf.setFontSize(9.5);
+                pdf.text(`ATLETA: ${userName}   |   DEPORTE: ${sportChosen}   |   MODO: ${currentStudioFormat.toUpperCase()}`, 14, 26);
+
+                pdf.addImage(imgData, 'PNG', 14, 34, 269, 152);
+
+                pdf.setTextColor(148, 163, 184);
+                pdf.setFontSize(8);
+                pdf.text('Creado y auditado con KINET Media Studio™ & Spotify Sync • kinetos.es', 14, 198);
+
+                pdf.save(`KINET_Studio_${userName.replace(/\s+/g, '_')}.pdf`);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                btn.innerHTML = prevTxt;
+                btn.disabled = false;
+            }
+        }
+
         // =========================================================================
         // MOTOR GLOBAL DE PERSONALIZACIÓN KINET OS (ARCOÍRIS BETA, SCANLINES Y TEMA)
         // =========================================================================
         (function initGlobalKinetPersonalization() {
-            // Inyectar estilos globales de Arcoíris y Scanlines si la página no los tiene
             const styleTag = document.createElement('style');
             styleTag.innerHTML = `
                 @keyframes kinetRainbowFlowBg {
@@ -1212,7 +1455,8 @@
                 body.rainbow-mode .btn-primary,
                 body.rainbow-mode .brand-logo-icon,
                 body.rainbow-mode .bar-fill,
-                body.rainbow-mode .quota-fill {
+                body.rainbow-mode .quota-fill,
+                body.rainbow-mode .media-mode-btn.active {
                     background: linear-gradient(270deg, #ff0055, #ff9900, #ffee00, #00ff88, #00e5ff, #7700ff, #ff00aa, #ff0055) !important;
                     background-size: 400% 400% !important;
                     animation: kinetRainbowFlowBg 5s linear infinite !important;
@@ -1249,11 +1493,9 @@
             }
 
             window.addEventListener('DOMContentLoaded', () => {
-                // 1. Scanlines HUD (Monitor Táctico)
                 const scanlinesOn = localStorage.getItem('kinet_scanlines') === 'true';
                 document.body.classList.toggle('scanlines-active', scanlinesOn);
 
-                // 2. Modo Arcoíris BETA vs Color Fijo Personalizado
                 const rainbowOn = localStorage.getItem('kinet_rainbow_mode') === 'true';
                 const savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
 
@@ -1283,7 +1525,6 @@
                     setFavicon(savedAccent);
                 }
 
-                // 3. Fondo Void, Estilo de Paneles y Bordes
                 const savedBg = localStorage.getItem('kinet_bg_intensity');
                 const bgMap = { deep: '#020305', contrast: '#0B1222', emerald: '#04120E', crimson: '#120509', standard: '#06080E' };
                 if (savedBg && bgMap[savedBg]) document.documentElement.style.setProperty('--bg-void', bgMap[savedBg]);
@@ -1300,19 +1541,6 @@
                 const savedRadius = localStorage.getItem('kinet_corner_radius');
                 if (savedRadius) {
                     document.querySelectorAll('.kinet-panel').forEach(p => p.style.borderRadius = savedRadius);
-                }
-
-                // 4. Ocultar "Pásate a KINET PRO" si ya es Pro o Club
-                const currentTier = localStorage.getItem('kinet_account_tier');
-                if (currentTier === 'pro' || currentTier === 'club') {
-                    document.querySelectorAll('a[href^="despacho.html"]').forEach(a => {
-                        if (a.textContent.includes('Pásate a KINET PRO')) {
-                            a.style.background = 'rgba(var(--role-rgb), 0.12)';
-                            a.style.color = 'var(--role-color)';
-                            a.style.border = '1px solid var(--role-color)';
-                            a.innerHTML = `<span class="side-link-left"><span>✓</span> <span>${currentTier === 'club' ? 'LICENCIA CLUB & SCOUT' : 'LICENCIA KINET PRO'}</span></span><span style="font-size:0.7rem;">●</span>`;
-                        }
-                    });
                 }
             });
         })();
