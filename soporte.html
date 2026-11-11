@@ -73,6 +73,14 @@
     .animate-fade-in {
       animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
+    /* Scroll limpio en el chat rápido IA */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
   </style>
 </head>
 <body style="--spotlight-color: rgba(0, 255, 102, 0.25);" class="bg-cyber-pattern text-slate-100 font-sans min-h-screen flex flex-col selection:bg-kinet-neon selection:text-black opacity-0 transition-opacity duration-300">
@@ -98,96 +106,212 @@
   </header>
 
   <!-- CONTENIDO PRINCIPAL DE SOPORTE -->
-  <main class="flex-grow pt-32 px-4 max-w-6xl mx-auto w-full py-16 main-box card-liquid-transition space-y-16 animate-fade-in">
+  <main class="flex-grow pt-32 px-4 max-w-6xl mx-auto w-full py-16 main-box card-liquid-transition space-y-14 animate-fade-in">
     
     <div class="text-center space-y-4 max-w-3xl mx-auto">
       <span class="px-3 py-1 rounded-full bg-kinet-neon/10 border border-kinet-neon/30 text-kinet-neon text-xs font-mono uppercase">Centro de Ayuda y Contacto</span>
       <h2 class="font-display font-black text-3xl sm:text-5xl text-white">¿Cómo podemos ayudarte hoy?</h2>
-      <p class="text-xs sm:text-sm text-slate-400">Resuelve tus dudas sobre la plataforma multi-agente o contacta directamente con nuestro equipo técnico y de éxito para clubes.</p>
+      <p class="text-xs sm:text-sm text-slate-400">Resuelve tus dudas sobre la plataforma multi-agente, consulta al asistente rápido de incidencias IA o contacta directamente con nuestro equipo técnico y de éxito para clubes.</p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
       
-      <!-- FAQ DETALLADO -->
-      <div class="space-y-6">
-        <h3 class="font-display font-bold text-xl text-white flex items-center space-x-2">
-          <i data-lucide="help-circle" class="w-5 h-5 text-kinet-neon"></i>
-          <span>Preguntas Frecuentes</span>
-        </h3>
+      <!-- COLUMNA IZQUIERDA: PREGUNTAS FRECUENTES AMPLIADAS -->
+      <div class="space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <h3 class="font-display font-bold text-xl text-white flex items-center space-x-2">
+            <i data-lucide="help-circle" class="w-5 h-5 text-kinet-neon"></i>
+            <span>Preguntas Frecuentes</span>
+          </h3>
+          <div class="relative w-full sm:w-64">
+            <input type="text" id="faq-search-box" oninput="filterFaqCards(this.value)" placeholder="Buscar duda (ej: KINET Card, PDF...)" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+          </div>
+        </div>
 
-        <div class="space-y-4">
-          <div class="glass-card p-6 rounded-2xl border-slate-800 space-y-2 cursor-pointer" onclick="toggleFaq(this)">
-            <div class="flex justify-between items-center">
+        <div class="space-y-3.5" id="faq-cards-container">
+          
+          <!-- FAQ 1 (Original) -->
+          <div class="glass-card faq-item-card p-5 rounded-2xl border-slate-800 space-y-2 cursor-pointer" onclick="toggleFaq(this)">
+            <div class="flex justify-between items-center gap-3">
               <h4 class="font-display font-bold text-xs sm:text-sm text-white">¿Cómo funciona el protocolo de debate de los 4 agentes?</h4>
-              <i data-lucide="chevron-down" class="w-4 h-4 text-kinet-neon transition-transform"></i>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-kinet-neon shrink-0 transition-transform"></i>
             </div>
             <p class="text-xs text-slate-400 hidden pt-2 leading-relaxed">
-              Cuando introduces un dato (ej: sobrecarga o fatiga), los módulos de Salud, Táctica, Psicología y Media debaten en segundo plano de manera automatizada para emitir una directiva quirúrgica unificada sin sobrecargar al usuario con explicaciones teóricas extensas.
+              Cuando introduces un dato en el Vestuario o en el Cuerpo Técnico IA (ej: sobrecarga en isquios o pauta pre-partido), los 4 especialistas (Preparador Físico, Nutricionista, Psicólogo Deportivo y Analista & Career IA) cruzan tus biométricas en tiempo real para emitir una directiva unificada y descargable en acta PDF.
             </p>
           </div>
 
-          <div class="glass-card p-6 rounded-2xl border-slate-800 space-y-2 cursor-pointer" onclick="toggleFaq(this)">
-            <div class="flex justify-between items-center">
-              <h4 class="font-display font-bold text-xs sm:text-sm text-white">¿Cómo se gestiona el cobro de cuotas para clubes (B2B)?</h4>
-              <i data-lucide="chevron-down" class="w-4 h-4 text-kinet-neon transition-transform"></i>
+          <!-- FAQ 2 (Nueva: KINET Card ??) -->
+          <div class="glass-card faq-item-card p-5 rounded-2xl border-slate-800 space-y-2 cursor-pointer" onclick="toggleFaq(this)">
+            <div class="flex justify-between items-center gap-3">
+              <h4 class="font-display font-bold text-xs sm:text-sm text-white">¿Por qué mi KINET Card 3D aparece con interrogaciones (??)?</h4>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-kinet-neon shrink-0 transition-transform"></i>
             </div>
             <p class="text-xs text-slate-400 hidden pt-2 leading-relaxed">
-              Mediante la integración certificada con Stripe Connect. El tesorero del club puede automatizar las remesas de cuotas y gestionar pagos directamente desde la interfaz del módulo B2B.
+              En el modo oficial <strong>KINET AI Verified</strong> ningún deportista puede inflarse sus atributos manualmente para garantizar su validez ante los ojeadores. Pulsa en <strong>"Descubrir tu KINET Card"</strong> y sube los <strong>3 micro-clips de tu posición</strong> (~1.5 min de tu cuota en total) para que la visión artificial calcule tu GRL real y desbloquee tu Informe Completo de Tendencias. Si solo quieres simular notas libremente, activa el <em>Modo Custom Manual</em>.
             </p>
           </div>
 
-          <div class="glass-card p-6 rounded-2xl border-slate-800 space-y-2 cursor-pointer" onclick="toggleFaq(this)">
-            <div class="flex justify-between items-center">
-              <h4 class="font-display font-bold text-xs sm:text-sm text-white">¿Mis datos médicos y de rendimiento están seguros?</h4>
-              <i data-lucide="chevron-down" class="w-4 h-4 text-kinet-neon transition-transform"></i>
+          <!-- FAQ 3 (Nueva: Cuota de Vídeo 120 FPS y Bonos Pay-As-You-Go) -->
+          <div class="glass-card faq-item-card p-5 rounded-2xl border-slate-800 space-y-2 cursor-pointer" onclick="toggleFaq(this)">
+            <div class="flex justify-between items-center gap-3">
+              <h4 class="font-display font-bold text-xs sm:text-sm text-white">¿Cómo funcionan los minutos de vídeo a 120 FPS y los Bonos Extra?</h4>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-kinet-neon shrink-0 transition-transform"></i>
             </div>
             <p class="text-xs text-slate-400 hidden pt-2 leading-relaxed">
-              Sí. Cumplimos rigurosamente con el RGPD mediante cifrado AES-256 en reposo, protocolos TLS 1.3 y aislamiento por fila (RLS) en Supabase para que cada usuario acceda únicamente a su expediente privado.
+              El motor <strong>KINET Vision Analytics™</strong> incluye <strong>60 min/mes</strong> en el Plan Pro Player (8,99€) y <strong>240 min/mes</strong> en la Licencia Club & Scout (29,99€). Si necesitas más minutos puntualmente sin subir de plan mensual, puedes recargar paquetes <strong>Pay-As-You-Go (+30 min por 4,99€ o +100 min por 11,99€)</strong> cuyos minutos no caducan a fin de mes.
             </p>
           </div>
+
+          <!-- FAQ 4 (Nueva: KINET Network - Pulse, Shorts y Radar) -->
+          <div class="glass-card faq-item-card p-5 rounded-2xl border-slate-800 space-y-2 cursor-pointer" onclick="toggleFaq(this)">
+            <div class="flex justify-between items-center gap-3">
+              <h4 class="font-display font-bold text-xs sm:text-sm text-white">¿Qué incluye la red social KINET Network™ (Pulse, Shorts y Radar)?</h4>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-kinet-neon shrink-0 transition-transform"></i>
+            </div>
+            <p class="text-xs text-slate-400 hidden pt-2 leading-relaxed">
+              Combina tres herramientas en un mismo módulo: <strong>KINET Pulse</strong> (muro de actualizaciones y debates técnicos), <strong>KINET Shorts 9:16</strong> (reproductor vertical de highlights verificados a pantalla completa deslizando arriba/abajo) y <strong>KINET Radar</strong> (convocatorias de pruebas, becas y mercado B2B con Mensajes Directos cifrados).
+            </p>
+          </div>
+
+          <!-- FAQ 5 (Nueva: Informes y Dossier CV en PDF) -->
+          <div class="glass-card faq-item-card p-5 rounded-2xl border-slate-800 space-y-2 cursor-pointer" onclick="toggleFaq(this)">
+            <div class="flex justify-between items-center gap-3">
+              <h4 class="font-display font-bold text-xs sm:text-sm text-white">¿Cómo exporto mi KINET Card, mi CV Deportivo y los informes en PDF?</h4>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-kinet-neon shrink-0 transition-transform"></i>
+            </div>
+            <p class="text-xs text-slate-400 hidden pt-2 leading-relaxed">
+              Puedes descargar documentos oficiales en PDF listos para enviar a clubes y agencias desde <strong>Ficha & KINET Card</strong> (Carta 3D o Dossier + Informe de Tendencias IA), <strong>Mi Perfil</strong> (Pasaporte Biométrico CV), <strong>Cuerpo Técnico IA</strong> (Acta táctica de especialistas) y <strong>Ojeador Live</strong> (Informe biomecánico de Scout Matrix).
+            </p>
+          </div>
+
+          <!-- FAQ 6 (Nueva: KINET Media Studio & Spotify Sync) -->
+          <div class="glass-card faq-item-card p-5 rounded-2xl border-slate-800 space-y-2 cursor-pointer" onclick="toggleFaq(this)">
+            <div class="flex justify-between items-center gap-3">
+              <h4 class="font-display font-bold text-xs sm:text-sm text-white">¿Cómo funciona KINET Media Studio™ con Spotify Sync?</h4>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-kinet-neon shrink-0 transition-transform"></i>
+            </div>
+            <p class="text-xs text-slate-400 hidden pt-2 leading-relaxed">
+              Te permite crear piezas en <strong>Modo Vídeo (HD/4K)</strong> o <strong>Modo Imagen (Póster)</strong> superponiendo capas de telemetría verificada (velocidad punta, GRL, somatotipo) sincronizadas al ritmo de tus pistas con <strong>Spotify Sync</strong> para publicarlas en un clic en KINET Shorts.
+            </p>
+          </div>
+
+          <!-- FAQ 7 (Original) -->
+          <div class="glass-card faq-item-card p-5 rounded-2xl border-slate-800 space-y-2 cursor-pointer" onclick="toggleFaq(this)">
+            <div class="flex justify-between items-center gap-3">
+              <h4 class="font-display font-bold text-xs sm:text-sm text-white">¿Cómo se gestiona el cobro de cuotas y licencias para clubes (B2B)?</h4>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-kinet-neon shrink-0 transition-transform"></i>
+            </div>
+            <p class="text-xs text-slate-400 hidden pt-2 leading-relaxed">
+              Mediante la integración certificada con Stripe Connect. El club o agencia puede gestionar sus licencias de plantilla, acceder al radar completo de Scout Matrix B2B y automatizar facturación desde el Despacho.
+            </p>
+          </div>
+
+          <!-- FAQ 8 (Original) -->
+          <div class="glass-card faq-item-card p-5 rounded-2xl border-slate-800 space-y-2 cursor-pointer" onclick="toggleFaq(this)">
+            <div class="flex justify-between items-center gap-3">
+              <h4 class="font-display font-bold text-xs sm:text-sm text-white">¿Mis datos médicos, biométricos y de vídeo están seguros?</h4>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-kinet-neon shrink-0 transition-transform"></i>
+            </div>
+            <p class="text-xs text-slate-400 hidden pt-2 leading-relaxed">
+              Sí. Cumplimos rigurosamente con el RGPD mediante cifrado AES-256 en reposo, protocolos TLS 1.3 y aislamiento de privacidad configurable desde tu Despacho (puedes ocultar tu ficha del Radar Scout cuando tengas contrato cerrado).
+            </p>
+          </div>
+
         </div>
       </div>
 
-      <!-- FORMULARIO DE CONTACTO DIRECTO -->
-      <div class="glass-card p-8 rounded-3xl border-slate-800 space-y-6">
-        <div class="space-y-2">
-          <h3 class="font-display font-bold text-xl text-white flex items-center space-x-2">
-            <i data-lucide="mail" class="w-5 h-5 text-amber-400"></i>
-            <span>Contacto Directo con Soporte</span>
-          </h3>
-          <p class="text-xs text-slate-400">¿Tienes problemas técnicos o necesitas una licencia corporativa a medida para tu club? Escríbenos.</p>
+      <!-- COLUMNA DERECHA: CHAT RÁPIDO IA DE DUDAS/INCIDENCIAS + FORMULARIO DE CONTACTO DIRECTO -->
+      <div class="space-y-8">
+        
+        <!-- 1. NUEVO CHAT RÁPIDO DE DUDAS E INCIDENCIAS IA -->
+        <div class="glass-card p-6 sm:p-7 rounded-3xl border-slate-800 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-display font-bold text-lg text-white flex items-center space-x-2">
+              <i data-lucide="bot" class="w-5 h-5 text-kinet-neon"></i>
+              <span>Chat Rápido de Dudas e Incidencias IA</span>
+            </h3>
+            <span class="px-2.5 py-1 rounded-full bg-kinet-neon/10 border border-kinet-neon/30 text-kinet-neon text-[10px] font-mono font-bold">● IA ONLINE</span>
+          </div>
+          <p class="text-xs text-slate-400">Pregunta cualquier duda rápida o describe un problema técnico para recibir diagnóstico al instante:</p>
+
+          <!-- Caja de mensajes del chat IA -->
+          <div id="ai-quick-chat-box" class="bg-[#0B0E12] border border-slate-800/90 rounded-2xl p-4 h-48 overflow-y-auto no-scrollbar space-y-3 text-xs">
+            <div class="bg-[#141921] border border-slate-800 rounded-xl p-3 text-slate-200 max-w-[90%]">
+              <span class="font-mono text-[10px] text-kinet-neon font-bold block mb-1">KINET SUPPORT IA // ASISTENTE TÉCNICO</span>
+              ¡Hola! Soy el asistente técnico de <strong>KINET OS</strong>. Toca uno de los botones rápidos de abajo o escríbeme tu duda o incidencia:
+            </div>
+          </div>
+
+          <!-- Botones rápidos de consulta / incidencia -->
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" onclick="askSupportAI('¿Cómo desbloqueo mi KINET Card con ???')" class="px-2.5 py-1 rounded-lg bg-[#12161C] hover:bg-kinet-neon hover:text-black border border-slate-700/80 text-[11px] font-mono text-slate-300 transition">
+              🎴 Desbloquear KINET Card (??)
+            </button>
+            <button type="button" onclick="askSupportAI('¿Cómo funcionan los minutos de vídeo y bonos?')" class="px-2.5 py-1 rounded-lg bg-[#12161C] hover:bg-kinet-neon hover:text-black border border-slate-700/80 text-[11px] font-mono text-slate-300 transition">
+              🎥 Cuota Vídeo & Bonos
+            </button>
+            <button type="button" onclick="askSupportAI('¿Cómo descargo mi CV Deportivo o Carta en PDF?')" class="px-2.5 py-1 rounded-lg bg-[#12161C] hover:bg-kinet-neon hover:text-black border border-slate-700/80 text-[11px] font-mono text-slate-300 transition">
+              📄 Descargar PDF / CV
+            </button>
+            <button type="button" onclick="askSupportAI('Quiero reportar una incidencia técnica en la app')" class="px-2.5 py-1 rounded-lg bg-[#12161C] hover:bg-amber-400 hover:text-black border border-amber-500/40 text-[11px] font-mono text-amber-300 transition">
+              🛠️ Reportar Incidencia Rápida
+            </button>
+          </div>
+
+          <!-- Input del Chat IA -->
+          <div class="flex gap-2">
+            <input type="text" id="ai-chat-input" onkeydown="if(event.key==='Enter') sendMessageToSupportAI()" placeholder="Escribe tu duda o incidencia a la IA..." class="flex-1 bg-[#12161C] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+            <button type="button" onclick="sendMessageToSupportAI()" class="px-4 py-2.5 rounded-xl bg-kinet-neon text-black font-display font-black text-xs hover:bg-emerald-400 transition shrink-0">
+              Enviar
+            </button>
+          </div>
         </div>
 
-        <form onsubmit="handleSupportSubmit(event)" class="space-y-4">
-          <div>
-            <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Nombre o Responsable del Club</label>
-            <input type="text" required placeholder="Ej: Carlos Mendizábal" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+        <!-- 2. FORMULARIO DE CONTACTO DIRECTO (MANTENIDO TAL CUAL EL ORIGINAL) -->
+        <div class="glass-card p-8 rounded-3xl border-slate-800 space-y-6">
+          <div class="space-y-2">
+            <h3 class="font-display font-bold text-xl text-white flex items-center space-x-2">
+              <i data-lucide="mail" class="w-5 h-5 text-amber-400"></i>
+              <span>Contacto Directo con Soporte</span>
+            </h3>
+            <p class="text-xs text-slate-400">¿Tienes problemas técnicos o necesitas una licencia corporativa a medida para tu club? Escríbenos.</p>
           </div>
 
-          <div>
-            <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Correo Electrónico de Contacto</label>
-            <input type="email" required placeholder="contacto@tuclub.com" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
-          </div>
+          <form onsubmit="handleSupportSubmit(event)" class="space-y-4" id="direct-contact-form">
+            <div>
+              <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Nombre o Responsable del Club</label>
+              <input type="text" id="contact-name" required placeholder="Ej: Carlos Mendizábal" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+            </div>
 
-          <div>
-            <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Motivo de Consulta</label>
-            <select class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
-              <option>Soporte Técnico / Incidencia</option>
-              <option>Licencia B2B Clubes & Scout</option>
-              <option>Migración de Datos (Excels / GPS)</option>
-              <option>Otra consulta</option>
-            </select>
-          </div>
+            <div>
+              <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Correo Electrónico de Contacto</label>
+              <input type="email" id="contact-email" required placeholder="contacto@tuclub.com" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+            </div>
 
-          <div>
-            <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Mensaje</label>
-            <textarea rows="4" required placeholder="Explícanos tu caso..." class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-kinet-neon transition"></textarea>
-          </div>
+            <div>
+              <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Motivo de Consulta</label>
+              <select id="contact-reason" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+                <option>Soporte Técnico / Incidencia</option>
+                <option>Duda sobre KINET Card 3D / Vision Analytics™</option>
+                <option>Licencia B2B Clubes & Scout</option>
+                <option>Suscripción Pro Player / Bonos de Vídeo</option>
+                <option>Migración de Datos (Excels / GPS)</option>
+                <option>Otra consulta</option>
+              </select>
+            </div>
 
-          <button type="submit" class="w-full py-3 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-wider uppercase hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(0,255,102,0.3)]">
-            Enviar Mensaje a Soporte ⚡
-          </button>
-        </form>
+            <div>
+              <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Mensaje</label>
+              <textarea id="contact-msg" rows="4" required placeholder="Explícanos tu caso..." class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-kinet-neon transition"></textarea>
+            </div>
+
+            <button type="submit" class="w-full py-3 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-wider uppercase hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(0,255,102,0.3)]">
+              Enviar Mensaje a Soporte ⚡
+            </button>
+          </form>
+        </div>
+
       </div>
 
     </div>
@@ -233,6 +357,73 @@
         text.classList.add('hidden');
         if (icon) icon.style.transform = 'rotate(0deg)';
       }
+    }
+
+    function filterFaqCards(query) {
+      const q = (query || '').toLowerCase().trim();
+      document.querySelectorAll('.faq-item-card').forEach(card => {
+        const content = card.innerText.toLowerCase();
+        if (!q || content.includes(q)) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // CHAT RÁPIDO DE DUDAS E INCIDENCIAS CON IA
+    function askSupportAI(questionText) {
+      const input = document.getElementById('ai-chat-input');
+      input.value = questionText;
+      sendMessageToSupportAI();
+    }
+
+    function sendMessageToSupportAI() {
+      const input = document.getElementById('ai-chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const box = document.getElementById('ai-quick-chat-box');
+
+      // Burbuja del usuario
+      const userDiv = document.createElement('div');
+      userDiv.className = 'bg-kinet-neon/15 border border-kinet-neon/40 rounded-xl p-3 text-white ml-auto max-w-[85%] text-right';
+      userDiv.textContent = text;
+      box.appendChild(userDiv);
+      input.value = '';
+      box.scrollTop = box.scrollHeight;
+
+      setTimeout(() => {
+        const replyHtml = getAiSupportReply(text);
+        const botDiv = document.createElement('div');
+        botDiv.className = 'bg-[#141921] border border-slate-800 rounded-xl p-3 text-slate-200 max-w-[92%]';
+        botDiv.innerHTML = `<span class="font-mono text-[10px] text-kinet-neon font-bold block mb-1">KINET SUPPORT IA // DIAGNÓSTICO</span>${replyHtml}`;
+        box.appendChild(botDiv);
+        box.scrollTop = box.scrollHeight;
+      }, 380);
+    }
+
+    function getAiSupportReply(q) {
+      const t = q.toLowerCase();
+      if (t.includes('??') || t.includes('card') || t.includes('carta') || t.includes('desbloque')) {
+        return 'En modo <strong>AI Verified</strong> la carta muestra <strong>??</strong> hasta que subes los <strong>3 micro-clips de tu posición</strong> (~1.5 min en total) desde el botón <em>"Descubrir tu KINET Card"</em>. Si quieres mover las barras manualmente sin gastar minutos, pulsa en <em>"Cambiar a Modo Custom Manual"</em>.';
+      }
+      if (t.includes('minuto') || t.includes('bono') || t.includes('cuota') || t.includes('video') || t.includes('vídeo')) {
+        return 'El Plan <strong>Pro Player (8,99€/mes)</strong> incluye 60 min/mes de vídeo a 120 FPS y el Plan <strong>Club & Scout (29,99€/mes)</strong> incluye 240 min/mes. Además puedes comprar <strong>Bonos Pay-As-You-Go (+30 min por 4,99€ o +100 min por 11,99€)</strong> que no caducan a fin de mes.';
+      }
+      if (t.includes('pdf') || t.includes('cv') || t.includes('descarg') || t.includes('export')) {
+        return 'Puedes exportar en PDF de alta resolución desde 4 módulos: <strong>Ficha & KINET Card</strong> (Carta 3D o Dossier + Informe de Tendencias), <strong>Mi Perfil</strong> (CV Deportivo), <strong>Cuerpo Técnico IA</strong> (Acta de los 4 especialistas) y <strong>Ojeador Live</strong> (Informe Scout Matrix).';
+      }
+      if (t.includes('incidencia') || t.includes('fallo') || t.includes('error') || t.includes('problema') || t.includes('reportar')) {
+        const msgInput = document.getElementById('contact-msg');
+        if (msgInput) {
+          document.getElementById('contact-reason').selectedIndex = 0;
+          msgInput.placeholder = 'Describe aquí el fallo detectado (módulo, dispositivo y qué ocurrió)...';
+          msgInput.focus();
+        }
+        return 'He seleccionado <strong>"Soporte Técnico / Incidencia"</strong> en el formulario de aquí abajo y he activado la casilla de mensaje para que nos envíes el ticket directo con prioridad técnica.';
+      }
+      return 'Puedes ampliar cualquiera de las <strong>8 Preguntas Frecuentes de la izquierda</strong> o rellenar el formulario de aquí abajo para que nuestro equipo de soporte te responda por correo en menos de 2 horas.';
     }
 
     function handleSupportSubmit(e) {
