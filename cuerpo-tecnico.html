@@ -7,13 +7,16 @@
     <title>KINET OS // Cuerpo Técnico IA</title>
     
     <!-- Favicon Corporativo Dinámico por JavaScript -->
-    <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
+    <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%233B82F6%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
 
     <!-- Tipografías Oficiales -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     
+    <!-- Librería Oficial para Exportar Actas e Informes del Cuerpo Técnico IA en PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <style>
         :root {
             --bg-void: #06080E;
@@ -54,6 +57,13 @@
             margin: 0;
             padding: 0;
             -webkit-tap-highlight-color: transparent;
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+        *::-webkit-scrollbar {
+            width: 0px !important;
+            height: 0px !important;
+            display: none !important;
         }
 
         html, body {
@@ -308,7 +318,7 @@
             text-transform: uppercase;
         }
 
-        /* WORKSPACE CON LA MISMA ANIMACIÓN NATIVA DE APP.HTML */
+        /* WORKSPACE */
         .os-workspace {
             max-width: 1280px;
             width: 100%;
@@ -319,10 +329,6 @@
             flex-direction: column;
             overflow: hidden;
             animation: pageEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        @media (max-width: 850px) { 
-            .os-workspace { padding: 10px; } 
         }
 
         @keyframes pageEnter {
@@ -350,7 +356,6 @@
             box-shadow: 0 16px 36px rgba(0,0,0,0.6), 0 0 22px rgba(var(--role-rgb), 0.1);
         }
 
-        /* VISTA MÓVIL VERTICAL TIPO WHATSAPP (AJUSTADO PARA NO CHOCAR CON LA BARRA INFERIOR) */
         @media (max-width: 850px) {
             .os-workspace {
                 padding: 10px 12px 86px 12px;
@@ -362,7 +367,6 @@
                 margin-bottom: 6px;
                 position: relative;
             }
-            /* Por defecto en móvil mostramos la lista de chats y ocultamos el área de mensajes */
             .chat-sidebar {
                 display: flex !important;
                 width: 100%;
@@ -379,7 +383,6 @@
                 inset: 0;
                 z-index: 20;
             }
-            /* Clases de estado dinámico en móvil */
             .chat-container.mobile-chat-active .chat-sidebar {
                 display: none !important;
             }
@@ -395,10 +398,6 @@
             flex-direction: column;
             overflow-y: auto;
             overflow-x: hidden;
-            scrollbar-width: none;
-        }
-        .chat-sidebar::-webkit-scrollbar {
-            display: none;
         }
 
         .chat-sidebar-header {
@@ -469,16 +468,16 @@
         }
 
         .chat-header-bar {
-            padding: 14px 16px;
+            padding: 12px 16px;
             background: rgba(8, 11, 18, 0.95);
             border-bottom: 1px solid var(--border-subtle);
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
+            flex-wrap: wrap;
         }
 
-        /* BOTÓN DE RETROCESO (ESTILO WHATSAPP MÓVIL) */
         .chat-back-btn {
             display: none;
             background: transparent;
@@ -492,6 +491,27 @@
         }
         @media (max-width: 850px) {
             .chat-back-btn { display: flex; }
+        }
+
+        .btn-pdf-chat {
+            background: rgba(var(--role-rgb), 0.12);
+            border: 1px solid rgba(var(--role-rgb), 0.45);
+            color: var(--role-color);
+            border-radius: 10px;
+            padding: 6px 12px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.64rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s ease;
+        }
+        .btn-pdf-chat:hover {
+            background: var(--role-gradient);
+            color: #04060A;
+            box-shadow: 0 0 14px var(--role-glow);
         }
 
         .chat-messages-scroll {
@@ -642,10 +662,10 @@
 
     <div class="os-layout">
         
-        <!-- SIDEBAR FIJO (IDÉNTICO A APP.HTML) -->
+        <!-- SIDEBAR FIJO (IDÉNTICO A FICHA-PRO, VESTUARIO Y MEDIA STUDIO) -->
         <aside class="os-sidebar">
             <div class="sidebar-top-section">
-                <a href="app.html" class="brand-box">
+                <a href="app.html" id="brand-logo-desktop" class="brand-box">
                     <div class="brand-logo-icon">K</div>
                     <div class="brand-text">
                         <h1>KINET OS</h1>
@@ -653,7 +673,7 @@
                     </div>
                 </a>
 
-              <nav class="sidebar-nav">
+                <nav class="sidebar-nav">
                     <a href="app.html" id="nav-vestuario" class="side-link" style="margin-bottom: 8px;">
                         <span class="side-link-left"><span>⚡</span> <span>Vestuario</span></span>
                         <span style="font-size:0.65rem;font-family:'JetBrains Mono';">HOY</span>
@@ -681,7 +701,7 @@
                 </nav>
             </div>
 
-            <!-- BLOQUE INFERIOR SIDEBAR COMPLETO -->
+            <!-- BLOQUE INFERIOR SIDEBAR COMPLETO E INTELIGENTE -->
             <div class="sidebar-bottom-section">
                 <div class="sidebar-ai-tip-box" id="sidebar-dynamic-tip">
                     <div class="sidebar-ai-tip-header">
@@ -692,19 +712,21 @@
                     </div>
                 </div>
 
-                <a href="perfil.html" class="side-link">
+                <a href="perfil.html" id="nav-perfil" class="side-link">
                     <span class="side-link-left"><span>👤</span> <span>Mi Perfil</span></span>
                     <span style="font-size:0.7rem;opacity:0.5;">→</span>
                 </a>
-                <a href="despacho.html" class="side-link">
+                <a href="despacho.html" id="nav-despacho" class="side-link">
                     <span class="side-link-left"><span>⚙️</span> <span>Despacho & Ajustes</span></span>
                     <span style="font-size:0.7rem;opacity:0.5;">→</span>
                 </a>
-                <a href="comunidad.html" class="side-link" style="border-color: rgba(var(--role-rgb), 0.3); background: rgba(var(--role-rgb), 0.05);">
+                <!-- SE OCULTA AUTOMÁTICAMENTE SI LA RED SOCIAL YA FUE CONFIGURADA -->
+                <a href="comunidad.html?setup=true" id="nav-config-social" class="side-link" style="border-color: rgba(var(--role-rgb), 0.3); background: rgba(var(--role-rgb), 0.05);">
                     <span class="side-link-left"><span>🌐</span> <span>Config. Red Social</span></span>
                     <span style="font-size:0.7rem;color:var(--role-color);">⚡</span>
                 </a>
-                <a href="despacho.html" class="side-link" style="background: var(--role-gradient); color: #04060A; font-weight: 900; border: none;">
+                <!-- SE OCULTA POR COMPLETO SI EL USUARIO YA ES PRO O CLUB -->
+                <a href="despacho.html?tab=subscription" id="nav-upgrade-pro" class="side-link" style="background: var(--role-gradient); color: #04060A; font-weight: 900; border: none;">
                     <span class="side-link-left"><span>⚡</span> <span>Pásate a KINET PRO</span></span>
                     <span style="font-size:0.7rem;">→</span>
                 </a>
@@ -716,7 +738,7 @@
             
             <!-- TOPBAR -->
             <header class="os-topbar">
-                <a href="app.html" class="mobile-brand">
+                <a href="app.html" id="brand-logo-mobile" class="mobile-brand">
                     <div class="brand-logo-icon" style="width:32px;height:32px;font-size:0.95rem;">K</div>
                     <span style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:1rem;letter-spacing:0.1em;">KINET OS</span>
                 </a>
@@ -766,7 +788,7 @@
                             <div class="contact-avatar">🥗</div>
                             <div class="contact-info">
                                 <span class="contact-name" id="agent-2-name">Nutricionista IA</span>
-                                <span class="contact-status" id="agent-2-sub">Pautas Pre y Post Partido</span>
+                                <span class="contact-status" id="agent-2-sub">Pautas Pre y Post Competición</span>
                             </div>
                         </div>
 
@@ -799,15 +821,15 @@
                                     <span id="active-chat-status" style="font-family:'JetBrains Mono',monospace; font-size:0.6rem; color:var(--role-color);">Sincronizado con tus biométricas</span>
                                 </div>
                             </div>
-                            <div style="font-family:'JetBrains Mono',monospace; font-size:0.6rem; color:var(--text-secondary); display:none; @media(min-width:600px){display:block;}">
-                                SECURE ENCRYPTED // KINET AI
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <button class="btn-pdf-chat" onclick="downloadChatReportPDF()">📄 Descargar Informe PDF</button>
                             </div>
                         </div>
 
                         <div class="chat-messages-scroll" id="chat-messages-box"></div>
 
                         <div class="chat-input-bar">
-                            <input type="text" id="chat-user-input" class="chat-input" placeholder="Escribe tu consulta..." onkeydown="if(event.key==='Enter') sendUserMessage()">
+                            <input type="text" id="chat-user-input" class="chat-input" placeholder="Escribe tu consulta al Cuerpo Técnico IA..." onkeydown="if(event.key==='Enter') sendUserMessage()">
                             <button class="send-btn" onclick="sendUserMessage()">→</button>
                         </div>
 
@@ -819,7 +841,7 @@
         </div>
     </div>
 
-    <!-- MENÚ DESPLEGABLE MÓVIL (DRAWER) IDÉNTICO A APP.HTML -->
+    <!-- MENÚ DESPLEGABLE MÓVIL (DRAWER) -->
     <div id="mobile-menu-drawer" style="position:fixed;inset:0;background:rgba(6,8,14,0.97);backdrop-filter:blur(28px);z-index:200;display:flex;flex-direction:column;padding:20px 16px;justify-content:space-between;transform:translateY(-100%);transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);border-bottom:1px solid rgba(var(--role-rgb),0.2);">
         <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:12px;margin-bottom:12px;">
             <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:0.95rem;color:white;">KINET OS // MENÚ COMPLETO</div>
@@ -828,14 +850,14 @@
         <div style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;padding:4px 0;max-height:calc(100vh - 160px);">
             <a href="app.html" id="drawer-vestuario" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>⚡ Vestuario</span><span>HOY</span></a>
             <a href="cuerpo-tecnico.html" id="drawer-cuerpo-tecnico" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(var(--role-rgb),0.15);border:1px solid var(--role-color);color:var(--role-color);text-decoration:none;font-weight:600;"><span>🧠 Cuerpo Técnico IA</span><span>💬</span></a>
-            <a href="ficha-pro.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🎴 Ficha & KINET Card</span><span>→</span></a>
-            <a href="ojeador-live.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>📡 Ojeador & Laboratorio</span><span>→</span></a>
-            <a href="comunidad.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Comunidad / Red Social</span><span>→</span></a>
+            <a href="ficha-pro.html" id="drawer-ficha-pro" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🎴 Ficha & KINET Card</span><span>→</span></a>
+            <a href="ojeador-live.html" id="drawer-ojeador-live" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>📡 Ojeador & Laboratorio</span><span>→</span></a>
+            <a href="comunidad.html" id="drawer-comunidad" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Comunidad / Red Social</span><span>→</span></a>
             <a href="media-studio.html" id="drawer-media-studio" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🎵 KINET Media Studio™</span><span>→</span></a>
-            <a href="perfil.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>👤 Mi Perfil</span><span>→</span></a>
-            <a href="despacho.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>⚙️ Despacho & Ajustes</span><span>→</span></a>
-            <a href="comunidad.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(var(--role-rgb),0.05);border:1px solid rgba(var(--role-rgb),0.3);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Config. Red Social</span><span>⚡</span></a>
-            <a href="despacho.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:var(--role-gradient);color:#04060A;font-weight:900;text-decoration:none;"><span>⚡ Pásate a KINET PRO</span><span>→</span></a>
+            <a href="perfil.html" id="drawer-perfil" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>👤 Mi Perfil</span><span>→</span></a>
+            <a href="despacho.html" id="drawer-despacho" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>⚙️ Despacho & Ajustes</span><span>→</span></a>
+            <a href="comunidad.html?setup=true" id="drawer-config-social" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(var(--role-rgb),0.05);border:1px solid rgba(var(--role-rgb),0.3);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Config. Red Social</span><span>⚡</span></a>
+            <a href="despacho.html?tab=subscription" id="drawer-upgrade-pro" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:var(--role-gradient);color:#04060A;font-weight:900;text-decoration:none;"><span>⚡ Pásate a KINET PRO</span><span>→</span></a>
         </div>
         <div style="text-align:center;font-size:0.65rem;color:var(--text-secondary);font-family:'JetBrains Mono';margin-top:10px;">
             KINET OS • MOBILE VIEWPORT
@@ -852,11 +874,11 @@
             <span style="font-size:1rem;">🧠</span>
             <span>Técnicos</span>
         </a>
-        <a href="ficha-pro.html" class="m-nav-btn">
+        <a href="ficha-pro.html" id="mob-ficha-pro" class="m-nav-btn">
             <span style="font-size:1rem;">🎴</span>
             <span>Ficha</span>
         </a>
-        <a href="ojeador-live.html" class="m-nav-btn">
+        <a href="ojeador-live.html" id="mob-ojeador-live" class="m-nav-btn">
             <span style="font-size:1rem;">📡</span>
             <span>Ojeador</span>
         </a>
@@ -876,178 +898,182 @@
             }
         }
 
-        const CHAT_PROFILES = {
-            athlete: {
-                roleLabel: "ATLETA PRO",
-                tipTitle: "Sala de Juntas // Atleta",
-                tipContent: "Los 4 especialistas están sincronizados en tiempo real con tus biométricas (92% disponibilidad).",
-                agentsMeta: {
-                    physical: { name: "Preparador Físico IA", sub: "Carga, GPS y Recuperación" },
-                    nutrition: { name: "Nutricionista IA", sub: "Pautas Pre y Post Partido" },
-                    mental: { name: "Psicólogo Deportivo IA", sub: "Foco y Gestión de Presión" },
-                    career: { name: "Analista & Career IA", sub: "Métricas y Rendimiento" }
+        function buildSportAwareChats(roleKey, sportName) {
+            const sp = sportName || 'Fútbol';
+            const BASE = {
+                athlete: {
+                    roleLabel: "ATLETA PRO",
+                    tipTitle: `Sala de Juntas // ${sp.toUpperCase()}`,
+                    tipContent: `Los 4 especialistas están sincronizados en tiempo real con tus métricas de ${sp}.`,
+                    agentsMeta: {
+                        physical: { name: "Preparador Físico IA", sub: `Carga, Telemetría y Recuperación (${sp})` },
+                        nutrition: { name: "Nutricionista IA", sub: "Hidratación y Macros de Competición" },
+                        mental: { name: "Psicólogo Deportivo IA", sub: "Foco y Gestión de Presión" },
+                        career: { name: "Analista & Career IA", sub: `Métricas y Rendimiento en ${sp}` }
+                    },
+                    chats: {
+                        group: {
+                            title: `Sala de Juntas KINET (${sp} • Los 4 Agentes)`,
+                            status: `Sincronizado con tus biométricas de ${sp} (92% Energía)`,
+                            icon: "👥",
+                            messages: [
+                                { sender: "Preparador Físico IA", text: `¡Hola! Analizando tus biométricas de ${sp} de hoy, tienes el depósito al 92%. Excelente recuperación nocturna.`, time: "10:00", incoming: true },
+                                { sender: "Nutricionista IA", text: "Ratifico el dato. He registrado tu pauta nutricional y cumple con los macros para el esfuerzo específico de esta tarde.", time: "10:02", incoming: true },
+                                { sender: "Psicólogo Deportivo IA", text: "Canales de concentración despejados. Estás en zona de rendimiento óptimo.", time: "10:03", incoming: true },
+                                { sender: "Analista & Career IA", text: `Todo listo para cruzar tus métricas de ${sp} con la sesión de hoy. Puedes descargar el informe en PDF arriba en cualquier momento.`, time: "10:05", incoming: true }
+                            ]
+                        },
+                        physical: {
+                            title: "Preparador Físico IA",
+                            status: `Monitoreo de Cargas (${sp}) Activo`,
+                            icon: "⚡",
+                            messages: [
+                                { sender: "Preparador Físico IA", text: `Hola Atleta. ¿Cómo sientes la musculatura tras la última sesión de ${sp}?`, time: "09:00", incoming: true },
+                                { sender: "Preparador Físico IA", text: "Recuerda que hoy toca trabajo explosivo y prevención articular. Avísame si notas cualquier sobrecarga.", time: "09:01", incoming: true }
+                            ]
+                        },
+                        nutrition: {
+                            title: "Nutricionista IA",
+                            status: "Control Nutricional & Hidratación",
+                            icon: "🥗",
+                            messages: [
+                                { sender: "Nutricionista IA", text: "Hola. Para la sesión de hoy mantén una hidratación constante con sales minerales.", time: "08:30", incoming: true }
+                            ]
+                        },
+                        mental: {
+                            title: "Psicólogo Deportivo IA",
+                            status: "Optimización de Foco & Presión",
+                            icon: "🧠",
+                            messages: [
+                                { sender: "Psicólogo Deportivo IA", text: `Saludos. La visualización previa a tu sesión de ${sp} es clave para automatizar decisiones rápidas bajo presión.`, time: "08:15", incoming: true }
+                            ]
+                        },
+                        career: {
+                            title: "Analista & Career IA",
+                            status: `Estadísticas & Rendimiento (${sp})`,
+                            icon: "📊",
+                            messages: [
+                                { sender: "Analista & Career IA", text: `Tus percentiles en la base de datos de ${sp} se han incrementado un 3.4% este mes. Gran trabajo.`, time: "08:00", incoming: true }
+                            ]
+                        }
+                    }
                 },
-                chats: {
-                    group: {
-                        title: "Sala de Juntas KINET (Los 4 Agentes)",
-                        status: "Sincronizado con tus biométricas (92% Energía)",
-                        icon: "👥",
-                        messages: [
-                            { sender: "Preparador Físico IA", text: "¡Hola! Analizando tus biométricas de hoy, tienes el depósito al 92%. Excelente recuperación nocturna.", time: "10:00", incoming: true },
-                            { sender: "Nutricionista IA", text: "Ratifico el dato. He registrado tu desayuno y cumple perfectamente con los macros para el esfuerzo táctico de esta tarde.", time: "10:02", incoming: true },
-                            { sender: "Psicólogo Deportivo IA", text: "Canales de concentración despejados. Estás en zona de rendimiento óptimo.", time: "10:03", incoming: true },
-                            { sender: "Analista & Career IA", text: "Todo listo para cruzar tus métricas con la sesión de hoy. Pregúntanos lo que necesites.", time: "10:05", incoming: true }
-                        ]
+                staff: {
+                    roleLabel: "ENTRENADOR / STAFF",
+                    tipTitle: `Mesa Técnica // ${sp.toUpperCase()}`,
+                    tipContent: `Control de cargas del grupo y telemetría táctica de ${sp} sincronizados.`,
+                    agentsMeta: {
+                        physical: { name: "Readaptador & Físico IA", sub: `Cargas Grupales y Prevención (${sp})` },
+                        nutrition: { name: "Nutrición Equipo IA", sub: "Suplementación y Recuperación" },
+                        mental: { name: "Psicólogo de Grupo IA", sub: "Liderazgo y Cohesión" },
+                        career: { name: "Analista Táctico IA", sub: `Estrategia y Datos (${sp})` }
                     },
-                    physical: {
-                        title: "Preparador Físico IA",
-                        status: "Monitoreo GPS y Cargas Activo",
-                        icon: "⚡",
-                        messages: [
-                            { sender: "Preparador Físico IA", text: "Hola Atleta. ¿Cómo sientes las piernas tras el esfuerzo de ayer?", time: "09:00", incoming: true },
-                            { sender: "Preparador Físico IA", text: "Recuerda que hoy toca trabajo explosivo y core. Avísame si notas cualquier sobrecarga.", time: "09:01", incoming: true }
-                        ]
+                    chats: {
+                        group: {
+                            title: `Sala de Juntas KINET (Staff ${sp})`,
+                            status: `92% del Grupo Apto • Telemetría ${sp} Activa`,
+                            icon: "👥",
+                            messages: [
+                                { sender: "Readaptador & Físico IA", text: `Coach, tenemos al 92% del grupo de ${sp} en estado óptimo. Dos deportistas presentan fatiga muscular leve tras la última jornada.`, time: "09:10", incoming: true },
+                                { sender: "Nutrición Equipo IA", text: "Protocolo de recuperación con electrolitos y carbohidratos activado para todo el grupo.", time: "09:12", incoming: true },
+                                { sender: "Psicólogo de Grupo IA", text: "El equipo muestra un nivel de activación competitiva alto para la sesión principal.", time: "09:14", incoming: true },
+                                { sender: "Analista Táctico IA", text: `He preparado el informe biomecánico y táctico de ${sp} para la sesión de hoy.`, time: "09:15", incoming: true }
+                            ]
+                        },
+                        physical: {
+                            title: "Readaptador & Físico IA",
+                            status: "Control de Cargas del Microciclo",
+                            icon: "⚡",
+                            messages: [
+                                { sender: "Readaptador & Físico IA", text: "Recomiendo limitar un 15% el volumen de alta intensidad para los deportistas con aviso de fatiga.", time: "08:45", incoming: true }
+                            ]
+                        },
+                        nutrition: {
+                            title: "Nutrición Equipo IA",
+                            status: "Control Metabólico del Equipo",
+                            icon: "🥗",
+                            messages: [
+                                { sender: "Nutrición Equipo IA", text: "Las pautas post-entrenamiento de hoy ya están ajustadas.", time: "08:30", incoming: true }
+                            ]
+                        },
+                        mental: {
+                            title: "Psicólogo de Grupo IA",
+                            status: "Clima y Cohesión",
+                            icon: "🧠",
+                            messages: [
+                                { sender: "Psicólogo de Grupo IA", text: "Sugiero reforzar el feedback positivo durante los bloques de máxima exigencia.", time: "08:20", incoming: true }
+                            ]
+                        },
+                        career: {
+                            title: "Analista Táctico IA",
+                            status: `Big Data & Estrategia (${sp})`,
+                            icon: "📊",
+                            messages: [
+                                { sender: "Analista Táctico IA", text: `Los indicadores de eficiencia del equipo en ${sp} han subido un 4.1% esta semana.`, time: "08:05", incoming: true }
+                            ]
+                        }
+                    }
+                },
+                scout: {
+                    roleLabel: "DIRECTOR DEPORTIVO / SCOUT",
+                    tipTitle: `Central de Ojeo // ${sp.toUpperCase()}`,
+                    tipContent: `Objetivos de ${sp} en cartera monitorizados en vivo con filtros de percentiles actualizados.`,
+                    agentsMeta: {
+                        physical: { name: "Auditor Biométrico IA", sub: `Potencial Físico y Marcas (${sp})` },
+                        nutrition: { name: "Auditor Médico IA", sub: "Longevidad y Riesgo Lesional" },
+                        mental: { name: "Analista Conductual IA", sub: "Adaptación y Competitividad" },
+                        career: { name: "Data Scout & Mercado IA", sub: `Percentiles, ROI y Captación (${sp})` }
                     },
-                    nutrition: {
-                        title: "Nutricionista IA",
-                        status: "Control Nutricional & Hidratación",
-                        icon: "🥗",
-                        messages: [
-                            { sender: "Nutricionista IA", text: "Hola. Para la sesión de hoy mantén una hidratación constante con sales minerales.", time: "08:30", incoming: true },
-                            { sender: "Nutricionista IA", text: "¿Tienes dudas sobre tu cena pre-partido de esta semana?", time: "08:31", incoming: true }
-                        ]
-                    },
-                    mental: {
-                        title: "Psicólogo Deportivo IA",
-                        status: "Optimización de Foco & Presión",
-                        icon: "🧠",
-                        messages: [
-                            { sender: "Psicólogo Deportivo IA", text: "Saludos. La visualización previa al entrenamiento de hoy es clave para automatizar decisiones rápidas en el campo.", time: "08:15", incoming: true }
-                        ]
-                    },
-                    career: {
-                        title: "Analista & Career IA",
-                        status: "Estadísticas & Métricas de Rendimiento",
-                        icon: "📊",
-                        messages: [
-                            { sender: "Analista & Career IA", text: "Tus percentiles de velocidad punta se han incrementado un 3.4% este mes. Gran trabajo.", time: "08:00", incoming: true }
-                        ]
+                    chats: {
+                        group: {
+                            title: `Comité de Scouting & Dirección (${sp})`,
+                            status: `Radar ${sp} Activo • Seguimiento en Tiempo Real`,
+                            icon: "👥",
+                            messages: [
+                                { sender: "Data Scout & Mercado IA", text: `Director, nuestros objetivos principales de ${sp} compiten hoy. Sus percentiles de rendimiento están en el Top 4% de su categoría.`, time: "10:00", incoming: true },
+                                { sender: "Auditor Biométrico IA", text: "Las métricas de potencia, velocidad y economía de esfuerzo a 120 FPS superan la media nacional sin caída en el tramo final.", time: "10:02", incoming: true },
+                                { sender: "Auditor Médico IA", text: "Cero bajas musculares en las últimas 2 temporadas. Perfil de disponibilidad excelente (98%).", time: "10:04", incoming: true },
+                                { sender: "Analista Conductual IA", text: "Alta madurez competitiva en escenarios de máxima presión. Puedes exportar este informe en PDF arriba a la derecha.", time: "10:05", incoming: true }
+                            ]
+                        },
+                        physical: {
+                            title: "Auditor Biométrico IA",
+                            status: `Evaluación Atlética (${sp})`,
+                            icon: "⚡",
+                            messages: [
+                                { sender: "Auditor Biométrico IA", text: `Comparativa física lista: los 3 candidatos en cartera de ${sp} superan el percentil 94 de potencia y resistencia.`, time: "09:15", incoming: true }
+                            ]
+                        },
+                        nutrition: {
+                            title: "Auditor Médico IA",
+                            status: "Prevención & Historial Clínico",
+                            icon: "🥗",
+                            messages: [
+                                { sender: "Auditor Médico IA", text: "Informe de riesgos auditado: todos los objetivos prioritarios cumplen los estándares fisiológicos.", time: "09:00", incoming: true }
+                            ]
+                        },
+                        mental: {
+                            title: "Analista Conductual IA",
+                            status: "Perfil Psicológico & Adaptación",
+                            icon: "🧠",
+                            messages: [
+                                { sender: "Analista Conductual IA", text: "Evaluación de carácter competitivo completada para los prospectos Sub-23.", time: "08:40", incoming: true }
+                            ]
+                        },
+                        career: {
+                            title: "Data Scout & Mercado IA",
+                            status: `Valor de Mercado & Proyección (${sp})`,
+                            icon: "📊",
+                            messages: [
+                                { sender: "Data Scout & Mercado IA", text: `Oportunidad detectada en ${sp}: coste de incorporación inferior al valor real proyectado (+38% en 18 meses).`, time: "08:10", incoming: true }
+                            ]
+                        }
                     }
                 }
-            },
-            staff: {
-                roleLabel: "ENTRENADOR / STAFF",
-                tipTitle: "Mesa Técnica // Staff",
-                tipContent: "Control de cargas de los 24 jugadores y telemetría táctica del microciclo sincronizados.",
-                agentsMeta: {
-                    physical: { name: "Readaptador & Físico IA", sub: "Cargas Grupales y GPS Plantilla" },
-                    nutrition: { name: "Nutrición Plantilla IA", sub: "Suplementación y Menú Concentración" },
-                    mental: { name: "Psicólogo de Grupo IA", sub: "Liderazgo y Cohesión de Vestuario" },
-                    career: { name: "Analista Táctico IA", sub: "Scouting Rival y Balón Parado" }
-                },
-                chats: {
-                    group: {
-                        title: "Sala de Juntas KINET (Staff Técnico)",
-                        status: "22/24 Jugadores Aptos • 2 Avisos de Sobrecarga",
-                        icon: "👥",
-                        messages: [
-                            { sender: "Readaptador & Físico IA", text: "Míster, tenemos al 91% de la plantilla disponible. Los dos laterales titulares presentan sobrecarga leve en isquios tras el último partido.", time: "09:10", incoming: true },
-                            { sender: "Nutrición Plantilla IA", text: "Protocolo de recuperación con electrolitos y creatina activado para el grupo titular.", time: "09:12", incoming: true },
-                            { sender: "Psicólogo de Grupo IA", text: "El vestuario muestra un nivel de activación competitiva alto para la sesión MD-2.", time: "09:14", incoming: true },
-                            { sender: "Analista Táctico IA", text: "He preparado los cortes de vídeo sobre la presión alta del rival para la charla de las 09:30.", time: "09:15", incoming: true }
-                        ]
-                    },
-                    physical: {
-                        title: "Readaptador & Físico IA",
-                        status: "Control de Cargas del Microciclo",
-                        icon: "⚡",
-                        messages: [
-                            { sender: "Readaptador & Físico IA", text: "Recomiendo limitar a 45 minutos el bloque de alta intensidad para los dos laterales con aviso amarillo.", time: "08:45", incoming: true }
-                        ]
-                    },
-                    nutrition: {
-                        title: "Nutrición Plantilla IA",
-                        status: "Control Metabólico del Equipo",
-                        icon: "🥗",
-                        messages: [
-                            { sender: "Nutrición Plantilla IA", text: "El menú post-entrenamiento de hoy ya está ajustado con carga glucémica media-alta.", time: "08:30", incoming: true }
-                        ]
-                    },
-                    mental: {
-                        title: "Psicólogo de Grupo IA",
-                        status: "Clima y Cohesión de Vestuario",
-                        icon: "🧠",
-                        messages: [
-                            { sender: "Psicólogo de Grupo IA", text: "Sugiero reforzar el feedback positivo en los suplentes durante las tareas de posesión.", time: "08:20", incoming: true }
-                        ]
-                    },
-                    career: {
-                        title: "Analista Táctico IA",
-                        status: "Big Data & Patrones del Rival",
-                        icon: "📊",
-                        messages: [
-                            { sender: "Analista Táctico IA", text: "El rival pierde el 64% de balones cuando se le presiona la salida por su perfil izquierdo.", time: "08:05", incoming: true }
-                        ]
-                    }
-                }
-            },
-            scout: {
-                roleLabel: "DIRECTOR DEPORTIVO / SCOUT",
-                tipTitle: "Central de Ojeo // IA",
-                tipContent: "14 jugadores en cartera monitorizados en vivo con filtros de percentiles actualizados.",
-                agentsMeta: {
-                    physical: { name: "Auditor Biométrico IA", sub: "Historial Físico y Potencial" },
-                    nutrition: { name: "Auditor Médico IA", sub: "Longevidad y Riesgo Lesional" },
-                    mental: { name: "Analista Conductual IA", sub: "Adaptación y Competitividad" },
-                    career: { name: "Data Scout & Mercado IA", sub: "Percentiles, ROI y Contratos" }
-                },
-                chats: {
-                    group: {
-                        title: "Comité de Scouting & Dirección Deportiva",
-                        status: "14 Objetivos en Cartera • 3 Partidos Hoy",
-                        icon: "👥",
-                        messages: [
-                            { sender: "Data Scout & Mercado IA", text: "Director, Lucas Vance (Sub-21) juega hoy a las 19:00. Sus percentiles de duelos ganados están en el Top 4% de la liga.", time: "10:00", incoming: true },
-                            { sender: "Auditor Biométrico IA", text: "Sus picos de velocidad repetida superan los 34.2 km/h sin caída de rendimiento en segundas partes.", time: "10:02", incoming: true },
-                            { sender: "Auditor Médico IA", text: "Cero bajas musculares en las últimas 2 temporadas. Perfil de disponibilidad excelente.", time: "10:04", incoming: true },
-                            { sender: "Analista Conductual IA", text: "Alta madurez táctica y liderazgo en escenarios de resultado adverso.", time: "10:05", incoming: true }
-                        ]
-                    },
-                    physical: {
-                        title: "Auditor Biométrico IA",
-                        status: "Evaluación Atlética de Objetivos",
-                        icon: "⚡",
-                        messages: [
-                            { sender: "Auditor Biométrico IA", text: "Comparativa física lista: los 3 candidatos a extremo superan la media de aceleración de nuestra plantilla actual.", time: "09:15", incoming: true }
-                        ]
-                    },
-                    nutrition: {
-                        title: "Auditor Médico IA",
-                        status: "Prevención & Historial Clínico",
-                        icon: "🥗",
-                        messages: [
-                            { sender: "Auditor Médico IA", text: "Informe de riesgos auditado: todos los objetivos prioritarios cumplen los estándares de somatotipo.", time: "09:00", incoming: true }
-                        ]
-                    },
-                    mental: {
-                        title: "Analista Conductual IA",
-                        status: "Perfil Psicológico & Adaptación",
-                        icon: "🧠",
-                        messages: [
-                            { sender: "Analista Conductual IA", text: "Evaluación de adaptación cultural e idiomática completada para los objetivos internacionales.", time: "08:40", incoming: true }
-                        ]
-                    },
-                    career: {
-                        title: "Data Scout & Mercado IA",
-                        status: "Valor de Mercado & Proyección",
-                        icon: "📊",
-                        messages: [
-                            { sender: "Data Scout & Mercado IA", text: "Oportunidad detectada: cláusula de salida inferior al valor real proyectado (+38% en 18 meses).", time: "08:10", incoming: true }
-                        ]
-                    }
-                }
-            }
-        };
+            };
+
+            return BASE[roleKey] || BASE.athlete;
+        }
 
         let activeRoleKey = 'athlete';
         let currentChatKey = 'group';
@@ -1060,6 +1086,11 @@
             if (v === 'staff' || v.includes('entrenador') || v.includes('coach') || v.includes('fisio') || v.includes('staff')) return 'staff';
             if (v === 'scout' || v.includes('scout') || v.includes('director') || v.includes('ojeador')) return 'scout';
             return null;
+        }
+
+        function isPaidAccount() {
+            const tier = localStorage.getItem('kinet_account_tier') || 'free';
+            return tier === 'pro' || tier === 'club';
         }
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -1077,18 +1108,17 @@
             const fromLegacyRole = normalizeRole(localStorage.getItem('kinet_role'));
 
             activeRoleKey = fromUrl || fromActiveStorage || fromLegacyRole || 'athlete';
-
-            const profileCfg = CHAT_PROFILES[activeRoleKey];
             document.body.setAttribute('data-role', activeRoleKey);
             localStorage.setItem('kinet_active_role', activeRoleKey);
-            localStorage.setItem('kinet_role', profileCfg.roleLabel);
+            localStorage.setItem('kinet_role', activeRoleKey);
 
-            const sportChosen = localStorage.getItem('kinet_sport') || localStorage.getItem('sport') || localStorage.getItem('selected_sport') || localStorage.getItem('deporte') || 'Fútbol';
+            const sportChosen = localStorage.getItem('kinet_sport') || localStorage.getItem('sport') || 'Fútbol';
+            const profileCfg = buildSportAwareChats(activeRoleKey, sportChosen);
+
             document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${sportChosen.toUpperCase()}`;
             document.getElementById('topbar-sport-tag').textContent = `● ${sportChosen.toUpperCase()}`;
             document.getElementById('topbar-role-title').textContent = profileCfg.roleLabel;
 
-            // Actualizar consejo lateral y nombres de agentes según el rol activo
             document.getElementById('tip-title').textContent = profileCfg.tipTitle;
             document.getElementById('tip-content').textContent = profileCfg.tipContent;
             document.getElementById('agent-1-name').textContent = profileCfg.agentsMeta.physical.name;
@@ -1100,15 +1130,16 @@
             document.getElementById('agent-4-name').textContent = profileCfg.agentsMeta.career.name;
             document.getElementById('agent-4-sub').textContent = profileCfg.agentsMeta.career.sub;
 
-            // Sincronizar enlaces para navegación al primer toque
-          const queryParams = `?role=${activeRoleKey}&sport=${encodeURIComponent(sportChosen)}`;
+            // Sincronizar TODOS los enlaces del sidebar y cajón móvil igual que en ficha-pro.html y app.html
+            const queryParams = `?role=${activeRoleKey}&sport=${encodeURIComponent(sportChosen)}`;
             const navMap = {
+                'brand-logo-desktop': 'app.html', 'brand-logo-mobile': 'app.html',
                 'nav-vestuario': 'app.html', 'drawer-vestuario': 'app.html', 'mob-vestuario': 'app.html',
-                'nav-cuerpo-tecnico': 'cuerpo-tecnico.html', 'nav-cuerpo-footer': 'cuerpo-tecnico.html', 'drawer-cuerpo-tecnico': 'cuerpo-tecnico.html', 'mob-cuerpo-tecnico': 'cuerpo-tecnico.html',
+                'nav-cuerpo-tecnico': 'cuerpo-tecnico.html', 'drawer-cuerpo-tecnico': 'cuerpo-tecnico.html', 'mob-cuerpo-tecnico': 'cuerpo-tecnico.html',
                 'nav-ficha-pro': 'ficha-pro.html', 'drawer-ficha-pro': 'ficha-pro.html', 'mob-ficha-pro': 'ficha-pro.html',
                 'nav-ojeador-live': 'ojeador-live.html', 'drawer-ojeador-live': 'ojeador-live.html', 'mob-ojeador-live': 'ojeador-live.html',
                 'nav-comunidad': 'comunidad.html', 'drawer-comunidad': 'comunidad.html',
-                'nav-media-studio': 'media-studio.html', 'drawer-media-studio': 'media-studio.html', 'mob-media-studio': 'media-studio.html',
+                'nav-media-studio': 'media-studio.html', 'drawer-media-studio': 'media-studio.html',
                 'nav-perfil': 'perfil.html', 'drawer-perfil': 'perfil.html',
                 'nav-despacho': 'despacho.html', 'drawer-despacho': 'despacho.html'
             };
@@ -1117,15 +1148,36 @@
                 if (el) el.href = `${navMap[id]}${queryParams}`;
             });
 
-            // Favicon dinámico
-            const faviconHex = activeRoleKey === 'staff' ? '%23F59E0B' : (activeRoleKey === 'scout' ? '%233B82F6' : '%2300FF88');
-            const faviconSvg = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22${faviconHex}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`;
-            document.getElementById('dynamic-favicon').setAttribute('href', faviconSvg);
+            const subUrl = `despacho.html${queryParams}&tab=subscription`;
+            ['nav-upgrade-pro', 'drawer-upgrade-pro'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.href = subUrl;
+            });
 
-            // Clonar conversaciones del rol actual
+            const socialSetupUrl = `comunidad.html${queryParams}&setup=true`;
+            ['nav-config-social', 'drawer-config-social'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.href = socialSetupUrl;
+            });
+
+            // 1. OCULTAR AUTOMÁTICAMENTE "Config. Red Social" SI YA FUE CONFIGURADA
+            if (localStorage.getItem('kinet_social_configured') === 'true') {
+                const navSoc = document.getElementById('nav-config-social');
+                const drwSoc = document.getElementById('drawer-config-social');
+                if (navSoc) navSoc.style.display = 'none';
+                if (drwSoc) drwSoc.style.display = 'none';
+            }
+
+            // 2. OCULTAR POR COMPLETO EL BOTÓN DE LICENCIA PRO SI EL USUARIO YA ES PRO O CLUB
+            if (isPaidAccount()) {
+                const navUp = document.getElementById('nav-upgrade-pro');
+                const drwUp = document.getElementById('drawer-upgrade-pro');
+                if (navUp) navUp.style.setProperty('display', 'none', 'important');
+                if (drwUp) drwUp.style.setProperty('display', 'none', 'important');
+            }
+
             activeChatsState = JSON.parse(JSON.stringify(profileCfg.chats));
 
-            // Si viene una consulta rápida desde el Vestuario, abrir ese especialista y responder
             const pendingQ = localStorage.getItem('kinet_pending_question');
             const targetAgent = agentParam || localStorage.getItem('kinet_target_agent') || 'group';
 
@@ -1155,7 +1207,6 @@
 
             renderCurrentChat();
 
-            // Efecto spotlight en enlaces laterales igual que en app.html
             document.querySelectorAll('.side-link').forEach(link => {
                 link.addEventListener('mousemove', (e) => {
                     const rect = link.getBoundingClientRect();
@@ -1171,14 +1222,12 @@
             if (element) element.classList.add('active');
             renderCurrentChat();
 
-            // En dispositivos móviles, al pulsar un chat activamos la vista de conversación a pantalla completa (estilo WhatsApp)
             if (window.innerWidth <= 850) {
                 document.getElementById('chat-wrapper').classList.add('mobile-chat-active');
             }
         }
 
         function backToChatList() {
-            // Vuelve a la bandeja de entrada de chats en móvil
             document.getElementById('chat-wrapper').classList.remove('mobile-chat-active');
         }
 
@@ -1202,27 +1251,28 @@
         function pushAutoReply(userText) {
             const now = new Date();
             const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+            const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
             let senderName = activeChatsState[currentChatKey].title;
             let replyText = "Recibido. He actualizado tus parámetros en el panel central.";
 
             if (activeRoleKey === 'athlete') {
                 if (currentChatKey === 'group') {
-                    senderName = "Cuerpo Técnico IA (Coordinado)";
+                    senderName = `Cuerpo Técnico IA (${sportChosen})`;
                     replyText = "Hemos cruzado tu consulta entre Preparación Física y Nutrición: ajustamos carga de hoy y pauta de hidratación.";
                 } else if (currentChatKey === 'physical') {
-                    replyText = "Anotado. Reducimos un 15% el volumen de impacto hoy y añadimos 10 min de liberación miofascial.";
+                    replyText = "Anotado. Reducimos un 15% el volumen de impacto hoy y añadimos 10 min de descarga miofascial.";
                 } else if (currentChatKey === 'nutrition') {
-                    replyText = "Perfecto. Prioriza 1.2g/kg de carbohidratos complejos en la cena junto con proteína magra.";
+                    replyText = "Perfecto. Prioriza 1.2g/kg de carbohidratos complejos junto con proteína magra e hidratación isotónica.";
                 } else if (currentChatKey === 'mental') {
-                    replyText = "Trabaja 5 minutos de respiración cuadrada (4-4-4-4) antes de saltar a pista para fijar el foco.";
+                    replyText = "Trabaja 5 minutos de respiración cuadrada (4-4-4-4) antes de empezar para fijar el foco.";
                 } else {
                     replyText = "Métrica registrada en tu ficha KINET. Tu progresión semanal sigue en percentil alto.";
                 }
             } else if (activeRoleKey === 'staff') {
-                senderName = currentChatKey === 'group' ? "Staff IA (Coordinado)" : activeChatsState[currentChatKey].title;
-                replyText = "Directiva aplicada al microciclo de la plantilla. Los informes individuales ya reflejan el ajuste.";
+                senderName = currentChatKey === 'group' ? `Staff IA (${sportChosen})` : activeChatsState[currentChatKey].title;
+                replyText = "Directiva aplicada al microciclo del grupo. Los informes individuales ya reflejan el ajuste.";
             } else {
-                senderName = currentChatKey === 'group' ? "Comité de Scouting IA" : activeChatsState[currentChatKey].title;
+                senderName = currentChatKey === 'group' ? `Comité de Scouting IA (${sportChosen})` : activeChatsState[currentChatKey].title;
                 replyText = "Filtro actualizado en la cartera de seguimiento. Cruzando percentiles y métricas de mercado en vivo.";
             }
 
@@ -1255,72 +1305,71 @@
 
             setTimeout(() => {
                 pushAutoReply(text);
-            }, 700);
+            }, 650);
         }
 
-        function toggleMobileDrawer() {
-            const drawer = document.getElementById('mobile-menu-drawer');
-            if (drawer.style.transform === 'translateY(0px)') {
-                drawer.style.transform = 'translateY(-100%)';
-            } else {
-                drawer.style.transform = 'translateY(0px)';
-            }
-        }
-        // CARGAR PERSONALIZACIÓN ESTÉTICA GUARDADA EN DESPACHO (COLOR, FONDO, BORDES, SCANLINES Y FAVICON)
-        (function applyGlobalKinetTheme() {
-            window.addEventListener('DOMContentLoaded', () => {
-                const savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
-                if (savedAccent) {
-                    const clean = savedAccent.replace('#', '');
-                    const num = parseInt(clean, 16);
-                    const r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
-                    document.body.style.setProperty('--role-color', savedAccent);
-                    document.body.style.setProperty('--role-rgb', `${r}, ${g}, ${b}`);
-                    document.body.style.setProperty('--role-glow', `rgba(${r}, ${g}, ${b}, 0.42)`);
-                    document.body.style.setProperty('--role-gradient', `linear-gradient(135deg, ${savedAccent} 0%, rgba(${r},${g},${b},0.75) 100%)`);
-
-                    const favEl = document.getElementById('dynamic-favicon');
-                    if (favEl) {
-                        favEl.setAttribute('href', `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%23${clean}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`);
-                    }
-                }
-
-                const savedBg = localStorage.getItem('kinet_bg_intensity');
-                const bgMap = { deep: '#020305', contrast: '#0B1222', emerald: '#04120E', crimson: '#120509', standard: '#06080E' };
-                if (savedBg && bgMap[savedBg]) document.documentElement.style.setProperty('--bg-void', bgMap[savedBg]);
-
-                const savedPanelStyle = localStorage.getItem('kinet_panel_style');
-                if (savedPanelStyle === 'carbon') {
-                    document.documentElement.style.setProperty('--bg-panel', 'rgba(8, 10, 15, 0.98)');
-                    document.documentElement.style.setProperty('--border-subtle', 'rgba(255, 255, 255, 0.14)');
-                } else if (savedPanelStyle === 'neon-border') {
-                    document.documentElement.style.setProperty('--bg-panel', 'rgba(10, 14, 22, 0.92)');
-                    document.documentElement.style.setProperty('--border-subtle', 'rgba(var(--role-rgb), 0.38)');
-                }
-
-                const savedRadius = localStorage.getItem('kinet_corner_radius');
-                if (savedRadius) {
-                    document.querySelectorAll('.kinet-panel').forEach(p => p.style.borderRadius = savedRadius);
-                }
-
-                const currentTier = localStorage.getItem('kinet_account_tier');
-                if (currentTier === 'pro' || currentTier === 'club') {
-                    document.querySelectorAll('a[href="despacho.html"]').forEach(a => {
-                        if (a.textContent.includes('Pásate a KINET PRO')) {
-                            a.style.background = 'rgba(var(--role-rgb), 0.12)';
-                            a.style.color = 'var(--role-color)';
-                            a.style.border = '1px solid var(--role-color)';
-                            a.innerHTML = `<span class="side-link-left"><span>✓</span> <span>${currentTier === 'club' ? 'LICENCIA CLUB & SCOUT' : 'LICENCIA KINET PRO'}</span></span><span style="font-size:0.7rem;">●</span>`;
-                        }
-                    });
-                }
-            });
-        })();
         // =========================================================================
-        // MOTOR GLOBAL DE PERSONALIZACIÓN KINET OS (ARCOÍRIS BETA, SCANLINES Y TEMA)
+        // EXPORTACIÓN REAL EN PDF DEL ACTA / INFORME DEL CUERPO TÉCNICO IA
+        // =========================================================================
+        function downloadChatReportPDF() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+            const sportChosen = (localStorage.getItem('kinet_sport') || 'Fútbol').toUpperCase();
+            const userName = (localStorage.getItem('kinet_user_name') || 'ALEX VANCE').toUpperCase();
+            const chat = activeChatsState[currentChatKey];
+
+            pdf.setFillColor(6, 8, 14);
+            pdf.rect(0, 0, 210, 297, 'F');
+
+            pdf.setFillColor(13, 17, 26);
+            pdf.roundedRect(14, 14, 182, 26, 4, 4, 'F');
+            pdf.setTextColor(59, 130, 246);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(13.5);
+            pdf.text('KINET OS // ACTA OFICIAL E INFORME DEL CUERPO TECNICO IA', 20, 25);
+
+            pdf.setTextColor(203, 213, 225);
+            pdf.setFontSize(9);
+            pdf.text(`TITULAR: ${userName}   |   DISCIPLINA: ${sportChosen}   |   SALA: ${chat.title.toUpperCase()}`, 20, 34);
+
+            let y = 50;
+            chat.messages.forEach((m) => {
+                if (y > 265) {
+                    pdf.addPage();
+                    pdf.setFillColor(6, 8, 14);
+                    pdf.rect(0, 0, 210, 297, 'F');
+                    y = 20;
+                }
+                pdf.setFillColor(13, 17, 26);
+                const lines = pdf.splitTextToSize(m.text, 166);
+                const boxH = lines.length * 5 + 12;
+                pdf.roundedRect(14, y, 182, boxH, 3, 3, 'F');
+
+                pdf.setTextColor(59, 130, 246);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(9);
+                pdf.text(`${m.sender}  [${m.time}]`, 20, y + 7);
+
+                pdf.setTextColor(241, 245, 249);
+                pdf.setFont('helvetica', 'normal');
+                pdf.setFontSize(9);
+                pdf.text(lines, 20, y + 13);
+
+                y += boxH + 6;
+            });
+
+            pdf.setTextColor(148, 163, 184);
+            pdf.setFontSize(8);
+            pdf.text('Informe táctico y biométrico generado por KINET OS — Cuerpo Técnico IA • kinetos.es', 14, 286);
+
+            pdf.save(`Informe_Cuerpo_Tecnico_KINET_${sportChosen}.pdf`);
+        }
+
+        // =========================================================================
+        // MOTOR GLOBAL DE COLOR DE ROL Y REEMPLAZO FORZADO DE FAVICON EN NAVEGADOR
         // =========================================================================
         (function initGlobalKinetPersonalization() {
-            // Inyectar estilos globales de Arcoíris y Scanlines si la página no los tiene
             const styleTag = document.createElement('style');
             styleTag.innerHTML = `
                 @keyframes kinetRainbowFlowBg {
@@ -1336,21 +1385,17 @@
                     pointer-events: none;
                     z-index: 9999;
                 }
-                body.rainbow-mode .btn-primary,
-                body.rainbow-mode .brand-logo-icon,
-                body.rainbow-mode .bar-fill,
-                body.rainbow-mode .quota-fill {
+                body.rainbow-mode .send-btn,
+                body.rainbow-mode .brand-logo-icon {
                     background: linear-gradient(270deg, #ff0055, #ff9900, #ffee00, #00ff88, #00e5ff, #7700ff, #ff00aa, #ff0055) !important;
                     background-size: 400% 400% !important;
                     animation: kinetRainbowFlowBg 5s linear infinite !important;
                     color: #04060A !important;
                     border-color: transparent !important;
                 }
-                body.rainbow-mode .kinet-panel,
+                body.rainbow-mode .chat-container,
                 body.rainbow-mode .side-link.active,
-                body.rainbow-mode .active-role-indicator,
-                body.rainbow-mode .day-pill.active,
-                body.rainbow-mode .verified-badge {
+                body.rainbow-mode .active-role-indicator {
                     border-color: var(--role-color) !important;
                     box-shadow: 0 0 20px var(--role-glow) !important;
                 }
@@ -1367,22 +1412,35 @@
                 return { r, g, b, hex };
             }
 
-            function setFavicon(hexColor) {
-                const clean = (hexColor || '#00FF88').replace('#', '');
-                const fav = document.getElementById('dynamic-favicon');
-                if (fav) {
-                    fav.setAttribute('href', `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%23${clean}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`);
-                }
+            function forceUpdateTabFavicon(hexColor) {
+                const clean = (hexColor || '#3B82F6').replace('#', '');
+                const svgHref = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%23${clean}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`;
+                document.querySelectorAll("link[rel*='icon']").forEach(el => el.remove());
+                const newFav = document.createElement('link');
+                newFav.id = 'dynamic-favicon';
+                newFav.rel = 'icon';
+                newFav.type = 'image/svg+xml';
+                newFav.href = svgHref;
+                document.head.appendChild(newFav);
             }
 
             window.addEventListener('DOMContentLoaded', () => {
-                // 1. Scanlines HUD (Monitor Táctico)
                 const scanlinesOn = localStorage.getItem('kinet_scanlines') === 'true';
                 document.body.classList.toggle('scanlines-active', scanlinesOn);
 
-                // 2. Modo Arcoíris BETA vs Color Fijo Personalizado
+                const urlRole = new URLSearchParams(window.location.search).get('role');
+                const activeRole = normalizeRole(urlRole) || document.body.getAttribute('data-role') || localStorage.getItem('kinet_active_role') || 'athlete';
+                const roleHexMap = { athlete: '#00FF88', staff: '#F59E0B', scout: '#3B82F6' };
+                const defaultRoleHex = roleHexMap[activeRole] || '#00FF88';
+
+                let savedAccent = localStorage.getItem('kinet_custom_accent_override');
+                if (activeRole !== 'athlete' && savedAccent && savedAccent.toUpperCase() === '#00FF88') {
+                    localStorage.removeItem('kinet_custom_accent_override');
+                    localStorage.removeItem('kinet_accent_color');
+                    savedAccent = null;
+                }
+
                 const rainbowOn = localStorage.getItem('kinet_rainbow_mode') === 'true';
-                const savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
 
                 if (rainbowOn) {
                     document.body.classList.add('rainbow-mode');
@@ -1395,7 +1453,7 @@
                         document.body.style.setProperty('--role-rgb', `${c1.r}, ${c1.g}, ${c1.b}`);
                         document.body.style.setProperty('--role-glow', `rgba(${c1.r}, ${c1.g}, ${c1.b}, 0.45)`);
                         document.body.style.setProperty('--role-gradient', `linear-gradient(135deg, ${c1.hex} 0%, ${c2.hex} 100%)`);
-                        if (ts - lastFav > 350) { setFavicon(c1.hex); lastFav = ts; }
+                        if (ts - lastFav > 500) { forceUpdateTabFavicon(c1.hex); lastFav = ts; }
                         requestAnimationFrame(stepRainbow);
                     }
                     requestAnimationFrame(stepRainbow);
@@ -1407,10 +1465,15 @@
                     document.body.style.setProperty('--role-rgb', `${r}, ${g}, ${b}`);
                     document.body.style.setProperty('--role-glow', `rgba(${r}, ${g}, ${b}, 0.42)`);
                     document.body.style.setProperty('--role-gradient', `linear-gradient(135deg, ${savedAccent} 0%, rgba(${r},${g},${b},0.75) 100%)`);
-                    setFavicon(savedAccent);
+                    forceUpdateTabFavicon(savedAccent);
+                } else {
+                    document.body.style.removeProperty('--role-color');
+                    document.body.style.removeProperty('--role-rgb');
+                    document.body.style.removeProperty('--role-glow');
+                    document.body.style.removeProperty('--role-gradient');
+                    forceUpdateTabFavicon(defaultRoleHex);
                 }
 
-                // 3. Fondo Void, Estilo de Paneles y Bordes
                 const savedBg = localStorage.getItem('kinet_bg_intensity');
                 const bgMap = { deep: '#020305', contrast: '#0B1222', emerald: '#04120E', crimson: '#120509', standard: '#06080E' };
                 if (savedBg && bgMap[savedBg]) document.documentElement.style.setProperty('--bg-void', bgMap[savedBg]);
@@ -1426,20 +1489,7 @@
 
                 const savedRadius = localStorage.getItem('kinet_corner_radius');
                 if (savedRadius) {
-                    document.querySelectorAll('.kinet-panel').forEach(p => p.style.borderRadius = savedRadius);
-                }
-
-                // 4. Ocultar "Pásate a KINET PRO" si ya es Pro o Club
-                const currentTier = localStorage.getItem('kinet_account_tier');
-                if (currentTier === 'pro' || currentTier === 'club') {
-                    document.querySelectorAll('a[href^="despacho.html"]').forEach(a => {
-                        if (a.textContent.includes('Pásate a KINET PRO')) {
-                            a.style.background = 'rgba(var(--role-rgb), 0.12)';
-                            a.style.color = 'var(--role-color)';
-                            a.style.border = '1px solid var(--role-color)';
-                            a.innerHTML = `<span class="side-link-left"><span>✓</span> <span>${currentTier === 'club' ? 'LICENCIA CLUB & SCOUT' : 'LICENCIA KINET PRO'}</span></span><span style="font-size:0.7rem;">●</span>`;
-                        }
-                    });
+                    document.querySelectorAll('.chat-container').forEach(p => p.style.borderRadius = savedRadius);
                 }
             });
         })();
