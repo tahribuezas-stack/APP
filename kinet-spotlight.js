@@ -56,3 +56,8 @@
 
   console.log('KINET OS: Spotlight CSS Variable Module Loaded Successfully ⚡');
 })();
+if (!window.KinetBackend) {
+  const s = document.createElement('script');
+  s.src = 'kinet-backend.js';
+  document.head.appendChild(s);
+}
