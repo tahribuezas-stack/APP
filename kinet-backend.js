@@ -202,7 +202,43 @@
       }
     }
   };
+// ENVIAR UN MENSAJE DIRECTO A `public.direct_messages` (SIEMPRE EMPIEZA EN NO VISTO: is_read = false)
+    async sendCloudDirectMessage(receiverHandle, messageText) {
+      try {
+        const userId = await resolveCurrentUserId();
+        const senderHandle = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '@naimtahri';
+        const data = await supabaseRestRequest('direct_messages', 'POST', {
+          sender_id: userId || null,
+          sender_handle: senderHandle,
+          receiver_handle: receiverHandle,
+          message_text: messageText,
+          is_read: false,
+          read_at: null
+        }, false);
+        return { ok: true, data: Array.isArray(data) ? data[0] : data };
+      } catch (err) {
+        console.error('❌ Error enviando DM a Supabase:', err.message);
+        return { ok: false, error: err };
+      }
+    },
 
+    // MARCAR COMO VISTOS EN SUPABASE LOS MENSAJES QUE OTRA PERSONA ME ENVIÓ A MÍ CUANDO ABRO SU CHAT
+    async markDirectMessagesAsRead(otherPersonHandle) {
+      try {
+        const myHandle = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username');
+        if (!myHandle || !otherPersonHandle) return { ok: false };
+        const nowIso = new Date().toISOString();
+        await supabaseRestRequest(
+          `direct_messages?sender_handle=eq.${encodeURIComponent(otherPersonHandle)}&receiver_handle=eq.${encodeURIComponent(myHandle)}&is_read=eq.false`,
+          'PATCH',
+          { is_read: true, read_at: nowIso },
+          false
+        );
+        return { ok: true, read_at: nowIso };
+      } catch (err) {
+        return { ok: false, error: err };
+      }
+    },
   window.KinetBackend = KinetBackend;
   KinetBackend.pullCloudStateToLocal();
 })(window);
