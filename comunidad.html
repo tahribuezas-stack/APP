@@ -2609,6 +2609,7 @@
 
             selectConversationAllViews(currentDmContact);
             updateFollowingCountersAndButtons();
+            setTimeout(syncCommunityWithSupabase, 450);
         }
 
         function syncSocialConfigVisibility(isConfigured) {
@@ -2936,6 +2937,9 @@
 
             allSocialPosts.unshift(newPost);
             input.value = '';
+            if (window.KinetBackend && typeof window.KinetBackend.createCloudPost === 'function') {
+                window.KinetBackend.createCloudPost(newPost).catch(e => console.warn(e));
+            }
             if (postMode === 'reels') {
                 setFeedMode('reels', document.getElementById('tab-mode-reels'));
             } else {
@@ -2972,6 +2976,9 @@
             if (bioVal) localStorage.setItem('kinet_social_bio', bioVal);
 
             localStorage.setItem('kinet_social_configured', 'true');
+            if (window.KinetBackend && typeof window.KinetBackend.pushLocalStateToCloud === 'function') {
+                window.KinetBackend.pushLocalStateToCloud();
+            }
             refreshMySocialCardUI();
             syncSocialConfigVisibility(true);
             closeSocialSetupModal();
@@ -3198,6 +3205,10 @@
             if (!txt) return;
             if (!DM_CONVERSATIONS[currentDmContact]) DM_CONVERSATIONS[currentDmContact] = [];
             DM_CONVERSATIONS[currentDmContact].push({ from: 'outgoing', text: txt });
+            const targetPerson = findDirectoryPerson(currentDmContact);
+            if (targetPerson && window.KinetBackend && typeof window.KinetBackend.sendCloudDirectMessage === 'function') {
+                window.KinetBackend.sendCloudDirectMessage(targetPerson.handle, txt).catch(e => console.warn(e));
+            }
             renderDmMessages();
             renderModalLeftList();
             renderInlineDirectLeftList();
@@ -3234,10 +3245,130 @@
         function sendQuickDmAttachment(textMsg) {
             if (!DM_CONVERSATIONS[currentDmContact]) DM_CONVERSATIONS[currentDmContact] = [];
             DM_CONVERSATIONS[currentDmContact].push({ from: 'outgoing', text: textMsg });
+            const targetPerson = findDirectoryPerson(currentDmContact);
+            if (targetPerson && window.KinetBackend && typeof window.KinetBackend.sendCloudDirectMessage === 'function') {
+                window.KinetBackend.sendCloudDirectMessage(targetPerson.handle, textMsg).catch(e => console.warn(e));
+            }
             renderDmMessages();
             renderModalLeftList();
             renderInlineDirectLeftList();
             renderSidebarDmAndFriends();
+        }
+
+
+        // =========================================================================
+        // CONEXIÓN REAL EN VIVO CON SUPABASE (TABLAS: profiles, posts, direct_messages)
+        // =========================================================================
+        async function syncCommunityWithSupabase() {
+            if (!window.KinetBackend || typeof window.KinetBackend.getClient !== 'function') return;
+            const sb = window.KinetBackend.getClient();
+            if (!sb) return;
+
+            try {
+                // 1. Cargar usuarios reales registrados en public.profiles para "Agregar Amigos" y Chats
+                const { data: realProfiles } = await sb
+                    .from('profiles')
+                    .select('*')
+                    .order('updated_at', { ascending: false })
+                    .limit(50);
+
+                if (realProfiles && realProfiles.length > 0) {
+                    const myHandle = (localStorage.getItem('kinet_social_handle') || '').toLowerCase();
+                    realProfiles.forEach(prof => {
+                        const h = prof.handle || ('@' + (prof.full_name || 'user').toLowerCase().replace(/[^a-z0-9]/g, ''));
+                        if (h.toLowerCase() === myHandle) return; // No añadirse a uno mismo en sugerencias
+                        const exists = NETWORK_DIRECTORY.some(u => u.handle.toLowerCase() === h.toLowerCase());
+                        if (!exists) {
+                            const fullName = prof.full_name || 'Atleta KINET';
+                            const parts = fullName.trim().split(/\s+/);
+                            const initials = parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : fullName.slice(0, 2).toUpperCase();
+                            const r = prof.active_role || 'athlete';
+                            const roleBadge = r === 'scout' ? '★ SCOUT' : (r === 'staff' ? '🧠 STAFF' : '✓ KINET DB');
+                            const posLabel = prof.position || 'PRO';
+                            NETWORK_DIRECTORY.unshift({
+                                name: `${fullName} (${posLabel})`,
+                                shortName: fullName,
+                                handle: h,
+                                initials: initials,
+                                role: r,
+                                roleBadge: roleBadge,
+                                sport: normalizeSportOption(prof.active_sport || 'Fútbol'),
+                                headline: prof.bio || `${posLabel} • ${prof.club || 'KINET OS'}`,
+                                unread: false
+                            });
+                        }
+                    });
+                }
+
+                // 2. Cargar publicaciones reales de public.posts
+                const cloudPosts = await window.KinetBackend.fetchCloudPosts();
+                if (cloudPosts && cloudPosts.length > 0) {
+                    cloudPosts.reverse().forEach(cp => {
+                        const postId = 'sb_' + cp.id;
+                        if (!allSocialPosts.some(p => p.id === postId)) {
+                            const authorName = cp.author_name || 'Atleta KINET';
+                            const parts = authorName.trim().split(/\s+/);
+                            const initials = parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : authorName.slice(0, 2).toUpperCase();
+                            const dateStr = cp.created_at ? new Date(cp.created_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : 'En vivo';
+                            allSocialPosts.unshift({
+                                id: postId,
+                                sport: normalizeSportOption(cp.sport || 'Fútbol'),
+                                role: cp.author_role || 'athlete',
+                                mode: cp.mode || 'post',
+                                author: authorName,
+                                handle: cp.author_handle || '@kinet_pro',
+                                initials: initials,
+                                headline: cp.author_headline || 'Perfil Verificado KINET OS',
+                                marketOpen: true,
+                                badge: cp.badge || 'KINET PULSE',
+                                time: `Hoy ${dateStr}`,
+                                text: cp.content || '',
+                                reelData: cp.reel_data || null,
+                                likes: cp.likes_count || 1
+                            });
+                        }
+                    });
+                }
+
+                // 3. Cargar Mensajes Directos (DMs) reales de public.direct_messages
+                const myHandle = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username');
+                if (myHandle) {
+                    const { data: cloudDms } = await sb
+                        .from('direct_messages')
+                        .select('*')
+                        .or(`sender_handle.eq.${myHandle},receiver_handle.eq.${myHandle}`)
+                        .order('created_at', { ascending: true })
+                        .limit(100);
+
+                    if (cloudDms && cloudDms.length > 0) {
+                        cloudDms.forEach(dm => {
+                            const isOutgoing = dm.sender_handle === myHandle;
+                            const otherHandle = isOutgoing ? dm.receiver_handle : dm.sender_handle;
+                            const person = findDirectoryPerson(otherHandle, null, otherHandle);
+                            if (!DM_CONVERSATIONS[person.name]) {
+                                DM_CONVERSATIONS[person.name] = [];
+                            }
+                            const alreadyInList = DM_CONVERSATIONS[person.name].some(m => m._sbId === dm.id);
+                            if (!alreadyInList) {
+                                DM_CONVERSATIONS[person.name].push({
+                                    _sbId: dm.id,
+                                    from: isOutgoing ? 'outgoing' : 'incoming',
+                                    text: dm.message_text
+                                });
+                            }
+                        });
+                    }
+                }
+
+                refreshMySocialCardUI();
+                filterSocialFeed();
+                renderSidebarDmAndFriends();
+                renderInlineDirectLeftList();
+                renderModalLeftList();
+                renderDmMessages();
+            } catch (err) {
+                console.warn('Aviso sincronizando Comunidad con Supabase:', err);
+            }
         }
 
         (function initGlobalKinetPersonalization() {
