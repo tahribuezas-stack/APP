@@ -4164,8 +4164,7 @@
                         : (u.role === 'staff' ? '#F59E0B' : (u.role === 'scout' ? '#38BDF8' : 'var(--role-color)'));
                     const avUrl = getAvatarForHandle(u.handle, u.avatarUrl);
                     const avStyle = buildAvatarStyle(avUrl, borderCol);
-                    const tickPrefix = lastMsgObj && lastMsgObj.from === 'outgoing' ? '<span style="color:var(--role-color);font-weight:900;">✓✓</span> ' : '';
-
+                    const tickPrefix = lastMsgObj && lastMsgObj.from === 'outgoing' ? 'Tú: ' : '';
                     return `
                         <div class="dm-contact-item ${isActive ? 'active-chat' : ''}" onclick="${clickHandlerName}('${u.name}', '${u.initials}', '${u.handle}')">
                             <div style="display:flex;align-items:center;gap:10px;min-width:0;">
@@ -4261,13 +4260,18 @@
             renderModalLeftList();
         }
 
-        function selectConversationAllViews(contactName, initials, handle) {
+       function selectConversationAllViews(contactName, initials, handle) {
             const person = findDirectoryPerson(contactName, initials, handle);
             currentDmContact = person.name;
             person.unread = false;
 
             if (!DM_CONVERSATIONS[currentDmContact]) {
                 DM_CONVERSATIONS[currentDmContact] = [];
+            }
+
+            // Cuando TÚ abres el chat de esta persona, marcas como VISTOS en Supabase los mensajes que ELLA te envió a ti
+            if (person.handle && window.KinetBackend && typeof window.KinetBackend.markDirectMessagesAsRead === 'function') {
+                window.KinetBackend.markDirectMessagesAsRead(person.handle);
             }
 
             const avUrl = getAvatarForHandle(person.handle, person.avatarUrl);
@@ -4358,33 +4362,30 @@
                 return;
             }
 
-            let html = msgs.map((m, idx) => {
+            // Burbujas limpias SIN tics (✓ ni ✓✓), solo con la hora relativa
+            let html = msgs.map((m) => {
                 const isOut = m.from === 'outgoing';
                 const animClass = m._justSent ? 'anim-send' : (m._justReceived ? 'anim-receive' : '');
                 const timeClock = formatClockTime(m.ts);
                 const relSent = formatRelativeTimeIG(m.ts, isOut ? 'Enviado' : 'Recibido');
-                const isRead = m.status !== 'sent';
-                const tickHtml = isOut
-                    ? (isRead ? `<span class="kinet-tick-read" title="Visto">✓✓</span>` : `<span class="kinet-tick-sent" title="Enviado">✓</span>`)
-                    : '';
 
                 return `
                     <div class="chat-bubble ${m.from} ${animClass}">
                         <div>${m.text}</div>
                         <div class="chat-bubble-meta">
                             <span>${relSent} (${timeClock})</span>
-                            ${tickHtml}
                         </div>
                     </div>
                 `;
             }).join('');
 
-            // Etiqueta inferior estilo Instagram Direct ("Visto hace un momento", "Visto hace más de 5 min", etc.)
+            // Etiqueta inferior estilo Instagram Direct:
+            // Solo muestra "👁️ Visto..." cuando la otra persona realmente ha abierto el chat (status === 'read')
             const lastMsg = msgs[msgs.length - 1];
             if (lastMsg && lastMsg.from === 'outgoing' && showReadReceipts) {
-                const seenText = lastMsg.status === 'sent'
-                    ? `✓ ${formatRelativeTimeIG(lastMsg.ts, 'Enviado')}`
-                    : `👁️ ${formatRelativeTimeIG(lastMsg.seenAt || lastMsg.ts, 'Visto')}`;
+                const seenText = lastMsg.status === 'read'
+                    ? `👁️ ${formatRelativeTimeIG(lastMsg.seenAt || lastMsg.ts, 'Visto')}`
+                    : `${formatRelativeTimeIG(lastMsg.ts, 'Enviado')}`;
                 html += `<div class="ig-seen-footer">${seenText}</div>`;
             }
 
@@ -4396,7 +4397,6 @@
                 }
             });
 
-            // Limpiar flags de animación tras renderizar para que no se repitan en cada refresco
             msgs.forEach(m => {
                 delete m._justSent;
                 delete m._justReceived;
@@ -4418,38 +4418,40 @@
             if (!txt) return;
             if (!DM_CONVERSATIONS[currentDmContact]) DM_CONVERSATIONS[currentDmContact] = [];
 
+            const targetPerson = findDirectoryPerson(currentDmContact);
+            const isBotSupport = targetPerson && targetPerson.handle === '@kinet_support';
+
+            // Al enviar a un usuario real, se queda en 'sent' ("Enviado hace un momento")
+            // y NUNCA cambia a 'read' hasta que la otra persona abra el chat desde su cuenta.
             const msgObj = {
                 from: 'outgoing',
                 text: txt,
                 ts: Date.now(),
-                status: 'sent', // Empieza con 1 tic (✓ Enviado) y pasa a ✓✓ Visto tras 1.2s
+                status: 'sent',
+                seenAt: null,
                 _justSent: true
             };
             DM_CONVERSATIONS[currentDmContact].push(msgObj);
             persistDmsToLocalCache();
 
-            const targetPerson = findDirectoryPerson(currentDmContact);
             if (targetPerson && window.KinetBackend && typeof window.KinetBackend.sendCloudDirectMessage === 'function') {
-                window.KinetBackend.sendCloudDirectMessage(targetPerson.handle, txt).catch(e => console.warn(e));
+                window.KinetBackend.sendCloudDirectMessage(targetPerson.handle, txt).then(res => {
+                    if (res && res.data && res.data.id) {
+                        msgObj._sbId = res.data.id;
+                        persistDmsToLocalCache();
+                    }
+                }).catch(e => console.warn(e));
             }
             renderDmMessages();
             renderModalLeftList();
             renderInlineDirectLeftList();
             renderSidebarDmAndFriends();
 
-            // Transición realista de "✓ Enviado" a "✓✓ Visto hace un momento"
-            setTimeout(() => {
-                msgObj.status = 'read';
-                msgObj.seenAt = Date.now();
-                persistDmsToLocalCache();
-                renderDmMessages();
-                renderModalLeftList();
-                renderInlineDirectLeftList();
-                renderSidebarDmAndFriends();
-            }, 1100);
-
-            if (targetPerson && targetPerson.handle === '@kinet_support') {
+            // Solo el bot oficial de Soporte marca como visto automáticamente al responderte
+            if (isBotSupport) {
                 setTimeout(() => {
+                    msgObj.status = 'read';
+                    msgObj.seenAt = Date.now();
                     DM_CONVERSATIONS[currentDmContact].push({
                         from: 'incoming',
                         text: buildOfficialSupportReply(txt),
@@ -4461,10 +4463,9 @@
                     renderModalLeftList();
                     renderInlineDirectLeftList();
                     renderSidebarDmAndFriends();
-                }, 1400);
+                }, 1100);
             }
         }
-
         function sendDirectMessage() {
             const input = document.getElementById('dm-message-input');
             const txt = input.value.trim();
@@ -4566,7 +4567,7 @@
                     });
                 }
 
-                // 2. Cargar publicaciones reales de public.posts (filtrando el antiguo post de prueba)
+            // 2. Cargar publicaciones reales de public.posts (filtrando el antiguo post de prueba)
                 const cloudPosts = await window.KinetBackend.fetchCloudPosts();
                 if (cloudPosts && cloudPosts.length > 0) {
                     cloudPosts.reverse().forEach(cp => {
@@ -4604,7 +4605,7 @@
                     });
                 }
 
-                // 3. Cargar Mensajes Directos (DMs) reales de public.direct_messages
+                // 3. Cargar Mensajes Directos (DMs) reales de public.direct_messages (CON ESTADO REAL DE VISTO)
                 const myHandle = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username');
                 if (myHandle && sb) {
                     const { data: cloudDms } = await sb
@@ -4616,27 +4617,42 @@
 
                     if (cloudDms && cloudDms.length > 0) {
                         cloudDms.forEach(dm => {
-                            const isOutgoing = dm.sender_handle === myHandle;
+                            const isOutgoing = (dm.sender_handle || '').toLowerCase() === myHandle.toLowerCase();
                             const otherHandle = isOutgoing ? dm.receiver_handle : dm.sender_handle;
                             const person = findDirectoryPerson(otherHandle, null, otherHandle);
                             if (!DM_CONVERSATIONS[person.name]) {
                                 DM_CONVERSATIONS[person.name] = [];
                             }
                             const msgTs = dm.created_at ? new Date(dm.created_at).getTime() : Date.now();
-                            const alreadyInList = DM_CONVERSATIONS[person.name].some(
+                            const readStatus = dm.is_read ? 'read' : 'sent';
+                            const readTs = dm.read_at ? new Date(dm.read_at).getTime() : null;
+
+                            const existingMsg = DM_CONVERSATIONS[person.name].find(
                                 m => m._sbId === dm.id || (m.text === dm.message_text && m.from === (isOutgoing ? 'outgoing' : 'incoming'))
                             );
-                            if (!alreadyInList) {
+
+                            if (!existingMsg) {
                                 DM_CONVERSATIONS[person.name].push({
                                     _sbId: dm.id,
                                     from: isOutgoing ? 'outgoing' : 'incoming',
                                     text: dm.message_text,
                                     ts: msgTs,
-                                    status: 'read',
-                                    seenAt: msgTs + 60000
+                                    status: readStatus,
+                                    seenAt: readTs
                                 });
+                            } else {
+                                existingMsg._sbId = dm.id;
+                                existingMsg.status = readStatus;
+                                existingMsg.seenAt = readTs;
                             }
                         });
+
+                        // Si estás viendo este chat ahora mismo, marcar como leídos los mensajes que la otra persona te envió
+                        const activePerson = findDirectoryPerson(currentDmContact);
+                        if (activePerson && activePerson.handle && window.KinetBackend?.markDirectMessagesAsRead) {
+                            window.KinetBackend.markDirectMessagesAsRead(activePerson.handle);
+                        }
+                        persistDmsToLocalCache();
                     }
                 }
 
