@@ -47,10 +47,10 @@
     .glass-card {
       background: rgba(19, 23, 29, 0.85);
       backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px); /* Soporte de desenfoque para Safari en móviles */
+      -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 1.5rem; /* Asegura el redondeo exacto de las esquinas */
-      overflow: hidden;      /* Evita que los fondos o contenidos internos rompan las esquinas en móvil */
+      border-radius: 1.5rem;
+      overflow: hidden;
       transition: all 0.3s ease;
     }
     .glass-card:hover {
@@ -74,9 +74,9 @@
 <body class="bg-cyber-pattern text-slate-100 font-sans min-h-screen flex items-center justify-center p-3 md:p-6">
 
   <!-- CONTENEDOR MULTIDISPOSITIVO CON ANIMACIÓN DE ENTRADA RÁPIDA -->
- <div class="relative w-full md:max-w-4xl max-h-[92vh] card-liquid-transition bg-[#0A0C0E] rounded-[28px] border border-kinet-titanium-border shadow-[0_0_60px_rgba(0,0,0,0.9)] flex flex-col md:flex-row overflow-hidden">
+  <div class="relative w-full md:max-w-4xl max-h-[92vh] card-liquid-transition bg-[#0A0C0E] rounded-[28px] border border-kinet-titanium-border shadow-[0_0_60px_rgba(0,0,0,0.9)] flex flex-col md:flex-row overflow-hidden">
     
-<!-- PANEL IZQUIERDO: BRANDING & SECURITY INFO -->
+    <!-- PANEL IZQUIERDO: BRANDING & SECURITY INFO -->
     <div class="w-full md:w-5/12 bg-gradient-to-b from-[#11151B] to-[#0A0C0E] p-6 md:p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-800/80">
       
       <div class="space-y-6">
@@ -117,6 +117,7 @@
       </div>
 
     </div>
+
     <!-- PANEL DERECHO: INTERFAZ DINÁMICA DE AUTENTICACIÓN -->
     <div class="w-full md:w-7/12 p-6 md:p-8 flex flex-col justify-between overflow-y-auto max-h-[85vh]">
       
@@ -165,7 +166,7 @@
 
             <div id="login-pass-field">
               <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Contraseña</label>
-              <input type="password" required placeholder="••••••••••••" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+              <input type="password" id="login-pass-input" required placeholder="••••••••••••" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
             </div>
 
             <div id="login-otp-field" class="hidden space-y-2">
@@ -187,15 +188,27 @@
           </form>
         </div>
 
-        <!-- ================= FORMULARIO 2: CREAR CUENTA NUEVA ================= -->
-        <div id="container-register" class="space-y-3 hidden">
+        <!-- ================= FORMULARIO 2: CREAR CUENTA NUEVA (CON NOMBRE Y APELLIDOS) ================= -->
+        <div id="container-register" class="space-y-2.5 hidden">
           <form onsubmit="handleRegisterSubmit(event)" class="space-y-2.5">
             
+            <!-- NUEVA FILA: NOMBRE Y APELLIDOS -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div>
+                <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Nombre</label>
+                <input type="text" id="reg-firstname" required placeholder="Ej: Naim" oninput="autoSuggestHandleFromName()" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+              </div>
+              <div>
+                <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Apellidos</label>
+                <input type="text" id="reg-lastname" required placeholder="Ej: Tahri Buezas" oninput="autoSuggestHandleFromName()" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+              </div>
+            </div>
+
             <div>
               <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Nombre de Perfil Único (@Username)</label>
               <div class="relative flex items-center">
                 <span class="absolute left-4 text-slate-500 text-xs font-mono">@</span>
-                <input type="text" id="reg-username" required placeholder="tahribuezas" oninput="checkUsername(this.value)" class="w-full bg-[#12161C] border border-slate-800 rounded-xl pl-8 pr-4 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition font-mono">
+                <input type="text" id="reg-username" required placeholder="naimtahri_pro" oninput="this.dataset.manual='true'; checkUsername(this.value)" class="w-full bg-[#12161C] border border-slate-800 rounded-xl pl-8 pr-4 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition font-mono">
               </div>
               <p id="username-status" class="text-[9px] text-kinet-neon mt-1 font-mono hidden">✓ Tag disponible en KINET</p>
             </div>
@@ -203,17 +216,17 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
                 <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Correo Electrónico</label>
-                <input type="email" required placeholder="correo@ejemplo.com" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+                <input type="email" id="reg-email" required placeholder="correo@ejemplo.com" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
               </div>
               <div>
                 <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Móvil / SMS (Opcional)</label>
-                <input type="tel" placeholder="+34 600..." class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+                <input type="tel" id="reg-phone" placeholder="+34 600..." class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
               </div>
             </div>
 
             <div>
               <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Contraseña Segura</label>
-              <input type="password" required placeholder="••••••••••••" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+              <input type="password" id="reg-password" required placeholder="••••••••••••" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
             </div>
 
             <button type="submit" class="w-full py-2.5 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-wider uppercase hover:bg-emerald-400 transition shadow-[0_0_15px_rgba(0,255,102,0.2)]">
@@ -267,7 +280,7 @@
     </div>
   </div>
 
-  <!-- MODAL GOOGLE -->
+  <!-- MODAL GOOGLE (CON NOMBRE Y APELLIDOS) -->
   <div id="google-modal" class="fixed inset-0 modal-backdrop z-50 hidden flex items-center justify-center p-4">
     <div class="bg-[#181C24] w-full max-w-md p-6 rounded-2xl border border-slate-700 shadow-2xl relative space-y-4 text-center">
       <div class="flex justify-center">
@@ -280,9 +293,19 @@
       </div>
       <div>
         <h3 class="font-bold text-sm text-white">Inicia sesión con Google</h3>
-        <p class="text-xs text-slate-400 mt-1">Introduce tu correo de Google para continuar</p>
+        <p class="text-xs text-slate-400 mt-1">Confirma tu identidad de Google para continuar</p>
       </div>
       <div class="space-y-3 text-left">
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Nombre</label>
+            <input type="text" id="google-firstname-input" placeholder="Ej: Naim" class="w-full bg-[#12161C] border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+          </div>
+          <div>
+            <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Apellidos</label>
+            <input type="text" id="google-lastname-input" placeholder="Ej: Tahri" class="w-full bg-[#12161C] border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+          </div>
+        </div>
         <div>
           <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Correo de Google</label>
           <input type="email" id="google-email-input" placeholder="tu.nombre@gmail.com" class="w-full bg-[#12161C] border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
@@ -304,7 +327,6 @@
   <script>
     lucide.createIcons();
 
-    // Función de transición suave de salida entre archivos HTML
     function cambiarPagina(event, urlDestino) {
       if (event) event.preventDefault();
       const contenedor = document.querySelector('.card-liquid-transition');
@@ -313,19 +335,18 @@
       }
       setTimeout(() => {
         window.location.href = urlDestino;
-      }, 250); // 250 ms sincronizados con la animación rápida
+      }, 250);
     }
 
     function getNextDestination() {
       const isCompleted = localStorage.getItem('kinet_profile_completed');
       const role = localStorage.getItem('kinet_role');
+      const activeRole = localStorage.getItem('kinet_active_role') || 'athlete';
+      const sport = localStorage.getItem('kinet_sport') || 'Fútbol';
 
       if (isCompleted && role) {
-        if (role.includes('Entrenador') || role.includes('Staff')) return 'kinet_os_staff_coach_onboarding.html';
-        if (role.includes('Director') || role.includes('Ojeador') || role.includes('Club')) return 'onboarding_scout_pro.html';
-        return 'onboarding_pro.html';
+        return `app.html?role=${activeRole}&sport=${encodeURIComponent(sport)}`;
       }
-
       return 'fase1.html';
     }
 
@@ -370,36 +391,80 @@
       }
     }
 
+    function autoSuggestHandleFromName() {
+      const first = document.getElementById('reg-firstname').value.trim();
+      const last = document.getElementById('reg-lastname').value.trim();
+      const userField = document.getElementById('reg-username');
+
+      if (userField.dataset.manual === 'true' && userField.value.trim() !== '') return;
+
+      const cleanSlug = `${first}${last.split(' ')[0] || ''}`
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase().replace(/[^a-z0-9]/g, '');
+
+      if (cleanSlug.length >= 2) {
+        userField.value = `${cleanSlug}_pro`;
+        checkUsername(userField.value);
+      }
+    }
+
     function checkUsername(val) {
       const status = document.getElementById('username-status');
-      if (val.length >= 3) {
+      const clean = val.replace(/^@/, '');
+      if (clean.length >= 3) {
         status.classList.remove('hidden');
-        status.textContent = "✓ @" + val + " está disponible";
+        status.textContent = "✓ @" + clean + " está disponible";
       } else {
         status.classList.add('hidden');
       }
     }
 
+    function saveUnifiedIdentity(fullName, handleStr, emailStr, isGuest) {
+      const cleanHandle = handleStr.startsWith('@') ? handleStr : '@' + handleStr;
+      if (fullName) {
+        localStorage.setItem('kinet_user_name', fullName);
+      }
+      if (emailStr) {
+        localStorage.setItem('kinet_user_email', emailStr);
+      }
+      localStorage.setItem('kinet_username', cleanHandle);
+      localStorage.setItem('kinet_social_handle', cleanHandle);
+      localStorage.setItem('kinet_social_configured', 'true');
+
+      if (isGuest) {
+        localStorage.setItem('kinet_mode', 'guest');
+        localStorage.setItem('kinet_guest_session', 'true');
+      } else {
+        localStorage.setItem('kinet_mode', 'pro');
+        localStorage.setItem('kinet_logged_in', 'true');
+      }
+    }
+
     function handleLoginSubmit(e) {
       e.preventDefault();
-      const inputVal = document.getElementById('login-email-input').value;
-      localStorage.setItem('kinet_mode', 'pro');
-      localStorage.setItem('kinet_username', '@' + inputVal.split('@')[0]);
+      const inputVal = document.getElementById('login-email-input').value.trim();
+      const rawUser = inputVal.split('@')[0] || 'atleta';
+      const existingName = localStorage.getItem('kinet_user_name') || rawUser.replace(/[._-]/g, ' ');
+      saveUnifiedIdentity(existingName, '@' + rawUser, inputVal, false);
       cambiarPagina(null, getNextDestination());
     }
 
     function handleRegisterSubmit(e) {
       e.preventDefault();
-      const user = document.getElementById('reg-username').value;
-      localStorage.setItem('kinet_mode', 'pro');
-      localStorage.setItem('kinet_username', '@' + user);
+      const firstName = document.getElementById('reg-firstname').value.trim();
+      const lastName = document.getElementById('reg-lastname').value.trim();
+      const fullName = `${firstName} ${lastName}`.trim();
+      const user = document.getElementById('reg-username').value.trim().replace(/^@/, '');
+      const email = document.getElementById('reg-email').value.trim();
+
+      saveUnifiedIdentity(fullName, '@' + user, email, false);
       cambiarPagina(null, 'fase1.html');
     }
 
     function goToGuest() {
-      const guestId = 'guest_' + Math.random().toString(36).substring(2, 8);
-      localStorage.setItem('kinet_mode', 'guest');
-      localStorage.setItem('kinet_username', guestId);
+      const guestId = 'guest_' + Math.random().toString(36).substring(2, 6);
+      const existingName = localStorage.getItem('kinet_user_name') || 'Atleta Invitado';
+      saveUnifiedIdentity(existingName, '@' + guestId, '', true);
       cambiarPagina(null, 'fase1.html');
     }
 
@@ -426,14 +491,20 @@
     }
 
     function confirmGoogleLogin() {
-      const googleInput = document.getElementById('google-email-input').value;
+      const firstName = document.getElementById('google-firstname-input').value.trim();
+      const lastName = document.getElementById('google-lastname-input').value.trim();
+      const googleInput = document.getElementById('google-email-input').value.trim();
+
       if (!googleInput) {
         showNotification('Por favor, introduce tu correo de Google');
         return;
       }
+
+      const emailPrefix = googleInput.split('@')[0];
+      const fullName = (firstName || lastName) ? `${firstName} ${lastName}`.trim() : (localStorage.getItem('kinet_user_name') || emailPrefix);
+
       closeGoogleSimModal();
-      localStorage.setItem('kinet_mode', 'pro');
-      localStorage.setItem('kinet_username', '@' + googleInput.split('@')[0]);
+      saveUnifiedIdentity(fullName, '@' + emailPrefix.replace(/[^a-zA-Z0-9]/g, '').toLowerCase(), googleInput, false);
       cambiarPagina(null, getNextDestination());
     }
 
@@ -445,40 +516,23 @@
     }
   </script>
   <script>
-  // Auto-redirección si el usuario entra a login.html pero ya tenía sesión activa
-  (function checkExistingSession() {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('logout') === 'true') {
-      // Solo cerramos estado de conexión sin borrar sus perfiles creados en kinet_profiles_db
-      localStorage.removeItem('kinet_logged_in');
-      localStorage.removeItem('kinet_guest_session');
-      return;
-    }
+    (function checkExistingSession() {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('logout') === 'true') {
+        localStorage.removeItem('kinet_logged_in');
+        localStorage.removeItem('kinet_guest_session');
+        return;
+      }
 
-    const isLogged = localStorage.getItem('kinet_logged_in') === 'true' || localStorage.getItem('kinet_guest_session') === 'true';
-    const hasProfile = localStorage.getItem('kinet_profile_completed') === 'true';
+      const isLogged = localStorage.getItem('kinet_logged_in') === 'true' || localStorage.getItem('kinet_guest_session') === 'true';
+      const hasProfile = localStorage.getItem('kinet_profile_completed') === 'true';
 
-    if (isLogged && hasProfile) {
-      window.location.replace('app.html');
-    }
-  })();
-
-  // Función universal para login normal (llámala al enviar tu formulario de login)
-  function completeStandardLogin(email, name) {
-    localStorage.setItem('kinet_logged_in', 'true');
-    if (email) localStorage.setItem('kinet_user_email', email);
-    if (name) localStorage.setItem('kinet_user_name', name);
-    window.location.href = 'app-redirect.html';
-  }
-
-  // Función universal para Acceso como Invitado (sin machacar datos previos)
-  function continueAsGuest() {
-    localStorage.setItem('kinet_guest_session', 'true');
-    if (!localStorage.getItem('kinet_user_name')) {
-      localStorage.setItem('kinet_user_name', 'Atleta Invitado');
-    }
-    window.location.href = 'app-redirect.html';
-  }
-</script>
+      if (isLogged && hasProfile) {
+        const activeRole = localStorage.getItem('kinet_active_role') || 'athlete';
+        const sport = localStorage.getItem('kinet_sport') || 'Fútbol';
+        window.location.replace(`app.html?role=${activeRole}&sport=${encodeURIComponent(sport)}`);
+      }
+    })();
+  </script>
 </body>
 </html>
