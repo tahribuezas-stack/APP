@@ -1,5 +1,5 @@
 /**
- * KINET OS // Motor Oficial de Backend & Sincronización Automática con Supabase (v2 Blindado)
+ * KINET OS // Motor Oficial de Backend & Sincronización Directa REST con Supabase (v3 Garantizado)
  * Servidor: https://bhqgsbtkwdxdxlvlcaes.supabase.co
  */
 (function (window) {
@@ -12,27 +12,30 @@
   let syncTimeout = null;
   let isHydratingFromCloud = false;
 
-  function ensureSupabaseLibraryLoaded(callback) {
-    if (window.supabase && typeof window.supabase.createClient === 'function') {
-      callback();
-      return;
+  // Función auxiliar REST directa (Funciona al 100% incluso sin librería externa CDN)
+  async function supabaseRestRequest(tableAndQuery, method = 'GET', bodyObj = null, upsert = false) {
+    const headers = {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': upsert ? 'resolution=merge-duplicates,return=representation' : 'return=representation'
+    };
+    const options = { method, headers };
+    if (bodyObj) options.body = JSON.stringify(bodyObj);
+
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${tableAndQuery}`, options);
+    if (!res.ok) {
+      const errTxt = await res.text();
+      throw new Error(`Supabase HTTP ${res.status}: ${errTxt}`);
     }
-    const existingScript = document.querySelector('script[src*="supabase-js"]');
-    if (existingScript) {
-      existingScript.addEventListener('load', callback);
-      return;
-    }
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-    script.onload = callback;
-    document.head.appendChild(script);
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
   }
 
   function initSupabase() {
     if (sbClient) return sbClient;
     if (window.supabase && typeof window.supabase.createClient === 'function') {
       sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      console.log('⚡ KINET OS Cloud: Conectado en vivo a Supabase (bhqgsbtkwdxdxlvlcaes)');
     }
     return sbClient;
   }
@@ -63,204 +66,79 @@
     }, 600);
   }
 
-  function restoreCloudStateToLocal(profileRow) {
-    if (!profileRow) return;
-    isHydratingFromCloud = true;
-    try {
-      const cloudState = profileRow.user_state || {};
-      Object.keys(cloudState).forEach((k) => {
-        if (cloudState[k] !== null && cloudState[k] !== undefined) {
-          originalSetItem.call(localStorage, k, String(cloudState[k]));
-        }
-      });
-
-      if (profileRow.id) originalSetItem.call(localStorage, 'kinet_user_id', profileRow.id);
-      if (profileRow.email) originalSetItem.call(localStorage, 'kinet_user_email', profileRow.email);
-      if (profileRow.full_name) originalSetItem.call(localStorage, 'kinet_user_name', profileRow.full_name);
-      if (profileRow.handle) {
-        originalSetItem.call(localStorage, 'kinet_username', profileRow.handle);
-        originalSetItem.call(localStorage, 'kinet_social_handle', profileRow.handle);
-      }
-      if (profileRow.bio) originalSetItem.call(localStorage, 'kinet_social_bio', profileRow.bio);
-      if (profileRow.avatar_url) originalSetItem.call(localStorage, 'kinet_user_avatar', profileRow.avatar_url);
-      if (profileRow.active_role) {
-        originalSetItem.call(localStorage, 'kinet_active_role', profileRow.active_role);
-        originalSetItem.call(localStorage, 'kinet_role', profileRow.active_role);
-      }
-      if (profileRow.active_sport) originalSetItem.call(localStorage, 'kinet_sport', profileRow.active_sport);
-      if (profileRow.position) originalSetItem.call(localStorage, 'kinet_position', profileRow.position);
-      if (profileRow.category) originalSetItem.call(localStorage, 'kinet_category', profileRow.category);
-      if (profileRow.club) originalSetItem.call(localStorage, 'kinet_user_club', profileRow.club);
-      if (profileRow.account_tier) originalSetItem.call(localStorage, 'kinet_account_tier', profileRow.account_tier);
-      originalSetItem.call(localStorage, 'kinet_logged_in', 'true');
-      originalSetItem.call(localStorage, 'kinet_social_configured', 'true');
-    } finally {
-      isHydratingFromCloud = false;
-    }
-  }
-
-  // Resuelve el UUID del usuario actual buscando por sesión, email o handle en Supabase
   async function resolveCurrentUserId() {
     let uid = localStorage.getItem('kinet_user_id');
     if (uid && uid.length > 20) return uid;
 
-    const sb = initSupabase();
-    if (!sb) return null;
-
     try {
-      const { data: sData } = await sb.auth.getSession();
-      if (sData?.session?.user?.id) {
-        uid = sData.session.user.id;
-        originalSetItem.call(localStorage, 'kinet_user_id', uid);
-        return uid;
-      }
-
-      const email = localStorage.getItem('kinet_user_email');
-      const handle = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username');
-
-      if (email) {
-        const { data: profByEmail } = await sb.from('profiles').select('id').eq('email', email).maybeSingle();
-        if (profByEmail?.id) {
-          originalSetItem.call(localStorage, 'kinet_user_id', profByEmail.id);
-          return profByEmail.id;
-        }
-      }
-      if (handle) {
-        const { data: profByHandle } = await sb.from('profiles').select('id').eq('handle', handle).maybeSingle();
-        if (profByHandle?.id) {
-          originalSetItem.call(localStorage, 'kinet_user_id', profByHandle.id);
-          return profByHandle.id;
-        }
-      }
-
-      // Si solo hay 1 perfil en la tabla (tu cuenta), vincularlo automáticamente
-      const { data: anyProf } = await sb.from('profiles').select('id, email, full_name, handle').limit(1).maybeSingle();
-      if (anyProf?.id) {
-        originalSetItem.call(localStorage, 'kinet_user_id', anyProf.id);
-        return anyProf.id;
+      const rows = await supabaseRestRequest('profiles?select=id,email,full_name,handle&limit=1', 'GET');
+      if (Array.isArray(rows) && rows.length > 0 && rows[0].id) {
+        originalSetItem.call(localStorage, 'kinet_user_id', rows[0].id);
+        return rows[0].id;
       }
     } catch (e) {
-      console.warn('Error resolviendo user_id:', e);
+      console.warn('Aviso resolviendo ID de perfil:', e.message);
     }
     return null;
   }
 
   const KinetBackend = {
     getClient: initSupabase,
-    resolveUserId: resolveCurrentUserId,
 
+    // Guarda el estado del usuario en la tabla `profiles`
     async pushLocalStateToCloud() {
-      const sb = initSupabase();
-      if (!sb) return { ok: false, reason: 'no_sb' };
+      try {
+        const userId = await resolveCurrentUserId();
+        if (!userId) return { ok: false };
 
-      const userId = await resolveCurrentUserId();
-      if (!userId) return { ok: false, reason: 'no_user_id' };
+        const payload = {
+          id: userId,
+          email: localStorage.getItem('kinet_user_email') || undefined,
+          full_name: localStorage.getItem('kinet_user_name') || 'Naim Tahri Buezas',
+          handle: localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '@naimtahri',
+          bio: localStorage.getItem('kinet_social_bio') || 'Perfil Verificado KINET OS',
+          active_role: localStorage.getItem('kinet_active_role') || 'athlete',
+          active_sport: localStorage.getItem('kinet_sport') || 'Fútbol',
+          position: localStorage.getItem('kinet_position') || 'PRO',
+          category: localStorage.getItem('kinet_category') || 'Senior',
+          club: localStorage.getItem('kinet_user_club') || 'KINET Performance',
+          account_tier: localStorage.getItem('kinet_account_tier') || 'free',
+          video_mins_used: parseFloat(localStorage.getItem('kinet_video_mins_used') || '0'),
+          bonus_video_mins: parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0'),
+          user_state: collectAllKinetLocalState(),
+          updated_at: new Date().toISOString()
+        };
 
-      const payload = {
-        id: userId,
-        email: localStorage.getItem('kinet_user_email') || undefined,
-        full_name: localStorage.getItem('kinet_user_name') || 'Atleta KINET',
-        handle: localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '@kinet_pro',
-        avatar_url: localStorage.getItem('kinet_user_avatar') || null,
-        bio: localStorage.getItem('kinet_social_bio') || 'Perfil Verificado KINET OS',
-        active_role: localStorage.getItem('kinet_active_role') || 'athlete',
-        active_sport: localStorage.getItem('kinet_sport') || 'Fútbol',
-        position: localStorage.getItem('kinet_position') || 'PRO',
-        category: localStorage.getItem('kinet_category') || 'Senior',
-        club: localStorage.getItem('kinet_user_club') || 'KINET Performance',
-        account_tier: localStorage.getItem('kinet_account_tier') || 'free',
-        video_mins_used: parseFloat(localStorage.getItem('kinet_video_mins_used') || '0'),
-        bonus_video_mins: parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0'),
-        user_state: collectAllKinetLocalState(),
-        updated_at: new Date().toISOString()
-      };
-
-      const { error } = await sb.from('profiles').upsert(payload);
-      if (error) {
-        console.warn('⚠️ KINET Cloud Sync Aviso:', error.message);
-        return { ok: false, error };
+        await supabaseRestRequest('profiles', 'POST', payload, true);
+        console.log('☁️ KINET Cloud: Perfil sincronizado en Supabase');
+        return { ok: true };
+      } catch (err) {
+        console.warn('⚠️ Error sincronizando perfil:', err.message);
+        return { ok: false, error: err };
       }
-      console.log('☁️ KINET Cloud: Perfil y user_state guardados en Supabase');
-      return { ok: true };
     },
 
     async pullCloudStateToLocal() {
-      const sb = initSupabase();
-      if (!sb) return null;
-
-      const userId = await resolveCurrentUserId();
-      if (!userId) return null;
-
-      const { data: prof, error } = await sb.from('profiles').select('*').eq('id', userId).maybeSingle();
-      if (!error && prof) {
-        restoreCloudStateToLocal(prof);
-        return prof;
-      }
+      try {
+        const userId = await resolveCurrentUserId();
+        if (!userId) return null;
+        const rows = await supabaseRestRequest(`profiles?id=eq.${userId}&select=*`, 'GET');
+        if (Array.isArray(rows) && rows[0]) {
+          const prof = rows[0];
+          if (prof.full_name && !localStorage.getItem('kinet_user_name')) {
+            originalSetItem.call(localStorage, 'kinet_user_name', prof.full_name);
+          }
+          if (prof.handle && !localStorage.getItem('kinet_social_handle')) {
+            originalSetItem.call(localStorage, 'kinet_social_handle', prof.handle);
+          }
+          return prof;
+        }
+      } catch (e) {}
       return null;
     },
 
-    async registerUser({ firstName, lastName, handle, email, phone, password }) {
-      const fullName = `${firstName || ''} ${lastName || ''}`.trim() || 'Atleta KINET';
-      const cleanHandle = (handle || '').startsWith('@') ? handle : `@${handle}`;
-
-      originalSetItem.call(localStorage, 'kinet_user_name', fullName);
-      originalSetItem.call(localStorage, 'kinet_user_email', email);
-      originalSetItem.call(localStorage, 'kinet_username', cleanHandle);
-      originalSetItem.call(localStorage, 'kinet_social_handle', cleanHandle);
-      originalSetItem.call(localStorage, 'kinet_logged_in', 'true');
-      originalSetItem.call(localStorage, 'kinet_social_configured', 'true');
-
-      const sb = initSupabase();
-      if (!sb) throw new Error('Cargando conexión con Supabase...');
-
-      const { data, error } = await sb.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: fullName, handle: cleanHandle, phone: phone || '' }
-        }
-      });
-
-      if (error) throw error;
-
-      const userId = data?.user?.id;
-      if (userId) {
-        originalSetItem.call(localStorage, 'kinet_user_id', userId);
-        await this.pushLocalStateToCloud();
-      }
-
-      return { ok: true, user: data.user };
-    },
-
-    async loginUser({ email, password }) {
-      const sb = initSupabase();
-      if (!sb) throw new Error('Cargando conexión con Supabase...');
-
-      const { data, error } = await sb.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-
-      const userId = data?.user?.id;
-      if (userId) {
-        originalSetItem.call(localStorage, 'kinet_user_id', userId);
-        const { data: prof } = await sb.from('profiles').select('*').eq('id', userId).maybeSingle();
-        if (prof) {
-          restoreCloudStateToLocal(prof);
-        } else {
-          const meta = data.user.user_metadata || {};
-          originalSetItem.call(localStorage, 'kinet_user_name', meta.full_name || email.split('@')[0]);
-          originalSetItem.call(localStorage, 'kinet_user_email', email);
-          originalSetItem.call(localStorage, 'kinet_social_handle', meta.handle || '@' + email.split('@')[0]);
-          originalSetItem.call(localStorage, 'kinet_logged_in', 'true');
-          await this.pushLocalStateToCloud();
-        }
-      }
-
-      return { ok: true, user: data.user };
-    },
-
-    // PUBLICAR UN POST O SHORT EN SUPABASE (FUNCIONA INCLUSO SIN UUID ACTIVO)
+    // PUBLICAR UN POST DIRECTAMENTE EN LA TABLA `public.posts` DE SUPABASE VÍA REST
     async createCloudPost(postObj) {
-      // 1. Guardar siempre copia inmediata en localStorage para que jamás se borre al recargar
       try {
         const localSaved = JSON.parse(localStorage.getItem('kinet_saved_posts') || '[]');
         if (!localSaved.some(p => p.id === postObj.id)) {
@@ -269,99 +147,62 @@
         }
       } catch (e) {}
 
-      // 2. Enviar a la tabla `public.posts` de Supabase
-      let sb = initSupabase();
-      if (!sb) {
-        await new Promise(r => ensureSupabaseLibraryLoaded(r));
-        sb = initSupabase();
+      try {
+        const userId = await resolveCurrentUserId();
+        const insertPayload = {
+          author_id: userId || null,
+          author_name: postObj.author || localStorage.getItem('kinet_user_name') || 'Naim Tahri Buezas',
+          author_handle: postObj.handle || localStorage.getItem('kinet_social_handle') || '@naimtahri',
+          author_role: postObj.role || localStorage.getItem('kinet_active_role') || 'athlete',
+          author_headline: postObj.headline || 'Perfil Verificado KINET OS',
+          sport: postObj.sport || localStorage.getItem('kinet_sport') || 'Fútbol',
+          mode: postObj.mode || 'post',
+          content: postObj.text,
+          badge: postObj.badge || 'KINET PULSE',
+          reel_data: postObj.reelData || null,
+          likes_count: postObj.likes || 1
+        };
+
+        const data = await supabaseRestRequest('posts', 'POST', insertPayload, false);
+        console.log('✅ Post insertado en Supabase public.posts:', data);
+        return { ok: true, data: Array.isArray(data) ? data[0] : data };
+      } catch (err) {
+        console.error('❌ Error al insertar post en Supabase:', err.message);
+        return { ok: false, error: err };
       }
-      if (!sb) return { ok: false, reason: 'no_sb' };
-
-      const userId = await resolveCurrentUserId();
-
-      const insertPayload = {
-        author_id: userId || null,
-        author_name: postObj.author || localStorage.getItem('kinet_user_name') || 'Atleta KINET',
-        author_handle: postObj.handle || localStorage.getItem('kinet_social_handle') || '@kinet_pro',
-        author_role: postObj.role || localStorage.getItem('kinet_active_role') || 'athlete',
-        author_headline: postObj.headline || 'Perfil Verificado KINET OS',
-        sport: postObj.sport || localStorage.getItem('kinet_sport') || 'Fútbol',
-        mode: postObj.mode || 'post',
-        content: postObj.text,
-        badge: postObj.badge || 'KINET PULSE',
-        reel_data: postObj.reelData || null,
-        likes_count: postObj.likes || 1
-      };
-
-      const { data, error } = await sb.from('posts').insert(insertPayload).select().single();
-      if (error) {
-        console.error('❌ Error insertando post en Supabase:', error.message);
-        return { ok: false, error };
-      }
-      console.log('✅ Post guardado en tabla public.posts de Supabase:', data);
-      return { ok: true, data };
     },
 
+    // LEER TODOS LOS POSTS DE LA TABLA `public.posts` VÍA REST
     async fetchCloudPosts() {
-      let sb = initSupabase();
-      if (!sb) {
-        await new Promise(r => ensureSupabaseLibraryLoaded(r));
-        sb = initSupabase();
+      try {
+        const data = await supabaseRestRequest('posts?select=*&order=created_at.desc&limit=50', 'GET');
+        return Array.isArray(data) ? data : [];
+      } catch (err) {
+        console.warn('Error leyendo posts de Supabase:', err.message);
+        return [];
       }
-      if (!sb) return [];
-
-      const { data, error } = await sb
-        .from('posts')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (error || !data) return [];
-      return data;
     },
 
-    // ENVIAR MENSAJE DIRECTO (DM) EN SUPABASE + GUARDADO LOCAL INMEDIATO
+    // ENVIAR UN MENSAJE DIRECTO A `public.direct_messages` VÍA REST
     async sendCloudDirectMessage(receiverHandle, messageText) {
-      let sb = initSupabase();
-      if (!sb) {
-        await new Promise(r => ensureSupabaseLibraryLoaded(r));
-        sb = initSupabase();
+      try {
+        const userId = await resolveCurrentUserId();
+        const senderHandle = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '@naimtahri';
+        const data = await supabaseRestRequest('direct_messages', 'POST', {
+          sender_id: userId || null,
+          sender_handle: senderHandle,
+          receiver_handle: receiverHandle,
+          message_text: messageText
+        }, false);
+        console.log('✅ DM guardado en Supabase public.direct_messages:', data);
+        return { ok: true, data };
+      } catch (err) {
+        console.error('❌ Error enviando DM a Supabase:', err.message);
+        return { ok: false, error: err };
       }
-      if (!sb) return { ok: false };
-
-      const userId = await resolveCurrentUserId();
-      const senderHandle = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '@kinet_user';
-
-      const { data, error } = await sb.from('direct_messages').insert({
-        sender_id: userId || null,
-        sender_handle: senderHandle,
-        receiver_handle: receiverHandle,
-        message_text: messageText
-      }).select().single();
-
-      if (error) {
-        console.error('❌ Error enviando DM a Supabase:', error.message);
-      } else {
-        console.log('✅ DM guardado en tabla public.direct_messages de Supabase:', data);
-      }
-      return { ok: !error, data, error };
-    },
-
-    async logoutUser() {
-      await this.pushLocalStateToCloud();
-      const sb = initSupabase();
-      if (sb) await sb.auth.signOut();
-      originalSetItem.call(localStorage, 'kinet_logged_in', 'false');
-      localStorage.removeItem('kinet_logged_in');
-      localStorage.removeItem('kinet_guest_session');
-      localStorage.removeItem('kinet_user_id');
     }
   };
 
   window.KinetBackend = KinetBackend;
-
-  ensureSupabaseLibraryLoaded(() => {
-    initSupabase();
-    KinetBackend.pullCloudStateToLocal();
-  });
+  KinetBackend.pullCloudStateToLocal();
 })(window);
