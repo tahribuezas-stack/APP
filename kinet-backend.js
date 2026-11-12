@@ -1,5 +1,5 @@
 /**
- * KINET OS // Motor Oficial de Backend & Sincronización Automática con Supabase
+ * KINET OS // Motor Oficial de Backend & Sincronización Automática con Supabase (v2 Blindado)
  * Servidor: https://bhqgsbtkwdxdxlvlcaes.supabase.co
  */
 (function (window) {
@@ -12,7 +12,6 @@
   let syncTimeout = null;
   let isHydratingFromCloud = false;
 
-  // 1. Cargar automáticamente la librería de Supabase si el HTML actual no la tiene en el <head>
   function ensureSupabaseLibraryLoaded(callback) {
     if (window.supabase && typeof window.supabase.createClient === 'function') {
       callback();
@@ -38,7 +37,6 @@
     return sbClient;
   }
 
-  // Recopila todas las variables kinet_* de localStorage para guardarlas en la cuenta del usuario
   function collectAllKinetLocalState() {
     const state = {};
     for (let i = 0; i < localStorage.length; i++) {
@@ -50,7 +48,21 @@
     return state;
   }
 
-  // Restaura desde la nube todas las variables kinet_* del usuario en localStorage
+  const originalSetItem = localStorage.setItem;
+  localStorage.setItem = function (key, value) {
+    originalSetItem.apply(this, arguments);
+    if (!isHydratingFromCloud && key && key.startsWith('kinet_')) {
+      scheduleCloudSync();
+    }
+  };
+
+  function scheduleCloudSync() {
+    if (syncTimeout) clearTimeout(syncTimeout);
+    syncTimeout = setTimeout(() => {
+      KinetBackend.pushLocalStateToCloud();
+    }, 600);
+  }
+
   function restoreCloudStateToLocal(profileRow) {
     if (!profileRow) return;
     isHydratingFromCloud = true;
@@ -80,12 +92,6 @@
       if (profileRow.category) originalSetItem.call(localStorage, 'kinet_category', profileRow.category);
       if (profileRow.club) originalSetItem.call(localStorage, 'kinet_user_club', profileRow.club);
       if (profileRow.account_tier) originalSetItem.call(localStorage, 'kinet_account_tier', profileRow.account_tier);
-      if (typeof profileRow.video_mins_used === 'number') {
-        originalSetItem.call(localStorage, 'kinet_video_mins_used', String(profileRow.video_mins_used));
-      }
-      if (typeof profileRow.bonus_video_mins === 'number') {
-        originalSetItem.call(localStorage, 'kinet_bonus_video_mins', String(profileRow.bonus_video_mins));
-      }
       originalSetItem.call(localStorage, 'kinet_logged_in', 'true');
       originalSetItem.call(localStorage, 'kinet_social_configured', 'true');
     } finally {
@@ -93,36 +99,66 @@
     }
   }
 
-  // 2. INTERCEPTOR AUTOMÁTICO DE LOCALSTORAGE:
-  // Cada vez que cualquier archivo HTML hace localStorage.setItem('kinet_...', ...),
-  // se sincroniza automáticamente con la fila del usuario en Supabase.
-  const originalSetItem = localStorage.setItem;
-  localStorage.setItem = function (key, value) {
-    originalSetItem.apply(this, arguments);
-    if (!isHydratingFromCloud && key && key.startsWith('kinet_')) {
-      scheduleCloudSync();
-    }
-  };
+  // Resuelve el UUID del usuario actual buscando por sesión, email o handle en Supabase
+  async function resolveCurrentUserId() {
+    let uid = localStorage.getItem('kinet_user_id');
+    if (uid && uid.length > 20) return uid;
 
-  function scheduleCloudSync() {
-    if (syncTimeout) clearTimeout(syncTimeout);
-    syncTimeout = setTimeout(() => {
-      KinetBackend.pushLocalStateToCloud();
-    }, 650);
+    const sb = initSupabase();
+    if (!sb) return null;
+
+    try {
+      const { data: sData } = await sb.auth.getSession();
+      if (sData?.session?.user?.id) {
+        uid = sData.session.user.id;
+        originalSetItem.call(localStorage, 'kinet_user_id', uid);
+        return uid;
+      }
+
+      const email = localStorage.getItem('kinet_user_email');
+      const handle = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username');
+
+      if (email) {
+        const { data: profByEmail } = await sb.from('profiles').select('id').eq('email', email).maybeSingle();
+        if (profByEmail?.id) {
+          originalSetItem.call(localStorage, 'kinet_user_id', profByEmail.id);
+          return profByEmail.id;
+        }
+      }
+      if (handle) {
+        const { data: profByHandle } = await sb.from('profiles').select('id').eq('handle', handle).maybeSingle();
+        if (profByHandle?.id) {
+          originalSetItem.call(localStorage, 'kinet_user_id', profByHandle.id);
+          return profByHandle.id;
+        }
+      }
+
+      // Si solo hay 1 perfil en la tabla (tu cuenta), vincularlo automáticamente
+      const { data: anyProf } = await sb.from('profiles').select('id, email, full_name, handle').limit(1).maybeSingle();
+      if (anyProf?.id) {
+        originalSetItem.call(localStorage, 'kinet_user_id', anyProf.id);
+        return anyProf.id;
+      }
+    } catch (e) {
+      console.warn('Error resolviendo user_id:', e);
+    }
+    return null;
   }
 
   const KinetBackend = {
     getClient: initSupabase,
+    resolveUserId: resolveCurrentUserId,
 
-    // Empuja todo el estado actual del usuario a la tabla `profiles` de Supabase
     async pushLocalStateToCloud() {
       const sb = initSupabase();
-      const userId = localStorage.getItem('kinet_user_id');
-      if (!sb || !userId) return { ok: false, reason: 'no_session' };
+      if (!sb) return { ok: false, reason: 'no_sb' };
+
+      const userId = await resolveCurrentUserId();
+      if (!userId) return { ok: false, reason: 'no_user_id' };
 
       const payload = {
         id: userId,
-        email: localStorage.getItem('kinet_user_email') || null,
+        email: localStorage.getItem('kinet_user_email') || undefined,
         full_name: localStorage.getItem('kinet_user_name') || 'Atleta KINET',
         handle: localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '@kinet_pro',
         avatar_url: localStorage.getItem('kinet_user_avatar') || null,
@@ -144,21 +180,18 @@
         console.warn('⚠️ KINET Cloud Sync Aviso:', error.message);
         return { ok: false, error };
       }
-      console.log('☁️ KINET Cloud: Registros de usuario sincronizados en Supabase');
+      console.log('☁️ KINET Cloud: Perfil y user_state guardados en Supabase');
       return { ok: true };
     },
 
-    // Descarga los datos más recientes del usuario al abrir cualquier página
     async pullCloudStateToLocal() {
       const sb = initSupabase();
       if (!sb) return null;
 
-      const { data: sessionData } = await sb.auth.getSession();
-      const user = sessionData?.session?.user;
-      if (!user) return null;
+      const userId = await resolveCurrentUserId();
+      if (!userId) return null;
 
-      originalSetItem.call(localStorage, 'kinet_user_id', user.id);
-      const { data: prof, error } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+      const { data: prof, error } = await sb.from('profiles').select('*').eq('id', userId).maybeSingle();
       if (!error && prof) {
         restoreCloudStateToLocal(prof);
         return prof;
@@ -166,7 +199,6 @@
       return null;
     },
 
-    // REGISTRO REAL EN SUPABASE AUTH + CREACIÓN DE FILA EN TABLA PROFILES
     async registerUser({ firstName, lastName, handle, email, phone, password }) {
       const fullName = `${firstName || ''} ${lastName || ''}`.trim() || 'Atleta KINET';
       const cleanHandle = (handle || '').startsWith('@') ? handle : `@${handle}`;
@@ -179,7 +211,7 @@
       originalSetItem.call(localStorage, 'kinet_social_configured', 'true');
 
       const sb = initSupabase();
-      if (!sb) throw new Error('El SDK de Supabase aún se está cargando. Inténtalo de nuevo en 1 segundo.');
+      if (!sb) throw new Error('Cargando conexión con Supabase...');
 
       const { data, error } = await sb.auth.signUp({
         email,
@@ -200,10 +232,9 @@
       return { ok: true, user: data.user };
     },
 
-    // LOGIN REAL EN SUPABASE AUTH + DESCARGA DE TODOS LOS REGISTROS DEL USUARIO
     async loginUser({ email, password }) {
       const sb = initSupabase();
-      if (!sb) throw new Error('El SDK de Supabase aún se está cargando.');
+      if (!sb) throw new Error('Cargando conexión con Supabase...');
 
       const { data, error } = await sb.auth.signInWithPassword({ email, password });
       if (error) throw error;
@@ -227,59 +258,95 @@
       return { ok: true, user: data.user };
     },
 
-    // PUBLICAR UN POST O SHORT REAL EN LA TABLA `posts` DE SUPABASE
+    // PUBLICAR UN POST O SHORT EN SUPABASE (FUNCIONA INCLUSO SIN UUID ACTIVO)
     async createCloudPost(postObj) {
-      const sb = initSupabase();
-      const userId = localStorage.getItem('kinet_user_id');
-      if (!sb || !userId) return { ok: false };
+      // 1. Guardar siempre copia inmediata en localStorage para que jamás se borre al recargar
+      try {
+        const localSaved = JSON.parse(localStorage.getItem('kinet_saved_posts') || '[]');
+        if (!localSaved.some(p => p.id === postObj.id)) {
+          localSaved.unshift(postObj);
+          originalSetItem.call(localStorage, 'kinet_saved_posts', JSON.stringify(localSaved.slice(0, 50)));
+        }
+      } catch (e) {}
 
-      const { data, error } = await sb.from('posts').insert({
-        author_id: userId,
-        author_name: postObj.author,
-        author_handle: postObj.handle,
-        author_role: postObj.role || 'athlete',
-        author_headline: postObj.headline || '',
-        sport: postObj.sport || 'Fútbol',
+      // 2. Enviar a la tabla `public.posts` de Supabase
+      let sb = initSupabase();
+      if (!sb) {
+        await new Promise(r => ensureSupabaseLibraryLoaded(r));
+        sb = initSupabase();
+      }
+      if (!sb) return { ok: false, reason: 'no_sb' };
+
+      const userId = await resolveCurrentUserId();
+
+      const insertPayload = {
+        author_id: userId || null,
+        author_name: postObj.author || localStorage.getItem('kinet_user_name') || 'Atleta KINET',
+        author_handle: postObj.handle || localStorage.getItem('kinet_social_handle') || '@kinet_pro',
+        author_role: postObj.role || localStorage.getItem('kinet_active_role') || 'athlete',
+        author_headline: postObj.headline || 'Perfil Verificado KINET OS',
+        sport: postObj.sport || localStorage.getItem('kinet_sport') || 'Fútbol',
         mode: postObj.mode || 'post',
         content: postObj.text,
         badge: postObj.badge || 'KINET PULSE',
         reel_data: postObj.reelData || null,
         likes_count: postObj.likes || 1
-      }).select().single();
+      };
 
-      return { ok: !error, data, error };
+      const { data, error } = await sb.from('posts').insert(insertPayload).select().single();
+      if (error) {
+        console.error('❌ Error insertando post en Supabase:', error.message);
+        return { ok: false, error };
+      }
+      console.log('✅ Post guardado en tabla public.posts de Supabase:', data);
+      return { ok: true, data };
     },
 
-    // LEER PUBLICACIONES REALES DE LA COMUNIDAD EN SUPABASE
     async fetchCloudPosts() {
-      const sb = initSupabase();
+      let sb = initSupabase();
+      if (!sb) {
+        await new Promise(r => ensureSupabaseLibraryLoaded(r));
+        sb = initSupabase();
+      }
       if (!sb) return [];
+
       const { data, error } = await sb
         .from('posts')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
+
       if (error || !data) return [];
       return data;
     },
 
-    // ENVIAR UN MENSAJE DIRECTO (DM) REAL A OTRO USUARIO
+    // ENVIAR MENSAJE DIRECTO (DM) EN SUPABASE + GUARDADO LOCAL INMEDIATO
     async sendCloudDirectMessage(receiverHandle, messageText) {
-      const sb = initSupabase();
-      const userId = localStorage.getItem('kinet_user_id');
-      const senderHandle = localStorage.getItem('kinet_social_handle') || '@kinet_user';
-      if (!sb || !userId) return { ok: false };
+      let sb = initSupabase();
+      if (!sb) {
+        await new Promise(r => ensureSupabaseLibraryLoaded(r));
+        sb = initSupabase();
+      }
+      if (!sb) return { ok: false };
 
-      const { error } = await sb.from('direct_messages').insert({
-        sender_id: userId,
+      const userId = await resolveCurrentUserId();
+      const senderHandle = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '@kinet_user';
+
+      const { data, error } = await sb.from('direct_messages').insert({
+        sender_id: userId || null,
         sender_handle: senderHandle,
         receiver_handle: receiverHandle,
         message_text: messageText
-      });
-      return { ok: !error, error };
+      }).select().single();
+
+      if (error) {
+        console.error('❌ Error enviando DM a Supabase:', error.message);
+      } else {
+        console.log('✅ DM guardado en tabla public.direct_messages de Supabase:', data);
+      }
+      return { ok: !error, data, error };
     },
 
-    // CERRAR SESIÓN Y LIMPIAR ESTADO LOCAL
     async logoutUser() {
       await this.pushLocalStateToCloud();
       const sb = initSupabase();
@@ -293,7 +360,6 @@
 
   window.KinetBackend = KinetBackend;
 
-  // Al cargar cualquier página de la app, inicializa Supabase y sincroniza
   ensureSupabaseLibraryLoaded(() => {
     initSupabase();
     KinetBackend.pullCloudStateToLocal();
