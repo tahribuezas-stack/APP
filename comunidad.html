@@ -17,6 +17,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     
+    <!-- SDK Oficial de Supabase + Motor Central KINET Backend -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="kinet-backend.js"></script>
+
     <style>
         :root {
             --bg-void: #06080E;
@@ -114,9 +118,7 @@
         }
         @media (max-width: 960px) { .os-sidebar { display: none !important; } }
 
-        /* =========================================================================
-           LOGO KINET EXACTO DE APP.HTML (SUAVE Y ELEGANTE)
-           ========================================================================= */
+        /* LOGO KINET EXACTO DE APP.HTML */
         .brand-box {
             display: flex;
             align-items: center;
@@ -602,9 +604,7 @@
             box-shadow: none;
         }
 
-        /* =========================================================================
-           VISTA DEDICADA EN PANTALLA PRINCIPAL ESTILO INSTAGRAM DIRECT (CHATS + AMIGOS)
-           ========================================================================= */
+        /* VISTA DEDICADA EN PANTALLA PRINCIPAL ESTILO INSTAGRAM DIRECT */
         .ig-inline-direct-panel {
             display: none;
             background: rgba(13, 17, 26, 0.96);
@@ -648,9 +648,7 @@
             background: rgba(13, 17, 26, 0.95);
         }
 
-        /* =========================================================================
-           REPRODUCTOR VERTICAL KINET SHORTS 9:16
-           ========================================================================= */
+        /* REPRODUCTOR VERTICAL KINET SHORTS 9:16 */
         .kinet-shorts-stage {
             display: none;
             flex-direction: column;
@@ -1258,7 +1256,6 @@
         }
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
-    <script src="kinet-backend.js"></script>
 </head>
 <body data-role="athlete">
 
@@ -1555,9 +1552,7 @@
                             </div>
                         </div>
 
-                        <!-- =====================================================================
-                             BLOQUE 3: PESTAÑA INTEGRADA DE MENSAJES DIRECTOS ESTILO INSTAGRAM (CHATS + AMIGOS)
-                             ===================================================================== -->
+                        <!-- BLOQUE 3: PESTAÑA INTEGRADA DE MENSAJES DIRECTOS ESTILO INSTAGRAM -->
                         <div class="ig-inline-direct-panel mobile-chat-open" id="ig-inline-direct-panel">
                             
                             <!-- Lado Izquierdo: Lista de Chats Activos o Agregar Amigos -->
@@ -2335,6 +2330,35 @@
         let modalDmMode = 'chats';
         let inlineDmMode = 'chats';
 
+        // Hidratar inmediatamente posts y DMs guardados en caché local para que nunca desaparezcan al hacer F5
+        function loadSavedPostsAndDmsFromLocalCache() {
+            try {
+                const savedPosts = JSON.parse(localStorage.getItem('kinet_saved_posts') || '[]');
+                if (Array.isArray(savedPosts) && savedPosts.length > 0) {
+                    savedPosts.slice().reverse().forEach(sp => {
+                        if (!allSocialPosts.some(p => p.id === sp.id || (p.text === sp.text && p.handle === sp.handle))) {
+                            allSocialPosts.unshift(sp);
+                        }
+                    });
+                }
+            } catch (e) {}
+
+            try {
+                const savedDms = JSON.parse(localStorage.getItem('kinet_saved_dms') || '{}');
+                Object.keys(savedDms).forEach(contactKey => {
+                    if (Array.isArray(savedDms[contactKey])) {
+                        DM_CONVERSATIONS[contactKey] = savedDms[contactKey];
+                    }
+                });
+            } catch (e) {}
+        }
+
+        function persistDmsToLocalCache() {
+            try {
+                localStorage.setItem('kinet_saved_dms', JSON.stringify(DM_CONVERSATIONS));
+            } catch (e) {}
+        }
+
         function getFollowedHandles() {
             try {
                 const raw = localStorage.getItem('kinet_followed_handles');
@@ -2547,7 +2571,6 @@
             bindSwipeAndWheel(document.getElementById('fs-short-card'));
             startShortVideoHudAnimation();
 
-            // Efecto spotlight exacto de app.html en paneles y botones del sidebar
             document.querySelectorAll('.kinet-panel, .side-link').forEach(el => {
                 el.addEventListener('mousemove', (e) => {
                     const rect = el.getBoundingClientRect();
@@ -2579,6 +2602,8 @@
         });
 
         function initPageModule(roleKey, sportChosen, forceOpenSetup) {
+            loadSavedPostsAndDmsFromLocalCache();
+
             document.getElementById('header-tag-text').textContent = `ECOSISTEMA DEPORTIVO, KINET SHORTS 9:16 & RADAR DE CLUBES • ${sportChosen.toUpperCase()}`;
 
             const normalizedSport = normalizeSportOption(sportChosen);
@@ -2609,7 +2634,7 @@
 
             selectConversationAllViews(currentDmContact);
             updateFollowingCountersAndButtons();
-            setTimeout(syncCommunityWithSupabase, 450);
+            setTimeout(syncCommunityWithSupabase, 300);
         }
 
         function syncSocialConfigVisibility(isConfigured) {
@@ -2937,9 +2962,19 @@
 
             allSocialPosts.unshift(newPost);
             input.value = '';
+
+            // Guardado inmediato en caché local para que nunca desaparezca al recargar
+            try {
+                const localSaved = JSON.parse(localStorage.getItem('kinet_saved_posts') || '[]');
+                localSaved.unshift(newPost);
+                localStorage.setItem('kinet_saved_posts', JSON.stringify(localSaved.slice(0, 50)));
+            } catch (e) {}
+
+            // Envío directo a la tabla `public.posts` de Supabase
             if (window.KinetBackend && typeof window.KinetBackend.createCloudPost === 'function') {
                 window.KinetBackend.createCloudPost(newPost).catch(e => console.warn(e));
             }
+
             if (postMode === 'reels') {
                 setFeedMode('reels', document.getElementById('tab-mode-reels'));
             } else {
@@ -2993,9 +3028,7 @@
             }
         }
 
-        // =========================================================================
-        // SISTEMA INSTAGRAM DIRECT (VISTA INTEGRADA EN PESTAÑA + WIDGET LATERAL + MODAL)
-        // =========================================================================
+        // SISTEMA INSTAGRAM DIRECT
         function findDirectoryPerson(contactKeyOrName, fallbackInitials, fallbackHandle) {
             let found = NETWORK_DIRECTORY.find(u => u.name === contactKeyOrName || u.shortName === contactKeyOrName || u.handle === fallbackHandle);
             if (!found) {
@@ -3137,7 +3170,6 @@
                 ];
             }
 
-            // Actualizar cabecera tanto en la vista integrada (pestaña DMs) como en el modal
             ['dm', 'inline-dm'].forEach(prefix => {
                 const nameEl = document.getElementById(`${prefix}-active-name`);
                 const avEl = document.getElementById(`${prefix}-active-avatar`);
@@ -3205,6 +3237,8 @@
             if (!txt) return;
             if (!DM_CONVERSATIONS[currentDmContact]) DM_CONVERSATIONS[currentDmContact] = [];
             DM_CONVERSATIONS[currentDmContact].push({ from: 'outgoing', text: txt });
+            persistDmsToLocalCache();
+
             const targetPerson = findDirectoryPerson(currentDmContact);
             if (targetPerson && window.KinetBackend && typeof window.KinetBackend.sendCloudDirectMessage === 'function') {
                 window.KinetBackend.sendCloudDirectMessage(targetPerson.handle, txt).catch(e => console.warn(e));
@@ -3219,6 +3253,7 @@
                     from: 'incoming',
                     text: '✓ Mensaje recibido en el buzón directo KINET.'
                 });
+                persistDmsToLocalCache();
                 renderDmMessages();
                 renderModalLeftList();
                 renderInlineDirectLeftList();
@@ -3245,6 +3280,8 @@
         function sendQuickDmAttachment(textMsg) {
             if (!DM_CONVERSATIONS[currentDmContact]) DM_CONVERSATIONS[currentDmContact] = [];
             DM_CONVERSATIONS[currentDmContact].push({ from: 'outgoing', text: textMsg });
+            persistDmsToLocalCache();
+
             const targetPerson = findDirectoryPerson(currentDmContact);
             if (targetPerson && window.KinetBackend && typeof window.KinetBackend.sendCloudDirectMessage === 'function') {
                 window.KinetBackend.sendCloudDirectMessage(targetPerson.handle, textMsg).catch(e => console.warn(e));
@@ -3255,7 +3292,6 @@
             renderSidebarDmAndFriends();
         }
 
-
         // =========================================================================
         // CONEXIÓN REAL EN VIVO CON SUPABASE (TABLAS: profiles, posts, direct_messages)
         // =========================================================================
@@ -3265,7 +3301,10 @@
             if (!sb) return;
 
             try {
-                // 1. Cargar usuarios reales registrados en public.profiles para "Agregar Amigos" y Chats
+                // Sincronizar también el estado local del usuario hacia su fila en profiles
+                await window.KinetBackend.pushLocalStateToCloud();
+
+                // 1. Cargar usuarios reales registrados en public.profiles
                 const { data: realProfiles } = await sb
                     .from('profiles')
                     .select('*')
@@ -3276,7 +3315,7 @@
                     const myHandle = (localStorage.getItem('kinet_social_handle') || '').toLowerCase();
                     realProfiles.forEach(prof => {
                         const h = prof.handle || ('@' + (prof.full_name || 'user').toLowerCase().replace(/[^a-z0-9]/g, ''));
-                        if (h.toLowerCase() === myHandle) return; // No añadirse a uno mismo en sugerencias
+                        if (h.toLowerCase() === myHandle) return;
                         const exists = NETWORK_DIRECTORY.some(u => u.handle.toLowerCase() === h.toLowerCase());
                         if (!exists) {
                             const fullName = prof.full_name || 'Atleta KINET';
@@ -3305,7 +3344,10 @@
                 if (cloudPosts && cloudPosts.length > 0) {
                     cloudPosts.reverse().forEach(cp => {
                         const postId = 'sb_' + cp.id;
-                        if (!allSocialPosts.some(p => p.id === postId)) {
+                        const duplicateLocal = allSocialPosts.some(
+                            p => p.id === postId || (p.text === cp.content && p.handle === cp.author_handle)
+                        );
+                        if (!duplicateLocal) {
                             const authorName = cp.author_name || 'Atleta KINET';
                             const parts = authorName.trim().split(/\s+/);
                             const initials = parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : authorName.slice(0, 2).toUpperCase();
@@ -3348,7 +3390,9 @@
                             if (!DM_CONVERSATIONS[person.name]) {
                                 DM_CONVERSATIONS[person.name] = [];
                             }
-                            const alreadyInList = DM_CONVERSATIONS[person.name].some(m => m._sbId === dm.id);
+                            const alreadyInList = DM_CONVERSATIONS[person.name].some(
+                                m => m._sbId === dm.id || (m.text === dm.message_text && m.from === (isOutgoing ? 'outgoing' : 'incoming'))
+                            );
                             if (!alreadyInList) {
                                 DM_CONVERSATIONS[person.name].push({
                                     _sbId: dm.id,
