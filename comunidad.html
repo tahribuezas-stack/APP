@@ -114,7 +114,10 @@
         }
         @media (max-width: 960px) { .os-sidebar { display: none !important; } }
 
-        .brand-box {
+        /* =========================================================================
+           1. LOGO DE KINET CON ILUMINACIÓN Y ESCALADO AL PASAR EL CURSOR O PULSAR
+           ========================================================================= */
+        .brand-box, .mobile-brand {
             display: flex;
             align-items: center;
             gap: 12px;
@@ -122,6 +125,17 @@
             padding: 4px;
             border-radius: 14px;
             margin-bottom: 6px;
+            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), filter 0.28s ease;
+            cursor: pointer;
+        }
+
+        .brand-box:hover, .mobile-brand:hover {
+            transform: scale(1.04);
+            filter: drop-shadow(0 0 14px var(--role-glow));
+        }
+
+        .brand-box:active, .mobile-brand:active {
+            transform: scale(0.97);
         }
 
         .brand-logo-icon {
@@ -137,6 +151,13 @@
             align-items: center;
             justify-content: center;
             box-shadow: 0 0 18px var(--role-glow);
+            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease;
+        }
+
+        .brand-box:hover .brand-logo-icon,
+        .mobile-brand:hover .brand-logo-icon {
+            transform: scale(1.08) rotate(-2deg);
+            box-shadow: 0 0 28px var(--role-color), 0 0 12px rgba(255, 255, 255, 0.45);
         }
 
         .brand-text h1 {
@@ -220,7 +241,7 @@
             align-items: center;
             gap: 12px;
         }
-        .mobile-brand { display: none; align-items: center; gap: 10px; text-decoration: none; color: white; }
+        .mobile-brand { display: none; margin-bottom: 0; }
         @media (max-width: 960px) {
             .mobile-brand { display: flex; }
             .os-topbar { padding: 10px 14px; }
@@ -306,7 +327,7 @@
             gap: 6px;
         }
 
-        /* BANNER DE PRIMERA CONFIGURACIÓN SOCIAL (OCULTO POR DEFECTO Y CON CAJA PROPIA) */
+        /* BANNER DE PRIMERA CONFIGURACIÓN SOCIAL */
         .social-onboarding-banner {
             background: linear-gradient(135deg, rgba(var(--role-rgb), 0.16) 0%, rgba(13, 17, 26, 0.96) 100%);
             border: 1px solid var(--role-color);
@@ -324,9 +345,7 @@
             display: flex !important;
         }
 
-        /* =========================================================================
-           BARRA DE COMANDO EJECUTIVA: 1 SOLA LÍNEA COMPACTA EN PC, 2 FILAS SIMÉTRICAS EN MÓVIL
-           ========================================================================= */
+        /* BARRA DE COMANDO EJECUTIVA */
         .kinet-network-toolbar {
             background: rgba(13, 17, 26, 0.95);
             border: 1px solid var(--border-subtle);
@@ -340,7 +359,6 @@
             box-shadow: 0 8px 22px rgba(0,0,0,0.4);
         }
 
-        /* En PC: Cápsula compacta a la izquierda (sin botones gigantes estirados) */
         .kinet-tabs-row {
             display: inline-flex;
             background: rgba(4, 6, 10, 0.95);
@@ -375,7 +393,6 @@
             box-shadow: 0 0 14px var(--role-glow);
         }
 
-        /* En PC: Buscador y 2 Selectores a la derecha en la misma fila */
         .kinet-filters-row {
             display: flex;
             align-items: center;
@@ -426,7 +443,6 @@
             flex-shrink: 0;
         }
 
-        /* En Móvil: 3 pestañas iguales arriba + Buscador 100% + 2 Selectores al 50%/50% */
         @media (max-width: 960px) {
             .kinet-network-toolbar {
                 flex-direction: column;
@@ -523,6 +539,40 @@
         }
         .btn-secondary:hover { border-color: rgba(var(--role-rgb), 0.45); background: rgba(var(--role-rgb), 0.08); }
 
+        /* BOTÓN DE FOLLOW / SEGUIR ESTILO INSTAGRAM */
+        .kinet-follow-btn {
+            background: rgba(var(--role-rgb), 0.14);
+            border: 1px solid var(--role-color);
+            color: var(--role-color);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.6rem;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .kinet-follow-btn:hover {
+            background: var(--role-gradient);
+            color: #04060A;
+            box-shadow: 0 0 12px var(--role-glow);
+        }
+        .kinet-follow-btn.following {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #CBD5E1;
+        }
+        .kinet-follow-btn.following:hover {
+            border-color: #EF4444;
+            color: #FCA5A5;
+            background: rgba(239, 68, 68, 0.12);
+            box-shadow: none;
+        }
+
         /* =========================================================================
            REPRODUCTOR VERTICAL KINET SHORTS 9:16
            ========================================================================= */
@@ -567,9 +617,7 @@
             opacity: 0.85;
         }
 
-        /* =========================================================================
-           MODAL TEATRO DE PANTALLA COMPLETA (EN LA RAÍZ DEL BODY, 100VW X 100DVH)
-           ========================================================================= */
+        /* MODAL TEATRO DE PANTALLA COMPLETA */
         #kinet-fullscreen-theater {
             position: fixed !important;
             top: 0 !important;
@@ -872,7 +920,41 @@
             background: rgba(var(--role-rgb), 0.12);
         }
 
-        /* BANDEJA DE MENSAJES PRIVADOS (DMs) */
+        /* =========================================================================
+           2. BANDEJA Y MODAL DE MENSAJES DIRECTOS ESTILO INSTAGRAM (CHATS + AMIGOS)
+           ========================================================================= */
+        .dm-widget-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: rgba(4, 6, 10, 0.9);
+            border: 1px solid var(--border-subtle);
+            border-radius: 11px;
+            padding: 3px;
+            gap: 4px;
+            margin-bottom: 10px;
+        }
+        .dm-widget-tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.62rem;
+            font-weight: 800;
+            padding: 7px 6px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        .dm-widget-tab-btn.active {
+            background: rgba(var(--role-rgb), 0.18);
+            color: var(--role-color);
+            border: 1px solid rgba(var(--role-rgb), 0.45);
+        }
+
         .dm-contact-item {
             display: flex;
             align-items: center;
@@ -886,9 +968,9 @@
             gap: 10px;
             margin-bottom: 8px;
         }
-        .dm-contact-item:hover {
+        .dm-contact-item:hover, .dm-contact-item.active-chat {
             border-color: var(--role-color);
-            background: rgba(var(--role-rgb), 0.08);
+            background: rgba(var(--role-rgb), 0.1);
         }
         .dm-unread-dot {
             width: 7px;
@@ -931,6 +1013,67 @@
             gap: 14px;
         }
 
+        /* MODAL INSTAGRAM DIRECT DE 2 COLUMNAS */
+        .ig-direct-modal-box {
+            background: rgba(10, 14, 22, 0.98);
+            border: 1px solid rgba(var(--role-rgb), 0.55);
+            border-radius: 24px;
+            max-width: 900px;
+            width: 100%;
+            height: 580px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 28px 70px rgba(0,0,0,0.95), 0 0 40px rgba(var(--role-rgb), 0.22);
+            display: grid;
+            grid-template-columns: 330px 1fr;
+        }
+
+        @media (max-width: 780px) {
+            .ig-direct-modal-box {
+                grid-template-columns: 1fr;
+                height: 88vh;
+            }
+            .ig-direct-modal-box.mobile-chat-open .ig-left-sidebar {
+                display: none !important;
+            }
+            .ig-direct-modal-box:not(.mobile-chat-open) .ig-right-chat {
+                display: none !important;
+            }
+        }
+
+        .ig-left-sidebar {
+            border-right: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            background: rgba(6, 9, 15, 0.95);
+            height: 100%;
+            min-height: 0;
+        }
+
+        .ig-right-chat {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            min-height: 0;
+            background: rgba(13, 17, 26, 0.96);
+            padding: 16px;
+        }
+
+        .ig-back-mobile-btn {
+            display: none;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--border-subtle);
+            color: white;
+            border-radius: 8px;
+            padding: 5px 9px;
+            font-size: 0.72rem;
+            cursor: pointer;
+        }
+        @media (max-width: 780px) {
+            .ig-back-mobile-btn { display: inline-flex; align-items: center; gap: 4px; }
+        }
+
         .form-field-lbl {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.64rem;
@@ -953,34 +1096,38 @@
         .kinet-input:focus { border-color: var(--role-color); }
 
         .chat-messages-box {
-            background: rgba(4, 6, 10, 0.8);
+            background: rgba(4, 6, 10, 0.82);
             border: 1px solid var(--border-subtle);
-            border-radius: 14px;
-            padding: 12px;
-            height: 240px;
+            border-radius: 16px;
+            padding: 14px;
+            flex: 1;
+            min-height: 0;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 9px;
+            margin: 12px 0;
         }
         .chat-bubble {
-            max-width: 82%;
-            padding: 8px 12px;
-            border-radius: 12px;
-            font-size: 0.78rem;
-            line-height: 1.4;
+            max-width: 80%;
+            padding: 9px 13px;
+            border-radius: 14px;
+            font-size: 0.79rem;
+            line-height: 1.42;
         }
         .chat-bubble.incoming {
             align-self: flex-start;
             background: rgba(255,255,255,0.06);
             border: 1px solid var(--border-subtle);
             color: #E2E8F0;
+            border-bottom-left-radius: 4px;
         }
         .chat-bubble.outgoing {
             align-self: flex-end;
             background: rgba(var(--role-rgb), 0.18);
             border: 1px solid rgba(var(--role-rgb), 0.45);
             color: white;
+            border-bottom-right-radius: 4px;
         }
 
         .switch { position: relative; display: inline-block; width: 42px; height: 22px; flex-shrink: 0; }
@@ -1129,8 +1276,11 @@
                 </div>
 
                 <div class="topbar-actions">
-                    <button class="btn-secondary" style="padding:6px 11px;font-size:0.64rem;" onclick="openDmModal('Carlos Mendizábal (Director Scout)', 'CM')">
-                        💬 DMs <span style="background:var(--role-color);color:#04060A;padding:1px 5px;border-radius:99px;font-weight:900;">2</span>
+                    <button class="btn-secondary" style="padding:6px 11px;font-size:0.64rem;" onclick="openInstagramDirectModal('chats')">
+                        💬 DMs <span id="topbar-unread-badge" style="background:var(--role-color);color:#04060A;padding:1px 5px;border-radius:99px;font-weight:900;">2</span>
+                    </button>
+                    <button class="btn-secondary" style="padding:6px 11px;font-size:0.64rem;" onclick="openInstagramDirectModal('discover')">
+                        ➕ Amigos
                     </button>
                     <div class="active-role-indicator">
                         <span class="dot"></span>
@@ -1142,7 +1292,7 @@
             <!-- WORKSPACE -->
             <main class="os-workspace">
                 
-                <!-- BANNER DE PRIMERA VEZ (OCULTO CON DISPLAY:NONE !IMPORTANT SALVO QUE NO ESTÉ CONFIGURADO) -->
+                <!-- BANNER DE PRIMERA VEZ -->
                 <div class="social-onboarding-banner" id="first-time-social-banner">
                     <div style="display:flex;align-items:center;gap:12px;">
                         <div style="width:38px;height:38px;border-radius:11px;background:var(--role-gradient);color:#04060A;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:900;">🌐</div>
@@ -1168,9 +1318,7 @@
                     </div>
                 </div>
 
-                <!-- =========================================================================
-                     BARRA DE CONTROL EJECUTIVA (COMPACTA EN 1 LÍNEA EN PC / 2 FILAS SIMÉTRICAS EN MÓVIL)
-                     ========================================================================= -->
+                <!-- BARRA DE CONTROL EJECUTIVA -->
                 <div class="kinet-network-toolbar">
                     <div class="kinet-tabs-row">
                         <button class="mode-tab-btn active" id="tab-mode-all" data-mode="all" onclick="setFeedMode('all', this)">
@@ -1212,14 +1360,14 @@
                     <!-- COLUMNA IZQUIERDA (8 COL): MURO KINET PULSE O REPRODUCTOR KINET SHORTS 9:16 -->
                     <div class="col-8">
                         
-                        <!-- BLOQUE 1: MURO DE PUBLICACIONES (KINET PULSE & KINET RADAR) -->
+                        <!-- BLOQUE 1: MURO DE PUBLICACIONES -->
                         <div class="kinet-panel" id="pulse-feed-panel">
                             <div class="panel-head">
                                 <span class="panel-label" id="feed-active-indicator">KINET PULSE // FILTRO ACTIVO: FÚTBOL</span>
                                 <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);" id="feed-results-count">PUBLICACIONES EN VIVO</span>
                             </div>
 
-                            <!-- COMPOSER COMPACTO CON NOMBRES KINET -->
+                            <!-- COMPOSER COMPACTO -->
                             <div id="composer-bar-box" style="background:rgba(4,6,10,0.82); border:1px solid var(--border-subtle); border-radius:14px; padding:10px 12px; margin-bottom:14px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                                 <div class="post-avatar" id="composer-user-avatar" style="width:34px;height:34px;font-size:0.74rem;">NT</div>
                                 <input type="text" id="new-post-input" class="kinet-input" style="flex:1;min-width:170px;border:none;background:transparent;padding:4px;" placeholder="Publica un récord GPS, sube un KINET Short o lanza una convocatoria..." onkeydown="if(event.key==='Enter') publishSocialPost()">
@@ -1234,15 +1382,11 @@
                             <div id="social-feed-list"></div>
                         </div>
 
-                        <!-- =====================================================================
-                             BLOQUE 2: REPRODUCTOR VERTICAL KINET SHORTS 9:16 (INDEPENDIENTE DEL PANEL)
-                             ===================================================================== -->
+                        <!-- BLOQUE 2: REPRODUCTOR VERTICAL KINET SHORTS 9:16 -->
                         <div class="kinet-shorts-stage" id="kinet-shorts-stage">
                             <div class="kinet-short-player-card" id="inline-short-card">
-                                <!-- Vídeo Biomecánico Animado en Vivo de Fondo -->
                                 <canvas id="inline-video-canvas" class="short-video-bg-canvas"></canvas>
 
-                                <!-- Cabecera Superior del Short -->
                                 <div class="reel-top-hud">
                                     <span class="reel-live-pill">
                                         <span>●</span> <span id="in-sport-pill">FÚTBOL // 120 FPS</span>
@@ -1258,7 +1402,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Centro Visual del Short -->
                                 <div class="reel-center-visual">
                                     <div class="reel-play-badge" onclick="openFullscreenTheater()" title="Ampliar a Pantalla Completa">▶</div>
                                     <div style="font-family:'Orbitron';font-size:1rem;font-weight:900;color:white;letter-spacing:0.03em;line-height:1.3;" id="in-video-title">
@@ -1278,7 +1421,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Barra Lateral Derecha de Interacción -->
                                 <div class="reel-right-rail">
                                     <div class="post-avatar" id="in-author-avatar" style="width:42px;height:42px;border-radius:50%;border-width:2px;">AT</div>
 
@@ -1309,11 +1451,11 @@
                                     </button>
                                 </div>
 
-                                <!-- Pie del Short -->
                                 <div class="reel-bottom-info">
                                     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
                                         <span style="font-family:'Orbitron';font-weight:900;font-size:0.92rem;color:white;" id="in-author-name">Alex Torres</span>
                                         <span style="font-family:'JetBrains Mono';font-size:0.65rem;color:var(--role-color);" id="in-author-handle">@alextorres_11</span>
+                                        <button type="button" class="kinet-follow-btn" id="in-short-follow-btn" onclick="toggleFollowCurrentShort()">+ Seguir</button>
                                         <span class="market-open-tag" id="in-market-badge">🟢 ABIERTO A OFERTAS</span>
                                     </div>
                                     <div style="font-size:0.68rem;color:#94A3B8;margin-bottom:6px;" id="in-author-headline">
@@ -1339,11 +1481,11 @@
 
                     </div>
 
-                    <!-- COLUMNA DERECHA (4 COL): PERFIL PROFESIONAL + MENSAJES PRIVADOS (DMs) -->
+                    <!-- COLUMNA DERECHA (4 COL): PERFIL PROFESIONAL + BANDEJA INSTAGRAM DIRECT & AMIGOS -->
                     <div class="col-4">
                         <div style="display:flex; flex-direction:column; gap:16px;">
                             
-                            <!-- 1. TARJETA DE IDENTIDAD PROFESIONAL -->
+                            <!-- 1. TARJETA DE IDENTIDAD PROFESIONAL CON CONTADOR DE FOLLOWERS / SIGUIENDO -->
                             <div class="kinet-panel">
                                 <div class="panel-head">
                                     <span class="panel-label">👤 TU IDENTIDAD EN KINET NETWORK™</span>
@@ -1356,6 +1498,22 @@
                                         <div style="font-family:'Orbitron';font-weight:900;font-size:0.88rem;color:white;" id="my-social-name">NAIM T</div>
                                         <div style="font-family:'JetBrains Mono';font-size:0.65rem;color:var(--role-color);" id="my-social-handle">@naimt_pro</div>
                                         <div style="font-size:0.7rem;color:#CBD5E1;margin-top:2px;" id="my-social-bio">Perfil Verificado KINET OS • Telemetría & Vídeo 120 FPS</div>
+                                    </div>
+                                </div>
+
+                                <!-- CONTADORES DE CONEXIONES Y SEGUIDOS -->
+                                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:rgba(4,6,10,0.65);border:1px solid var(--border-subtle);border-radius:12px;padding:8px;margin-bottom:10px;text-align:center;">
+                                    <div>
+                                        <div style="font-family:'Orbitron';font-weight:900;font-size:0.82rem;color:white;">148</div>
+                                        <div style="font-family:'JetBrains Mono';font-size:0.55rem;color:var(--text-secondary);">SEGUIDORES</div>
+                                    </div>
+                                    <div style="border-left:1px solid var(--border-subtle);border-right:1px solid var(--border-subtle);">
+                                        <div style="font-family:'Orbitron';font-weight:900;font-size:0.82rem;color:var(--role-color);" id="my-following-count">3</div>
+                                        <div style="font-family:'JetBrains Mono';font-size:0.55rem;color:var(--text-secondary);">SIGUIENDO</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-family:'Orbitron';font-weight:900;font-size:0.82rem;color:white;">92 GRL</div>
+                                        <div style="font-family:'JetBrains Mono';font-size:0.55rem;color:var(--text-secondary);">KINET CARD</div>
                                     </div>
                                 </div>
 
@@ -1373,50 +1531,36 @@
                                 </div>
                             </div>
 
-                            <!-- 2. BANDEJA DE MENSAJES PRIVADOS (DMs) -->
+                            <!-- 2. WIDGET DE MENSAJES DIRECTOS ESTILO INSTAGRAM + SECCIÓN DE AGREGAR AMIGOS / FOLLOW -->
                             <div class="kinet-panel">
                                 <div class="panel-head">
-                                    <span class="panel-label">💬 MENSAJES DIRECTOS (DMs)</span>
-                                    <span style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);">EN LÍNEA</span>
+                                    <span class="panel-label">💬 KINET DIRECT & AMIGOS</span>
+                                    <button type="button" onclick="openInstagramDirectModal('chats')" style="background:none;border:none;font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);cursor:pointer;font-weight:700;">
+                                        ⛶ Abrir Bandeja Completa
+                                    </button>
                                 </div>
 
-                                <div id="dm-inbox-list">
-                                    <div class="dm-contact-item" onclick="openDmModal('Carlos Mendizábal (Director Scout)', 'CM')">
-                                        <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-                                            <div class="post-avatar" style="width:34px;height:34px;font-size:0.7rem;">CM</div>
-                                            <div style="min-width:0;">
-                                                <div style="font-size:0.76rem;font-weight:800;color:white;">Carlos Mendizábal <span style="font-family:'JetBrains Mono';font-size:0.55rem;color:var(--role-color);">★ SCOUT</span></div>
-                                                <div style="font-size:0.66rem;color:#CBD5E1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">"Hemos visto tu KINET Card 92 GRL..."</div>
-                                            </div>
-                                        </div>
-                                        <span class="dm-unread-dot"></span>
-                                    </div>
-
-                                    <div class="dm-contact-item" onclick="openDmModal('Elena Rostova (Head Coach & Fisio)', 'ER')">
-                                        <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-                                            <div class="post-avatar" style="width:34px;height:34px;font-size:0.7rem;border-color:#F59E0B;color:#F59E0B;">ER</div>
-                                            <div style="min-width:0;">
-                                                <div style="font-size:0.76rem;font-weight:800;color:white;">Elena Rostova <span style="font-family:'JetBrains Mono';font-size:0.55rem;color:#F59E0B;">🧠 STAFF</span></div>
-                                                <div style="font-size:0.66rem;color:#CBD5E1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">"Te comparto el protocolo MD-2."</div>
-                                            </div>
-                                        </div>
-                                        <span class="dm-unread-dot"></span>
-                                    </div>
-
-                                    <div class="dm-contact-item" style="margin-bottom:0;" onclick="openDmModal('Marco Silva (Agencia ProTalent)', 'MS')">
-                                        <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-                                            <div class="post-avatar" style="width:34px;height:34px;font-size:0.7rem;">MS</div>
-                                            <div style="min-width:0;">
-                                                <div style="font-size:0.76rem;font-weight:800;color:white;">Marco Silva <span style="font-family:'JetBrains Mono';font-size:0.55rem;color:var(--role-color);">✓ AGENCIA</span></div>
-                                                <div style="font-size:0.66rem;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">"Dossier PDF recibido correctamente."</div>
-                                            </div>
-                                        </div>
-                                        <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--text-secondary);">1d</span>
-                                    </div>
+                                <!-- PESTAÑAS DEL WIDGET LATERAL: CHATS VS AGREGAR AMIGOS / FOLLOW -->
+                                <div class="dm-widget-tabs">
+                                    <button type="button" class="dm-widget-tab-btn active" id="side-tab-chats" onclick="switchSideDmTab('chats')">
+                                        <span>💬</span> <span>Mis Chats</span>
+                                    </button>
+                                    <button type="button" class="dm-widget-tab-btn" id="side-tab-friends" onclick="switchSideDmTab('friends')">
+                                        <span>➕</span> <span>Agregar Amigos</span>
+                                    </button>
                                 </div>
 
-                                <div style="margin-top:12px; padding-top:10px; border-top:1px solid var(--border-subtle); text-align:right;">
-                                    <a href="ojeador-live.html" id="link-to-scout-matrix" style="font-size:0.68rem; color:var(--role-color); font-weight:700; text-decoration:none;">Explorar Radar en Ojeador Live →</a>
+                                <!-- BUSCADOR RÁPIDO DE CHATS O AMIGOS -->
+                                <div style="margin-bottom:9px;">
+                                    <input type="text" id="side-dm-search" class="kinet-input" style="padding:7px 10px;font-size:0.74rem;" placeholder="🔍 Buscar chat o usuario para seguir..." oninput="renderSidebarDmAndFriends()">
+                                </div>
+
+                                <!-- CONTENEDOR DINÁMICO DE CHATS O SUGERENCIAS DE AMIGOS -->
+                                <div id="dm-inbox-list" style="max-height:245px;overflow-y:auto;"></div>
+
+                                <div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;">
+                                    <button type="button" class="btn-secondary" style="padding:6px 10px;font-size:0.62rem;" onclick="openInstagramDirectModal('discover')">➕ Buscar & Seguir</button>
+                                    <a href="ojeador-live.html" id="link-to-scout-matrix" style="font-size:0.66rem; color:var(--role-color); font-weight:700; text-decoration:none;">Radar Ojeador Live →</a>
                                 </div>
                             </div>
 
@@ -1427,9 +1571,7 @@
         </div>
     </div>
 
-    <!-- =========================================================================
-         TEATRO DE PANTALLA COMPLETA FUERA DE .OS-LAYOUT (DIRECTAMENTE EN EL BODY)
-         ========================================================================= -->
+    <!-- TEATRO DE PANTALLA COMPLETA FUERA DE .OS-LAYOUT -->
     <div id="kinet-fullscreen-theater">
         <div class="kinet-short-player-card" id="fs-short-card">
             <canvas id="fs-video-canvas" class="short-video-bg-canvas"></canvas>
@@ -1502,6 +1644,7 @@
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
                     <span style="font-family:'Orbitron';font-weight:900;font-size:0.95rem;color:white;" id="fs-author-name">Alex Torres</span>
                     <span style="font-family:'JetBrains Mono';font-size:0.66rem;color:var(--role-color);" id="fs-author-handle">@alextorres_11</span>
+                    <button type="button" class="kinet-follow-btn" id="fs-short-follow-btn" onclick="toggleFollowCurrentShort()">+ Seguir</button>
                     <span class="market-open-tag" id="fs-market-badge">🟢 ABIERTO A OFERTAS</span>
                 </div>
                 <div style="font-size:0.7rem;color:#94A3B8;margin-bottom:6px;" id="fs-author-headline">
@@ -1579,32 +1722,72 @@
         </div>
     </div>
 
-    <!-- MODAL 2: MENSAJES PRIVADOS (DMs) -->
+    <!-- =========================================================================
+         MODAL 2: CENTRO DE MENSAJES ESTILO INSTAGRAM DIRECT (LISTA DE CHATS + AGREGAR AMIGOS + CHAT EN VIVO)
+         ========================================================================= -->
     <div id="dm-chat-modal" class="kinet-modal-overlay">
-        <div class="kinet-modal-box">
-            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:10px;">
-                <div style="display:flex;align-items:center;gap:10px;">
-                    <div class="post-avatar" id="dm-active-avatar" style="width:36px;height:36px;font-size:0.78rem;">CM</div>
-                    <div>
-                        <div style="font-family:'Orbitron';font-size:0.84rem;font-weight:900;color:white;" id="dm-active-name">Carlos Mendizábal (Director Scout)</div>
-                        <div style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);">● CONEXIÓN DIRECTA CIFRADA (E2EE)</div>
+        <div class="ig-direct-modal-box mobile-chat-open" id="ig-direct-shell">
+            
+            <!-- COLUMNA IZQUIERDA ESTILO INSTAGRAM: BANDEJA DE CHATS Y DESCUBRIR AMIGOS -->
+            <div class="ig-left-sidebar">
+                <div style="padding:14px 14px 10px 14px;border-bottom:1px solid var(--border-subtle);display:flex;justify-content:space-between;align-items:center;">
+                    <div style="font-family:'Orbitron';font-size:0.82rem;font-weight:900;color:white;display:flex;align-items:center;gap:6px;">
+                        <span>💬</span> <span>KINET DIRECT</span>
+                    </div>
+                    <button onclick="closeDmModal()" style="background:none;border:none;color:#94A3B8;font-size:1rem;cursor:pointer;" title="Cerrar">✕</button>
+                </div>
+
+                <div style="padding:10px 12px 0 12px;">
+                    <div class="dm-widget-tabs">
+                        <button type="button" class="dm-widget-tab-btn active" id="modal-tab-chats" onclick="switchModalDmTab('chats')">
+                            <span>💬</span> <span>Chats</span>
+                        </button>
+                        <button type="button" class="dm-widget-tab-btn" id="modal-tab-discover" onclick="switchModalDmTab('discover')">
+                            <span>➕</span> <span>Agregar Amigos</span>
+                        </button>
+                    </div>
+                    <input type="text" id="modal-dm-search" class="kinet-input" style="padding:7px 10px;font-size:0.75rem;margin-bottom:8px;" placeholder="🔍 Buscar chat, atleta, scout o @handle..." oninput="renderModalLeftList()">
+                </div>
+
+                <div id="modal-left-contacts-list" style="flex:1;overflow-y:auto;padding:4px 12px 12px 12px;"></div>
+            </div>
+
+            <!-- COLUMNA DERECHA ESTILO INSTAGRAM: VENTANA DE CONVERSACIÓN ACTIVA -->
+            <div class="ig-right-chat">
+                <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:10px;gap:8px;flex-wrap:wrap;">
+                    <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                        <button type="button" class="ig-back-mobile-btn" onclick="document.getElementById('ig-direct-shell').classList.remove('mobile-chat-open')">
+                            ← Chats
+                        </button>
+                        <div class="post-avatar" id="dm-active-avatar" style="width:38px;height:38px;font-size:0.8rem;">CM</div>
+                        <div style="min-width:0;">
+                            <div style="font-family:'Orbitron';font-size:0.84rem;font-weight:900;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="dm-active-name">Carlos Mendizábal (Director Scout)</div>
+                            <div style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);" id="dm-active-sub">● @cmendizabal_scout • EN LÍNEA</div>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <button type="button" class="kinet-follow-btn" id="dm-header-follow-btn" onclick="toggleFollowFromDmHeader()">+ Seguir</button>
+                        <button onclick="closeDmModal()" style="background:none;border:none;color:white;font-size:1.1rem;cursor:pointer;">✕</button>
                     </div>
                 </div>
-                <button onclick="closeDmModal()" style="background:none;border:none;color:white;font-size:1.1rem;cursor:pointer;">✕</button>
+
+                <div class="chat-messages-box" id="dm-messages-container"></div>
+
+                <div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+                        <button class="social-action-btn" onclick="sendQuickDmAttachment('🎴 Adjunto mi KINET Card Verificada (92 GRL).')">🎴 Enviar KINET Card</button>
+                        <button class="social-action-btn" onclick="sendQuickDmAttachment('📄 Adjunto mi Dossier / CV Deportivo oficial en PDF.')">📄 Enviar CV PDF</button>
+                        <button class="social-action-btn" onclick="sendQuickDmAttachment('🎬 Comparto mi último KINET Short biomecánico a 120 FPS.')">🎬 Enviar Short 120 FPS</button>
+                    </div>
+
+                    <div style="display:flex;gap:8px;">
+                        <input type="text" id="dm-message-input" class="kinet-input" placeholder="Escribe un mensaje directo..." onkeydown="if(event.key==='Enter') sendDirectMessage()">
+                        <button class="btn-primary" onclick="sendDirectMessage()">Enviar →</button>
+                    </div>
+                </div>
             </div>
 
-            <div class="chat-messages-box" id="dm-messages-container"></div>
-
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <button class="social-action-btn" onclick="sendQuickDmAttachment('🎴 Adjunto mi KINET Card Verificada (92 GRL).')">🎴 Enviar KINET Card</button>
-                <button class="social-action-btn" onclick="sendQuickDmAttachment('📄 Adjunto mi Dossier / CV Deportivo oficial en PDF.')">📄 Enviar CV PDF</button>
-                <button class="social-action-btn" onclick="sendQuickDmAttachment('🎬 Comparto mi último KINET Short biomecánico a 120 FPS.')">🎬 Enviar Short 120 FPS</button>
-            </div>
-
-            <div style="display:flex;gap:8px;">
-                <input type="text" id="dm-message-input" class="kinet-input" placeholder="Escribe un mensaje directo..." onkeydown="if(event.key==='Enter') sendDirectMessage()">
-                <button class="btn-primary" onclick="sendDirectMessage()">Enviar →</button>
-            </div>
         </div>
     </div>
 
@@ -1892,16 +2075,120 @@
             }
         ];
 
+        // DIRECTORIO COMPLETO DE PERFILES PARA CHATS Y AGREGAR AMIGOS / FOLLOW
+        const NETWORK_DIRECTORY = [
+            {
+                name: 'Carlos Mendizábal (Director Scout)',
+                shortName: 'Carlos Mendizábal',
+                handle: '@cmendizabal_scout',
+                initials: 'CM',
+                role: 'scout',
+                roleBadge: '★ SCOUT',
+                sport: 'Fútbol',
+                headline: 'Director de Captación B2B • RFEF',
+                unread: true
+            },
+            {
+                name: 'Elena Rostova (Head Coach & Fisio)',
+                shortName: 'Elena Rostova',
+                handle: '@erostova_perf',
+                initials: 'ER',
+                role: 'staff',
+                roleBadge: '🧠 STAFF',
+                sport: 'Fútbol',
+                headline: 'Preparadora Física & Readaptadora',
+                unread: true
+            },
+            {
+                name: 'Marco Silva (Agencia ProTalent)',
+                shortName: 'Marco Silva',
+                handle: '@msilva_agency',
+                initials: 'MS',
+                role: 'scout',
+                roleBadge: '✓ AGENCIA',
+                sport: 'Fútbol',
+                headline: 'Representante & Scouting FIFA',
+                unread: false
+            },
+            {
+                name: 'Alex Torres (Extremo Sub-23)',
+                shortName: 'Alex Torres',
+                handle: '@alextorres_11',
+                initials: 'AT',
+                role: 'athlete',
+                roleBadge: '92 GRL',
+                sport: 'Fútbol',
+                headline: 'Extremo Izquierdo • División de Honor',
+                unread: false
+            },
+            {
+                name: 'Lucas Vance (Mediocentro Pro)',
+                shortName: 'Lucas Vance',
+                handle: '@lucasvance_10',
+                initials: 'LV',
+                role: 'athlete',
+                roleBadge: '96 IQ',
+                sport: 'Fútbol',
+                headline: 'Mediocentro Ofensivo Sub-21 • RFEF',
+                unread: false
+            },
+            {
+                name: 'Javier "Tyson" Morales (MMA Pro)',
+                shortName: 'Javier Morales',
+                handle: '@jmorales_mma',
+                initials: 'JM',
+                role: 'athlete',
+                roleBadge: '95 STR',
+                sport: 'Boxeo / MMA',
+                headline: 'Striker Peso Welter (77 kg) • 8-1 Pro',
+                unread: false
+            },
+            {
+                name: 'Devin Marcos (Combo Guard)',
+                shortName: 'Devin Marcos',
+                handle: '@dmarcos_hoops',
+                initials: 'DM',
+                role: 'athlete',
+                roleBadge: '91 3PT',
+                sport: 'Baloncesto',
+                headline: 'Combo Guard (1.93m) • LEB Plata',
+                unread: false
+            },
+            {
+                name: 'Lucía Navarro (Top 40 FIP)',
+                shortName: 'Lucía Navarro',
+                handle: '@lnavarro_padel',
+                initials: 'LN',
+                role: 'athlete',
+                roleBadge: '94 VOL',
+                sport: 'Pádel / Tenis',
+                headline: 'Jugadora de Revés • Circuito FIP',
+                unread: false
+            },
+            {
+                name: 'Mateo Kipchoge V. (Fondista)',
+                shortName: 'Mateo Kipchoge V.',
+                handle: '@mateorun_pro',
+                initials: 'MK',
+                role: 'athlete',
+                roleBadge: '96 VO2',
+                sport: 'Running',
+                headline: 'Fondista 10K & Media Maratón',
+                unread: false
+            }
+        ];
+
         const DM_CONVERSATIONS = {
             'Carlos Mendizábal (Director Scout)': [
                 { from: 'incoming', text: 'Hola, hemos revisado tu KINET Card verificada y tus percentiles en el radar Scout Matrix.' },
                 { from: 'incoming', text: '¿Estás disponible esta semana para enviarnos tu Dossier PDF completo y comentar opciones?' }
             ],
             'Elena Rostova (Head Coach & Fisio)': [
-                { from: 'incoming', text: '¡Buen trabajo en la sesión de hoy! Tu índice de fatiga neuromuscular está en rango óptimo (94%).' }
+                { from: 'incoming', text: '¡Buen trabajo en la sesión de hoy! Tu índice de fatiga neuromuscular está en rango óptimo (94%).' },
+                { from: 'incoming', text: 'Te comparto el protocolo MD-2 para descargar piernas antes del partido.' }
             ],
             'Marco Silva (Agencia ProTalent)': [
-                { from: 'incoming', text: 'Recibimos tu ficha deportiva KINET. Te contactamos el jueves para revisar las condiciones.' }
+                { from: 'incoming', text: 'Dossier PDF recibido correctamente. Te contactamos el jueves para revisar las condiciones.' }
             ]
         };
 
@@ -1910,6 +2197,53 @@
         let currentShortsPlaylist = [];
         let currentShortIndex = 0;
         let currentDmContact = 'Carlos Mendizábal (Director Scout)';
+        let sideDmMode = 'chats';     // 'chats' o 'friends'
+        let modalDmMode = 'chats';    // 'chats' o 'discover'
+
+        // SISTEMA PERSISTENTE DE FOLLOW (SEGUIR USUARIOS)
+        function getFollowedHandles() {
+            try {
+                const raw = localStorage.getItem('kinet_followed_handles');
+                if (raw) return JSON.parse(raw);
+            } catch (e) {}
+            const defaults = ['@cmendizabal_scout', '@erostova_perf', '@alextorres_11'];
+            localStorage.setItem('kinet_followed_handles', JSON.stringify(defaults));
+            return defaults;
+        }
+
+        function isFollowingHandle(handle) {
+            if (!handle) return false;
+            const list = getFollowedHandles();
+            return list.includes(handle);
+        }
+
+        function toggleFollowUser(handle, event) {
+            if (event) event.stopPropagation();
+            if (!handle) return;
+            let list = getFollowedHandles();
+            if (list.includes(handle)) {
+                list = list.filter(h => h !== handle);
+            } else {
+                list.push(handle);
+            }
+            localStorage.setItem('kinet_followed_handles', JSON.stringify(list));
+            updateFollowingCountersAndButtons();
+        }
+
+        function updateFollowingCountersAndButtons() {
+            const list = getFollowedHandles();
+            const countEl = document.getElementById('my-following-count');
+            if (countEl) countEl.textContent = list.length;
+
+            // Actualizar botones del feed, de los Shorts, del widget lateral y del modal
+            filterSocialFeed();
+            renderSidebarDmAndFriends();
+            renderModalLeftList();
+            syncDmHeaderFollowBtn();
+            if (activeFeedMode === 'reels' || document.getElementById('kinet-fullscreen-theater').classList.contains('open')) {
+                renderActiveShortData();
+            }
+        }
 
         function normalizeSportOption(rawSport) {
             const s = (rawSport || 'Fútbol').toLowerCase();
@@ -2117,7 +2451,6 @@
                 });
             }
 
-            // Si el usuario ya tiene nombre personalizado (ej. NAIM T), damos por configurada la red para no mostrar el aviso superior
             if (localStorage.getItem('kinet_user_name')) {
                 localStorage.setItem('kinet_social_configured', 'true');
             }
@@ -2131,7 +2464,7 @@
                 openSocialSetupModal();
             }
 
-            filterSocialFeed();
+            updateFollowingCountersAndButtons();
         }
 
         function syncSocialConfigVisibility(isConfigured) {
@@ -2272,6 +2605,7 @@
         function renderActiveShortData() {
             if (!currentShortsPlaylist.length) return;
             const item = currentShortsPlaylist[currentShortIndex];
+            const following = isFollowingHandle(item.handle);
 
             ['in', 'fs'].forEach(prefix => {
                 document.getElementById(`${prefix}-sport-pill`).textContent = `${item.sport.toUpperCase()} // 120 FPS`;
@@ -2287,10 +2621,22 @@
                 document.getElementById(`${prefix}-post-caption`).textContent = item.text;
                 document.getElementById(`${prefix}-spotify-track`).textContent = `🎵 ${item.reelData.track}`;
 
+                const followBtn = document.getElementById(`${prefix}-short-follow-btn`);
+                if (followBtn) {
+                    followBtn.textContent = following ? '✓ Siguiendo' : '+ Seguir';
+                    followBtn.classList.toggle('following', following);
+                }
+
                 const likeBtn = document.getElementById(`${prefix}-like-btn`);
                 if (item._liked) likeBtn.classList.add('liked');
                 else likeBtn.classList.remove('liked');
             });
+        }
+
+        function toggleFollowCurrentShort() {
+            if (!currentShortsPlaylist.length) return;
+            const item = currentShortsPlaylist[currentShortIndex];
+            toggleFollowUser(item.handle);
         }
 
         function stepShort(delta) {
@@ -2318,7 +2664,7 @@
         function openCurrentShortDm() {
             if (!currentShortsPlaylist.length) return;
             const item = currentShortsPlaylist[currentShortIndex];
-            openDmModal(`${item.author} (${item.headline.split('•')[0].trim()})`, item.initials);
+            openDmModal(`${item.author} (${item.headline.split('•')[0].trim()})`, item.initials, item.handle);
         }
 
         function openSpecificShortInTheater(postId) {
@@ -2348,6 +2694,7 @@
                 const roleTagColor = p.role === 'scout' ? '#38BDF8' : (p.role === 'staff' ? '#F59E0B' : 'var(--role-color)');
                 const roleTagLabel = p.role === 'scout' ? '★ SCOUT B2B' : (p.role === 'staff' ? '🧠 STAFF PRO' : '✓ AI VERIFIED');
                 const marketBadgeHtml = p.marketOpen ? `<span class="market-open-tag">🟢 ABIERTO A OFERTAS</span>` : '';
+                const following = isFollowingHandle(p.handle);
 
                 const reelPreviewBtn = p.reelData ? `
                     <button class="social-action-btn" style="border-color:rgba(var(--role-rgb),0.45);color:var(--role-color);" onclick="openSpecificShortInTheater('${p.id}')">
@@ -2365,6 +2712,9 @@
                                         <span>${p.author}</span>
                                         <span style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--text-secondary);">${p.handle}</span>
                                         <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:${roleTagColor};">${roleTagLabel}</span>
+                                        <button type="button" class="kinet-follow-btn ${following ? 'following' : ''}" onclick="toggleFollowUser('${p.handle}', event)">
+                                            ${following ? '✓ Siguiendo' : '+ Seguir'}
+                                        </button>
                                     </div>
                                     <div class="kinet-headline-tag">
                                         <span>${p.headline}</span> • <span>${p.sport}</span> • <span>${p.time}</span>
@@ -2377,7 +2727,7 @@
                         <p style="font-size:0.81rem; color:#E2E8F0; line-height:1.48; margin-bottom:10px;">${p.text}</p>
                         <div class="post-actions-row">
                             <button class="social-action-btn" onclick="this.classList.toggle('liked')">🔥 ${p.likes} Respetos</button>
-                            <button class="social-action-btn" onclick="openDmModal('${p.author} (${p.headline.split('•')[0].trim()})', '${p.initials}')">💬 Mensaje Directo (DM)</button>
+                            <button class="social-action-btn" onclick="openDmModal('${p.author} (${p.headline.split('•')[0].trim()})', '${p.initials}', '${p.handle}')">💬 Mensaje Directo (DM)</button>
                             <a href="ficha-pro.html" class="social-action-btn">📄 Ver CV / Carta</a>
                             ${reelPreviewBtn}
                         </div>
@@ -2474,17 +2824,214 @@
             }
         }
 
-        function openDmModal(contactName, initials) {
-            currentDmContact = contactName;
-            document.getElementById('dm-active-name').textContent = contactName;
-            document.getElementById('dm-active-avatar').textContent = initials || 'DM';
+        // =========================================================================
+        // 2. SISTEMA INSTAGRAM DIRECT: BANDEJA LATERAL + MODAL 2 COLUMNAS + FOLLOW
+        // =========================================================================
+        function findDirectoryPerson(contactKeyOrName, fallbackInitials, fallbackHandle) {
+            let found = NETWORK_DIRECTORY.find(u => u.name === contactKeyOrName || u.shortName === contactKeyOrName || u.handle === fallbackHandle);
+            if (!found) {
+                const shortTitle = contactKeyOrName.split('(')[0].trim();
+                const handle = fallbackHandle || `@${shortTitle.toLowerCase().replace(/[^a-z0-9]/g, '')}_pro`;
+                found = {
+                    name: contactKeyOrName,
+                    shortName: shortTitle,
+                    handle: handle,
+                    initials: fallbackInitials || shortTitle.slice(0,2).toUpperCase(),
+                    role: 'athlete',
+                    roleBadge: '✓ KINET',
+                    sport: localStorage.getItem('kinet_sport') || 'Fútbol',
+                    headline: contactKeyOrName,
+                    unread: false
+                };
+                NETWORK_DIRECTORY.unshift(found);
+            }
+            return found;
+        }
 
-            if (!DM_CONVERSATIONS[contactName]) {
-                DM_CONVERSATIONS[contactName] = [
-                    { from: 'incoming', text: `Canal directo establecido con ${contactName} en KINET OS.` }
+        function switchSideDmTab(tab) {
+            sideDmMode = tab;
+            document.getElementById('side-tab-chats').classList.toggle('active', tab === 'chats');
+            document.getElementById('side-tab-friends').classList.toggle('active', tab === 'friends');
+            renderSidebarDmAndFriends();
+        }
+
+        function renderSidebarDmAndFriends() {
+            const container = document.getElementById('dm-inbox-list');
+            if (!container) return;
+            const q = (document.getElementById('side-dm-search')?.value || '').toLowerCase().trim();
+
+            if (sideDmMode === 'chats') {
+                // Mostrar todas las conversaciones activas
+                const chatNames = Object.keys(DM_CONVERSATIONS);
+                const items = chatNames.map(cName => findDirectoryPerson(cName)).filter(u => {
+                    return !q || u.name.toLowerCase().includes(q) || u.handle.toLowerCase().includes(q) || u.sport.toLowerCase().includes(q);
+                });
+
+                container.innerHTML = items.map(u => {
+                    const msgs = DM_CONVERSATIONS[u.name] || [];
+                    const lastMsg = msgs.length ? msgs[msgs.length - 1].text : 'Toca para enviar un mensaje...';
+                    const borderCol = u.role === 'staff' ? '#F59E0B' : (u.role === 'scout' ? '#38BDF8' : 'var(--role-color)');
+                    return `
+                        <div class="dm-contact-item" onclick="openDmModal('${u.name}', '${u.initials}', '${u.handle}')">
+                            <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                                <div class="post-avatar" style="width:36px;height:36px;font-size:0.72rem;border-color:${borderCol};color:${borderCol};">${u.initials}</div>
+                                <div style="min-width:0;">
+                                    <div style="font-size:0.76rem;font-weight:800;color:white;display:flex;align-items:center;gap:5px;">
+                                        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.shortName}</span>
+                                        <span style="font-family:'JetBrains Mono';font-size:0.55rem;color:${borderCol};">${u.roleBadge}</span>
+                                    </div>
+                                    <div style="font-size:0.66rem;color:#CBD5E1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">"${lastMsg}"</div>
+                                </div>
+                            </div>
+                            ${u.unread ? '<span class="dm-unread-dot"></span>' : '<span style="font-family:\'JetBrains Mono\';font-size:0.58rem;color:var(--text-secondary);">💬</span>'}
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                // Pestaña Agregar Amigos & Dar Follow
+                const items = NETWORK_DIRECTORY.filter(u => {
+                    return !q || u.name.toLowerCase().includes(q) || u.handle.toLowerCase().includes(q) || u.sport.toLowerCase().includes(q) || u.headline.toLowerCase().includes(q);
+                });
+
+                container.innerHTML = items.map(u => {
+                    const following = isFollowingHandle(u.handle);
+                    const borderCol = u.role === 'staff' ? '#F59E0B' : (u.role === 'scout' ? '#38BDF8' : 'var(--role-color)');
+                    return `
+                        <div class="dm-contact-item" style="cursor:default;">
+                            <div style="display:flex;align-items:center;gap:9px;min-width:0;cursor:pointer;" onclick="openDmModal('${u.name}', '${u.initials}', '${u.handle}')">
+                                <div class="post-avatar" style="width:34px;height:34px;font-size:0.7rem;border-color:${borderCol};color:${borderCol};">${u.initials}</div>
+                                <div style="min-width:0;">
+                                    <div style="font-size:0.74rem;font-weight:800;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.shortName}</div>
+                                    <div style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.handle} • ${u.sport}</div>
+                                </div>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
+                                <button type="button" class="kinet-follow-btn ${following ? 'following' : ''}" onclick="toggleFollowUser('${u.handle}', event)">
+                                    ${following ? '✓ Siguiendo' : '+ Seguir'}
+                                </button>
+                                <button type="button" class="social-action-btn" style="padding:4px 7px;" title="Abrir Chat" onclick="openDmModal('${u.name}', '${u.initials}', '${u.handle}')">💬</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        function openInstagramDirectModal(initialTab) {
+            switchModalDmTab(initialTab || 'chats');
+            selectConversationInsideModal(currentDmContact);
+            document.getElementById('dm-chat-modal').classList.add('open');
+        }
+
+        function switchModalDmTab(tab) {
+            modalDmMode = tab;
+            document.getElementById('modal-tab-chats').classList.toggle('active', tab === 'chats');
+            document.getElementById('modal-tab-discover').classList.toggle('active', tab === 'discover');
+            renderModalLeftList();
+        }
+
+        function renderModalLeftList() {
+            const box = document.getElementById('modal-left-contacts-list');
+            if (!box) return;
+            const q = (document.getElementById('modal-dm-search')?.value || '').toLowerCase().trim();
+
+            if (modalDmMode === 'chats') {
+                const chatNames = Object.keys(DM_CONVERSATIONS);
+                const list = chatNames.map(cName => findDirectoryPerson(cName)).filter(u => {
+                    return !q || u.name.toLowerCase().includes(q) || u.handle.toLowerCase().includes(q) || u.sport.toLowerCase().includes(q);
+                });
+
+                box.innerHTML = list.map(u => {
+                    const msgs = DM_CONVERSATIONS[u.name] || [];
+                    const lastMsg = msgs.length ? msgs[msgs.length - 1].text : 'Inicia la conversación...';
+                    const isActive = u.name === currentDmContact;
+                    const borderCol = u.role === 'staff' ? '#F59E0B' : (u.role === 'scout' ? '#38BDF8' : 'var(--role-color)');
+                    return `
+                        <div class="dm-contact-item ${isActive ? 'active-chat' : ''}" onclick="selectConversationInsideModal('${u.name}', '${u.initials}', '${u.handle}')">
+                            <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                                <div class="post-avatar" style="width:36px;height:36px;font-size:0.74rem;border-color:${borderCol};color:${borderCol};">${u.initials}</div>
+                                <div style="min-width:0;">
+                                    <div style="font-size:0.76rem;font-weight:800;color:white;display:flex;align-items:center;gap:5px;">
+                                        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.shortName}</span>
+                                        <span style="font-family:'JetBrains Mono';font-size:0.54rem;color:${borderCol};">${u.roleBadge}</span>
+                                    </div>
+                                    <div style="font-size:0.65rem;color:#CBD5E1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${lastMsg}</div>
+                                </div>
+                            </div>
+                            ${u.unread ? '<span class="dm-unread-dot"></span>' : ''}
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                // Explorar / Agregar Amigos y empezar cualquier chat nuevo
+                const list = NETWORK_DIRECTORY.filter(u => {
+                    return !q || u.name.toLowerCase().includes(q) || u.handle.toLowerCase().includes(q) || u.sport.toLowerCase().includes(q) || u.headline.toLowerCase().includes(q);
+                });
+
+                box.innerHTML = list.map(u => {
+                    const following = isFollowingHandle(u.handle);
+                    const borderCol = u.role === 'staff' ? '#F59E0B' : (u.role === 'scout' ? '#38BDF8' : 'var(--role-color)');
+                    return `
+                        <div class="dm-contact-item" onclick="selectConversationInsideModal('${u.name}', '${u.initials}', '${u.handle}')">
+                            <div style="display:flex;align-items:center;gap:9px;min-width:0;">
+                                <div class="post-avatar" style="width:35px;height:35px;font-size:0.7rem;border-color:${borderCol};color:${borderCol};">${u.initials}</div>
+                                <div style="min-width:0;">
+                                    <div style="font-size:0.75rem;font-weight:800;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.shortName}</div>
+                                    <div style="font-family:'JetBrains Mono';font-size:0.57rem;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.handle} • ${u.sport}</div>
+                                </div>
+                            </div>
+                            <button type="button" class="kinet-follow-btn ${following ? 'following' : ''}" onclick="toggleFollowUser('${u.handle}', event)">
+                                ${following ? '✓ Siguiendo' : '+ Seguir'}
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        function selectConversationInsideModal(contactName, initials, handle) {
+            const person = findDirectoryPerson(contactName, initials, handle);
+            currentDmContact = person.name;
+            person.unread = false;
+
+            if (!DM_CONVERSATIONS[currentDmContact]) {
+                DM_CONVERSATIONS[currentDmContact] = [
+                    { from: 'incoming', text: `¡Hola! Canal directo establecido con ${person.shortName} (${person.handle}) en KINET Network™.` }
                 ];
             }
+
+            document.getElementById('dm-active-name').textContent = person.name;
+            document.getElementById('dm-active-avatar').textContent = person.initials;
+            document.getElementById('dm-active-sub').textContent = `● ${person.handle} • ${person.sport.toUpperCase()} • EN LÍNEA`;
+
+            // Actualizar contador de no leídos en la topbar
+            const unreadCount = NETWORK_DIRECTORY.filter(u => u.unread).length;
+            const topBadge = document.getElementById('topbar-unread-badge');
+            if (topBadge) topBadge.textContent = unreadCount;
+
+            syncDmHeaderFollowBtn();
             renderDmMessages();
+            renderModalLeftList();
+            renderSidebarDmAndFriends();
+            document.getElementById('ig-direct-shell').classList.add('mobile-chat-open');
+        }
+
+        function syncDmHeaderFollowBtn() {
+            const person = findDirectoryPerson(currentDmContact);
+            const btn = document.getElementById('dm-header-follow-btn');
+            if (!btn || !person) return;
+            const following = isFollowingHandle(person.handle);
+            btn.textContent = following ? '✓ Siguiendo' : '+ Seguir';
+            btn.classList.toggle('following', following);
+        }
+
+        function toggleFollowFromDmHeader() {
+            const person = findDirectoryPerson(currentDmContact);
+            if (person) toggleFollowUser(person.handle);
+        }
+
+        function openDmModal(contactName, initials, handle) {
+            selectConversationInsideModal(contactName, initials, handle);
             document.getElementById('dm-chat-modal').classList.add('open');
         }
 
@@ -2510,20 +3057,26 @@
             DM_CONVERSATIONS[currentDmContact].push({ from: 'outgoing', text: txt });
             input.value = '';
             renderDmMessages();
+            renderModalLeftList();
+            renderSidebarDmAndFriends();
 
             setTimeout(() => {
                 DM_CONVERSATIONS[currentDmContact].push({
                     from: 'incoming',
-                    text: '✓ Mensaje recibido en el buzón profesional KINET.'
+                    text: '✓ Mensaje recibido en el buzón directo KINET.'
                 });
                 renderDmMessages();
-            }, 850);
+                renderModalLeftList();
+                renderSidebarDmAndFriends();
+            }, 750);
         }
 
         function sendQuickDmAttachment(textMsg) {
             if (!DM_CONVERSATIONS[currentDmContact]) DM_CONVERSATIONS[currentDmContact] = [];
             DM_CONVERSATIONS[currentDmContact].push({ from: 'outgoing', text: textMsg });
             renderDmMessages();
+            renderModalLeftList();
+            renderSidebarDmAndFriends();
         }
 
         (function initGlobalKinetPersonalization() {
