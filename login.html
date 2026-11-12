@@ -10,6 +10,10 @@
   <!-- Favicon corporativo KINET iluminado -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%2300FF66%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%23000%22>K</text></svg>">
 
+  <!-- SDK Oficial de Supabase + Motor Central KINET Backend -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="kinet-backend.js"></script>
+
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -73,14 +77,12 @@
 </head>
 <body class="bg-cyber-pattern text-slate-100 font-sans min-h-screen flex items-center justify-center p-3 md:p-6">
 
-  <!-- CONTENEDOR MULTIDISPOSITIVO CON ANIMACIÓN DE ENTRADA RÁPIDA -->
   <div class="relative w-full md:max-w-4xl max-h-[92vh] card-liquid-transition bg-[#0A0C0E] rounded-[28px] border border-kinet-titanium-border shadow-[0_0_60px_rgba(0,0,0,0.9)] flex flex-col md:flex-row overflow-hidden">
     
     <!-- PANEL IZQUIERDO: BRANDING & SECURITY INFO -->
     <div class="w-full md:w-5/12 bg-gradient-to-b from-[#11151B] to-[#0A0C0E] p-6 md:p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-800/80">
       
       <div class="space-y-6">
-        <!-- BOTÓN VOLVER -->
         <div>
           <button onclick="cambiarPagina(event, 'index.html')" class="inline-flex items-center space-x-1.5 bg-[#12161C] hover:bg-slate-800 border border-slate-700/80 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-300 transition">
             <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
@@ -88,7 +90,6 @@
           </button>
         </div>
 
-        <!-- LOGO ÚNICO -->
         <div class="flex items-center space-x-3 logo-glow cursor-pointer" onclick="window.location.href='index.html'">
           <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-kinet-neon to-emerald-600 font-display font-black text-black text-xl flex items-center justify-center shadow-[0_0_15px_rgba(0,255,102,0.4)]">
             K
@@ -107,12 +108,11 @@
         </div>
       </div>
 
-      <!-- Badge de Estado de Seguridad -->
       <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center space-x-3 mt-6">
         <i data-lucide="shield-check" class="w-4 h-4 text-kinet-neon shrink-0"></i>
         <div>
           <p class="text-[10px] font-bold text-slate-200">Protocolo OAuth 2.0 & Multi-Rol</p>
-          <p class="text-[8px] text-slate-400 font-mono">Acceso verificado para Atletas, Staff y Clubes.</p>
+          <p class="text-[8px] text-slate-400 font-mono" id="backend-status-label">Acceso verificado para Atletas, Staff y Clubes.</p>
         </div>
       </div>
 
@@ -123,7 +123,6 @@
       
       <div class="space-y-4">
         
-        <!-- PESTAÑAS PRINCIPALES (LOGIN / REGISTRO) -->
         <div class="flex bg-[#12161C] p-1 rounded-xl border border-slate-800">
           <button id="tab-login" onclick="switchMainTab('login')" class="flex-1 py-2 rounded-lg text-xs font-display font-bold transition bg-kinet-neon text-black shadow-md">
             INICIAR SESIÓN
@@ -133,7 +132,6 @@
           </button>
         </div>
 
-        <!-- ACCESO RÁPIDO GOOGLE -->
         <button onclick="openGoogleSimModal()" class="w-full py-2.5 px-4 rounded-xl glass-card border-slate-700 hover:border-slate-500 transition flex items-center justify-center space-x-3 text-xs font-semibold text-white">
           <svg class="w-4 h-4" viewBox="0 0 24 24">
             <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.2 9 5 12 5z"/>
@@ -182,17 +180,16 @@
               <button type="button" onclick="openRecoveryModal()" class="text-kinet-neon hover:underline font-medium">Recuperar Contraseña</button>
             </div>
 
-            <button type="submit" class="w-full py-2.5 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-wider uppercase hover:bg-emerald-400 transition shadow-[0_0_15px_rgba(0,255,102,0.2)]">
+            <button type="submit" id="btn-submit-login" class="w-full py-2.5 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-wider uppercase hover:bg-emerald-400 transition shadow-[0_0_15px_rgba(0,255,102,0.2)]">
               INICIAR SESIÓN
             </button>
           </form>
         </div>
 
-        <!-- ================= FORMULARIO 2: CREAR CUENTA NUEVA (CON NOMBRE Y APELLIDOS) ================= -->
+        <!-- ================= FORMULARIO 2: CREAR CUENTA NUEVA ================= -->
         <div id="container-register" class="space-y-2.5 hidden">
           <form onsubmit="handleRegisterSubmit(event)" class="space-y-2.5">
             
-            <!-- NUEVA FILA: NOMBRE Y APELLIDOS -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
                 <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Nombre</label>
@@ -225,11 +222,11 @@
             </div>
 
             <div>
-              <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Contraseña Segura</label>
-              <input type="password" id="reg-password" required placeholder="••••••••••••" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+              <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Contraseña Segura (Mín. 6 caracteres)</label>
+              <input type="password" id="reg-password" minlength="6" required placeholder="••••••••••••" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
             </div>
 
-            <button type="submit" class="w-full py-2.5 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-wider uppercase hover:bg-emerald-400 transition shadow-[0_0_15px_rgba(0,255,102,0.2)]">
+            <button type="submit" id="btn-submit-register" class="w-full py-2.5 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-wider uppercase hover:bg-emerald-400 transition shadow-[0_0_15px_rgba(0,255,102,0.2)]">
               CREAR CUENTA
             </button>
           </form>
@@ -280,7 +277,7 @@
     </div>
   </div>
 
-  <!-- MODAL GOOGLE (CON NOMBRE Y APELLIDOS) -->
+  <!-- MODAL GOOGLE -->
   <div id="google-modal" class="fixed inset-0 modal-backdrop z-50 hidden flex items-center justify-center p-4">
     <div class="bg-[#181C24] w-full max-w-md p-6 rounded-2xl border border-slate-700 shadow-2xl relative space-y-4 text-center">
       <div class="flex justify-center">
@@ -421,12 +418,8 @@
 
     function saveUnifiedIdentity(fullName, handleStr, emailStr, isGuest) {
       const cleanHandle = handleStr.startsWith('@') ? handleStr : '@' + handleStr;
-      if (fullName) {
-        localStorage.setItem('kinet_user_name', fullName);
-      }
-      if (emailStr) {
-        localStorage.setItem('kinet_user_email', emailStr);
-      }
+      if (fullName) localStorage.setItem('kinet_user_name', fullName);
+      if (emailStr) localStorage.setItem('kinet_user_email', emailStr);
       localStorage.setItem('kinet_username', cleanHandle);
       localStorage.setItem('kinet_social_handle', cleanHandle);
       localStorage.setItem('kinet_social_configured', 'true');
@@ -440,25 +433,55 @@
       }
     }
 
-    function handleLoginSubmit(e) {
+    async function handleLoginSubmit(e) {
       e.preventDefault();
-      const inputVal = document.getElementById('login-email-input').value.trim();
-      const rawUser = inputVal.split('@')[0] || 'atleta';
-      const existingName = localStorage.getItem('kinet_user_name') || rawUser.replace(/[._-]/g, ' ');
-      saveUnifiedIdentity(existingName, '@' + rawUser, inputVal, false);
-      cambiarPagina(null, getNextDestination());
+      const btn = document.getElementById('btn-submit-login');
+      const email = document.getElementById('login-email-input').value.trim();
+      const password = document.getElementById('login-pass-input').value;
+
+      btn.textContent = 'VERIFICANDO CREDENCIALES...';
+      btn.disabled = true;
+
+      try {
+        if (window.KinetBackend) {
+          await window.KinetBackend.loginUser({ email, password });
+        } else {
+          const rawUser = email.split('@')[0] || 'atleta';
+          saveUnifiedIdentity(rawUser, '@' + rawUser, email, false);
+        }
+        cambiarPagina(null, getNextDestination());
+      } catch (err) {
+        showNotification('Error de acceso: ' + (err.message || 'Verifica tu correo y contraseña'));
+        btn.textContent = 'INICIAR SESIÓN';
+        btn.disabled = false;
+      }
     }
 
-    function handleRegisterSubmit(e) {
+    async function handleRegisterSubmit(e) {
       e.preventDefault();
+      const btn = document.getElementById('btn-submit-register');
       const firstName = document.getElementById('reg-firstname').value.trim();
       const lastName = document.getElementById('reg-lastname').value.trim();
-      const fullName = `${firstName} ${lastName}`.trim();
-      const user = document.getElementById('reg-username').value.trim().replace(/^@/, '');
+      const handle = document.getElementById('reg-username').value.trim().replace(/^@/, '');
       const email = document.getElementById('reg-email').value.trim();
+      const phone = document.getElementById('reg-phone').value.trim();
+      const password = document.getElementById('reg-password').value;
 
-      saveUnifiedIdentity(fullName, '@' + user, email, false);
-      cambiarPagina(null, 'fase1.html');
+      btn.textContent = 'CREANDO CUENTA EN KINET OS...';
+      btn.disabled = true;
+
+      try {
+        if (window.KinetBackend) {
+          await window.KinetBackend.registerUser({ firstName, lastName, handle, email, phone, password });
+        } else {
+          saveUnifiedIdentity(`${firstName} ${lastName}`.trim(), '@' + handle, email, false);
+        }
+        cambiarPagina(null, 'fase1.html');
+      } catch (err) {
+        showNotification('Error al crear cuenta: ' + (err.message || 'Revisa los datos'));
+        btn.textContent = 'CREAR CUENTA';
+        btn.disabled = false;
+      }
     }
 
     function goToGuest() {
@@ -519,6 +542,7 @@
     (function checkExistingSession() {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('logout') === 'true') {
+        if (window.KinetBackend) window.KinetBackend.logoutUser();
         localStorage.removeItem('kinet_logged_in');
         localStorage.removeItem('kinet_guest_session');
         return;
