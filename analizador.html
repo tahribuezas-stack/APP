@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
-    <title>KINET OS // Analizador, Pizarra 3D, Creador 50-99 & Cartelera</title>
+    <title>KINET OS // Analizador & Plantilla 3D</title>
     
     <!-- Favicon Corporativo Dinámico por JavaScript -->
     <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
@@ -323,7 +323,7 @@
         }
         .context-tag {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.68rem;
+            font-size: 0.66rem;
             color: var(--role-color);
             text-transform: uppercase;
             letter-spacing: 0.14em;
@@ -334,13 +334,13 @@
         }
         .context-title {
             font-family: 'Orbitron', sans-serif;
-            font-size: clamp(1.22rem, 2vw, 1.75rem);
+            font-size: clamp(1.3rem, 2.1vw, 1.82rem);
             font-weight: 900;
             letter-spacing: -0.02em;
             color: white;
         }
 
-        /* BARRA DE COMANDO DEL ANALIZADOR (SIN SELECTOR DE DEPORTE: LAS 3 PESTAÑAS ENTRAN COMPLETAS) */
+        /* BARRA DE COMANDO LIMPIA Y CON SOMBRA SPOTLIGHT */
         .analyzer-toolbar {
             background: rgba(13, 17, 26, 0.95);
             border: 1px solid var(--border-subtle);
@@ -353,6 +353,8 @@
             gap: 12px;
             flex-wrap: wrap;
             box-shadow: 0 8px 22px rgba(0,0,0,0.4);
+            position: relative;
+            overflow: hidden;
         }
         .analyzer-tabs-group {
             display: grid;
@@ -362,38 +364,35 @@
             border-radius: 12px;
             padding: 4px;
             gap: 6px;
-            flex: 1.5;
-            min-width: 340px;
+            flex: 1.35;
+            min-width: 320px;
         }
         @media (max-width: 720px) {
-            .analyzer-tabs-group {
-                grid-template-columns: 1fr;
-                min-width: 100%;
-            }
+            .analyzer-tabs-group { grid-template-columns: 1fr; min-width: 100%; }
         }
         .analyzer-tab-btn {
             background: transparent;
             border: none;
             color: var(--text-secondary);
-            font-family: 'Inter', sans-serif;
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 9px 12px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 9px 14px;
             border-radius: 9px;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 7px;
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             white-space: nowrap;
         }
-        .analyzer-tab-btn:hover { color: white; background: rgba(255, 255, 255, 0.03); }
+        .analyzer-tab-btn:hover { color: white; background: rgba(255, 255, 255, 0.04); transform: translateY(-1px); }
         .analyzer-tab-btn.active {
             background: var(--role-gradient);
             color: #04060A;
-            font-weight: 800;
-            box-shadow: 0 0 14px var(--role-glow);
+            font-weight: 900;
+            box-shadow: 0 0 16px var(--role-glow);
         }
 
         .analyzer-controls-right {
@@ -413,9 +412,13 @@
             font-size: 0.74rem;
             font-weight: 600;
             outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
         .kinet-input { cursor: text; font-weight: 500; border-color: rgba(255,255,255,0.14); }
-        .kinet-input:focus, .kinet-select:focus { border-color: var(--role-color); }
+        .kinet-input:focus, .kinet-select:focus {
+            border-color: var(--role-color);
+            box-shadow: 0 0 12px rgba(var(--role-rgb), 0.18);
+        }
 
         .bento-grid {
             display: grid;
@@ -427,6 +430,7 @@
         .col-4 { grid-column: span 4; }
         @media (max-width: 1080px) { .col-8, .col-4 { grid-column: span 12; } }
 
+        /* PANELES CON SOMBRA DE CURSOR SPOTLIGHT REACTIVA */
         .kinet-panel {
             background: var(--bg-panel);
             border: 1px solid var(--border-subtle);
@@ -435,7 +439,21 @@
             position: relative;
             overflow: hidden;
             box-shadow: 0 12px 30px rgba(0,0,0,0.45);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
+        .kinet-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(240px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(var(--role-rgb), 0.16), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .kinet-panel > * { position: relative; z-index: 1; }
+        .kinet-panel:hover::before { opacity: 1; }
+        .kinet-panel:hover { border-color: rgba(var(--role-rgb), 0.42); }
 
         .panel-head {
             display: flex;
@@ -483,9 +501,9 @@
             gap: 6px;
             text-decoration: none;
             box-shadow: 0 0 16px var(--role-glow);
-            transition: all 0.22s ease;
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .btn-primary:hover { transform: translateY(-1px); filter: brightness(1.08); }
+        .btn-primary:hover { transform: translateY(-2px) scale(1.02); filter: brightness(1.08); box-shadow: 0 0 24px var(--role-glow); }
 
         .btn-secondary {
             background: rgba(255, 255, 255, 0.04);
@@ -504,38 +522,73 @@
             text-decoration: none;
             transition: all 0.22s ease;
         }
-        .btn-secondary:hover { border-color: rgba(var(--role-rgb), 0.45); background: rgba(var(--role-rgb), 0.08); }
+        .btn-secondary:hover { border-color: rgba(var(--role-rgb), 0.48); background: rgba(var(--role-rgb), 0.1); transform: translateY(-1px); }
+
+        /* BOTÓN DE DESASIGNAR / QUITAR JUGADOR BIEN VISIBLE Y DESTACADO */
+        .btn-unassign-prominent {
+            background: rgba(239, 68, 68, 0.16);
+            border: 1.5px solid #EF4444;
+            color: #FCA5A5;
+            border-radius: 10px;
+            padding: 6px 13px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.64rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 0 16px rgba(239, 68, 68, 0.3);
+            transition: all 0.2s ease;
+        }
+        .btn-unassign-prominent.visible { display: inline-flex; }
+        .btn-unassign-prominent:hover {
+            background: #EF4444;
+            color: #04060A;
+            transform: scale(1.04);
+            box-shadow: 0 0 22px rgba(239, 68, 68, 0.6);
+        }
 
         /* =========================================================================
-           ESCENARIO TÁCTICO 3D CON CLIC 100% PRECISO EN DEFENSAS Y PORTERO
+           ESCENARIO TÁCTICO 3D MEJORADO CON PLATAFORMA DE VOLUMEN Y FOCOS DE ESTADIO
            ========================================================================= */
         .arena-3d-viewport {
             width: 100%;
-            height: 390px;
-            background: radial-gradient(circle at 50% 25%, rgba(var(--role-rgb), 0.12), #04070D 78%);
-            border: 1px solid rgba(var(--role-rgb), 0.38);
+            height: 415px;
+            background:
+                radial-gradient(ellipse at 50% 8%, rgba(var(--role-rgb), 0.26), transparent 62%),
+                radial-gradient(circle at 15% 20%, rgba(56, 189, 248, 0.12), transparent 45%),
+                radial-gradient(circle at 85% 20%, rgba(var(--role-rgb), 0.12), transparent 45%),
+                linear-gradient(180deg, #030509 0%, #070C16 100%);
+            border: 1px solid rgba(var(--role-rgb), 0.42);
             border-radius: 18px;
             position: relative;
             overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.85), 0 12px 28px rgba(0, 0, 0, 0.55);
+            box-shadow: inset 0 0 65px rgba(0, 0, 0, 0.9), 0 16px 36px rgba(0, 0, 0, 0.65);
         }
 
-        /* Usamos transform-style: flat para que el navegador no distorsione jamás el hit-box de clic en los defensas inferiores */
+        /* Plataforma 3D con grosor físico real, bisel luminoso y sombra de estadio */
         .arena-3d-surface {
-            width: 93%;
-            height: 89%;
+            width: 92%;
+            height: 86%;
             position: relative;
-            transform: perspective(1150px) rotateX(15deg) scale(0.96);
+            transform: perspective(980px) rotateX(24deg) scale(0.95);
             transform-style: flat;
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            border-radius: 14px;
-            box-shadow: 0 22px 44px rgba(0, 0, 0, 0.85), 0 0 24px rgba(var(--role-rgb), 0.15);
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease;
+            border-radius: 16px;
+            border: 2px solid rgba(var(--role-rgb), 0.55);
+            box-shadow:
+                0 14px 0 #05120D,
+                0 16px 0 rgba(var(--role-rgb), 0.45),
+                0 34px 55px rgba(0, 0, 0, 0.95),
+                0 0 38px rgba(var(--role-rgb), 0.22);
         }
         .arena-3d-viewport.flat-2d .arena-3d-surface {
-            transform: none;
+            transform: perspective(980px) rotateX(0deg) scale(0.97);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8), 0 0 22px rgba(var(--role-rgb), 0.15);
         }
 
         .arena-svg-canvas {
@@ -546,126 +599,249 @@
             pointer-events: none;
         }
 
-        /* FICHAS INTERACTIVAS EN EL CAMPO (SOPORTAN ESTADO VACÍO "+ ASIGNAR") */
+        /* =========================================================================
+           MINI KINET CARDS ESTILO FIFA / EA FC EN MINIATURA SOBRE EL CAMPO 3D
+           ========================================================================= */
+        @keyframes cardDropBounce {
+            0% { opacity: 0; transform: translate(-50%, -85%) scale(0.65); }
+            65% { opacity: 1; transform: translate(-50%, -46%) scale(1.08); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
         .tactical-node-token {
             position: absolute;
             transform: translate(-50%, -50%);
-            width: 78px;
-            background: linear-gradient(160deg, rgba(14, 20, 32, 0.96) 0%, rgba(5, 8, 14, 0.98) 100%);
-            border: 1.5px solid var(--role-color);
-            border-radius: 11px;
-            padding: 5px 6px;
+            width: 84px;
+            border-radius: 12px 12px 10px 10px;
+            padding: 5px 6px 6px 6px;
             text-align: center;
             cursor: pointer;
-            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.85), 0 0 12px rgba(var(--role-rgb), 0.28);
-            transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+            transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease, box-shadow 0.22s ease;
             z-index: 30;
             user-select: none;
             pointer-events: auto !important;
+            animation: cardDropBounce 0.36s cubic-bezier(0.16, 1, 0.3, 1);
         }
+
+        /* Estilo cuando hay un jugador asignado: Mini KINET Card Holográfica / Oro / Esmeralda */
+        .tactical-node-token.kinet-mini-fifa-card {
+            background:
+                radial-gradient(circle at 50% 0%, rgba(var(--role-rgb), 0.32), transparent 68%),
+                linear-gradient(165deg, rgba(16, 24, 38, 0.98) 0%, rgba(6, 9, 16, 0.99) 100%);
+            border: 1.5px solid var(--role-color);
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.92), 0 0 15px rgba(var(--role-rgb), 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+        }
+
+        /* Estilo cuando el puesto está vacío (+ Asignar) */
         .tactical-node-token.empty-slot {
-            background: rgba(6, 9, 16, 0.86);
-            border: 1.5px dashed rgba(255, 255, 255, 0.32);
-            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.7);
+            width: 76px;
+            background: rgba(6, 10, 18, 0.85);
+            border: 1.5px dashed rgba(255, 255, 255, 0.3);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.75);
         }
+
         .tactical-node-token:hover,
         .tactical-node-token.selected-slot {
-            transform: translate(-50%, -54%) scale(1.1);
+            transform: translate(-50%, -56%) scale(1.13);
             border-style: solid;
             border-color: #FFFFFF;
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.95), 0 0 22px var(--role-color);
-            z-index: 50;
+            box-shadow: 0 16px 30px rgba(0, 0, 0, 0.96), 0 0 26px var(--role-color);
+            z-index: 60;
         }
-        .token-top-row {
+
+        /* Botón rápido (✕) en la esquina de cada Mini KINET Card para quitar al jugador sin buscar arriba */
+        .mini-card-remove-x {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #EF4444;
+            color: white;
+            border: 1.5px solid #06080E;
+            font-size: 0.55rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.8);
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.18s ease;
+            z-index: 5;
+        }
+        .tactical-node-token:hover .mini-card-remove-x,
+        .tactical-node-token.selected-slot .mini-card-remove-x {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .mini-card-remove-x:hover {
+            background: #DC2626;
+            transform: scale(1.18) !important;
+        }
+
+        .mini-fifa-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid rgba(var(--role-rgb), 0.28);
+            padding-bottom: 2px;
+            margin-bottom: 3px;
+        }
+        .mini-fifa-grl {
             font-family: 'Orbitron', sans-serif;
-            font-size: 0.64rem;
+            font-size: 0.72rem;
             font-weight: 900;
             color: var(--role-color);
             line-height: 1;
-            margin-bottom: 3px;
+            text-shadow: 0 0 8px rgba(var(--role-rgb), 0.4);
         }
-        .token-pos-tag {
+        .mini-fifa-pos {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.52rem;
-            color: #E2E8F0;
-            background: rgba(255,255,255,0.1);
+            font-size: 0.5rem;
+            font-weight: 800;
+            color: #04060A;
+            background: var(--role-color);
             padding: 1px 4px;
             border-radius: 4px;
         }
-        .token-player-name {
-            font-size: 0.63rem;
+        .mini-fifa-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.58rem;
             font-weight: 800;
-            color: white;
+            color: #FFFFFF;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            margin-bottom: 3px;
+            letter-spacing: 0.02em;
         }
-        .token-sub-metric {
+        .mini-fifa-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px 4px;
+            background: rgba(0, 0, 0, 0.45);
+            border-radius: 6px;
+            padding: 2px 4px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.5rem;
-            color: #94A3B8;
-            margin-top: 1px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-size: 0.46rem;
+            color: #CBD5E1;
+        }
+        .mini-fifa-stat-pair {
+            display: flex;
+            justify-content: space-between;
+        }
+        .mini-fifa-stat-pair strong {
+            color: var(--role-color);
+            font-weight: 800;
         }
 
-        /* BANDEJA INFERIOR: BANQUILLO (SUPLENTES) Y RESERVA / CONVOCATORIA */
+        @media (max-width: 680px) {
+            .arena-3d-viewport { height: 380px; }
+            .tactical-node-token { width: 68px; padding: 4px; }
+            .mini-fifa-stats-grid { display: none; }
+        }
+
+        /* =========================================================================
+           CARRUSEL TIPO CASSETTE CON FLECHAS LATERALES (12 BANQUILLO + 12 RESERVAS)
+           ========================================================================= */
         .bench-reserve-strip {
             margin-top: 12px;
             display: grid;
-            grid-template-columns: 1.25fr 1fr;
-            gap: 10px;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
         }
-        @media (max-width: 760px) {
+        @media (max-width: 820px) {
             .bench-reserve-strip { grid-template-columns: 1fr; }
         }
-        .bench-box {
-            background: rgba(4, 6, 10, 0.78);
+        .cassette-deck-box {
+            background: rgba(4, 6, 10, 0.85);
             border: 1px solid var(--border-subtle);
-            border-radius: 14px;
-            padding: 9px 11px;
-        }
-        .bench-slots-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(74px, 1fr));
+            border-radius: 15px;
+            padding: 9px 10px;
+            display: flex;
+            flex-direction: column;
             gap: 6px;
-            margin-top: 6px;
+        }
+        .cassette-carousel-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .cassette-arrow-btn {
+            width: 28px;
+            height: 54px;
+            border-radius: 9px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(var(--role-rgb), 0.35);
+            color: var(--role-color);
+            font-size: 0.78rem;
+            font-weight: 900;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .cassette-arrow-btn:hover {
+            background: var(--role-gradient);
+            color: #04060A;
+            box-shadow: 0 0 12px var(--role-glow);
+            transform: scale(1.05);
+        }
+        .cassette-track {
+            display: flex;
+            gap: 7px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            flex: 1;
+            padding: 3px 2px;
         }
         .bench-slot-pill {
+            min-width: 78px;
+            max-width: 78px;
+            flex-shrink: 0;
             background: rgba(255, 255, 255, 0.025);
-            border: 1px dashed rgba(255, 255, 255, 0.2);
-            border-radius: 9px;
-            padding: 5px 6px;
+            border: 1px dashed rgba(255, 255, 255, 0.22);
+            border-radius: 10px;
+            padding: 6px 6px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s ease;
+            position: relative;
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .bench-slot-pill:hover {
+            transform: translateY(-2px);
+            border-color: rgba(var(--role-rgb), 0.6);
         }
         .bench-slot-pill.filled {
             border-style: solid;
-            border-color: rgba(var(--role-rgb), 0.45);
-            background: rgba(var(--role-rgb), 0.08);
+            border-color: rgba(var(--role-rgb), 0.55);
+            background: linear-gradient(160deg, rgba(var(--role-rgb), 0.14), rgba(8, 12, 20, 0.95));
         }
         .bench-slot-pill.selected-slot {
             border-style: solid;
             border-color: #FFFFFF;
             box-shadow: 0 0 14px var(--role-glow);
-            background: rgba(var(--role-rgb), 0.18);
+            background: rgba(var(--role-rgb), 0.22);
+            transform: translateY(-2px) scale(1.04);
         }
 
-        /* PESTAÑAS DEL PANEL DERECHO (1. RED KINET | 2. CREAR 50-99 | 3. CARTELERA) */
+        /* =========================================================================
+           PANEL DERECHO CON SPOTLIGHT EN OPCIONES, SUB-TABS Y CERO "+ PONER"
+           ========================================================================= */
         .right-panel-tabs {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            background: rgba(4, 6, 10, 0.9);
+            background: rgba(4, 6, 10, 0.92);
             border: 1px solid var(--border-subtle);
             border-radius: 11px;
             padding: 3px;
             gap: 4px;
-            margin-bottom: 10px;
+            margin-bottom: 9px;
         }
         .right-tab-btn {
             background: transparent;
@@ -686,10 +862,90 @@
             border: 1px solid rgba(var(--role-rgb), 0.45);
         }
 
-        /* SLIDERS 50-99 DEL CREADOR DE JUGADORES EXTERNOS */
-        .custom-slider-row {
-            margin-bottom: 7px;
+        /* Conmutador interno dentro de Red KINET: [🌐 Red KINET] vs [🛠️ Mis Creados] */
+        .source-subtoggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 8px;
         }
+        .source-subbtn {
+            background: rgba(255,255,255,0.025);
+            border: 1px solid var(--border-subtle);
+            color: #94A3B8;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 6px 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .source-subbtn.active {
+            background: rgba(var(--role-rgb), 0.15);
+            border-color: var(--role-color);
+            color: white;
+        }
+
+        /* Tarjetas de jugador en la lista derecha con Spotlight de cursor, agrandamiento y estado seleccionado */
+        .roster-candidate-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 9px 11px;
+            border-radius: 13px;
+            background: rgba(255,255,255,0.022);
+            border: 1px solid var(--border-subtle);
+            margin-bottom: 7px;
+            cursor: pointer;
+            transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        .roster-candidate-item::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(130px circle at var(--mouse-x, -200px) var(--mouse-y, -200px), rgba(var(--role-rgb), 0.25), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+        .roster-candidate-item:hover::before { opacity: 1; }
+        .roster-candidate-item:hover {
+            border-color: var(--role-color);
+            background: rgba(var(--role-rgb), 0.09);
+            transform: translateX(3px) scale(1.018);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5), 0 0 14px rgba(var(--role-rgb), 0.18);
+        }
+        .roster-candidate-item.selected-profile {
+            border: 1.5px solid var(--role-color);
+            background: rgba(var(--role-rgb), 0.16);
+            box-shadow: 0 0 18px rgba(var(--role-rgb), 0.28);
+            transform: scale(1.02);
+        }
+
+        .grl-Execution-chip {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 0.74rem;
+            padding: 5px 8px;
+            border-radius: 8px;
+            background: rgba(var(--role-rgb), 0.15);
+            border: 1px solid var(--role-color);
+            color: var(--role-color);
+            min-width: 36px;
+            text-align: center;
+        }
+        .grl-Execution-chip.uncalibrated {
+            background: rgba(245, 158, 11, 0.14);
+            border-color: #F59E0B;
+            color: #F59E0B;
+        }
+
+        /* SLIDERS 50-99 DEL CREADOR / EDITOR DE JUGADORES */
+        .custom-slider-row { margin-bottom: 7px; }
         .custom-slider-head {
             display: flex;
             justify-content: space-between;
@@ -705,7 +961,9 @@
             height: 5px;
         }
 
-        /* COMPARADOR 1VS1 */
+        /* =========================================================================
+           VISTA 2: COMPARADOR 1VS1 CON TARJETAS INTERACTIVAS QUE SE AGRANDAN E ILUMINAN
+           ========================================================================= */
         .duel-1v1-grid {
             display: grid;
             grid-template-columns: 1fr 220px 1fr;
@@ -714,13 +972,45 @@
             margin-top: 6px;
         }
         @media (max-width: 820px) { .duel-1v1-grid { grid-template-columns: 1fr; } }
+
         .duel-fighter-card {
             background: linear-gradient(155deg, rgba(16, 22, 35, 0.95), rgba(7, 10, 18, 0.98));
-            border: 1px solid rgba(var(--role-rgb), 0.45);
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
             border-radius: 16px;
-            padding: 13px;
+            padding: 14px;
             text-align: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.26s cubic-bezier(0.16, 1, 0.3, 1);
         }
+        .duel-fighter-card:hover {
+            transform: translateY(-3px) scale(1.03);
+            border-color: var(--role-color);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.7), 0 0 20px rgba(var(--role-rgb), 0.25);
+        }
+        .duel-fighter-card.active-corner-a {
+            border: 2px solid var(--role-color);
+            background: linear-gradient(155deg, rgba(var(--role-rgb), 0.16), rgba(7, 10, 18, 0.98));
+            box-shadow: 0 0 26px rgba(var(--role-rgb), 0.35), inset 0 0 15px rgba(var(--role-rgb), 0.12);
+            transform: scale(1.03);
+        }
+        .duel-fighter-card.active-corner-b {
+            border: 2px solid #38BDF8;
+            background: linear-gradient(155deg, rgba(56, 189, 248, 0.16), rgba(7, 10, 18, 0.98));
+            box-shadow: 0 0 26px rgba(56, 189, 248, 0.35), inset 0 0 15px rgba(56, 189, 248, 0.12);
+            transform: scale(1.03);
+        }
+        .corner-active-pill {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.55rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 99px;
+            margin-bottom: 5px;
+        }
+
         .duel-stat-comparison-row { margin-bottom: 8px; }
         .duel-stat-labels {
             display: flex;
@@ -743,36 +1033,8 @@
             display: flex;
         }
         .duel-bar-left { justify-content: flex-end; }
-        .duel-fill-a { background: var(--role-gradient); height: 100%; border-radius: 99px; }
-        .duel-fill-b { background: linear-gradient(90deg, #38BDF8, #2563EB); height: 100%; border-radius: 99px; }
-
-        .roster-candidate-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 10px;
-            border-radius: 12px;
-            background: rgba(255,255,255,0.02);
-            border: 1px solid var(--border-subtle);
-            margin-bottom: 7px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            gap: 8px;
-        }
-        .roster-candidate-item:hover {
-            border-color: var(--role-color);
-            background: rgba(var(--role-rgb), 0.08);
-        }
-        .grl-Execution-chip {
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 900;
-            font-size: 0.74rem;
-            padding: 4px 7px;
-            border-radius: 8px;
-            background: rgba(var(--role-rgb), 0.15);
-            border: 1px solid var(--role-color);
-            color: var(--role-color);
-        }
+        .duel-fill-a { background: var(--role-gradient); height: 100%; border-radius: 99px; transition: width 0.35s ease; }
+        .duel-fill-b { background: linear-gradient(90deg, #38BDF8, #2563EB); height: 100%; border-radius: 99px; transition: width 0.35s ease; }
 
         .mobile-bottom-nav {
             display: none;
@@ -864,10 +1126,10 @@
             <div class="sidebar-bottom-section">
                 <div class="sidebar-ai-tip-box" id="sidebar-dynamic-tip">
                     <div class="sidebar-ai-tip-header">
-                        <span>💡</span> <span id="tip-title">Pizarra 3D & Cartelera</span>
+                        <span>💡</span> <span id="tip-title">Plantilla & Pizarra 3D</span>
                     </div>
                     <div class="sidebar-ai-tip-text" id="tip-content">
-                        Toca cualquier puesto (+ Asignar), crea jugadores 50-99 o compáralos en Cartelera.
+                        Coloca Mini KINET Cards en el campo, desliza el banquillo y edita niveles de 50 a 99.
                     </div>
                 </div>
 
@@ -901,12 +1163,12 @@
                 </a>
 
                 <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-secondary);display:flex;align-items:center;gap:10px;">
-                    <span>KINET SQUAD, BANQUILLO, CREADOR 50-99 & CARTELERA 3D</span>
+                    <span>PLANTILLA 3D, COMPARADOR 1VS1 & CARTELERA</span>
                     <span style="color:var(--role-color);font-weight:700;" id="topbar-sport-tag">● FÚTBOL</span>
                 </div>
 
                 <div class="topbar-actions">
-                    <a href="ojeador-live.html" id="topbar-lab-link" class="btn-secondary" style="padding:6px 11px;font-size:0.62rem;">🎬 Ir a Laboratorio Vídeo →</a>
+                    <a href="ojeador-live.html" id="topbar-lab-link" class="btn-secondary" style="padding:6px 11px;font-size:0.62rem;">🎬 Laboratorio Vídeo →</a>
                     <div class="active-role-indicator">
                         <span class="dot"></span>
                         <span class="active-role-text" id="topbar-role-title">ATLETA PRO</span>
@@ -920,64 +1182,70 @@
                     <div>
                         <span class="context-tag">
                             <span>🏟️</span> 
-                            <span id="header-tag-text">ESCENARIO 3D AUTOMÁTICO, BANQUILLO, CREADOR 50-99 & CARTELERA • FÚTBOL</span>
+                            <span id="header-tag-text">PIZARRA TÁCTICA 3D, MINI KINET CARDS & CARTELERA • FÚTBOL</span>
                         </span>
-                        <h1 class="context-title" id="header-main-title">Analizador & Pizarra Táctica 3D</h1>
+                        <h1 class="context-title" id="header-main-title">Analizador & Plantilla 3D</h1>
                     </div>
                     <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                        <div class="verified-badge" id="team-overall-pill">⚡ PUESTOS ASIGNADOS: 0 • MEDIA: --</div>
-                        <button class="btn-secondary" onclick="clearAllBoardSlots()">🧹 Vaciar Pizarra</button>
-                        <button class="btn-secondary" onclick="exportAnalyzerReportPDF()">📄 Informe Ejecutivo PDF</button>
+                        <div class="verified-badge" id="team-overall-pill">⚡ TITULARES: 0 • MEDIA: --</div>
+                        <button class="btn-secondary" onclick="clearAllBoardSlots()">🧹 Vaciar Plantilla</button>
+                        <button class="btn-secondary" onclick="exportAnalyzerReportPDF()">📄 Descargar Informe PDF</button>
                     </div>
                 </div>
 
-                <!-- BARRA DE COMANDO: 3 MODOS + FORMACIÓN + ESTILO DE JUEGO + VISTA 3D/2D (SIN SELECTOR DE DEPORTE) -->
+                <!-- BARRA DE COMANDO CON LOS 3 NOMBRES LIMPIOS: PLANTILLA | COMPARADOR 1VS1 | SINERGIA & NIVEL -->
                 <div class="analyzer-toolbar">
                     <div class="analyzer-tabs-group">
                         <button type="button" class="analyzer-tab-btn active" id="tab-arena-3d" onclick="switchAnalyzerMode('arena', this)">
-                            <span>🏟️</span> <span id="tab-arena-label">Mi Fútbol 5 / 11 Ideal</span>
+                            <span>🏟️</span> <span id="tab-arena-label">Plantilla</span>
                         </button>
                         <button type="button" class="analyzer-tab-btn" id="tab-duel-1v1" onclick="switchAnalyzerMode('duel', this)">
-                            <span>⚔️</span> <span id="tab-duel-label">Duelo 1vs1 & Cartelera</span>
+                            <span>⚔️</span> <span id="tab-duel-label">Comparador 1vs1</span>
                         </button>
                         <button type="button" class="analyzer-tab-btn" id="tab-mirror-self" onclick="switchAnalyzerMode('mirror', this)">
-                            <span>📊</span> <span id="tab-mirror-label">Mi Espejo & Encaje IA</span>
+                            <span>📊</span> <span id="tab-mirror-label">Sinergia & Nivel</span>
                         </button>
                     </div>
 
                     <div class="analyzer-controls-right">
-                        <select id="tactical-formation-selector" class="kinet-select" onchange="applyTacticalPreset(this.value)" title="Formación o estructura táctica"></select>
+                        <select id="tactical-formation-selector" class="kinet-select" onchange="applyTacticalPreset(this.value)" title="Formación táctica"></select>
 
-                        <select id="tactical-style-selector" class="kinet-select" onchange="updatePlayStyleSynergy(this.value)" title="Estilo de juego para calcular el encaje IA">
-                            <option value="balanced">⚙️ Estilo: Equilibrado / Adaptativo</option>
-                            <option value="direct">⚡ Estilo: Transición Directa & Balón Largo</option>
-                            <option value="possession">🎯 Estilo: Juego Asociativo & Control</option>
-                            <option value="highpress">🔥 Estilo: Presión Alta & Ritmo Intenso</option>
-                            <option value="counter">🛡️ Estilo: Bloque Sólido & Contragolpe</option>
+                        <select id="tactical-style-selector" class="kinet-select" onchange="updatePlayStyleSynergy(this.value)" title="Estilo táctico del equipo">
+                            <option value="balanced">⚙️ Estilo: Equilibrado</option>
+                            <option value="direct">⚡ Estilo: Juego Directo / Balón Largo</option>
+                            <option value="possession">🎯 Estilo: Posesión & Asociación</option>
+                            <option value="highpress">🔥 Estilo: Presión Alta</option>
+                            <option value="counter">🛡️ Estilo: Bloque Bajo & Contra</option>
                         </select>
 
                         <button type="button" class="btn-secondary" id="toggle-3d-btn" onclick="toggleArenaPerspective()">
-                            📐 Vista: 3D TV
+                            📐 Vista: 3D Pro
                         </button>
                     </div>
                 </div>
 
                 <div class="bento-grid">
-                    <!-- COLUMNA IZQUIERDA (8 COL): ESCENARIO 3D + BANQUILLO/RESERVA / DUELO 1VS1 / ESPEJO DE ENCAJE IA -->
+                    <!-- COLUMNA IZQUIERDA (8 COL): PLANTILLA 3D + CARRUSEL CASSETTE / COMPARADOR 1VS1 / SINERGIA & NIVEL -->
                     <div class="col-8">
                         
-                        <!-- MODO 1: ESCENARIO PROFESIONAL 3D + BANQUILLO Y RESERVA -->
+                        <!-- MODO 1: PLANTILLA 3D CON MINI KINET CARDS Y CARRUSEL DE BANQUILLO/RESERVA -->
                         <div class="kinet-panel" id="view-arena-3d">
                             <div class="panel-head">
                                 <div>
-                                    <span class="panel-label" id="arena-panel-subtitle">PIZARRA 3D INTERACTIVA // TOCA CUALQUIER PUESTO (TITULAR, BANQUILLO O RESERVA) PARA ASIGNAR</span>
-                                    <div style="font-size:0.74rem;color:var(--role-color);font-weight:700;margin-top:2px;" id="selected-slot-indicator">
-                                        Puesto activo: Selecciona cualquier ficha en el campo o banquillo
+                                    <span class="panel-label" id="arena-panel-subtitle">PLANTILLA EN PISTA // TOCA CUALQUIER PUESTO PARA ASIGNAR O EDITAR SU CARTA</span>
+                                    <div style="font-size:0.76rem;color:var(--role-color);font-weight:700;margin-top:3px;" id="selected-slot-indicator">
+                                        Puesto activo: Selecciona una posición en el campo o banquillo
                                     </div>
                                 </div>
-                                <span class="verified-badge" id="arena-chemistry-badge">🔗 ENCAJE TÁCTICO: PENDIENTE</span>
+                                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                    <button type="button" class="btn-unassign-prominent" id="btn-unassign-top" onclick="removePlayerFromSelectedSlot(event)">
+                                        🗑️ Desasignar del Puesto
+                                    </button>
+                                    <span class="verified-badge" id="arena-chemistry-badge">🔗 SINERGIA: PENDIENTE</span>
+                                </div>
                             </div>
 
+                            <!-- ESCENARIO 3D CON PLATAFORMA Y RELIEVE -->
                             <div class="arena-3d-viewport" id="arena-viewport-box">
                                 <div class="arena-3d-surface" id="arena-3d-surface">
                                     <div id="arena-svg-mount" style="width:100%;height:100%;"></div>
@@ -985,65 +1253,77 @@
                                 </div>
                             </div>
 
-                            <!-- BANDEJA DE BANQUILLO (SUPLENTES) Y RESERVA / NO CONVOCADOS -->
+                            <!-- CARRUSEL TIPO CASSETTE CON FLECHAS LATERALES (12 BANQUILLO + 12 RESERVAS) -->
                             <div class="bench-reserve-strip">
-                                <div class="bench-box">
+                                <div class="cassette-deck-box">
                                     <div style="display:flex;justify-content:space-between;align-items:center;">
-                                        <span style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);font-weight:700;">🪑 BANQUILLO / ROTACIÓN (5 RANURAS)</span>
-                                        <span style="font-size:0.6rem;color:var(--text-secondary);">Toca ranura para asignar</span>
+                                        <span style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);font-weight:700;">🪑 BANQUILLO / SUPLENTES (12 PLAZAS)</span>
+                                        <span style="font-size:0.58rem;color:var(--text-secondary);">Usa ◀ ▶ para rotar</span>
                                     </div>
-                                    <div class="bench-slots-row" id="bench-slots-container"></div>
+                                    <div class="cassette-carousel-wrap">
+                                        <button type="button" class="cassette-arrow-btn" onclick="scrollCassette('bench-slots-container', -170)" title="Anterior">◀</button>
+                                        <div class="cassette-track" id="bench-slots-container"></div>
+                                        <button type="button" class="cassette-arrow-btn" onclick="scrollCassette('bench-slots-container', 170)" title="Siguiente">▶</button>
+                                    </div>
                                 </div>
 
-                                <div class="bench-box">
+                                <div class="cassette-deck-box">
                                     <div style="display:flex;justify-content:space-between;align-items:center;">
-                                        <span style="font-family:'JetBrains Mono';font-size:0.6rem;color:#38BDF8;font-weight:700;">📋 RESERVA / CONVOCATORIA (4 RANURAS)</span>
-                                        <span style="font-size:0.6rem;color:var(--text-secondary);">Suplentes adicionales</span>
+                                        <span style="font-family:'JetBrains Mono';font-size:0.6rem;color:#38BDF8;font-weight:700;">📋 RESERVA / CONVOCATORIA (12 PLAZAS)</span>
+                                        <span style="font-size:0.58rem;color:var(--text-secondary);">Usa ◀ ▶ para rotar</span>
                                     </div>
-                                    <div class="bench-slots-row" id="reserve-slots-container"></div>
+                                    <div class="cassette-carousel-wrap">
+                                        <button type="button" class="cassette-arrow-btn" onclick="scrollCassette('reserve-slots-container', -170)" title="Anterior">◀</button>
+                                        <div class="cassette-track" id="reserve-slots-container"></div>
+                                        <button type="button" class="cassette-arrow-btn" onclick="scrollCassette('reserve-slots-container', 170)" title="Siguiente">▶</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- MODO 2: COMPARADOR CARA A CARA 1VS1 (HEAD-TO-HEAD) -->
+                        <!-- MODO 2: COMPARADOR 1VS1 CON TARJETAS ILUMINADAS AL SELECCIONAR -->
                         <div class="kinet-panel" id="view-duel-1v1" style="display:none;">
                             <div class="panel-head">
-                                <span class="panel-label">⚔️ COMPARADOR CARA A CARA (1 VS 1) • COMPARA CANDIDATOS DE CARTELERA O RIVALES</span>
+                                <span class="panel-label">⚔️ COMPARADOR CARA A CARA (1 VS 1) • PULSA EN LA ESQUINA A O B PARA ELEGIR A QUIÉN CAMBIAR</span>
                                 <span class="verified-badge" id="duel-winner-badge">SELECCIONA PERFILES A LA DERECHA</span>
                             </div>
 
                             <div class="duel-1v1-grid">
-                                <div class="duel-fighter-card" id="duel-card-a" onclick="activeDuelCorner='A'; renderDuel1v1View();" style="cursor:pointer;">
-                                    <div style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);margin-bottom:4px;">ESQUINA A (TOCA PARA CAMBIAR)</div>
-                                    <div style="font-family:'Orbitron';font-size:1.5rem;font-weight:900;color:white;" id="duel-a-grl">-- GRL</div>
-                                    <div style="font-family:'Orbitron';font-size:0.86rem;font-weight:800;color:var(--role-color);margin-top:2px;" id="duel-a-name">TU PERFIL</div>
-                                    <div style="font-size:0.68rem;color:#94A3B8;margin-top:2px;" id="duel-a-pos">Titular KINET</div>
+                                <div class="duel-fighter-card" id="duel-card-a" onclick="selectDuelCorner('A')">
+                                    <span class="corner-active-pill" id="duel-pill-a" style="background:rgba(var(--role-rgb),0.2);color:var(--role-color);">ESQUINA A (PULSA PARA CAMBIAR)</span>
+                                    <div style="font-family:'Orbitron';font-size:1.55rem;font-weight:900;color:white;" id="duel-a-grl">?? GRL</div>
+                                    <div style="font-family:'Orbitron';font-size:0.88rem;font-weight:800;color:var(--role-color);margin-top:2px;" id="duel-a-name">SELECCIONA JUGADOR</div>
+                                    <div style="font-size:0.68rem;color:#94A3B8;margin-top:3px;" id="duel-a-pos">Toca aquí y luego en la lista derecha</div>
+                                    <button type="button" class="btn-secondary" style="margin-top:8px;padding:4px 10px;font-size:0.58rem;" onclick="event.stopPropagation(); editDuelPlayer('A')">✏️ Calibrar / Editar Nivel</button>
                                 </div>
 
                                 <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
-                                    <svg id="duel-radar-svg" viewBox="0 0 200 200" style="width:185px;height:185px;"></svg>
+                                    <svg id="duel-radar-svg" viewBox="0 0 200 200" style="width:190px;height:190px;"></svg>
                                     <div style="display:flex;gap:12px;font-family:'JetBrains Mono';font-size:0.58rem;margin-top:4px;">
                                         <span style="color:var(--role-color);">● Esquina A</span>
                                         <span style="color:#38BDF8;">● Esquina B</span>
                                     </div>
                                 </div>
 
-                                <div class="duel-fighter-card" id="duel-card-b" onclick="activeDuelCorner='B'; renderDuel1v1View();" style="border-color:rgba(56,189,248,0.5);cursor:pointer;">
-                                    <div style="font-family:'JetBrains Mono';font-size:0.58rem;color:#38BDF8;margin-bottom:4px;">ESQUINA B (TOCA EN LISTA DERECHA)</div>
-                                    <div style="font-family:'Orbitron';font-size:1.5rem;font-weight:900;color:white;" id="duel-b-grl">-- GRL</div>
-                                    <div style="font-family:'Orbitron';font-size:0.86rem;font-weight:800;color:#38BDF8;margin-top:2px;" id="duel-b-name">POR ASIGNAR</div>
-                                    <div style="font-size:0.68rem;color:#94A3B8;margin-top:2px;" id="duel-b-pos">Elige en Red o Cartelera</div>
+                                <div class="duel-fighter-card active-corner-b" id="duel-card-b" onclick="selectDuelCorner('B')">
+                                    <span class="corner-active-pill" id="duel-pill-b" style="background:#38BDF8;color:#04060A;">● ESQUINA B SELECCIONADA</span>
+                                    <div style="font-family:'Orbitron';font-size:1.55rem;font-weight:900;color:white;" id="duel-b-grl">?? GRL</div>
+                                    <div style="font-family:'Orbitron';font-size:0.88rem;font-weight:800;color:#38BDF8;margin-top:2px;" id="duel-b-name">ELIGE EN LA LISTA DERECHA</div>
+                                    <div style="font-size:0.68rem;color:#94A3B8;margin-top:3px;" id="duel-b-pos">Toca cualquier perfil a la derecha</div>
+                                    <button type="button" class="btn-secondary" style="margin-top:8px;padding:4px 10px;font-size:0.58rem;" onclick="event.stopPropagation(); editDuelPlayer('B')">✏️ Calibrar / Editar Nivel</button>
                                 </div>
                             </div>
 
                             <div id="duel-bars-container" style="margin-top:12px;background:rgba(4,6,10,0.75);border:1px solid var(--border-subtle);border-radius:14px;padding:12px 16px;"></div>
                         </div>
 
-                        <!-- MODO 3: ESPEJO DE RENDIMIENTO & MOTOR IA DE ENCAJE TÁCTICO -->
+                        <!-- MODO 3: SINERGIA & CONFIGURACIÓN MANUAL DE TU PROPIO NIVEL -->
                         <div class="kinet-panel" id="view-mirror-self" style="display:none;">
                             <div class="panel-head">
-                                <span class="panel-label" id="mirror-panel-title">📊 MOTOR DE COMPATIBILIDAD TÁCTICA & ENCAJE DE ATRIBUTOS ESPECÍFICOS</span>
-                                <span class="verified-badge">IA TÁCTICA LIGERA</span>
+                                <span class="panel-label">📊 SINERGIA DE PLANTILLA & CALIBRACIÓN MANUAL DE TU KINET CARD</span>
+                                <button type="button" class="btn-secondary" style="padding:5px 10px;font-size:0.6rem;border-color:var(--role-color);color:var(--role-color);" onclick="loadProfileIntoBuilder(getMyUserPlayerObject())">
+                                    ⚙️ Calibrar Mis Atributos Manualmente (50-99)
+                                </button>
                             </div>
 
                             <div id="mirror-content-box"></div>
@@ -1051,25 +1331,42 @@
 
                     </div>
 
-                    <!-- COLUMNA DERECHA (4 COL): 3 SECCIONES EN 1 (RED KINET | CREAR JUGADOR 50-99 | CARTELERA) -->
+                    <!-- COLUMNA DERECHA (4 COL): 1. RED KINET (CON SUB-FILTRO CREADOS) | 2. CREAR/EDITAR 50-99 | 3. CARTELERA -->
                     <div class="col-4">
                         <div class="kinet-panel" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
                             <div>
                                 <!-- SELECTOR DE LAS 3 SECCIONES DERECHAS -->
                                 <div class="right-panel-tabs">
-                                    <button type="button" class="right-tab-btn active" id="rtab-kinet" onclick="switchRightPanelTab('kinet')">🌐 Red KINET</button>
-                                    <button type="button" class="right-tab-btn" id="rtab-builder" onclick="switchRightPanelTab('builder')">🛠️ Crear (50-99)</button>
+                                    <button type="button" class="right-tab-btn active" id="rtab-kinet" onclick="switchRightPanelTab('kinet')">🌐 Perfiles</button>
+                                    <button type="button" class="right-tab-btn" id="rtab-builder" onclick="switchRightPanelTab('builder')">🛠️ Crear / Editar</button>
                                     <button type="button" class="right-tab-btn" id="rtab-shortlist" onclick="switchRightPanelTab('shortlist')">📋 Cartelera</button>
                                 </div>
 
-                                <!-- SUB-VISTA A: PERFILES DE RED KINET + LABORATORIO (SIN PERFILES INVENTADOS) -->
+                                <!-- SUB-VISTA A: RED KINET SEPARADA DE CREADOS + FILTRO POR POSICIÓN -->
                                 <div id="rview-kinet">
-                                    <input type="text" id="roster-search-input" class="kinet-input" style="width:100%;margin-bottom:8px;" placeholder="🔍 Buscar usuario real de KINET o posición..." oninput="renderRightRosterList()">
-                                    <div id="right-roster-list" style="max-height:275px;overflow-y:auto;"></div>
+                                    <div class="source-subtoggle">
+                                        <button type="button" class="source-subbtn active" id="subbtn-source-kinet" onclick="switchRosterSourceFilter('kinet')">🌐 Red KINET</button>
+                                        <button type="button" class="source-subbtn" id="subbtn-source-created" onclick="switchRosterSourceFilter('created')">🛠️ Mis Creados</button>
+                                    </div>
+
+                                    <div style="display:grid;grid-template-columns:1.25fr 1fr;gap:6px;margin-bottom:8px;">
+                                        <input type="text" id="roster-search-input" class="kinet-input" style="width:100%;" placeholder="🔍 Buscar nombre..." oninput="renderRightRosterList()">
+                                        <select id="roster-pos-filter" class="kinet-select" style="width:100%;" onchange="renderRightRosterList()">
+                                            <option value="ALL">📍 Posición: Todas</option>
+                                        </select>
+                                    </div>
+
+                                    <div id="right-roster-list" style="max-height:265px;overflow-y:auto;"></div>
                                 </div>
 
-                                <!-- SUB-VISTA B: CREADOR SUBJETIVO DE JUGADORES EXTERNOS (SLIDERS 50-99 + NOTAS ESPECÍFICAS PARA IA) -->
+                                <!-- SUB-VISTA B: CREADOR Y EDITOR DE JUGADORES (SLIDERS 50-99 + CALIBRACIÓN DE PERFILES SIN CARTA) -->
                                 <div id="rview-builder" style="display:none;">
+                                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                                        <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);font-weight:700;" id="builder-mode-banner">🛠️ CREAR O CALIBRAR JUGADOR (50-99)</span>
+                                        <button type="button" onclick="resetBuilderForm()" style="background:none;border:none;color:#94A3B8;font-size:0.6rem;cursor:pointer;">↺ Limpiar</button>
+                                    </div>
+
+                                    <input type="hidden" id="custom-editing-id" value="">
                                     <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:6px;margin-bottom:7px;">
                                         <input type="text" id="custom-p-name" class="kinet-input" placeholder="Nombre del jugador...">
                                         <select id="custom-p-pos" class="kinet-select" onchange="updateBuilderSlidersForPosition(this.value)"></select>
@@ -1077,40 +1374,40 @@
 
                                     <div style="background:rgba(4,6,10,0.75);border:1px solid var(--border-subtle);border-radius:12px;padding:9px 11px;margin-bottom:8px;">
                                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                                            <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--text-secondary);">HABILIDADES SEGÚN POSICIÓN (50-99)</span>
+                                            <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--text-secondary);">HABILIDADES SEGÚN PUESTO (50-99)</span>
                                             <span style="font-family:'Orbitron';font-size:0.78rem;font-weight:900;color:var(--role-color);" id="custom-p-live-grl">MEDIA: 78 GRL</span>
                                         </div>
                                         <div id="builder-sliders-box"></div>
                                     </div>
 
                                     <div style="margin-bottom:8px;">
-                                        <label style="font-family:'JetBrains Mono';font-size:0.56rem;color:var(--role-color);display:block;margin-bottom:3px;">RASGOS ESPECÍFICOS PARA LA IA DE ENCAJE (FORTALEZAS / DEBILIDADES)</label>
-                                        <input type="text" id="custom-p-traits" class="kinet-input" style="width:100%;" placeholder="Ej: Bueno lanzando balón largo a extremos / Flojo con brazo derecho...">
+                                        <label style="font-family:'JetBrains Mono';font-size:0.56rem;color:var(--role-color);display:block;margin-bottom:3px;">RASGOS ESPECÍFICOS PARA LA IA (FORTALEZAS / DEBILIDADES)</label>
+                                        <input type="text" id="custom-p-traits" class="kinet-input" style="width:100%;" placeholder="Ej: Bueno en disparos rasos / Balón largo a extremos...">
                                     </div>
 
                                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                                        <button type="button" class="btn-primary" style="padding:8px;font-size:0.64rem;" onclick="saveCustomPlayerToTarget('board')">➕ Poner en Puesto Activo</button>
-                                        <button type="button" class="btn-secondary" style="padding:8px;font-size:0.64rem;border-color:var(--role-color);color:var(--role-color);" onclick="saveCustomPlayerToTarget('shortlist')">📋 Añadir a Cartelera</button>
+                                        <button type="button" class="btn-primary" style="padding:8px;font-size:0.63rem;" onclick="saveCustomPlayerToTarget('board')">✓ Guardar y Poner en Plantilla</button>
+                                        <button type="button" class="btn-secondary" style="padding:8px;font-size:0.63rem;border-color:var(--role-color);color:var(--role-color);" onclick="saveCustomPlayerToTarget('shortlist')">📋 Guardar en Cartelera</button>
                                     </div>
                                 </div>
 
-                                <!-- SUB-VISTA C: CARTELERA DE FICHAJES / PRESELECCIÓN CON ANÁLISIS DE ENCAJE IA -->
+                                <!-- SUB-VISTA C: CARTELERA DE FICHAJES CON BOTÓN DIRECTO A PLANTILLA Y REEDICIÓN -->
                                 <div id="rview-shortlist" style="display:none;">
-                                    <div style="font-size:0.7rem;color:#CBD5E1;margin-bottom:8px;">
-                                        Compara tus objetivos de fichaje (de KINET o creados fuera). El motor IA evalúa qué opción encaja mejor con los rasgos de tu plantilla:
+                                    <div style="font-size:0.68rem;color:#CBD5E1;margin-bottom:8px;">
+                                        Objetivos en Cartelera ordenados por compatibilidad IA. Puedes pasarlos a tu Plantilla o reeditar sus niveles:
                                     </div>
                                     <div id="shortlist-items-box" style="max-height:265px;overflow-y:auto;"></div>
                                 </div>
                             </div>
 
-                            <!-- DICTAMEN TÁCTICO IA DE ENCAJE EN VIVO + ENVÍO A CUERPO TÉCNICO CON TODO EL CONTEXTO -->
+                            <!-- DICTAMEN TÁCTICO IA DE ENCAJE EN VIVO -->
                             <div style="margin-top:10px;background:rgba(var(--role-rgb),0.06);border:1px solid rgba(var(--role-rgb),0.32);border-radius:14px;padding:11px;">
                                 <div style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);font-weight:700;margin-bottom:3px;">🧠 INFORME IA DE ENCAJE Y SINERGIA ESPECÍFICA</div>
                                 <p style="font-size:0.72rem;color:#E2E8F0;line-height:1.4;margin-bottom:8px;" id="ai-board-diagnosis">
-                                    Todas las posiciones están listas (+ Asignar). Asigna jugadores de KINET o crea perfiles externos (50-99) con sus rasgos para evaluar cómo encajan entre sí.
+                                    Toca cualquier posición en el campo 3D o banquillo y selecciona un perfil a la derecha para colocar su Mini KINET Card.
                                 </p>
                                 <button type="button" class="btn-primary" style="width:100%;padding:8px 12px;font-size:0.66rem;" onclick="askCoachAboutCurrentBoard()">
-                                    ⚡ Enviar Pizarra, Banquillo y Rasgos al Entrenador IA →
+                                    ⚡ Enviar Plantilla, Banquillo y Rasgos al Entrenador IA →
                                 </button>
                             </div>
                         </div>
@@ -1169,13 +1466,13 @@
     </nav>
     <script>
         // =========================================================================
-        // MOTOR MULTIDEPORTE 3D SIN DATOS FALSOS: FORMACIONES, POSICIONES Y SLIDERS 50-99
+        // MOTOR MULTIDEPORTE 3D: MINI KINET CARDS, 7 SUPLENTES OFICIALES Y CERO DATOS FALSOS
         // =========================================================================
         const SPORT_ARENA_CONFIGS = {
             'Fútbol': {
                 statLabels: ['PAC', 'SHO', 'PAS', 'DRI', 'DEF', 'PHY'],
-                athleteTab1: 'Mi Fútbol 5 / 11 Ideal',
-                staffTab1: 'Once Táctico & Convocatoria 3D',
+                benchCount: 7,   // 7 Suplentes oficiales RFEF/FIFA (Convocatoria de 18)
+                reserveCount: 5, // 5 Reservas / Descartados (Plantilla de 23)
                 positions: ['POR', 'DFC', 'LI', 'LD', 'MCD', 'MC', 'MCO', 'EI', 'ED', 'DC'],
                 posSkills: {
                     'POR': ['Estirada (DIV)', 'Blocaje (HAN)', 'Saque Largo (KIC)', 'Reflejos (REF)', 'Velocidad Salida (SPD)', 'Colocación (POS)'],
@@ -1192,56 +1489,56 @@
                 presets: {
                     '4-3-3 Ofensivo (11vs11)': [
                         { pos: 'POR', x: 50, y: 88 },
-                        { pos: 'LI', x: 15, y: 70 },
-                        { pos: 'DFC', x: 38, y: 73 },
-                        { pos: 'DFC', x: 62, y: 73 },
-                        { pos: 'LD', x: 85, y: 70 },
+                        { pos: 'LI', x: 14, y: 70 },
+                        { pos: 'DFC', x: 37, y: 73 },
+                        { pos: 'DFC', x: 63, y: 73 },
+                        { pos: 'LD', x: 86, y: 70 },
                         { pos: 'MCD', x: 50, y: 54 },
-                        { pos: 'MC', x: 30, y: 42 },
-                        { pos: 'MC', x: 70, y: 42 },
-                        { pos: 'EI', x: 20, y: 21 },
-                        { pos: 'DC', x: 50, y: 16 },
-                        { pos: 'ED', x: 80, y: 21 }
+                        { pos: 'MC', x: 29, y: 41 },
+                        { pos: 'MC', x: 71, y: 41 },
+                        { pos: 'EI', x: 19, y: 20 },
+                        { pos: 'DC', x: 50, y: 15 },
+                        { pos: 'ED', x: 81, y: 20 }
                     ],
                     '4-4-2 Bloque Medio (11vs11)': [
                         { pos: 'POR', x: 50, y: 88 },
-                        { pos: 'LI', x: 15, y: 71 },
-                        { pos: 'DFC', x: 38, y: 74 },
-                        { pos: 'DFC', x: 62, y: 74 },
-                        { pos: 'LD', x: 85, y: 71 },
-                        { pos: 'EI', x: 17, y: 46 },
-                        { pos: 'MC', x: 40, y: 49 },
-                        { pos: 'MC', x: 60, y: 49 },
-                        { pos: 'ED', x: 83, y: 46 },
-                        { pos: 'DC', x: 38, y: 20 },
-                        { pos: 'DC', x: 62, y: 20 }
+                        { pos: 'LI', x: 14, y: 71 },
+                        { pos: 'DFC', x: 37, y: 74 },
+                        { pos: 'DFC', x: 63, y: 74 },
+                        { pos: 'LD', x: 86, y: 71 },
+                        { pos: 'EI', x: 16, y: 45 },
+                        { pos: 'MC', x: 39, y: 48 },
+                        { pos: 'MC', x: 61, y: 48 },
+                        { pos: 'ED', x: 84, y: 45 },
+                        { pos: 'DC', x: 37, y: 19 },
+                        { pos: 'DC', x: 63, y: 19 }
                     ],
                     '3-5-2 Carrileros (11vs11)': [
                         { pos: 'POR', x: 50, y: 88 },
-                        { pos: 'DFC', x: 26, y: 73 },
+                        { pos: 'DFC', x: 25, y: 73 },
                         { pos: 'DFC', x: 50, y: 75 },
-                        { pos: 'DFC', x: 74, y: 73 },
-                        { pos: 'LI', x: 14, y: 46 },
+                        { pos: 'DFC', x: 75, y: 73 },
+                        { pos: 'LI', x: 14, y: 45 },
                         { pos: 'MCD', x: 50, y: 55 },
-                        { pos: 'MC', x: 34, y: 42 },
-                        { pos: 'MC', x: 66, y: 42 },
-                        { pos: 'LD', x: 86, y: 46 },
-                        { pos: 'DC', x: 38, y: 19 },
-                        { pos: 'DC', x: 62, y: 19 }
+                        { pos: 'MC', x: 33, y: 41 },
+                        { pos: 'MC', x: 67, y: 41 },
+                        { pos: 'LD', x: 86, y: 45 },
+                        { pos: 'DC', x: 37, y: 18 },
+                        { pos: 'DC', x: 63, y: 18 }
                     ],
-                    'Fútbol 5 / Sala con Amigos': [
+                    'Fútbol 5 / Sala (5vs5)': [
                         { pos: 'POR', x: 50, y: 85 },
-                        { pos: 'DFC', x: 50, y: 64 },
-                        { pos: 'EI', x: 22, y: 42 },
-                        { pos: 'ED', x: 78, y: 42 },
-                        { pos: 'DC', x: 50, y: 20 }
+                        { pos: 'DFC', x: 50, y: 63 },
+                        { pos: 'EI', x: 22, y: 41 },
+                        { pos: 'ED', x: 78, y: 41 },
+                        { pos: 'DC', x: 50, y: 19 }
                     ]
                 }
             },
             'Baloncesto': {
                 statLabels: ['PTS', '3PT', 'AST', 'REB', 'DEF', 'ATH'],
-                athleteTab1: 'Mi Quinteto / Trío 3x3',
-                staffTab1: 'Quinteto en Pista & Rotación',
+                benchCount: 7,   // 7 Suplentes oficiales FIBA/ACB (Acta de 12 jugadores)
+                reserveCount: 3,
                 positions: ['BASE (PG)', 'ESCOLTA (SG)', 'ALERO (SF)', 'ALA-PÍVOT (PF)', 'PÍVOT (C)'],
                 posSkills: {
                     'BASE (PG)': ['Visión Pick&Roll (AST)', 'Tiro Tras Bote (3PT)', 'Manejo de Balón (DRI)', 'Defensa Exterior (DEF)', 'Primer Paso (ATH)', 'Dirección Clutch (IQ)'],
@@ -1251,7 +1548,7 @@
                     'PÍVOT (C)': ['Protección de Aro (DEF)', 'Rebote Ofensivo/Def. (REB)', 'Continuación Roll (PTS)', 'Pantalla & Bloqueo (ATH)', 'Pase Mano a Mano (AST)', 'Tiro Libre/Media Dist. (3PT)']
                 },
                 presets: {
-                    'Quinteto 5-Out Spacing (NBA Pro)': [
+                    'Quinteto 5-Out Spacing': [
                         { pos: 'BASE (PG)', x: 50, y: 74 },
                         { pos: 'ESCOLTA (SG)', x: 18, y: 54 },
                         { pos: 'ALERO (SF)', x: 82, y: 54 },
@@ -1265,7 +1562,7 @@
                         { pos: 'ALERO (SF)', x: 86, y: 22 },
                         { pos: 'ALA-PÍVOT (PF)', x: 26, y: 46 }
                     ],
-                    'Streetball 3x3 con Amigos': [
+                    'Streetball 3x3': [
                         { pos: 'BASE (PG)', x: 50, y: 70 },
                         { pos: 'ESCOLTA (SG)', x: 22, y: 42 },
                         { pos: 'PÍVOT (C)', x: 68, y: 28 }
@@ -1274,8 +1571,8 @@
             },
             'Pádel / Tenis': {
                 statLabels: ['SRV', 'VOL', 'BND', 'DEF', 'SPD', 'MNT'],
-                athleteTab1: 'Mi Pareja Ideal & Cuadro',
-                staffTab1: 'Pista 20x10 & Parejas',
+                benchCount: 2,
+                reserveCount: 2,
                 positions: ['REVÉS', 'DRIVE', 'INDIVIDUAL'],
                 posSkills: {
                     'REVÉS': ['Remate Potencia X3 (BND)', 'Volea Agresiva (VOL)', 'Cobertura Centro (SPD)', 'Bajada de Pared (DEF)', 'Saque & Subida (SRV)', 'Firmeza en Punto Oro (MNT)'],
@@ -1283,13 +1580,13 @@
                     'INDIVIDUAL': ['Primer Servicio (SRV)', 'Derecha Ganadora (BND)', 'Revés Cruzado (VOL)', 'Resto & Defensa (DEF)', 'Cobertura Fondo (SPD)', 'Fortaleza Mental (MNT)']
                 },
                 presets: {
-                    'Química de Pareja en Red (Drive + Revés)': [
+                    'Pareja en Red (Drive + Revés)': [
                         { pos: 'REVÉS', x: 30, y: 64 },
                         { pos: 'DRIVE', x: 70, y: 64 },
                         { pos: 'DRIVE', x: 30, y: 24 },
                         { pos: 'REVÉS', x: 70, y: 24 }
                     ],
-                    'Individual 1 vs 1 (Tenis / Cruzado)': [
+                    'Individual 1 vs 1': [
                         { pos: 'INDIVIDUAL', x: 34, y: 80 },
                         { pos: 'INDIVIDUAL', x: 66, y: 20 }
                     ]
@@ -1297,8 +1594,8 @@
             },
             'Boxeo / MMA': {
                 statLabels: ['PWR', 'SPD', 'STA', 'DEF', 'CHN', 'IQ'],
-                athleteTab1: 'Mi Fight Camp & Sparrings',
-                staffTab1: 'Ring 3D & Campamento',
+                benchCount: 3,
+                reserveCount: 3,
                 positions: ['ESTILISTA', 'FAJADOR / KO', 'CONTRAATACANTE', 'GRAPPLER / MMA'],
                 posSkills: {
                     'ESTILISTA': ['Velocidad de Jab (SPD)', 'Juego de Pies / Footwork (IQ)', 'Esquiva & Cintura (DEF)', 'Cardio 12 Asaltos (STA)', 'Pegada en Movimiento (PWR)', 'Asimilación (CHN)'],
@@ -1307,11 +1604,11 @@
                     'GRAPPLER / MMA': ['Derribo & Lucha (PWR)', 'Defensa Sprawl (DEF)', 'Cardio de 5 Rondas (STA)', 'Striking en Transición (SPD)', 'Control de Jaula/Suelo (IQ)', 'Resistencia Impacto (CHN)']
                 },
                 presets: {
-                    'Duelo Central en Ring (Esquina Roja vs Azul)': [
+                    'Duelo Central en Ring': [
                         { pos: 'ESTILISTA', x: 36, y: 56 },
                         { pos: 'FAJADOR / KO', x: 64, y: 44 }
                     ],
-                    'Campamento de Pelea (Titular + 3 Sparrings)': [
+                    'Fight Camp (Titular + 3 Sparrings)': [
                         { pos: 'ESTILISTA', x: 50, y: 54 },
                         { pos: 'FAJADOR / KO', x: 22, y: 24 },
                         { pos: 'CONTRAATACANTE', x: 78, y: 24 },
@@ -1321,8 +1618,8 @@
             },
             'Running': {
                 statLabels: ['VO2', 'PAC', 'CAD', 'STA', 'REC', 'MNT'],
-                athleteTab1: 'Mi Grupeta & Liebres',
-                staffTab1: 'Tartán 400m & Estrategia',
+                benchCount: 4,
+                reserveCount: 4,
                 positions: ['LIEBRE (PACER)', 'FONDO / MARATÓN', 'VELOCISTA / PISTA', 'TRAIL / MONTAÑA'],
                 posSkills: {
                     'LIEBRE (PACER)': ['Estabilidad de Ritmo (PAC)', 'Economía de Cadencia (CAD)', 'Capacidad Aeróbica (VO2)', 'Resistencia Muscular (STA)', 'Recuperación en Series (REC)', 'Foco Táctico (MNT)'],
@@ -1331,13 +1628,13 @@
                     'TRAIL / MONTAÑA': ['Fuerza en Desnivel Positivo (STA)', 'VO2 Max en Altitud (VO2)', 'Técnica de Bajada (CAD)', 'Ritmo Sostenido (PAC)', 'Recuperación Muscular (REC)', 'Dureza Mental (MNT)']
                 },
                 presets: {
-                    'Tren de Liebres (Formación en Cuña Anti-Viento)': [
+                    'Tren de Liebres (Formación en Cuña)': [
                         { pos: 'LIEBRE (PACER)', x: 76, y: 50 },
                         { pos: 'LIEBRE (PACER)', x: 58, y: 36 },
                         { pos: 'FONDO / MARATÓN', x: 42, y: 50 },
                         { pos: 'VELOCISTA / PISTA', x: 24, y: 64 }
                     ],
-                    'Series en Pista Olímpica 400m (Por Calles)': [
+                    'Series en Pista Olímpica 400m': [
                         { pos: 'VELOCISTA / PISTA', x: 50, y: 22 },
                         { pos: 'FONDO / MARATÓN', x: 78, y: 50 },
                         { pos: 'LIEBRE (PACER)', x: 50, y: 78 },
@@ -1351,33 +1648,22 @@
         let activeRoleKey = 'athlete';
         let currentAnalyzerMode = 'arena';
         let activeRightTab = 'kinet'; // 'kinet' | 'builder' | 'shortlist'
+        let activeRosterSource = 'kinet'; // 'kinet' (Red KINET) | 'created' (Mis Creados)
         let currentPresetName = '';
         let currentPlayStyle = 'balanced';
 
-        // Estado de la Pizarra: Titulares, Banquillo (5) y Reserva (4) empiezan 100% VACÍOS (player: null)
         let currentBoardSlots = [];
-        let benchSlots = [
-            { pos: 'SUP 1', player: null },
-            { pos: 'SUP 2', player: null },
-            { pos: 'SUP 3', player: null },
-            { pos: 'SUP 4', player: null },
-            { pos: 'SUP 5', player: null }
-        ];
-        let reserveSlots = [
-            { pos: 'RES 1', player: null },
-            { pos: 'RES 2', player: null },
-            { pos: 'RES 3', player: null },
-            { pos: 'RES 4', player: null }
-        ];
-
-        // Selección activa: { group: 'board'|'bench'|'reserve', index: 0 }
+        let benchSlots = [];
+        let reserveSlots = [];
         let activeSelection = { group: 'board', index: 0 };
 
-        // Listas sin perfiles falsos: solo usuarios reales de KINET, jugadores creados por ti (50-99) y tu Cartelera
         let realKinetProfiles = [];
         let customCreatedPlayers = [];
         let shortlistPlayers = [];
+        // Diccionario de calibraciones manuales para usuarios de KINET que aún no tienen carta verificada (así no salen con valores falsos)
+        let calibratedKinetOverrides = {};
 
+        let selectedRosterProfileId = null;
         let duelFighterA = null;
         let duelFighterB = null;
         let activeDuelCorner = 'B';
@@ -1415,23 +1701,70 @@
             return tier === 'pro' || tier === 'club' || localStorage.getItem('kinet_is_pro') === 'true';
         }
 
+        // Lee tu perfil real sin inventar valores si aún no has configurado tu KINET Card ni la has calibrado aquí
         function getMyUserPlayerObject() {
             const myName = localStorage.getItem('kinet_user_name') || 'Mi Perfil KINET';
             const myPos = localStorage.getItem('kinet_position') || 'PRO';
+            const override = calibratedKinetOverrides['me_user'];
+            if (override) {
+                return { ...override, id: 'me_user', name: myName, isCurrentUser: true, isCalibrated: true };
+            }
+
+            // Comprobar si el usuario ya configuró sus stats reales en ficha-pro.html
+            let savedStats = null;
+            try {
+                const rawCard = JSON.parse(localStorage.getItem('kinet_custom_card_stats') || 'null');
+                if (Array.isArray(rawCard) && rawCard.length === 6) savedStats = rawCard;
+            } catch (e) {}
+
+            if (savedStats) {
+                const avg = Math.round(savedStats.reduce((a, b) => a + b, 0) / 6);
+                return {
+                    id: 'me_user',
+                    name: myName,
+                    pos: myPos,
+                    grl: avg,
+                    sub: '✓ KINET Card Activa',
+                    traitNotes: localStorage.getItem('kinet_social_bio') || 'Titular de la cuenta',
+                    stats: savedStats,
+                    isCurrentUser: true,
+                    isCalibrated: true
+                };
+            }
+
+            // Si no tiene carta configurada, NO inventamos un 90 GRL: sale "??" hasta que lo calibre con 1 clic
             return {
                 id: 'me_user',
                 name: myName,
                 pos: myPos,
-                grl: 90,
-                sub: '✓ Tu Cuenta KINET',
-                traitNotes: localStorage.getItem('kinet_social_bio') || 'Titular de la cuenta',
-                stats: [90, 88, 89, 91, 85, 88],
-                isCurrentUser: true
+                grl: null,
+                sub: 'Sin Calibrar (Pulsa ✏️)',
+                traitNotes: '',
+                stats: null,
+                isCurrentUser: true,
+                isCalibrated: false
             };
         }
 
+        function scrollCassette(containerId, deltaPx) {
+            const el = document.getElementById(containerId);
+            if (el) el.scrollBy({ left: deltaPx, behavior: 'smooth' });
+        }
+
+        function bindSpotlightToElements() {
+            document.querySelectorAll('.kinet-panel, .side-link, .roster-candidate-item, .duel-fighter-card, .analyzer-toolbar').forEach(el => {
+                if (el._spotlightBound) return;
+                el._spotlightBound = true;
+                el.addEventListener('mousemove', (e) => {
+                    const rect = el.getBoundingClientRect();
+                    el.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+                    el.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+                });
+            });
+        }
+
         // =========================================================================
-        // ESCENARIOS VECTORIALES 3D DE ALTA PRECISIÓN SEGÚN DEPORTE DEL PERFIL
+        // ESCENARIOS VECTORIALES 3D DE ALTA PRECISIÓN
         // =========================================================================
         function buildProfessionalSportSVG(sportKey) {
             if (sportKey === 'Fútbol') {
@@ -1439,21 +1772,21 @@
                 <svg class="arena-svg-canvas" viewBox="0 0 600 420" preserveAspectRatio="none">
                     <defs>
                         <pattern id="turfStripes" width="600" height="42" patternUnits="userSpaceOnUse">
-                            <rect width="600" height="21" fill="#071811"/>
-                            <rect y="21" width="600" height="21" fill="#0A2117"/>
+                            <rect width="600" height="21" fill="#06160F"/>
+                            <rect y="21" width="600" height="21" fill="#0A2217"/>
                         </pattern>
                         <radialGradient id="stadiumGlow" cx="50%" cy="50%" r="60%">
-                            <stop offset="0%" stop-color="rgba(0,255,136,0.12)"/>
+                            <stop offset="0%" stop-color="rgba(0,255,136,0.16)"/>
                             <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
                         </radialGradient>
                     </defs>
                     <rect width="600" height="420" fill="url(#turfStripes)"/>
                     <rect width="600" height="420" fill="url(#stadiumGlow)"/>
-                    <g stroke="rgba(255,255,255,0.65)" stroke-width="2" fill="none">
+                    <g stroke="rgba(255,255,255,0.72)" stroke-width="2.2" fill="none">
                         <rect x="24" y="16" width="552" height="388" rx="4"/>
                         <line x1="24" y1="210" x2="576" y2="210"/>
                         <circle cx="300" cy="210" r="52"/>
-                        <circle cx="300" cy="210" r="3" fill="#00FF88"/>
+                        <circle cx="300" cy="210" r="3.5" fill="#00FF88"/>
                         <rect x="165" y="16" width="270" height="78"/>
                         <rect x="225" y="16" width="150" height="30"/>
                         <path d="M 245 94 A 45 45 0 0 0 355 94"/>
@@ -1461,7 +1794,6 @@
                         <rect x="225" y="374" width="150" height="30"/>
                         <path d="M 245 326 A 45 45 0 0 1 355 326"/>
                     </g>
-                    <text x="300" y="215" fill="rgba(255,255,255,0.12)" font-family="Orbitron" font-weight="900" font-size="20" text-anchor="middle">KINET TACTICAL PITCH 3D</text>
                 </svg>`;
             }
             if (sportKey === 'Baloncesto') {
@@ -1470,16 +1802,16 @@
                     <defs>
                         <pattern id="parquetWood" width="40" height="20" patternUnits="userSpaceOnUse">
                             <rect width="40" height="10" fill="#17130E"/>
-                            <rect y="10" width="40" height="10" fill="#1D1812"/>
+                            <rect y="10" width="40" height="10" fill="#1E1812"/>
                         </pattern>
                     </defs>
                     <rect width="600" height="420" fill="url(#parquetWood)"/>
-                    <rect x="215" y="16" width="170" height="155" fill="rgba(245,158,11,0.14)" stroke="#F59E0B" stroke-width="2"/>
-                    <g stroke="rgba(255,255,255,0.75)" stroke-width="2.2" fill="none">
+                    <rect x="215" y="16" width="170" height="155" fill="rgba(245,158,11,0.16)" stroke="#F59E0B" stroke-width="2.2"/>
+                    <g stroke="rgba(255,255,255,0.78)" stroke-width="2.2" fill="none">
                         <rect x="24" y="16" width="552" height="388"/>
                         <line x1="66" y1="16" x2="66" y2="130"/>
                         <line x1="534" y1="16" x2="534" y2="130"/>
-                        <path d="M 66 130 A 238 215 0 0 0 534 130" stroke="#00FF88" stroke-width="2.5"/>
+                        <path d="M 66 130 A 238 215 0 0 0 534 130" stroke="#00FF88" stroke-width="2.6"/>
                         <circle cx="300" cy="171" r="54"/>
                         <line x1="270" y1="36" x2="330" y2="36" stroke="#FFFFFF" stroke-width="4"/>
                         <circle cx="300" cy="48" r="11" stroke="#F59E0B" stroke-width="3"/>
@@ -1492,7 +1824,7 @@
                 <svg class="arena-svg-canvas" viewBox="0 0 600 420" preserveAspectRatio="none">
                     <rect width="600" height="420" fill="#071B30"/>
                     <rect x="48" y="20" width="504" height="380" fill="#0B2847" stroke="#38BDF8" stroke-width="3"/>
-                    <rect x="42" y="14" width="516" height="392" fill="none" stroke="rgba(56,189,248,0.45)" stroke-width="6" stroke-dasharray="28 6"/>
+                    <rect x="42" y="14" width="516" height="392" fill="none" stroke="rgba(56,189,248,0.48)" stroke-width="6" stroke-dasharray="28 6"/>
                     <g stroke="rgba(255,255,255,0.85)" stroke-width="2.2" fill="none">
                         <line x1="48" y1="82" x2="552" y2="82"/>
                         <line x1="48" y1="338" x2="552" y2="338"/>
@@ -1505,10 +1837,10 @@
                 return `
                 <svg class="arena-svg-canvas" viewBox="0 0 600 420" preserveAspectRatio="none">
                     <rect width="600" height="420" fill="#070A12"/>
-                    <polygon points="175,20 425,20 560,125 560,295 425,400 175,400 40,295 40,125" fill="#0D1320" stroke="rgba(255,255,255,0.35)" stroke-width="3"/>
-                    <rect x="110" y="52" width="380" height="316" fill="rgba(16,23,38,0.85)" stroke="rgba(255,255,255,0.75)" stroke-width="3"/>
-                    <circle cx="300" cy="210" r="115" fill="none" stroke="rgba(0,255,136,0.28)" stroke-width="2" stroke-dasharray="8 6"/>
-                    <circle cx="300" cy="210" r="58" fill="rgba(0,255,136,0.07)" stroke="#00FF88" stroke-width="2"/>
+                    <polygon points="175,20 425,20 560,125 560,295 425,400 175,400 40,295 40,125" fill="#0D1320" stroke="rgba(255,255,255,0.38)" stroke-width="3"/>
+                    <rect x="110" y="52" width="380" height="316" fill="rgba(16,23,38,0.88)" stroke="rgba(255,255,255,0.78)" stroke-width="3"/>
+                    <circle cx="300" cy="210" r="115" fill="none" stroke="rgba(0,255,136,0.3)" stroke-width="2" stroke-dasharray="8 6"/>
+                    <circle cx="300" cy="210" r="58" fill="rgba(0,255,136,0.08)" stroke="#00FF88" stroke-width="2"/>
                     <polygon points="110,52 165,52 110,107" fill="#EF4444"/>
                     <polygon points="490,368 435,368 490,313" fill="#3B82F6"/>
                 </svg>`;
@@ -1593,20 +1925,25 @@
             loadPersistedCustomAndShortlistData();
             initAnalyzerByRoleAndSport();
             fetchRealUsersFromSupabaseForArena();
+            bindSpotlightToElements();
         });
 
         function loadPersistedCustomAndShortlistData() {
             try {
                 const cKey = `kinet_custom_players_${activeArenaSport.toLowerCase()}`;
                 const sKey = `kinet_shortlist_${activeArenaSport.toLowerCase()}`;
+                const oKey = `kinet_calibrated_overrides_${activeArenaSport.toLowerCase()}`;
                 customCreatedPlayers = JSON.parse(localStorage.getItem(cKey) || '[]');
                 shortlistPlayers = JSON.parse(localStorage.getItem(sKey) || '[]');
+                calibratedKinetOverrides = JSON.parse(localStorage.getItem(oKey) || '{}');
 
                 // Importar fichas enviadas desde el Laboratorio de Vídeo (ojeador-live.html)
                 const bridgeRaw = JSON.parse(localStorage.getItem('kinet_analyzer_bridge_data') || '[]');
                 if (Array.isArray(bridgeRaw) && bridgeRaw.length > 0) {
                     bridgeRaw.forEach(item => {
                         if (normalizeSportName(item.sport) === activeArenaSport) {
+                            item.isCalibrated = true;
+                            item.isExternalCustom = true;
                             if (item.slotRole === 'shortlist') {
                                 if (!shortlistPlayers.some(sp => sp.name.toLowerCase() === item.name.toLowerCase())) {
                                     shortlistPlayers.unshift(item);
@@ -1626,9 +1963,12 @@
             try {
                 const cKey = `kinet_custom_players_${activeArenaSport.toLowerCase()}`;
                 const sKey = `kinet_shortlist_${activeArenaSport.toLowerCase()}`;
+                const oKey = `kinet_calibrated_overrides_${activeArenaSport.toLowerCase()}`;
                 localStorage.setItem(cKey, JSON.stringify(customCreatedPlayers));
                 localStorage.setItem(sKey, JSON.stringify(shortlistPlayers));
-                // Guardar estado completo de la pizarra para que los chats del Cuerpo Técnico IA tengan acceso a TODO
+                localStorage.setItem(oKey, JSON.stringify(calibratedKinetOverrides));
+
+                // Guardar resumen completo en localStorage para que los 4 especialistas de cuerpo-tecnico.html lo conozcan al detalle
                 localStorage.setItem('kinet_active_tactical_board_summary', JSON.stringify({
                     sport: activeArenaSport,
                     formation: currentPresetName,
@@ -1641,6 +1981,7 @@
             } catch (e) {}
         }
 
+        // Descarga los usuarios reales de Supabase SIN inventarles un 88 o 90 GRL si no tienen carta verificada/calibrada
         async function fetchRealUsersFromSupabaseForArena() {
             realKinetProfiles = [getMyUserPlayerObject()];
             if (!window.KinetBackend || typeof window.KinetBackend.getClient !== 'function') {
@@ -1653,20 +1994,58 @@
                 return;
             }
             try {
-                const { data } = await sb.from('profiles').select('*').order('updated_at', { ascending: false }).limit(30);
+                const { data } = await sb.from('profiles').select('*').order('updated_at', { ascending: false }).limit(35);
                 if (Array.isArray(data) && data.length > 0) {
                     const myEmail = (localStorage.getItem('kinet_user_email') || '').toLowerCase();
                     data.forEach(prof => {
                         if (!prof.full_name || (prof.email && prof.email.toLowerCase() === myEmail)) return;
-                        realKinetProfiles.push({
-                            id: prof.id,
-                            name: prof.full_name,
-                            pos: prof.position || 'PRO',
-                            grl: 88,
-                            sub: `${prof.handle || '@kinet'} • KINET DB`,
-                            traitNotes: prof.bio || 'Perfil real verificado en KINET OS',
-                            stats: [88, 86, 88, 89, 84, 87]
-                        });
+                        const pid = prof.id || prof.handle || prof.full_name;
+                        const savedOverride = calibratedKinetOverrides[pid];
+
+                        // Comprobar si ese usuario tiene stats reales en su user_state de Supabase
+                        let cloudCardStats = null;
+                        try {
+                            if (prof.user_state && prof.user_state.kinet_custom_card_stats) {
+                                const parsed = JSON.parse(prof.user_state.kinet_custom_card_stats);
+                                if (Array.isArray(parsed) && parsed.length === 6) cloudCardStats = parsed;
+                            }
+                        } catch (e) {}
+
+                        if (savedOverride) {
+                            realKinetProfiles.push({
+                                ...savedOverride,
+                                id: pid,
+                                name: prof.full_name,
+                                isExternalCustom: false,
+                                isCalibrated: true
+                            });
+                        } else if (cloudCardStats) {
+                            const avg = Math.round(cloudCardStats.reduce((a, b) => a + b, 0) / 6);
+                            realKinetProfiles.push({
+                                id: pid,
+                                name: prof.full_name,
+                                pos: prof.position || 'PRO',
+                                grl: avg,
+                                sub: `${prof.handle || '@kinet'} • Carta Activa`,
+                                traitNotes: prof.bio || '',
+                                stats: cloudCardStats,
+                                isExternalCustom: false,
+                                isCalibrated: true
+                            });
+                        } else {
+                            // Usuario sin carta calibrada: mostramos "??" sin inventar datos falsos
+                            realKinetProfiles.push({
+                                id: pid,
+                                name: prof.full_name,
+                                pos: prof.position || 'Por definir',
+                                grl: null,
+                                sub: `${prof.handle || '@kinet'} • Sin Calibrar (Pulsa ✏️)`,
+                                traitNotes: prof.bio || '',
+                                stats: null,
+                                isExternalCustom: false,
+                                isCalibrated: false
+                            });
+                        }
                     });
                 }
             } catch (e) {}
@@ -1676,30 +2055,38 @@
         function initAnalyzerByRoleAndSport() {
             const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
 
-            const tab1Lbl = document.getElementById('tab-arena-label');
-            const tab2Lbl = document.getElementById('tab-duel-label');
-            const tab3Lbl = document.getElementById('tab-mirror-label');
+            // Títulos limpios y directos tal como pediste en el PDF
+            document.getElementById('tab-arena-label').textContent = 'Plantilla';
+            document.getElementById('tab-duel-label').textContent = 'Comparador 1vs1';
+            document.getElementById('tab-mirror-label').textContent = 'Sinergia & Nivel';
+            document.getElementById('header-main-title').textContent = `Analizador & Plantilla 3D`;
+            document.getElementById('header-tag-text').textContent = `PIZARRA TÁCTICA 3D, MINI KINET CARDS & CARTELERA • ${activeArenaSport.toUpperCase()}`;
 
-            if (activeRoleKey === 'athlete') {
-                if (tab1Lbl) tab1Lbl.textContent = cfg.athleteTab1;
-                if (tab2Lbl) tab2Lbl.textContent = 'Duelo 1vs1 & Cartelera';
-                if (tab3Lbl) tab3Lbl.textContent = 'Mi Espejo & Sinergia IA';
-                document.getElementById('header-main-title').textContent = `Analizador 3D: ${cfg.athleteTab1}`;
-            } else {
-                if (tab1Lbl) tab1Lbl.textContent = cfg.staffTab1;
-                if (tab2Lbl) tab2Lbl.textContent = 'Comparador 1vs1 & Cartelera';
-                if (tab3Lbl) tab3Lbl.textContent = 'Informe IA de Encaje Táctico';
-                document.getElementById('header-main-title').textContent = `Pizarra Táctica 3D & Cartelera (${activeArenaSport})`;
-            }
+            // Inicializar el número oficial de suplentes y reservas según el deporte (7 suplentes oficiales en Fútbol y Basket)
+            const bCount = cfg.benchCount || 7;
+            const rCount = cfg.reserveCount || 5;
+            benchSlots = Array.from({ length: bCount }, (_, i) => ({ pos: `SUP ${i + 1}`, player: null }));
+            reserveSlots = Array.from({ length: rCount }, (_, i) => ({ pos: `RES ${i + 1}`, player: null }));
 
-            document.getElementById('header-tag-text').textContent = `ESCENARIO 3D AUTOMÁTICO, BANQUILLO, CREADOR 50-99 & CARTELERA • ${activeArenaSport.toUpperCase()}`;
+            // Actualizar dinámicamente los textos de las cabeceras de Banquillo y Reserva sin necesidad de tocar la Parte 1
+            const benchHeaderSpan = document.querySelector('#bench-slots-container')?.closest('.cassette-deck-box')?.querySelector('span:first-child');
+            if (benchHeaderSpan) benchHeaderSpan.textContent = `🪑 BANQUILLO OFICIAL (${bCount} SUPLENTES)`;
+            const resHeaderSpan = document.querySelector('#reserve-slots-container')?.closest('.cassette-deck-box')?.querySelector('span:first-child');
+            if (resHeaderSpan) resHeaderSpan.textContent = `📋 RESERVA / CONVOCATORIA (${rCount} PLAZAS)`;
 
+            // Rellenar selector de formaciones
             const presetSel = document.getElementById('tactical-formation-selector');
             const presetKeys = Object.keys(cfg.presets);
             presetSel.innerHTML = presetKeys.map(k => `<option value="${k}">${k}</option>`).join('');
             currentPresetName = presetKeys[0];
 
-            // Selector de posiciones del creador subjetivo 50-99
+            // Rellenar filtro de posiciones en Red KINET y en el Creador 50-99
+            const posFilterSel = document.getElementById('roster-pos-filter');
+            if (posFilterSel) {
+                posFilterSel.innerHTML = `<option value="ALL">📍 Posición: Todas</option>` +
+                    cfg.positions.map(p => `<option value="${p}">${p}</option>`).join('');
+            }
+
             const posSel = document.getElementById('custom-p-pos');
             if (posSel) {
                 posSel.innerHTML = cfg.positions.map(p => `<option value="${p}">${p}</option>`).join('');
@@ -1722,7 +2109,7 @@
             const btn = document.getElementById('toggle-3d-btn');
             vp.classList.toggle('flat-2d');
             const isFlat = vp.classList.contains('flat-2d');
-            btn.textContent = isFlat ? '📐 Vista: Pizarra 2D' : '📐 Vista: 3D TV';
+            btn.textContent = isFlat ? '📐 Vista: Pizarra 2D' : '📐 Vista: 3D Pro';
         }
 
         function switchAnalyzerMode(mode, btnEl) {
@@ -1736,6 +2123,7 @@
 
             if (mode === 'duel') renderDuel1v1View();
             if (mode === 'mirror') renderMirrorSelfView();
+            renderRightRosterList();
         }
 
         function switchRightPanelTab(tabKey) {
@@ -1749,7 +2137,14 @@
             if (tabKey === 'shortlist') renderShortlistTab();
         }
 
-        // Inicializa las posiciones de la formación completamente VACÍAS (+ Asignar) conservando los jugadores que ya hubieras puesto
+        // Conmutador interno en la primera pestaña: Red KINET vs Mis Creados (sin mezclarlos)
+        function switchRosterSourceFilter(sourceKey) {
+            activeRosterSource = sourceKey;
+            document.getElementById('subbtn-source-kinet')?.classList.toggle('active', sourceKey === 'kinet');
+            document.getElementById('subbtn-source-created')?.classList.toggle('active', sourceKey === 'created');
+            renderRightRosterList();
+        }
+
         function applyTacticalPreset(presetName) {
             const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
             const coords = cfg.presets[presetName] || Object.values(cfg.presets)[0];
@@ -1780,48 +2175,70 @@
             renderBoardTokensAndMetrics();
         }
 
-        function removePlayerFromSelectedSlot(event) {
+        function quickRemoveSlotPlayer(group, index, event) {
             if (event) event.stopPropagation();
-            const targetArr = activeSelection.group === 'bench' ? benchSlots : (activeSelection.group === 'reserve' ? reserveSlots : currentBoardSlots);
-            if (targetArr[activeSelection.index]) {
-                targetArr[activeSelection.index].player = null;
+            const targetArr = group === 'bench' ? benchSlots : (group === 'reserve' ? reserveSlots : currentBoardSlots);
+            if (targetArr[index]) {
+                targetArr[index].player = null;
+                activeSelection = { group, index };
                 renderBoardTokensAndMetrics();
             }
         }
 
+        function removePlayerFromSelectedSlot(event) {
+            if (event) event.stopPropagation();
+            quickRemoveSlotPlayer(activeSelection.group, activeSelection.index, null);
+        }
+
+        // =========================================================================
+        // RENDERIZADO DE MINI KINET CARDS ESTILO FIFA EN EL CAMPO 3D Y BANQUILLO
+        // =========================================================================
         function renderBoardTokensAndMetrics() {
+            const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
             const layer = document.getElementById('arena-tokens-layer');
             if (!layer) return;
 
-            // 1. Pintar las fichas sobre el escenario 3D (con clic 100% funcional en todas las líneas, incluidos defensas)
             layer.innerHTML = currentBoardSlots.map((slot, idx) => {
                 const isSel = activeSelection.group === 'board' && activeSelection.index === idx;
                 const p = slot.player;
                 if (!p) {
                     return `
                         <div class="tactical-node-token empty-slot ${isSel ? 'selected-slot' : ''}" style="left:${slot.x}%;top:${slot.y}%;" onclick="selectAnySlot('board', ${idx}, event)">
-                            <div class="token-top-row" style="justify-content:center;">
-                                <span class="token-pos-tag">${slot.pos}</span>
+                            <div class="mini-fifa-header" style="justify-content:center;border-bottom:none;margin-bottom:2px;">
+                                <span class="mini-fifa-pos" style="background:rgba(255,255,255,0.14);color:#CBD5E1;">${slot.pos}</span>
                             </div>
-                            <div class="token-player-name" style="color:var(--role-color);font-size:0.6rem;">+ Asignar</div>
-                            <div class="token-sub-metric">Vacío</div>
+                            <div class="mini-fifa-name" style="color:var(--role-color);font-size:0.58rem;">+ Asignar</div>
+                            <div style="font-family:'JetBrains Mono';font-size:0.46rem;color:#94A3B8;">Vacío</div>
                         </div>
                     `;
                 }
+
                 const shortName = p.name.split(' ')[0] + (p.name.split(' ')[1] ? ' ' + p.name.split(' ')[1][0] + '.' : '');
+                const grlDisplay = p.grl ? p.grl : '??';
+                const st = Array.isArray(p.stats) && p.stats.length === 6 ? p.stats : ['--', '--', '--', '--', '--', '--'];
+                const lb = cfg.statLabels;
+
                 return `
-                    <div class="tactical-node-token ${isSel ? 'selected-slot' : ''}" style="left:${slot.x}%;top:${slot.y}%;" onclick="selectAnySlot('board', ${idx}, event)">
-                        <div class="token-top-row">
-                            <span>${p.grl}</span>
-                            <span class="token-pos-tag">${slot.pos}</span>
+                    <div class="tactical-node-token kinet-mini-fifa-card ${isSel ? 'selected-slot' : ''}" style="left:${slot.x}%;top:${slot.y}%;" onclick="selectAnySlot('board', ${idx}, event)">
+                        <button type="button" class="mini-card-remove-x" title="Quitar de este puesto" onclick="quickRemoveSlotPlayer('board', ${idx}, event)">✕</button>
+                        <div class="mini-fifa-header">
+                            <span class="mini-fifa-grl">${grlDisplay}</span>
+                            <span class="mini-fifa-pos">${slot.pos}</span>
                         </div>
-                        <div class="token-player-name">${shortName}</div>
-                        <div class="token-sub-metric">${p.sub || p.pos}</div>
+                        <div class="mini-fifa-name">${shortName}</div>
+                        <div class="mini-fifa-stats-grid">
+                            <div class="mini-fifa-stat-pair"><span>${lb[0]}</span><strong>${st[0]}</strong></div>
+                            <div class="mini-fifa-stat-pair"><span>${lb[3]}</span><strong>${st[3]}</strong></div>
+                            <div class="mini-fifa-stat-pair"><span>${lb[1]}</span><strong>${st[1]}</strong></div>
+                            <div class="mini-fifa-stat-pair"><span>${lb[4]}</span><strong>${st[4]}</strong></div>
+                            <div class="mini-fifa-stat-pair"><span>${lb[2]}</span><strong>${st[2]}</strong></div>
+                            <div class="mini-fifa-stat-pair"><span>${lb[5]}</span><strong>${st[5]}</strong></div>
+                        </div>
                     </div>
                 `;
             }).join('');
 
-            // 2. Pintar las 5 ranuras de Banquillo (Suplentes)
+            // Renderizar carrusel de Banquillo (7 oficiales)
             const benchBox = document.getElementById('bench-slots-container');
             if (benchBox) {
                 benchBox.innerHTML = benchSlots.map((slot, idx) => {
@@ -1829,8 +2246,9 @@
                     const p = slot.player;
                     return `
                         <div class="bench-slot-pill ${p ? 'filled' : ''} ${isSel ? 'selected-slot' : ''}" onclick="selectAnySlot('bench', ${idx}, event)">
-                            <div style="font-family:'JetBrains Mono';font-size:0.52rem;color:var(--text-secondary);">${slot.pos} ${p ? '• ' + p.grl : ''}</div>
-                            <div style="font-size:0.62rem;font-weight:800;color:${p ? 'white' : 'var(--role-color)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                            ${p ? `<button type="button" onclick="quickRemoveSlotPlayer('bench', ${idx}, event)" style="position:absolute;top:2px;right:3px;background:none;border:none;color:#EF4444;font-size:0.55rem;font-weight:900;cursor:pointer;">✕</button>` : ''}
+                            <div style="font-family:'JetBrains Mono';font-size:0.52rem;color:var(--text-secondary);">${slot.pos} ${p ? '• <strong style="color:var(--role-color);">' + (p.grl || '??') + '</strong>' : ''}</div>
+                            <div style="font-size:0.62rem;font-weight:800;color:${p ? 'white' : 'var(--role-color)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">
                                 ${p ? p.name.split(' ')[0] : '+ Asignar'}
                             </div>
                         </div>
@@ -1838,7 +2256,7 @@
                 }).join('');
             }
 
-            // 3. Pintar las 4 ranuras de Reserva / No Convocados
+            // Renderizar carrusel de Reserva
             const resBox = document.getElementById('reserve-slots-container');
             if (resBox) {
                 resBox.innerHTML = reserveSlots.map((slot, idx) => {
@@ -1846,8 +2264,9 @@
                     const p = slot.player;
                     return `
                         <div class="bench-slot-pill ${p ? 'filled' : ''} ${isSel ? 'selected-slot' : ''}" onclick="selectAnySlot('reserve', ${idx}, event)">
-                            <div style="font-family:'JetBrains Mono';font-size:0.52rem;color:var(--text-secondary);">${slot.pos} ${p ? '• ' + p.grl : ''}</div>
-                            <div style="font-size:0.62rem;font-weight:800;color:${p ? 'white' : '#38BDF8'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                            ${p ? `<button type="button" onclick="quickRemoveSlotPlayer('reserve', ${idx}, event)" style="position:absolute;top:2px;right:3px;background:none;border:none;color:#EF4444;font-size:0.55rem;font-weight:900;cursor:pointer;">✕</button>` : ''}
+                            <div style="font-family:'JetBrains Mono';font-size:0.52rem;color:var(--text-secondary);">${slot.pos} ${p ? '• <strong style="color:#38BDF8;">' + (p.grl || '??') + '</strong>' : ''}</div>
+                            <div style="font-size:0.62rem;font-weight:800;color:${p ? 'white' : '#38BDF8'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">
                                 ${p ? p.name.split(' ')[0] : '+ Asignar'}
                             </div>
                         </div>
@@ -1855,29 +2274,35 @@
                 }).join('');
             }
 
-            // 4. Actualizar indicador de puesto seleccionado
+            // Actualizar indicador superior y mostrar/ocultar el botón rojo destacado de Desasignar
             const targetArr = activeSelection.group === 'bench' ? benchSlots : (activeSelection.group === 'reserve' ? reserveSlots : currentBoardSlots);
             const activeSlot = targetArr[activeSelection.index];
             const indEl = document.getElementById('selected-slot-indicator');
+            const unassignTopBtn = document.getElementById('btn-unassign-top');
+
             if (activeSlot && indEl) {
                 const groupLbl = activeSelection.group === 'bench' ? 'Banquillo' : (activeSelection.group === 'reserve' ? 'Reserva' : 'Titular en Pista');
                 if (activeSlot.player) {
-                    indEl.innerHTML = `Puesto activo (${groupLbl}): <strong>${activeSlot.pos} — ${activeSlot.player.name} (${activeSlot.player.grl} GRL)</strong> <button type="button" onclick="removePlayerFromSelectedSlot(event)" style="margin-left:8px;background:rgba(239,68,68,0.2);border:1px solid #EF4444;color:#FCA5A5;border-radius:6px;padding:1px 7px;font-size:0.6rem;cursor:pointer;">✕ Quitar</button>`;
+                    indEl.innerHTML = `Puesto activo (${groupLbl}): <strong>[${activeSlot.pos}] ${activeSlot.player.name} (${activeSlot.player.grl || '??'} GRL)</strong>`;
+                    if (unassignTopBtn) unassignTopBtn.classList.add('visible');
                 } else {
-                    indEl.textContent = `Puesto activo (${groupLbl}): [${activeSlot.pos}] Vacío — Elige un jugador a la derecha o créalo en "🛠️ Crear (50-99)" para asignarlo.`;
+                    indEl.textContent = `Puesto activo (${groupLbl}): [${activeSlot.pos}] Vacío — Toca un perfil a la derecha para asignarlo.`;
+                    if (unassignTopBtn) unassignTopBtn.classList.remove('visible');
                 }
             }
 
-            // 5. Calcular Media GRL y Sinergia IA según rasgos específicos y estilo de juego
             const filledStarters = currentBoardSlots.filter(s => s.player);
             if (filledStarters.length === 0) {
-                document.getElementById('team-overall-pill').textContent = `⚡ PUESTOS ASIGNADOS: 0 / ${currentBoardSlots.length} • MEDIA: --`;
-                document.getElementById('arena-chemistry-badge').textContent = `🔗 ASIGNA JUGADORES PARA CALCULAR ENCAJE`;
+                document.getElementById('team-overall-pill').textContent = `⚡ TITULARES: 0 / ${currentBoardSlots.length} • MEDIA: --`;
+                document.getElementById('arena-chemistry-badge').textContent = `🔗 SINERGIA: PENDIENTE`;
             } else {
-                const avgGrl = Math.round(filledStarters.reduce((acc, s) => acc + (s.player.grl || 78), 0) / filledStarters.length);
+                const calibratedStarters = filledStarters.filter(s => s.player.grl);
+                const avgGrl = calibratedStarters.length > 0
+                    ? Math.round(calibratedStarters.reduce((acc, s) => acc + s.player.grl, 0) / calibratedStarters.length)
+                    : '??';
                 const fitInfo = evaluateTeamTacticalFit();
-                document.getElementById('team-overall-pill').textContent = `⚡ ASIGNADOS: ${filledStarters.length}/${currentBoardSlots.length} • MEDIA: ${avgGrl} GRL`;
-                document.getElementById('arena-chemistry-badge').textContent = `🔗 ENCAJE IA: ${fitInfo.score}% (${fitInfo.styleLabel})`;
+                document.getElementById('team-overall-pill').textContent = `⚡ TITULARES: ${filledStarters.length}/${currentBoardSlots.length} • MEDIA: ${avgGrl} GRL`;
+                document.getElementById('arena-chemistry-badge').textContent = `🔗 SINERGIA IA: ${fitInfo.score}% (${fitInfo.styleLabel})`;
                 document.getElementById('ai-board-diagnosis').textContent = fitInfo.explanation;
             }
 
@@ -1885,9 +2310,6 @@
             if (currentAnalyzerMode === 'mirror') renderMirrorSelfView();
         }
 
-        // =========================================================================
-        // MOTOR IA LIGERO (COSTE CERO) QUE ANALIZA LOS RASGOS SUBJETIVOS DE LA PLANTILLA
-        // =========================================================================
         function updatePlayStyleSynergy(styleVal) {
             currentPlayStyle = styleVal;
             renderBoardTokensAndMetrics();
@@ -1896,14 +2318,14 @@
         function evaluateTeamTacticalFit() {
             const styleNames = {
                 balanced: 'Equilibrado',
-                direct: 'Balón Largo & Transición Directa',
-                possession: 'Juego Asociativo & Control',
-                highpress: 'Presión Alta & Ritmo',
-                counter: 'Bloque Sólido & Contragolpe'
+                direct: 'Juego Directo / Balón Largo',
+                possession: 'Posesión & Asociación',
+                highpress: 'Presión Alta',
+                counter: 'Bloque Bajo & Contra'
             };
             const filled = currentBoardSlots.filter(s => s.player);
             if (filled.length === 0) {
-                return { score: 0, styleLabel: styleNames[currentPlayStyle], explanation: 'Asigna jugadores en la pizarra para evaluar su sinergia táctica.' };
+                return { score: 0, styleLabel: styleNames[currentPlayStyle], explanation: 'Asigna jugadores en la plantilla para evaluar su sinergia táctica.' };
             }
 
             const allTraitsText = filled.map(s => `${s.pos} (${s.player.name}): ${s.player.traitNotes || ''}`).join(' | ').toLowerCase();
@@ -1913,51 +2335,51 @@
             if (/largo|desplazamiento|extremo|espacio|ruptura|contra/.test(allTraitsText)) {
                 if (currentPlayStyle === 'direct' || currentPlayStyle === 'counter') {
                     bonus += 8;
-                    insights.push('Tus notas de "lanzar en largo / buscar extremos al espacio" encajan al 100% con el plan de Transición Directa.');
-                } else if (currentPlayStyle === 'possession') {
-                    insights.push('Tienes jugadores perfilados para balón largo; considera alternar salidas directas para aprovechar sus rasgos.');
+                    insights.push('Tus notas de balón largo y ruptura al espacio encajan al 100% con el plan de Juego Directo.');
                 }
             }
-            if (/pies|esquiva|r[aá]pido|velocidad|presi[oó]n|cadencia/.test(allTraitsText)) {
+            if (/raso|parada|reflejo|portero|pies|esquiva|r[aá]pido/.test(allTraitsText)) {
                 bonus += 5;
-                insights.push('Alta movilidad y reactividad de piernas detectada en los atributos específicos.');
+                insights.push('Rasgos específicos de especialidad integrados positivamente en la estructura.');
             }
-            if (/flojo|malo|d[eé]bil|cuesta|derecha|izquierda/.test(allTraitsText)) {
-                insights.push('La IA ha detectado asimetrías o puntos débiles anotados en las fichas: protege ese perfil con coberturas del compañero cercano.');
+            if (/flojo|malo|d[eé]bil|cuesta/.test(allTraitsText)) {
+                insights.push('Debilidad puntual detectada en notas: la IA recomienda proteger ese perfil con ayudas del compañero cercano.');
             }
 
-            const baseGrl = Math.round(filled.reduce((a, s) => a + (s.player.grl || 78), 0) / filled.length);
-            const score = Math.min(99, Math.max(70, baseGrl + bonus));
+            const calibrated = filled.filter(s => s.player.grl);
+            const baseGrl = calibrated.length > 0
+                ? Math.round(calibrated.reduce((a, s) => a + s.player.grl, 0) / calibrated.length)
+                : 78;
+            const score = Math.min(99, Math.max(72, baseGrl + bonus));
             const summaryText = insights.length > 0
                 ? `✓ [Encaje IA ${score}% — ${styleNames[currentPlayStyle]}]: ${insights.join(' ')}`
-                : `✓ [Encaje IA ${score}% — ${styleNames[currentPlayStyle]}]: Plantilla con ${filled.length} titular(es) y ${benchSlots.filter(b=>b.player).length} suplente(s) en banquillo. Añade notas específicas al crear jugadores para afinar el informe táctico.`;
+                : `✓ [Encaje IA ${score}% — ${styleNames[currentPlayStyle]}]: Plantilla con ${filled.length} titular(es) y ${benchSlots.filter(b=>b.player).length} suplente(s) en banquillo.`;
 
             return { score, styleLabel: styleNames[currentPlayStyle], explanation: summaryText };
         }
 
-        // Calcula cómo encajaría un candidato externo o de KINET con los rasgos actuales de tu equipo
         function calculateCandidateFitWithSquad(candidate) {
+            if (!candidate.grl) {
+                return { fitScore: null, reason: 'Perfil sin calibrar (Pulsa ✏️ para asignar sus niveles 50-99).' };
+            }
             const filled = currentBoardSlots.filter(s => s.player);
             const squadTraits = filled.map(s => (s.player.traitNotes || '').toLowerCase()).join(' ');
             const candTraits = (candidate.traitNotes || '').toLowerCase();
 
-            let fitScore = Math.min(98, Math.max(74, (candidate.grl || 80) + 4));
+            let fitScore = Math.min(98, Math.max(74, candidate.grl + 4));
             let reason = `Media de ${candidate.grl} GRL en puesto de ${candidate.pos}.`;
 
-            if (/largo|pase/.test(squadTraits) && /extremo|veloz|ruptura|desmarque/.test(candTraits)) {
+            if (/largo|pase/.test(squadTraits) && /extremo|veloz|ruptura/.test(candTraits)) {
                 fitScore = Math.min(99, fitScore + 7);
-                reason = `Sinergia Directa (+7%): Tus defensas/medios destacan lanzando en largo y ${candidate.name} es especialista rompiendo al espacio.`;
-            } else if (/extremo|ruptura/.test(squadTraits) && /largo|pase|visi[oó]n/.test(candTraits)) {
-                fitScore = Math.min(99, fitScore + 7);
-                reason = `Sinergia Directa (+7%): Su rasgo de desplazamiento en largo potenciará a tus atacantes rápidos.`;
-            } else if (candTraits.length > 4) {
-                reason = `Rasgo clave analizado: "${candidate.traitNotes}". Compatible con tu estilo ${currentPlayStyle.toUpperCase()}.`;
+                reason = `Sinergia Directa (+7%): Tus pasadores en largo potenciarán su ruptura al espacio.`;
+            } else if (candTraits.length > 3) {
+                reason = `Rasgo clave analizado: "${candidate.traitNotes}". Compatible con estilo ${currentPlayStyle.toUpperCase()}.`;
             }
             return { fitScore, reason };
         }
 
         // =========================================================================
-        // SUB-VISTA B: CREADOR SUBJETIVO DE JUGADORES EXTERNOS (SLIDERS 50-99 POR POSICIÓN)
+        // CREADOR Y EDITOR DE PERFILES (50-99) PARA EXTERNOS Y PARA CALIBRAR USUARIOS DE KINET
         // =========================================================================
         function updateBuilderSlidersForPosition(posName) {
             const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
@@ -1994,90 +2416,173 @@
             return avg;
         }
 
+        function resetBuilderForm() {
+            document.getElementById('custom-editing-id').value = '';
+            document.getElementById('custom-p-name').value = '';
+            document.getElementById('custom-p-traits').value = '';
+            document.getElementById('builder-mode-banner').textContent = '🛠️ CREAR NUEVO JUGADOR (50-99)';
+            builderSliderValues = [78, 78, 78, 78, 78, 78];
+            const posSel = document.getElementById('custom-p-pos');
+            updateBuilderSlidersForPosition(posSel?.value || 'POR');
+        }
+
+        // Carga cualquier jugador (de Cartelera, de Mis Creados o un usuario de Red KINET sin calibrar) en los sliders 50-99 para editar su nivel
+        function loadProfileIntoBuilder(playerObj, event) {
+            if (event) event.stopPropagation();
+            if (!playerObj) return;
+
+            switchRightPanelTab('builder');
+            document.getElementById('custom-editing-id').value = playerObj.id || '';
+            document.getElementById('custom-p-name').value = playerObj.name || '';
+            document.getElementById('custom-p-traits').value = playerObj.traitNotes || '';
+            document.getElementById('builder-mode-banner').textContent = `✏️ EDITANDO / CALIBRANDO: ${playerObj.name.toUpperCase()}`;
+
+            const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
+            const posSel = document.getElementById('custom-p-pos');
+            const matchedPos = cfg.positions.find(p => p.toLowerCase() === (playerObj.pos || '').toLowerCase()) || cfg.positions[0];
+            if (posSel) posSel.value = matchedPos;
+
+            builderSliderValues = Array.isArray(playerObj.stats) && playerObj.stats.length === 6
+                ? [...playerObj.stats]
+                : [78, 78, 78, 78, 78, 78];
+
+            updateBuilderSlidersForPosition(matchedPos);
+        }
+
         function saveCustomPlayerToTarget(targetMode) {
+            const editId = document.getElementById('custom-editing-id')?.value || '';
             const nameInput = document.getElementById('custom-p-name');
             const posSelect = document.getElementById('custom-p-pos');
             const traitsInput = document.getElementById('custom-p-traits');
 
             const nameVal = (nameInput?.value || '').trim();
             if (!nameVal) {
-                alert('Escribe el nombre del jugador o deportista externo para crear su ficha.');
+                alert('Escribe el nombre del jugador para guardar su configuración.');
                 nameInput?.focus();
                 return;
             }
 
             const posVal = posSelect?.value || 'PRO';
-            const traitsVal = (traitsInput?.value || '').trim() || 'Perfil personalizado 50-99';
+            const traitsVal = (traitsInput?.value || '').trim() || 'Configuración manual 50-99';
             const grlVal = recalcBuilderLiveGrl();
 
-            const createdObj = {
-                id: 'ext_' + Date.now(),
+            const savedObj = {
+                id: editId || ('ext_' + Date.now()),
                 name: nameVal,
                 pos: posVal,
                 grl: grlVal,
                 sub: traitsVal.slice(0, 26),
                 traitNotes: traitsVal,
                 stats: [...builderSliderValues],
-                isExternalCustom: true
+                isCalibrated: true,
+                isExternalCustom: !editId || String(editId).startsWith('ext_')
             };
 
-            customCreatedPlayers.unshift(createdObj);
-
-            if (targetMode === 'shortlist') {
-                shortlistPlayers.unshift(createdObj);
-                saveCustomAndShortlistData();
-                switchRightPanelTab('shortlist');
+            // Si estábamos calibrando un usuario real de la Red KINET (ej. Hugo, Gittel o tú mismo)
+            const kinetIdx = realKinetProfiles.findIndex(k => k.id === editId || k.name.toLowerCase() === nameVal.toLowerCase());
+            if (kinetIdx !== -1 && !String(editId).startsWith('ext_')) {
+                savedObj.id = realKinetProfiles[kinetIdx].id;
+                savedObj.isExternalCustom = false;
+                realKinetProfiles[kinetIdx] = { ...realKinetProfiles[kinetIdx], ...savedObj };
+                calibratedKinetOverrides[savedObj.id] = savedObj;
+                if (savedObj.id === 'me_user') {
+                    localStorage.setItem('kinet_custom_card_stats', JSON.stringify(savedObj.stats));
+                    localStorage.setItem('kinet_position', savedObj.pos);
+                }
             } else {
-                assignOrComparePlayer(createdObj);
-                saveCustomAndShortlistData();
+                // Guardar o actualizar en Mis Creados (así aunque lo borres de Cartelera nunca lo pierdes)
+                const cIdx = customCreatedPlayers.findIndex(c => c.id === savedObj.id || c.name.toLowerCase() === savedObj.name.toLowerCase());
+                if (cIdx !== -1) customCreatedPlayers[cIdx] = savedObj;
+                else customCreatedPlayers.unshift(savedObj);
             }
 
-            if (nameInput) nameInput.value = '';
-            if (traitsInput) traitsInput.value = '';
+            // Actualizar también si ya estaba en Cartelera o en algún puesto del campo
+            const sIdx = shortlistPlayers.findIndex(s => s.id === savedObj.id || s.name.toLowerCase() === savedObj.name.toLowerCase());
+            if (sIdx !== -1) shortlistPlayers[sIdx] = savedObj;
+
+            [currentBoardSlots, benchSlots, reserveSlots].forEach(groupArr => {
+                groupArr.forEach(slot => {
+                    if (slot.player && (slot.player.id === savedObj.id || slot.player.name.toLowerCase() === savedObj.name.toLowerCase())) {
+                        slot.player = { ...savedObj };
+                    }
+                });
+            });
+
+            if (targetMode === 'shortlist') {
+                if (sIdx === -1) shortlistPlayers.unshift(savedObj);
+                saveCustomAndShortlistData();
+                resetBuilderForm();
+                switchRightPanelTab('shortlist');
+            } else {
+                assignOrComparePlayer(savedObj);
+                saveCustomAndShortlistData();
+                resetBuilderForm();
+                switchRightPanelTab('kinet');
+                if (savedObj.isExternalCustom) switchRosterSourceFilter('created');
+            }
         }
 
         // =========================================================================
-        // SUB-VISTA A & C: RED KINET Y CARTELERA DE PRESELECCIÓN
+        // RENDERIZADO DE LA LISTA DERECHA (SEPARANDO RED KINET DE MIS CREADOS + FILTRO POSICIÓN)
         // =========================================================================
         function renderRightRosterList() {
-            const q = (document.getElementById('roster-search-input')?.value || '').toLowerCase().trim();
-            const combined = [...realKinetProfiles, ...customCreatedPlayers];
+            // Sincronizar mi propio perfil por si ha sido calibrado
+            if (realKinetProfiles.length > 0 && realKinetProfiles[0].id === 'me_user') {
+                realKinetProfiles[0] = getMyUserPlayerObject();
+            }
 
-            const filtered = combined.filter(p =>
-                !q || p.name.toLowerCase().includes(q) || p.pos.toLowerCase().includes(q) || (p.traitNotes || '').toLowerCase().includes(q)
-            );
+            const q = (document.getElementById('roster-search-input')?.value || '').toLowerCase().trim();
+            const posFilter = document.getElementById('roster-pos-filter')?.value || 'ALL';
+
+            const sourceArray = activeRosterSource === 'created' ? customCreatedPlayers : realKinetProfiles;
+
+            const filtered = sourceArray.filter(p => {
+                const matchText = !q || p.name.toLowerCase().includes(q) || (p.pos || '').toLowerCase().includes(q) || (p.traitNotes || '').toLowerCase().includes(q);
+                const matchPos = posFilter === 'ALL' || (p.pos || '').toUpperCase().includes(posFilter.toUpperCase());
+                return matchText && matchPos;
+            });
 
             const box = document.getElementById('right-roster-list');
             if (!box) return;
 
             if (filtered.length === 0) {
-                box.innerHTML = `<div style="text-align:center;padding:18px;font-size:0.73rem;color:var(--text-secondary);">No hay perfiles con ese filtro. Puedes crear cualquier jugador externo en la pestaña "🛠️ Crear (50-99)".</div>`;
+                const emptyMsg = activeRosterSource === 'created'
+                    ? 'Aún no has creado jugadores personalizados. Ve a la pestaña "🛠️ Crear / Editar" para crearlos con barras de 50 a 99.'
+                    : 'No hay usuarios de la Red KINET con ese filtro de posición.';
+                box.innerHTML = `<div style="text-align:center;padding:18px 12px;font-size:0.72rem;color:var(--text-secondary);border:1px dashed var(--border-subtle);border-radius:12px;">${emptyMsg}</div>`;
                 return;
             }
 
             box.innerHTML = filtered.map((p) => {
                 const safeJson = JSON.stringify(p).replace(/'/g, "&apos;");
                 const fit = calculateCandidateFitWithSquad(p);
+                const isSel = selectedRosterProfileId && selectedRosterProfileId === p.id;
+                const grlChipText = p.grl ? p.grl : '??';
+                const chipClass = p.grl ? 'grl-Execution-chip' : 'grl-Execution-chip uncalibrated';
+                const fitBadge = fit.fitScore ? `Encaje IA: <strong style="color:#00FF88;">${fit.fitScore}%</strong>` : `<span style="color:#F59E0B;">Sin calibrar (Pulsa ✏️)</span>`;
+
                 return `
-                    <div class="roster-candidate-item" onclick='assignOrComparePlayer(${safeJson})'>
+                    <div class="roster-candidate-item ${isSel ? 'selected-profile' : ''}" onclick='assignOrComparePlayer(${safeJson})'>
                         <div style="display:flex;align-items:center;gap:9px;min-width:0;">
-                            <span class="grl-Execution-chip">${p.grl}</span>
+                            <span class="${chipClass}">${grlChipText}</span>
                             <div style="min-width:0;">
                                 <div style="font-weight:800;font-size:0.78rem;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                    ${p.name} <span style="font-family:'JetBrains Mono';font-size:0.55rem;color:var(--role-color);">${p.isExternalCustom ? '[CREADO]' : '[KINET]'}</span>
+                                    ${p.name}
                                 </div>
                                 <div style="font-size:0.64rem;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                    ${p.pos} • Encaje IA: <strong style="color:#00FF88;">${fit.fitScore}%</strong>
+                                    <strong style="color:#E2E8F0;">${p.pos}</strong> • ${fitBadge}
                                 </div>
                             </div>
                         </div>
-                        <div style="display:flex;gap:4px;align-items:center;">
+                        <div style="display:flex;gap:5px;align-items:center;flex-shrink:0;">
+                            <button type="button" class="btn-secondary" style="padding:4px 7px;font-size:0.58rem;" title="Calibrar o Editar Nivel (50-99)" onclick='loadProfileIntoBuilder(${safeJson}, event)'>✏️</button>
                             <button type="button" class="btn-secondary" style="padding:4px 7px;font-size:0.58rem;" title="Añadir a Cartelera" onclick='event.stopPropagation(); addPlayerToShortlist(${safeJson})'>📋</button>
-                            <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);font-weight:700;">${currentAnalyzerMode === 'duel' ? '⚔️ 1vs1' : '➕ Poner'}</span>
                         </div>
                     </div>
                 `;
             }).join('');
+
+            bindSpotlightToElements();
         }
 
         function addPlayerToShortlist(playerObj) {
@@ -2090,9 +2595,23 @@
 
         function removeFromShortlist(idx, event) {
             if (event) event.stopPropagation();
+            // Al borrar de Cartelera, si era un jugador creado nos aseguramos de que permanezca en customCreatedPlayers ("Mis Creados")
+            const removed = shortlistPlayers[idx];
+            if (removed && removed.isExternalCustom && !customCreatedPlayers.some(c => c.name.toLowerCase() === removed.name.toLowerCase())) {
+                customCreatedPlayers.unshift(removed);
+            }
             shortlistPlayers.splice(idx, 1);
             saveCustomAndShortlistData();
             renderShortlistTab();
+        }
+
+        // Pasar un jugador desde Cartelera directamente a la Plantilla (puesto activo)
+        function moveShortlistPlayerToPlantilla(playerObj, event) {
+            if (event) event.stopPropagation();
+            if (currentAnalyzerMode !== 'arena') {
+                switchAnalyzerMode('arena', document.getElementById('tab-arena-3d'));
+            }
+            assignOrComparePlayer(playerObj);
         }
 
         function renderShortlistTab() {
@@ -2102,34 +2621,35 @@
             if (shortlistPlayers.length === 0) {
                 box.innerHTML = `
                     <div style="text-align:center;padding:18px 12px;background:rgba(255,255,255,0.015);border:1px dashed var(--border-subtle);border-radius:12px;font-size:0.72rem;color:var(--text-secondary);">
-                        Tu Cartelera está vacía. Pulsa el icono 📋 junto a cualquier usuario de KINET o crea un candidato en "🛠️ Crear (50-99)" para compararlos aquí.
+                        Tu Cartelera está vacía. Pulsa 📋 junto a cualquier perfil o créalo en "🛠️ Crear / Editar". (Si borras a alguien de aquí, seguirá guardado en "Mis Creados").
                     </div>
                 `;
                 return;
             }
 
-            // Ordenar automáticamente la Cartelera por Mayor % de Encaje IA con tu equipo
             const ranked = shortlistPlayers.map((p, originalIdx) => ({
                 ...p,
                 _idx: originalIdx,
                 _fit: calculateCandidateFitWithSquad(p)
-            })).sort((a, b) => b._fit.fitScore - a._fit.fitScore);
+            })).sort((a, b) => (b._fit.fitScore || 0) - (a._fit.fitScore || 0));
 
             box.innerHTML = ranked.map((p, rankPos) => {
                 const safeJson = JSON.stringify(p).replace(/'/g, "&apos;");
                 return `
-                    <div class="roster-candidate-item" style="flex-direction:column;align-items:stretch;gap:6px;" onclick='assignOrComparePlayer(${safeJson})'>
+                    <div class="roster-candidate-item" style="flex-direction:column;align-items:stretch;gap:6px;" onclick='moveShortlistPlayerToPlantilla(${safeJson}, event)'>
                         <div style="display:flex;justify-content:space-between;align-items:center;">
                             <div style="display:flex;align-items:center;gap:8px;">
-                                <span class="grl-Execution-chip">${p.grl}</span>
+                                <span class="grl-Execution-chip">${p.grl || '??'}</span>
                                 <div>
                                     <div style="font-weight:800;font-size:0.78rem;color:white;">#${rankPos + 1} ${p.name} (${p.pos})</div>
-                                    <div style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);">⚡ COMPATIBILIDAD IA: ${p._fit.fitScore}%</div>
+                                    <div style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);">⚡ COMPATIBILIDAD IA: ${p._fit.fitScore || '--'}%</div>
                                 </div>
                             </div>
-                            <div style="display:flex;gap:5px;">
-                                <button type="button" class="btn-secondary" style="padding:3px 7px;font-size:0.56rem;" onclick='event.stopPropagation(); sendToDuel1v1(${safeJson})'>⚔️ 1vs1</button>
-                                <button type="button" class="btn-secondary" style="padding:3px 7px;font-size:0.56rem;color:#FCA5A5;border-color:rgba(239,68,68,0.4);" onclick="removeFromShortlist(${p._idx}, event)">✕</button>
+                            <div style="display:flex;gap:4px;">
+                                <button type="button" class="btn-primary" style="padding:3px 8px;font-size:0.55rem;" title="Poner en el puesto activo de tu Plantilla" onclick='moveShortlistPlayerToPlantilla(${safeJson}, event)'>➕ Plantilla</button>
+                                <button type="button" class="btn-secondary" style="padding:3px 7px;font-size:0.55rem;" title="Editar sus niveles (50-99)" onclick='loadProfileIntoBuilder(${safeJson}, event)'>✏️</button>
+                                <button type="button" class="btn-secondary" style="padding:3px 7px;font-size:0.55rem;" title="Comparar en 1vs1" onclick='event.stopPropagation(); sendToDuel1v1(${safeJson})'>⚔️ 1vs1</button>
+                                <button type="button" class="btn-secondary" style="padding:3px 7px;font-size:0.55rem;color:#FCA5A5;border-color:rgba(239,68,68,0.4);" title="Quitar de Cartelera (se conserva en Mis Creados)" onclick="removeFromShortlist(${p._idx}, event)">✕</button>
                             </div>
                         </div>
                         <div style="font-size:0.65rem;color:#CBD5E1;background:rgba(4,6,10,0.6);padding:5px 8px;border-radius:8px;">
@@ -2138,18 +2658,30 @@
                     </div>
                 `;
             }).join('');
+
+            bindSpotlightToElements();
         }
 
         function sendToDuel1v1(playerObj) {
             duelFighterB = playerObj;
+            activeDuelCorner = 'B';
             switchAnalyzerMode('duel', document.getElementById('tab-duel-1v1'));
         }
 
         function assignOrComparePlayer(playerObj) {
+            selectedRosterProfileId = playerObj.id || playerObj.name;
+
+            // Si el usuario aún no está calibrado (?? GRL), lo abrimos directamente en el calibrador 50-99 para no poner datos falsos
+            if (!playerObj.grl || !Array.isArray(playerObj.stats)) {
+                loadProfileIntoBuilder(playerObj);
+                return;
+            }
+
             if (currentAnalyzerMode === 'duel') {
                 if (activeDuelCorner === 'A') duelFighterA = playerObj;
                 else duelFighterB = playerObj;
                 renderDuel1v1View();
+                renderRightRosterList();
                 return;
             }
 
@@ -2160,29 +2692,73 @@
             if (targetArr[activeSelection.index]) {
                 targetArr[activeSelection.index].player = { ...playerObj };
                 renderBoardTokensAndMetrics();
+                renderRightRosterList();
             }
         }
 
         // =========================================================================
-        // VISTA 2: COMPARADOR CARA A CARA 1VS1
+        // VISTA 2: COMPARADOR CARA A CARA 1VS1 CON ILUMINACIÓN DE ESQUINA ACTIVA
         // =========================================================================
+        function selectDuelCorner(cornerKey) {
+            activeDuelCorner = cornerKey;
+            renderDuel1v1View();
+        }
+
+        function editDuelPlayer(cornerKey) {
+            const target = cornerKey === 'A' ? duelFighterA : duelFighterB;
+            if (target) loadProfileIntoBuilder(target);
+        }
+
         function renderDuel1v1View() {
             const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
             const playerA = duelFighterA || getMyUserPlayerObject();
-            const playerB = duelFighterB || { name: 'Selecciona Rival/Candidato', pos: 'Vacío', grl: 75, sub: 'Toca en la lista derecha', stats: [75, 75, 75, 75, 75, 75] };
+            const playerB = duelFighterB || { name: 'Toca un perfil a la derecha', pos: 'Sin asignar', grl: null, sub: 'Pulsa en la lista derecha', stats: null };
 
-            document.getElementById('duel-a-grl').textContent = `${playerA.grl} GRL`;
+            const cardA = document.getElementById('duel-card-a');
+            const cardB = document.getElementById('duel-card-b');
+            const pillA = document.getElementById('duel-pill-a');
+            const pillB = document.getElementById('duel-pill-b');
+
+            if (cardA && cardB) {
+                cardA.classList.toggle('active-corner-a', activeDuelCorner === 'A');
+                cardB.classList.toggle('active-corner-b', activeDuelCorner === 'B');
+            }
+            if (pillA && pillB) {
+                if (activeDuelCorner === 'A') {
+                    pillA.textContent = '● ESQUINA A SELECCIONADA (CAMBIANDO...)';
+                    pillA.style.background = 'var(--role-color)';
+                    pillA.style.color = '#04060A';
+                    pillB.textContent = 'ESQUINA B (PULSA PARA SELECCIONAR)';
+                    pillB.style.background = 'rgba(56,189,248,0.15)';
+                    pillB.style.color = '#38BDF8';
+                } else {
+                    pillB.textContent = '● ESQUINA B SELECCIONADA (CAMBIANDO...)';
+                    pillB.style.background = '#38BDF8';
+                    pillB.style.color = '#04060A';
+                    pillA.textContent = 'ESQUINA A (PULSA PARA SELECCIONAR)';
+                    pillA.style.background = 'rgba(var(--role-rgb),0.15)';
+                    pillA.style.color = 'var(--role-color)';
+                }
+            }
+
+            document.getElementById('duel-a-grl').textContent = playerA.grl ? `${playerA.grl} GRL` : '?? GRL';
             document.getElementById('duel-a-name').textContent = playerA.name.toUpperCase();
-            document.getElementById('duel-a-pos').textContent = `${playerA.pos} • ${playerA.traitNotes ? playerA.traitNotes.slice(0, 28) : activeArenaSport}`;
+            document.getElementById('duel-a-pos').textContent = `${playerA.pos} • ${playerA.traitNotes ? playerA.traitNotes.slice(0, 32) : (playerA.grl ? 'Calibrado' : 'Pulsa ✏️ abajo para calibrar')}`;
 
-            document.getElementById('duel-b-grl').textContent = duelFighterB ? `${playerB.grl} GRL` : '-- GRL';
+            document.getElementById('duel-b-grl').textContent = playerB.grl ? `${playerB.grl} GRL` : '?? GRL';
             document.getElementById('duel-b-name').textContent = playerB.name.toUpperCase();
-            document.getElementById('duel-b-pos').textContent = `${playerB.pos} • ${playerB.traitNotes ? playerB.traitNotes.slice(0, 28) : playerB.sub}`;
+            document.getElementById('duel-b-pos').textContent = `${playerB.pos} • ${playerB.traitNotes ? playerB.traitNotes.slice(0, 32) : (playerB.sub || '')}`;
 
-            const diff = playerA.grl - playerB.grl;
-            document.getElementById('duel-winner-badge').textContent = !duelFighterB
-                ? 'TOCA UN PERFIL A LA DERECHA PARA COMPARAR'
-                : (diff >= 0 ? `VENTAJA ${playerA.name.toUpperCase()}: +${diff} GRL` : `VENTAJA ${playerB.name.toUpperCase()}: +${Math.abs(diff)} GRL`);
+            if (playerA.grl && playerB.grl) {
+                const diff = playerA.grl - playerB.grl;
+                document.getElementById('duel-winner-badge').textContent =
+                    diff === 0 ? 'EMPATE TÉCNICO EN MEDIA GRL' : (diff > 0 ? `VENTAJA ${playerA.name.toUpperCase()}: +${diff} GRL` : `VENTAJA ${playerB.name.toUpperCase()}: +${Math.abs(diff)} GRL`);
+            } else {
+                document.getElementById('duel-winner-badge').textContent = 'CALIBRA AMBOS PERFILES PARA VER VENTAJA';
+            }
+
+            const statsA = Array.isArray(playerA.stats) ? playerA.stats : [50, 50, 50, 50, 50, 50];
+            const statsB = Array.isArray(playerB.stats) ? playerB.stats : [50, 50, 50, 50, 50, 50];
 
             const radarSvg = document.getElementById('duel-radar-svg');
             if (radarSvg) {
@@ -2191,7 +2767,7 @@
 
                 const buildPolygonPoints = (statsArr) => {
                     return angles.map((ang, i) => {
-                        const val = (statsArr[i] || 75) / 100;
+                        const val = (statsArr[i] || 50) / 100;
                         const x = cx + Math.cos(ang) * rMax * val;
                         const y = cy + Math.sin(ang) * rMax * val;
                         return `${x.toFixed(1)},${y.toFixed(1)}`;
@@ -2211,8 +2787,8 @@
 
                 radarSvg.innerHTML = `
                     ${gridRings}
-                    <polygon points="${buildPolygonPoints(playerB.stats)}" fill="rgba(56,189,248,0.22)" stroke="#38BDF8" stroke-width="2"/>
-                    <polygon points="${buildPolygonPoints(playerA.stats)}" fill="rgba(0,255,136,0.24)" stroke="#00FF88" stroke-width="2.2"/>
+                    ${playerB.grl ? `<polygon points="${buildPolygonPoints(statsB)}" fill="rgba(56,189,248,0.22)" stroke="#38BDF8" stroke-width="2"/>` : ''}
+                    ${playerA.grl ? `<polygon points="${buildPolygonPoints(statsA)}" fill="rgba(0,255,136,0.24)" stroke="#00FF88" stroke-width="2.2"/>` : ''}
                     ${labelNodes}
                 `;
             }
@@ -2220,15 +2796,15 @@
             const barsBox = document.getElementById('duel-bars-container');
             if (barsBox) {
                 barsBox.innerHTML = cfg.statLabels.map((lbl, idx) => {
-                    const va = playerA.stats[idx] || 80;
-                    const vb = playerB.stats[idx] || 75;
-                    const winA = va >= vb;
+                    const va = playerA.grl ? statsA[idx] : 0;
+                    const vb = playerB.grl ? statsB[idx] : 0;
+                    const winA = va >= vb && va > 0;
                     return `
                         <div class="duel-stat-comparison-row">
                             <div class="duel-stat-labels">
-                                <span style="color:${winA ? 'var(--role-color)' : '#94A3B8'};">${va} ${winA ? '★' : ''}</span>
+                                <span style="color:${winA ? 'var(--role-color)' : '#94A3B8'};">${va || '--'} ${winA ? '★' : ''}</span>
                                 <span style="color:white;">${lbl}</span>
-                                <span style="color:${!winA ? '#38BDF8' : '#94A3B8'};">${!winA ? '★ ' : ''}${vb}</span>
+                                <span style="color:${(!winA && vb > 0) ? '#38BDF8' : '#94A3B8'};">${(!winA && vb > 0) ? '★ ' : ''}${vb || '--'}</span>
                             </div>
                             <div class="duel-dual-bar">
                                 <div class="duel-bar-left"><div class="duel-fill-a" style="width:${va}%"></div></div>
@@ -2241,7 +2817,7 @@
         }
 
         // =========================================================================
-        // VISTA 3: ESPEJO PERSONAL (ATLETA) Y DESGLOSE DE COMPATIBILIDAD TÁCTICA IA
+        // VISTA 3: SINERGIA DE PLANTILLA & CALIBRACIÓN MANUAL DE TU PROPIA CARTA
         // =========================================================================
         function renderMirrorSelfView() {
             const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
@@ -2252,14 +2828,30 @@
 
             const filledPlayers = currentBoardSlots.filter(s => s.player);
             const traitsListHtml = filledPlayers.length === 0
-                ? `<div style="font-size:0.74rem;color:var(--text-secondary);">Asigna jugadores en la Pizarra 3D para ver aquí el análisis línea por línea de sus atributos específicos.</div>`
+                ? `<div style="font-size:0.74rem;color:var(--text-secondary);">Asigna jugadores en la Plantilla 3D para ver aquí el desglose línea por línea de sus rasgos específicos.</div>`
                 : filledPlayers.map(s => `
                     <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:6px;">
                         <div>
-                            <strong style="font-size:0.76rem;color:white;">[${s.pos}] ${s.player.name} (${s.player.grl} GRL)</strong>
+                            <strong style="font-size:0.76rem;color:white;">[${s.pos}] ${s.player.name} (${s.player.grl || '??'} GRL)</strong>
                             <div style="font-size:0.68rem;color:#CBD5E1;">Rasgo específico: ${s.player.traitNotes || 'Equilibrado'}</div>
                         </div>
-                        <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);">✓ Analizado</span>
+                        <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);">✓ En Pista</span>
+                    </div>
+                `).join('');
+
+            const myStatsHtml = !me.grl
+                ? `<div style="text-align:center;padding:16px;font-size:0.76rem;color:#F59E0B;">
+                    Tu KINET Card aún no tiene valores asignados (<strong>?? GRL</strong>). Pulsa arriba en <strong>"⚙️ Calibrar Mis Atributos Manualmente (50-99)"</strong> o audita tus vídeos en Vision Lab™ para activar tus barras reales sin datos falsos.
+                   </div>`
+                : cfg.statLabels.map((lbl, i) => `
+                    <div style="margin-bottom:7px;">
+                        <div style="display:flex;justify-content:space-between;font-size:0.72rem;font-weight:700;margin-bottom:3px;">
+                            <span style="color:white;">${lbl}</span>
+                            <span style="font-family:'JetBrains Mono';color:var(--role-color);">${me.stats[i]} PTS</span>
+                        </div>
+                        <div style="height:6px;background:rgba(255,255,255,0.07);border-radius:99px;overflow:hidden;">
+                            <div style="height:100%;width:${me.stats[i]}%;background:var(--role-gradient);border-radius:99px;"></div>
+                        </div>
                     </div>
                 `).join('');
 
@@ -2269,42 +2861,29 @@
                     <div style="font-size:0.78rem;color:white;line-height:1.45;">${fitInfo.explanation}</div>
                 </div>
                 <div style="background:rgba(4,6,10,0.75);border:1px solid var(--border-subtle);border-radius:14px;padding:12px 14px;margin-bottom:12px;">
-                    <div style="font-family:'Orbitron';font-size:0.78rem;font-weight:800;color:white;margin-bottom:8px;">Rasgos Específicos Registrados en tu Pizarra Activa</div>
+                    <div style="font-family:'Orbitron';font-size:0.78rem;font-weight:800;color:white;margin-bottom:8px;">Rasgos Específicos Registrados en tu Plantilla Activa</div>
                     ${traitsListHtml}
                 </div>
                 <div style="background:rgba(4,6,10,0.75);border:1px solid var(--border-subtle);border-radius:14px;padding:12px 14px;">
-                    <div style="font-family:'Orbitron';font-size:0.78rem;font-weight:800;color:white;margin-bottom:8px;">Tu Espejo de Atributos Base (${me.name})</div>
-                    ${cfg.statLabels.map((lbl, i) => `
-                        <div style="margin-bottom:7px;">
-                            <div style="display:flex;justify-content:space-between;font-size:0.72rem;font-weight:700;margin-bottom:3px;">
-                                <span style="color:white;">${lbl}</span>
-                                <span style="font-family:'JetBrains Mono';color:var(--role-color);">${me.stats[i]} PTS</span>
-                            </div>
-                            <div style="height:6px;background:rgba(255,255,255,0.07);border-radius:99px;overflow:hidden;">
-                                <div style="height:100%;width:${me.stats[i]}%;background:var(--role-gradient);border-radius:99px;"></div>
-                            </div>
-                        </div>
-                    `).join('')}
+                    <div style="font-family:'Orbitron';font-size:0.78rem;font-weight:800;color:white;margin-bottom:8px;">Tus Atributos Calibrados (${me.name} — ${me.grl || '??'} GRL)</div>
+                    ${myStatsHtml}
                 </div>
             `;
         }
 
         function askCoachAboutCurrentBoard() {
             saveCustomAndShortlistData();
-            const startersTxt = currentBoardSlots.filter(s => s.player).map(s => `${s.pos}: ${s.player.name} (${s.player.grl} GRL - Rasgo: ${s.player.traitNotes || 'Estándar'})`).join('; ');
-            const benchTxt = benchSlots.filter(s => s.player).map(s => s.player.name).join(', ');
-            const shortlistTxt = shortlistPlayers.map(p => `${p.name} (${p.pos}, ${p.grl} GRL - ${p.traitNotes || ''})`).join('; ');
+            const startersTxt = currentBoardSlots.filter(s => s.player).map(s => `${s.pos}: ${s.player.name} (${s.player.grl || '??'} GRL - Rasgo: ${s.player.traitNotes || 'Estándar'})`).join('; ');
+            const benchTxt = benchSlots.filter(s => s.player).map(s => `${s.player.name} (${s.player.pos})`).join(', ');
+            const shortlistTxt = shortlistPlayers.map(p => `${p.name} (${p.pos}, ${p.grl || '??'} GRL - ${p.traitNotes || ''})`).join('; ');
 
-            const q = `🏟️ [Informe Completo de Analizador 3D — ${activeArenaSport}]: Sistema "${currentPresetName}" con Estilo "${currentPlayStyle}". Titulares: ${startersTxt || 'Por asignar'}. Banquillo: ${benchTxt || 'Vacío'}. Cartelera de Fichajes: ${shortlistTxt || 'Ninguno'}. Analiza cómo encajan sus rasgos específicos y qué ajustes tácticos me recomiendas.`;
+            const q = `🏟️ [Informe Completo de Plantilla 3D — ${activeArenaSport}]: Sistema "${currentPresetName}" con Estilo "${currentPlayStyle}". Titulares: ${startersTxt || 'Por asignar'}. Banquillo Oficial: ${benchTxt || 'Vacío'}. Cartelera de Fichajes: ${shortlistTxt || 'Ninguno'}. Analiza cómo encajan sus rasgos específicos y qué ajustes tácticos me recomiendas.`;
 
             localStorage.setItem('kinet_pending_question', q);
             localStorage.setItem('kinet_target_agent', 'tecnico_video');
             window.location.href = `cuerpo-tecnico.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}&agent=tecnico_video`;
         }
 
-        // =========================================================================
-        // EXPORTACIÓN PDF EJECUTIVA PROFESIONAL (TITULARES, BANQUILLO, RESERVA Y CARTELERA)
-        // =========================================================================
         function exportAnalyzerReportPDF() {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -2318,11 +2897,11 @@
             pdf.setTextColor(0, 255, 136);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(13);
-            pdf.text(`KINET OS // DOSSIER EJECUTIVO DE PIZARRA 3D & CARTELERA (${activeArenaSport.toUpperCase()})`, 19, 25);
+            pdf.text(`KINET OS // DOSSIER EJECUTIVO DE PLANTILLA 3D & CARTELERA (${activeArenaSport.toUpperCase()})`, 19, 25);
 
             pdf.setTextColor(203, 213, 225);
             pdf.setFontSize(8.8);
-            pdf.text(`SISTEMA: ${currentPresetName.toUpperCase()}   |   ESTILO: ${fitInfo.styleLabel.toUpperCase()}   |   ENCAJE IA: ${fitInfo.score}%`, 19, 34);
+            pdf.text(`SISTEMA: ${currentPresetName.toUpperCase()}   |   ESTILO: ${fitInfo.styleLabel.toUpperCase()}   |   SINERGIA IA: ${fitInfo.score}%`, 19, 34);
 
             let y = 52;
             pdf.setTextColor(0, 255, 136);
@@ -2334,7 +2913,7 @@
                 pdf.setTextColor(248, 250, 252);
                 pdf.setFont('helvetica', 'bold');
                 pdf.setFontSize(8.8);
-                const pName = s.player ? `${s.player.name} (${s.player.grl} GRL)` : 'Puesto Vacío (+ Asignar)';
+                const pName = s.player ? `${s.player.name} (${s.player.grl || '??'} GRL)` : 'Puesto Vacío (+ Asignar)';
                 const pTrait = s.player && s.player.traitNotes ? ` — ${s.player.traitNotes}` : '';
                 pdf.text(`${idx + 1}. [${s.pos}]  ${pName}${pTrait}`, 18, y);
                 y += 6.5;
@@ -2343,12 +2922,12 @@
             y += 4;
             pdf.setTextColor(0, 255, 136);
             pdf.setFontSize(10.5);
-            pdf.text('2. BANQUILLO DE SUPLENTES Y RESERVA DE CONVOCATORIA', 16, y);
+            pdf.text(`2. BANQUILLO OFICIAL (${benchSlots.length} SUPLENTES) Y RESERVA (${reserveSlots.length} PLAZAS)`, 16, y);
             y += 7;
             pdf.setTextColor(226, 232, 240);
             pdf.setFontSize(8.5);
-            const bNames = benchSlots.map(b => `${b.pos}: ${b.player ? b.player.name + ' (' + b.player.grl + ')' : 'Vacío'}`).join('   |   ');
-            const rNames = reserveSlots.map(r => `${r.pos}: ${r.player ? r.player.name + ' (' + r.player.grl + ')' : 'Vacío'}`).join('   |   ');
+            const bNames = benchSlots.map(b => `${b.pos}: ${b.player ? b.player.name + ' (' + (b.player.grl || '??') + ')' : 'Vacío'}`).join('   |   ');
+            const rNames = reserveSlots.map(r => `${r.pos}: ${r.player ? r.player.name + ' (' + (r.player.grl || '??') + ')' : 'Vacío'}`).join('   |   ');
             pdf.text(pdf.splitTextToSize(`Banquillo: ${bNames}`, 176), 18, y);
             y += 10;
             pdf.text(pdf.splitTextToSize(`Reserva: ${rNames}`, 176), 18, y);
@@ -2363,11 +2942,11 @@
                 pdf.setFontSize(8.5);
                 pdf.text('Sin jugadores en Cartelera actualmente.', 18, y);
             } else {
-                shortlistPlayers.slice(0, 5).forEach((sp, i) => {
+                shortlistPlayers.slice(0, 6).forEach((sp, i) => {
                     const fit = calculateCandidateFitWithSquad(sp);
                     pdf.setTextColor(248, 250, 252);
                     pdf.setFontSize(8.5);
-                    pdf.text(`${i + 1}. ${sp.name} [${sp.pos} • ${sp.grl} GRL] — Encaje IA: ${fit.fitScore}% (${fit.reason})`, 18, y);
+                    pdf.text(`${i + 1}. ${sp.name} [${sp.pos} • ${sp.grl || '??'} GRL] — Encaje IA: ${fit.fitScore || '--'}% (${fit.reason})`, 18, y);
                     y += 6.5;
                 });
             }
@@ -2375,7 +2954,7 @@
             pdf.setTextColor(148, 163, 184);
             pdf.setFontSize(8);
             pdf.text('Dossier táctico ejecutivo generado por KINET Squad & 1vs1 Analyzer 3D • jkinetos.es', 14, 286);
-            pdf.save(`Dossier_Tactico_KINET_${activeArenaSport}.pdf`);
+            pdf.save(`Dossier_Plantilla_3D_KINET_${activeArenaSport}.pdf`);
         }
     </script>
 </body>
