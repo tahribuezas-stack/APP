@@ -263,19 +263,46 @@
       if (!document.getElementById('kinet-global-sidebar-v5-style')) {
         const style = document.createElement('style');
         style.id = 'kinet-global-sidebar-v5-style';
-        style.textContent = `
-          /* Centrar verticalmente las opciones de navegación del menú lateral en todas las páginas */
+       style.textContent = `
+          /* Centrar verticalmente la navegación y forzar TAMAÑO IDÉNTICO (44px) entre opciones del medio y de abajo */
+          .os-sidebar .sidebar-top-section {
+            display: flex !important;
+            flex-direction: column !important;
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+          }
           aside.sidebar nav,
+          .os-sidebar .sidebar-nav,
           .sidebar-nav,
-          .nav-links,
-          aside nav.flex-1 {
+          .nav-links {
             display: flex !important;
             flex-direction: column !important;
             justify-content: center !important;
             flex: 1 1 auto !important;
-            gap: 6px !important;
-            padding-top: 12px !important;
-            padding-bottom: 12px !important;
+            gap: 8px !important;
+            padding: 8px 0 !important;
+          }
+          .os-sidebar .sidebar-bottom-section,
+          .sidebar-bottom-section {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 8px !important;
+            padding-top: 10px !important;
+            flex-shrink: 0 !important;
+          }
+          .os-sidebar .side-link,
+          .sidebar-nav .side-link,
+          .sidebar-bottom-section .side-link {
+            height: 44px !important;
+            min-height: 44px !important;
+            max-height: 44px !important;
+            width: 100% !important;
+            padding: 10px 14px !important;
+            font-size: 0.83rem !important;
+            border-radius: 14px !important;
+            margin-bottom: 0 !important;
+            flex-shrink: 0 !important;
+            box-sizing: border-box !important;
           }
           .kinet-dm-unread-badge {
             display: inline-flex;
