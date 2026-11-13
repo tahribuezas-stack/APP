@@ -370,7 +370,7 @@
           content: postObj.text,
           badge: postObj.badge || 'KINET PULSE',
           reel_data: postObj.reelData || null,
-          likes_count: postObj.likes || 1
+          likes_count: typeof postObj.likes === 'number' ? postObj.likes : 0
         };
 
         const data = await supabaseRestRequest('posts', 'POST', insertPayload, false);
@@ -386,6 +386,19 @@
         return Array.isArray(data) ? data : [];
       } catch (err) {
         return [];
+      }
+    },
+
+    async updateCloudPostLikes(sbPostId, newLikesCount) {
+      try {
+        const cleanId = String(sbPostId || '').replace(/^sb_/, '');
+        if (!cleanId || cleanId.startsWith('u_') || cleanId.startsWith('kinet_')) return { ok: false };
+        await supabaseRestRequest(`posts?id=eq.${encodeURIComponent(cleanId)}`, 'PATCH', {
+          likes_count: Math.max(0, newLikesCount)
+        }, false);
+        return { ok: true };
+      } catch (err) {
+        return { ok: false, error: err };
       }
     },
 
