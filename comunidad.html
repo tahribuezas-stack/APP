@@ -1000,6 +1000,176 @@
             box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
         }
 
+        
+        /* =========================================================================
+           AJUSTE TOTAL RESPONSIVE VERTICAL (MÓVIL < 780px): CERO TEXTOS CORTADOS NI DESBORDES
+           ========================================================================= */
+        .chat-bubble-meta {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            margin-top: 3px;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 0.62rem !important;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.52) !important;
+            letter-spacing: 0.01em;
+        }
+
+        @media (max-width: 780px) {
+            html, body {
+                overflow-x: hidden !important;
+                max-width: 100vw !important;
+            }
+            .os-topbar {
+                padding: 10px 12px !important;
+                gap: 6px !important;
+                flex-wrap: wrap !important;
+            }
+            .topbar-actions {
+                gap: 5px !important;
+            }
+            .topbar-actions .btn-secondary {
+                padding: 5px 8px !important;
+                font-size: 0.6rem !important;
+            }
+            .active-role-indicator {
+                padding: 4px 8px !important;
+            }
+            .active-role-text {
+                font-size: 0.56rem !important;
+                max-width: 85px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .os-workspace {
+                padding: 10px 10px 150px 10px !important;
+                overflow-x: hidden !important;
+            }
+            .context-header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 8px !important;
+            }
+            .context-title {
+                font-size: 1.2rem !important;
+                line-height: 1.2 !important;
+            }
+            .header-badges-group {
+                width: 100% !important;
+                justify-content: space-between !important;
+            }
+            .verified-badge {
+                font-size: 0.56rem !important;
+                padding: 5px 8px !important;
+                max-width: 100%;
+                white-space: normal !important;
+            }
+            .kinet-tabs-row {
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 4px !important;
+            }
+            .mode-tab-btn {
+                padding: 8px 4px !important;
+                font-size: 0.66rem !important;
+                gap: 4px !important;
+            }
+            .panel-head {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 8px !important;
+            }
+            .feed-algo-pills {
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                width: 100% !important;
+            }
+            .feed-algo-btn {
+                padding: 6px 4px !important;
+                font-size: 0.58rem !important;
+                text-align: center !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+            .kinet-composer-trigger-card {
+                padding: 10px !important;
+            }
+            .kinet-composer-pill-btn {
+                padding: 9px 12px !important;
+                font-size: 0.72rem !important;
+            }
+            .kinet-composer-pill-btn span:first-child {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 185px;
+            }
+            .kinet-composer-quick-actions {
+                grid-template-columns: 1fr !important;
+                gap: 6px !important;
+            }
+            .kinet-composer-quick-btn {
+                width: 100% !important;
+                padding: 8px 10px !important;
+                font-size: 0.66rem !important;
+            }
+            .social-post-card {
+                padding: 12px !important;
+                overflow-wrap: break-word !important;
+                word-break: break-word !important;
+            }
+            .post-actions-row {
+                gap: 5px !important;
+            }
+            .social-action-btn {
+                font-size: 0.62rem !important;
+                padding: 5px 9px !important;
+            }
+            /* Reproductor vertical Shorts en móvil */
+            .kinet-short-player-card {
+                height: 470px !important;
+                min-height: 470px !important;
+                max-width: 100% !important;
+                padding: 12px !important;
+            }
+            .reel-center-visual {
+                padding: 0 44px 0 4px !important;
+            }
+            /* Modales en móvil vertical: caben enteros con scroll limpio y todas las opciones visibles */
+            .kinet-modal-overlay {
+                padding: 8px !important;
+                align-items: flex-end !important;
+            }
+            .kinet-modal-box {
+                padding: 15px !important;
+                max-height: 88dvh !important;
+                border-radius: 20px 20px 14px 14px !important;
+                gap: 10px !important;
+            }
+            .ig-direct-modal-box {
+                width: 100% !important;
+                height: 86dvh !important;
+                max-height: 86dvh !important;
+                border-radius: 18px !important;
+            }
+            .ig-right-chat {
+                padding: 12px !important;
+            }
+            .chat-bubble {
+                max-width: 88% !important;
+                font-size: 0.76rem !important;
+                word-break: break-word !important;
+            }
+            /* Desplegables custom en móvil sin salirse de pantalla */
+            .kinet-custom-dd-menu {
+                left: 0 !important;
+                right: 0 !important;
+                min-width: 100% !important;
+            }
+        }
+
         /* BOTÓN DE FOLLOW / SEGUIR ESTILO INSTAGRAM */
         .kinet-follow-btn {
             background: rgba(var(--role-rgb), 0.14);
@@ -4051,15 +4221,26 @@
             document.getElementById('social-setup-modal').classList.remove('open');
         }
 
-        function handleSetupAvatarUpload(input) {
+        async function handleSetupAvatarUpload(input) {
             if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            if (window.KinetBackend && typeof window.KinetBackend.compressAvatar === 'function') {
+                const compressedUrl = await window.KinetBackend.compressAvatar(file);
+                if (compressedUrl) {
+                    localStorage.setItem('kinet_user_avatar', compressedUrl);
+                    refreshMySocialCardUI();
+                    filterSocialFeed();
+                    window.KinetBackend.pushLocalStateToCloud();
+                    return;
+                }
+            }
             const reader = new FileReader();
             reader.onload = function(e) {
                 localStorage.setItem('kinet_user_avatar', e.target.result);
                 refreshMySocialCardUI();
                 filterSocialFeed();
             };
-            reader.readAsDataURL(input.files[0]);
+            reader.readAsDataURL(file);
         }
 
         function saveSocialProfileSetup() {
@@ -4165,6 +4346,7 @@
                     const avUrl = getAvatarForHandle(u.handle, u.avatarUrl);
                     const avStyle = buildAvatarStyle(avUrl, borderCol);
                     const tickPrefix = lastMsgObj && lastMsgObj.from === 'outgoing' ? 'Tú: ' : '';
+
                     return `
                         <div class="dm-contact-item ${isActive ? 'active-chat' : ''}" onclick="${clickHandlerName}('${u.name}', '${u.initials}', '${u.handle}')">
                             <div style="display:flex;align-items:center;gap:10px;min-width:0;">
@@ -4260,7 +4442,7 @@
             renderModalLeftList();
         }
 
-       function selectConversationAllViews(contactName, initials, handle) {
+        function selectConversationAllViews(contactName, initials, handle) {
             const person = findDirectoryPerson(contactName, initials, handle);
             currentDmContact = person.name;
             person.unread = false;
@@ -4362,25 +4544,23 @@
                 return;
             }
 
-            // Burbujas limpias SIN tics (✓ ni ✓✓), solo con la hora relativa
+            // Burbujas minimalistas: solo el texto y la hora en pequeño abajo a la derecha (ej: 00:25), sin "Enviado hace..." ni tics
             let html = msgs.map((m) => {
-                const isOut = m.from === 'outgoing';
                 const animClass = m._justSent ? 'anim-send' : (m._justReceived ? 'anim-receive' : '');
                 const timeClock = formatClockTime(m.ts);
-                const relSent = formatRelativeTimeIG(m.ts, isOut ? 'Enviado' : 'Recibido');
 
                 return `
                     <div class="chat-bubble ${m.from} ${animClass}">
                         <div>${m.text}</div>
                         <div class="chat-bubble-meta">
-                            <span>${relSent} (${timeClock})</span>
+                            <span>${timeClock}</span>
                         </div>
                     </div>
                 `;
             }).join('');
 
             // Etiqueta inferior estilo Instagram Direct:
-            // Solo muestra "👁️ Visto..." cuando la otra persona realmente ha abierto el chat (status === 'read')
+            // Solo muestra "👁️ Visto..." cuando la otra persona realmente ha abierto el chat en su cuenta
             const lastMsg = msgs[msgs.length - 1];
             if (lastMsg && lastMsg.from === 'outgoing' && showReadReceipts) {
                 const seenText = lastMsg.status === 'read'
@@ -4421,8 +4601,6 @@
             const targetPerson = findDirectoryPerson(currentDmContact);
             const isBotSupport = targetPerson && targetPerson.handle === '@kinet_support';
 
-            // Al enviar a un usuario real, se queda en 'sent' ("Enviado hace un momento")
-            // y NUNCA cambia a 'read' hasta que la otra persona abra el chat desde su cuenta.
             const msgObj = {
                 from: 'outgoing',
                 text: txt,
@@ -4447,7 +4625,6 @@
             renderInlineDirectLeftList();
             renderSidebarDmAndFriends();
 
-            // Solo el bot oficial de Soporte marca como visto automáticamente al responderte
             if (isBotSupport) {
                 setTimeout(() => {
                     msgObj.status = 'read';
@@ -4466,6 +4643,7 @@
                 }, 1100);
             }
         }
+
         function sendDirectMessage() {
             const input = document.getElementById('dm-message-input');
             const txt = input.value.trim();
@@ -4514,7 +4692,13 @@
                         const profAvatar = prof.avatar_url || (prof.user_state && prof.user_state.kinet_user_avatar) || null;
                         if (profAvatar) registerHandleAvatar(h, profAvatar);
 
-                        if (h.toLowerCase() === myHandle) return;
+                        if (h.toLowerCase() === myHandle) {
+                            // Unificar mi propia foto de perfil entre móvil y PC si la nube tiene una guardada
+                            if (profAvatar && !localStorage.getItem('kinet_user_avatar')) {
+                                localStorage.setItem('kinet_user_avatar', profAvatar);
+                            }
+                            return;
+                        }
 
                         const fullName = prof.full_name || 'Atleta KINET';
                         const parts = fullName.trim().split(/\s+/);
@@ -4567,7 +4751,7 @@
                     });
                 }
 
-            // 2. Cargar publicaciones reales de public.posts (filtrando el antiguo post de prueba)
+                // 2. Cargar publicaciones reales de public.posts (filtrando el antiguo post de prueba)
                 const cloudPosts = await window.KinetBackend.fetchCloudPosts();
                 if (cloudPosts && cloudPosts.length > 0) {
                     cloudPosts.reverse().forEach(cp => {
@@ -4611,7 +4795,7 @@
                     const { data: cloudDms } = await sb
                         .from('direct_messages')
                         .select('*')
-                        .or(`sender_handle.eq.${myHandle},receiver_handle.eq.${myHandle}`)
+                        .or(`sender_handle.ilike.${myHandle},receiver_handle.ilike.${myHandle}`)
                         .order('created_at', { ascending: true })
                         .limit(100);
 
@@ -4647,7 +4831,6 @@
                             }
                         });
 
-                        // Si estás viendo este chat ahora mismo, marcar como leídos los mensajes que la otra persona te envió
                         const activePerson = findDirectoryPerson(currentDmContact);
                         if (activePerson && activePerson.handle && window.KinetBackend?.markDirectMessagesAsRead) {
                             window.KinetBackend.markDirectMessagesAsRead(activePerson.handle);
