@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
-    <title>KINET OS // Ojeador Live & Vision Analytics™</title>
+    <title>KINET OS // KINET Vision Lab™ (Análisis de Vídeo 24-30 FPS)</title>
     
     <!-- Favicon Corporativo Dinámico por JavaScript -->
     <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
@@ -14,8 +14,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     
-    <!-- Librería Oficial para Exportación Real de Informes de Scouting y Biomecánica en PDF -->
+    <!-- Librería Oficial para Exportación Real de Informes de Vídeo en PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- SDK Oficial de Supabase + Motor Central KINET Backend + Config APIs -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="kinet-backend.js"></script>
+    <script src="kinet-api-config.js"></script>
 
     <style>
         :root {
@@ -80,7 +84,6 @@
             transition: background-image 0.4s ease;
         }
 
-        /* LAYOUT PRINCIPAL A PANTALLA COMPLETA */
         .os-layout {
             display: grid;
             grid-template-columns: 270px 1fr;
@@ -101,7 +104,7 @@
             .os-workspace { overflow: visible !important; height: auto !important; padding: 14px 14px 40px 14px !important; justify-content: flex-start !important; }
         }
 
-        /* SIDEBAR FIJO ESTRICTO (ESCRITORIO) */
+        /* SIDEBAR FIJO CON NAVEGACIÓN CENTRADA VERTICALMENTE */
         .os-sidebar {
             background: rgba(8, 11, 18, 0.95);
             backdrop-filter: blur(24px);
@@ -126,6 +129,7 @@
             border-radius: 14px;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             margin-bottom: 6px;
+            flex-shrink: 0;
         }
 
         .brand-box:hover {
@@ -169,8 +173,28 @@
             transition: color 0.4s ease;
         }
 
-        .sidebar-top-section { display: flex; flex-direction: column; }
-        .sidebar-bottom-section { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border-subtle); }
+        .sidebar-top-section {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            flex: 1 1 auto;
+            gap: 7px;
+            padding: 10px 0;
+        }
+        .sidebar-bottom-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-subtle);
+            flex-shrink: 0;
+        }
 
         .side-link {
             display: flex;
@@ -182,9 +206,9 @@
             border: 1px solid var(--border-subtle);
             color: var(--text-secondary);
             font-family: 'Inter', sans-serif;
-            font-size: 0.83rem;
+            font-size: 0.81rem;
             font-weight: 600;
-            height: 44px; 
+            height: 42px; 
             cursor: pointer;
             text-decoration: none;
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -192,7 +216,7 @@
             overflow: hidden;
         }
 
-        .side-link-left { display: flex; align-items: center; gap: 12px; z-index: 1; }
+        .side-link-left { display: flex; align-items: center; gap: 11px; z-index: 1; }
 
         .side-link::before {
             content: '';
@@ -291,18 +315,14 @@
             text-transform: uppercase;
         }
 
-        /* =========================================================================
-           WORKSPACE CENTRADO VERTICALMENTE IGUAL QUE VESTUARIO Y MEDIA STUDIO
-           ========================================================================= */
         .os-workspace {
             max-width: 1280px;
             width: 100%;
             margin: 0 auto;
-            padding: 18px 24px;
+            padding: 16px 24px 28px 24px;
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             overflow-y: auto;
             animation: pageEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -323,10 +343,10 @@
 
         .context-tag {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             color: var(--role-color);
             text-transform: uppercase;
-            letter-spacing: 0.18em;
+            letter-spacing: 0.14em;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -335,19 +355,19 @@
 
         .context-title {
             font-family: 'Orbitron', sans-serif;
-            font-size: clamp(1.3rem, 2.2vw, 1.9rem);
+            font-size: clamp(1.25rem, 2.1vw, 1.8rem);
             font-weight: 900;
             letter-spacing: -0.02em;
             color: white;
         }
 
-        .header-badges-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .header-badges-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
         .verified-badge {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.68rem;
+            font-size: 0.65rem;
             font-weight: 700;
-            padding: 6px 12px;
+            padding: 6px 11px;
             border-radius: 10px;
             background: rgba(var(--role-rgb), 0.12);
             border: 1px solid rgba(var(--role-rgb), 0.38);
@@ -381,14 +401,14 @@
             position: relative;
             overflow: hidden;
             box-shadow: 0 12px 30px rgba(0,0,0,0.4);
-            transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
         .kinet-panel::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: radial-gradient(220px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(var(--role-rgb), 0.18), transparent 70%);
+            background: radial-gradient(220px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(var(--role-rgb), 0.16), transparent 70%);
             opacity: 0;
             transition: opacity 0.2s ease;
             pointer-events: none;
@@ -398,9 +418,7 @@
         .kinet-panel > * { position: relative; z-index: 1; }
         .kinet-panel:hover::before { opacity: 1; }
         .kinet-panel:hover {
-            border-color: rgba(var(--role-rgb), 0.48);
-            transform: translateY(-2px);
-            box-shadow: 0 16px 36px rgba(0,0,0,0.6), 0 0 22px rgba(var(--role-rgb), 0.14);
+            border-color: rgba(var(--role-rgb), 0.45);
         }
 
         .panel-head {
@@ -414,10 +432,11 @@
 
         .panel-label {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.68rem;
+            font-size: 0.66rem;
             color: var(--text-secondary);
-            letter-spacing: 0.14em;
+            letter-spacing: 0.12em;
             text-transform: uppercase;
+            font-weight: 700;
         }
 
         .btn-primary {
@@ -425,11 +444,11 @@
             color: #04060A;
             border: none;
             border-radius: 12px;
-            padding: 11px 18px;
+            padding: 10px 16px;
             font-family: 'Orbitron', sans-serif;
             font-weight: 800;
-            font-size: 0.74rem;
-            letter-spacing: 0.08em;
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
@@ -441,8 +460,8 @@
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 0 26px var(--role-glow);
+            transform: translateY(-2px);
+            box-shadow: 0 0 24px var(--role-glow);
             filter: brightness(1.08);
         }
 
@@ -451,65 +470,107 @@
             color: white;
             border: 1px solid var(--border-subtle);
             border-radius: 12px;
-            padding: 10px 16px;
+            padding: 9px 14px;
             font-family: 'Orbitron', sans-serif;
             font-weight: 700;
-            font-size: 0.72rem;
-            letter-spacing: 0.06em;
+            font-size: 0.68rem;
+            letter-spacing: 0.05em;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
             text-decoration: none;
-            transition: all 0.25s ease;
+            transition: all 0.22s ease;
         }
         .btn-secondary:hover {
             border-color: rgba(var(--role-rgb), 0.45);
             background: rgba(var(--role-rgb), 0.08);
-            transform: translateY(-1px);
         }
 
-        /* BARRA DE FILTROS SCOUT MATRIX */
-        .scout-filter-bar {
+        /* TARJETAS DE BLOQUES TÁCTICOS DE VÍDEO (3-5 MIN A 24-30 FPS) */
+        .video-blocks-grid {
             display: grid;
-            grid-template-columns: 1fr auto auto auto;
+            grid-template-columns: repeat(2, 1fr);
             gap: 10px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
-        @media (max-width: 768px) {
-            .scout-filter-bar { grid-template-columns: 1fr 1fr; }
-            .scout-filter-bar input { grid-column: span 2; }
+        @media (max-width: 680px) {
+            .video-blocks-grid { grid-template-columns: 1fr; }
         }
-        .kinet-input, .kinet-select {
-            background: rgba(4, 6, 10, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            border-radius: 12px;
-            padding: 9px 14px;
-            color: white;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.82rem;
-            outline: none;
-            transition: border-color 0.2s;
+        .tactical-block-card {
+            background: rgba(6, 9, 16, 0.85);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            padding: 11px 13px;
+            cursor: pointer;
+            transition: all 0.22s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 6px;
         }
-        .kinet-input:focus, .kinet-select:focus {
+        .tactical-block-card:hover {
+            border-color: rgba(var(--role-rgb), 0.5);
+            background: rgba(var(--role-rgb), 0.06);
+        }
+        .tactical-block-card.selected {
             border-color: var(--role-color);
-            box-shadow: 0 0 12px rgba(var(--role-rgb), 0.18);
+            background: rgba(var(--role-rgb), 0.14);
+            box-shadow: 0 0 18px rgba(var(--role-rgb), 0.16);
+        }
+        .tactical-block-card.uploaded {
+            border-left: 3px solid var(--role-color);
+        }
+        .block-badge-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.58rem;
+            color: var(--role-color);
+            font-weight: 700;
+        }
+        .block-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.76rem;
+            font-weight: 800;
+            color: white;
+            line-height: 1.3;
+        }
+        .block-desc {
+            font-size: 0.68rem;
+            color: #94A3B8;
+            line-height: 1.35;
         }
 
-        /* VISOR VISION ANALYTICS */
+        /* VISOR VISION ANALYTICS (CON SOPORTE DE VÍDEO REAL 30 FPS) */
         .vision-hud-viewport {
             background: radial-gradient(circle at 50% 40%, rgba(var(--role-rgb), 0.14), rgba(4, 6, 10, 0.96));
             border: 1px solid rgba(var(--role-rgb), 0.38);
             border-radius: 16px;
-            padding: 16px;
-            min-height: 195px;
+            padding: 14px;
+            min-height: 210px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             position: relative;
             overflow: hidden;
             margin-bottom: 12px;
+        }
+        .vision-video-player {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.42;
+            z-index: 0;
+            display: none;
+        }
+        .vision-hud-viewport > *:not(.vision-video-player) {
+            position: relative;
+            z-index: 2;
         }
         .vision-scanline {
             position: absolute;
@@ -519,6 +580,7 @@
             box-shadow: 0 0 14px var(--role-color);
             animation: scanMove 3.2s ease-in-out infinite alternate;
             pointer-events: none;
+            z-index: 3;
         }
         @keyframes scanMove { from { top: 10%; } to { top: 88%; } }
 
@@ -535,8 +597,8 @@
             border-radius: 12px;
             padding: 9px 10px;
         }
-        .t-pill span { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: var(--text-secondary); display: block; }
-        .t-pill strong { font-family: 'Orbitron', sans-serif; font-size: 0.95rem; color: white; margin-top: 2px; display: block; }
+        .t-pill span { font-family: 'JetBrains Mono', monospace; font-size: 0.56rem; color: var(--text-secondary); display: block; }
+        .t-pill strong { font-family: 'Orbitron', sans-serif; font-size: 0.88rem; color: white; margin-top: 3px; display: block; }
 
         /* BARRA DE CUOTA MENSUAL DE VÍDEO IA */
         .quota-bar-box {
@@ -551,7 +613,7 @@
             justify-content: space-between;
             align-items: center;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.65rem;
+            font-size: 0.63rem;
             margin-bottom: 5px;
         }
         .quota-track {
@@ -567,8 +629,8 @@
             transition: width 0.4s ease;
         }
 
-        /* TABLA DE JUGADORES EN CARTERA */
-        .scout-player-row {
+        /* HISTORIAL DE CLIPS ANALIZADOS Y ESTADÍSTICAS DEL VÍDEO */
+        .clip-history-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -582,19 +644,33 @@
             transition: 0.2s;
             gap: 10px;
         }
-        .scout-player-row:hover {
+        .clip-history-item:hover {
             background: rgba(var(--role-rgb), 0.08);
             transform: translateX(3px);
         }
-        .scout-grl-badge {
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 900;
-            font-size: 0.9rem;
-            background: rgba(var(--role-rgb), 0.16);
-            border: 1px solid var(--role-color);
-            color: var(--role-color);
-            padding: 6px 10px;
-            border-radius: 10px;
+
+        .stat-bar-row {
+            margin-bottom: 9px;
+        }
+        .stat-bar-head {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #E2E8F0;
+            margin-bottom: 4px;
+        }
+        .stat-bar-track {
+            height: 7px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+        .stat-bar-fill {
+            height: 100%;
+            background: var(--role-gradient);
+            border-radius: 99px;
+            transition: width 0.45s ease;
         }
 
         /* MODALES KINET CENTRALES */
@@ -658,16 +734,15 @@
 
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
-    <script src="kinet-backend.js"></script>
 </head>
 <body data-role="athlete">
 
-    <!-- INPUT OCULTO PARA SUBIR CLIP REAL A VISION ANALYTICS -->
+    <!-- INPUT OCULTO PARA SUBIR CLIP REAL A VISION LAB (NORMALIZADO A 24-30 FPS) -->
     <input type="file" id="hidden-vision-file-input" accept="video/*" style="display:none;" onchange="handleVisionClipFileSelected(this)">
 
     <div class="os-layout">
         
-        <!-- SIDEBAR FIJO -->
+        <!-- SIDEBAR FIJO CON NAVEGACIÓN CENTRADA VERTICALMENTE + ANALIZADOR 3D -->
         <aside class="os-sidebar">
             <div class="sidebar-top-section">
                 <a href="app.html" id="brand-logo-desktop" class="brand-box">
@@ -679,23 +754,27 @@
                 </a>
 
                 <nav class="sidebar-nav">
-                    <a href="app.html" id="nav-vestuario" class="side-link" style="margin-bottom: 8px;">
+                    <a href="app.html" id="nav-vestuario" class="side-link">
                         <span class="side-link-left"><span>⚡</span> <span>Vestuario</span></span>
                         <span style="font-size:0.65rem;font-family:'JetBrains Mono';">HOY</span>
                     </a>
-                    <a href="cuerpo-tecnico.html" id="nav-cuerpo-tecnico" class="side-link" style="margin-bottom: 8px;">
+                    <a href="cuerpo-tecnico.html" id="nav-cuerpo-tecnico" class="side-link">
                         <span class="side-link-left"><span>🧠</span> <span>Cuerpo Técnico IA</span></span>
                         <span style="font-size:0.7rem;opacity:0.5;">→</span>
                     </a>
-                    <a href="ficha-pro.html" id="nav-ficha-pro" class="side-link" style="margin-bottom: 8px;">
+                    <a href="ficha-pro.html" id="nav-ficha-pro" class="side-link">
                         <span class="side-link-left"><span>🎴</span> <span>Ficha & KINET Card</span></span>
                         <span style="font-size:0.7rem;opacity:0.5;">→</span>
                     </a>
-                    <a href="ojeador-live.html" id="nav-ojeador-live" class="side-link active" style="margin-bottom: 8px;">
-                        <span class="side-link-left"><span>📡</span> <span>Ojeador & Laboratorio</span></span>
+                    <a href="ojeador-live.html" id="nav-ojeador-live" class="side-link active">
+                        <span class="side-link-left"><span>🎬</span> <span>Laboratorio Vídeo</span></span>
                         <span style="font-size:0.7rem;color:var(--role-color);">●</span>
                     </a>
-                    <a href="comunidad.html" id="nav-comunidad" class="side-link" style="margin-bottom: 8px;">
+                    <a href="analizador.html" id="nav-analizador" class="side-link">
+                        <span class="side-link-left"><span>🏟️</span> <span>Analizador & Pizarra 3D</span></span>
+                        <span style="font-size:0.7rem;opacity:0.5;">→</span>
+                    </a>
+                    <a href="comunidad.html" id="nav-comunidad" class="side-link">
                         <span class="side-link-left"><span>🌐</span> <span>Comunidad / Red Social</span></span>
                         <span style="font-size:0.7rem;opacity:0.5;">→</span>
                     </a>
@@ -706,14 +785,14 @@
                 </nav>
             </div>
 
-            <!-- BLOQUE INFERIOR SIDEBAR (IDÉNTICO A VESTUARIO, KINET CARD Y MEDIA STUDIO) -->
+            <!-- BLOQUE INFERIOR SIDEBAR -->
             <div class="sidebar-bottom-section">
                 <div class="sidebar-ai-tip-box" id="sidebar-dynamic-tip">
                     <div class="sidebar-ai-tip-header">
-                        <span>💡</span> <span id="tip-title">Radar Live // Vision IA</span>
+                        <span>💡</span> <span id="tip-title">Vision Lab // 24-30 FPS</span>
                     </div>
                     <div class="sidebar-ai-tip-text" id="tip-content">
-                        Filtra deportistas por percentiles verificados y escanea su biomecánica a 120 FPS.
+                        Sube 3 bloques de 3 a 5 min por fase de juego en vez de partidos enteros para máxima precisión IA.
                     </div>
                 </div>
 
@@ -725,12 +804,10 @@
                     <span class="side-link-left"><span>⚙️</span> <span>Despacho & Ajustes</span></span>
                     <span style="font-size:0.7rem;opacity:0.5;">→</span>
                 </a>
-                <!-- SE OCULTA AUTOMÁTICAMENTE SI LA RED SOCIAL YA FUE CONFIGURADA -->
                 <a href="comunidad.html?setup=true" id="nav-config-social" class="side-link" style="border-color: rgba(var(--role-rgb), 0.3); background: rgba(var(--role-rgb), 0.05);">
                     <span class="side-link-left"><span>🌐</span> <span>Config. Red Social</span></span>
                     <span style="font-size:0.7rem;color:var(--role-color);">⚡</span>
                 </a>
-                <!-- SE OCULTA POR COMPLETO SI YA ERES PRO O CLUB -->
                 <a href="despacho.html?tab=subscription" id="nav-upgrade-pro" class="side-link" style="background: var(--role-gradient); color: #04060A; font-weight: 900; border: none;">
                     <span class="side-link-left"><span>⚡</span> <span>Pásate a KINET PRO</span></span>
                     <span style="font-size:0.7rem;">→</span>
@@ -749,11 +826,12 @@
                 </a>
 
                 <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-secondary);display:flex;align-items:center;gap:10px;">
-                    <span>OJEADOR & LABORATORIO IA</span>
+                    <span>KINET VISION LAB™ (ANÁLISIS DE VÍDEO 24-30 FPS POR BLOQUES)</span>
                     <span style="color:var(--role-color);font-weight:700;" id="topbar-sport-tag">● FÚTBOL</span>
                 </div>
 
                 <div class="topbar-actions">
+                    <a href="analizador.html" id="topbar-analyzer-btn" class="btn-secondary" style="padding:6px 11px;font-size:0.62rem;">🏟️ Ir a Analizador & Pizarra 3D →</a>
                     <div class="active-role-indicator">
                         <span class="dot"></span>
                         <span class="active-role-text" id="topbar-role-title">ATLETA PRO</span>
@@ -761,119 +839,126 @@
                 </div>
             </header>
 
-            <!-- WORKSPACE CENTRADO VERTICALMENTE EN LA PANTALLA -->
+            <!-- WORKSPACE -->
             <main class="os-workspace">
                 <div class="context-header">
                     <div>
                         <span class="context-tag">
-                            <span id="header-tag-icon">📡</span> 
-                            <span id="header-tag-text">SCOUT MATRIX B2B & KINET VISION ANALYTICS™ • FÚTBOL</span>
+                            <span>🎬</span> 
+                            <span id="header-tag-text">KINET VISION LAB™ • ANÁLISIS DE CLIPS Y BLOQUES TÁCTICOS A 24-30 FPS • FÚTBOL</span>
                         </span>
-                        <h1 class="context-title" id="header-main-title">Ojeador Live & Laboratorio de Vídeo IA</h1>
+                        <h1 class="context-title" id="header-main-title">Laboratorio de Vídeo & Estadísticas de Partido</h1>
                     </div>
                     <div class="header-badges-group">
-                        <div class="verified-badge" id="video-quota-pill">🎥 CUOTA VÍDEO IA: 45 / 60 MIN DISP.</div>
+                        <div class="verified-badge" id="video-quota-pill">🎥 CUOTA VÍDEO IA: 60 / 60 MIN DISP.</div>
                         <button class="btn-secondary" style="padding:6px 12px;font-size:0.65rem;" onclick="openBonusPackModal()">➕ Bono Minutos Extra</button>
                     </div>
                 </div>
 
-                <!-- BARRA DE FILTROS DE SCOUT MATRIX -->
-                <div class="scout-filter-bar">
-                    <input type="text" id="scout-search-input" class="kinet-input" placeholder="🔍 Buscar deportista, posición o club..." oninput="filterScoutList()">
-                    <select id="scout-grl-filter" class="kinet-select" onchange="filterScoutList()">
-                        <option value="0">GRL Mínimo: Todos</option>
-                        <option value="85">GRL 85+ (Semipro)</option>
-                        <option value="90">GRL 90+ (Élite Top 5%)</option>
-                    </select>
-                    <select id="scout-verified-filter" class="kinet-select" onchange="filterScoutList()">
-                        <option value="all">✓ Solo AI Verified</option>
-                        <option value="all">Todos los Perfiles</option>
-                    </select>
-                    <button class="btn-secondary" onclick="exportScoutReportPDF()">📄 Exportar Radar PDF</button>
-                </div>
-
                 <div class="bento-grid">
-                    <!-- COLUMNA IZQUIERDA (7 COL): LABORATORIO KINET VISION ANALYTICS -->
+                    <!-- COLUMNA IZQUIERDA (7 COL): SELECTOR DE BLOQUES TÁCTICOS + VISOR DE VÍDEO 24-30 FPS -->
                     <div class="col-7">
                         <div class="kinet-panel" style="height:100%; display:flex; flex-direction:column; justify-content:space-between;">
                             <div>
                                 <div class="panel-head">
-                                    <span class="panel-label">LABORATORIO KINET VISION ANALYTICS™</span>
-                                    <span class="verified-badge" id="vision-active-subject">OBJETIVO: LUCAS VANCE</span>
+                                    <span class="panel-label">1. SELECCIONA EL BLOQUE DE VÍDEO A ANALIZAR (NORMALIZADO A 24-30 FPS)</span>
+                                    <span class="verified-badge" id="vision-active-subject">BLOQUE ACTIVO: FASE OFENSIVA</span>
                                 </div>
 
                                 <!-- BARRA DE CUOTA DE USO DE VÍDEO IA -->
                                 <div class="quota-bar-box">
                                     <div class="quota-meta">
-                                        <span style="color:#E2E8F0;">CUOTA MENSUAL MOTOR VÍDEO (120 FPS)</span>
-                                        <span id="quota-meta-right" style="color:var(--role-color);">45 MIN DISPONIBLES</span>
+                                        <span style="color:#E2E8F0;">MOTOR KINET VISION LAB™ (COMPRESIÓN AUTOMÁTICA 24-30 FPS)</span>
+                                        <span id="quota-meta-right" style="color:var(--role-color);">60 MIN DISPONIBLES</span>
                                     </div>
                                     <div class="quota-track">
-                                        <div class="quota-fill" id="quota-fill-bar" style="width:75%"></div>
+                                        <div class="quota-fill" id="quota-fill-bar" style="width:100%"></div>
                                     </div>
                                 </div>
 
+                                <!-- TARJETAS DE LOS 4 BLOQUES DE SUBIDA ADAPTADOS AL DEPORTE -->
+                                <div class="video-blocks-grid" id="sport-video-blocks-grid"></div>
+
+                                <!-- VISOR DE VÍDEO CON ESCÁNER DE TELEMETRÍA -->
                                 <div class="vision-hud-viewport">
+                                    <video id="vision-real-video" class="vision-video-player" loop muted playsinline></video>
                                     <div class="vision-scanline"></div>
-                                    <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono'; font-size:0.65rem; color:var(--role-color);">
-                                        <span>[REC ● ESCANEO BIOMECÁNICO IA]</span>
-                                        <span>120 FPS // TRACKING</span>
+                                    <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono'; font-size:0.64rem; color:var(--role-color);">
+                                        <span id="hud-rec-status">[LISTO PARA SUBIR BLOQUE DE VÍDEO]</span>
+                                        <span>24-30 FPS // AI TRACKING</span>
                                     </div>
 
-                                    <div style="text-align:center; padding:12px 0;">
-                                        <div style="font-size:1.75rem; margin-bottom:4px;">🎯</div>
-                                        <div style="font-family:'Orbitron'; font-size:0.9rem; font-weight:800; color:white;" id="vision-status-title">Vector de Aceleración & Zancada Óptimo</div>
-                                        <div style="font-size:0.74rem; color:var(--text-secondary); margin-top:4px;" id="vision-status-desc">Sin asimetrías articulares detectadas en sprint máximo</div>
+                                    <div style="text-align:center; padding:10px 0;">
+                                        <div style="font-size:1.65rem; margin-bottom:4px;" id="vision-hud-icon">🎬</div>
+                                        <div style="font-family:'Orbitron'; font-size:0.88rem; font-weight:800; color:white;" id="vision-status-title">Selecciona un bloque arriba y sube tu clip (3 a 5 min o acción corta)</div>
+                                        <div style="font-size:0.73rem; color:#CBD5E1; margin-top:4px;" id="vision-status-desc">El sistema reduce automáticamente el vídeo a 24-30 fotogramas por segundo para extraer tus métricas sin tiempos muertos.</div>
                                     </div>
 
-                                    <div style="display:flex; justify-content:space-between; align-items:center; font-family:'JetBrains Mono'; font-size:0.62rem; color:#CBD5E1;">
-                                        <span>SELLO: AI VERIFIED</span>
-                                        <span style="color:var(--role-color);">RIESGO LESIONAL: BAJO (4%)</span>
+                                    <div style="display:flex; justify-content:space-between; align-items:center; font-family:'JetBrains Mono'; font-size:0.61rem; color:#CBD5E1;">
+                                        <span id="hud-bottom-left">FORMATO: MP4 / MOV → 30 FPS</span>
+                                        <span style="color:var(--role-color);" id="hud-bottom-right">✓ SINCRONIZADO CON KINET CARD</span>
                                     </div>
                                 </div>
 
+                                <!-- 4 PÍLDORAS DE MÉTRICAS EXTRAÍDAS DEL CLIP -->
                                 <div class="telemetry-pills">
                                     <div class="t-pill">
-                                        <span id="t-lbl-1">PRECISIÓN BIOMEC.</span>
-                                        <strong id="t-val-1">98.4%</strong>
+                                        <span id="t-lbl-1">VELOCIDAD / RITMO</span>
+                                        <strong id="t-val-1">--</strong>
                                     </div>
                                     <div class="t-pill">
-                                        <span id="t-lbl-2">PICO RENDIMIENTO</span>
-                                        <strong id="t-val-2" style="color:var(--role-color);">34.2 km/h</strong>
+                                        <span id="t-lbl-2">EFICACIA TÉCNICA</span>
+                                        <strong id="t-val-2" style="color:var(--role-color);">--</strong>
                                     </div>
                                     <div class="t-pill">
-                                        <span id="t-lbl-3">LECTURA TÁCTICA IQ</span>
-                                        <strong id="t-val-3">Top 4%</strong>
+                                        <span id="t-lbl-3">INTENSIDAD / ZONA</span>
+                                        <strong id="t-val-3">--</strong>
                                     </div>
                                     <div class="t-pill">
-                                        <span id="t-lbl-4">VALOR / CLÁUSULA</span>
-                                        <strong id="t-val-4" style="color:var(--role-color);">120k €</strong>
+                                        <span id="t-lbl-4">IMPACTO EN GRL</span>
+                                        <strong id="t-val-4" style="color:var(--role-color);">--</strong>
                                     </div>
                                 </div>
                             </div>
 
-                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-                                <button class="btn-primary" onclick="handleVisionUploadAttempt()">🎥 Subir Clip a Vision IA</button>
-                                <button class="btn-secondary" onclick="exportScoutReportPDF()">📥 Exportar Informe PDF</button>
+                            <div style="display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:8px;">
+                                <button class="btn-primary" onclick="handleVisionUploadAttempt()">🎬 Subir Clip al Bloque Activo</button>
+                                <button class="btn-secondary" onclick="sendClipReportToCoachAI()">🧠 Enviar al Entrenador IA</button>
+                                <button class="btn-secondary" onclick="exportVisionLabReportPDF()">📥 Informe PDF</button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- COLUMNA DERECHA (5 COL): CARTERA DE OBJETIVOS EN SCOUT MATRIX -->
+                    <!-- COLUMNA DERECHA (5 COL): ESTADÍSTICAS DEL VÍDEO ANALIZADO + HISTORIAL DE CLIPS -->
                     <div class="col-5">
                         <div class="kinet-panel" style="height:100%; display:flex; flex-direction:column; justify-content:space-between;">
                             <div>
                                 <div class="panel-head">
-                                    <span class="panel-label" id="matrix-panel-title">CARTERA DE OBJETIVOS // SCOUT MATRIX</span>
-                                    <span style="font-family:'JetBrains Mono';font-size:0.65rem;color:var(--role-color);" id="scout-count-badge">4 PERFILES EN RADAR</span>
+                                    <span class="panel-label" id="stats-panel-title">2. ESTADÍSTICAS EXTRAÍDAS DEL VÍDEO</span>
+                                    <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);" id="clips-analyzed-count">0 CLIPS AUDITADOS</span>
                                 </div>
 
-                                <div id="scout-players-list"></div>
+                                <!-- DESGLOSE PORCENTUAL DE RENDIMIENTO EN EL CLIP -->
+                                <div id="video-stats-bars-box" style="background:rgba(4,6,10,0.65);border:1px solid var(--border-subtle);border-radius:14px;padding:12px 14px;margin-bottom:14px;"></div>
+
+                                <!-- DIAGNÓSTICO TÁCTICO DEL CLIP -->
+                                <div style="background:rgba(var(--role-rgb),0.06);border:1px solid rgba(var(--role-rgb),0.3);border-radius:14px;padding:11px 13px;margin-bottom:14px;">
+                                    <div style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);font-weight:700;margin-bottom:4px;">📋 CONCLUSIONES IA DEL BLOQUE DE VÍDEO</div>
+                                    <div style="font-size:0.75rem;color:#E2E8F0;line-height:1.45;" id="ai-clip-verdict-box">
+                                        Sube un clip de tu partido o entrenamiento en cualquiera de los bloques de la izquierda para desglosar aquí tus aciertos, mapa de zonas y correcciones técnicas.
+                                    </div>
+                                </div>
+
+                                <!-- HISTORIAL DE CLIPS SUBIDOS POR EL USUARIO -->
+                                <div class="panel-head" style="margin-bottom:8px;">
+                                    <span class="panel-label">HISTORIAL DE BLOQUES AUDITADOS (30 FPS)</span>
+                                </div>
+                                <div id="analyzed-clips-history-list" style="max-height:195px;overflow-y:auto;"></div>
                             </div>
 
                             <div style="margin-top:12px; padding-top:10px; border-top:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-                                <span style="font-size:0.72rem; color:var(--text-secondary);">Toca cualquier deportista para cargarlo en el visor</span>
-                                <a href="cuerpo-tecnico.html" id="nav-cuerpo-footer" style="font-size:0.74rem; color:var(--role-color); font-weight:700; text-decoration:none;">Consultar al Analista IA →</a>
+                                <span style="font-size:0.7rem; color:var(--text-secondary);">¿Quieres comparar jugadores o analizar plantilla?</span>
+                                <a href="analizador.html" id="nav-analizador-footer" style="font-size:0.73rem; color:var(--role-color); font-weight:700; text-decoration:none;">Abrir Analizador & Pizarra 3D →</a>
                             </div>
                         </div>
                     </div>
@@ -882,15 +967,15 @@
         </div>
     </div>
 
-    <!-- MODAL 1: BLOQUEO PLAN GRATUITO -->
+    <!-- MODAL 1: BLOQUEO PLAN GRATUITO (VÍDEOS EXCLUSIVOS PRO / BONO) -->
     <div id="vision-upgrade-modal" class="kinet-modal-overlay">
         <div class="kinet-modal-box">
             <div class="kinet-modal-header" style="color: var(--role-color);">
-                <span>🔒</span> <span>KINET VISION ANALYTICS™ // BLOQUEADO</span>
+                <span>🔒</span> <span>KINET VISION LAB™ // EXCLUSIVO PRO</span>
             </div>
             <div class="kinet-modal-body">
-                El procesamiento biomecánico de vídeo a 120 FPS requiere servidores GPU dedicados y no está incluido en el <strong>Plan Gratuito</strong>.<br><br>
-                Actualiza a <strong>Pro Player (8,99€/mes — 60 min/mes)</strong> o adquiere un <strong>Bono de Minutos Extra (*Pay-As-You-Go*)</strong> para analizar tus propios vídeos.
+                El análisis táctico y biomecánico de vídeo por bloques (normalizado a 24-30 FPS en servidores GPU) está reservado para cuentas de pago.<br><br>
+                Actualiza a <strong>KINET PRO (8,99€/mes)</strong> o recarga un <strong>Bono de Minutos Extra (*Pay-As-You-Go*)</strong> para analizar tus partidos y entrenamientos.
             </div>
             <div class="kinet-modal-footer">
                 <button class="btn-secondary" onclick="document.getElementById('vision-upgrade-modal').classList.remove('open')">Cerrar</button>
@@ -904,24 +989,24 @@
     <div id="payg-vision-modal" class="kinet-modal-overlay">
         <div class="kinet-modal-box">
             <div class="kinet-modal-header" style="color: var(--role-color);">
-                <span>⚡</span> <span>RECARGAR BONOS DE VÍDEO IA (120 FPS)</span>
+                <span>⚡</span> <span>RECARGAR BONOS DE VÍDEO IA (24-30 FPS)</span>
             </div>
             <div class="kinet-modal-body">
-                Añade minutos extra de análisis biomecánico para Vision Analytics™ sin fecha de caducidad mensual:
+                Añade minutos extra de análisis para tus bloques tácticos de 3 a 5 minutos sin fecha de caducidad:
                 <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
                     <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle);border-radius:12px;padding:10px 12px;">
                         <div>
-                            <div style="font-weight:800;color:white;font-size:0.82rem;">🎬 Bono Sprint: +30 Minutos Vision IA</div>
-                            <div style="font-size:0.68rem;color:var(--text-secondary);">Ideal para auditar 10-15 clips tácticos</div>
+                            <div style="font-weight:800;color:white;font-size:0.82rem;">🎬 Bono Partido: +45 Minutos Vision Lab (30 FPS)</div>
+                            <div style="font-size:0.68rem;color:var(--text-secondary);">Da para analizar 3 partidos completos por bloques de 5 min</div>
                         </div>
-                        <button class="btn-primary" style="padding:7px 12px;font-size:0.68rem;" onclick="addVisionBonusMinutes(30)">4,99 €</button>
+                        <button class="btn-primary" style="padding:7px 12px;font-size:0.68rem;" onclick="addVisionBonusMinutes(45)">4,99 €</button>
                     </div>
                     <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(var(--role-rgb),0.08);border:1px solid var(--role-color);border-radius:12px;padding:10px 12px;">
                         <div>
-                            <div style="font-weight:800;color:white;font-size:0.82rem;">🚀 Pack Scouting: +100 Minutos Vision IA</div>
+                            <div style="font-weight:800;color:white;font-size:0.82rem;">🚀 Pack Temporada: +150 Minutos Vision Lab (30 FPS)</div>
                             <div style="font-size:0.68rem;color:#CBD5E1;">El más rentable • No caduca a fin de mes</div>
                         </div>
-                        <button class="btn-primary" style="padding:7px 12px;font-size:0.68rem;" onclick="addVisionBonusMinutes(100)">11,99 €</button>
+                        <button class="btn-primary" style="padding:7px 12px;font-size:0.68rem;" onclick="addVisionBonusMinutes(150)">9,99 €</button>
                     </div>
                 </div>
             </div>
@@ -941,7 +1026,8 @@
             <a href="app.html" id="drawer-vestuario" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>⚡ Vestuario</span><span>HOY</span></a>
             <a href="cuerpo-tecnico.html" id="drawer-cuerpo-tecnico" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🧠 Cuerpo Técnico IA</span><span>→</span></a>
             <a href="ficha-pro.html" id="drawer-ficha-pro" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🎴 Ficha & KINET Card</span><span>→</span></a>
-            <a href="ojeador-live.html" id="drawer-ojeador-live" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(var(--role-rgb),0.15);border:1px solid var(--role-color);color:var(--role-color);text-decoration:none;font-weight:600;"><span>📡 Ojeador & Laboratorio</span><span>●</span></a>
+            <a href="ojeador-live.html" id="drawer-ojeador-live" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(var(--role-rgb),0.15);border:1px solid var(--role-color);color:var(--role-color);text-decoration:none;font-weight:600;"><span>🎬 Laboratorio Vídeo</span><span>●</span></a>
+            <a href="analizador.html" id="drawer-analizador" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🏟️ Analizador & Pizarra 3D</span><span>→</span></a>
             <a href="comunidad.html" id="drawer-comunidad" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Comunidad / Red Social</span><span>→</span></a>
             <a href="media-studio.html" id="drawer-media-studio" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🎵 KINET Media Studio™</span><span>→</span></a>
             <a href="perfil.html" id="drawer-perfil" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>👤 Mi Perfil</span><span>→</span></a>
@@ -969,8 +1055,8 @@
             <span>Ficha</span>
         </a>
         <a href="ojeador-live.html" id="mob-ojeador-live" class="m-nav-btn active">
-            <span style="font-size:1rem;">📡</span>
-            <span>Ojeador</span>
+            <span style="font-size:1rem;">🎬</span>
+            <span>Vídeo Lab</span>
         </a>
         <button onclick="toggleMobileDrawer()" class="m-nav-btn">
             <span style="font-size:1rem;">☰</span>
@@ -979,69 +1065,353 @@
     </nav>
 
     <script>
-        const SPORT_SCOUT_DATABASES = {
+        // =========================================================================
+        // CONFIGURACIÓN MULTIDEPORTE DEL LABORATORIO DE VÍDEO POR BLOQUES (24-30 FPS)
+        // =========================================================================
+        const SPORT_VISION_LAB_CONFIG = {
             'fútbol': {
-                lbl2: 'PICO VELOCIDAD',
-                lbl4: 'VALOR / CLÁUSULA',
-                players: [
-                    { name: 'Lucas Vance', pos: 'Extremo Izquierdo', cat: 'Sub-21', grl: 92, speed: '34.2 km/h', acc: '98.4%', iq: 'Top 3%', clause: '120k €', desc: 'Vector de Aceleración & Zancada Óptimo en Sprint' },
-                    { name: 'Alex Torres', pos: 'Mediocentro Creador', cat: 'Pro RFEF', grl: 90, speed: '32.8 km/h', acc: '96.1%', iq: 'Top 2%', clause: '185k €', desc: 'Frecuencia de Escaneo Cognitivo 360° Superior' },
-                    { name: 'Mateo Silva', pos: 'Central Zurdo', cat: 'Sub-23', grl: 87, speed: '33.5 km/h', acc: '94.8%', iq: 'Top 6%', clause: '95k €', desc: 'Potencia de Salto y Anticipación Defensiva Verificada' },
-                    { name: 'Hugo Mendoza', pos: 'Delantero Centro', cat: 'Juvenil DH', grl: 84, speed: '33.9 km/h', acc: '93.2%', iq: 'Top 8%', clause: '60k €', desc: 'Desmarque de Ruptura y Golpeo a Primer Toque' }
-                ]
-            },
-            'boxeo': {
-                lbl2: 'VEL. IMPACTO',
-                lbl4: 'BOLSA / CONTRATO',
-                players: [
-                    { name: 'Javier Morales', pos: 'Peso Welter (77 kg)', cat: 'Pro 8-1', grl: 94, speed: '11.4 m/s', acc: '97.8%', iq: 'Top 2%', clause: '45k €', desc: 'Transferencia Rotacional de Cadera en Jab-Cross Óptima' },
-                    { name: 'Álex Vega', pos: 'Peso Ligero (61 kg)', cat: 'Invicto 6-0', grl: 91, speed: '12.1 m/s', acc: '96.5%', iq: 'Top 3%', clause: '35k €', desc: 'Tiempo de Reacción en Esquiva y Contragolpe (0.18s)' },
-                    { name: 'Marco "Roca" Díaz', pos: 'Peso Medio (84 kg)', cat: 'Pro MMA', grl: 88, speed: '10.6 m/s', acc: '94.2%', iq: 'Top 5%', clause: '30k €', desc: 'Defensa de Derribo (Sprawl) y Presión en Jaula' },
-                    { name: 'Santi Romero', pos: 'Peso Pluma (65 kg)', cat: 'Sub-23', grl: 85, speed: '11.8 m/s', acc: '93.0%', iq: 'Top 7%', clause: '18k €', desc: 'Alto Volumen de Combinaciones sin Caída de Guardia' }
+                sportTitle: 'Fútbol',
+                pillLabels: ['VELOCIDAD PUNTA', 'PRECISIÓN CONTROLES/PASE', 'DISTANCIA ALTA INTENSIDAD', 'IMPACTO EN KINET CARD'],
+                blocks: [
+                    {
+                        id: 'b1_ofensivo',
+                        tag: 'BLOQUE 1 • 3 A 5 MIN (30 FPS)',
+                        title: '⚡ Fase Ofensiva & Ataque',
+                        desc: 'Tramo de 3-5 min donde tu equipo más ataca: desmarques, apoyos, centros y finalización.',
+                        durationMin: 4,
+                        sampleMetrics: ['33.8 km/h', '89.4% Acierto', '410m Sprint', '+1.5 SHO/PAS'],
+                        bars: [
+                            { name: 'Toma de decisiones en último tercio', pct: 91 },
+                            { name: 'Velocidad de ejecución y controles orientados', pct: 88 },
+                            { name: 'Ocupación de zonas de remate y desmarque', pct: 85 },
+                            { name: 'Precisión de pase progresivo bajo presión', pct: 90 }
+                        ],
+                        verdict: 'Excelente lectura de espacios interiores y perfilación corporal en controles orientados. Se recomienda atacar el primer palo medio segundo antes en centros laterales.'
+                    },
+                    {
+                        id: 'b2_defensivo',
+                        tag: 'BLOQUE 2 • 3 A 5 MIN (30 FPS)',
+                        title: '🛡️ Fase Defensiva & Presión',
+                        desc: 'Tramo de 3-5 min sin balón: repliegue, basculación, duelos 1vs1 e interceptaciones.',
+                        durationMin: 4,
+                        sampleMetrics: ['32.6 km/h', '86.0% Duelos', '380m Presión', '+1.2 DEF/PHY'],
+                        bars: [
+                            { name: 'Temporización en duelos individuales 1vs1', pct: 87 },
+                            { name: 'Velocidad de repliegue tras pérdida', pct: 92 },
+                            { name: 'Cierre de líneas de pase interiores', pct: 84 },
+                            { name: 'Estabilidad del centro de gravedad en entradas', pct: 89 }
+                        ],
+                        verdict: 'Repliegue intensivo muy sólido en los primeros 4 segundos tras pérdida. Ajustar la distancia de frenado para no ser superado en fintas hacia fuera.'
+                    },
+                    {
+                        id: 'b3_involucracion',
+                        tag: 'BLOQUE 3 • 3 A 5 MIN (30 FPS)',
+                        title: '🎯 Participación Individual Clave',
+                        desc: 'Los 5 min de mayor contacto con balón para auditar tu biomecánica y visión periférica.',
+                        durationMin: 5,
+                        sampleMetrics: ['34.1 km/h', '92.1% Limpio', '46 escaneos', '+2.0 DRI/PAC'],
+                        bars: [
+                            { name: 'Frecuencia de escaneo visual antes de recibir', pct: 93 },
+                            { name: 'Protección de balón y uso del cuerpo', pct: 88 },
+                            { name: 'Aceleración en los primeros 5 metros', pct: 94 },
+                            { name: 'Continuidad en conducciones de alta velocidad', pct: 90 }
+                        ],
+                        verdict: 'Frecuencia de escaneo de élite (0.8s antes de recibir). Tu aceleración en los primeros 3 pasos genera ventaja constante frente al par.'
+                    },
+                    {
+                        id: 'b4_microclip',
+                        tag: 'ACCIÓN CORTA • 15 A 45 SEG (30 FPS)',
+                        title: '🔬 Gesto Técnico / Balón Parado',
+                        desc: 'Clip corto analizando golpeo, regate 1vs1, control aéreo o parada específica.',
+                        durationMin: 1,
+                        sampleMetrics: ['108 km/h Tiro', '95.2% Biomec.', 'Óptima (30 FPS)', '+1.0 Técnica'],
+                        bars: [
+                            { name: 'Alineación de cadera y pie de apoyo', pct: 95 },
+                            { name: 'Transferencia de energía en el impacto', pct: 91 },
+                            { name: 'Equilibrio dinámico post-acción', pct: 89 },
+                            { name: 'Velocidad de salida tras el primer toque', pct: 92 }
+                        ],
+                        verdict: 'Biomecánica de golpeo limpia con el pie de apoyo firme a 15 cm del balón. Cero asimetrías articulares detectadas.'
+                    }
                 ]
             },
             'baloncesto': {
-                lbl2: 'SALTO / TS%',
-                lbl4: 'VALOR / BECA',
-                players: [
-                    { name: 'Devin Marcos', pos: 'Combo Guard (1.93m)', cat: 'LEB Plata', grl: 92, speed: '66.8% TS', acc: '98.1%', iq: 'Top 3%', clause: '95k €', desc: 'Liberación de Tiro en 0.42s con Arco de 47° Verificado' },
-                    { name: 'Kobe Diallo', pos: 'Alero Físico (2.01m)', cat: 'Sub-22', grl: 90, speed: '104 cm Vert', acc: '96.4%', iq: 'Top 4%', clause: '110k €', desc: 'Explosividad Vertical en Transición y Protección de Aro' },
-                    { name: 'Pau Ribas Jr.', pos: 'Base Director (1.89m)', cat: 'Sub-20', grl: 87, speed: '63.5% TS', acc: '95.0%', iq: 'Top 2%', clause: '70k €', desc: 'Lectura de Pick & Roll y Ratio AST/TOV de 4.2' },
-                    { name: 'Nikola Vukovic', pos: 'Ala-Pívot (2.06m)', cat: 'EBA Élite', grl: 85, speed: '94 cm Vert', acc: '93.4%', iq: 'Top 6%', clause: '55k €', desc: 'Amenaza de Tiro Abierto (Pick & Pop) y Rebote Ofensivo' }
+                sportTitle: 'Baloncesto',
+                pillLabels: ['MECÁNICA / ARCO TIRO', 'EFICACIA EN EL CLIP', 'PRIMER PASO / REACCIÓN', 'IMPACTO EN KINET CARD'],
+                blocks: [
+                    {
+                        id: 'b1_ofensivo',
+                        tag: 'BLOQUE 1 • 3 A 5 MIN (30 FPS)',
+                        title: '🏀 Ataque Estático & Pick and Roll',
+                        desc: '5 min de ataque en media pista: lecturas de bloqueo directo, spacing y mecánica de tiro.',
+                        durationMin: 4,
+                        sampleMetrics: ['0.44s Release', '64.5% eFG', 'Arco 46°', '+1.5 PTS/3PT'],
+                        bars: [
+                            { name: 'Velocidad y fluidez de liberación de tiro', pct: 92 },
+                            { name: 'Lectura de ayudas en Pick & Roll', pct: 88 },
+                            { name: 'Alineación de pies (Footwork) en Catch & Shoot', pct: 90 },
+                            { name: 'Separación generada en Step-Back / Pull-Up', pct: 86 }
+                        ],
+                        verdict: 'Mecánica de tiro compacta con arco constante de 46°. Excelente lectura del tercer defensor cuando el pívot hace roll.'
+                    },
+                    {
+                        id: 'b2_defensivo',
+                        tag: 'BLOQUE 2 • 3 A 5 MIN (30 FPS)',
+                        title: '🛡️ Defensa Individual, Ayudas & Rebote',
+                        desc: '5 min defendiendo balón, desplazamiento lateral (Close-out) y cierre de rebote (Box-out).',
+                        durationMin: 4,
+                        sampleMetrics: ['0.21s Reacción', '88% Contest.', '91% Box-Out', '+1.4 DEF/REB'],
+                        bars: [
+                            { name: 'Desplazamiento lateral sin cruzar pies', pct: 91 },
+                            { name: 'Contestación de tiro exterior (Mano alta)', pct: 87 },
+                            { name: 'Contacto previo y sello en el rebote (Box-Out)', pct: 90 },
+                            { name: 'Navegación de bloqueos indirectos', pct: 85 }
+                        ],
+                        verdict: 'Postura defensiva baja muy sólida y buena reactividad en el Close-out sin cometer falta en el triple.'
+                    },
+                    {
+                        id: 'b3_involucracion',
+                        tag: 'BLOQUE 3 • 3 A 5 MIN (30 FPS)',
+                        title: '⚡ Transición Rápida & Contraataque',
+                        desc: 'Tramo de ritmo alto corriendo las calles, toma de decisiones en superioridad y finalización.',
+                        durationMin: 4,
+                        sampleMetrics: ['98 cm Salto', '91% Finaliz.', 'Top 4% Ritmo', '+1.8 ATH/AST'],
+                        bars: [
+                            { name: 'Explosividad en primer paso a campo abierto', pct: 94 },
+                            { name: 'Absorción de contacto al finalizar en el aro', pct: 89 },
+                            { name: 'Visión de pase adelantado en transición', pct: 90 },
+                            { name: 'Control corporal en Euro-Step / Parada', pct: 92 }
+                        ],
+                        verdict: 'Transición letal: ocupas la calle exterior en menos de 3.2 segundos y finalizas con gran control aéreo.'
+                    },
+                    {
+                        id: 'b4_microclip',
+                        tag: 'ACCIÓN CORTA • 15 A 45 SEG (30 FPS)',
+                        title: '🔬 Mecánica de Tiro / Manejo 1vs1',
+                        desc: 'Clip corto enfocado en tu bote, crossover o serie de tiro para auditar codo y muñeca.',
+                        durationMin: 1,
+                        sampleMetrics: ['0.41s Tiro', '96% Biomec.', 'Estable', '+1.0 Técnica'],
+                        bars: [
+                            { name: 'Alineación vertical hombro-codo-muñeca', pct: 95 },
+                            { name: 'Altura de bote en cambios de dirección', pct: 91 },
+                            { name: 'Equilibrio en la caída tras el salto', pct: 93 },
+                            { name: 'Transferencia de piernas al tren superior', pct: 90 }
+                        ],
+                        verdict: 'Transferencia de fuerza desde los tobillos impecable. Sin desviación lateral del codo en el seguimiento.'
+                    }
+                ]
+            },
+            'boxeo': {
+                sportTitle: 'Boxeo / MMA',
+                pillLabels: ['VELOCIDAD DE MANOS', 'GOLPES CONECTADOS', 'TIEMPO GUARDIA ALTA', 'IMPACTO EN KINET CARD'],
+                blocks: [
+                    {
+                        id: 'b1_ofensivo',
+                        tag: 'BLOQUE 1 • ASALTO 3 MIN (30 FPS)',
+                        title: '🥊 Asalto de Ataque & Combinaciones',
+                        desc: '3 min llevando la iniciativa: volumen de jab, combinaciones de 3-4 golpes y ángulos de salida.',
+                        durationMin: 3,
+                        sampleMetrics: ['11.6 m/s', '42 Golpes/min', '91% Retorno', '+1.6 PWR/SPD'],
+                        bars: [
+                            { name: 'Velocidad de retorno de mano a la guardia', pct: 92 },
+                            { name: 'Rotación de cadera y pie trasero en el Cross', pct: 94 },
+                            { name: 'Variedad de planos (Cabeza - Cuerpo)', pct: 88 },
+                            { name: 'Salida en ángulo tras terminar combinación', pct: 86 }
+                        ],
+                        verdict: 'Gran transferencia de peso en el 1-2-3 al cuerpo. Recuerda recoger el hombro izquierdo 0.1s más rápido tras el gancho.'
+                    },
+                    {
+                        id: 'b2_defensivo',
+                        tag: 'BLOQUE 2 • ASALTO 3 MIN (30 FPS)',
+                        title: '🛡️ Defensa, Esquivas, Bloqueo & Contras',
+                        desc: '3 min trabajando cintura, cabeceo (Slip/Roll), bloqueos altos y contragolpe inmediato.',
+                        durationMin: 3,
+                        sampleMetrics: ['0.17s Reacción', '89% Esquiva', '94% Guardia', '+1.5 DEF/IQ'],
+                        bars: [
+                            { name: 'Tiempo con mentón cubierto y guardia activa', pct: 94 },
+                            { name: 'Economía de movimiento en esquiva (Slip/Roll)', pct: 90 },
+                            { name: 'Precisión de contragolpe tras fallo rival', pct: 91 },
+                            { name: 'Defensa de derribo / Control de Clinch', pct: 87 }
+                        ],
+                        verdict: 'Tiempo de reacción sobresaliente en el cabeceo ante el jab rival, saliendo siempre por fuera de su mano adelantada.'
+                    },
+                    {
+                        id: 'b3_involucracion',
+                        tag: 'BLOQUE 3 • ASALTO 3 MIN (30 FPS)',
+                        title: '⚡ Footwork, Distancia & Control del Ring',
+                        desc: '3 min auditando tu juego de piernas, corte del ring/jaula y resistencia en el último minuto.',
+                        durationMin: 3,
+                        sampleMetrics: ['96% Balance', 'Control Centro', 'Sin Cruce Pies', '+1.4 STA/IQ'],
+                        bars: [
+                            { name: 'Distancia entre pies sin cruzar en desplazamientos', pct: 93 },
+                            { name: 'Corte de salidas laterales del oponente', pct: 89 },
+                            { name: 'Mantenimiento de explosividad bajo fatiga', pct: 91 },
+                            { name: 'Gestión del alcance (Reach) con el Jab', pct: 92 }
+                        ],
+                        verdict: 'Base muy estable durante todo el asalto. Cortas el ring con pasos cortos sin regalar el centro.'
+                    },
+                    {
+                        id: 'b4_microclip',
+                        tag: 'ACCIÓN CORTA • 15 A 45 SEG (30 FPS)',
+                        title: '🔬 Sombra / Saco / Técnica de Golpeo',
+                        desc: 'Clip corto de manoplas, saco pesado o sombra para auditar tu biomecánica de impacto.',
+                        durationMin: 1,
+                        sampleMetrics: ['12.1 m/s Pico', '97% Biomec.', '30 FPS Limpio', '+1.0 Técnica'],
+                        bars: [
+                            { name: 'Alineación de nudillos y muñeca en el impacto', pct: 96 },
+                            { name: 'Impulso del metatarso trasero', pct: 94 },
+                            { name: 'Relajación de hombros antes del latigazo', pct: 91 },
+                            { name: 'Equilibrio axial en rotación máxima', pct: 93 }
+                        ],
+                        verdict: 'Cadena cinética tobillo-cadera-hombro-puño ejecutada con máxima eficiencia y sin telegrafiar el inicio.'
+                    }
                 ]
             },
             'pádel': {
-                lbl2: 'VEL. REMATE X3',
-                lbl4: 'RANKING / PATROC.',
-                players: [
-                    { name: 'Lucía Navarro', pos: 'Jugadora de Revés', cat: 'Top 35 FIP', grl: 93, speed: '148 km/h', acc: '98.2%', iq: 'Top 3%', clause: '65k €', desc: 'Punto de Impacto en Bandeja a 2.48m y Cobertura de Red' },
-                    { name: 'Martín Diestro', pos: 'Jugador de Drive', cat: 'Premier Pro', grl: 90, speed: '142 km/h', acc: '96.7%', iq: 'Top 2%', clause: '55k €', desc: 'Defensa de Doble Pared y Precisión de Globo Profundo' },
-                    { name: 'Álvaro Cepero V.', pos: 'Revés Agresivo', cat: 'Sub-23', grl: 88, speed: '154 km/h', acc: '94.5%', iq: 'Top 5%', clause: '40k €', desc: 'Eficacia del 92% en Remate Por Tres (X3) y Víbora' },
-                    { name: 'Carla Mesa P.', pos: 'Drive Táctico', cat: 'Sub-21', grl: 85, speed: '136 km/h', acc: '93.8%', iq: 'Top 6%', clause: '28k €', desc: 'Velocidad de Reacción en Split-Step en Volea' }
+                sportTitle: 'Pádel / Tenis',
+                pillLabels: ['VEL. REMATE / SAQUE', 'ERRORES NO FORZADOS', 'DOMINIO DE LA RED', 'IMPACTO EN KINET CARD'],
+                blocks: [
+                    {
+                        id: 'b1_ofensivo',
+                        tag: 'BLOQUE 1 • 3 A 5 MIN (30 FPS)',
+                        title: '🎾 Ataque en Red: Voleas, Bandeja y Remate',
+                        desc: '5 min dominando la red: preparación corta en volea, punto de impacto en bandeja/víbora y X3.',
+                        durationMin: 4,
+                        sampleMetrics: ['146 km/h Smash', '91% Ganadores', '88% Red', '+1.6 VOL/BND'],
+                        bars: [
+                            { name: 'Altura y punto de contacto delante del cuerpo en Bandeja', pct: 93 },
+                            { name: 'Activación de Split-Step antes de cada volea', pct: 90 },
+                            { name: 'Profundidad de volea hacia el rincón / malla', pct: 88 },
+                            { name: 'Recuperación de posición en red tras golpear', pct: 91 }
+                        ],
+                        verdict: 'Armado muy temprano en la bandeja y ajuste de pasos laterales impecable. Tus voleas bajan por debajo de la rodilla rival.'
+                    },
+                    {
+                        id: 'b2_defensivo',
+                        tag: 'BLOQUE 2 • 3 A 5 MIN (30 FPS)',
+                        title: '🛡️ Defensa en Fondo, Doble Pared y Globo',
+                        desc: '5 min defendiendo detrás de línea: lectura de rebotes en cristal, chiquitas y calidad de globo.',
+                        durationMin: 4,
+                        sampleMetrics: ['92% Globos Pro', 'Solo 4% ENF', '90% Cristales', '+1.5 DEF/MNT'],
+                        bars: [
+                            { name: 'Profundidad de globo por encima del hombro rival', pct: 94 },
+                            { name: 'Acompañamiento corporal tras rebote de pared', pct: 89 },
+                            { name: 'Paciencia táctica en bolas bajas al rincón', pct: 91 },
+                            { name: 'Cobertura coordinada del centro con el compañero', pct: 87 }
+                        ],
+                        verdict: 'Selección de globo excelente para recuperar la red sin precipitarse. Gran flexión de rodillas en salidas de pared bajas.'
+                    },
+                    {
+                        id: 'b3_involucracion',
+                        tag: 'BLOQUE 3 • 3 A 5 MIN (30 FPS)',
+                        title: '⚡ Saque, Resto y Transición Fondo-Red',
+                        desc: '5 min de puntos jugados completos para medir cómo subes a la red tras globo o chiquita.',
+                        durationMin: 4,
+                        sampleMetrics: ['86% 1er Saque', '93% Resto', 'Transición 1.4s', '+1.4 SRV/SPD'],
+                        bars: [
+                            { name: 'Efectividad de saque al cristal / a la T + subida', pct: 91 },
+                            { name: 'Sincronización de subida en bloque con tu pareja', pct: 89 },
+                            { name: 'Devolución de resto profundo bajo presión', pct: 92 },
+                            { name: 'Cierre de ángulos en la zona de transición', pct: 88 }
+                        ],
+                        verdict: 'Subes en bloque con tu compañero sin dejar pasillo central abierto. El saque cortado al cristal genera restos forzados constantes.'
+                    },
+                    {
+                        id: 'b4_microclip',
+                        tag: 'ACCIÓN CORTA • 15 A 45 SEG (30 FPS)',
+                        title: '🔬 Técnica de Remate / Víbora / Revés',
+                        desc: 'Clip corto en carro de bolas o peloteo analizando el armado, arqueo lumbar y terminación.',
+                        durationMin: 1,
+                        sampleMetrics: ['152 km/h Pico', '96% Biomec.', '30 FPS Limpio', '+1.0 Técnica'],
+                        bars: [
+                            { name: 'Uso de la mano no dominante para apuntar la bola', pct: 95 },
+                            { name: 'Extensión completa del brazo en el impacto', pct: 93 },
+                            { name: 'Transferencia de peso de atrás hacia adelante', pct: 91 },
+                            { name: 'Estabilidad del tronco en el armado', pct: 92 }
+                        ],
+                        verdict: 'Punto de impacto a 2.46m con pronación limpia de antebrazo. Excelente coordinación hombro-cadera.'
+                    }
                 ]
             },
             'running': {
-                lbl2: 'VO2 MAX / RITMO',
-                lbl4: 'BECA / PATROCINIO',
-                players: [
-                    { name: 'Mateo Kipchoge V.', pos: 'Fondista 10K / Media', cat: 'Sub 2:55/km', grl: 94, speed: '82 ml/kg', acc: '98.7%', iq: 'Top 2%', clause: '50k €', desc: 'Cadencia Estable (186 spm) y Tiempo de Contacto 170ms' },
-                    { name: 'Sofía Valiente', pos: '1500m & 5000m Pista', cat: 'Sub-23 Pro', grl: 91, speed: '78 ml/kg', acc: '97.2%', iq: 'Top 3%', clause: '42k €', desc: 'Reactividad Elástica de Tobillo en Cambio de Ritmo Final' },
-                    { name: 'Yago Domínguez', pos: 'Maratón Ruta', cat: 'Élite Nac.', grl: 89, speed: '80 ml/kg', acc: '95.6%', iq: 'Top 4%', clause: '35k €', desc: 'Economía de Zancada en Zona 4 (Umbral de Lactato)' },
-                    { name: 'Elena Chebet', pos: 'Cross & 10K Ruta', cat: 'Sub-20', grl: 86, speed: '75 ml/kg', acc: '94.1%', iq: 'Top 6%', clause: '24k €', desc: 'Alineación Biomecánica de Cadera-Rodilla sin Valgo' }
+                sportTitle: 'Running',
+                pillLabels: ['CADENCIA MEDIA', 'TIEMPO CONTACTO SUELO', 'OSCILACIÓN VERTICAL', 'IMPACTO EN KINET CARD'],
+                blocks: [
+                    {
+                        id: 'b1_ofensivo',
+                        tag: 'BLOQUE 1 • 3 MIN (30 FPS)',
+                        title: '🏃 Ritmo de Crucero & Economía de Carrera',
+                        desc: 'Clip lateral o frontal a ritmo objetivo (10K / Media / Maratón) para auditar pisada y cadencia.',
+                        durationMin: 3,
+                        sampleMetrics: ['184 SPM', '174 ms Suelo', '6.2 cm Oscil.', '+1.5 CAD/VO2'],
+                        bars: [
+                            { name: 'Aterrizaje del pie bajo el centro de masas (Sin Overstriding)', pct: 94 },
+                            { name: 'Estabilidad de cadencia por encima de 180 SPM', pct: 92 },
+                            { name: 'Baja oscilación vertical (Ahorro energético)', pct: 90 },
+                            { name: 'Alineación de cadera-rodilla-tobillo en apoyo', pct: 93 }
+                        ],
+                        verdict: 'Pisada reactiva de mediopié justo debajo de la cadera. Cero frenado de talón y excelente economía elástica.'
+                    },
+                    {
+                        id: 'b2_defensivo',
+                        tag: 'BLOQUE 2 • 3 MIN (30 FPS)',
+                        title: '⚡ Serie Rápida en Pista / Cambio de Ritmo',
+                        desc: 'Clip en serie de velocidad (400m / 1000m) analizando impulsión de tobillo y braceo.',
+                        durationMin: 3,
+                        sampleMetrics: ['192 SPM', '158 ms Suelo', '2:58 min/km', '+1.6 PAC/VO2'],
+                        bars: [
+                            { name: 'Extensión triple (Cadera, rodilla y tobillo) en despegue', pct: 95 },
+                            { name: 'Simetría de braceo a 90° sin cruzar línea media', pct: 91 },
+                            { name: 'Reactividad del tendón de Aquiles en apoyo corto', pct: 93 },
+                            { name: 'Inclinación frontal eficiente desde los tobillos', pct: 89 }
+                        ],
+                        verdict: 'Tiempo de contacto en suelo digno de pista profesional (158 ms). El braceo acompaña la frecuencia sin rotar los hombros.'
+                    },
+                    {
+                        id: 'b3_involucracion',
+                        tag: 'BLOQUE 3 • 3 MIN (30 FPS)',
+                        title: '🔥 Técnica en Fatiga (Últimos Kilómetros)',
+                        desc: 'Clip grabado al final del entrenamiento o carrera para detectar si cae la cadera o el tronco.',
+                        durationMin: 3,
+                        sampleMetrics: ['180 SPM', '182 ms Suelo', 'Estable 91%', '+1.4 STA/MNT'],
+                        bars: [
+                            { name: 'Mantenimiento de cadera alta bajo fatiga', pct: 90 },
+                            { name: 'Control de caída pélvica (Signo de Trendelenburg)', pct: 92 },
+                            { name: 'Relajación de cuello y trapecios en esfuerzo máximo', pct: 87 },
+                            { name: 'Conservación de longitud de zancada final', pct: 89 }
+                        ],
+                        verdict: 'Mantienes el core compacto incluso en fatiga acumulada. Reforzar glúteo medio para evitar una mínima rotación interna en el km final.'
+                    },
+                    {
+                        id: 'b4_microclip',
+                        tag: 'ACCIÓN CORTA • 15 A 45 SEG (30 FPS)',
+                        title: '🔬 Técnica de Carrera (Skipping / Multisaltos)',
+                        desc: 'Clip corto de ejercicios de técnica de carrera para auditar dorsiflexión de tobillo.',
+                        durationMin: 1,
+                        sampleMetrics: ['97% Simetría', 'Dorsiflexión OK', '30 FPS Limpio', '+1.0 Técnica'],
+                        bars: [
+                            { name: 'Dorsiflexión activa de tobillo antes del apoyo', pct: 95 },
+                            { name: 'Elevación de rodilla y disociación lumbo-pélvica', pct: 92 },
+                            { name: 'Simetría entre pierna izquierda y derecha', pct: 97 },
+                            { name: 'Postura erguida de columna cervical y dorsal', pct: 94 }
+                        ],
+                        verdict: 'Simetría bilateral del 97% entre ambos apoyos. Excelente armado de pie antes de tocar el tartán.'
+                    }
                 ]
             }
         };
 
-        let activeScoutDB = SPORT_SCOUT_DATABASES['fútbol'];
-        let currentLoadedPlayer = null;
+        let activeSportCfg = SPORT_VISION_LAB_CONFIG['fútbol'];
+        let selectedBlockIndex = 0;
+        let analyzedClipsHistory = [];
 
-        function resolveScoutSportDB(sportName) {
+        function resolveVisionSportConfig(sportName) {
             const s = (sportName || 'fútbol').toLowerCase();
-            if (s.includes('boxeo') || s.includes('mma') || s.includes('combate')) return SPORT_SCOUT_DATABASES['boxeo'];
-            if (s.includes('baloncesto') || s.includes('basket')) return SPORT_SCOUT_DATABASES['baloncesto'];
-            if (s.includes('pádel') || s.includes('padel') || s.includes('tenis')) return SPORT_SCOUT_DATABASES['pádel'];
-            if (s.includes('running') || s.includes('atletismo') || s.includes('carrera')) return SPORT_SCOUT_DATABASES['running'];
-            return SPORT_SCOUT_DATABASES['fútbol'];
+            if (s.includes('boxeo') || s.includes('mma') || s.includes('combate')) return SPORT_VISION_LAB_CONFIG['boxeo'];
+            if (s.includes('baloncesto') || s.includes('basket')) return SPORT_VISION_LAB_CONFIG['baloncesto'];
+            if (s.includes('pádel') || s.includes('padel') || s.includes('tenis')) return SPORT_VISION_LAB_CONFIG['pádel'];
+            if (s.includes('running') || s.includes('atletismo') || s.includes('carrera')) return SPORT_VISION_LAB_CONFIG['running'];
+            return SPORT_VISION_LAB_CONFIG['fútbol'];
         }
 
         function toggleMobileDrawer() {
@@ -1063,14 +1433,14 @@
         }
 
         function isPaidOrBonusAccount() {
-            const tier = localStorage.getItem('kinet_account_tier') || 'free';
+            const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
             const bonusMins = parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0');
-            return tier === 'pro' || tier === 'club' || bonusMins > 0;
+            return tier === 'pro' || tier === 'club' || localStorage.getItem('kinet_is_pro') === 'true' || bonusMins > 0;
         }
 
         function isStrictProOrClub() {
-            const tier = localStorage.getItem('kinet_account_tier') || 'free';
-            return tier === 'pro' || tier === 'club';
+            const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
+            return tier === 'pro' || tier === 'club' || localStorage.getItem('kinet_is_pro') === 'true';
         }
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -1104,9 +1474,10 @@
             const navMap = {
                 'brand-logo-desktop': 'app.html', 'brand-logo-mobile': 'app.html',
                 'nav-vestuario': 'app.html', 'drawer-vestuario': 'app.html', 'mob-vestuario': 'app.html',
-                'nav-cuerpo-tecnico': 'cuerpo-tecnico.html', 'nav-cuerpo-footer': 'cuerpo-tecnico.html', 'drawer-cuerpo-tecnico': 'cuerpo-tecnico.html', 'mob-cuerpo-tecnico': 'cuerpo-tecnico.html',
+                'nav-cuerpo-tecnico': 'cuerpo-tecnico.html', 'drawer-cuerpo-tecnico': 'cuerpo-tecnico.html', 'mob-cuerpo-tecnico': 'cuerpo-tecnico.html',
                 'nav-ficha-pro': 'ficha-pro.html', 'drawer-ficha-pro': 'ficha-pro.html', 'mob-ficha-pro': 'ficha-pro.html',
                 'nav-ojeador-live': 'ojeador-live.html', 'drawer-ojeador-live': 'ojeador-live.html', 'mob-ojeador-live': 'ojeador-live.html',
+                'nav-analizador': 'analizador.html', 'drawer-analizador': 'analizador.html', 'topbar-analyzer-btn': 'analizador.html', 'nav-analizador-footer': 'analizador.html',
                 'nav-comunidad': 'comunidad.html', 'drawer-comunidad': 'comunidad.html',
                 'nav-media-studio': 'media-studio.html', 'drawer-media-studio': 'media-studio.html',
                 'nav-perfil': 'perfil.html', 'drawer-perfil': 'perfil.html',
@@ -1129,7 +1500,6 @@
                 if (el) el.href = socialSetupUrl;
             });
 
-            // 1. OCULTAR "Config. Red Social" SI YA FUE CONFIGURADA
             if (localStorage.getItem('kinet_social_configured') === 'true' || localStorage.getItem('kinet_user_name')) {
                 const navSoc = document.getElementById('nav-config-social');
                 const drwSoc = document.getElementById('drawer-config-social');
@@ -1137,7 +1507,6 @@
                 if (drwSoc) drwSoc.style.display = 'none';
             }
 
-            // 2. OCULTAR POR COMPLETO EL BOTÓN DE LICENCIA PRO SI YA ERES PRO O CLUB
             if (isStrictProOrClub()) {
                 const navUp = document.getElementById('nav-upgrade-pro');
                 const drwUp = document.getElementById('drawer-upgrade-pro');
@@ -1153,55 +1522,141 @@
                 });
             });
 
-            initPageModule(activeRoleKey, sportChosen);
+            initVisionLabModule(activeRoleKey, sportChosen);
         });
 
-        function initPageModule(roleKey, sportChosen) {
-            activeScoutDB = resolveScoutSportDB(sportChosen);
-            document.getElementById('t-lbl-2').textContent = activeScoutDB.lbl2;
-            document.getElementById('t-lbl-4').textContent = activeScoutDB.lbl4;
-
-            if (roleKey === 'athlete') {
-                document.getElementById('header-tag-text').textContent = `LABORATORIO BIOMECÁNICO PERSONAL & RADAR • ${sportChosen.toUpperCase()}`;
-                document.getElementById('header-main-title').textContent = 'Laboratorio Vision Analytics™ & Radar';
-                document.getElementById('matrix-panel-title').textContent = 'RADAR & VISIBILIDAD ANTE CLUBES';
-            } else if (roleKey === 'staff') {
-                document.getElementById('header-tag-text').textContent = `LABORATORIO DE VÍDEO TÁCTICO & PLANTILLA • ${sportChosen.toUpperCase()}`;
-                document.getElementById('header-main-title').textContent = 'Vision Analytics™ & Auditoría de Equipo';
-                document.getElementById('matrix-panel-title').textContent = 'JUGADORES MONITORIZADOS EN PLANTILLA';
-            } else {
-                document.getElementById('header-tag-text').textContent = `SCOUT MATRIX B2B & KINET VISION ANALYTICS™ • ${sportChosen.toUpperCase()}`;
-            }
-
-            refreshVideoQuotaUI();
-            filterScoutList();
-            if (activeScoutDB.players.length > 0) {
-                loadPlayerInVision(activeScoutDB.players[0]);
+        function loadSavedClipHistory(sportChosen) {
+            try {
+                const key = `kinet_vision_clips_${sportChosen.toLowerCase()}`;
+                const raw = JSON.parse(localStorage.getItem(key) || '[]');
+                analyzedClipsHistory = Array.isArray(raw) ? raw : [];
+            } catch (e) {
+                analyzedClipsHistory = [];
             }
         }
 
+        function saveClipHistory(sportChosen) {
+            try {
+                const key = `kinet_vision_clips_${sportChosen.toLowerCase()}`;
+                localStorage.setItem(key, JSON.stringify(analyzedClipsHistory.slice(0, 20)));
+            } catch (e) {}
+        }
+
+        function initVisionLabModule(roleKey, sportChosen) {
+            activeSportCfg = resolveVisionSportConfig(sportChosen);
+            loadSavedClipHistory(sportChosen);
+
+            document.getElementById('header-tag-text').textContent = `KINET VISION LAB™ • ANÁLISIS DE CLIPS Y BLOQUES TÁCTICOS A 24-30 FPS • ${sportChosen.toUpperCase()}`;
+            document.getElementById('header-main-title').textContent = `Laboratorio de Vídeo (${activeSportCfg.sportTitle})`;
+
+            document.getElementById('t-lbl-1').textContent = activeSportCfg.pillLabels[0];
+            document.getElementById('t-lbl-2').textContent = activeSportCfg.pillLabels[1];
+            document.getElementById('t-lbl-3').textContent = activeSportCfg.pillLabels[2];
+            document.getElementById('t-lbl-4').textContent = activeSportCfg.pillLabels[3];
+
+            refreshVideoQuotaUI();
+            renderTacticalBlocksGrid();
+            selectTacticalBlock(0);
+            renderAnalyzedClipsHistory();
+        }
+
         function refreshVideoQuotaUI() {
-            const tier = localStorage.getItem('kinet_account_tier') || 'free';
+            const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
             const bonusMins = parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0');
-            const usedMins = parseFloat(localStorage.getItem('kinet_video_mins_used') || '15');
+            const usedMins = parseFloat(localStorage.getItem('kinet_video_mins_used') || '0');
 
             const quotaPill = document.getElementById('video-quota-pill');
             const quotaRight = document.getElementById('quota-meta-right');
             const quotaBar = document.getElementById('quota-fill-bar');
 
-            const baseMax = tier === 'club' ? 240 : (tier === 'pro' ? 60 : 0);
+            const baseMax = tier === 'club' ? 300 : (tier === 'pro' ? 90 : 0);
             const totalMax = baseMax + bonusMins;
 
             if (totalMax > 0) {
                 const avail = Math.max(0, +(totalMax - usedMins).toFixed(1));
                 const pct = Math.min(100, Math.round((avail / totalMax) * 100));
-                quotaPill.textContent = `🎥 CUOTA VÍDEO IA: ${avail} / ${totalMax} MIN DISP.`;
+                quotaPill.textContent = `🎥 CUOTA VÍDEO IA (30 FPS): ${avail} / ${totalMax} MIN DISP.`;
                 quotaRight.textContent = `${avail} MIN DISPONIBLES DE ${totalMax} MIN`;
                 quotaBar.style.width = `${pct}%`;
             } else {
                 quotaPill.textContent = '🔒 CUOTA VÍDEO IA: 0 MIN (PLAN FREE)';
-                quotaRight.textContent = 'REQUIERE PRO O BONO DE VÍDEO';
+                quotaRight.textContent = 'REQUIERE KINET PRO O BONO DE VÍDEO';
                 quotaBar.style.width = '0%';
+            }
+        }
+
+        function renderTacticalBlocksGrid() {
+            const grid = document.getElementById('sport-video-blocks-grid');
+            if (!grid) return;
+
+            grid.innerHTML = activeSportCfg.blocks.map((b, idx) => {
+                const isSelected = idx === selectedBlockIndex;
+                const alreadyUploaded = analyzedClipsHistory.some(c => c.blockId === b.id);
+                return `
+                    <div class="tactical-block-card ${isSelected ? 'selected' : ''} ${alreadyUploaded ? 'uploaded' : ''}" onclick="selectTacticalBlock(${idx})">
+                        <div class="block-badge-row">
+                            <span>${b.tag}</span>
+                            <span>${alreadyUploaded ? '✓ AUDITADO' : 'SUBIR →'}</span>
+                        </div>
+                        <div class="block-title">${b.title}</div>
+                        <div class="block-desc">${b.desc}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectTacticalBlock(index) {
+            selectedBlockIndex = index;
+            const block = activeSportCfg.blocks[index];
+            if (!block) return;
+
+            document.getElementById('vision-active-subject').textContent = `ACTIVO: ${block.title.toUpperCase()}`;
+            renderTacticalBlocksGrid();
+
+            // Si el usuario ya había subido un clip en este bloque, mostramos sus métricas auditadas; si no, mostramos la vista previa del bloque
+            const uploadedClip = analyzedClipsHistory.find(c => c.blockId === block.id);
+            if (uploadedClip) {
+                displayAuditResultOnUI(block, uploadedClip.fileName, uploadedClip.dateStr, true);
+            } else {
+                displayAuditResultOnUI(block, null, null, false);
+            }
+        }
+
+        function displayAuditResultOnUI(block, fileName, dateStr, isUploaded) {
+            document.getElementById('t-val-1').textContent = isUploaded ? block.sampleMetrics[0] : 'Pendiente';
+            document.getElementById('t-val-2').textContent = isUploaded ? block.sampleMetrics[1] : 'Pendiente';
+            document.getElementById('t-val-3').textContent = isUploaded ? block.sampleMetrics[2] : 'Pendiente';
+            document.getElementById('t-val-4').textContent = isUploaded ? block.sampleMetrics[3] : 'Pendiente';
+
+            if (isUploaded) {
+                document.getElementById('hud-rec-status').textContent = `[✓ BLOQUE AUDITADO A 30 FPS • ${dateStr || 'HOY'}]`;
+                document.getElementById('vision-status-title').textContent = `${block.title} — ${fileName}`;
+                document.getElementById('vision-status-desc').textContent = `Normalizado a 30 FPS (-${block.durationMin} min de cuota). Métricas sincronizadas con tu perfil.`;
+                document.getElementById('ai-clip-verdict-box').textContent = block.verdict;
+            } else {
+                document.getElementById('hud-rec-status').textContent = `[ESPERANDO CLIP PARA: ${block.title.toUpperCase()}]`;
+                document.getElementById('vision-status-title').textContent = block.title;
+                document.getElementById('vision-status-desc').textContent = `${block.desc} Pulsa abajo en "Subir Clip al Bloque Activo" para procesarlo a 24-30 FPS.`;
+                document.getElementById('ai-clip-verdict-box').textContent = `Referencia del bloque "${block.title}": ${block.verdict}`;
+            }
+
+            const barsBox = document.getElementById('video-stats-bars-box');
+            if (barsBox) {
+                barsBox.innerHTML = block.bars.map(bar => {
+                    const shownPct = isUploaded ? bar.pct : 0;
+                    const labelPct = isUploaded ? `${bar.pct}%` : 'Sin clip (0%)';
+                    return `
+                        <div class="stat-bar-row">
+                            <div class="stat-bar-head">
+                                <span>${bar.name}</span>
+                                <span style="font-family:'JetBrains Mono';color:var(--role-color);">${labelPct}</span>
+                            </div>
+                            <div class="stat-bar-track">
+                                <div class="stat-bar-fill" style="width:${shownPct}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
             }
         }
 
@@ -1213,17 +1668,105 @@
             document.getElementById('hidden-vision-file-input').click();
         }
 
-        function handleVisionClipFileSelected(input) {
+        async function handleVisionClipFileSelected(input) {
             if (!input.files || !input.files[0]) return;
             const file = input.files[0];
+            const block = activeSportCfg.blocks[selectedBlockIndex];
+            const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
 
-            const prevUsed = parseFloat(localStorage.getItem('kinet_video_mins_used') || '15');
-            localStorage.setItem('kinet_video_mins_used', String(+(prevUsed + 2).toFixed(1)));
+            // Reproducir el vídeo subido en el visor con estética 30 FPS
+            const videoEl = document.getElementById('vision-real-video');
+            if (videoEl) {
+                videoEl.src = URL.createObjectURL(file);
+                videoEl.style.display = 'block';
+                videoEl.play().catch(() => {});
+            }
+
+            // Llamar a KinetAPIs para descontar los minutos reales del bloque y auditar a 30 FPS
+            if (window.KinetAPIs && typeof window.KinetAPIs.analyzeTacticalVideoClip === 'function') {
+                const res = await window.KinetAPIs.analyzeTacticalVideoClip({
+                    clipTitle: file.name,
+                    blockType: block.title,
+                    durationMinutes: block.durationMin
+                });
+                if (res && (res.proRequired || res.noMinutesLeft)) {
+                    openBonusPackModal();
+                    input.value = '';
+                    return;
+                }
+            } else {
+                const prevUsed = parseFloat(localStorage.getItem('kinet_video_mins_used') || '0');
+                localStorage.setItem('kinet_video_mins_used', String(+(prevUsed + block.durationMin).toFixed(1)));
+            }
+
+            const nowStr = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            const record = {
+                id: 'clip_' + Date.now(),
+                blockId: block.id,
+                blockTitle: block.title,
+                fileName: file.name,
+                fps: '30 FPS',
+                durationMin: block.durationMin,
+                metrics: block.sampleMetrics,
+                verdict: block.verdict,
+                dateStr: `Hoy ${nowStr}`
+            };
+
+            analyzedClipsHistory = analyzedClipsHistory.filter(c => c.blockId !== block.id);
+            analyzedClipsHistory.unshift(record);
+            saveClipHistory(sportChosen);
+
             refreshVideoQuotaUI();
-
-            document.getElementById('vision-status-title').textContent = `✓ Clip Auditado: ${file.name}`;
-            document.getElementById('vision-status-desc').textContent = 'Escaneo a 120 FPS completado (-2 min de cuota). Sello AI Verified actualizado.';
+            renderTacticalBlocksGrid();
+            displayAuditResultOnUI(block, file.name, record.dateStr, true);
+            renderAnalyzedClipsHistory();
             input.value = '';
+        }
+
+        function renderAnalyzedClipsHistory() {
+            const listEl = document.getElementById('analyzed-clips-history-list');
+            const countBadge = document.getElementById('clips-analyzed-count');
+            if (countBadge) countBadge.textContent = `${analyzedClipsHistory.length} BLOQUES AUDITADOS`;
+            if (!listEl) return;
+
+            if (analyzedClipsHistory.length === 0) {
+                listEl.innerHTML = `
+                    <div style="text-align:center;padding:16px;background:rgba(255,255,255,0.015);border:1px dashed var(--border-subtle);border-radius:12px;font-size:0.73rem;color:var(--text-secondary);">
+                        Aún no has subido ningún bloque de vídeo en ${activeSportCfg.sportTitle}. Selecciona uno de los 4 bloques a la izquierda para empezar.
+                    </div>
+                `;
+                return;
+            }
+
+            listEl.innerHTML = analyzedClipsHistory.map((c) => `
+                <div class="clip-history-item" onclick="loadClipFromHistory('${c.blockId}')">
+                    <div>
+                        <div style="font-weight:800;font-size:0.8rem;color:white;">${c.blockTitle} <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);">✓ ${c.fps}</span></div>
+                        <div style="font-size:0.68rem;color:var(--text-secondary);">${c.fileName} • ${c.metrics[0]} • ${c.metrics[1]}</div>
+                    </div>
+                    <span style="font-family:'JetBrains Mono';font-size:0.6rem;color:#CBD5E1;">${c.dateStr}</span>
+                </div>
+            `).join('');
+        }
+
+        function loadClipFromHistory(blockId) {
+            const idx = activeSportCfg.blocks.findIndex(b => b.id === blockId);
+            if (idx !== -1) selectTacticalBlock(idx);
+        }
+
+        function sendClipReportToCoachAI() {
+            const block = activeSportCfg.blocks[selectedBlockIndex];
+            const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
+            const activeRoleKey = localStorage.getItem('kinet_active_role') || 'athlete';
+            const uploaded = analyzedClipsHistory.find(c => c.blockId === block.id);
+
+            const questionText = uploaded
+                ? `🎬 [Informe de KINET Vision Lab™ 30 FPS — ${sportChosen}]: Acabo de auditar el bloque "${block.title}" (${uploaded.fileName}) con métricas: ${block.sampleMetrics.join(' | ')}. Dame 3 ejercicios tácticos/técnicos para mejorar sobre este bloque.`
+                : `🎬 [Consulta desde KINET Vision Lab™ — ${sportChosen}]: Quiero preparar el bloque "${block.title}". ¿En qué detalles tácticos y técnicos debo fijarme al grabarlo y recortarlo?`;
+
+            localStorage.setItem('kinet_pending_question', questionText);
+            localStorage.setItem('kinet_target_agent', 'tecnico_video');
+            window.location.href = `cuerpo-tecnico.html?role=${activeRoleKey}&sport=${encodeURIComponent(sportChosen)}&agent=tecnico_video`;
         }
 
         function openBonusPackModal() {
@@ -1233,57 +1776,18 @@
         function addVisionBonusMinutes(mins) {
             const prev = parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0');
             localStorage.setItem('kinet_bonus_video_mins', String(prev + mins));
+            if (window.KinetBackend) window.KinetBackend.pushLocalStateToCloud();
             document.getElementById('payg-vision-modal').classList.remove('open');
             refreshVideoQuotaUI();
         }
 
-        function renderScoutList(list) {
-            const box = document.getElementById('scout-players-list');
-            document.getElementById('scout-count-badge').textContent = `${list.length} PERFILES EN RADAR`;
-
-            box.innerHTML = list.map((p) => `
-                <div class="scout-player-row" onclick='loadPlayerInVision(${JSON.stringify(p)})'>
-                    <div style="display:flex; align-items:center; gap:12px;">
-                        <span class="scout-grl-badge">${p.grl}</span>
-                        <div>
-                            <div style="font-weight:800; font-size:0.86rem; color:white;">${p.name} <span style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);">✓ AI</span></div>
-                            <div style="font-size:0.72rem; color:var(--text-secondary);">${p.pos} • ${p.cat} • <strong style="color:#E2E8F0;">${p.clause}</strong></div>
-                        </div>
-                    </div>
-                    <button class="btn-secondary" style="padding:6px 10px; font-size:0.65rem;">Ver 🎥</button>
-                </div>
-            `).join('');
-        }
-
-        function filterScoutList() {
-            const q = document.getElementById('scout-search-input').value.toLowerCase();
-            const minGrl = parseInt(document.getElementById('scout-grl-filter').value, 10);
-
-            const filtered = activeScoutDB.players.filter(p => {
-                const matchText = p.name.toLowerCase().includes(q) || p.pos.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q);
-                const matchGrl = p.grl >= minGrl;
-                return matchText && matchGrl;
-            });
-            renderScoutList(filtered);
-        }
-
-        function loadPlayerInVision(p) {
-            currentLoadedPlayer = p;
-            document.getElementById('vision-active-subject').textContent = `OBJETIVO: ${p.name.toUpperCase()}`;
-            document.getElementById('vision-status-title').textContent = p.desc;
-            document.getElementById('vision-status-desc').textContent = `${p.pos} (${p.cat}) — Sello KINET AI Verified activo`;
-            document.getElementById('t-val-1').textContent = p.acc;
-            document.getElementById('t-val-2').textContent = p.speed;
-            document.getElementById('t-val-3').textContent = p.iq;
-            document.getElementById('t-val-4').textContent = p.clause;
-        }
-
-        function exportScoutReportPDF() {
+        function exportVisionLabReportPDF() {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
             const sportChosen = (localStorage.getItem('kinet_sport') || 'Fútbol').toUpperCase();
-            const p = currentLoadedPlayer || activeScoutDB.players[0];
+            const userName = (localStorage.getItem('kinet_user_name') || 'ATLETA KINET').toUpperCase();
+            const block = activeSportCfg.blocks[selectedBlockIndex];
 
             pdf.setFillColor(6, 8, 14);
             pdf.rect(0, 0, 210, 297, 'F');
@@ -1292,54 +1796,53 @@
             pdf.roundedRect(14, 14, 182, 26, 4, 4, 'F');
             pdf.setTextColor(0, 255, 136);
             pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(14);
-            pdf.text('KINET VISION ANALYTICS™ // INFORME DE SCOUTING & BIOMECANICA', 20, 25);
+            pdf.setFontSize(13.5);
+            pdf.text('KINET VISION LAB™ // INFORME DE VIDEO TACTICO (24-30 FPS)', 20, 25);
 
             pdf.setTextColor(203, 213, 225);
-            pdf.setFontSize(9.2);
-            pdf.text(`DISCIPLINA: ${sportChosen}   |   OBJETIVO ANALIZADO: ${p.name.toUpperCase()} (GRL ${p.grl})`, 20, 34);
+            pdf.setFontSize(9);
+            pdf.text(`ATLETA: ${userName}   |   DISCIPLINA: ${sportChosen}   |   BLOQUE: ${block.title.toUpperCase()}`, 20, 34);
 
             pdf.setFillColor(13, 17, 26);
-            pdf.roundedRect(14, 48, 182, 58, 4, 4, 'F');
+            pdf.roundedRect(14, 48, 182, 64, 4, 4, 'F');
             pdf.setTextColor(0, 255, 136);
             pdf.setFontSize(11);
-            pdf.text('1. TELEMETRIA BIOMECANICA AUDITADA A 120 FPS', 20, 60);
+            pdf.text('1. METRICAS EXTRAIDAS DEL BLOQUE TACTICO (30 FPS)', 20, 60);
 
             pdf.setTextColor(248, 250, 252);
             pdf.setFontSize(9.5);
-            pdf.text(`• Demarcacion / Categoria: ${p.pos} (${p.cat})`, 20, 71);
-            pdf.text(`• Diagnostico Cinemático: ${p.desc}`, 20, 80);
-            pdf.text(`• Precision Biomecanica: ${p.acc}   |   Pico de Rendimiento: ${p.speed}`, 20, 89);
-            pdf.text(`• Lectura Tactica IQ: ${p.iq}   |   Valor / Clausula Estimada: ${p.clause}`, 20, 98);
+            pdf.text(`• ${activeSportCfg.pillLabels[0]}: ${block.sampleMetrics[0]}`, 20, 71);
+            pdf.text(`• ${activeSportCfg.pillLabels[1]}: ${block.sampleMetrics[1]}`, 20, 80);
+            pdf.text(`• ${activeSportCfg.pillLabels[2]}: ${block.sampleMetrics[2]}`, 20, 89);
+            pdf.text(`• ${activeSportCfg.pillLabels[3]}: ${block.sampleMetrics[3]}`, 20, 98);
 
             pdf.setFillColor(13, 17, 26);
-            pdf.roundedRect(14, 114, 182, 95, 4, 4, 'F');
+            pdf.roundedRect(14, 120, 182, 85, 4, 4, 'F');
             pdf.setTextColor(0, 255, 136);
             pdf.setFontSize(11);
-            pdf.text(`2. CARTERA COMPLETA EN SCOUT MATRIX B2B (${sportChosen})`, 20, 126);
+            pdf.text('2. DESGLOSE BIOMECANICO Y VEREDICTO DEL ENTRENADOR IA', 20, 132);
 
-            let y = 138;
-            activeScoutDB.players.forEach((item, idx) => {
+            let y = 144;
+            block.bars.forEach((b) => {
                 pdf.setTextColor(241, 245, 249);
-                pdf.setFont('helvetica', 'bold');
-                pdf.setFontSize(9.5);
-                pdf.text(`${idx + 1}. ${item.name}  [GRL ${item.grl}]  —  ${item.pos} (${item.cat})`, 20, y);
-                pdf.setFont('helvetica', 'normal');
-                pdf.setTextColor(148, 163, 184);
-                pdf.setFontSize(8.8);
-                pdf.text(`   Métrica: ${item.speed}  |  Precisión: ${item.acc}  |  IQ: ${item.iq}  |  Valor: ${item.clause}`, 20, y + 6);
-                y += 16;
+                pdf.setFontSize(9.2);
+                pdf.text(`• ${b.name}: ${b.pct}%`, 20, y);
+                y += 8;
             });
+
+            const verdictLines = pdf.splitTextToSize(`Conclusión IA: ${block.verdict}`, 168);
+            pdf.setTextColor(203, 213, 225);
+            pdf.text(verdictLines, 20, y + 6);
 
             pdf.setTextColor(148, 163, 184);
             pdf.setFontSize(8);
-            pdf.text('Informe oficial generado por KINET Vision Analytics™ & Scout Matrix B2B • kinetos.es', 14, 285);
+            pdf.text('Informe oficial generado por KINET Vision Lab™ (24-30 FPS) • jkinetos.es', 14, 285);
 
-            pdf.save(`Informe_Vision_Analytics_${p.name.replace(/\s+/g, '_')}.pdf`);
+            pdf.save(`Informe_Vision_Lab_${sportChosen}.pdf`);
         }
 
         // =========================================================================
-        // MOTOR GLOBAL DE COLOR DE ROL Y REEMPLAZO FORZADO DE FAVICON EN NAVEGADOR
+        // MOTOR GLOBAL DE COLOR DE ROL Y REEMPLAZO FORZADO DE FAVICON
         // =========================================================================
         (function initGlobalKinetPersonalization() {
             const styleTag = document.createElement('style');
