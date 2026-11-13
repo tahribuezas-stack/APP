@@ -1,5 +1,5 @@
 /**
- * KINET OS // Motor Oficial de Backend & Sincronización Directa REST con Supabase (v5.6 Full Real-Time, Avatar Lock & Global UI 44px)
+ * KINET OS // Motor Oficial de Backend & Sincronización Directa REST con Supabase (v5.7 Fixed Sidebar Geometry & 10h AI Tips)
  * Servidor: https://bhqgsbtkwdxdxlvlcaes.supabase.co
  */
 (function (window) {
@@ -11,12 +11,11 @@
   let sbClient = null;
   let syncTimeout = null;
   let isHydratingFromCloud = false;
-  let initialCloudPullFinished = false; // Evita que la caché vieja del móvil machaque la nube antes de descargar
+  let initialCloudPullFinished = false;
   let dmPollingInterval = null;
   let lastKnownMessageSignature = -1;
   let lastUnreadCount = 0;
 
-  // 1. Petición REST directa a las tablas de Supabase (Funciona en móvil y PC sin depender de CDN)
   async function supabaseRestRequest(tableAndQuery, method = 'GET', bodyObj = null, upsert = false) {
     const headers = {
       'apikey': SUPABASE_ANON_KEY,
@@ -36,7 +35,6 @@
     return text ? JSON.parse(text) : null;
   }
 
-  // 2. Petición REST directa a Supabase Auth (/auth/v1)
   async function supabaseAuthRequest(endpoint, bodyObj) {
     const res = await fetch(`${SUPABASE_URL}/auth/v1/${endpoint}`, {
       method: 'POST',
@@ -62,7 +60,6 @@
     });
   }
 
-  // Comprime cualquier foto de perfil a un tamaño ligero (260x260 JPEG) para que sincronice al instante entre PC y Móvil en Supabase
   function compressAvatarDataUrl(fileOrDataUrl) {
     return new Promise((resolve) => {
       const img = new Image();
@@ -107,7 +104,6 @@
     const state = {};
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
-      // No duplicamos posts gigantes ni imágenes pesadas dentro de user_state si ya van en avatar_url
       if (k && k.startsWith('kinet_') && k !== 'kinet_sb_key' && k !== 'kinet_saved_posts') {
         const val = localStorage.getItem(k);
         if (val && val.length < 180000) {
@@ -141,7 +137,6 @@
     }, 500);
   }
 
-  // Repinta automáticamente todas las fotos de perfil, nombres y @handles visibles en la pantalla actual (Móvil y PC)
   function refreshDOMAvatarsAndProfileUI() {
     try {
       const avatarUrl = localStorage.getItem('kinet_user_avatar');
@@ -189,7 +184,6 @@
     } catch (e) {}
   }
 
-  // Hidrata el móvil o PC dando SIEMPRE prioridad absoluta a los datos y foto de perfil de Supabase Cloud
   function restoreCloudStateToLocal(profileRow) {
     if (!profileRow) return;
     isHydratingFromCloud = true;
@@ -210,7 +204,6 @@
       }
       if (profileRow.bio) originalSetItem.call(localStorage, 'kinet_social_bio', profileRow.bio);
 
-      // Unificar foto de perfil entre móvil y PC: la foto de la base de datos sobrescribe SIEMPRE la caché local antigua
       const cloudAvatar = profileRow.avatar_url || cloudState.kinet_user_avatar;
       if (cloudAvatar) {
         originalSetItem.call(localStorage, 'kinet_user_avatar', cloudAvatar);
@@ -257,14 +250,11 @@
           return rows[0].id;
         }
       }
-    } catch (e) {
-      console.warn('Aviso resolviendo ID de usuario:', e.message);
-    }
+    } catch (e) {}
     if (uid && uid.length > 20) return uid;
     return null;
   }
 
-  // Actualiza la exclamación (!) en el botón de Comunidad de TODAS las páginas según si hay mensajes sin leer
   function updateGlobalCommunityExclamationBadge() {
     try {
       const unreadDms = parseInt(localStorage.getItem('kinet_unread_dm_count') || '0', 10);
@@ -291,14 +281,50 @@
     } catch (e) {}
   }
 
-  // 3. Centrado Vertical (44px idénticos) + Inyección de Analizador 3D + Exclamación Global (!) en Comunidad
+  // Motor de Consejos IA rotativos cada 10 horas con longitud exacta de 2-3 líneas para que el Sidebar jamás cambie de altura
+  function applyRotating10HourSidebarTip() {
+    try {
+      const tipBox = document.querySelector('.sidebar-ai-tip-box');
+      if (!tipBox) return;
+      const textEl = tipBox.querySelector('.sidebar-ai-tip-text');
+      if (!textEl) return;
+
+      const sport = localStorage.getItem('kinet_sport') || 'Fútbol';
+      const bucket10h = Math.floor(Date.now() / (10 * 3600 * 1000));
+      const path = (window.location.pathname || '').toLowerCase();
+
+      const tipsByPage = {
+        perfil: [
+          `Mantén actualizados tu club, categoría y enlaces de vídeo para destacar en el radar de ${sport}.`,
+          `Tus datos biométricos y posición se sincronizan al instante con tu KINET Card y el Analizador 3D.`
+        ],
+        vestuario: [
+          `Registra tu carga y descanso hoy para que el Cuerpo Técnico IA ajuste tu sesión de ${sport}.`,
+          `Revisa tus métricas del día antes de entrenar y consulta cualquier molestia al especialista IA.`
+        ],
+        default: [
+          `Sincronización Cloud activa para ${sport}. Tus avances se actualizan en tiempo real entre móvil y PC.`,
+          `Utiliza el Laboratorio de Vídeo y la Pizarra 3D para analizar tu rendimiento y compararte en 1vs1.`
+        ]
+      };
+
+      let pool = tipsByPage.default;
+      if (path.includes('perfil')) pool = tipsByPage.perfil;
+      else if (path.includes('app.html')) pool = tipsByPage.vestuario;
+
+      if (path.includes('perfil')) {
+        textEl.textContent = pool[bucket10h % pool.length];
+      }
+    } catch (e) {}
+  }
+
   function applyGlobalSidebarEnhancements() {
     try {
       if (!document.getElementById('kinet-global-sidebar-v5-style')) {
         const style = document.createElement('style');
         style.id = 'kinet-global-sidebar-v5-style';
         style.textContent = `
-          /* Centrar verticalmente la navegación y forzar TAMAÑO IDÉNTICO (44px) entre opciones del medio y de abajo */
+          /* Geometría idéntica en TODAS las páginas: evita que el consejo IA mueva los botones del medio */
           .os-sidebar .sidebar-top-section {
             display: flex !important;
             flex-direction: column !important;
@@ -323,6 +349,30 @@
             gap: 8px !important;
             padding-top: 10px !important;
             flex-shrink: 0 !important;
+          }
+          /* Altura fija exacta (76px) en el recuadro de consejo IA para que Mi Perfil y las demás secciones midan lo mismo al milímetro */
+          .os-sidebar .sidebar-ai-tip-box,
+          .sidebar-ai-tip-box {
+            height: 76px !important;
+            min-height: 76px !important;
+            max-height: 76px !important;
+            padding: 9px 12px !important;
+            margin-bottom: 2px !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            flex-shrink: 0 !important;
+          }
+          .sidebar-ai-tip-text {
+            font-size: 0.71rem !important;
+            line-height: 1.32 !important;
+            display: -webkit-box !important;
+            -webkit-line-clamp: 3 !important;
+            -webkit-box-orient: vertical !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
           }
           .os-sidebar .side-link,
           .sidebar-nav .side-link,
@@ -368,27 +418,14 @@
             border-radius: 50% !important;
             font-size: 0 !important;
           }
-          .os-sidebar, aside.sidebar {
-            display: flex !important;
-            flex-direction: column !important;
-            justify-content: space-between !important;
-            height: 100vh !important;
-          }
-          .os-sidebar > nav,
-          .os-sidebar .sidebar-nav,
-          aside.sidebar > nav {
-            margin-top: auto !important;
-            margin-bottom: auto !important;
-          }
         `;
         document.head.appendChild(style);
       }
 
-     // Inyectar el indicador de exclamación (!) SOLO en la flecha derecha sin tocar el texto "Comunidad / Red Social"
+      // Asegurar que el botón de Comunidad conserve SIEMPRE su texto "Comunidad / Red Social" a la izquierda y el badge a la derecha
       document.querySelectorAll('a[href*="comunidad.html"]:not([href*="setup=true"])').forEach((comLink) => {
         const leftGroup = comLink.querySelector('.side-link-left');
         if (leftGroup) {
-          // Asegurar que el texto izquierdo sea siempre el icono + "Comunidad / Red Social"
           leftGroup.innerHTML = '<span>🌐</span> <span>Comunidad / Red Social</span>';
         }
         let badge = comLink.querySelector(':scope > .kinet-notif-exclaim');
@@ -403,6 +440,7 @@
       });
 
       updateGlobalCommunityExclamationBadge();
+      applyRotating10HourSidebarTip();
 
       // Renombrar ojeador-live.html a "Laboratorio Vídeo" e inyectar "Analizador & Pizarra 3D"
       const labLinks = document.querySelectorAll('a[href*="ojeador-live.html"]');
@@ -430,12 +468,17 @@
             } else {
               analyzerLink.innerHTML = '<span>🏟️ Analizador & Pizarra 3D</span><span>→</span>';
             }
+            const rightIndicator = analyzerLink.querySelector(':scope > span:last-child');
+            if (rightIndicator && !rightIndicator.classList.contains('side-link-left')) {
+              rightIndicator.className = '';
+              rightIndicator.style.cssText = 'font-size:0.7rem;opacity:0.5;';
+              rightIndicator.textContent = currentPath.includes('analizador.html') ? '●' : '→';
+            }
             link.insertAdjacentElement('afterend', analyzerLink);
           }
         }
       });
 
-      // Ocultar botón KINET PRO si el usuario ya es PRO o CLUB
       const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
       const isProOrClub = tier === 'pro' || tier === 'club' || localStorage.getItem('kinet_is_pro') === 'true';
       document.querySelectorAll('[data-pro-upsell], #sidebar-pro-btn, #nav-upgrade-pro, #drawer-upgrade-pro').forEach((el) => {
@@ -450,7 +493,6 @@
     refreshUI: refreshDOMAvatarsAndProfileUI,
     updateCommunityBadge: updateGlobalCommunityExclamationBadge,
 
-    // Validador global Freemium: Fotos para Gratis, Vídeos (normalizados a 24-30 FPS) exclusivos para cuentas PRO / Club
     canUploadVideo() {
       const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
       return tier === 'pro' || tier === 'club' || localStorage.getItem('kinet_is_pro') === 'true';
@@ -466,7 +508,7 @@
       };
     },
 
-    async registerUser({ firstName, lastName, handle, email, phone, password }) {
+    async registerUser({ firstName, lastName, handle, email, phone, password, birthDate }) {
       const fullName = `${firstName || ''} ${lastName || ''}`.trim() || 'Atleta KINET';
       const cleanHandle = (handle || '').startsWith('@') ? handle : `@${handle}`;
       const cleanEmail = (email || '').trim().toLowerCase();
@@ -478,6 +520,7 @@
       originalSetItem.call(localStorage, 'kinet_user_email', cleanEmail);
       originalSetItem.call(localStorage, 'kinet_username', cleanHandle);
       originalSetItem.call(localStorage, 'kinet_social_handle', cleanHandle);
+      if (birthDate) originalSetItem.call(localStorage, 'kinet_birth_date', birthDate);
       originalSetItem.call(localStorage, 'kinet_logged_in', 'true');
       originalSetItem.call(localStorage, 'kinet_social_configured', 'true');
 
@@ -486,12 +529,10 @@
         const authData = await supabaseAuthRequest('signup', {
           email: cleanEmail,
           password: password,
-          data: { full_name: fullName, handle: cleanHandle, phone: phone || '' }
+          data: { full_name: fullName, handle: cleanHandle, phone: phone || '', birth_date: birthDate || '' }
         });
         userId = authData?.user?.id || authData?.id || null;
-      } catch (authErr) {
-        console.warn('Aviso en Auth Signup:', authErr.message);
-      }
+      } catch (authErr) {}
 
       if (!userId) userId = generateUUID();
       originalSetItem.call(localStorage, 'kinet_user_id', userId);
@@ -504,9 +545,9 @@
         bio: 'Perfil Verificado KINET OS',
         active_role: localStorage.getItem('kinet_active_role') || 'athlete',
         active_sport: localStorage.getItem('kinet_sport') || 'Fútbol',
-        position: localStorage.getItem('kinet_position') || 'PRO',
+        position: localStorage.getItem('kinet_position') || 'Por asignar',
         category: localStorage.getItem('kinet_category') || 'Senior',
-        club: localStorage.getItem('kinet_user_club') || 'KINET Performance',
+        club: localStorage.getItem('kinet_user_club') || 'Independiente',
         account_tier: 'free',
         user_state: collectAllKinetLocalState(),
         updated_at: new Date().toISOString()
@@ -558,7 +599,6 @@
       throw new Error('No hemos encontrado ninguna cuenta con ese correo o @usuario en KINET Cloud. Ve a "CREAR CUENTA" para registrarla.');
     },
 
-    // Método directo para cambiar foto de perfil en cualquier dispositivo y forzar su subida inmediata a Supabase
     async updateProfileAvatar(fileOrDataUrl) {
       const compressed = await compressAvatarDataUrl(fileOrDataUrl);
       if (!compressed) return { ok: false };
@@ -582,7 +622,6 @@
           if (avatarData) originalSetItem.call(localStorage, 'kinet_user_avatar', avatarData);
         }
 
-        // Si este dispositivo no tiene avatar local pero en la nube ya había uno, no lo borramos con null
         if (!avatarData) {
           try {
             const existing = await supabaseRestRequest(`profiles?id=eq.${userId}&select=avatar_url&limit=1`, 'GET');
@@ -602,9 +641,9 @@
           bio: localStorage.getItem('kinet_social_bio') || 'Perfil Verificado KINET OS',
           active_role: localStorage.getItem('kinet_active_role') || 'athlete',
           active_sport: localStorage.getItem('kinet_sport') || 'Fútbol',
-          position: localStorage.getItem('kinet_position') || 'PRO',
+          position: localStorage.getItem('kinet_position') || 'Por asignar',
           category: localStorage.getItem('kinet_category') || 'Senior',
-          club: localStorage.getItem('kinet_user_club') || 'KINET Performance',
+          club: localStorage.getItem('kinet_user_club') || 'Independiente',
           account_tier: localStorage.getItem('kinet_account_tier') || 'free',
           video_mins_used: parseFloat(localStorage.getItem('kinet_video_mins_used') || '0'),
           bonus_video_mins: parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0'),
@@ -700,7 +739,6 @@
       }
     },
 
-    // Obtener todos los DMs del usuario actual (enviados y recibidos) ordenados cronológicamente
     async fetchCloudDirectMessages() {
       try {
         const rawHandle = (localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '').trim();
@@ -764,7 +802,6 @@
       }
     },
 
-    // Motor de escucha en tiempo real (cada 3.5 seg) para DMs y exclamación (!) en todas las páginas
     startRealtimeDMPolling(intervalMs = 3500) {
       if (dmPollingInterval) clearInterval(dmPollingInterval);
 
@@ -817,7 +854,6 @@
 
   window.KinetBackend = KinetBackend;
 
-  // Ejecutar descarga prioritaria desde Supabase y activar mejoras de UI + DMs en tiempo real
   KinetBackend.pullCloudStateToLocal().then(() => {
     refreshDOMAvatarsAndProfileUI();
     applyGlobalSidebarEnhancements();
