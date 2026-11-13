@@ -1,5 +1,5 @@
 /**
- * KINET OS // Motor Oficial de Backend & Sincronización Directa REST con Supabase (v5 Avatar & Mobile Sync)
+ * KINET OS // Motor Oficial de Backend & Sincronización Directa REST con Supabase (v5.5 Full Real-Time, Avatar Lock & Global UI)
  * Servidor: https://bhqgsbtkwdxdxlvlcaes.supabase.co
  */
 (function (window) {
@@ -11,6 +11,10 @@
   let sbClient = null;
   let syncTimeout = null;
   let isHydratingFromCloud = false;
+  let initialCloudPullFinished = false; // Evita que la caché vieja del móvil machaque la nube antes de descargar
+  let dmPollingInterval = null;
+  let lastKnownMessageCount = -1;
+  let lastUnreadCount = 0;
 
   // 1. Petición REST directa a las tablas de Supabase (Funciona en móvil y PC sin depender de CDN)
   async function supabaseRestRequest(tableAndQuery, method = 'GET', bodyObj = null, upsert = false) {
@@ -117,19 +121,67 @@
   const originalSetItem = localStorage.setItem;
   localStorage.setItem = function (key, value) {
     originalSetItem.apply(this, arguments);
-    if (!isHydratingFromCloud && key && key.startsWith('kinet_')) {
+    if (key === 'kinet_user_avatar' && value) {
+      originalSetItem.call(localStorage, 'kinet_avatar_updated_at', String(Date.now()));
+      refreshDOMAvatarsAndProfileUI();
+    }
+    if (!isHydratingFromCloud && initialCloudPullFinished && key && key.startsWith('kinet_')) {
       scheduleCloudSync();
     }
   };
 
   function scheduleCloudSync() {
+    if (!initialCloudPullFinished) return;
     if (syncTimeout) clearTimeout(syncTimeout);
     syncTimeout = setTimeout(() => {
       KinetBackend.pushLocalStateToCloud();
-    }, 550);
+    }, 500);
   }
 
-  // Hidrata el móvil o PC dando SIEMPRE prioridad a la foto de perfil más reciente de la nube
+  // Repinta automáticamente todas las fotos de perfil, nombres y @handles visibles en la pantalla actual (Móvil y PC)
+  function refreshDOMAvatarsAndProfileUI() {
+    try {
+      const avatarUrl = localStorage.getItem('kinet_user_avatar');
+      const userName = localStorage.getItem('kinet_user_name');
+      const userHandle = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username');
+
+      if (avatarUrl && (avatarUrl.startsWith('data:image') || avatarUrl.startsWith('http'))) {
+        const avatarSelectors = [
+          '#sidebar-avatar-img',
+          '#profile-avatar-img',
+          '#setup-avatar-preview',
+          '#composer-avatar-img',
+          '#my-card-avatar',
+          '#header-user-avatar',
+          '.current-user-avatar-img',
+          '[data-kinet-user-avatar]'
+        ];
+        document.querySelectorAll(avatarSelectors.join(',')).forEach((el) => {
+          if (el.tagName === 'IMG') {
+            el.src = avatarUrl;
+            el.style.display = 'block';
+          } else {
+            el.style.backgroundImage = `url(${avatarUrl})`;
+            el.style.backgroundSize = 'cover';
+            el.style.backgroundPosition = 'center';
+          }
+        });
+      }
+
+      if (userName) {
+        document.querySelectorAll('[data-kinet-user-name], #sidebar-user-name').forEach((el) => {
+          el.textContent = userName;
+        });
+      }
+      if (userHandle) {
+        document.querySelectorAll('[data-kinet-user-handle], #sidebar-user-handle').forEach((el) => {
+          el.textContent = userHandle.startsWith('@') ? userHandle : `@${userHandle}`;
+        });
+      }
+    } catch (e) {}
+  }
+
+  // Hidrata el móvil o PC dando SIEMPRE prioridad absoluta a los datos y foto de perfil de Supabase Cloud
   function restoreCloudStateToLocal(profileRow) {
     if (!profileRow) return;
     isHydratingFromCloud = true;
@@ -150,7 +202,7 @@
       }
       if (profileRow.bio) originalSetItem.call(localStorage, 'kinet_social_bio', profileRow.bio);
 
-      // Unificar foto de perfil entre móvil y PC
+      // Unificar foto de perfil entre móvil y PC: la foto de la base de datos sobrescribe SIEMPRE la caché local antigua
       const cloudAvatar = profileRow.avatar_url || cloudState.kinet_user_avatar;
       if (cloudAvatar) {
         originalSetItem.call(localStorage, 'kinet_user_avatar', cloudAvatar);
@@ -171,19 +223,20 @@
       originalSetItem.call(localStorage, 'kinet_profile_completed', 'true');
     } finally {
       isHydratingFromCloud = false;
+      refreshDOMAvatarsAndProfileUI();
+      applyGlobalSidebarEnhancements();
     }
   }
 
   async function resolveCurrentUserId() {
     let uid = localStorage.getItem('kinet_user_id');
-    if (uid && uid.length > 20) return uid;
-
     const email = (localStorage.getItem('kinet_user_email') || '').trim();
     const handle = (localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '').trim();
 
     try {
+      // Si hay email o handle, buscamos primero por ellos para garantizar que móvil y PC apunten al MISMO registro exacto
       if (email && email.includes('@')) {
-        const rows = await supabaseRestRequest(`profiles?email=ilike.${encodeURIComponent(email)}&select=*&limit=1`, 'GET');
+        const rows = await supabaseRestRequest(`profiles?email=ilike.${encodeURIComponent(email)}&select=*&order=updated_at.desc&limit=1`, 'GET');
         if (Array.isArray(rows) && rows[0]?.id) {
           originalSetItem.call(localStorage, 'kinet_user_id', rows[0].id);
           return rows[0].id;
@@ -191,7 +244,7 @@
       }
       if (handle) {
         const cleanH = handle.startsWith('@') ? handle : '@' + handle;
-        const rows = await supabaseRestRequest(`profiles?handle=ilike.${encodeURIComponent(cleanH)}&select=*&limit=1`, 'GET');
+        const rows = await supabaseRestRequest(`profiles?handle=ilike.${encodeURIComponent(cleanH)}&select=*&order=updated_at.desc&limit=1`, 'GET');
         if (Array.isArray(rows) && rows[0]?.id) {
           originalSetItem.call(localStorage, 'kinet_user_id', rows[0].id);
           return rows[0].id;
@@ -200,12 +253,118 @@
     } catch (e) {
       console.warn('Aviso resolviendo ID de usuario:', e.message);
     }
+    if (uid && uid.length > 20) return uid;
     return null;
+  }
+
+  // 3. Centrado Vertical de la Barra Lateral + Inyección de la nueva sección "Analizador & Pizarra 3D" en todas las pantallas
+  function applyGlobalSidebarEnhancements() {
+    try {
+      if (!document.getElementById('kinet-global-sidebar-v5-style')) {
+        const style = document.createElement('style');
+        style.id = 'kinet-global-sidebar-v5-style';
+        style.textContent = `
+          /* Centrar verticalmente las opciones de navegación del menú lateral en todas las páginas */
+          aside.sidebar nav,
+          .sidebar-nav,
+          .nav-links,
+          aside nav.flex-1 {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            flex: 1 1 auto !important;
+            gap: 6px !important;
+            padding-top: 12px !important;
+            padding-bottom: 12px !important;
+          }
+          .kinet-dm-unread-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 999px;
+            background: #10B981;
+            color: #05080F;
+            font-size: 10px;
+            font-weight: 800;
+            margin-left: 6px;
+            box-shadow: 0 0 10px rgba(16,185,129,0.55);
+            animation: kinetPulseBadge 1.8s infinite;
+          }
+          @keyframes kinetPulseBadge {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.12); }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      // Renombrar ojeador-live.html a "Laboratorio Vídeo" e inyectar "Analizador & Pizarra" (analizador.html) si aún no está
+      const labLinks = document.querySelectorAll('a[href*="ojeador-live.html"]');
+      const currentPath = (window.location.pathname || '').toLowerCase();
+
+      labLinks.forEach((link) => {
+        const isMobileBar = Boolean(link.closest('.mobile-bottom-nav, .bottom-nav, nav.fixed.bottom-0'));
+        if (!isMobileBar) {
+          // Actualizar etiqueta de Laboratorio para dejar claro que es de Vídeo
+          if (link.textContent.includes('Ojeador') || link.textContent.includes('Laboratorio')) {
+            const iconSpan = link.querySelector('span, i, svg');
+            if (!iconSpan) {
+              link.innerHTML = '🎬 <span>Laboratorio Vídeo</span>';
+            }
+          }
+
+          // Inyectar botón de "Analizador & Pizarra 3D" justo debajo si no existe
+          const parentNav = link.parentElement;
+          if (parentNav && !parentNav.querySelector('a[href*="analizador.html"]')) {
+            const analyzerLink = link.cloneNode(true);
+            analyzerLink.setAttribute('href', 'analizador.html');
+            analyzerLink.classList.remove('active', 'bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/30');
+            if (currentPath.includes('analizador.html')) {
+              analyzerLink.classList.add('active');
+            }
+            analyzerLink.innerHTML = link.innerHTML
+              .replace(/Ojeador\s*&?\s*Laboratorio|Laboratorio\s*de\s*V[íi]deo|Laboratorio\s*V[íi]deo|Ojeador\s*Live/gi, 'Analizador & Pizarra 3D')
+              .replace(/🎬|🔭|📡|🧪/g, '🏟️');
+            if (!analyzerLink.textContent.includes('Analizador')) {
+              analyzerLink.innerHTML = '🏟️ <span>Analizador & Pizarra 3D</span>';
+            }
+            link.insertAdjacentElement('afterend', analyzerLink);
+          }
+        }
+      });
+
+      // Ocultar botón KINET PRO si el usuario ya es PRO o CLUB
+      const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
+      const isProOrClub = tier === 'pro' || tier === 'club' || localStorage.getItem('kinet_is_pro') === 'true';
+      document.querySelectorAll('[data-pro-upsell], #sidebar-pro-btn, .pro-upgrade-banner').forEach((el) => {
+        el.style.display = isProOrClub ? 'none' : '';
+      });
+    } catch (e) {}
   }
 
   const KinetBackend = {
     getClient: initSupabase,
     compressAvatar: compressAvatarDataUrl,
+    refreshUI: refreshDOMAvatarsAndProfileUI,
+
+    // Validador global Freemium: Fotos para Gratis, Vídeos (normalizados a 24-30 FPS) exclusivos para cuentas PRO / Club
+    canUploadVideo() {
+      const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
+      return tier === 'pro' || tier === 'club' || localStorage.getItem('kinet_is_pro') === 'true';
+    },
+
+    getVideoCompressionConfig() {
+      return {
+        targetFps: 30,
+        minFps: 24,
+        maxClipSeconds: 300, // 5 min por bloque táctico
+        maxShortSizeMB: 4.5,
+        proOnly: true
+      };
+    },
 
     async registerUser({ firstName, lastName, handle, email, phone, password }) {
       const fullName = `${firstName || ''} ${lastName || ''}`.trim() || 'Atleta KINET';
@@ -254,6 +413,7 @@
       };
 
       await supabaseRestRequest('profiles', 'POST', newProfilePayload, true);
+      initialCloudPullFinished = true;
       return { ok: true, user: newProfilePayload };
     },
 
@@ -276,14 +436,14 @@
       let foundProfile = null;
       if (!isHandleLogin) {
         const rows = await supabaseRestRequest(
-          `profiles?email=ilike.${encodeURIComponent(cleanInput)}&select=*&limit=1`,
+          `profiles?email=ilike.${encodeURIComponent(cleanInput)}&select=*&order=updated_at.desc&limit=1`,
           'GET'
         );
         if (Array.isArray(rows) && rows[0]) foundProfile = rows[0];
       } else {
         const hQuery = cleanInput.startsWith('@') ? cleanInput : `@${cleanInput}`;
         const rows = await supabaseRestRequest(
-          `profiles?handle=ilike.${encodeURIComponent(hQuery)}&select=*&limit=1`,
+          `profiles?handle=ilike.${encodeURIComponent(hQuery)}&select=*&order=updated_at.desc&limit=1`,
           'GET'
         );
         if (Array.isArray(rows) && rows[0]) foundProfile = rows[0];
@@ -291,10 +451,24 @@
 
       if (foundProfile) {
         restoreCloudStateToLocal(foundProfile);
+        initialCloudPullFinished = true;
         return { ok: true, user: foundProfile };
       }
 
       throw new Error('No hemos encontrado ninguna cuenta con ese correo o @usuario en KINET Cloud. Ve a "CREAR CUENTA" para registrarla.');
+    },
+
+    // Método directo para cambiar foto de perfil en cualquier dispositivo y forzar su subida inmediata a Supabase
+    async updateProfileAvatar(fileOrDataUrl) {
+      const compressed = await compressAvatarDataUrl(fileOrDataUrl);
+      if (!compressed) return { ok: false };
+      originalSetItem.call(localStorage, 'kinet_user_avatar', compressed);
+      originalSetItem.call(localStorage, 'kinet_avatar_updated_at', String(Date.now()));
+      refreshDOMAvatarsAndProfileUI();
+      initialCloudPullFinished = true;
+      await this.pushLocalStateToCloud();
+      window.dispatchEvent(new CustomEvent('kinet:avatar-updated', { detail: { avatar_url: compressed } }));
+      return { ok: true, avatar_url: compressed };
     },
 
     async pushLocalStateToCloud() {
@@ -306,6 +480,17 @@
         if (avatarData && avatarData.length > 150000) {
           avatarData = await compressAvatarDataUrl(avatarData);
           if (avatarData) originalSetItem.call(localStorage, 'kinet_user_avatar', avatarData);
+        }
+
+        // Si este dispositivo no tiene avatar local pero en la nube ya había uno, no lo borramos con null
+        if (!avatarData) {
+          try {
+            const existing = await supabaseRestRequest(`profiles?id=eq.${userId}&select=avatar_url&limit=1`, 'GET');
+            if (Array.isArray(existing) && existing[0]?.avatar_url) {
+              avatarData = existing[0].avatar_url;
+              originalSetItem.call(localStorage, 'kinet_user_avatar', avatarData);
+            }
+          } catch (e) {}
         }
 
         const payload = {
@@ -337,18 +522,32 @@
     async pullCloudStateToLocal() {
       try {
         const userId = await resolveCurrentUserId();
-        if (!userId) return null;
+        if (!userId) {
+          initialCloudPullFinished = true;
+          return null;
+        }
         const rows = await supabaseRestRequest(`profiles?id=eq.${userId}&select=*`, 'GET');
         if (Array.isArray(rows) && rows[0]) {
           restoreCloudStateToLocal(rows[0]);
+          initialCloudPullFinished = true;
           window.dispatchEvent(new CustomEvent('kinet:cloud-synced', { detail: rows[0] }));
           return rows[0];
         }
       } catch (e) {}
+      initialCloudPullFinished = true;
       return null;
     },
 
     async createCloudPost(postObj) {
+      // Bloqueo de seguridad Freemium: vídeos solo en cuentas PRO o Club
+      if (postObj && (postObj.mode === 'reel' || postObj.isVideo || postObj.videoUrl) && !this.canUploadVideo()) {
+        return {
+          ok: false,
+          proRequired: true,
+          error: new Error('La subida de vídeos y KINET Shorts (24-30 FPS) es exclusiva para miembros KINET PRO / Club. En el plan gratuito puedes publicar fotos y telemetría.')
+        };
+      }
+
       try {
         const localSaved = JSON.parse(localStorage.getItem('kinet_saved_posts') || '[]');
         if (!localSaved.some(p => p.id === postObj.id)) {
@@ -402,19 +601,42 @@
       }
     },
 
+    // Obtener todos los DMs del usuario actual (enviados y recibidos) ordenados cronológicamente
+    async fetchCloudDirectMessages() {
+      try {
+        const rawHandle = (localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '').trim();
+        if (!rawHandle) return [];
+        const myHandle = rawHandle.startsWith('@') ? rawHandle : `@${rawHandle}`;
+        const encoded = encodeURIComponent(myHandle);
+        const rows = await supabaseRestRequest(
+          `direct_messages?or=(sender_handle.ilike.${encoded},receiver_handle.ilike.${encoded})&select=*&order=created_at.asc&limit=250`,
+          'GET'
+        );
+        return Array.isArray(rows) ? rows : [];
+      } catch (err) {
+        return [];
+      }
+    },
+
     async sendCloudDirectMessage(receiverHandle, messageText) {
       try {
         const userId = await resolveCurrentUserId();
-        const senderHandle = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '@naimtahri';
+        const rawSender = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '@naimtahri';
+        const senderHandle = rawSender.startsWith('@') ? rawSender : `@${rawSender}`;
+        const cleanReceiver = (receiverHandle || '').startsWith('@') ? receiverHandle : `@${receiverHandle}`;
+
         const data = await supabaseRestRequest('direct_messages', 'POST', {
           sender_id: userId || null,
           sender_handle: senderHandle,
-          receiver_handle: receiverHandle,
+          receiver_handle: cleanReceiver,
           message_text: messageText,
           is_read: false,
           read_at: null
         }, false);
-        return { ok: true, data: Array.isArray(data) ? data[0] : data };
+
+        const createdMsg = Array.isArray(data) ? data[0] : data;
+        window.dispatchEvent(new CustomEvent('kinet:dm-sent', { detail: createdMsg }));
+        return { ok: true, data: createdMsg };
       } catch (err) {
         return { ok: false, error: err };
       }
@@ -422,11 +644,18 @@
 
     async markDirectMessagesAsRead(otherPersonHandle) {
       try {
-        const myHandle = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username');
-        if (!myHandle || !otherPersonHandle) return { ok: false };
+        // Respetar ajuste de privacidad de confirmación de lectura ('Visto')
+        if (localStorage.getItem('kinet_privacy_read_receipts') === 'false') {
+          return { ok: true, skippedByPrivacy: true };
+        }
+        const rawMy = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username');
+        if (!rawMy || !otherPersonHandle) return { ok: false };
+        const myHandle = rawMy.startsWith('@') ? rawMy : `@${rawMy}`;
+        const cleanOther = otherPersonHandle.startsWith('@') ? otherPersonHandle : `@${otherPersonHandle}`;
         const nowIso = new Date().toISOString();
+
         await supabaseRestRequest(
-          `direct_messages?sender_handle=eq.${encodeURIComponent(otherPersonHandle)}&receiver_handle=eq.${encodeURIComponent(myHandle)}&is_read=eq.false`,
+          `direct_messages?sender_handle=ilike.${encodeURIComponent(cleanOther)}&receiver_handle=ilike.${encodeURIComponent(myHandle)}&is_read=eq.false`,
           'PATCH',
           { is_read: true, read_at: nowIso },
           false
@@ -435,6 +664,58 @@
       } catch (err) {
         return { ok: false, error: err };
       }
+    },
+
+    // Motor de escucha en tiempo real (cada 3.5 seg) para mensajes directos sin recargar la página
+    startRealtimeDMPolling(intervalMs = 3500) {
+      if (dmPollingInterval) clearInterval(dmPollingInterval);
+
+      const pollFn = async () => {
+        try {
+          if (document.hidden) return;
+          const rawMy = (localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '').trim();
+          if (!rawMy) return;
+          const myHandleLower = (rawMy.startsWith('@') ? rawMy : `@${rawMy}`).toLowerCase();
+
+          const messages = await this.fetchCloudDirectMessages();
+          const unreadMsgs = messages.filter(
+            (m) => String(m.receiver_handle || '').toLowerCase() === myHandleLower && !m.is_read
+          );
+
+          // Actualizar contadores globales de mensajes no leídos en botones de DMs
+          lastUnreadCount = unreadMsgs.length;
+          localStorage.setItem('kinet_unread_dm_count', String(lastUnreadCount));
+
+          document.querySelectorAll('[data-dm-unread-badge], #dm-unread-count-badge, #mobile-dm-badge').forEach((badge) => {
+            if (lastUnreadCount > 0) {
+              badge.textContent = String(lastUnreadCount);
+              badge.style.display = 'inline-flex';
+            } else {
+              badge.style.display = 'none';
+            }
+          });
+
+          // Si el número de mensajes o estados de lectura cambió, avisar en vivo a comunidad.html
+          const stateSignature = messages.map((m) => `${m.id}:${m.is_read ? 1 : 0}`).join('|');
+          if (lastKnownMessageCount !== stateSignature) {
+            const isNewArrival = lastKnownMessageCount !== -1;
+            lastKnownMessageCount = stateSignature;
+            window.dispatchEvent(
+              new CustomEvent('kinet:dm-realtime-update', {
+                detail: {
+                  messages,
+                  unreadCount: lastUnreadCount,
+                  unreadMessages: unreadMsgs,
+                  isNewArrival
+                }
+              })
+            );
+          }
+        } catch (e) {}
+      };
+
+      pollFn();
+      dmPollingInterval = setInterval(pollFn, intervalMs);
     },
 
     async logoutUser() {
@@ -447,5 +728,21 @@
   };
 
   window.KinetBackend = KinetBackend;
-  KinetBackend.pullCloudStateToLocal();
+
+  // Ejecutar descarga prioritaria desde Supabase y activar mejoras de UI + DMs en tiempo real
+  KinetBackend.pullCloudStateToLocal().then(() => {
+    refreshDOMAvatarsAndProfileUI();
+    applyGlobalSidebarEnhancements();
+    KinetBackend.startRealtimeDMPolling(3500);
+  });
+
+  // Al volver a enfocar la pestaña en el móvil o en el PC, refrescar foto y mensajes al instante
+  window.addEventListener('focus', () => {
+    KinetBackend.pullCloudStateToLocal();
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    refreshDOMAvatarsAndProfileUI();
+    applyGlobalSidebarEnhancements();
+  });
 })(window);
