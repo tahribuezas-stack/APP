@@ -368,6 +368,18 @@
             border-radius: 50% !important;
             font-size: 0 !important;
           }
+          .os-sidebar, aside.sidebar {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            height: 100vh !important;
+          }
+          .os-sidebar > nav,
+          .os-sidebar .sidebar-nav,
+          aside.sidebar > nav {
+            margin-top: auto !important;
+            margin-bottom: auto !important;
+          }
         `;
         document.head.appendChild(style);
       }
