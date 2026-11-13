@@ -2874,7 +2874,7 @@
         // =========================================================================
         // PUBLICACIONES OFICIALES EXPLICATIVAS DE KINET OS (SIN PERFILES FALSOS NI MENSAJE DE PRUEBA)
         // =========================================================================
-        const OFFICIAL_KINET_LOGO_URL = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%2300FF88'/><text x='50' y='71' font-size='64' font-weight='900' font-family='Orbitron, Arial, sans-serif' text-anchor='middle' fill='%2304060A'>K</text></svg>";
+        const OFFICIAL_KINET_LOGO_URL = 'OFFICIAL_KINET_BRAND_LOGO';
         const REAL_FOLLOWERS_COUNT_MAP = {};
 
         const INITIAL_HYBRID_POSTS = [
@@ -3061,10 +3061,18 @@
 
         function buildAvatarStyle(avatarUrl, borderCol) {
             const col = borderCol || 'var(--role-color)';
+            if (avatarUrl === 'OFFICIAL_KINET_BRAND_LOGO') {
+                return `background:linear-gradient(135deg, #00FF88 0%, #00B359 100%) !important;border-color:#00FF88 !important;color:#04060A !important;font-family:'Orbitron',sans-serif !important;font-weight:900 !important;box-shadow:0 0 18px rgba(0, 255, 136, 0.42) !important;background-image:none !important;`;
+            }
             if (avatarUrl) {
-                return `border-color:${col};color:transparent;background-image:url('${avatarUrl}');background-size:cover;background-position:center;`;
+                return `border-color:${col};color:transparent;background-image:url("${avatarUrl}");background-size:cover;background-position:center;`;
             }
             return `border-color:${col};color:${col};background-image:none;`;
+        }
+
+        function getAvatarInnerText(avatarUrl, initials) {
+            if (avatarUrl === 'OFFICIAL_KINET_BRAND_LOGO') return 'K';
+            return avatarUrl ? '' : (initials || 'K');
         }
 
         // Formateador de tiempo relativo estilo Instagram ("Enviado hace 1 min", "Visto hace un momento", "Visto hace más de 5 min", etc.)
@@ -3826,14 +3834,8 @@
 
                 const avEl = document.getElementById(`${prefix}-author-avatar`);
                 if (avEl) {
-                    if (avatarUrl) {
-                        avEl.style.backgroundImage = `url('${avatarUrl}')`;
-                        avEl.textContent = '';
-                    } else {
-                        avEl.style.backgroundImage = 'none';
-                        avEl.textContent = item.initials;
-                    }
-                    avEl.style.cursor = 'pointer';
+                    avEl.setAttribute('style', `width:42px;height:42px;border-radius:13px;border-width:2px;cursor:pointer;${buildAvatarStyle(avatarUrl, 'var(--role-color)')}`);
+                    avEl.textContent = getAvatarInnerText(avatarUrl, item.initials);
                     avEl.onclick = () => openUserProfileInspector(item.handle, item.author, item.initials);
                 }
 
@@ -4006,7 +4008,7 @@
                         <div class="post-author-bar">
                             <div style="display:flex; align-items:center; gap:10px;">
                                 <div class="post-avatar" style="cursor:pointer;${avatarStyle}" title="Ver perfil de ${p.author}" onclick="openUserProfileInspector('${p.handle}', '${safeAuthor}', '${p.initials}')">
-                                    ${avatarUrl ? '' : p.initials}
+                                    ${getAvatarInnerText(avatarUrl, p.initials)}
                                 </div>
                                 <div>
                                     <div style="font-weight:800; font-size:0.84rem; color:white; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
@@ -4273,8 +4275,8 @@
 
             const avEl = document.getElementById('insp-avatar');
             if (avEl) {
-                avEl.setAttribute('style', `width:64px;height:64px;font-size:1.25rem;border-width:2px;${buildAvatarStyle(avatarUrl, borderCol)}`);
-                avEl.textContent = avatarUrl ? '' : p.initials;
+                avEl.setAttribute('style', `width:64px;height:64px;font-size:1.65rem;border-radius:18px;border-width:2px;${buildAvatarStyle(avatarUrl, borderCol)}`);
+                avEl.textContent = getAvatarInnerText(avatarUrl, p.initials);
             }
 
             const isOfficialAcc = (p.handle || '').toLowerCase() === '@kinet_official';
@@ -4520,8 +4522,8 @@
                     return `
                         <div class="dm-contact-item ${isActive ? 'active-chat' : ''}" onclick="${clickHandlerName}('${u.name}', '${u.initials}', '${u.handle}')">
                             <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-                                <div class="post-avatar" style="width:36px;height:36px;font-size:0.74rem;${avStyle}">
-                                    ${avUrl ? '' : u.initials}
+                                <div class="post-avatar" style="width:36px;height:36px;font-size:0.95rem;${avStyle}">
+                                    ${getAvatarInnerText(avUrl, u.initials)}
                                 </div>
                                 <div style="min-width:0;">
                                     <div style="font-size:0.76rem;font-weight:800;color:white;display:flex;align-items:center;gap:5px;">
@@ -4552,8 +4554,8 @@
                     return `
                         <div class="dm-contact-item" onclick="${clickHandlerName}('${u.name}', '${u.initials}', '${u.handle}')">
                             <div style="display:flex;align-items:center;gap:9px;min-width:0;">
-                                <div class="post-avatar" style="width:35px;height:35px;font-size:0.7rem;${avStyle}" onclick="event.stopPropagation(); openUserProfileInspector('${u.handle}', '${safeShort}', '${u.initials}')" title="Ver Perfil">
-                                    ${avUrl ? '' : u.initials}
+                                <div class="post-avatar" style="width:35px;height:35px;font-size:0.92rem;${avStyle}" onclick="event.stopPropagation(); openUserProfileInspector('${u.handle}', '${safeShort}', '${u.initials}')" title="Ver Perfil">
+                                    ${getAvatarInnerText(avUrl, u.initials)}
                                 </div>
                                 <div style="min-width:0;">
                                     <div style="font-size:0.75rem;font-weight:800;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.shortName}</div>
@@ -4640,8 +4642,8 @@
                     nameEl.onclick = () => openUserProfileInspector(person.handle, person.shortName, person.initials);
                 }
                 if (avEl) {
-                    avEl.setAttribute('style', `width:38px;height:38px;font-size:0.8rem;cursor:pointer;${avStyle}`);
-                    avEl.textContent = avUrl ? '' : person.initials;
+                    avEl.setAttribute('style', `width:38px;height:38px;font-size:1.05rem;cursor:pointer;${avStyle}`);
+                    avEl.textContent = getAvatarInnerText(avUrl, person.initials);
                     avEl.onclick = () => openUserProfileInspector(person.handle, person.shortName, person.initials);
                 }
                 if (subEl) subEl.textContent = `● ${person.handle} • ${person.sport.toUpperCase()} • EN LÍNEA`;
