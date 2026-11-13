@@ -1,5 +1,5 @@
 /**
- * KINET OS // Motor Oficial de Backend & Sincronización Directa REST con Supabase (v5.5 Full Real-Time, Avatar Lock & Global UI)
+ * KINET OS // Motor Oficial de Backend & Sincronización Directa REST con Supabase (v5.6 Full Real-Time, Avatar Lock & Global UI 44px)
  * Servidor: https://bhqgsbtkwdxdxlvlcaes.supabase.co
  */
 (function (window) {
@@ -13,7 +13,7 @@
   let isHydratingFromCloud = false;
   let initialCloudPullFinished = false; // Evita que la caché vieja del móvil machaque la nube antes de descargar
   let dmPollingInterval = null;
-  let lastKnownMessageCount = -1;
+  let lastKnownMessageSignature = -1;
   let lastUnreadCount = 0;
 
   // 1. Petición REST directa a las tablas de Supabase (Funciona en móvil y PC sin depender de CDN)
@@ -125,6 +125,9 @@
       originalSetItem.call(localStorage, 'kinet_avatar_updated_at', String(Date.now()));
       refreshDOMAvatarsAndProfileUI();
     }
+    if (key === 'kinet_unread_dm_count' || key === 'kinet_official_welcome_read') {
+      updateGlobalCommunityExclamationBadge();
+    }
     if (!isHydratingFromCloud && initialCloudPullFinished && key && key.startsWith('kinet_')) {
       scheduleCloudSync();
     }
@@ -150,7 +153,11 @@
           '#sidebar-avatar-img',
           '#profile-avatar-img',
           '#setup-avatar-preview',
+          '#setup-preview-avatar',
           '#composer-avatar-img',
+          '#composer-user-avatar',
+          '#modal-composer-avatar',
+          '#my-social-avatar',
           '#my-card-avatar',
           '#header-user-avatar',
           '.current-user-avatar-img',
@@ -161,9 +168,10 @@
             el.src = avatarUrl;
             el.style.display = 'block';
           } else {
-            el.style.backgroundImage = `url(${avatarUrl})`;
+            el.style.backgroundImage = `url('${avatarUrl}')`;
             el.style.backgroundSize = 'cover';
             el.style.backgroundPosition = 'center';
+            el.textContent = '';
           }
         });
       }
@@ -234,7 +242,6 @@
     const handle = (localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '').trim();
 
     try {
-      // Si hay email o handle, buscamos primero por ellos para garantizar que móvil y PC apunten al MISMO registro exacto
       if (email && email.includes('@')) {
         const rows = await supabaseRestRequest(`profiles?email=ilike.${encodeURIComponent(email)}&select=*&order=updated_at.desc&limit=1`, 'GET');
         if (Array.isArray(rows) && rows[0]?.id) {
@@ -257,13 +264,40 @@
     return null;
   }
 
-  // 3. Centrado Vertical de la Barra Lateral + Inyección de la nueva sección "Analizador & Pizarra 3D" en todas las pantallas
+  // Actualiza la exclamación (!) en el botón de Comunidad de TODAS las páginas según si hay mensajes sin leer
+  function updateGlobalCommunityExclamationBadge() {
+    try {
+      const unreadDms = parseInt(localStorage.getItem('kinet_unread_dm_count') || '0', 10);
+      const officialRead = localStorage.getItem('kinet_official_welcome_read') === 'true';
+      const totalUnread = unreadDms + (officialRead ? 0 : 1);
+
+      document.querySelectorAll('.kinet-notif-exclaim, #sidebar-comunidad-notif, #drawer-comunidad-notif').forEach((el) => {
+        if (totalUnread > 0) {
+          el.classList.remove('read-empty');
+          el.textContent = '!';
+          el.title = `${totalUnread} notificación(es) sin leer en Comunidad`;
+        } else {
+          el.classList.add('read-empty');
+          el.textContent = '';
+          el.title = 'Comunidad al día';
+        }
+      });
+
+      const topBadge = document.getElementById('topbar-unread-badge');
+      if (topBadge) {
+        topBadge.textContent = String(totalUnread);
+        topBadge.style.display = totalUnread > 0 ? 'inline-block' : 'none';
+      }
+    } catch (e) {}
+  }
+
+  // 3. Centrado Vertical (44px idénticos) + Inyección de Analizador 3D + Exclamación Global (!) en Comunidad
   function applyGlobalSidebarEnhancements() {
     try {
       if (!document.getElementById('kinet-global-sidebar-v5-style')) {
         const style = document.createElement('style');
         style.id = 'kinet-global-sidebar-v5-style';
-       style.textContent = `
+        style.textContent = `
           /* Centrar verticalmente la navegación y forzar TAMAÑO IDÉNTICO (44px) entre opciones del medio y de abajo */
           .os-sidebar .sidebar-top-section {
             display: flex !important;
@@ -304,59 +338,80 @@
             flex-shrink: 0 !important;
             box-sizing: border-box !important;
           }
-          .kinet-dm-unread-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 18px;
-            height: 18px;
-            padding: 0 5px;
-            border-radius: 999px;
-            background: #10B981;
-            color: #05080F;
-            font-size: 10px;
-            font-weight: 800;
-            margin-left: 6px;
-            box-shadow: 0 0 10px rgba(16,185,129,0.55);
-            animation: kinetPulseBadge 1.8s infinite;
+          @keyframes kinetExclaimPulseGlobal {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 10px var(--role-glow, rgba(0,255,136,0.4)); }
+            50% { transform: scale(1.12); box-shadow: 0 0 18px var(--role-color, #00FF88); }
           }
-          @keyframes kinetPulseBadge {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.12); }
+          .kinet-notif-exclaim {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 20px !important;
+            height: 20px !important;
+            border-radius: 7px !important;
+            background: var(--role-gradient, linear-gradient(135deg, #00FF88, #00B359)) !important;
+            color: #04060A !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 0.72rem !important;
+            font-weight: 900 !important;
+            animation: kinetExclaimPulseGlobal 2.2s infinite ease-in-out !important;
+            line-height: 1 !important;
+          }
+          .kinet-notif-exclaim.read-empty {
+            background: rgba(255, 255, 255, 0.08) !important;
+            color: rgba(255, 255, 255, 0.4) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            animation: none !important;
+            box-shadow: none !important;
+            width: 8px !important;
+            height: 8px !important;
+            border-radius: 50% !important;
+            font-size: 0 !important;
           }
         `;
         document.head.appendChild(style);
       }
 
-      // Renombrar ojeador-live.html a "Laboratorio Vídeo" e inyectar "Analizador & Pizarra" (analizador.html) si aún no está
+      // Inyectar el indicador de exclamación (!) en el botón de Comunidad de TODAS las páginas (Vestuario, Analizador, Ficha, etc.)
+      document.querySelectorAll('a[href*="comunidad.html"]:not([href*="setup=true"])').forEach((comLink) => {
+        let badge = comLink.querySelector('.kinet-notif-exclaim');
+        if (!badge) {
+          const rightArrow = comLink.querySelector('span:last-child');
+          if (rightArrow && !rightArrow.classList.contains('side-link-left')) {
+            rightArrow.className = 'kinet-notif-exclaim read-empty';
+            rightArrow.textContent = '';
+            badge = rightArrow;
+          }
+        }
+      });
+
+      updateGlobalCommunityExclamationBadge();
+
+      // Renombrar ojeador-live.html a "Laboratorio Vídeo" e inyectar "Analizador & Pizarra 3D"
       const labLinks = document.querySelectorAll('a[href*="ojeador-live.html"]');
       const currentPath = (window.location.pathname || '').toLowerCase();
 
       labLinks.forEach((link) => {
         const isMobileBar = Boolean(link.closest('.mobile-bottom-nav, .bottom-nav, nav.fixed.bottom-0'));
         if (!isMobileBar) {
-          // Actualizar etiqueta de Laboratorio para dejar claro que es de Vídeo
-          if (link.textContent.includes('Ojeador') || link.textContent.includes('Laboratorio')) {
-            const iconSpan = link.querySelector('span, i, svg');
-            if (!iconSpan) {
-              link.innerHTML = '🎬 <span>Laboratorio Vídeo</span>';
-            }
+          const leftSpan = link.querySelector('.side-link-left');
+          if (leftSpan) {
+            leftSpan.innerHTML = '<span>🎬</span> <span>Laboratorio Vídeo</span>';
           }
-
-          // Inyectar botón de "Analizador & Pizarra 3D" justo debajo si no existe
           const parentNav = link.parentElement;
           if (parentNav && !parentNav.querySelector('a[href*="analizador.html"]')) {
             const analyzerLink = link.cloneNode(true);
+            analyzerLink.id = 'nav-analizador-injected';
             analyzerLink.setAttribute('href', 'analizador.html');
-            analyzerLink.classList.remove('active', 'bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/30');
+            analyzerLink.classList.remove('active');
             if (currentPath.includes('analizador.html')) {
               analyzerLink.classList.add('active');
             }
-            analyzerLink.innerHTML = link.innerHTML
-              .replace(/Ojeador\s*&?\s*Laboratorio|Laboratorio\s*de\s*V[íi]deo|Laboratorio\s*V[íi]deo|Ojeador\s*Live/gi, 'Analizador & Pizarra 3D')
-              .replace(/🎬|🔭|📡|🧪/g, '🏟️');
-            if (!analyzerLink.textContent.includes('Analizador')) {
-              analyzerLink.innerHTML = '🏟️ <span>Analizador & Pizarra 3D</span>';
+            const aLeft = analyzerLink.querySelector('.side-link-left');
+            if (aLeft) {
+              aLeft.innerHTML = '<span>🏟️</span> <span>Analizador & Pizarra 3D</span>';
+            } else {
+              analyzerLink.innerHTML = '<span>🏟️ Analizador & Pizarra 3D</span><span>→</span>';
             }
             link.insertAdjacentElement('afterend', analyzerLink);
           }
@@ -366,8 +421,8 @@
       // Ocultar botón KINET PRO si el usuario ya es PRO o CLUB
       const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
       const isProOrClub = tier === 'pro' || tier === 'club' || localStorage.getItem('kinet_is_pro') === 'true';
-      document.querySelectorAll('[data-pro-upsell], #sidebar-pro-btn, .pro-upgrade-banner').forEach((el) => {
-        el.style.display = isProOrClub ? 'none' : '';
+      document.querySelectorAll('[data-pro-upsell], #sidebar-pro-btn, #nav-upgrade-pro, #drawer-upgrade-pro').forEach((el) => {
+        if (isProOrClub) el.style.setProperty('display', 'none', 'important');
       });
     } catch (e) {}
   }
@@ -376,6 +431,7 @@
     getClient: initSupabase,
     compressAvatar: compressAvatarDataUrl,
     refreshUI: refreshDOMAvatarsAndProfileUI,
+    updateCommunityBadge: updateGlobalCommunityExclamationBadge,
 
     // Validador global Freemium: Fotos para Gratis, Vídeos (normalizados a 24-30 FPS) exclusivos para cuentas PRO / Club
     canUploadVideo() {
@@ -387,7 +443,7 @@
       return {
         targetFps: 30,
         minFps: 24,
-        maxClipSeconds: 300, // 5 min por bloque táctico
+        maxClipSeconds: 300,
         maxShortSizeMB: 4.5,
         proOnly: true
       };
@@ -566,12 +622,11 @@
     },
 
     async createCloudPost(postObj) {
-      // Bloqueo de seguridad Freemium: vídeos solo en cuentas PRO o Club
-      if (postObj && (postObj.mode === 'reel' || postObj.isVideo || postObj.videoUrl) && !this.canUploadVideo()) {
+      if (postObj && (postObj.mode === 'reel' || postObj.mode === 'reels' || postObj.isVideo || postObj.videoUrl) && !this.canUploadVideo()) {
         return {
           ok: false,
           proRequired: true,
-          error: new Error('La subida de vídeos y KINET Shorts (24-30 FPS) es exclusiva para miembros KINET PRO / Club. En el plan gratuito puedes publicar fotos y telemetría.')
+          error: new Error('La subida de vídeos y KINET Shorts (24-30 FPS) es exclusiva para miembros KINET PRO / Club.')
         };
       }
 
@@ -671,7 +726,6 @@
 
     async markDirectMessagesAsRead(otherPersonHandle) {
       try {
-        // Respetar ajuste de privacidad de confirmación de lectura ('Visto')
         if (localStorage.getItem('kinet_privacy_read_receipts') === 'false') {
           return { ok: true, skippedByPrivacy: true };
         }
@@ -693,7 +747,7 @@
       }
     },
 
-    // Motor de escucha en tiempo real (cada 3.5 seg) para mensajes directos sin recargar la página
+    // Motor de escucha en tiempo real (cada 3.5 seg) para DMs y exclamación (!) en todas las páginas
     startRealtimeDMPolling(intervalMs = 3500) {
       if (dmPollingInterval) clearInterval(dmPollingInterval);
 
@@ -709,24 +763,14 @@
             (m) => String(m.receiver_handle || '').toLowerCase() === myHandleLower && !m.is_read
           );
 
-          // Actualizar contadores globales de mensajes no leídos en botones de DMs
           lastUnreadCount = unreadMsgs.length;
-          localStorage.setItem('kinet_unread_dm_count', String(lastUnreadCount));
+          originalSetItem.call(localStorage, 'kinet_unread_dm_count', String(lastUnreadCount));
+          updateGlobalCommunityExclamationBadge();
 
-          document.querySelectorAll('[data-dm-unread-badge], #dm-unread-count-badge, #mobile-dm-badge').forEach((badge) => {
-            if (lastUnreadCount > 0) {
-              badge.textContent = String(lastUnreadCount);
-              badge.style.display = 'inline-flex';
-            } else {
-              badge.style.display = 'none';
-            }
-          });
-
-          // Si el número de mensajes o estados de lectura cambió, avisar en vivo a comunidad.html
           const stateSignature = messages.map((m) => `${m.id}:${m.is_read ? 1 : 0}`).join('|');
-          if (lastKnownMessageCount !== stateSignature) {
-            const isNewArrival = lastKnownMessageCount !== -1;
-            lastKnownMessageCount = stateSignature;
+          if (lastKnownMessageSignature !== stateSignature) {
+            const isNewArrival = lastKnownMessageSignature !== -1;
+            lastKnownMessageSignature = stateSignature;
             window.dispatchEvent(
               new CustomEvent('kinet:dm-realtime-update', {
                 detail: {
@@ -763,7 +807,6 @@
     KinetBackend.startRealtimeDMPolling(3500);
   });
 
-  // Al volver a enfocar la pestaña en el móvil o en el PC, refrescar foto y mensajes al instante
   window.addEventListener('focus', () => {
     KinetBackend.pullCloudStateToLocal();
   });
