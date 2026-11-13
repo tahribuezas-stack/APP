@@ -4468,51 +4468,78 @@
                 .replace(/^@+/, '')
                 .replace(/_pro_pro$/, '_pro');
         }
+       function cleanHandleNormalized(h) {
+            return String(h || '')
+                .trim()
+                .toLowerCase()
+                .replace(/^@+/, '')
+                .replace(/[^a-z0-9]/g, '')
+                .replace(/(pro)+$/, '');
+        }
 
-        // Fusiona automáticamente perfiles duplicados del mismo @handle (ej. Hugo Pablos Rodríguez y @hugopablos_pro)
+        // Fusiona automáticamente perfiles duplicados (ej. "Hugo Pablos Rodríguez" y "@hugopablos_pro" / "@hugopablospro_pro")
         function deduplicateNetworkDirectory() {
-            const byHandle = new Map();
+            const byKey = new Map();
             const cleanList = [];
 
             NETWORK_DIRECTORY.forEach((entry) => {
                 const hKey = cleanHandleNormalized(entry.handle);
-                // Detectar también si un contacto fantasma tenía el handle metido como nombre
-                const nameAsHandleKey = entry.shortName && entry.shortName.startsWith('@')
-                    ? cleanHandleNormalized(entry.shortName)
-                    : null;
+                const sKey = cleanHandleNormalized(entry.shortName);
+                const matchKey = byKey.has(hKey) ? hKey : (byKey.has(sKey) ? sKey : hKey);
 
-                const matchKey = byHandle.has(hKey) ? hKey : (nameAsHandleKey && byHandle.has(nameAsHandleKey) ? nameAsHandleKey : hKey);
-
-                if (!byHandle.has(matchKey)) {
-                    byHandle.set(matchKey, entry);
+                if (!byKey.has(matchKey)) {
+                    byKey.set(matchKey, entry);
+                    if (sKey) byKey.set(sKey, entry);
                     cleanList.push(entry);
                 } else {
-                    const existing = byHandle.get(matchKey);
-                    // Preferimos siempre el perfil que tiene el Nombre Real (no el que empieza por @)
-                    const existingIsHandleName = existing.shortName.startsWith('@');
-                    const newIsRealName = !entry.shortName.startsWith('@');
+                    const existing = byKey.get(matchKey);
+                    const existingIsGhost = existing.shortName.startsWith('@') || existing.name.startsWith('@') || existing.shortName === existing.shortName.toUpperCase();
+                    const entryIsReal = !entry.shortName.startsWith('@') && !entry.name.startsWith('@') && entry.shortName !== entry.shortName.toUpperCase();
 
-                    const winner = (existingIsHandleName && newIsRealName) ? entry : existing;
+                    const winner = (existingIsGhost && entryIsReal) ? entry : existing;
                     const loser = (winner === entry) ? existing : entry;
 
-                    // Unificar historial de mensajes de ambos en el perfil real sin duplicar burbujas
-                    if (DM_CONVERSATIONS[loser.name] && DM_CONVERSATIONS[loser.name].length > 0) {
-                        if (!DM_CONVERSATIONS[winner.name]) DM_CONVERSATIONS[winner.name] = [];
-                        DM_CONVERSATIONS[loser.name].forEach((m) => {
-                            const dup = DM_CONVERSATIONS[winner.name].some(
-                                (em) => em._sbId === m._sbId || (em.text === m.text && em.from === m.from)
-                            );
-                            if (!dup) DM_CONVERSATIONS[winner.name].push(m);
-                        });
-                        delete DM_CONVERSATIONS[loser.name];
-                    }
-                    if (currentDmContact === loser.name) {
+                    // Fusionar mensajes del duplicado dentro del perfil real
+                    [loser.name, loser.shortName, loser.handle].forEach((oldKey) => {
+                        if (oldKey && oldKey !== winner.name && DM_CONVERSATIONS[oldKey]) {
+                            if (!DM_CONVERSATIONS[winner.name]) DM_CONVERSATIONS[winner.name] = [];
+                            DM_CONVERSATIONS[oldKey].forEach((m) => {
+                                const dup = DM_CONVERSATIONS[winner.name].some(
+                                    (em) => (em._sbId && em._sbId === m._sbId) || (em.text === m.text && em.from === m.from)
+                                );
+                                if (!dup) DM_CONVERSATIONS[winner.name].push(m);
+                            });
+                            delete DM_CONVERSATIONS[oldKey];
+                        }
+                    });
+
+                    if (currentDmContact === loser.name || currentDmContact === loser.handle) {
                         currentDmContact = winner.name;
                     }
 
                     const idx = cleanList.indexOf(existing);
                     if (idx !== -1) cleanList[idx] = winner;
-                    byHandle.set(matchKey, winner);
+                    byKey.set(matchKey, winner);
+                    byKey.set(hKey, winner);
+                    if (sKey) byKey.set(sKey, winner);
+                }
+            });
+
+            // Limpiar también cualquier clave suelta en DM_CONVERSATIONS que empiece por "@" si ya existe su usuario real
+            Object.keys(DM_CONVERSATIONS).forEach((convKey) => {
+                if (convKey.startsWith('@')) {
+                    const norm = cleanHandleNormalized(convKey);
+                    const realOwner = cleanList.find(u => cleanHandleNormalized(u.handle) === norm);
+                    if (realOwner && realOwner.name !== convKey) {
+                        if (!DM_CONVERSATIONS[realOwner.name]) DM_CONVERSATIONS[realOwner.name] = [];
+                        DM_CONVERSATIONS[convKey].forEach((m) => {
+                            const dup = DM_CONVERSATIONS[realOwner.name].some(
+                                (em) => (em._sbId && em._sbId === m._sbId) || (em.text === m.text && em.from === m.from)
+                            );
+                            if (!dup) DM_CONVERSATIONS[realOwner.name].push(m);
+                        });
+                        delete DM_CONVERSATIONS[convKey];
+                    }
                 }
             });
 
@@ -4525,24 +4552,22 @@
             const rawInput = String(contactKeyOrName || '').trim();
             const isHandleInput = rawInput.startsWith('@');
             const effectiveHandle = fallbackHandle || (isHandleInput ? rawInput : '');
-            const targetHandleKey = cleanHandleNormalized(effectiveHandle);
-            const targetNameKey = isHandleInput ? '' : normalizeNameKey(rawInput);
+            const targetKey = cleanHandleNormalized(effectiveHandle || rawInput);
 
             let found = NETWORK_DIRECTORY.find((u) => {
-                const uHandleKey = cleanHandleNormalized(u.handle);
-                if (targetHandleKey && uHandleKey === targetHandleKey) return true;
-                if (!isHandleInput && (u.name === rawInput || u.shortName === rawInput)) return true;
-                if (targetNameKey && normalizeNameKey(u.shortName) === targetNameKey) return true;
+                if (u.name === rawInput || u.shortName === rawInput) return true;
+                if (targetKey && (cleanHandleNormalized(u.handle) === targetKey || cleanHandleNormalized(u.shortName) === targetKey)) return true;
                 return false;
             });
 
             if (!found) {
-                const cleanHandle = effectiveHandle
+                let cleanHandle = effectiveHandle
                     ? (effectiveHandle.startsWith('@') ? effectiveHandle : `@${effectiveHandle}`)
                     : `@${normalizeNameKey(rawInput) || 'kinet'}_pro`;
+                cleanHandle = cleanHandle.replace(/_pro_pro$/i, '_pro');
 
                 const shortTitle = isHandleInput
-                    ? cleanHandle.replace(/^@/, '').replace(/_pro$/i, '').toUpperCase()
+                    ? cleanHandle.replace(/^@/, '').replace(/_pro$/i, '')
                     : rawInput.split('(')[0].trim();
 
                 const parts = shortTitle.split(/\s+/);
