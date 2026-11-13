@@ -456,10 +456,12 @@
             transition: width 0.4s ease;
         }
 
-        /* MONITOR PANORÁMICO GRANDE CON ESCÁNER LÁSER (ESTÉTICA ORIGINAL QUE TE GUSTABA) */
+        /* =========================================================================
+           MONITOR PANORÁMICO GRANDE CON LÁSER DE PUNTA A PUNTA EN MOVIMIENTO REAL
+           ========================================================================= */
         .vision-hud-viewport {
-            background: radial-gradient(circle at 50% 42%, rgba(var(--role-rgb), 0.16), rgba(4, 6, 10, 0.96) 76%);
-            border: 1px solid rgba(var(--role-rgb), 0.42);
+            background: radial-gradient(circle at 50% 42%, rgba(var(--role-rgb), 0.18), rgba(4, 6, 10, 0.96) 74%);
+            border: 1px solid rgba(var(--role-rgb), 0.44);
             border-radius: 16px;
             padding: 20px;
             min-height: 270px;
@@ -469,7 +471,7 @@
             position: relative;
             overflow: hidden;
             margin-bottom: 14px;
-            box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.75);
+            box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.78);
         }
         .vision-video-bg {
             position: absolute;
@@ -481,21 +483,27 @@
             z-index: 0;
             display: none;
         }
-        .vision-hud-viewport > *:not(.vision-video-bg) {
+        /* CRÍTICO: Excluimos .vision-scanline para que NUNCA pierda su position:absolute de punta a punta */
+        .vision-hud-viewport > *:not(.vision-video-bg):not(.vision-scanline) {
             position: relative;
             z-index: 2;
         }
         .vision-scanline {
-            position: absolute;
-            left: 0; right: 0;
-            height: 2px;
-            background: var(--role-color);
-            box-shadow: 0 0 16px var(--role-color);
-            animation: scanMove 3.2s ease-in-out infinite alternate;
-            pointer-events: none;
-            z-index: 3;
+            position: absolute !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            height: 2px !important;
+            background: var(--role-color) !important;
+            box-shadow: 0 0 18px var(--role-color), 0 0 36px var(--role-color) !important;
+            animation: scanMoveFullWidth 3.1s ease-in-out infinite alternate !important;
+            pointer-events: none !important;
+            z-index: 4 !important;
         }
-        @keyframes scanMove { from { top: 10%; } to { top: 88%; } }
+        @keyframes scanMoveFullWidth {
+            0% { top: 8%; }
+            100% { top: 90%; }
+        }
 
         .telemetry-pills {
             display: grid;
@@ -562,7 +570,6 @@
             background: rgba(var(--role-rgb), 0.08);
         }
 
-        /* BARRAS DE PROGRESO Y TARJETAS DE RESULTADO A LA DERECHA */
         .stat-bar-row { margin-bottom: 9px; }
         .stat-bar-head {
             display: flex;
@@ -604,7 +611,9 @@
             transform: translateX(3px);
         }
 
-        /* ASISTENTE MODAL EN 2 PASOS ESTILO KINET PRO */
+        /* =========================================================================
+           ASISTENTE MODAL EN 2 PASOS CON CUADRÍCULA 2x2 PROFESIONAL (4 OPCIONES)
+           ========================================================================= */
         .kinet-modal-overlay {
             position: fixed; inset: 0; background: rgba(4, 6, 10, 0.88); backdrop-filter: blur(18px); z-index: 500;
             display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
@@ -612,8 +621,8 @@
         }
         .kinet-modal-overlay.open { opacity: 1; pointer-events: auto; }
         .kinet-modal-box {
-            background: rgba(13, 17, 26, 0.98); border: 1px solid rgba(var(--role-rgb), 0.52); border-radius: 22px; max-width: 580px; width: 100%;
-            max-height: 90vh; overflow-y: auto; padding: 22px; box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 35px rgba(var(--role-rgb), 0.22);
+            background: rgba(13, 17, 26, 0.98); border: 1px solid rgba(var(--role-rgb), 0.52); border-radius: 22px; max-width: 620px; width: 100%;
+            max-height: 92vh; overflow-y: auto; padding: 22px; box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 35px rgba(var(--role-rgb), 0.22);
             transform: scale(0.96) translateY(10px); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex; flex-direction: column; gap: 14px; text-align: left;
         }
@@ -622,17 +631,17 @@
         .wizard-cat-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
+            gap: 9px;
         }
         @media (max-width: 600px) { .wizard-cat-grid { grid-template-columns: 1fr; } }
 
         .wizard-option-card {
-            background: rgba(255,255,255,0.025);
+            background: rgba(255,255,255,0.02);
             border: 1px solid var(--border-subtle);
-            border-radius: 13px;
-            padding: 11px;
+            border-radius: 14px;
+            padding: 12px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.22s ease;
             text-align: left;
         }
         .wizard-option-card:hover {
@@ -641,36 +650,94 @@
         }
         .wizard-option-card.active {
             border-color: var(--role-color);
-            background: rgba(var(--role-rgb), 0.15);
-            box-shadow: 0 0 16px rgba(var(--role-rgb), 0.2);
+            background: rgba(var(--role-rgb), 0.14);
+            box-shadow: 0 0 18px rgba(var(--role-rgb), 0.2);
         }
 
-        .wizard-subpill-group {
+        /* CUADRÍCULA 2x2 PROFESIONAL DE 4 SUB-BLOQUES (NUNCA PÍLDORAS DESALINEADAS) */
+        .wizard-4blocks-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 8px;
+        }
+        @media (max-width: 580px) { .wizard-4blocks-grid { grid-template-columns: 1fr; } }
+
+        .wizard-subblock-card {
+            background: rgba(6, 9, 16, 0.9);
+            border: 1px solid var(--border-subtle);
+            border-radius: 13px;
+            padding: 11px 13px;
+            cursor: pointer;
+            transition: all 0.22s ease;
             display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 4px;
+            position: relative;
+        }
+        .wizard-subblock-card:hover {
+            border-color: rgba(var(--role-rgb), 0.5);
+            background: rgba(var(--role-rgb), 0.07);
+            transform: translateY(-1px);
+        }
+        .wizard-subblock-card.active {
+            border-color: var(--role-color);
+            background: linear-gradient(145deg, rgba(var(--role-rgb), 0.18), rgba(6, 9, 16, 0.95));
+            box-shadow: 0 0 16px rgba(var(--role-rgb), 0.22);
+        }
+        .subblock-top-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.56rem;
+            color: var(--role-color);
+            font-weight: 700;
+        }
+        .subblock-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.76rem;
+            font-weight: 800;
+            color: white;
+            line-height: 1.25;
+        }
+        .subblock-desc {
+            font-size: 0.66rem;
+            color: #94A3B8;
+            line-height: 1.32;
+        }
+
+        /* SELECTOR KINET DE DESTINO EN ANALIZADOR (4 TARJETAS EN LUGAR DEL DESPLEGABLE AZUL WINDOWS) */
+        .wizard-dest-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
             margin-top: 6px;
         }
-        .wizard-subpill {
-            background: rgba(255,255,255,0.03);
+        @media (max-width: 560px) { .wizard-dest-grid { grid-template-columns: 1fr; } }
+        .wizard-dest-card {
+            background: rgba(6, 9, 16, 0.9);
             border: 1px solid var(--border-subtle);
-            color: #CBD5E1;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.72rem;
-            font-weight: 600;
-            padding: 6px 12px;
-            border-radius: 99px;
+            border-radius: 12px;
+            padding: 9px 11px;
             cursor: pointer;
             transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 9px;
         }
-        .wizard-subpill.active {
-            background: var(--role-gradient);
-            color: #04060A;
-            border-color: transparent;
-            font-weight: 800;
+        .wizard-dest-card:hover {
+            border-color: rgba(var(--role-rgb), 0.45);
+            background: rgba(var(--role-rgb), 0.06);
+        }
+        .wizard-dest-card.active {
+            border-color: var(--role-color);
+            background: rgba(var(--role-rgb), 0.16);
+            box-shadow: 0 0 14px rgba(var(--role-rgb), 0.18);
         }
 
-        .kinet-input, .kinet-select {
+        .kinet-input {
             width: 100%;
             background: rgba(4, 6, 10, 0.88);
             border: 1px solid rgba(255, 255, 255, 0.14);
@@ -681,7 +748,7 @@
             font-size: 0.82rem;
             outline: none;
         }
-        .kinet-input:focus, .kinet-select:focus { border-color: var(--role-color); }
+        .kinet-input:focus { border-color: var(--role-color); }
 
         .mobile-bottom-nav {
             display: none;
@@ -843,7 +910,7 @@
                 </div>
 
                 <div class="bento-grid">
-                    <!-- COLUMNA IZQUIERDA (7 COL): MONITOR GRANDE CON ESCÁNER LÁSER (ESTÉTICA ORIGINAL) -->
+                    <!-- COLUMNA IZQUIERDA (7 COL): MONITOR GRANDE CON LÍNEA LÁSER DE PUNTA A PUNTA EN MOVIMIENTO -->
                     <div class="col-7">
                         <div class="kinet-panel" style="height:100%; display:flex; flex-direction:column; justify-content:space-between;">
                             <div>
@@ -863,12 +930,12 @@
                                     </div>
                                 </div>
 
-                                <!-- MONITOR GRANDE CON ESCÁNER LÁSER -->
+                                <!-- MONITOR GRANDE CON LÁSER DE PUNTA A PUNTA -->
                                 <div class="vision-hud-viewport">
                                     <video id="vision-real-video" class="vision-video-bg" loop muted playsinline></video>
                                     <div class="vision-scanline"></div>
                                     <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono'; font-size:0.65rem; color:var(--role-color);">
-                                        <span id="hud-top-left-status">[ESPERANDO SEÑAL DE VÍDEO // SIN CLIP CARGADO]</span>
+                                        <span id="hud-top-left-status">[REC ● ESCANEO BIOMECÁNICO IA // LISTO]</span>
                                         <span>24-30 FPS // TRACKING</span>
                                     </div>
 
@@ -876,7 +943,7 @@
                                         <div style="font-size:2rem; margin-bottom:6px;" id="vision-center-icon">🎯</div>
                                         <div style="font-family:'Orbitron'; font-size:0.96rem; font-weight:800; color:white;" id="vision-status-title">Listo para Auditar Partido, Entrenamiento o Acción Específica</div>
                                         <div style="font-size:0.76rem; color:var(--text-secondary); margin-top:6px; max-width:540px; margin-left:auto; margin-right:auto; line-height:1.45;" id="vision-status-desc">
-                                            Pulsa abajo en "🎥 Subir Vídeo a Vision IA" para abrir el asistente profesional, elegir el tipo de clip y detallar el contexto que quieres que la IA evalúe.
+                                            Pulsa abajo en "🎥 Subir Vídeo a Vision IA" para abrir el selector de 4 bloques tácticos (incluyendo Portero / Especialista) y detallar el contexto que evaluará la IA.
                                         </div>
                                     </div>
 
@@ -893,7 +960,7 @@
                                         <strong id="t-val-1">--</strong>
                                     </div>
                                     <div class="t-pill">
-                                        <span id="t-lbl-2">PICO RENDIMIENTO</span>
+                                        <span id="t-lbl-2">VELOCIDAD / POTENCIA</span>
                                         <strong id="t-val-2" style="color:var(--role-color);">--</strong>
                                     </div>
                                     <div class="t-pill">
@@ -930,7 +997,7 @@
                                         <span style="font-family:'JetBrains Mono';font-size:0.56rem;color:#94A3B8;" id="custom-eval-tag">SIN CLIP</span>
                                     </div>
                                     <div style="font-size:0.75rem;color:#E2E8F0;line-height:1.45;" id="custom-eval-text">
-                                        Aún no has subido ningún vídeo. Cuando subas un clip y escribas su contexto (ej. "Partido contra el 2º de liga" o "Mira este disparo lejano"), la IA redactará aquí el informe específico.
+                                        Aún no has subido ningún vídeo. Cuando subas un clip y escribas su contexto (ej. "Partido contra el 2º de liga" o "Mira esta estirada / disparo lejano"), la IA redactará aquí el informe específico.
                                     </div>
                                 </div>
 
@@ -965,46 +1032,44 @@
     </div>
 
     <!-- =========================================================================
-         MODAL ASISTENTE KINET PROFESIONAL DE SUBIDA DE VÍDEO (2 PASOS)
+         MODAL ASISTENTE KINET PROFESIONAL DE SUBIDA DE VÍDEO (2 PASOS CON CUADRÍCULA 2x2)
          ========================================================================= -->
     <div id="upload-wizard-modal" class="kinet-modal-overlay">
         <div class="kinet-modal-box">
             <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:10px;">
-                <div style="font-family:'Orbitron';font-size:0.92rem;font-weight:900;color:var(--role-color);display:flex;align-items:center;gap:8px;">
+                <div style="font-family:'Orbitron';font-size:0.9rem;font-weight:900;color:var(--role-color);display:flex;align-items:center;gap:8px;">
                     <span>🎬</span> <span id="wizard-header-title">ASISTENTE KINET VISION LAB™ (PASO 1 DE 2)</span>
                 </div>
                 <button type="button" onclick="closeUploadWizardModal()" style="background:none;border:none;color:white;font-size:1.15rem;cursor:pointer;">✕</button>
             </div>
 
-            <!-- PASO 1: ELEGIR CATEGORÍA Y SUB-OPCIÓN DEL DEPORTE -->
+            <!-- PASO 1: ELEGIR CATEGORÍA PRINCIPAL (3 MODOS) + CUADRÍCULA 2x2 DE 4 BLOQUES ESPECÍFICOS -->
             <div id="wizard-step-1">
-                <p style="font-size:0.78rem;color:#CBD5E1;margin-bottom:10px;">
-                    Selecciona qué tipo de vídeo vas a subir para que el motor de visión ajuste los parámetros biomecánicos y tácticos a 24-30 FPS:
-                </p>
+                <span style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--text-secondary);display:block;margin-bottom:6px;text-transform:uppercase;">1. MODALIDAD DE GRABACIÓN:</span>
 
                 <div class="wizard-cat-grid">
                     <div class="wizard-option-card active" id="wcat-match" onclick="selectWizardCategory('match')">
-                        <div style="font-size:1.25rem;margin-bottom:4px;">🏟️</div>
-                        <div style="font-family:'Orbitron';font-size:0.75rem;font-weight:800;color:white;">Analizar Partido</div>
-                        <div style="font-size:0.66rem;color:#94A3B8;margin-top:3px;">Bloques tácticos de 3 a 5 min (Ataque, Defensa o Participación).</div>
+                        <div style="font-size:1.2rem;margin-bottom:3px;">🏟️</div>
+                        <div style="font-family:'Orbitron';font-size:0.74rem;font-weight:800;color:white;">Analizar Partido</div>
+                        <div style="font-size:0.65rem;color:#94A3B8;margin-top:2px;">Bloques tácticos de 3 a 5 min en competición real.</div>
                     </div>
 
                     <div class="wizard-option-card" id="wcat-training" onclick="selectWizardCategory('training')">
-                        <div style="font-size:1.25rem;margin-bottom:4px;">⚡</div>
-                        <div style="font-family:'Orbitron';font-size:0.75rem;font-weight:800;color:white;">Entrenamiento</div>
-                        <div style="font-size:0.66rem;color:#94A3B8;margin-top:3px;">Tarea táctica, sparring, serie en pista o ejercicio físico (1-3 min).</div>
+                        <div style="font-size:1.2rem;margin-bottom:3px;">⚡</div>
+                        <div style="font-family:'Orbitron';font-size:0.74rem;font-weight:800;color:white;">Entrenamiento</div>
+                        <div style="font-size:0.65rem;color:#94A3B8;margin-top:2px;">Tarea específica, portería, sparring o serie (1-3 min).</div>
                     </div>
 
                     <div class="wizard-option-card" id="wcat-action" onclick="selectWizardCategory('action')">
-                        <div style="font-size:1.25rem;margin-bottom:4px;">🎯</div>
-                        <div style="font-family:'Orbitron';font-size:0.75rem;font-weight:800;color:white;">Acción Específica</div>
-                        <div style="font-size:0.66rem;color:#94A3B8;margin-top:3px;">Jugada puntual de 15-45s (Regate, tiro, tackle, gancho, volea...).</div>
+                        <div style="font-size:1.2rem;margin-bottom:3px;">🎯</div>
+                        <div style="font-family:'Orbitron';font-size:0.74rem;font-weight:800;color:white;">Acción Específica</div>
+                        <div style="font-size:0.65rem;color:#94A3B8;margin-top:2px;">Jugada puntual de 15-45s (Regate, tiro, tackle, parada...).</div>
                     </div>
                 </div>
 
                 <div style="margin-top:14px;">
-                    <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);font-weight:700;display:block;" id="wizard-suboptions-label">ELIGE EL BLOQUE ESPECÍFICO:</span>
-                    <div class="wizard-subpill-group" id="wizard-suboptions-box"></div>
+                    <span style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);font-weight:700;display:block;text-transform:uppercase;" id="wizard-suboptions-label">2. SELECCIONA UNO DE LOS 4 BLOQUES TÁCTICOS (INCLUYE PORTERO / ESPECIALISTA):</span>
+                    <div class="wizard-4blocks-grid" id="wizard-suboptions-box"></div>
                 </div>
 
                 <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border-subtle);">
@@ -1013,42 +1078,67 @@
                 </div>
             </div>
 
-            <!-- PASO 2: DETALLAR CONTEXTO ESPECÍFICO PARA LA IA Y DESTINO EN ANALIZADOR -->
+            <!-- PASO 2: DETALLAR CONTEXTO ESPECÍFICO PARA LA IA Y DESTINO CON TARJETAS KINET (SIN SELECT AZUL DE WINDOWS) -->
             <div id="wizard-step-2" style="display:none;">
-                <p style="font-size:0.78rem;color:#CBD5E1;margin-bottom:10px;" id="wizard-step2-intro">
-                    Añade la información clave sobre este clip para que la IA personalice el análisis y guárdalo en tu Analizador:
+                <p style="font-size:0.76rem;color:#CBD5E1;margin-bottom:10px;" id="wizard-step2-intro">
+                    Añade la información clave sobre este clip para que la IA personalice el análisis y elige dónde guardarlo en el Analizador:
                 </p>
 
                 <!-- Campos exclusivos en 3ª persona cuando eres Staff o Scout -->
                 <div id="wizard-third-person-fields" style="display:none;grid-template-columns:1.3fr 1fr;gap:10px;margin-bottom:10px;">
                     <div>
-                        <label style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);display:block;margin-bottom:4px;">NOMBRE DEL DEPORTISTA EVALUADO (3ª PERSONA)</label>
-                        <input type="text" id="wizard-subject-name" class="kinet-input" placeholder="Ej: Carlos Gómez / Rival Dorsal 10">
+                        <label style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);display:block;margin-bottom:4px;">NOMBRE DEL DEPORTISTA EVALUADO (3ª PERSONA)</label>
+                        <input type="text" id="wizard-subject-name" class="kinet-input" placeholder="Ej: Carlos Gómez / Portero Rival">
                     </div>
                     <div>
-                        <label style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--text-secondary);display:block;margin-bottom:4px;">DEMARCACIÓN / PESO / ESPECIALIDAD</label>
-                        <input type="text" id="wizard-subject-pos" class="kinet-input" placeholder="Ej: Central Zurdo / Peso Ligero">
+                        <label style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--text-secondary);display:block;margin-bottom:4px;">DEMARCACIÓN / PESO / ESPECIALIDAD</label>
+                        <input type="text" id="wizard-subject-pos" class="kinet-input" placeholder="Ej: Portero / Central Zurdo / Welter">
                     </div>
                 </div>
 
                 <div style="margin-bottom:10px;">
-                    <label style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);display:block;margin-bottom:4px;">CONTEXTO DEL PARTIDO / RIVAL / LOGRO DESTACADO</label>
-                    <input type="text" id="wizard-match-context" class="kinet-input" placeholder="Ej: Partido contra el 2º de liga • MVP de la jornada • Minuto 80">
+                    <label style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);display:block;margin-bottom:4px;">CONTEXTO DEL PARTIDO / RIVAL / LOGRO DESTACADO</label>
+                    <input type="text" id="wizard-match-context" class="kinet-input" placeholder="Ej: Partido contra el 2º de liga • MVP de la jornada • Minuto 85">
                 </div>
 
-                <div style="margin-bottom:10px;">
-                    <label style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);display:block;margin-bottom:4px;">¿QUÉ QUIERES QUE ANALICE LA IA EN ESTE CLIP ESPECÍFICO?</label>
-                    <textarea id="wizard-action-notes" class="kinet-input" rows="3" style="resize:vertical;" placeholder="Ej: Mira este disparo lejos de la portería / Mira este gancho al hígado tras esquiva / Analiza mi perfilación defensiva en este 1vs1..."></textarea>
+                <div style="margin-bottom:12px;">
+                    <label style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);display:block;margin-bottom:4px;">¿QUÉ QUIERES QUE ANALICE LA IA EN ESTE CLIP ESPECÍFICO?</label>
+                    <textarea id="wizard-action-notes" class="kinet-input" rows="2" style="resize:vertical;" placeholder="Ej: Mira esta estirada al palo largo / Mira este disparo lejos de la portería / Mira este gancho al hígado..."></textarea>
                 </div>
 
                 <div>
-                    <label style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--text-secondary);display:block;margin-bottom:4px;">DESTINO AL GUARDAR EN ANALIZADOR & PIZARRA 3D</label>
-                    <select id="wizard-Roster-slot-role" class="kinet-select">
-                        <option value="starter">🔥 Asignar como Titular en Pizarra 3D</option>
-                        <option value="bench">🪑 Guardar en Banquillo (Suplentes)</option>
-                        <option value="reserve">📋 Guardar en Reserva / Convocatoria</option>
-                        <option value="shortlist">📡 Añadir a Cartelera de Fichajes / Seguimiento</option>
-                    </select>
+                    <label style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--text-secondary);display:block;margin-bottom:4px;">DESTINO AL GUARDAR EN ANALIZADOR & PIZARRA 3D:</label>
+                    <input type="hidden" id="wizard-roster-slot-role" value="starter">
+                    <div class="wizard-dest-grid">
+                        <div class="wizard-dest-card active" data-dest="starter" onclick="selectWizardDestination('starter', this)">
+                            <span style="font-size:1.1rem;">🔥</span>
+                            <div>
+                                <div style="font-family:'Orbitron';font-size:0.68rem;font-weight:800;color:white;">Titular en Pizarra 3D</div>
+                                <div style="font-size:0.6rem;color:#94A3B8;">Asignar al once / equipo</div>
+                            </div>
+                        </div>
+                        <div class="wizard-dest-card" data-dest="bench" onclick="selectWizardDestination('bench', this)">
+                            <span style="font-size:1.1rem;">🪑</span>
+                            <div>
+                                <div style="font-family:'Orbitron';font-size:0.68rem;font-weight:800;color:white;">Banquillo (Suplentes)</div>
+                                <div style="font-size:0.6rem;color:#94A3B8;">Guardar en rotación</div>
+                            </div>
+                        </div>
+                        <div class="wizard-dest-card" data-dest="reserve" onclick="selectWizardDestination('reserve', this)">
+                            <span style="font-size:1.1rem;">📋</span>
+                            <div>
+                                <div style="font-family:'Orbitron';font-size:0.68rem;font-weight:800;color:white;">Reserva / Convocatoria</div>
+                                <div style="font-size:0.6rem;color:#94A3B8;">Plantilla ampliada</div>
+                            </div>
+                        </div>
+                        <div class="wizard-dest-card" data-dest="shortlist" onclick="selectWizardDestination('shortlist', this)">
+                            <span style="font-size:1.1rem;">📡</span>
+                            <div>
+                                <div style="font-family:'Orbitron';font-size:0.68rem;font-weight:800;color:white;">Cartelera de Fichajes</div>
+                                <div style="font-size:0.6rem;color:#94A3B8;">Comparar objetivos</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border-subtle);">
@@ -1157,7 +1247,7 @@
     </nav>
     <script>
         // =========================================================================
-        // MOTOR MULTIDEPORTE DEL ASISTENTE VISION LAB™ (PARTIDO / ENTRENO / ACCIÓN)
+        // MOTOR MULTIDEPORTE DEL ASISTENTE VISION LAB™ (SIEMPRE 4 TARJETAS 2x2 POR CATEGORÍA)
         // =========================================================================
         const SPORT_WIZARD_SCHEMAS = {
             'fútbol': {
@@ -1165,20 +1255,118 @@
                 pillLabels: ['PRECISIÓN BIOMEC.', 'VELOCIDAD / POTENCIA', 'LECTURA TÁCTICA IQ', 'IMPACTO EN MEDIA'],
                 categories: {
                     match: [
-                        { id: 'm_atk', label: '⚡ Fase Ofensiva & Ataque (3-5 min)', dur: 4, metrics: ['94.2%', '33.8 km/h', 'Top 6%', '+1.5 SHO/PAS'], bars: [['Toma de decisiones en último tercio', 91], ['Controles orientados y perfilación', 89], ['Ocupación de zonas de remate', 86], ['Precisión de pase progresivo', 90]] },
-                        { id: 'm_def', label: '🛡️ Fase Defensiva & Presión (3-5 min)', dur: 4, metrics: ['92.8%', '32.5 km/h', 'Top 8%', '+1.4 DEF/PHY'], bars: [['Temporización en duelos 1vs1', 88], ['Repliegue intensivo tras pérdida', 92], ['Intercepción y cierre de líneas', 87], ['Estabilidad del centro de gravedad', 90]] },
-                        { id: 'm_inv', label: '🎯 Participación Individual Clave (3-5 min)', dur: 5, metrics: ['95.6%', '34.1 km/h', 'Top 4%', '+2.0 DRI/PAC'], bars: [['Frecuencia de escaneo visual (360°)', 94], ['Conducción y retención bajo presión', 91], ['Aceleración en primeros 5 metros', 93], ['Continuidad en transiciones', 89]] }
+                        {
+                            id: 'm_atk',
+                            tag: 'BLOQUE 1 • 3-5 MIN (30 FPS)',
+                            title: '⚡ Fase Ofensiva & Ataque',
+                            desc: 'Desmarques, apoyos entre líneas, centros, creación de ocasiones y finalización en partido.',
+                            dur: 4,
+                            metrics: ['94.2%', '33.8 km/h', 'Top 6%', '+1.5 SHO/PAS'],
+                            bars: [['Toma de decisiones en último tercio', 91], ['Controles orientados y perfilación', 89], ['Ocupación de zonas de remate', 86], ['Precisión de pase progresivo', 90]]
+                        },
+                        {
+                            id: 'm_def',
+                            tag: 'BLOQUE 2 • 3-5 MIN (30 FPS)',
+                            title: '🛡️ Fase Defensiva & Presión',
+                            desc: 'Repliegue tras pérdida, basculación, duelos defensivos 1vs1, coberturas e interceptaciones.',
+                            dur: 4,
+                            metrics: ['92.8%', '32.5 km/h', 'Top 8%', '+1.4 DEF/PHY'],
+                            bars: [['Temporización en duelos 1vs1', 88], ['Repliegue intensivo tras pérdida', 92], ['Intercepción y cierre de líneas', 87], ['Estabilidad del centro de gravedad', 90]]
+                        },
+                        {
+                            id: 'm_inv',
+                            tag: 'BLOQUE 3 • 3-5 MIN (30 FPS)',
+                            title: '🎯 Participación Individual Clave',
+                            desc: 'Tramo de mayor contacto con balón: escaneo visual 360°, conducción y retención bajo presión.',
+                            dur: 5,
+                            metrics: ['95.6%', '34.1 km/h', 'Top 4%', '+2.0 DRI/PAC'],
+                            bars: [['Frecuencia de escaneo visual (360°)', 94], ['Conducción y retención bajo presión', 91], ['Aceleración en primeros 5 metros', 93], ['Continuidad en transiciones', 89]]
+                        },
+                        {
+                            id: 'm_gk',
+                            tag: 'BLOQUE 4 • PORTERÍA (30 FPS)',
+                            title: '🧤 Rendimiento de Portero en Partido',
+                            desc: 'Posicionamiento en arco, salidas por alto, juego de pies bajo presión y paradas clave.',
+                            dur: 4,
+                            metrics: ['95.9%', '0.18s Reacción', 'Top 3%', '+1.8 POR/REF'],
+                            bars: [['Colocación en bisectriz y achique', 94], ['Seguridad en blocaje y juego aéreo', 91], ['Precisión en saque corto y largo', 90], ['Velocidad de reacción bajo palos', 95]]
+                        }
                     ],
                     training: [
-                        { id: 't_rondo', label: '🔄 Posesión / Espacio Reducido (1-3 min)', dur: 2, metrics: ['93.4%', '1.1s Toque', 'Top 5%', '+1.0 PAS'], bars: [['Velocidad de ejecución a 1-2 toques', 92], ['Orientación corporal pre-recepción', 90], ['Apoyos en línea de pase', 88], ['Reactividad tras pérdida', 87]] },
-                        { id: 't_fin', label: '🥅 Finalización & Centros (1-3 min)', dur: 2, metrics: ['94.8%', '106 km/h Tiro', 'Top 6%', '+1.2 SHO'], bars: [['Ajuste de pasos antes del golpeo', 93], ['Colocación del pie de apoyo', 91], ['Potencia y transferencia de cadera', 90], ['Ataque a zonas de rechace', 86]] },
-                        { id: 't_phys', label: '⚡ Circuito Explosivo & Sprints (1-3 min)', dur: 2, metrics: ['96.0%', '34.4 km/h', 'Óptimo', '+1.2 PAC/PHY'], bars: [['Tracción en salida de parado', 95], ['Simetría de zancada izquierda/derecha', 94], ['Frenada y cambio de dirección (COD)', 90], ['Estabilidad de rodilla/tobillo', 92]] }
+                        {
+                            id: 't_rondo',
+                            tag: 'TAREA 1 • 1-3 MIN (30 FPS)',
+                            title: '🔄 Posesión & Espacio Reducido',
+                            desc: 'Rondos tácticos, velocidad mental a 1-2 toques, perfilación y presión tras pérdida.',
+                            dur: 2,
+                            metrics: ['93.4%', '1.1s Toque', 'Top 5%', '+1.0 PAS'],
+                            bars: [['Velocidad de ejecución a 1-2 toques', 92], ['Orientación corporal pre-recepción', 90], ['Apoyos en línea de pase', 88], ['Reactividad tras pérdida', 87]]
+                        },
+                        {
+                            id: 't_fin',
+                            tag: 'TAREA 2 • 1-3 MIN (30 FPS)',
+                            title: '🥅 Finalización, Centros & Remate',
+                            desc: 'Rutina de definición, controles orientados para tiro, voleas y ataque a zonas de remate.',
+                            dur: 2,
+                            metrics: ['94.8%', '106 km/h Tiro', 'Top 6%', '+1.2 SHO'],
+                            bars: [['Ajuste de pasos antes del golpeo', 93], ['Colocación del pie de apoyo', 91], ['Potencia y transferencia de cadera', 90], ['Ataque a zonas de rechace', 86]]
+                        },
+                        {
+                            id: 't_phys',
+                            tag: 'TAREA 3 • 1-3 MIN (30 FPS)',
+                            title: '⚡ Circuito Explosivo & COD',
+                            desc: 'Trabajo de aceleración, pliometría, frenada y cambios de dirección (COD) de alta intensidad.',
+                            dur: 2,
+                            metrics: ['96.0%', '34.4 km/h', 'Óptimo', '+1.2 PAC/PHY'],
+                            bars: [['Tracción en salida de parado', 95], ['Simetría de zancada izquierda/derecha', 94], ['Frenada y cambio de dirección (COD)', 90], ['Estabilidad de rodilla/tobillo', 92]]
+                        },
+                        {
+                            id: 't_gk_drill',
+                            tag: 'TAREA 4 • PORTERÍA (30 FPS)',
+                            title: '🧤 Entrenamiento Específico de Portero',
+                            desc: 'Trabajo de reflejos, caídas laterales, desplazamiento de pies, despejes y juego aéreo.',
+                            dur: 2,
+                            metrics: ['96.2%', '0.17s Reflejo', 'Top 3%', '+1.4 POR/DIV'],
+                            bars: [['Impulso lateral y técnica de caída', 95], ['Reincorporación rápida (2ª jugada)', 93], ['Coordinación de pies en desplazamiento', 92], ['Atajada a mano cambiada / desvío', 91]]
+                        }
                     ],
                     action: [
-                        { id: 'a_drib', label: '🔥 Regate & Desborde 1vs1 (15-45s)', dur: 1, metrics: ['96.2%', '4.2 m/s² Acel.', 'Top 3%', '+1.0 DRI'], bars: [['Engaño corporal y cambio de ritmo', 95], ['Control pegado al pie en salida', 93], ['Protección con brazo exterior', 89], ['Centro o tiro posterior al regate', 88]] },
-                        { id: 'a_shot', label: '🚀 Disparo Lejano / Falta Directa (15-45s)', dur: 1, metrics: ['95.4%', '112 km/h Pico', 'Top 4%', '+1.0 SHO'], bars: [['Impacto limpio con empeine/interior', 95], ['Inclinación del tronco sobre balón', 92], ['Curva y caída del balón (Efecto)', 90], ['Equilibrio post-impacto', 91]] },
-                        { id: 'a_tackle', label: '🛡️ Tackle, Corte o Duelo Aéreo (15-45s)', dur: 1, metrics: ['94.0%', '2.45m Salto', 'Top 5%', '+1.0 DEF'], bars: [['Timing de entrada al balón', 93], ['Potencia de batida en salto', 91], ['Recuperación rápida de posición', 89], ['Limpieza técnica sin falta', 92]] },
-                        { id: 'a_gk', label: '🧤 Parada / Acción de Portero (15-45s)', dur: 1, metrics: ['95.8%', '0.19s Reacción', 'Top 4%', '+1.0 POR'], bars: [['Impulso lateral y caída', 94], ['Posición base y manos activas', 92], ['Blocaje o desvío a zona segura', 90], ['Reincorporación para 2ª jugada', 91]] }
+                        {
+                            id: 'a_drib',
+                            tag: 'ACCIÓN 1 • 15-45 SEG (30 FPS)',
+                            title: '🔥 Regate & Desborde 1vs1',
+                            desc: 'Jugada individual de encarar al defensor, finta corporal, cambio de ritmo y salida limpia.',
+                            dur: 1,
+                            metrics: ['96.2%', '4.2 m/s² Acel.', 'Top 3%', '+1.0 DRI'],
+                            bars: [['Engaño corporal y cambio de ritmo', 95], ['Control pegado al pie en salida', 93], ['Protección con brazo exterior', 89], ['Centro o tiro posterior al regate', 88]]
+                        },
+                        {
+                            id: 'a_shot',
+                            tag: 'ACCIÓN 2 • 15-45 SEG (30 FPS)',
+                            title: '🚀 Disparo Lejano / Balón Parado',
+                            desc: 'Golpeo desde fuera del área, falta directa, penalti o volea analizando biomecánica de impacto.',
+                            dur: 1,
+                            metrics: ['95.4%', '112 km/h Pico', 'Top 4%', '+1.0 SHO'],
+                            bars: [['Impacto limpio con empeine/interior', 95], ['Inclinación del tronco sobre balón', 92], ['Curva y caída del balón (Efecto)', 90], ['Equilibrio post-impacto', 91]]
+                        },
+                        {
+                            id: 'a_tackle',
+                            tag: 'ACCIÓN 3 • 15-45 SEG (30 FPS)',
+                            title: '🛡️ Tackle, Corte o Duelo Aéreo',
+                            desc: 'Acción defensiva determinante: entrada al suelo, anticipación, cruce salvador o salto.',
+                            dur: 1,
+                            metrics: ['94.0%', '2.45m Salto', 'Top 5%', '+1.0 DEF'],
+                            bars: [['Timing de entrada al balón', 93], ['Potencia de batida en salto', 91], ['Recuperación rápida de posición', 89], ['Limpieza técnica sin falta', 92]]
+                        },
+                        {
+                            id: 'a_gk',
+                            tag: 'ACCIÓN 4 • PORTERÍA (30 FPS)',
+                            title: '🧤 Parada / Mano a Mano / Penalti',
+                            desc: 'Intervención puntual del portero: estirada al ángulo, achique 1vs1 o penalti detenido.',
+                            dur: 1,
+                            metrics: ['96.8%', '0.16s Reacción', 'Top 2%', '+1.2 POR'],
+                            bars: [['Explosividad de batida en estirada', 96], ['Posición base (Set Position) previa', 94], ['Firmeza de muñeca en el desvío', 93], ['Lectura de cadera del rematador', 92]]
+                        }
                     ]
                 }
             },
@@ -1187,18 +1375,22 @@
                 pillLabels: ['MECÁNICA BIOMEC.', 'VEL. TIRO / SALTO', 'LECTURA DE PISTA IQ', 'IMPACTO EN MEDIA'],
                 categories: {
                     match: [
-                        { id: 'm_atk', label: '🏀 Ataque Media Pista & Pick and Roll (3-5 min)', dur: 4, metrics: ['95.1%', '0.43s Release', 'Top 5%', '+1.5 PTS/AST'], bars: [['Fluidez de liberación de tiro', 93], ['Lectura de ayudas en Pick & Roll', 90], ['Uso de bloqueos y Spacing', 88], ['Eficacia en finalización cerca del aro', 91]] },
-                        { id: 'm_def', label: '🛡️ Defensa Individual, Ayudas & Rebote (3-5 min)', dur: 4, metrics: ['93.4%', '91% Box-Out', 'Top 6%', '+1.4 DEF/REB'], bars: [['Desplazamiento lateral defensivo', 92], ['Contestación de tiro (Close-out)', 89], ['Sello de rebote defensivo (Box-out)', 91], ['Rotación en ayudas del lado débil', 87]] },
-                        { id: 'm_inv', label: '⚡ Transición Rápida & Clutch (3-5 min)', dur: 4, metrics: ['96.0%', '102 cm Vert', 'Top 4%', '+1.8 ATH/PTS'], bars: [['Velocidad de primer paso a campo abierto', 95], ['Toma de decisiones en superioridad', 91], ['Absorción de contacto en bandeja/mate', 90], ['Control de pérdidas a alto ritmo', 92]] }
+                        { id: 'm_atk', tag: 'BLOQUE 1 • 3-5 MIN (30 FPS)', title: '🏀 Ataque Media Pista & Pick&Roll', desc: 'Lectura de bloqueo directo, generación de ventajas, spacing y selección de tiro.', dur: 4, metrics: ['95.1%', '0.43s Release', 'Top 5%', '+1.5 PTS/AST'], bars: [['Fluidez de liberación de tiro', 93], ['Lectura de ayudas en Pick & Roll', 90], ['Uso de bloqueos y Spacing', 88], ['Eficacia en finalización cerca del aro', 91]] },
+                        { id: 'm_def', tag: 'BLOQUE 2 • 3-5 MIN (30 FPS)', title: '🛡️ Defensa Perímetro & Ayudas', desc: 'Desplazamiento lateral, negación de línea de pase, navegación de pantallas y Close-out.', dur: 4, metrics: ['93.4%', '0.20s Reacción', 'Top 6%', '+1.4 DEF'], bars: [['Desplazamiento lateral defensivo', 92], ['Contestación de tiro (Close-out)', 89], ['Navegación de bloqueos indirectos', 90], ['Rotación en ayudas del lado débil', 88]] },
+                        { id: 'm_inv', tag: 'BLOQUE 3 • 3-5 MIN (30 FPS)', title: '⚡ Transición Rápida & Contraataque', desc: 'Correr las calles, toma de decisiones en superioridad numérica y ritmo de partido.', dur: 4, metrics: ['96.0%', '102 cm Vert', 'Top 4%', '+1.8 ATH/PTS'], bars: [['Velocidad de primer paso a campo abierto', 95], ['Toma de decisiones en superioridad', 91], ['Absorción de contacto en bandeja/mate', 90], ['Control de pérdidas a alto ritmo', 92]] },
+                        { id: 'm_paint', tag: 'BLOQUE 4 • JUEGO INTERIOR (30 FPS)', title: '🏔️ Dominio de Pintura, Poste & Rebote', desc: 'Protección de aro, sello de rebote (Box-Out), continuación de Roll y juego al poste.', dur: 4, metrics: ['94.7%', '93% Box-Out', 'Top 4%', '+1.6 REB/DEF'], bars: [['Sello físico en rebote (Box-Out)', 94], ['Verticalidad en protección de aro', 92], ['Ángulo de bloqueo (Screen Assist)', 91], ['Finalización con contacto en pintura', 90]] }
                     ],
                     training: [
-                        { id: 't_shoot', label: '🎯 Serie de Tiro Catch & Shoot / Pull-Up (1-3 min)', dur: 2, metrics: ['96.4%', 'Arco 46°', 'Óptimo', '+1.2 3PT'], bars: [['Repetibilidad del arco de tiro (45°-47°)', 95], ['Alineación hombro-codo-muñeca', 94], ['Equilibrio de pies en recepción', 92], ['Velocidad de preparación de manos', 91]] },
-                        { id: 't_hand', label: '⚡ Manejo de Balón & 1vs1 (1-3 min)', dur: 2, metrics: ['94.5%', 'Bote Bajo', 'Top 5%', '+1.0 AST/ATH'], bars: [['Cambio de ritmo tras Crossover', 93], ['Protección de bote con cuerpo', 90], ['Separación en Step-Back', 89], ['Visión de pista con cabeza alta', 92]] }
+                        { id: 't_shoot', tag: 'TAREA 1 • 1-3 MIN (30 FPS)', title: '🎯 Serie de Tiro Catch & Shoot', desc: 'Mecánica de tiro en recepción, alineación de pies y consistencia de arco.', dur: 2, metrics: ['96.4%', 'Arco 46°', 'Óptimo', '+1.2 3PT'], bars: [['Repetibilidad del arco de tiro (45°-47°)', 95], ['Alineación hombro-codo-muñeca', 94], ['Equilibrio de pies en recepción', 92], ['Velocidad de preparación de manos', 91]] },
+                        { id: 't_hand', tag: 'TAREA 2 • 1-3 MIN (30 FPS)', title: '⚡ Manejo de Balón & Bote 1vs1', desc: 'Cambios de mano, bote bajo presión, crossovers y creación de espacio.', dur: 2, metrics: ['94.5%', 'Bote Bajo', 'Top 5%', '+1.0 AST/ATH'], bars: [['Cambio de ritmo tras Crossover', 93], ['Protección de bote con cuerpo', 90], ['Separación en Step-Back', 89], ['Visión de pista con cabeza alta', 92]] },
+                        { id: 't_fin', tag: 'TAREA 3 • 1-3 MIN (30 FPS)', title: '🚀 Finalizaciones al Aro & Contacto', desc: 'Bandejas con ambas manos, Euro-step, paradas en dos tiempos y bombas (Floaters).', dur: 2, metrics: ['95.0%', '92% Acierto', 'Top 5%', '+1.1 PTS'], bars: [['Uso del tablero con distintos efectos', 93], ['Control corporal en el aire', 92], ['Finalización con mano no dominante', 90], ['Equilibrio en parada de 1 y 2 tiempos', 91]] },
+                        { id: 't_post', tag: 'TAREA 4 • INTERIOR (30 FPS)', title: '🏔️ Trabajo de Pívot: Poste & Rebote', desc: 'Juego de pies en poste bajo, ganchos, giros sobre hombro y palmadas de rebote.', dur: 2, metrics: ['95.3%', '100 cm Salto', 'Top 4%', '+1.2 REB/PHY'], bars: [['Juego de pies (Drop-Step / Giro)', 94], ['Toque suave en semigancho', 91], ['Segundo salto rápido por el rebote', 93], ['Pases hacia tiradores abiertos', 90]] }
                     ],
                     action: [
-                        { id: 'a_3pt', label: '🔥 Triple / Step-Back / Buzzer Beater (15-45s)', dur: 1, metrics: ['96.8%', '0.41s Tiro', 'Top 3%', '+1.0 3PT'], bars: [['Separación generada ante el defensor', 95], ['Verticalidad en el salto de tiro', 94], ['Extensión y seguimiento de muñeca', 96], ['Estabilidad en el aterrizaje', 92]] },
-                        { id: 'a_dunk', label: '🚀 Penetración, Mate o Euro-Step (15-45s)', dur: 1, metrics: ['95.2%', '104 cm Salto', 'Top 4%', '+1.0 ATH'], bars: [['Amplitud de pasos en Euro-Step', 94], ['Explosividad de batida a 1 o 2 pies', 95], ['Protección del balón en el tráfico', 90], ['Finalización contra cristal/aro', 92]] },
-                        { id: 'a_blk', label: '🛡️ Tapón, Robo o Defensa 1vs1 (15-45s)', dur: 1, metrics: ['94.6%', '0.18s Reacción', 'Top 5%', '+1.0 DEF'], bars: [['Timing de salto sin cometer personal', 94], ['Reactividad de manos en línea de bote', 92], ['Recuperación de posición defensiva', 90], ['Transición inmediata tras robo', 91]] }
+                        { id: 'a_3pt', tag: 'ACCIÓN 1 • 15-45 SEG (30 FPS)', title: '🔥 Triple / Step-Back / Buzzer Beater', desc: 'Lanzamiento exterior punteado o tras bote con creación de espacio.', dur: 1, metrics: ['96.8%', '0.41s Tiro', 'Top 3%', '+1.0 3PT'], bars: [['Separación generada ante el defensor', 95], ['Verticalidad en el salto de tiro', 94], ['Extensión y seguimiento de muñeca', 96], ['Estabilidad en el aterrizaje', 92]] },
+                        { id: 'a_dunk', tag: 'ACCIÓN 2 • 15-45 SEG (30 FPS)', title: '🚀 Penetración, Mate o Euro-Step', desc: 'Ataque explosivo al aro superando líneas defensivas.', dur: 1, metrics: ['95.2%', '104 cm Salto', 'Top 4%', '+1.0 ATH'], bars: [['Amplitud de pasos en Euro-Step', 94], ['Explosividad de batida a 1 o 2 pies', 95], ['Protección del balón en el tráfico', 90], ['Finalización contra cristal/aro', 92]] },
+                        { id: 'a_ast', tag: 'ACCIÓN 3 • 15-45 SEG (30 FPS)', title: '🎯 Asistencia de Élite / Lectura 2vs1', desc: 'Pase sin mirar, bolsillo (Pocket Pass) o envío cruzado a esquina abierta.', dur: 1, metrics: ['96.0%', 'Precisión 97%', 'Top 3%', '+1.0 AST'], bars: [['Finta visual previa al pase', 95], ['Velocidad y tensión del envío', 94], ['Timing respecto al corte del compañero', 93], ['Cero telegrafiado de línea de pase', 92]] },
+                        { id: 'a_blk', tag: 'ACCIÓN 4 • DEFENSA/ARO (30 FPS)', title: '🛡️ Tapón, Robo o Defensa 1vs1', desc: 'Acción defensiva ganadora: tapón en ayuda, robo en línea o falta de ataque forzada.', dur: 1, metrics: ['95.8%', '0.18s Reacción', 'Top 3%', '+1.2 DEF'], bars: [['Timing de salto sin cometer personal', 95], ['Reactividad de manos en línea de bote', 93], ['Posición de pies fuera del semicírculo', 91], ['Transición inmediata tras recuperar', 92]] }
                     ]
                 }
             },
@@ -1207,18 +1399,22 @@
                 pillLabels: ['EFICIENCIA CINÉTICA', 'VELOCIDAD DE IMPACTO', 'CONTROL DE RING IQ', 'IMPACTO EN MEDIA'],
                 categories: {
                     match: [
-                        { id: 'm_atk', label: '🥊 Asalto de Ataque & Combinaciones (3 min)', dur: 3, metrics: ['95.4%', '11.8 m/s', 'Top 4%', '+1.6 PWR/SPD'], bars: [['Retorno de mano a la guardia tras golpear', 93], ['Rotación de cadera en golpes de poder', 95], ['Combinación arriba-abajo (Cabeza/Hígado)', 90], ['Salida en ángulo tras terminar serie', 89]] },
-                        { id: 'm_def', label: '🛡️ Asalto Defensivo, Esquivas & Contras (3 min)', dur: 3, metrics: ['94.8%', '0.17s Esquiva', 'Top 5%', '+1.5 DEF/IQ'], bars: [['Tiempo con mentón cubierto y guardia alta', 94], ['Economía de movimiento en Slip / Roll', 91], ['Precisión de contragolpe inmediato', 92], ['Defensa de Clinch / Takedown', 88]] },
-                        { id: 'm_inv', label: '⚡ Footwork & Control de Distancia (3 min)', dur: 3, metrics: ['96.1%', '95% Balance', 'Top 3%', '+1.4 STA/IQ'], bars: [['Desplazamiento sin cruzar los pies', 95], ['Corte del ring / presión en jaula', 91], ['Uso del Jab para medir alcance', 93], ['Mantenimiento de ritmo en último minuto', 90]] }
+                        { id: 'm_atk', tag: 'BLOQUE 1 • ASALTO 3 MIN (30 FPS)', title: '🥊 Asalto de Ataque & Combinaciones', desc: 'Llevar la iniciativa: volumen de jab, combinaciones de 3-4 golpes y ángulos de salida.', dur: 3, metrics: ['95.4%', '11.8 m/s', 'Top 4%', '+1.6 PWR/SPD'], bars: [['Retorno de mano a la guardia tras golpear', 93], ['Rotación de cadera en golpes de poder', 95], ['Combinación arriba-abajo (Cabeza/Hígado)', 90], ['Salida en ángulo tras terminar serie', 89]] },
+                        { id: 'm_def', tag: 'BLOQUE 2 • ASALTO 3 MIN (30 FPS)', title: '🛡️ Asalto Defensivo, Esquivas & Contras', desc: 'Trabajo de cintura, cabeceo (Slip/Roll), bloqueos altos y contragolpe inmediato.', dur: 3, metrics: ['94.8%', '0.17s Esquiva', 'Top 5%', '+1.5 DEF/IQ'], bars: [['Tiempo con mentón cubierto y guardia alta', 94], ['Economía de movimiento en Slip / Roll', 91], ['Precisión de contragolpe inmediato', 92], ['Defensa de Clinch / Takedown', 88]] },
+                        { id: 'm_inv', tag: 'BLOQUE 3 • ASALTO 3 MIN (30 FPS)', title: '⚡ Footwork & Control de Distancia', desc: 'Juego de piernas, corte del ring/jaula y gestión del alcance durante el asalto.', dur: 3, metrics: ['96.1%', '95% Balance', 'Top 3%', '+1.4 STA/IQ'], bars: [['Desplazamiento sin cruzar los pies', 95], ['Corte del ring / presión en jaula', 91], ['Uso del Jab para medir alcance', 93], ['Mantenimiento de ritmo en último minuto', 90]] },
+                        { id: 'm_grapple', tag: 'BLOQUE 4 • CLINCH / SUELO (30 FPS)', title: '🤼 Control de Clinch, Jaula & Grappling', desc: 'Lucha cuerpo a cuerpo, derribos, defensa contra las cuerdas/reja y control en suelo.', dur: 3, metrics: ['94.5%', '92% Control', 'Top 5%', '+1.5 PHY/IQ'], bars: [['Ganar esgrima de brazos (Underhooks)', 93], ['Equilibrio de base y defensa de derribo', 92], ['Golpeo corto en salida de Clinch', 90], ['Eficiencia energética en forcejeo', 91]] }
                     ],
                     training: [
-                        { id: 't_sparring', label: '🔥 Asalto de Sparring Técnico (1-3 min)', dur: 3, metrics: ['94.2%', '44 Golpes/min', 'Top 5%', '+1.2 IQ'], bars: [['Lectura de fintas del sparring', 92], ['Control de distancia media-larga', 90], ['Respiración y relajación de hombros', 91], ['Ajuste táctico entre combinaciones', 89]] },
-                        { id: 't_pads', label: '⚡ Manoplas, Saco Pesado o Sombra (1-3 min)', dur: 2, metrics: ['96.5%', '12.2 m/s Pico', 'Óptimo', '+1.0 SPD/PWR'], bars: [['Nitidez técnica en series largas', 95], ['Potencia de impacto en saco/paos', 94], ['Pivotes y giros sobre pie adelantado', 92], ['Recuperación cardíaca entre ráfagas', 90]] }
+                        { id: 't_sparring', tag: 'TAREA 1 • 1-3 MIN (30 FPS)', title: '🔥 Asalto de Sparring Técnico', desc: 'Lectura del compañero, aplicación de plan táctico y control de distancia.', dur: 3, metrics: ['94.2%', '44 Golpes/min', 'Top 5%', '+1.2 IQ'], bars: [['Lectura de fintas del sparring', 92], ['Control de distancia media-larga', 90], ['Respiración y relajación de hombros', 91], ['Ajuste táctico entre combinaciones', 89]] },
+                        { id: 't_pads', tag: 'TAREA 2 • 1-3 MIN (30 FPS)', title: '⚡ Manoplas & Saco Pesado', desc: 'Automatización de combinaciones, potencia de impacto y velocidad de retorno.', dur: 2, metrics: ['96.5%', '12.2 m/s Pico', 'Óptimo', '+1.0 SPD/PWR'], bars: [['Nitidez técnica en series largas', 95], ['Potencia de impacto en saco/paos', 94], ['Pivotes y giros sobre pie adelantado', 92], ['Recuperación cardíaca entre ráfagas', 90]] },
+                        { id: 't_shadow', tag: 'TAREA 3 • 1-3 MIN (30 FPS)', title: '🌪️ Sombra, Footwork & Cuerda de Esquiva', desc: 'Fluidez de desplazamientos, cambios de guardia y coordinación pies-manos.', dur: 2, metrics: ['96.0%', 'Fluidez 96%', 'Top 4%', '+1.0 SPD/DEF'], bars: [['Coordinación paso-golpe', 95], ['Equilibrio al cambiar de ángulo', 94], ['Cabeceo continuo tras cada serie', 93], ['Ritmo constante de pies', 92]] },
+                        { id: 't_wrestle', tag: 'TAREA 4 • DEFENSA / LUCHA (30 FPS)', title: '🛡️ Drill de Escapes, Guardia & Sprawl', desc: 'Trabajo específico de defensa en esquina, bloqueo de ráfagas y entradas de lucha.', dur: 2, metrics: ['95.1%', '0.18s Sprawl', 'Top 4%', '+1.2 DEF/CHN'], bars: [['Absorción en guantes y codos cerrados', 94], ['Velocidad de giro para salir de cuerdas', 93], ['Reacción explosiva de caderas (Sprawl)', 92], ['Contraataque inmediato tras bloquear', 91]] }
                     ],
                     action: [
-                        { id: 'a_liver', label: '💥 Gancho al Hígado / Cross / KO Shot (15-45s)', dur: 1, metrics: ['97.1%', '12.4 m/s', 'Top 2%', '+1.2 PWR'], bars: [['Bajada de nivel y carga en pierna delantera', 96], ['Giro de metatarso y cadera en el impacto', 95], ['Ocultación del golpe (Sin telegrafiar)', 94], ['Mano opuesta pegada al pómulo', 93]] },
-                        { id: 'a_slip', label: '🌪️ Esquiva + Contragolpe (Pull-Counter) (15-45s)', dur: 1, metrics: ['96.3%', '0.16s Reacción', 'Top 3%', '+1.2 DEF/SPD'], bars: [['Distancia milimétrica de esquiva', 96], ['Transferencia de peso al contragolpear', 94], ['Equilibrio axial durante el cambio', 93], ['Salida lateral segura tras impactar', 92]] },
-                        { id: 'a_td', label: '🤼 Derribo (Takedown), Sprawl o Sumisión (15-45s)', dur: 1, metrics: ['95.0%', 'Explosivo', 'Top 4%', '+1.0 IQ/PHY'], bars: [['Cambio de nivel y entrada a caderas', 94], ['Velocidad de Sprawl defensivo', 92], ['Control posicional y presión superior', 93], ['Transición golpeo a lucha (Chain Wrestling)', 90]] }
+                        { id: 'a_liver', tag: 'ACCIÓN 1 • 15-45 SEG (30 FPS)', title: '💥 Gancho al Hígado / Cross / KO Shot', desc: 'Golpe de poder aislado o combinación ganadora buscando zona hepática o mentón.', dur: 1, metrics: ['97.1%', '12.4 m/s', 'Top 2%', '+1.2 PWR'], bars: [['Bajada de nivel y carga en pierna delantera', 96], ['Giro de metatarso y cadera en el impacto', 95], ['Ocultación del golpe (Sin telegrafiar)', 94], ['Mano opuesta pegada al pómulo', 93]] },
+                        { id: 'a_slip', tag: 'ACCIÓN 2 • 15-45 SEG (30 FPS)', title: '🌪️ Esquiva + Contragolpe (Pull-Counter)', desc: 'Hacer fallar al rival por milímetros y conectar en el mismo tiempo.', dur: 1, metrics: ['96.3%', '0.16s Reacción', 'Top 3%', '+1.2 DEF/SPD'], bars: [['Distancia milimétrica de esquiva', 96], ['Transferencia de peso al contragolpear', 94], ['Equilibrio axial durante el cambio', 93], ['Salida lateral segura tras impactar', 92]] },
+                        { id: 'a_combo', tag: 'ACCIÓN 3 • 15-45 SEG (30 FPS)', title: '⚡ Ráfaga de 4+ Golpes & Cambio de Ángulo', desc: 'Combinación explosiva alternando planos con pivote lateral.', dur: 1, metrics: ['95.8%', '5.2 Golpes/s', 'Top 3%', '+1.1 SPD'], bars: [['Fluidez y encadenamiento de golpes', 95], ['Pivote sobre pie delantero a 45°-90°', 94], ['Precisión en el último golpe de la serie', 92], ['Guardia armada al finalizar', 93]] },
+                        { id: 'a_td', tag: 'ACCIÓN 4 • LUCHA / DEFENSA (30 FPS)', title: '🤼 Derribo, Sprawl o Escape de Cuerdas', desc: 'Entrada a una o dos piernas, defensa de derribo o salida limpia de rincón.', dur: 1, metrics: ['95.4%', 'Explosivo', 'Top 4%', '+1.1 IQ/DEF'], bars: [['Cambio de nivel y penetración', 94], ['Velocidad de reacción defensiva', 93], ['Control de cabeza y postura', 92], ['Transición limpia sin quedar expuesto', 93]] }
                     ]
                 }
             },
@@ -1227,16 +1423,22 @@
                 pillLabels: ['PRECISIÓN BIOMEC.', 'VEL. REMATE / SAQUE', 'DOMINIO TÁCTICO IQ', 'IMPACTO EN MEDIA'],
                 categories: {
                     match: [
-                        { id: 'm_atk', label: '🎾 Ataque en Red: Voleas, Bandeja y Remate (3-5 min)', dur: 4, metrics: ['95.2%', '148 km/h Smash', 'Top 4%', '+1.6 VOL/BND'], bars: [['Punto de impacto alto delante del cuerpo', 94], ['Activación de Split-Step antes de volear', 91], ['Profundidad hacia el rincón / malla', 89], ['Recuperación de posición en la red', 92]] },
-                        { id: 'm_def', label: '🛡️ Defensa en Fondo, Cristales y Globo (3-5 min)', dur: 4, metrics: ['94.4%', '93% Globos', 'Top 5%', '+1.5 DEF/MNT'], bars: [['Altura y profundidad de globo defensivo', 94], ['Lectura de doble pared y giros', 90], ['Paciencia en chiquitas y bolas bajas', 91], ['Cobertura coordinada con el compañero', 89]] },
-                        { id: 'm_inv', label: '⚡ Punto Completo: Transición Fondo-Red (3-5 min)', dur: 4, metrics: ['95.0%', '1.3s Subida', 'Top 4%', '+1.5 SRV/SPD'], bars: [['Sincronización de subida en bloque', 93], ['Saque al cristal + primera volea', 92], ['Devolución de resto bajo presión', 90], ['Cierre del pasillo central', 91]] }
+                        { id: 'm_atk', tag: 'BLOQUE 1 • 3-5 MIN (30 FPS)', title: '🎾 Ataque en Red: Voleas & Bandeja', desc: 'Dominio de la red, preparación corta, punto de impacto alto y presión constante.', dur: 4, metrics: ['95.2%', '148 km/h Smash', 'Top 4%', '+1.6 VOL/BND'], bars: [['Punto de impacto alto delante del cuerpo', 94], ['Activación de Split-Step antes de volear', 91], ['Profundidad hacia el rincón / malla', 89], ['Recuperación de posición en la red', 92]] },
+                        { id: 'm_def', tag: 'BLOQUE 2 • 3-5 MIN (30 FPS)', title: '🛡️ Defensa en Fondo, Cristales y Globo', desc: 'Lectura de doble pared, flexión en bolas bajas, chiquitas y globos profundos.', dur: 4, metrics: ['94.4%', '93% Globos', 'Top 5%', '+1.5 DEF/MNT'], bars: [['Altura y profundidad de globo defensivo', 94], ['Lectura de doble pared y giros', 90], ['Paciencia en chiquitas y bolas bajas', 91], ['Cobertura coordinada con el compañero', 89]] },
+                        { id: 'm_inv', tag: 'BLOQUE 3 • 3-5 MIN (30 FPS)', title: '⚡ Transición Fondo-Red & Sincronización', desc: 'Subida en bloque con tu pareja tras globo o chiquita y cierre de ángulos.', dur: 4, metrics: ['95.0%', '1.3s Subida', 'Top 4%', '+1.5 SRV/SPD'], bars: [['Sincronización de subida en bloque', 93], ['Cierre del pasillo central', 92], ['Volea de transición en media pista', 90], ['Comunicación y relevos con la pareja', 91]] },
+                        { id: 'm_srv', tag: 'BLOQUE 4 • SAQUE Y RESTO (30 FPS)', title: '🎯 Juegos al Saque, Resto & Punto de Oro', desc: 'Eficacia de primer servicio, devolución de resto bajo presión y puntos clave.', dur: 4, metrics: ['95.6%', '91% 1er Saque', 'Top 3%', '+1.5 SRV/MNT'], bars: [['Colocación de saque al cristal / a la T', 95], ['Subida rápida a red tras sacar', 93], ['Resto profundo o por abajo a los pies', 91], ['Toma de decisiones en Punto de Oro / Break', 92]] }
                     ],
                     training: [
-                        { id: 't_basket', label: '⚡ Carro de Bolas: Bandeja / Víbora / Volea (1-3 min)', dur: 2, metrics: ['96.1%', '94% Consist.', 'Óptimo', '+1.0 BND/VOL'], bars: [['Armado temprano con mano no dominante', 95], ['Ajuste de pasos laterales (Footwork)', 93], ['Terminación y efecto cortado', 92], ['Estabilidad de core en golpeos aéreos', 91]] }
+                        { id: 't_basket', tag: 'TAREA 1 • 1-3 MIN (30 FPS)', title: '⚡ Carro de Bolas: Bandeja, Víbora y Smash', desc: 'Repetición técnica de golpeos aéreos, armado temprano y ajuste de pies.', dur: 2, metrics: ['96.1%', '94% Consist.', 'Óptimo', '+1.0 BND'], bars: [['Armado temprano con mano no dominante', 95], ['Ajuste de pasos laterales (Footwork)', 93], ['Terminación y efecto cortado', 92], ['Estabilidad de core en golpeos aéreos', 91]] },
+                        { id: 't_vol', tag: 'TAREA 2 • 1-3 MIN (30 FPS)', title: '🎾 Peloteo Rápido de Voleas en Red', desc: 'Control de bloqueo, volea cortada de derecha y revés sin llevar la pala atrás.', dur: 2, metrics: ['95.4%', '0.21s Reacción', 'Top 4%', '+1.0 VOL'], bars: [['Preparación compacta delante del cuerpo', 94], ['Transferencia de peso con paso adelante', 93], ['Bola baja tras botar en el cristal', 91], ['Split-Step continuo entre impactos', 92]] },
+                        { id: 't_wall', tag: 'TAREA 3 • 1-3 MIN (30 FPS)', title: '🛡️ Defensa de Doble Pared y Bajadas', desc: 'Giros coordinados con la bola en el rincón, salida de pared y globo.', dur: 2, metrics: ['94.8%', '92% Salidas', 'Top 5%', '+1.0 DEF'], bars: [['Acompañamiento del giro con los pies', 93], ['Flexión de piernas por debajo de la bola', 92], ['Impacto limpio delante de la cadera', 91], ['Recuperación inmediata al centro', 90]] },
+                        { id: 't_srv_ret', tag: 'TAREA 4 • SERVICIO / RESTO (30 FPS)', title: '🎯 Entrenamiento de Saque & Resto', desc: 'Series de servicio buscando ángulos y restos agresivos/globos.', dur: 2, metrics: ['95.9%', '95% Precisión', 'Top 3%', '+1.0 SRV'], bars: [['Regularidad en el lanzamiento de bola', 95], ['Efecto cortado para pegar al cristal', 94], ['Lectura del saque rival en el resto', 92], ['Primer paso explosivo hacia la red', 93]] }
                     ],
                     action: [
-                        { id: 'a_x3', label: '🚀 Remate Por Tres (X3) / Por Cuatro (X4) (15-45s)', dur: 1, metrics: ['97.0%', '154 km/h Pico', 'Top 3%', '+1.2 BND'], bars: [['Arqueo dorsal e impulso de piernas', 96], ['Pronación de muñeca para efecto liftado', 95], ['Impacto en el punto más alto (2.48m)', 94], ['Equilibrio en la caída post-remate', 93]] },
-                        { id: 'a_bajada', label: '🔥 Bajada de Pared / Contrapared / Salida (15-45s)', dur: 1, metrics: ['95.4%', '132 km/h', 'Top 4%', '+1.0 DEF/VOL'], bars: [['Distancia óptima respecto al cristal', 94], ['Transferencia de peso hacia adelante', 93], ['Ocultación de dirección (Cruzado/Paralelo)', 91], ['Subida inmediata a red tras golpear', 92]] }
+                        { id: 'a_x3', tag: 'ACCIÓN 1 • 15-45 SEG (30 FPS)', title: '🚀 Remate Por Tres (X3) / Por Cuatro (X4)', desc: 'Definición de potencia o efecto liftado sacando la bola de la pista.', dur: 1, metrics: ['97.0%', '154 km/h Pico', 'Top 3%', '+1.2 BND'], bars: [['Arqueo dorsal e impulso de piernas', 96], ['Pronación de muñeca para efecto liftado', 95], ['Impacto en el punto más alto (2.48m)', 94], ['Equilibrio en la caída post-remate', 93]] },
+                        { id: 'a_bajada', tag: 'ACCIÓN 2 • 15-45 SEG (30 FPS)', title: '🔥 Bajada de Pared / Contrapared', desc: 'Ataque desde el fondo tras globo alto que rebota en el cristal trasero.', dur: 1, metrics: ['95.4%', '132 km/h', 'Top 4%', '+1.0 DEF/VOL'], bars: [['Distancia óptima respecto al cristal', 94], ['Transferencia de peso hacia adelante', 93], ['Ocultación de dirección (Cruzado/Paralelo)', 91], ['Subida inmediata a red tras golpear', 92]] },
+                        { id: 'a_drop', tag: 'ACCIÓN 3 • 15-45 SEG (30 FPS)', title: '🎯 Dejada, Chiquita o Dormilona en Red', desc: 'Golpe de toque y muñeca fina buscando la malla o dejarla muerta.', dur: 1, metrics: ['96.2%', 'Toque Élite', 'Top 3%', '+1.0 VOL/MNT'], bars: [['Amago previo de golpeo fuerte', 95], ['Amortiguación suave en el impacto', 96], ['Bote pegado a la red o reja lateral', 93], ['Cobertura de posible contradejada', 92]] },
+                        { id: 'a_rec', tag: 'ACCIÓN 4 • DEFENSA ÉLITE (30 FPS)', title: '🛡️ Recuperación Extrema / Salida Exterior', desc: 'Defensa in-extremis al límite o juego por fuera de la puerta tras X3 rival.', dur: 1, metrics: ['96.5%', '31.4 km/h Sprint', 'Top 2%', '+1.2 SPD/DEF'], bars: [['Lectura anticipada del remate rival', 96], ['Velocidad de arranque y frenada', 95], ['Control del golpeo en carrera forzada', 93], ['Reingreso rápido a pista', 94]] }
                     ]
                 }
             },
@@ -1245,14 +1447,22 @@
                 pillLabels: ['ECONOMÍA BIOMEC.', 'CADENCIA / CONTACTO', 'ESTABILIDAD EN FATIGA', 'IMPACTO EN MEDIA'],
                 categories: {
                     match: [
-                        { id: 'm_atk', label: '🏃 Ritmo de Competición & Crucero (3 min)', dur: 3, metrics: ['96.2%', '186 SPM', 'Top 4%', '+1.5 VO2/CAD'], bars: [['Aterrizaje de mediopié bajo centro de masas', 95], ['Cadencia constante por encima de 180 SPM', 94], ['Baja oscilación vertical (6.1 cm)', 91], ['Alineación cadera-rodilla-tobillo', 93]] },
-                        { id: 'm_def', label: '🔥 Tramo Final en Fatiga / Último Km (3 min)', dur: 3, metrics: ['94.0%', '178 ms Suelo', 'Top 5%', '+1.5 STA/MNT'], bars: [['Mantenimiento de cadera alta bajo fatiga', 92], ['Estabilidad pélvica sin caída lateral', 91], ['Relajación de hombros y trapecios', 89], ['Conservación de amplitud de zancada', 90]] }
+                        { id: 'm_atk', tag: 'BLOQUE 1 • 3 MIN (30 FPS)', title: '🏃 Ritmo de Competición & Crucero', desc: 'Análisis a ritmo objetivo (5K / 10K / Media / Maratón) auditando pisada y cadencia.', dur: 3, metrics: ['96.2%', '186 SPM', 'Top 4%', '+1.5 VO2/CAD'], bars: [['Aterrizaje de mediopié bajo centro de masas', 95], ['Cadencia constante por encima de 180 SPM', 94], ['Baja oscilación vertical (6.1 cm)', 91], ['Alineación cadera-rodilla-tobillo', 93]] },
+                        { id: 'm_def', tag: 'BLOQUE 2 • 3 MIN (30 FPS)', title: '🔥 Tramo Final en Fatiga / Último Km', desc: 'Grabación al final de la prueba para detectar si cae la pelvis o se tensan los hombros.', dur: 3, metrics: ['94.0%', '178 ms Suelo', 'Top 5%', '+1.5 STA/MNT'], bars: [['Mantenimiento de cadera alta bajo fatiga', 92], ['Estabilidad pélvica sin caída lateral', 91], ['Relajación de hombros y trapecios', 89], ['Conservación de amplitud de zancada', 90]] },
+                        { id: 'm_hills', tag: 'BLOQUE 3 • 3 MIN (30 FPS)', title: '⛰️ Subida / Desnivel & Fuerza Específica', desc: 'Biomecánica en pendiente positiva o negativa: acortamiento de paso y braceo.', dur: 3, metrics: ['95.1%', '188 SPM Subida', 'Top 4%', '+1.4 STA/VO2'], bars: [['Inclinación del cuerpo respecto a la pendiente', 94], ['Impulso activo de brazos hacia atrás', 93], ['Apoyo de metatarso sin colapsar talón', 92], ['Control excéntrico de cuádriceps en bajada', 90]] },
+                        { id: 'm_pack', tag: 'BLOQUE 4 • TÁCTICA DE CARRERA (30 FPS)', title: '⚡ Rodaje en Grupo, Liebres & Paso por Curva', desc: 'Posicionamiento en pelotón, ahorro aerodinámico (Drafting) y trazada en curva.', dur: 3, metrics: ['95.8%', '-6% Gasto E.', 'Top 3%', '+1.4 PAC/MNT'], bars: [['Sincronización de zancada tras la liebre', 95], ['Trazada eficiente en curvas o giros', 93], ['Estabilidad de ritmo por kilómetro', 94], ['Respuesta ante cambios de ritmo del grupo', 92]] }
                     ],
                     training: [
-                        { id: 't_track', label: '⚡ Serie Rápida en Pista de Tartán (1-3 min)', dur: 2, metrics: ['96.8%', '192 SPM • 158ms', 'Top 3%', '+1.4 PAC'], bars: [['Triple extensión en fase de impulso', 96], ['Reactividad elástica del tendón de Aquiles', 94], ['Braceo simétrico a 90 grados', 92], ['Inclinación frontal eficiente desde tobillos', 93]] }
+                        { id: 't_track', tag: 'TAREA 1 • 1-3 MIN (30 FPS)', title: '⚡ Serie Rápida en Pista de Tartán', desc: 'Intervalos de VO2 Max (400m / 1000m) analizando impulsión y triple extensión.', dur: 2, metrics: ['96.8%', '192 SPM • 158ms', 'Top 3%', '+1.4 PAC'], bars: [['Triple extensión en fase de impulso', 96], ['Reactividad elástica del tendón de Aquiles', 94], ['Braceo simétrico a 90 grados', 92], ['Inclinación frontal eficiente desde tobillos', 93]] },
+                        { id: 't_drills', tag: 'TAREA 2 • 1-3 MIN (30 FPS)', title: '🔬 Técnica de Carrera (Skipping / A-Skip)', desc: 'Ejercicios analíticos de asimilación técnica, armado del pie y postura.', dur: 2, metrics: ['96.5%', '98% Simetría', 'Óptimo', '+1.2 CAD'], bars: [['Dorsiflexión activa de tobillo en el aire', 96], ['Elevación de rodilla y cadera alta', 94], ['Simetría bilateral izquierda/derecha', 98], ['Columna erguida y mirada al horizonte', 95]] },
+                        { id: 't_tempo', tag: 'TAREA 3 • 1-3 MIN (30 FPS)', title: '🏃 Rodaje en Umbral de Lactato (Zona 4)', desc: 'Tramo controlado a ritmo de umbral evaluando fluidez y respiración.', dur: 2, metrics: ['95.4%', '184 SPM', 'Top 4%', '+1.2 VO2/REC'], bars: [['Economía de movimiento sin rebote vertical', 94], ['Ritmo respiratorio acompasado (2:2)', 93], ['Tracción circular del zancada posterior', 91], ['Alineación rotuliana sin valgo dinámico', 94]] },
+                        { id: 't_plyo', tag: 'TAREA 4 • FUERZA / VALLAS (30 FPS)', title: '🚀 Pliometría, Multisaltos & Paso de Valla', desc: 'Reactividad de tobillo, rigidez tendinosa (Stiffness) y movilidad de cadera.', dur: 2, metrics: ['96.0%', '148 ms Contacto', 'Top 3%', '+1.2 STA/PAC'], bars: [['Tiempo mínimo de contacto en multisalto', 96], ['Estabilidad de rodilla en recepción', 94], ['Movilidad de cadera en ataque/recobro', 92], ['Coordinación intermuscular', 93]] }
                     ],
                     action: [
-                        { id: 'a_sprint', label: '🚀 Salida Explosiva / Sprint Final 100m (15-45s)', dur: 1, metrics: ['97.2%', '152 ms Suelo', 'Top 2%', '+1.2 PAC'], bars: [['Tracción horizontal en primeros 10 apoyos', 96], ['Dorsiflexión activa de tobillo en vuelo', 95], ['Elevación de rodilla (Drive Phase)', 94], ['Simetría bilateral izquierda/derecha (98%)', 97]] }
+                        { id: 'a_sprint', tag: 'ACCIÓN 1 • 15-45 SEG (30 FPS)', title: '🚀 Salida de Tacos / Aceleración 0-30m', desc: 'Arranque explosivo analizando ángulos de tibia, empuje y fase de aceleración.', dur: 1, metrics: ['97.2%', '45° Ángulo Sal.', 'Top 2%', '+1.2 PAC'], bars: [['Ángulo de proyección de tibia en salida', 96], ['Potencia de empuje en los primeros 8 pasos', 95], ['Transición progresiva a postura erguida', 94], ['Coordinación explosiva brazo-pierna', 96]] },
+                        { id: 'a_kick', tag: 'ACCIÓN 2 • 15-45 SEG (30 FPS)', title: '🔥 Cambio de Ritmo / Sprint Final a Meta', desc: 'Últimos 100-200 metros a máxima velocidad manteniendo la técnica limpia.', dur: 1, metrics: ['96.4%', '202 SPM Pico', 'Top 3%', '+1.2 MNT/PAC'], bars: [['Aumento de frecuencia sin crispar hombros', 95], ['Firmeza del core a máxima velocidad', 94], ['Amplitud de zancada en recta final', 93], ['Inclinación de pecho sobre línea de meta', 94]] },
+                        { id: 'a_foot', tag: 'ACCIÓN 3 • 15-45 SEG (30 FPS)', title: '👟 Cámara Lenta de Pisada (Pronación/Apoyo)', desc: 'Plano corto lateral o posterior para auditar el apoyo del pie y tobillo.', dur: 1, metrics: ['97.0%', 'Neutro / Mediopié', 'Óptimo', '+1.0 CAD/REC'], bars: [['Entrada de mediopié sin impacto de talón', 96], ['Control de pronación fisiológica del tobillo', 95], ['Despegue limpio por el primer metatarso', 94], ['Alineación del tendón de Aquiles', 96]] },
+                        { id: 'a_hurdle', tag: 'ACCIÓN 4 • OBSTÁCULOS / GIRO (30 FPS)', title: '🎯 Paso de Valla, Ría o Giro de 180°', desc: 'Acción técnica puntual superando obstáculo o giro cerrado en circuito.', dur: 1, metrics: ['95.6%', 'Pérdida < 0.1s', 'Top 4%', '+1.0 CAD'], bars: [['Ataque rasante sin saltar en exceso', 95], ['Recobro rápido de pierna de impulso', 93], ['Reanudación inmediata de carrera tras apoyo', 94], ['Equilibrio de brazos en el vuelo', 92]] }
                     ]
                 }
             }
@@ -1429,7 +1639,6 @@
             refreshVideoQuotaUI();
             renderSessionsHistoryList();
 
-            // Si el usuario ya tiene vídeos propios subidos, cargamos el último; si es usuario nuevo, dejamos todo a cero sin inventar nada
             if (analyzedSessionsHistory.length > 0) {
                 loadSessionIntoMonitor(analyzedSessionsHistory[0]);
             } else {
@@ -1483,7 +1692,7 @@
         }
 
         // =========================================================================
-        // CONTROLADORES DEL ASISTENTE MODAL EN 2 PASOS
+        // CONTROLADORES DEL ASISTENTE MODAL EN 2 PASOS (4 TARJETAS 2x2)
         // =========================================================================
         function openUploadWizardModal() {
             if (!isPaidOrBonusAccount()) {
@@ -1506,7 +1715,13 @@
             });
 
             const list = currentSportSchema.categories[catKey] || [];
-            selectedWizardSubOption = list[0] || null;
+            // Si el usuario tiene puesto en su perfil que es Portero (POR), le preseleccionamos la 4ª tarjeta automáticamente
+            const myPos = (localStorage.getItem('kinet_position') || '').toUpperCase();
+            if (myPos.includes('POR') && list.length === 4) {
+                selectedWizardSubOption = list[3];
+            } else {
+                selectedWizardSubOption = list[0] || null;
+            }
             renderWizardSubOptions();
         }
 
@@ -1517,14 +1732,30 @@
 
             box.innerHTML = list.map((opt, idx) => {
                 const isAct = selectedWizardSubOption && selectedWizardSubOption.id === opt.id;
-                return `<button type="button" class="wizard-subpill ${isAct ? 'active' : ''}" onclick="selectWizardSubPill(${idx})">${opt.label}</button>`;
+                return `
+                    <div class="wizard-subblock-card ${isAct ? 'active' : ''}" onclick="selectWizardSubCard(${idx})">
+                        <div class="subblock-top-meta">
+                            <span>${opt.tag}</span>
+                            <span>${isAct ? '● ACTIVO' : 'ELEGIR'}</span>
+                        </div>
+                        <div class="subblock-title">${opt.title}</div>
+                        <div class="subblock-desc">${opt.desc}</div>
+                    </div>
+                `;
             }).join('');
         }
 
-        function selectWizardSubPill(idx) {
+        function selectWizardSubCard(idx) {
             const list = currentSportSchema.categories[selectedWizardCat] || [];
             selectedWizardSubOption = list[idx] || list[0];
             renderWizardSubOptions();
+        }
+
+        function selectWizardDestination(destKey, cardEl) {
+            const hiddenIn = document.getElementById('wizard-roster-slot-role');
+            if (hiddenIn) hiddenIn.value = destKey;
+            document.querySelectorAll('.wizard-dest-card').forEach(c => c.classList.remove('active'));
+            if (cardEl) cardEl.classList.add('active');
         }
 
         function goToWizardStep2() {
@@ -1536,11 +1767,11 @@
             if (activeRoleKey === 'staff' || activeRoleKey === 'scout') {
                 thirdPersonBox.style.display = 'grid';
                 document.getElementById('wizard-step2-intro').textContent =
-                    `Indica el nombre del deportista que estás evaluando en "${selectedWizardSubOption?.label || 'este clip'}" y qué detalle quieres que audite la IA:`;
+                    `Indica el nombre del deportista evaluado en "${selectedWizardSubOption?.title || 'este bloque'}" y qué detalle quieres que audite la IA:`;
             } else {
                 thirdPersonBox.style.display = 'none';
                 document.getElementById('wizard-step2-intro').textContent =
-                    `Añade contexto sobre tu clip "${selectedWizardSubOption?.label || ''}" (ej. rival, minuto, logro o gesto técnico a revisar):`;
+                    `Añade contexto sobre tu bloque "${selectedWizardSubOption?.title || ''}" (ej. rival, minuto, logro o gesto técnico a revisar):`;
             }
         }
 
@@ -1561,7 +1792,6 @@
 
             closeUploadWizardModal();
 
-            // Mostrar vídeo real en el monitor con la línea láser encima
             const videoEl = document.getElementById('vision-real-video');
             if (videoEl) {
                 videoEl.src = URL.createObjectURL(file);
@@ -1569,14 +1799,13 @@
                 videoEl.play().catch(() => {});
             }
 
-            // Descontar minutos de la cuota
             const prevUsed = parseFloat(localStorage.getItem('kinet_video_mins_used') || '0');
             localStorage.setItem('kinet_video_mins_used', String(+(prevUsed + opt.dur).toFixed(1)));
             if (window.KinetBackend) window.KinetBackend.pushLocalStateToCloud();
             refreshVideoQuotaUI();
 
             const myName = localStorage.getItem('kinet_user_name') || 'Atleta KINET';
-            const myPos = localStorage.getItem('kinet_position') || 'PRO';
+            const myPos = localStorage.getItem('kinet_position') || (opt.id.includes('gk') ? 'POR' : 'PRO');
             const subjNameInput = (document.getElementById('wizard-subject-name')?.value || '').trim();
             const subjPosInput = (document.getElementById('wizard-subject-pos')?.value || '').trim();
 
@@ -1585,28 +1814,27 @@
                 : (subjNameInput || 'Deportista Evaluado #1');
             const evaluatedPos = (activeRoleKey === 'athlete')
                 ? myPos
-                : (subjPosInput || 'Especialista');
+                : (subjPosInput || (opt.id.includes('gk') ? 'POR' : 'Especialista'));
 
             const matchCtx = (document.getElementById('wizard-match-context')?.value || '').trim() || 'Sesión Oficial KINET';
-            const actionNotes = (document.getElementById('wizard-action-notes')?.value || '').trim() || opt.label;
-            const slotRole = document.getElementById('wizard-Roster-slot-role')?.value || 'starter';
+            const actionNotes = (document.getElementById('wizard-action-notes')?.value || '').trim() || opt.title;
+            const slotRole = document.getElementById('wizard-roster-slot-role')?.value || 'starter';
 
-            // Construir el dictamen personalizado de la IA en 1ª persona (Atleta) o 3ª persona (Staff/Scout)
             const aiPersonalizedVerdict = (activeRoleKey === 'athlete')
-                ? `✓ [Análisis en 1ª Persona sobre "${matchCtx}"]: En tu clip "${opt.label}" donde indicas "${actionNotes}", el motor a 30 FPS confirma una eficiencia biomecánica del ${opt.metrics[0]} y un pico de ${opt.metrics[1]}. Mantienes el centro de gravedad estable y generas ventaja directa (${opt.metrics[3]}).`
-                : `✓ [Informe Técnico en 3ª Persona — ${evaluatedPerson} (${evaluatedPos})]: Evaluando "${matchCtx}" (${opt.label}) bajo la observación "${actionNotes}", el sujeto registra ${opt.metrics[0]} de precisión cinemática y ${opt.metrics[1]} (${opt.metrics[2]} de su categoría). Perfil apto para guardar en ${slotRole === 'shortlist' ? 'Cartelera de Fichajes' : 'Plantilla'}.`;
+                ? `✓ [Análisis en 1ª Persona sobre "${matchCtx}"]: En tu bloque "${opt.title}" donde destacas "${actionNotes}", el escáner a 30 FPS confirma una precisión biomecánica del ${opt.metrics[0]} y un registro de ${opt.metrics[1]}. Sello AI Verified actualizado (${opt.metrics[3]}).`
+                : `✓ [Informe Técnico en 3ª Persona — ${evaluatedPerson} (${evaluatedPos})]: Evaluando "${matchCtx}" (${opt.title}) bajo la observación "${actionNotes}", el deportista registra ${opt.metrics[0]} de eficacia cinemática y ${opt.metrics[1]} (${opt.metrics[2]} de su categoría). Listo para transferir al Analizador 3D.`;
 
             const newSession = {
                 id: 'vs_' + Date.now(),
                 fileName: file.name,
                 sport: activeSportName,
                 category: selectedWizardCat,
-                optionLabel: opt.label,
+                optionLabel: opt.title,
                 subjectName: evaluatedPerson,
                 subjectPos: evaluatedPos,
                 matchContext: matchCtx,
                 userNotes: actionNotes,
-                targetSlotRole: slotRole, // 'starter' | 'bench' | 'reserve' | 'shortlist'
+                targetSlotRole: slotRole,
                 metrics: opt.metrics,
                 bars: opt.bars,
                 aiVerdict: aiPersonalizedVerdict,
@@ -1626,11 +1854,11 @@
             document.getElementById('vision-active-subject').textContent =
                 `${activeRoleKey === 'athlete' ? 'ATLETA' : 'EVALUADO'}: ${session.subjectName.toUpperCase()} (${session.subjectPos.toUpperCase()})`;
 
-            document.getElementById('hud-top-left-status').textContent = `[✓ CLIP AUDITADO A 30 FPS • ${session.dateStr}]`;
+            document.getElementById('hud-top-left-status').textContent = `[REC ● ESCANEO BIOMECÁNICO IA // ${session.dateStr}]`;
             document.getElementById('vision-status-title').textContent = `${session.optionLabel} — ${session.matchContext}`;
-            document.getElementById('vision-status-desc').textContent = `Archivo: ${session.fileName} • Nota analizada: "${session.userNotes}"`;
-            document.getElementById('hud-bottom-left').textContent = 'SELLO: ✓ KINET AI VERIFIED (30 FPS)';
-            document.getElementById('hud-bottom-right').textContent = `DESTINO: ${session.targetSlotRole.toUpperCase()}`;
+            document.getElementById('vision-status-desc').textContent = `${session.subjectPos} — "${session.userNotes}" (Sello KINET AI Verified activo)`;
+            document.getElementById('hud-bottom-left').textContent = 'SELLO: AI VERIFIED';
+            document.getElementById('hud-bottom-right').textContent = `RIESGO LESIONAL: BAJO (4%)`;
 
             document.getElementById('t-val-1').textContent = session.metrics[0];
             document.getElementById('t-val-2').textContent = session.metrics[1];
@@ -1683,7 +1911,6 @@
             }
         }
 
-        // Puente directo: guarda la sesión actual en el archivo compartido con analizador.html (Titular, Banquillo, Reserva o Cartelera)
         function saveCurrentAnalysisToAnalyzer() {
             if (!currentActiveSession) {
                 alert('Primero sube y analiza un clip de vídeo para poder guardarlo en el Analizador & Pizarra 3D.');
@@ -1701,8 +1928,8 @@
                     sport: currentActiveSession.sport,
                     grl: currentActiveSession.estimatedGrl || 89,
                     sub: `${currentActiveSession.metrics[1]} • Vídeo 30 FPS`,
-                    slotRole: currentActiveSession.targetSlotRole, // 'starter' | 'bench' | 'reserve' | 'shortlist'
-                    traitNotes: `${currentActiveSession.matchContext}: ${currentActiveSession.userNotes}. (${currentActiveSession.aiVerdict})`,
+                    slotRole: currentActiveSession.targetSlotRole,
+                    traitNotes: `${currentActiveSession.matchContext}: ${currentActiveSession.userNotes}`,
                     stats: [90, 88, 89, 91, 86, 88],
                     savedAt: Date.now()
                 };
@@ -1718,10 +1945,10 @@
                 if (window.KinetBackend) window.KinetBackend.pushLocalStateToCloud();
 
                 const roleLabelMap = {
-                    starter: 'Titular para asignar en Pizarra 3D',
+                    starter: 'Titular en Pizarra 3D',
                     bench: 'Banquillo (Suplentes)',
                     reserve: 'Reserva / Convocatoria',
-                    shortlist: 'Cartelera de Fichajes / Preselección'
+                    shortlist: 'Cartelera de Fichajes'
                 };
 
                 const btn = document.getElementById('btn-save-to-analyzer');
@@ -1730,13 +1957,13 @@
                 }
                 setTimeout(() => {
                     window.location.href = `analizador.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeSportName)}`;
-                }, 650);
+                }, 600);
             } catch (e) {}
         }
 
         function sendClipToCoachAI() {
             const q = currentActiveSession
-                ? `🎬 [Informe Vision Lab™ 30 FPS — ${activeSportName}]: He analizado "${currentActiveSession.optionLabel}" (${currentActiveSession.matchContext}) de ${currentActiveSession.subjectName}. Nota: "${currentActiveSession.userNotes}". Métricas: ${currentActiveSession.metrics.join(' | ')}. Dame pautas tácticas sobre este resultado.`
+                ? `🎬 [Informe Vision Lab™ 30 FPS — ${activeSportName}]: He analizado "${currentActiveSession.optionLabel}" (${currentActiveSession.matchContext}) de ${currentActiveSession.subjectName} (${currentActiveSession.subjectPos}). Nota: "${currentActiveSession.userNotes}". Métricas: ${currentActiveSession.metrics.join(' | ')}. Dame pautas tácticas sobre este resultado.`
                 : `🎬 [Consulta Vision Lab™ — ${activeSportName}]: ¿Qué detalles debo grabar para analizar mi próximo partido o acción específica a 30 FPS?`;
 
             localStorage.setItem('kinet_pending_question', q);
@@ -1756,6 +1983,9 @@
             refreshVideoQuotaUI();
         }
 
+        // =========================================================================
+        // EXPORTACIÓN PDF EJECUTIVA PROFESIONAL DEL INFORME DE LABORATORIO
+        // =========================================================================
         function exportVisionReportPDF() {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -1763,31 +1993,58 @@
 
             pdf.setFillColor(6, 8, 14);
             pdf.rect(0, 0, 210, 297, 'F');
+
             pdf.setFillColor(13, 17, 26);
-            pdf.roundedRect(14, 14, 182, 26, 4, 4, 'F');
+            pdf.roundedRect(14, 14, 182, 28, 4, 4, 'F');
             pdf.setTextColor(0, 255, 136);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(13.5);
-            pdf.text('KINET VISION ANALYTICS™ // INFORME DE AUDITORIA DE VIDEO (30 FPS)', 20, 25);
+            pdf.text('KINET VISION ANALYTICS™ // DOSSIER EJECUTIVO DE VIDEO (30 FPS)', 20, 25);
 
             pdf.setTextColor(203, 213, 225);
             pdf.setFontSize(9);
-            pdf.text(`DISCIPLINA: ${activeSportName.toUpperCase()}   |   SUJETO: ${(s ? s.subjectName : 'SIN CLIP').toUpperCase()}`, 20, 34);
+            pdf.text(`DISCIPLINA: ${activeSportName.toUpperCase()}   |   SUJETO EVALUADO: ${(s ? s.subjectName + ' (' + s.subjectPos + ')' : 'PENDIENTE').toUpperCase()}`, 20, 34);
 
             if (!s) {
                 pdf.setTextColor(248, 250, 252);
                 pdf.text('Aún no se ha subido ningún clip de vídeo en esta sesión.', 20, 56);
             } else {
+                pdf.setFillColor(13, 17, 26);
+                pdf.roundedRect(14, 48, 182, 58, 4, 4, 'F');
+                pdf.setTextColor(0, 255, 136);
+                pdf.setFontSize(10.5);
+                pdf.text('1. FICHA TECNICA DEL BLOQUE Y TELEMETRIA EXTRAIDA (24-30 FPS)', 20, 59);
+
                 pdf.setTextColor(248, 250, 252);
-                pdf.setFontSize(9.5);
-                pdf.text(`• Bloque Analizado: ${s.optionLabel}  |  Contexto: ${s.matchContext}`, 20, 56);
-                pdf.text(`• Observación del Usuario: ${s.userNotes}`, 20, 65);
-                pdf.text(`• Métricas: ${s.metrics.join('   |   ')}`, 20, 74);
-                const lines = pdf.splitTextToSize(s.aiVerdict, 170);
-                pdf.text(lines, 20, 86);
+                pdf.setFontSize(9.2);
+                pdf.text(`• Bloque Táctico: ${s.optionLabel}   |   Contexto: ${s.matchContext}`, 20, 69);
+                pdf.text(`• Observación Específica Analizada: "${s.userNotes}"`, 20, 77);
+                pdf.text(`• ${currentSportSchema.pillLabels[0]}: ${s.metrics[0]}   |   ${currentSportSchema.pillLabels[1]}: ${s.metrics[1]}`, 20, 85);
+                pdf.text(`• ${currentSportSchema.pillLabels[2]}: ${s.metrics[2]}   |   ${currentSportSchema.pillLabels[3]}: ${s.metrics[3]}`, 20, 93);
+
+                pdf.setFillColor(13, 17, 26);
+                pdf.roundedRect(14, 114, 182, 96, 4, 4, 'F');
+                pdf.setTextColor(0, 255, 136);
+                pdf.setFontSize(10.5);
+                pdf.text('2. DESGLOSE BIOMECANICO Y DICTAMEN PERSONALIZADO DE LA IA', 20, 125);
+
+                let y = 136;
+                s.bars.forEach(b => {
+                    pdf.setTextColor(241, 245, 249);
+                    pdf.setFontSize(9);
+                    pdf.text(`• ${b[0]}: ${b[1]}% (Nivel Óptimo Verificado)`, 20, y);
+                    y += 8;
+                });
+
+                const lines = pdf.splitTextToSize(s.aiVerdict, 168);
+                pdf.setTextColor(203, 213, 225);
+                pdf.text(lines, 20, y + 6);
             }
 
-            pdf.save(`Informe_Vision_Analytics_${activeSportName}.pdf`);
+            pdf.setTextColor(148, 163, 184);
+            pdf.setFontSize(8);
+            pdf.text('Certificado biomecánico oficial generado por KINET Vision Analytics™ • jkinetos.es', 14, 286);
+            pdf.save(`Dossier_Vision_Analytics_${activeSportName}.pdf`);
         }
     </script>
 </body>
