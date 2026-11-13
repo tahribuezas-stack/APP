@@ -7,16 +7,19 @@
     <title>KINET OS // KINET Media Studio™ & Spotify Sync</title>
     
     <!-- Favicon Corporativo Dinámico por JavaScript -->
-    <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%233B82F6%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
+    <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
 
     <!-- Tipografías Oficiales -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     
-    <!-- Librerías Oficiales para Descarga Real en PDF / Alta Resolución -->
+    <!-- Librerías Oficiales para Descarga Real en PDF / Alta Resolución + Supabase + KINET Backend + APIs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="kinet-backend.js"></script>
+    <script src="kinet-api-config.js"></script>
 
     <style>
         :root {
@@ -58,6 +61,13 @@
             margin: 0;
             padding: 0;
             -webkit-tap-highlight-color: transparent;
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+        *::-webkit-scrollbar {
+            width: 0px !important;
+            height: 0px !important;
+            display: none !important;
         }
 
         html, body {
@@ -74,7 +84,6 @@
             transition: background-image 0.4s ease;
         }
 
-        /* LAYOUT PRINCIPAL A PANTALLA COMPLETA */
         .os-layout {
             display: grid;
             grid-template-columns: 270px 1fr;
@@ -95,7 +104,7 @@
             .os-workspace { overflow: visible !important; height: auto !important; padding: 14px 14px 40px 14px !important; justify-content: flex-start !important; }
         }
 
-        /* SIDEBAR FIJO ESTRICTO (ESCRITORIO) */
+        /* SIDEBAR FIJO CON NAVEGACIÓN CENTRADA Y BOTONES DE 44PX IDÉNTICOS */
         .os-sidebar {
             background: rgba(8, 11, 18, 0.95);
             backdrop-filter: blur(24px);
@@ -120,6 +129,7 @@
             border-radius: 14px;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             margin-bottom: 6px;
+            flex-shrink: 0;
         }
 
         .brand-box:hover {
@@ -163,8 +173,28 @@
             transition: color 0.4s ease;
         }
 
-        .sidebar-top-section { display: flex; flex-direction: column; }
-        .sidebar-bottom-section { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border-subtle); }
+        .sidebar-top-section {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            flex: 1 1 auto;
+            gap: 8px;
+            padding: 8px 0;
+        }
+        .sidebar-bottom-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-subtle);
+            flex-shrink: 0;
+        }
 
         .side-link {
             display: flex;
@@ -178,7 +208,11 @@
             font-family: 'Inter', sans-serif;
             font-size: 0.83rem;
             font-weight: 600;
-            height: 44px; 
+            height: 44px;
+            min-height: 44px;
+            max-height: 44px;
+            width: 100%;
+            flex-shrink: 0;
             cursor: pointer;
             text-decoration: none;
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -284,7 +318,6 @@
             text-transform: uppercase;
         }
 
-        /* WORKSPACE PERFECTAMENTE CENTRADO VERTICALMENTE Y SIN HUECOS DESCOLOCADOS */
         .os-workspace {
             max-width: 1280px;
             width: 100%;
@@ -348,9 +381,6 @@
             gap: 6px;
         }
 
-        /* =========================================================================
-           BARRA UNIFICADA DE COMANDO KINET (SELECTOR MODO + PRESETS COMPACTOS + CUOTA)
-           ========================================================================= */
         .kinet-command-deck {
             background: rgba(13, 17, 26, 0.94);
             border: 1px solid var(--border-subtle);
@@ -396,7 +426,6 @@
             box-shadow: 0 0 14px var(--role-glow);
         }
 
-        /* PÍLDORAS DE PRESETS COMPACTAS Y PROFESIONALES (EN LUGAR DE CAJAS GIGANTES) */
         .preset-pills-strip {
             display: flex;
             align-items: center;
@@ -424,7 +453,6 @@
             box-shadow: 0 0 12px rgba(var(--role-rgb), 0.16);
         }
 
-        /* GRID PRINCIPAL DEL ESTUDIO */
         .bento-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; align-items: stretch; }
         .col-8 { grid-column: span 8; }
         .col-4 { grid-column: span 4; }
@@ -467,7 +495,6 @@
         .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px; flex-wrap: wrap; }
         .panel-label { font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; color: var(--text-secondary); letter-spacing: 0.14em; text-transform: uppercase; }
 
-        /* ZONA DE CARGA TÉCNICA KINET */
         .dropzone-box {
             background: rgba(255, 255, 255, 0.018);
             border: 1px dashed rgba(var(--role-rgb), 0.42);
@@ -488,7 +515,6 @@
             box-shadow: inset 0 0 20px rgba(var(--role-rgb), 0.08);
         }
 
-        /* MONITOR DE BROADCAST & TELEMETRÍA KINET (EXPORTABLE A PDF) */
         .preview-simulation-panel {
             background: radial-gradient(circle at 50% 25%, rgba(var(--role-rgb), 0.16), rgba(4, 6, 10, 0.96));
             border: 1px solid rgba(var(--role-rgb), 0.36);
@@ -534,6 +560,7 @@
             padding: 20px 16px 46px 16px;
             background-size: cover;
             background-position: center;
+            overflow: hidden;
         }
 
         .hud-corner-metrics {
@@ -547,6 +574,7 @@
             font-size: 0.58rem;
             color: rgba(255, 255, 255, 0.6);
             pointer-events: none;
+            z-index: 2;
         }
 
         .verified-watermark {
@@ -569,9 +597,9 @@
             text-transform: uppercase;
             letter-spacing: 0.08em;
             flex-wrap: wrap;
+            z-index: 2;
         }
 
-        /* BARRA TÉCNICA DE OVERLAY Y TELEMETRÍA (MÁS PROFESIONAL Y ESTILO KINET) */
         .floating-command-bar {
             background: rgba(4, 6, 10, 0.85);
             border: 1px solid rgba(255, 255, 255, 0.12);
@@ -714,7 +742,7 @@
 
     <div class="os-layout">
         
-        <!-- SIDEBAR FIJO -->
+        <!-- SIDEBAR FIJO CON OPCIONES CENTRADAS A 44PX + ANALIZADOR 3D -->
         <aside class="os-sidebar">
             <div class="sidebar-top-section">
                 <a href="app.html" id="brand-logo-desktop" class="brand-box">
@@ -726,25 +754,29 @@
                 </a>
 
                 <nav class="sidebar-nav">
-                    <a href="app.html" id="nav-vestuario" class="side-link" style="margin-bottom: 8px;">
+                    <a href="app.html" id="nav-vestuario" class="side-link">
                         <span class="side-link-left"><span>⚡</span> <span>Vestuario</span></span>
                         <span style="font-size:0.65rem;font-family:'JetBrains Mono';">HOY</span>
                     </a>
-                    <a href="cuerpo-tecnico.html" id="nav-cuerpo-tecnico" class="side-link" style="margin-bottom: 8px;">
+                    <a href="cuerpo-tecnico.html" id="nav-cuerpo-tecnico" class="side-link">
                         <span class="side-link-left"><span>🧠</span> <span>Cuerpo Técnico IA</span></span>
                         <span style="font-size:0.7rem;opacity:0.5;">→</span>
                     </a>
-                    <a href="ficha-pro.html" id="nav-ficha-pro" class="side-link" style="margin-bottom: 8px;">
+                    <a href="ficha-pro.html" id="nav-ficha-pro" class="side-link">
                         <span class="side-link-left"><span>🎴</span> <span>Ficha & KINET Card</span></span>
                         <span style="font-size:0.7rem;opacity:0.5;">→</span>
                     </a>
-                    <a href="ojeador-live.html" id="nav-ojeador-live" class="side-link" style="margin-bottom: 8px;">
-                        <span class="side-link-left"><span>📡</span> <span>Ojeador & Laboratorio</span></span>
+                    <a href="ojeador-live.html" id="nav-ojeador-live" class="side-link">
+                        <span class="side-link-left"><span>🎬</span> <span>Laboratorio Vídeo</span></span>
                         <span style="font-size:0.7rem;opacity:0.5;">→</span>
                     </a>
-                    <a href="comunidad.html" id="nav-comunidad" class="side-link" style="margin-bottom: 8px;">
-                        <span class="side-link-left"><span>🌐</span> <span>Comunidad / Red Social</span></span>
+                    <a href="analizador.html" id="nav-analizador" class="side-link">
+                        <span class="side-link-left"><span>🏟️</span> <span>Analizador & Pizarra 3D</span></span>
                         <span style="font-size:0.7rem;opacity:0.5;">→</span>
+                    </a>
+                    <a href="comunidad.html" id="nav-comunidad" class="side-link">
+                        <span class="side-link-left"><span>🌐</span> <span>Comunidad / Red Social</span></span>
+                        <span class="kinet-notif-exclaim read-empty" id="sidebar-comunidad-notif"></span>
                     </a>
                     <a href="media-studio.html" id="nav-media-studio" class="side-link active">
                         <span class="side-link-left"><span>🎵</span> <span>KINET Media Studio™</span></span>
@@ -757,10 +789,10 @@
             <div class="sidebar-bottom-section">
                 <div class="sidebar-ai-tip-box" id="sidebar-dynamic-tip">
                     <div class="sidebar-ai-tip-header">
-                        <span>💡</span> <span id="tip-title">Directiva: Broadcast Suite</span>
+                        <span>💡</span> <span id="tip-title">Broadcast Suite // 30 FPS</span>
                     </div>
                     <div class="sidebar-ai-tip-text" id="tip-content">
-                        Selecciona Modo Vídeo o Imagen y aplica overlays de telemetría con sincronización Spotify.
+                        Selecciona Modo Vídeo (30 FPS) o Imagen y aplica overlays de telemetría con sincronización Spotify.
                     </div>
                 </div>
 
@@ -794,7 +826,7 @@
                 </a>
 
                 <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-secondary);display:flex;align-items:center;gap:10px;">
-                    <span>KINET MEDIA STUDIO™ // BROADCAST SUITE</span>
+                    <span>KINET MEDIA STUDIO™ // BROADCAST SUITE (24-30 FPS)</span>
                     <span style="color:var(--role-color);font-weight:700;" id="topbar-sport-tag">● FÚTBOL</span>
                 </div>
 
@@ -824,14 +856,12 @@
                     </div>
                 </div>
 
-                <!-- =========================================================================
-                     BARRA DE COMANDO UNIFICADA KINET: MODO (VÍDEO/IMAGEN) + PRESETS COMPACTOS + CUOTA
-                     ========================================================================= -->
+                <!-- BARRA DE COMANDO UNIFICADA KINET: MODO (VÍDEO/IMAGEN) + PRESETS COMPACTOS + CUOTA -->
                 <div class="kinet-command-deck">
                     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                         <div class="media-toggle-pills">
                             <button class="media-mode-btn" id="btn-mode-video" onclick="selectStudioFormatMode('video')">
-                                <span>🎬</span> <span id="lbl-mode-video">Modo Vídeo (HD/4K)</span>
+                                <span>🎬</span> <span id="lbl-mode-video">Modo Vídeo (30 FPS)</span>
                             </button>
                             <button class="media-mode-btn active" id="btn-mode-image" onclick="selectStudioFormatMode('image')">
                                 <span>🖼️</span> <span>Modo Imagen (Póster)</span>
@@ -844,12 +874,12 @@
                             <button class="preset-pill-btn" onclick="applyTemplate('Biometric Beat', 'BIOMETRIC BEAT // SPOTIFY SYNC 128 BPM', this)">🎵 Biometric Beat</button>
                             <button class="preset-pill-btn" onclick="applyTemplate('Hologram Card', 'HOLOGRAM CARD // KINET 92 GRL', this)">🎴 Hologram Card</button>
                             <button class="preset-pill-btn" onclick="applyTemplate('Scout Telemetry', 'SCOUT REPORT // PERCENTIL TOP 3%', this)">📡 Scout Graphic</button>
-                            <button class="preset-pill-btn" onclick="applyTemplate('Post-Match Breakdown', 'STATS BREAKDOWN // INFORME 120 FPS', this)">📊 Post-Match</button>
+                            <button class="preset-pill-btn" onclick="applyTemplate('Post-Match Breakdown', 'STATS BREAKDOWN // INFORME 30 FPS', this)">📊 Post-Match</button>
                         </div>
                     </div>
 
                     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                        <span style="font-family:'JetBrains Mono';font-size:0.64rem;color:#CBD5E1;" id="video-minutes-counter">Cuota: 60 min disp.</span>
+                        <span style="font-family:'JetBrains Mono';font-size:0.64rem;color:#CBD5E1;" id="video-minutes-counter">Cuota: 90 min disp.</span>
                         <button class="btn-secondary" style="padding:5px 10px;font-size:0.6rem;" onclick="openPayAsYouGoModal()">➕ Bono Extra</button>
                     </div>
                 </div>
@@ -878,7 +908,7 @@
                                     <span class="btn-secondary" style="padding:6px 12px;font-size:0.64rem;">📂 Examinar Archivo</span>
                                 </div>
 
-                                <!-- LIENZO DE PRODUCCIÓN KINET (EXPORTABLE A PDF WYSIWYG) -->
+                                <!-- LIENZO DE PRODUCCIÓN KINET -->
                                 <div class="preview-simulation-panel" id="studio-exportable-canvas">
                                     <div class="spotify-player-bar">
                                         <div style="display:flex; align-items:center; gap:8px;">
@@ -892,14 +922,14 @@
 
                                     <div class="studio-canvas-viewport" id="canvas-preview-box">
                                         <div class="hud-corner-metrics">
-                                            <span id="hud-top-left-tag">KINET BROADCAST // 120 FPS HUD</span>
+                                            <span id="hud-top-left-tag">KINET BROADCAST // 30 FPS HUD</span>
                                             <span id="hud-top-right-tag">SYNC: LOCKED</span>
                                         </div>
 
-                                        <div style="font-family:'Orbitron';font-size:0.96rem;font-weight:900;color:white;text-align:center;letter-spacing:0.04em;margin-bottom:5px;" id="canvas-main-headline">
+                                        <div style="font-family:'Orbitron';font-size:0.96rem;font-weight:900;color:white;text-align:center;letter-spacing:0.04em;margin-bottom:5px;z-index:2;" id="canvas-main-headline">
                                             MATCH DAY // TELEMETRÍA OFICIAL
                                         </div>
-                                        <span style="font-size: 0.72rem; color: #CBD5E1; font-family:'JetBrains Mono'; text-align:center; padding:0 12px;" id="canvas-sub-status">
+                                        <span style="font-size: 0.72rem; color: #CBD5E1; font-family:'JetBrains Mono'; text-align:center; padding:0 12px; z-index:2;" id="canvas-sub-status">
                                             [ Señal Activa: Capa de telemetría deportiva sincronizada con marcadores de tiempo ]
                                         </span>
                                         
@@ -911,7 +941,7 @@
                                 </div>
                             </div>
 
-                            <!-- BARRA TÉCNICA DE PARÁMETROS HUD (ESTILO KINET PROFESIONAL) -->
+                            <!-- BARRA TÉCNICA DE PARÁMETROS HUD -->
                             <div class="floating-command-bar">
                                 <span style="color:var(--role-color); font-family:'JetBrains Mono'; font-size:0.68rem; font-weight:700;">HUD //</span>
                                 <input type="text" id="ai-prompt-input" placeholder="Añadir etiqueta de telemetría o ajuste visual (ej: PICO 34.2 KM/H • CONTRASTE ALTO)..." onkeydown="if(event.key==='Enter') generateAiEdit()">
@@ -926,7 +956,7 @@
                             <div>
                                 <div class="panel-head">
                                     <span class="panel-label">PARÁMETROS DE MASTERIZACIÓN</span>
-                                    <span style="font-family:'JetBrains Mono';font-size:0.64rem;color:var(--role-color);" id="quality-status-tag">4K 120FPS READY</span>
+                                    <span style="font-family:'JetBrains Mono';font-size:0.64rem;color:var(--role-color);" id="quality-status-tag">30 FPS READY</span>
                                 </div>
 
                                 <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:14px;">
@@ -944,7 +974,7 @@
                                         <label style="font-size:0.72rem; font-weight:700; color:#E2E8F0; display:block; margin-bottom:5px;">Capa de Certificación Biométrica</label>
                                         <select id="watermark-select" onchange="updateCanvasFromControls()" style="width:100%; font-size:0.76rem; background:#04060A; border:1px solid rgba(255,255,255,0.14); border-radius:9px; padding:8px 10px; color:white; outline:none;">
                                             <option value="✓ VERIFIED ATHLETE // KINET PERFORMANCE">VERIFIED ATHLETE (Holograma Rol)</option>
-                                            <option value="⚡ KINET TELEMETRY // 120 FPS VERIFIED">KINET TELEMETRY (120 FPS)</option>
+                                            <option value="⚡ KINET TELEMETRY // 30 FPS VERIFIED">KINET TELEMETRY (30 FPS)</option>
                                             <option value="📡 TACTICAL SCOUT BADGE // TOP 3% ÉLITE">TACTICAL SCOUT BADGE (Élite)</option>
                                         </select>
                                     </div>
@@ -952,16 +982,16 @@
                                     <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:12px; padding:10px 12px;">
                                         <label style="font-size:0.72rem; font-weight:700; color:#E2E8F0; display:block; margin-bottom:5px;">Relación de Aspecto & Salida</label>
                                         <select id="aspect-ratio-select" style="width:100%; font-size:0.76rem; background:#04060A; border:1px solid rgba(255,255,255,0.14); border-radius:9px; padding:8px 10px; color:white; outline:none;">
-                                            <option>Vertical Reels / TikTok (9:16 • 1080p/4K)</option>
+                                            <option>Vertical Shorts / TikTok (9:16 • 30 FPS HD)</option>
                                             <option>Póster Oficial Feed (4:5 • Alta Res)</option>
-                                            <option>Monitor Ojeador Widescreen (16:9 • 4K)</option>
+                                            <option>Monitor Ojeador Widescreen (16:9 • HD)</option>
                                         </select>
                                     </div>
                                 </div>
                             </div>
 
                             <div style="display:flex; flex-direction:column; gap:8px;">
-                                <button class="btn-primary" style="width:100%;" onclick="exportAndShareCreation()">🚀 Publicar / Exportar Pieza (1 Clic)</button>
+                                <button class="btn-primary" style="width:100%;" onclick="exportAndShareCreation()">🚀 Publicar en KINET Network™ (1 Clic)</button>
                                 <button class="btn-secondary" id="btn-download-studio-pdf" style="width:100%;" onclick="downloadStudioCreationPDF()">📥 Descargar Póster / Informe en PDF</button>
                                 <button class="btn-secondary" id="btn-unlock-video-pro" style="width:100%; border-color:rgba(var(--role-rgb),0.45); color:var(--role-color); display:none;" onclick="checkTierUpgradePrompt()">⚡ Desbloquear Modo Vídeo (PRO)</button>
                             </div>
@@ -978,11 +1008,11 @@
     <div id="upgrade-tier-modal" class="kinet-modal-overlay">
         <div class="kinet-modal-box">
             <div class="kinet-modal-header" style="color: var(--role-color);">
-                <span>🎬</span> <span>DESBLOQUEAR MODO VÍDEO HD/4K (PRO)</span>
+                <span>🎬</span> <span>DESBLOQUEAR MODO VÍDEO 30 FPS (PRO)</span>
             </div>
             <div class="kinet-modal-body">
                 Tu cuenta actual está en el <strong>Plan Gratuito</strong> (con Modo Imagen y Spotify Sync habilitados).<br><br>
-                Para activar el <strong>Modo Vídeo (Reels 120 FPS, recorte inteligente y telemetría en movimiento sin marca de agua)</strong>, pásate a <strong>KINET PRO</strong> o adquiere un <strong>Bono de Minutos de Vídeo (*Pay-As-You-Go*)</strong>.
+                Para activar el <strong>Modo Vídeo (KINET Shorts 9:16 a 24-30 FPS, cortes al ritmo de la música y telemetría sin marca de agua)</strong>, pásate a <strong>KINET PRO (8,99€/mes)</strong> o adquiere un <strong>Bono de Minutos de Vídeo (*Pay-As-You-Go*)</strong>.
             </div>
             <div class="kinet-modal-footer">
                 <button class="btn-secondary" onclick="document.getElementById('upgrade-tier-modal').classList.remove('open')">Seguir en Modo Imagen</button>
@@ -996,24 +1026,24 @@
     <div id="payg-bonus-modal" class="kinet-modal-overlay">
         <div class="kinet-modal-box">
             <div class="kinet-modal-header" style="color: var(--role-color);">
-                <span>⚡</span> <span>BONOS EXTRA DE VÍDEO & TELEMETRÍA</span>
+                <span>⚡</span> <span>BONOS EXTRA DE VÍDEO (24-30 FPS)</span>
             </div>
             <div class="kinet-modal-body">
-                Añade minutos adicionales de renderizado de vídeo HD/4K y análisis biomecánico sin cambiar de plan mensual:
+                Añade minutos adicionales de renderizado de vídeo y análisis biomecánico sin cambiar de plan mensual:
                 <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
                     <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle);border-radius:12px;padding:10px 12px;">
                         <div>
-                            <div style="font-weight:800;color:white;font-size:0.82rem;">🎬 Pack Sprint: +30 Minutos de Vídeo</div>
-                            <div style="font-size:0.68rem;color:var(--text-secondary);">Habilita Modo Vídeo HD + Telemetría 120 FPS</div>
+                            <div style="font-weight:800;color:white;font-size:0.82rem;">🎬 Bono Partido: +45 Minutos de Vídeo (30 FPS)</div>
+                            <div style="font-size:0.68rem;color:var(--text-secondary);">Habilita Modo Vídeo HD + KINET Shorts</div>
                         </div>
-                        <button class="btn-primary" style="padding:7px 12px;font-size:0.68rem;" onclick="purchaseVideoBonus(30)">4,99 €</button>
+                        <button class="btn-primary" style="padding:7px 12px;font-size:0.68rem;" onclick="purchaseVideoBonus(45)">4,99 €</button>
                     </div>
                     <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(var(--role-rgb),0.08);border:1px solid var(--role-color);border-radius:12px;padding:10px 12px;">
                         <div>
-                            <div style="font-weight:800;color:white;font-size:0.82rem;">🚀 Pack Pro Match: +100 Minutos Vídeo + 25 Análisis</div>
+                            <div style="font-weight:800;color:white;font-size:0.82rem;">🚀 Pack Temporada: +150 Minutos Vídeo + 40 Análisis</div>
                             <div style="font-size:0.68rem;color:#CBD5E1;">El más rentable • No caduca a fin de mes</div>
                         </div>
-                        <button class="btn-primary" style="padding:7px 12px;font-size:0.68rem;" onclick="purchaseVideoBonus(100)">11,99 €</button>
+                        <button class="btn-primary" style="padding:7px 12px;font-size:0.68rem;" onclick="purchaseVideoBonus(150)">9,99 €</button>
                     </div>
                 </div>
             </div>
@@ -1033,8 +1063,9 @@
             <a href="app.html" id="drawer-vestuario" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>⚡ Vestuario</span><span>HOY</span></a>
             <a href="cuerpo-tecnico.html" id="drawer-cuerpo-tecnico" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🧠 Cuerpo Técnico IA</span><span>→</span></a>
             <a href="ficha-pro.html" id="drawer-ficha-pro" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🎴 Ficha & KINET Card</span><span>→</span></a>
-            <a href="ojeador-live.html" id="drawer-ojeador-live" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>📡 Ojeador & Laboratorio</span><span>→</span></a>
-            <a href="comunidad.html" id="drawer-comunidad" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Comunidad / Red Social</span><span>→</span></a>
+            <a href="ojeador-live.html" id="drawer-ojeador-live" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🎬 Laboratorio Vídeo</span><span>→</span></a>
+            <a href="analizador.html" id="drawer-analizador" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🏟️ Analizador & Pizarra 3D</span><span>→</span></a>
+            <a href="comunidad.html" id="drawer-comunidad" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Comunidad / Red Social</span><span class="kinet-notif-exclaim read-empty" id="drawer-comunidad-notif"></span></a>
             <a href="media-studio.html" id="drawer-media-studio" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(var(--role-rgb),0.15);border:1px solid var(--role-color);color:var(--role-color);text-decoration:none;font-weight:600;"><span>🎵 KINET Media Studio™</span><span>●</span></a>
             <a href="perfil.html" id="drawer-perfil" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>👤 Mi Perfil</span><span>→</span></a>
             <a href="despacho.html" id="drawer-despacho" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>⚙️ Despacho & Ajustes</span><span>→</span></a>
@@ -1060,9 +1091,9 @@
             <span style="font-size:1rem;">🎵</span>
             <span>Studio</span>
         </a>
-        <a href="ficha-pro.html" id="mob-ficha-pro" class="m-nav-btn">
-            <span style="font-size:1rem;">🎴</span>
-            <span>Ficha</span>
+        <a href="analizador.html" id="mob-analizador" class="m-nav-btn">
+            <span style="font-size:1rem;">🏟️</span>
+            <span>Pizarra</span>
         </a>
         <button onclick="toggleMobileDrawer()" class="m-nav-btn">
             <span style="font-size:1rem;">☰</span>
@@ -1092,14 +1123,14 @@
         }
 
         function isPaidOrBonusAccount() {
-            const tier = localStorage.getItem('kinet_account_tier') || 'free';
+            const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
             const bonusMins = parseInt(localStorage.getItem('kinet_bonus_video_mins') || '0', 10);
-            return tier === 'pro' || tier === 'club' || bonusMins > 0;
+            return tier === 'pro' || tier === 'club' || localStorage.getItem('kinet_is_pro') === 'true' || bonusMins > 0;
         }
 
         function isStrictProOrClub() {
-            const tier = localStorage.getItem('kinet_account_tier') || 'free';
-            return tier === 'pro' || tier === 'club';
+            const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
+            return tier === 'pro' || tier === 'club' || localStorage.getItem('kinet_is_pro') === 'true';
         }
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -1136,8 +1167,9 @@
                 'brand-logo-desktop': 'app.html', 'brand-logo-mobile': 'app.html',
                 'nav-vestuario': 'app.html', 'drawer-vestuario': 'app.html', 'mob-vestuario': 'app.html',
                 'nav-cuerpo-tecnico': 'cuerpo-tecnico.html', 'drawer-cuerpo-tecnico': 'cuerpo-tecnico.html', 'mob-cuerpo-tecnico': 'cuerpo-tecnico.html',
-                'nav-ficha-pro': 'ficha-pro.html', 'drawer-ficha-pro': 'ficha-pro.html', 'mob-ficha-pro': 'ficha-pro.html',
+                'nav-ficha-pro': 'ficha-pro.html', 'drawer-ficha-pro': 'ficha-pro.html',
                 'nav-ojeador-live': 'ojeador-live.html', 'drawer-ojeador-live': 'ojeador-live.html',
+                'nav-analizador': 'analizador.html', 'drawer-analizador': 'analizador.html', 'mob-analizador': 'analizador.html',
                 'nav-comunidad': 'comunidad.html', 'drawer-comunidad': 'comunidad.html',
                 'nav-media-studio': 'media-studio.html', 'drawer-media-studio': 'media-studio.html', 'mob-media-studio': 'media-studio.html',
                 'nav-perfil': 'perfil.html', 'drawer-perfil': 'perfil.html',
@@ -1160,7 +1192,7 @@
                 if (el) el.href = socialSetupUrl;
             });
 
-            if (localStorage.getItem('kinet_social_configured') === 'true') {
+            if (localStorage.getItem('kinet_social_configured') === 'true' || localStorage.getItem('kinet_user_name')) {
                 const navSoc = document.getElementById('nav-config-social');
                 const drwSoc = document.getElementById('drawer-config-social');
                 if (navSoc) navSoc.style.display = 'none';
@@ -1186,8 +1218,9 @@
         });
 
         function syncStudioAccountPermissions() {
-            const tier = localStorage.getItem('kinet_account_tier') || 'free';
+            const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
             const bonusMins = parseInt(localStorage.getItem('kinet_bonus_video_mins') || '0', 10);
+            const usedMins = parseFloat(localStorage.getItem('kinet_video_mins_used') || '0');
             const badgeLabel = document.getElementById('tier-indicator-badge');
             const unlockBtn = document.getElementById('btn-unlock-video-pro');
             const videoCounter = document.getElementById('video-minutes-counter');
@@ -1195,20 +1228,21 @@
             const qualityTag = document.getElementById('quality-status-tag');
 
             if (tier === 'pro' || tier === 'club') {
-                const baseMins = tier === 'club' ? 240 : 60;
-                const totalMins = baseMins + bonusMins;
-                badgeLabel.textContent = tier === 'club' ? '🏆 LICENCIA CLUB & SCOUT (VÍDEO 4K + IMAGEN)' : '⚡ LICENCIA KINET PRO (VÍDEO HD/4K + IMAGEN)';
+                const baseMins = tier === 'club' ? 300 : 90;
+                const avail = Math.max(0, +(baseMins + bonusMins - usedMins).toFixed(1));
+                badgeLabel.textContent = tier === 'club' ? '🏆 LICENCIA CLUB & SCOUT (VÍDEO 30 FPS + IMAGEN)' : '⚡ LICENCIA KINET PRO (VÍDEO 30 FPS + IMAGEN)';
                 if (unlockBtn) unlockBtn.style.display = 'none';
-                if (videoCounter) videoCounter.textContent = `Cuota Vídeo: ${totalMins} min disp.`;
-                if (lblModeVideo) lblModeVideo.textContent = 'Modo Vídeo (HD/4K)';
-                if (qualityTag) qualityTag.textContent = '4K 120FPS UNLOCKED';
+                if (videoCounter) videoCounter.textContent = `Cuota Vídeo: ${avail} min disp.`;
+                if (lblModeVideo) lblModeVideo.textContent = 'Modo Vídeo (30 FPS)';
+                if (qualityTag) qualityTag.textContent = '30 FPS PRO UNLOCKED';
                 selectStudioFormatMode('video', true);
             } else if (bonusMins > 0) {
-                badgeLabel.textContent = `⚡ BONO VÍDEO ACTIVO (${bonusMins} MIN DISP.)`;
+                const avail = Math.max(0, +(bonusMins - usedMins).toFixed(1));
+                badgeLabel.textContent = `⚡ BONO VÍDEO ACTIVO (${avail} MIN DISP.)`;
                 if (unlockBtn) unlockBtn.style.display = 'none';
-                if (videoCounter) videoCounter.textContent = `Bono Vídeo: ${bonusMins} min disp.`;
+                if (videoCounter) videoCounter.textContent = `Bono Vídeo: ${avail} min disp.`;
                 if (lblModeVideo) lblModeVideo.textContent = 'Modo Vídeo (Bono)';
-                if (qualityTag) qualityTag.textContent = '1080p BONO ACTIVO';
+                if (qualityTag) qualityTag.textContent = '30 FPS BONO ACTIVO';
                 selectStudioFormatMode('video', true);
             } else {
                 badgeLabel.textContent = '⚡ PLAN GRATUITO (IMÁGENES + BEATS)';
@@ -1243,9 +1277,9 @@
                 btnImage.classList.remove('active');
                 dropIcon.textContent = '🎬';
                 dropTitle.textContent = 'Cargar Archivo de Vídeo (MP4, MOV, WEBM)';
-                dropSub.textContent = 'Sincronización de cortes al ritmo de Spotify y telemetría KINET a 120 FPS';
-                studioPill.textContent = '🎬 MODO VÍDEO HD/4K + BEATS';
-                subStatus.textContent = '[ Señal de Vídeo Activa: Renderizado 120 FPS con telemetría dinámica y Spotify Sync ]';
+                dropSub.textContent = 'Sincronización de cortes al ritmo de Spotify y telemetría KINET a 24-30 FPS';
+                studioPill.textContent = '🎬 MODO VÍDEO 30 FPS + BEATS';
+                subStatus.textContent = '[ Señal de Vídeo Activa: Renderizado 24-30 FPS con telemetría dinámica y Spotify Sync ]';
                 if (fileInput) fileInput.setAttribute('accept', 'video/*,image/*');
             } else {
                 btnImage.classList.add('active');
@@ -1276,7 +1310,7 @@
             }
 
             document.getElementById('canvas-main-headline').textContent =
-                `${isVideoFile ? '🎬 VÍDEO:' : '🖼️ IMAGEN:'} ${file.name.toUpperCase()}`;
+                `${isVideoFile ? '🎬 VÍDEO 30 FPS:' : '🖼️ IMAGEN:'} ${file.name.toUpperCase()}`;
             document.getElementById('canvas-sub-status').textContent =
                 `✓ Archivo "${file.name}" cargado en el monitor y sincronizado con telemetría KINET.`;
 
@@ -1296,7 +1330,7 @@
 
             document.getElementById('canvas-main-headline').textContent = headlineText;
             document.getElementById('canvas-sub-status').textContent =
-                `[ Preset "${name}" activo en modo ${currentStudioFormat === 'video' ? 'Vídeo HD/4K' : 'Imagen Pro'} ]`;
+                `[ Preset "${name}" activo en modo ${currentStudioFormat === 'video' ? 'Vídeo 30 FPS' : 'Imagen Pro'} ]`;
         }
 
         function updateCanvasFromControls() {
@@ -1330,14 +1364,34 @@
             const currentBonus = parseInt(localStorage.getItem('kinet_bonus_video_mins') || '0', 10);
             const updatedBonus = currentBonus + minutes;
             localStorage.setItem('kinet_bonus_video_mins', String(updatedBonus));
+            if (window.KinetBackend) window.KinetBackend.pushLocalStateToCloud();
             document.getElementById('payg-bonus-modal').classList.remove('open');
             syncStudioAccountPermissions();
         }
 
-        function exportAndShareCreation() {
+        async function exportAndShareCreation() {
             const headline = document.getElementById('canvas-main-headline').textContent;
+            const track = document.getElementById('spotify-track-select').value;
+            const wm = document.getElementById('watermark-select').value;
+
             document.getElementById('canvas-sub-status').textContent =
-                `✓ Pieza "${headline}" masterizada en modo ${currentStudioFormat.toUpperCase()} y lista para publicar en Comunidad.`;
+                `✓ Pieza "${headline}" masterizada en modo ${currentStudioFormat.toUpperCase()} y publicada en KINET Network™.`;
+
+            if (window.KinetBackend && typeof window.KinetBackend.createCloudPost === 'function') {
+                const isReel = currentStudioFormat === 'video' && isPaidOrBonusAccount();
+                await window.KinetBackend.createCloudPost({
+                    id: 'studio_' + Date.now(),
+                    mode: isReel ? 'reels' : 'post',
+                    text: `🎵 [${headline}] Creado desde KINET Media Studio™ • Pista: ${track} • ${wm}`,
+                    badge: isReel ? 'KINET SHORT 30 FPS' : 'MEDIA STUDIO',
+                    reelData: isReel ? {
+                        title: headline,
+                        metric: wm,
+                        track: `Spotify Sync: ${track}`
+                    } : null,
+                    likes: 0
+                });
+            }
         }
 
         async function downloadStudioCreationPDF() {
@@ -1362,13 +1416,13 @@
                 pdf.setFillColor(6, 8, 14);
                 pdf.rect(0, 0, 297, 210, 'F');
 
-                pdf.setTextColor(59, 130, 246);
+                pdf.setTextColor(0, 255, 136);
                 pdf.setFont('helvetica', 'bold');
                 pdf.setFontSize(14);
                 pdf.text('KINET MEDIA STUDIO™ // EXPORTACION OFICIAL DE MARCA PERSONAL', 14, 18);
 
                 const sportChosen = (localStorage.getItem('kinet_sport') || 'Fútbol').toUpperCase();
-                const userName = (localStorage.getItem('kinet_user_name') || 'ALEX VANCE').toUpperCase();
+                const userName = (localStorage.getItem('kinet_user_name') || 'ATLETA KINET').toUpperCase();
                 pdf.setTextColor(203, 213, 225);
                 pdf.setFontSize(9.5);
                 pdf.text(`TITULAR: ${userName}   |   DEPORTE: ${sportChosen}   |   MODO: ${currentStudioFormat.toUpperCase()}`, 14, 26);
@@ -1377,7 +1431,7 @@
 
                 pdf.setTextColor(148, 163, 184);
                 pdf.setFontSize(8);
-                pdf.text('Creado y auditado con KINET Media Studio™ & Spotify Sync • kinetos.es', 14, 198);
+                pdf.text('Creado y auditado con KINET Media Studio™ & Spotify Sync • jkinetos.es', 14, 198);
 
                 pdf.save(`KINET_Studio_${userName.replace(/\s+/g, '_')}.pdf`);
             } catch (err) {
@@ -1389,7 +1443,7 @@
         }
 
         // =========================================================================
-        // MOTOR GLOBAL DE COLOR DE ROL Y REEMPLAZO FORZADO DE FAVICON EN NAVEGADOR
+        // MOTOR GLOBAL DE COLOR DE ROL Y REEMPLAZO FORZADO DE FAVICON
         // =========================================================================
         (function initGlobalKinetPersonalization() {
             const styleTag = document.createElement('style');
@@ -1439,7 +1493,7 @@
             }
 
             function forceUpdateTabFavicon(hexColor) {
-                const clean = (hexColor || '#3B82F6').replace('#', '');
+                const clean = (hexColor || '#00FF88').replace('#', '');
                 const svgHref = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%23${clean}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`;
                 document.querySelectorAll("link[rel*='icon']").forEach(el => el.remove());
                 const newFav = document.createElement('link');
