@@ -17,9 +17,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     
-    <!-- SDK Oficial de Supabase + Motor Central KINET Backend -->
+    <!-- SDK Oficial de Supabase + Motor Central KINET Backend + Config APIs -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="kinet-backend.js"></script>
+    <script src="kinet-api-config.js"></script>
 
     <style>
         :root {
@@ -103,7 +104,7 @@
             .os-workspace { overflow: visible !important; height: auto !important; padding: 12px 12px 40px 12px !important; }
         }
 
-        /* SIDEBAR ESCRITORIO */
+        /* SIDEBAR ESCRITORIO CON NAVEGACIÓN CENTRADA VERTICALMENTE */
         .os-sidebar {
             background: rgba(8, 11, 18, 0.95);
             backdrop-filter: blur(24px);
@@ -118,7 +119,6 @@
         }
         @media (max-width: 960px) { .os-sidebar { display: none !important; } }
 
-        /* LOGO KINET EXACTO DE APP.HTML */
         .brand-box {
             display: flex;
             align-items: center;
@@ -128,6 +128,7 @@
             border-radius: 14px;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             margin-bottom: 6px;
+            flex-shrink: 0;
         }
 
         .brand-box:hover {
@@ -171,8 +172,28 @@
             transition: color 0.4s ease;
         }
 
-        .sidebar-top-section { display: flex; flex-direction: column; }
-        .sidebar-bottom-section { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border-subtle); }
+        .sidebar-top-section {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            flex: 1 1 auto;
+            gap: 7px;
+            padding: 10px 0;
+        }
+        .sidebar-bottom-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-subtle);
+            flex-shrink: 0;
+        }
 
         .side-link {
             display: flex;
@@ -184,16 +205,16 @@
             border: 1px solid var(--border-subtle);
             color: var(--text-secondary);
             font-family: 'Inter', sans-serif;
-            font-size: 0.83rem;
+            font-size: 0.81rem;
             font-weight: 600;
-            height: 44px; 
+            height: 42px; 
             cursor: pointer;
             text-decoration: none;
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
             overflow: hidden;
         }
-        .side-link-left { display: flex; align-items: center; gap: 12px; z-index: 1; }
+        .side-link-left { display: flex; align-items: center; gap: 11px; z-index: 1; }
         .side-link::before {
             content: '';
             position: absolute;
@@ -576,7 +597,6 @@
         }
         .btn-secondary:hover { border-color: rgba(var(--role-rgb), 0.45); background: rgba(var(--role-rgb), 0.08); }
 
-        
         /* =========================================================================
            NUEVO COMPOSER ESTILO KINET (GATILLO + VENTANA MODAL FLOTANTE)
            ========================================================================= */
@@ -646,7 +666,7 @@
             transform: translateY(-1px);
         }
 
-        /* SELECTOR DE ALGORITMO DE FEED (ESTILO X / TWITTER: PARA TI • POPULARES • SIGUIENDO • RECIENTES) */
+        /* SELECTOR DE ALGORITMO DE FEED */
         .feed-algo-pills {
             display: inline-flex;
             background: rgba(4, 6, 10, 0.9);
@@ -674,7 +694,7 @@
             border: 1px solid rgba(var(--role-rgb), 0.45);
         }
 
-        /* ANIMACIONES KINET DIVERTIDAS AL ENVIAR Y RECIBIR MENSAJES + TICS Y VISTO IG */
+        /* ANIMACIONES KINET AL ENVIAR Y RECIBIR MENSAJES */
         @keyframes kinetRocketSend {
             0% {
                 opacity: 0;
@@ -753,7 +773,6 @@
             animation: swipeUpAnim 0.25s ease-out;
         }
 
-        /* AVATAR CON FOTO REAL SINCRONIZADA */
         .post-avatar {
             background-size: cover !important;
             background-position: center !important;
@@ -761,9 +780,8 @@
             overflow: hidden;
         }
 
-        
         /* =========================================================================
-           REFINAMIENTO VISUAL MINIMALISTA, ANTI-PIXELADO Y FLUIDEZ (ESTILO SIDEBAR)
+           REFINAMIENTO VISUAL MINIMALISTA, ANTI-PIXELADO Y FLUIDEZ
            ========================================================================= */
         html, body, input, select, textarea, button {
             -webkit-font-smoothing: antialiased !important;
@@ -771,7 +789,6 @@
             text-rendering: optimizeLegibility !important;
         }
 
-        /* Exclamación animada de notificaciones en Comunidad (Sidebar y Drawer) */
         @keyframes kinetExclaimPulse {
             0%, 100% {
                 transform: scale(1);
@@ -810,7 +827,6 @@
             font-size: 0;
         }
 
-        /* Suavizado de fuentes y textos antes demasiado robóticos/pixelados */
         .kinet-input, textarea.kinet-input {
             font-family: 'Inter', sans-serif !important;
             font-weight: 400;
@@ -855,7 +871,7 @@
         }
 
         /* =========================================================================
-           MENÚS DESPLEGABLES PERSONALIZADOS GLASSMORPHISM (ADIÓS AL MENÚ AZUL WINDOWS)
+           MENÚS DESPLEGABLES PERSONALIZADOS GLASSMORPHISM
            ========================================================================= */
         .kinet-custom-dd {
             position: relative;
@@ -944,7 +960,6 @@
             font-weight: 700;
         }
 
-        /* Píldoras limpias en el modal de Crear Publicación (Audiencia y Formato) */
         .composer-clean-pills-group {
             display: flex;
             flex-wrap: wrap;
@@ -977,7 +992,6 @@
             box-shadow: 0 0 12px rgba(var(--role-rgb), 0.16);
         }
 
-        /* TRANSICIONES FLUIDAS SIN CORTES BRUSCOS AL CAMBIAR DE SECCIÓN O FILTRO */
         @keyframes kinetSmoothFadeSlide {
             0% {
                 opacity: 0;
@@ -1000,9 +1014,8 @@
             box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
         }
 
-        
         /* =========================================================================
-           AJUSTE TOTAL RESPONSIVE VERTICAL (MÓVIL < 780px): CERO TEXTOS CORTADOS NI DESBORDES
+           AJUSTE TOTAL RESPONSIVE VERTICAL (MÓVIL < 780px)
            ========================================================================= */
         .chat-bubble-meta {
             display: flex;
@@ -1127,7 +1140,6 @@
                 font-size: 0.62rem !important;
                 padding: 5px 9px !important;
             }
-            /* Reproductor vertical Shorts en móvil */
             .kinet-short-player-card {
                 height: 470px !important;
                 min-height: 470px !important;
@@ -1137,7 +1149,6 @@
             .reel-center-visual {
                 padding: 0 44px 0 4px !important;
             }
-            /* Modales en móvil vertical: caben enteros con scroll limpio y todas las opciones visibles */
             .kinet-modal-overlay {
                 padding: 8px !important;
                 align-items: flex-end !important;
@@ -1162,7 +1173,6 @@
                 font-size: 0.76rem !important;
                 word-break: break-word !important;
             }
-            /* Desplegables custom en móvil sin salirse de pantalla */
             .kinet-custom-dd-menu {
                 left: 0 !important;
                 right: 0 !important;
@@ -1170,7 +1180,6 @@
             }
         }
 
-        
         /* INSIGNIA OFICIAL DE VERIFICADO KINET */
         .kinet-verified-check {
             display: inline-flex;
@@ -1188,7 +1197,7 @@
             line-height: 1;
         }
 
-        /* ARREGLO DEFINITIVO DEL CHAT DM EN MÓVIL VERTICAL (FLEXBOX 100% VISIBLE) */
+        /* ARREGLO DEFINITIVO DEL CHAT DM EN MÓVIL VERTICAL (BANDEJA DE ENTRADA PRIMERO) */
         @media (max-width: 780px) {
             #dm-chat-modal.kinet-modal-overlay {
                 padding: 0 !important;
@@ -1960,7 +1969,7 @@
 
     <div class="os-layout">
         
-        <!-- SIDEBAR FIJO -->
+        <!-- SIDEBAR FIJO (OPCIONES CENTRADAS VERTICALMENTE + NUEVA SECCIÓN ANALIZADOR 3D) -->
         <aside class="os-sidebar">
             <div class="sidebar-top-section">
                 <a href="app.html" id="brand-logo-desktop" class="brand-box">
@@ -1972,23 +1981,27 @@
                 </a>
 
                 <nav class="sidebar-nav">
-                    <a href="app.html" id="nav-vestuario" class="side-link" style="margin-bottom: 8px;">
+                    <a href="app.html" id="nav-vestuario" class="side-link">
                         <span class="side-link-left"><span>⚡</span> <span>Vestuario</span></span>
                         <span style="font-size:0.65rem;font-family:'JetBrains Mono';">HOY</span>
                     </a>
-                    <a href="cuerpo-tecnico.html" id="nav-cuerpo-tecnico" class="side-link" style="margin-bottom: 8px;">
+                    <a href="cuerpo-tecnico.html" id="nav-cuerpo-tecnico" class="side-link">
                         <span class="side-link-left"><span>🧠</span> <span>Cuerpo Técnico IA</span></span>
                         <span style="font-size:0.7rem;opacity:0.5;">→</span>
                     </a>
-                    <a href="ficha-pro.html" id="nav-ficha-pro" class="side-link" style="margin-bottom: 8px;">
+                    <a href="ficha-pro.html" id="nav-ficha-pro" class="side-link">
                         <span class="side-link-left"><span>🎴</span> <span>Ficha & KINET Card</span></span>
                         <span style="font-size:0.7rem;opacity:0.5;">→</span>
                     </a>
-                    <a href="ojeador-live.html" id="nav-ojeador-live" class="side-link" style="margin-bottom: 8px;">
-                        <span class="side-link-left"><span>📡</span> <span>Ojeador & Laboratorio</span></span>
+                    <a href="ojeador-live.html" id="nav-ojeador-live" class="side-link">
+                        <span class="side-link-left"><span>🎬</span> <span>Laboratorio Vídeo</span></span>
                         <span style="font-size:0.7rem;opacity:0.5;">→</span>
                     </a>
-                    <a href="comunidad.html" id="nav-comunidad" class="side-link active" style="margin-bottom: 8px;">
+                    <a href="analizador.html" id="nav-analizador" class="side-link">
+                        <span class="side-link-left"><span>🏟️</span> <span>Analizador & Pizarra 3D</span></span>
+                        <span style="font-size:0.7rem;opacity:0.5;">→</span>
+                    </a>
+                    <a href="comunidad.html" id="nav-comunidad" class="side-link active">
                         <span class="side-link-left"><span>🌐</span> <span>Comunidad / Red Social</span></span>
                         <span class="kinet-notif-exclaim" id="sidebar-comunidad-notif" title="Notificaciones nuevas en Comunidad">!</span>
                     </a>
@@ -2006,7 +2019,7 @@
                         <span>💡</span> <span id="tip-title">KINET Network // Activa</span>
                     </div>
                     <div class="sidebar-ai-tip-text" id="tip-content">
-                        Alterna entre KINET Pulse, el visor vertical KINET Shorts 9:16, el Radar y tus Mensajes DMs.
+                        Alterna entre KINET Pulse, el visor vertical KINET Shorts 9:16, el Radar y tus Mensajes DMs en tiempo real.
                     </div>
                 </div>
 
@@ -2040,13 +2053,13 @@
                 </a>
 
                 <div class="topbar-center-title" style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-secondary);display:flex;align-items:center;gap:10px;">
-                    <span>KINET NETWORK™ (PULSE • SHORTS 9:16 • RADAR • DMs)</span>
+                    <span>KINET NETWORK™ (PULSE • SHORTS 30 FPS • RADAR • DMs)</span>
                     <span style="color:var(--role-color);font-weight:700;" id="topbar-sport-tag">● FÚTBOL</span>
                 </div>
 
                 <div class="topbar-actions">
                     <button class="btn-secondary" style="padding:6px 11px;font-size:0.64rem;" onclick="openInstagramDirectModal('chats')">
-                        💬 DMs <span id="topbar-unread-badge" style="background:var(--role-color);color:#04060A;padding:1px 5px;border-radius:99px;font-weight:900;">2</span>
+                        💬 DMs <span id="topbar-unread-badge" data-dm-unread-badge style="background:var(--role-color);color:#04060A;padding:1px 5px;border-radius:99px;font-weight:900;">1</span>
                     </button>
                     <button class="btn-secondary" style="padding:6px 11px;font-size:0.64rem;" onclick="openFriendsTabInDirect()">
                         ➕ Amigos
@@ -2107,7 +2120,7 @@
                             <input type="text" id="social-search-input" class="kinet-search-input" placeholder="Buscar atletas, scouts, clubes o #tags..." oninput="filterSocialFeed()">
                         </div>
 
-                        <!-- Selector oculto sincronizado + Menú Desplegable Custom de Deporte (Sin fondo azul de Windows) -->
+                        <!-- Selector oculto sincronizado + Menú Desplegable Custom de Deporte -->
                         <input type="hidden" id="sport-filter-select" value="Fútbol">
                         <div class="kinet-custom-dd" id="custom-dd-sport">
                             <button type="button" class="kinet-custom-dd-trigger" onclick="toggleCustomDropdown('custom-dd-sport', event)">
@@ -2179,18 +2192,18 @@
                                 </div>
                             </div>
 
-                            <!-- GATILLO DE CREAR PUBLICACIÓN ESTILO KINET (ABRE VENTANA EMERGENTE RICA) -->
+                            <!-- GATILLO DE CREAR PUBLICACIÓN ESTILO KINET -->
                             <div class="kinet-composer-trigger-card" id="composer-bar-box">
                                 <div style="display:flex; align-items:center; gap:11px;">
-                                    <div class="post-avatar" id="composer-user-avatar" style="width:42px;height:42px;font-size:0.82rem;cursor:pointer;" onclick="openCreatePostModal('post')">NT</div>
+                                    <div class="post-avatar" id="composer-user-avatar" data-kinet-user-avatar style="width:42px;height:42px;font-size:0.82rem;cursor:pointer;" onclick="openCreatePostModal('post')">NT</div>
                                     <button type="button" class="kinet-composer-pill-btn" onclick="openCreatePostModal('post')">
-                                        <span>Crear publicación, compartir telemetría o lanzar convocatoria...</span>
+                                        <span>Crear publicación, compartir foto/telemetría o lanzar convocatoria...</span>
                                         <span style="font-family:'JetBrains Mono';font-size:0.64rem;color:var(--role-color);font-weight:700;">+ Publicar</span>
                                     </button>
                                 </div>
                                 <div class="kinet-composer-quick-actions">
                                     <button type="button" class="kinet-composer-quick-btn" onclick="openCreatePostModal('reels')">
-                                        <span style="color:#00FF88;">🎬</span> <span>Vídeo / Short 9:16</span>
+                                        <span style="color:#00FF88;">🎬</span> <span id="quick-btn-video-label">Vídeo 30 FPS (PRO)</span>
                                     </button>
                                     <button type="button" class="kinet-composer-quick-btn" onclick="openCreatePostModal('photo')">
                                         <span style="color:#38BDF8;">🖼️</span> <span>Foto / Telemetría</span>
@@ -2211,12 +2224,12 @@
 
                                 <div class="reel-top-hud">
                                     <span class="reel-live-pill">
-                                        <span>●</span> <span id="in-sport-pill">FÚTBOL // 120 FPS</span>
+                                        <span>●</span> <span id="in-sport-pill">FÚTBOL // 30 FPS</span>
                                     </span>
 
                                     <div style="display:flex;align-items:center;gap:6px;">
                                         <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:#CBD5E1;background:rgba(4,6,10,0.85);padding:5px 10px;border-radius:8px;border:1px solid var(--border-subtle);" id="in-counter-pill">
-                                            1 / 3
+                                            1 / 1
                                         </span>
                                         <button class="reel-expand-btn" onclick="openFullscreenTheater()">
                                             <span>⛶</span> <span>Pantalla Completa</span>
@@ -2227,7 +2240,7 @@
                                 <div class="reel-center-visual">
                                     <div class="reel-play-badge" onclick="openFullscreenTheater()" title="Ampliar a Pantalla Completa">▶</div>
                                     <div style="font-family:'Orbitron';font-size:1rem;font-weight:900;color:white;letter-spacing:0.03em;line-height:1.3;" id="in-video-title">
-                                        KINET Short 120 FPS // Sprint & Diagonal
+                                        KINET Short 30 FPS // Sprint & Diagonal
                                     </div>
                                     <div style="font-family:'JetBrains Mono';font-size:0.66rem;color:var(--role-color);margin-top:5px;">
                                         ✓ KINET VISION ANALYTICS™ VERIFIED
@@ -2244,11 +2257,11 @@
                                 </div>
 
                                 <div class="reel-right-rail">
-                                    <div class="post-avatar" id="in-author-avatar" style="width:42px;height:42px;border-radius:50%;border-width:2px;">AT</div>
+                                    <div class="post-avatar" id="in-author-avatar" style="width:42px;height:42px;border-radius:50%;border-width:2px;">K</div>
 
                                     <button class="reel-rail-btn" id="in-like-btn" onclick="likeCurrentShort()">
                                         <span class="reel-rail-icon">🔥</span>
-                                        <span id="in-likes-num">84</span>
+                                        <span id="in-likes-num">0</span>
                                     </button>
 
                                     <button class="reel-rail-btn" onclick="openCurrentShortDm()">
@@ -2275,20 +2288,20 @@
 
                                 <div class="reel-bottom-info">
                                     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
-                                        <span style="font-family:'Orbitron';font-weight:900;font-size:0.92rem;color:white;" id="in-author-name">Alex Torres</span>
-                                        <span style="font-family:'JetBrains Mono';font-size:0.65rem;color:var(--role-color);" id="in-author-handle">@alextorres_11</span>
+                                        <span style="font-family:'Orbitron';font-weight:900;font-size:0.92rem;color:white;" id="in-author-name">KINET OS Oficial</span>
+                                        <span style="font-family:'JetBrains Mono';font-size:0.65rem;color:var(--role-color);" id="in-author-handle">@kinet_official</span>
                                         <button type="button" class="kinet-follow-btn" id="in-short-follow-btn" onclick="toggleFollowCurrentShort()">+ Seguir</button>
                                         <span class="market-open-tag" id="in-market-badge">🟢 ABIERTO A OFERTAS</span>
                                     </div>
                                     <div style="font-size:0.68rem;color:#94A3B8;margin-bottom:6px;" id="in-author-headline">
-                                        Extremo Izquierdo Sub-23 • División de Honor
+                                        Cuenta Oficial Verificada • Guía de KINET Shorts 9:16
                                     </div>
                                     <p style="font-size:0.76rem;color:#E2E8F0;line-height:1.42;margin-bottom:8px;padding-right:36px;" id="in-post-caption">
-                                        Nuevo pico de velocidad registrado en sesión MD-2 (34.2 km/h) auditado con KINET Vision Analytics™.
+                                        Visor vertical de vídeo optimizado a 24-30 FPS (~4 MB) con telemetría verificada.
                                     </p>
                                     <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:5px 10px;font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);">
                                         <span id="in-spotify-track">🎵 Spotify Sync: High Tempo Beats</span>
-                                        <span style="color:#CBD5E1;">KINET 9:16 HD</span>
+                                        <span style="color:#CBD5E1;">KINET 9:16 30 FPS</span>
                                     </div>
                                 </div>
                             </div>
@@ -2301,8 +2314,8 @@
                             </div>
                         </div>
 
-                        <!-- BLOQUE 3: PESTAÑA INTEGRADA DE MENSAJES DIRECTOS ESTILO INSTAGRAM -->
-                        <div class="ig-inline-direct-panel mobile-chat-open" id="ig-inline-direct-panel">
+                        <!-- BLOQUE 3: PESTAÑA INTEGRADA DE MENSAJES DIRECTOS (SIN mobile-chat-open POR DEFECTO) -->
+                        <div class="ig-inline-direct-panel" id="ig-inline-direct-panel">
                             
                             <!-- Lado Izquierdo: Lista de Chats Activos o Agregar Amigos -->
                             <div class="ig-inline-left">
@@ -2333,10 +2346,10 @@
                                         <button type="button" class="ig-back-mobile-btn" onclick="document.getElementById('ig-inline-direct-panel').classList.remove('mobile-chat-open')">
                                             ← Chats
                                         </button>
-                                        <div class="post-avatar" id="inline-dm-active-avatar" style="width:38px;height:38px;font-size:0.8rem;">CM</div>
+                                        <div class="post-avatar" id="inline-dm-active-avatar" style="width:38px;height:38px;font-size:0.8rem;">K</div>
                                         <div style="min-width:0;">
-                                            <div style="font-family:'Orbitron';font-size:0.82rem;font-weight:900;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="inline-dm-active-name">Carlos Mendizábal (Director Scout)</div>
-                                            <div style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);" id="inline-dm-active-sub">● @cmendizabal_scout • EN LÍNEA</div>
+                                            <div style="font-family:'Orbitron';font-size:0.82rem;font-weight:900;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="inline-dm-active-name">KINET OS Oficial</div>
+                                            <div style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);" id="inline-dm-active-sub">● @kinet_official • EN LÍNEA</div>
                                         </div>
                                     </div>
 
@@ -2351,7 +2364,7 @@
                                     <div class="dm-quick-attachments-row" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
                                         <button class="social-action-btn" onclick="sendQuickDmAttachment('🎴 Adjunto mi KINET Card Verificada (92 GRL).')">🎴 Enviar KINET Card</button>
                                         <button class="social-action-btn" onclick="sendQuickDmAttachment('📄 Adjunto mi Dossier / CV Deportivo oficial en PDF.')">📄 Enviar CV PDF</button>
-                                        <button class="social-action-btn" onclick="sendQuickDmAttachment('🎬 Comparto mi último KINET Short biomecánico a 120 FPS.')">🎬 Enviar Short 120 FPS</button>
+                                        <button class="social-action-btn" onclick="sendQuickDmAttachment('🎬 Comparto mi último KINET Short biomecánico a 30 FPS.')">🎬 Enviar Short 30 FPS</button>
                                     </div>
 
                                     <div style="display:flex;gap:8px;">
@@ -2377,11 +2390,11 @@
                                 </div>
 
                                 <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
-                                    <div class="post-avatar" id="my-social-avatar" style="width:48px;height:48px;font-size:0.95rem;">NT</div>
+                                    <div class="post-avatar" id="my-social-avatar" data-kinet-user-avatar style="width:48px;height:48px;font-size:0.95rem;">NT</div>
                                     <div style="flex:1;min-width:0;">
-                                        <div style="font-family:'Orbitron';font-weight:900;font-size:0.88rem;color:white;" id="my-social-name">NAIM T</div>
-                                        <div style="font-family:'JetBrains Mono';font-size:0.65rem;color:var(--role-color);" id="my-social-handle">@naimt_pro</div>
-                                        <div style="font-size:0.7rem;color:#CBD5E1;margin-top:2px;" id="my-social-bio">Perfil Verificado KINET OS • Telemetría & Vídeo 120 FPS</div>
+                                        <div style="font-family:'Orbitron';font-weight:900;font-size:0.88rem;color:white;" id="my-social-name" data-kinet-user-name>NAIM T</div>
+                                        <div style="font-family:'JetBrains Mono';font-size:0.65rem;color:var(--role-color);" id="my-social-handle" data-kinet-user-handle>@naimt_pro</div>
+                                        <div style="font-size:0.7rem;color:#CBD5E1;margin-top:2px;" id="my-social-bio">Perfil Verificado KINET OS • Telemetría & Vídeo 30 FPS</div>
                                     </div>
                                 </div>
 
@@ -2392,7 +2405,7 @@
                                         <div style="font-family:'JetBrains Mono';font-size:0.55rem;color:var(--text-secondary);">SEGUIDORES</div>
                                     </div>
                                     <div style="border-left:1px solid var(--border-subtle);border-right:1px solid var(--border-subtle);">
-                                        <div style="font-family:'Orbitron';font-weight:900;font-size:0.82rem;color:var(--role-color);" id="my-following-count">3</div>
+                                        <div style="font-family:'Orbitron';font-weight:900;font-size:0.82rem;color:var(--role-color);" id="my-following-count">1</div>
                                         <div style="font-family:'JetBrains Mono';font-size:0.55rem;color:var(--text-secondary);">SIGUIENDO</div>
                                     </div>
                                     <div>
@@ -2444,7 +2457,7 @@
                                 <div class="panel-head">
                                     <span class="panel-label">💬 KINET DIRECT & AMIGOS</span>
                                     <button type="button" onclick="openInstagramDirectModal('chats')" style="background:none;border:none;font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);cursor:pointer;font-weight:700;">
-                                        Abrir Vista Completa →
+                                        Abrir Bandeja →
                                     </button>
                                 </div>
 
@@ -2465,7 +2478,7 @@
 
                                 <div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;">
                                     <button type="button" class="btn-secondary" style="padding:6px 10px;font-size:0.62rem;" onclick="openFriendsTabInDirect()">➕ Explorar & Seguir</button>
-                                    <a href="ojeador-live.html" id="link-to-scout-matrix" style="font-size:0.66rem; color:var(--role-color); font-weight:700; text-decoration:none;">Radar Ojeador Live →</a>
+                                    <a href="analizador.html" id="link-to-scout-matrix" style="font-size:0.66rem; color:var(--role-color); font-weight:700; text-decoration:none;">Analizador & Pizarra 3D →</a>
                                 </div>
                             </div>
 
@@ -2483,12 +2496,12 @@
 
             <div class="reel-top-hud">
                 <span class="reel-live-pill">
-                    <span>●</span> <span id="fs-sport-pill">FÚTBOL // 120 FPS</span>
+                    <span>●</span> <span id="fs-sport-pill">FÚTBOL // 30 FPS</span>
                 </span>
 
                 <div style="display:flex;align-items:center;gap:6px;">
                     <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:#CBD5E1;background:rgba(4,6,10,0.85);padding:5px 10px;border-radius:8px;border:1px solid var(--border-subtle);" id="fs-counter-pill">
-                        1 / 3
+                        1 / 1
                     </span>
                     <button class="reel-expand-btn" onclick="closeFullscreenTheater()">
                         <span>✕</span> <span>Salir Pantalla Completa</span>
@@ -2499,7 +2512,7 @@
             <div class="reel-center-visual">
                 <div class="reel-play-badge">▶</div>
                 <div style="font-family:'Orbitron';font-size:1.06rem;font-weight:900;color:white;letter-spacing:0.03em;line-height:1.3;" id="fs-video-title">
-                    KINET Short 120 FPS // Sprint & Diagonal
+                    KINET Short 30 FPS // Sprint & Diagonal
                 </div>
                 <div style="font-family:'JetBrains Mono';font-size:0.68rem;color:var(--role-color);margin-top:5px;">
                     ✓ KINET VISION ANALYTICS™ VERIFIED
@@ -2516,11 +2529,11 @@
             </div>
 
             <div class="reel-right-rail">
-                <div class="post-avatar" id="fs-author-avatar" style="width:42px;height:42px;border-radius:50%;border-width:2px;">AT</div>
+                <div class="post-avatar" id="fs-author-avatar" style="width:42px;height:42px;border-radius:50%;border-width:2px;">K</div>
 
                 <button class="reel-rail-btn" id="fs-like-btn" onclick="likeCurrentShort()">
                     <span class="reel-rail-icon">🔥</span>
-                    <span id="fs-likes-num">84</span>
+                    <span id="fs-likes-num">0</span>
                 </button>
 
                 <button class="reel-rail-btn" onclick="openCurrentShortDm()">
@@ -2547,16 +2560,16 @@
 
             <div class="reel-bottom-info">
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
-                    <span style="font-family:'Orbitron';font-weight:900;font-size:0.95rem;color:white;" id="fs-author-name">Alex Torres</span>
-                    <span style="font-family:'JetBrains Mono';font-size:0.66rem;color:var(--role-color);" id="fs-author-handle">@alextorres_11</span>
+                    <span style="font-family:'Orbitron';font-weight:900;font-size:0.95rem;color:white;" id="fs-author-name">KINET OS Oficial</span>
+                    <span style="font-family:'JetBrains Mono';font-size:0.66rem;color:var(--role-color);" id="fs-author-handle">@kinet_official</span>
                     <button type="button" class="kinet-follow-btn" id="fs-short-follow-btn" onclick="toggleFollowCurrentShort()">+ Seguir</button>
                     <span class="market-open-tag" id="fs-market-badge">🟢 ABIERTO A OFERTAS</span>
                 </div>
                 <div style="font-size:0.7rem;color:#94A3B8;margin-bottom:6px;" id="fs-author-headline">
-                    Extremo Izquierdo Sub-23 • División de Honor
+                    Cuenta Oficial Verificada • Guía de KINET Shorts 9:16
                 </div>
                 <p style="font-size:0.78rem;color:#E2E8F0;line-height:1.44;margin-bottom:8px;padding-right:36px;" id="fs-post-caption">
-                    Nuevo pico de velocidad registrado en sesión MD-2 (34.2 km/h) auditado con KINET Vision Analytics™.
+                    Visor vertical de vídeo optimizado a 24-30 FPS (~4 MB) con telemetría verificada.
                 </p>
                 <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:5px 10px;font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);">
                     <span id="fs-spotify-track">🎵 Spotify Sync: High Tempo Beats</span>
@@ -2586,7 +2599,7 @@
             </p>
 
             <div style="display:flex;align-items:center;gap:14px;background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle);border-radius:14px;padding:12px;">
-                <div class="post-avatar" id="setup-preview-avatar" style="width:54px;height:54px;font-size:1.05rem;">NT</div>
+                <div class="post-avatar" id="setup-preview-avatar" data-kinet-user-avatar style="width:54px;height:54px;font-size:1.05rem;">NT</div>
                 <div style="flex:1;">
                     <span class="form-field-lbl">FOTO DE PERFIL OFICIAL</span>
                     <input type="file" id="setup-avatar-input" accept="image/*" style="font-size:0.72rem;color:#CBD5E1;width:100%;" onchange="handleSetupAvatarUpload(this)">
@@ -2606,12 +2619,12 @@
 
             <div>
                 <label class="form-field-lbl">TITULAR PROFESIONAL & BIO DEPORTIVA</label>
-                <input type="text" id="setup-bio-input" class="kinet-input" placeholder="Ej. Atleta Verificado KINET OS | Telemetría IA y Vídeo 120 FPS">
+                <input type="text" id="setup-bio-input" class="kinet-input" placeholder="Ej. Atleta Verificado KINET OS | Telemetría IA y Vídeo 30 FPS">
             </div>
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                 <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle);border-radius:12px;padding:10px;">
-                    <span class="form-field-lbl">🎬 SUBIR KINET SHORT 9:16 (OPCIONAL)</span>
+                    <span class="form-field-lbl">🎬 SUBIR KINET SHORT 9:16 (PRO)</span>
                     <input type="file" accept="video/*" style="font-size:0.68rem;color:#CBD5E1;width:100%;">
                 </div>
                 <div style="background:rgba(var(--role-rgb),0.06);border:1px solid rgba(var(--role-rgb),0.3);border-radius:12px;padding:10px;">
@@ -2627,9 +2640,9 @@
         </div>
     </div>
 
-    <!-- MODAL 2: CENTRO DE MENSAJES ESTILO INSTAGRAM DIRECT EN POPUP -->
+    <!-- MODAL 2: CENTRO DE MENSAJES ESTILO INSTAGRAM DIRECT EN POPUP (SIN mobile-chat-open POR DEFECTO) -->
     <div id="dm-chat-modal" class="kinet-modal-overlay">
-        <div class="ig-direct-modal-box mobile-chat-open" id="ig-direct-shell">
+        <div class="ig-direct-modal-box" id="ig-direct-shell">
             
             <!-- COLUMNA IZQUIERDA ESTILO INSTAGRAM -->
             <div class="ig-left-sidebar">
@@ -2662,10 +2675,10 @@
                         <button type="button" class="ig-back-mobile-btn" onclick="document.getElementById('ig-direct-shell').classList.remove('mobile-chat-open')">
                             ← Chats
                         </button>
-                        <div class="post-avatar" id="dm-active-avatar" style="width:38px;height:38px;font-size:0.8rem;">CM</div>
+                        <div class="post-avatar" id="dm-active-avatar" style="width:38px;height:38px;font-size:0.8rem;">K</div>
                         <div style="min-width:0;">
-                            <div style="font-family:'Orbitron';font-size:0.84rem;font-weight:900;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="dm-active-name">Carlos Mendizábal (Director Scout)</div>
-                            <div style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);" id="dm-active-sub">● @cmendizabal_scout • EN LÍNEA</div>
+                            <div style="font-family:'Orbitron';font-size:0.84rem;font-weight:900;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="dm-active-name">KINET OS Oficial</div>
+                            <div style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);" id="dm-active-sub">● @kinet_official • EN LÍNEA</div>
                         </div>
                     </div>
 
@@ -2681,7 +2694,7 @@
                     <div class="dm-quick-attachments-row" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
                         <button class="social-action-btn" onclick="sendQuickDmAttachment('🎴 Adjunto mi KINET Card Verificada (92 GRL).')">🎴 Enviar KINET Card</button>
                         <button class="social-action-btn" onclick="sendQuickDmAttachment('📄 Adjunto mi Dossier / CV Deportivo oficial en PDF.')">📄 Enviar CV PDF</button>
-                        <button class="social-action-btn" onclick="sendQuickDmAttachment('🎬 Comparto mi último KINET Short biomecánico a 120 FPS.')">🎬 Enviar Short 120 FPS</button>
+                        <button class="social-action-btn" onclick="sendQuickDmAttachment('🎬 Comparto mi último KINET Short biomecánico a 30 FPS.')">🎬 Enviar Short 30 FPS</button>
                     </div>
 
                     <div style="display:flex;gap:8px;">
@@ -2694,15 +2707,14 @@
         </div>
     </div>
 
-
     <!-- =========================================================================
-         MODAL 3: VENTANA EMERGENTE DE CREAR PUBLICACIÓN ESTILO KINET (FOTO, VÍDEO, TELEMETRÍA Y VISIBILIDAD)
+         MODAL 3: VENTANA EMERGENTE DE CREAR PUBLICACIÓN ESTILO KINET
          ========================================================================= -->
     <div id="create-post-modal" class="kinet-modal-overlay">
         <div class="kinet-modal-box" style="max-width:580px;">
             <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:12px;">
                 <div style="display:flex;align-items:center;gap:12px;">
-                    <div class="post-avatar" id="modal-composer-avatar" style="width:44px;height:44px;font-size:0.88rem;">NT</div>
+                    <div class="post-avatar" id="modal-composer-avatar" data-kinet-user-avatar style="width:44px;height:44px;font-size:0.88rem;">NT</div>
                     <div>
                         <div style="font-family:'Inter',sans-serif;font-size:0.95rem;font-weight:800;color:white;letter-spacing:-0.01em;" id="modal-composer-name">NAIM TAHRI BUEZAS</div>
                         <input type="hidden" id="modal-post-visibility" value="public">
@@ -2714,7 +2726,7 @@
                         </div>
                         <div class="composer-clean-pills-group" style="margin-top:5px;">
                             <button type="button" class="composer-clean-pill active" data-ptype="post" onclick="setComposerPostType('post', this)">⚡ KINET Pulse</button>
-                            <button type="button" class="composer-clean-pill" data-ptype="reels" onclick="setComposerPostType('reels', this)">🎬 KINET Short 9:16</button>
+                            <button type="button" class="composer-clean-pill" data-ptype="reels" onclick="setComposerPostType('reels', this)">🎬 KINET Short 9:16 (PRO)</button>
                             <button type="button" class="composer-clean-pill" data-ptype="market" onclick="setComposerPostType('market', this)">💼 KINET Radar</button>
                         </div>
                     </div>
@@ -2725,7 +2737,7 @@
             <!-- Banner Informativo Estilo KINET -->
             <div style="background:rgba(var(--role-rgb),0.07);border:1px solid rgba(var(--role-rgb),0.28);border-radius:12px;padding:9px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
                 <div style="font-size:0.72rem;color:#CBD5E1;line-height:1.35;">
-                    <strong style="color:var(--role-color);font-family:'Orbitron';font-size:0.66rem;">⚡ KINET SMART FEED:</strong> Las publicaciones con datos verificados, fotos o clips a 120 FPS se posicionan más arriba en el feed de <strong>Tendencias & Para Ti</strong>.
+                    <strong style="color:var(--role-color);font-family:'Orbitron';font-size:0.66rem;">⚡ KINET SMART FEED:</strong> En Plan Gratuito puedes publicar fotos, textos y telemetría libremente. Los vídeos y KINET Shorts (24-30 FPS) están reservados para cuentas <strong>KINET PRO / Club</strong>.
                 </div>
             </div>
 
@@ -2734,7 +2746,7 @@
                 <textarea id="new-post-input" class="kinet-input" rows="4" style="resize:vertical;min-height:105px;font-size:0.86rem;line-height:1.5;" placeholder="Comparte un récord GPS, sube una foto de entrenamiento, adjunta tu KINET Card o publica una convocatoria en el Radar..."></textarea>
             </div>
 
-            <!-- Previsualización del archivo adjunto (Foto / Vídeo / Etiqueta de Telemetría) -->
+            <!-- Previsualización del archivo adjunto -->
             <div id="composer-attachment-preview" style="display:none;background:rgba(4,6,10,0.9);border:1px solid var(--role-color);border-radius:14px;padding:10px;position:relative;">
                 <button type="button" onclick="clearComposerAttachment()" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.8);border:1px solid rgba(255,255,255,0.2);color:white;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:0.7rem;">✕</button>
                 <div id="composer-attachment-content"></div>
@@ -2746,11 +2758,11 @@
             <!-- Barra de herramientas multimedia e insignias KINET -->
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;border-top:1px solid var(--border-subtle);padding-top:12px;">
                 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                    <button type="button" class="social-action-btn" onclick="triggerComposerFile('image/*')" title="Subir Foto">
+                    <button type="button" class="social-action-btn" onclick="triggerComposerFile('image/*')" title="Subir Foto (Gratis)">
                         🖼️ Foto
                     </button>
-                    <button type="button" class="social-action-btn" onclick="triggerComposerFile('video/*')" title="Subir Vídeo / Short">
-                        🎬 Vídeo 120 FPS
+                    <button type="button" class="social-action-btn" onclick="triggerComposerFile('video/*')" title="Subir Vídeo 30 FPS (Exclusivo PRO)">
+                        🎬 Vídeo 30 FPS (PRO)
                     </button>
                     <button type="button" class="social-action-btn" onclick="attachTelemetryBadgeToPost('🎴 KINET CARD 92 GRL // AI VERIFIED')" title="Adjuntar Sello KINET Card">
                         🎴 KINET Card
@@ -2769,7 +2781,7 @@
     </div>
 
     <!-- =========================================================================
-         MODAL 4: VISOR COMPLETO DE PERFIL DE USUARIO / AMIGO (PUBLICACIONES, VÍDEOS, INFO Y PRIVACIDAD)
+         MODAL 4: VISOR COMPLETO DE PERFIL DE USUARIO / AMIGO
          ========================================================================= -->
     <div id="user-profile-inspector-modal" class="kinet-modal-overlay">
         <div class="kinet-modal-box" style="max-width:650px;">
@@ -2797,7 +2809,7 @@
                         <div style="font-family:'JetBrains Mono';font-size:0.55rem;color:var(--text-secondary);">PUBLICACIONES</div>
                     </div>
                     <div>
-                        <div style="font-family:'Orbitron';font-weight:900;font-size:0.86rem;color:var(--role-color);" id="insp-followers-count">24</div>
+                        <div style="font-family:'Orbitron';font-weight:900;font-size:0.86rem;color:var(--role-color);" id="insp-followers-count">0</div>
                         <div style="font-family:'JetBrains Mono';font-size:0.55rem;color:var(--text-secondary);">SEGUIDORES</div>
                     </div>
                     <div>
@@ -2812,7 +2824,7 @@
                 </div>
             </div>
 
-            <!-- Pestañas internas del perfil: Publicaciones | Vídeos / Shorts | Ficha & Info -->
+            <!-- Pestañas internas del perfil -->
             <div class="dm-widget-tabs" style="grid-template-columns:repeat(3,1fr);margin-bottom:4px;">
                 <button type="button" class="dm-widget-tab-btn active" id="insp-tab-posts" onclick="switchInspectorTab('posts')">⚡ Publicaciones</button>
                 <button type="button" class="dm-widget-tab-btn" id="insp-tab-videos" onclick="switchInspectorTab('videos')">🎬 Vídeos & Shorts</button>
@@ -2833,7 +2845,8 @@
             <a href="app.html" id="drawer-vestuario" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>⚡ Vestuario</span><span>HOY</span></a>
             <a href="cuerpo-tecnico.html" id="drawer-cuerpo-tecnico" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🧠 Cuerpo Técnico IA</span><span>→</span></a>
             <a href="ficha-pro.html" id="drawer-ficha-pro" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🎴 Ficha & KINET Card</span><span>→</span></a>
-            <a href="ojeador-live.html" id="drawer-ojeador-live" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>📡 Ojeador & Laboratorio</span><span>→</span></a>
+            <a href="ojeador-live.html" id="drawer-ojeador-live" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🎬 Laboratorio Vídeo</span><span>→</span></a>
+            <a href="analizador.html" id="drawer-analizador" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🏟️ Analizador & Pizarra 3D</span><span>→</span></a>
             <a href="comunidad.html" id="drawer-comunidad" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(var(--role-rgb),0.15);border:1px solid var(--role-color);color:var(--role-color);text-decoration:none;font-weight:600;"><span>🌐 Comunidad / Red Social</span><span class="kinet-notif-exclaim" id="drawer-comunidad-notif">!</span></a>
             <a href="media-studio.html" id="drawer-media-studio" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🎵 KINET Media Studio™</span><span>→</span></a>
             <a href="perfil.html" id="drawer-perfil" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>👤 Mi Perfil</span><span>→</span></a>
@@ -2860,16 +2873,15 @@
             <span style="font-size:1rem;">🎴</span>
             <span>Ficha</span>
         </a>
-        <a href="ojeador-live.html" id="mob-ojeador-live" class="m-nav-btn">
-            <span style="font-size:1rem;">📡</span>
-            <span>Ojeador</span>
+        <a href="analizador.html" id="mob-analizador" class="m-nav-btn">
+            <span style="font-size:1rem;">🏟️</span>
+            <span>Pizarra</span>
         </a>
         <button onclick="toggleMobileDrawer()" class="m-nav-btn active">
             <span style="font-size:1rem;">🌐</span>
             <span>Menú</span>
         </button>
     </nav>
-
     <script>
         // =========================================================================
         // PUBLICACIONES OFICIALES EXPLICATIVAS DE KINET OS (SIN PERFILES FALSOS NI MENSAJE DE PRUEBA)
@@ -2932,10 +2944,10 @@
                 badge: 'GUÍA OFICIAL // SHORTS',
                 time: 'Anclado',
                 createdAtMs: Date.now() - 10800000,
-                text: '🎬 [¿PARA QUÉ SIRVE KINET SHORTS 9:16?] El visor vertical de vídeo donde se muestran los highlights biomecánicos a 120 FPS y las creaciones de KINET Media Studio™ sincronizadas con Spotify.',
+                text: '🎬 [¿PARA QUÉ SIRVE KINET SHORTS 9:16?] El visor vertical de vídeo donde se muestran los highlights biomecánicos a 24-30 FPS y las creaciones de KINET Media Studio™ sincronizadas con Spotify.',
                 reelData: {
-                    title: 'KINET Shorts 9:16 // Escaparate de Vídeo a 120 FPS',
-                    metric: 'TELEMETRÍA IA • 120 FPS HD',
+                    title: 'KINET Shorts 9:16 // Escaparate de Vídeo a 30 FPS',
+                    metric: 'TELEMETRÍA IA • 30 FPS HD',
                     track: 'Spotify Sync: KINET Official Theme'
                 },
                 mediaAttachment: null,
@@ -2962,7 +2974,7 @@
                 isSystemChannel: true,
                 isPrivate: false,
                 marketOpen: true,
-                lastActiveMs: Date.now() - 120000 // Hace 2 min
+                lastActiveMs: Date.now() - 120000
             },
             {
                 name: 'Centro de Ayuda & Soporte KINET',
@@ -2980,7 +2992,7 @@
                 isSupportChannel: true,
                 isPrivate: false,
                 marketOpen: true,
-                lastActiveMs: Date.now() - 30000 // Hace 30 seg
+                lastActiveMs: Date.now() - 30000
             }
         ];
 
@@ -2993,7 +3005,7 @@
                 },
                 {
                     from: 'incoming',
-                    text: '🚀 NOVEDAD ACTIVA: Nuevo algoritmo de Feed ("Para Ti & Populares"), ventana de creación multimedia, estados de lectura "Visto" estilo Instagram Direct e inspector completo de perfiles públicos y privados.',
+                    text: '🚀 NOVEDAD ACTIVA: Sincronización en tiempo real entre móvil y PC, bandeja de entrada KINET Direct sin recargar la página y nueva sección Analizador & Pizarra 3D Multideporte.',
                     ts: Date.now() - 60000 * 8
                 }
             ],
@@ -3008,18 +3020,17 @@
 
         let allSocialPosts = [...INITIAL_HYBRID_POSTS];
         let activeFeedMode = 'all';
-        let activeFeedSort = 'popular'; // 'popular', 'following', 'recent'
+        let activeFeedSort = 'popular';
         let currentShortsPlaylist = [];
         let currentShortIndex = 0;
         let currentDmContact = 'KINET OS Oficial (Noticias & Actualizaciones)';
         let sideDmMode = 'chats';
         let modalDmMode = 'chats';
         let inlineDmMode = 'chats';
-        let pendingComposerAttachment = null; // { type: 'image'|'video'|'badge', url: '', label: '' }
+        let pendingComposerAttachment = null;
         let currentInspectedPerson = null;
         let activeInspectorTab = 'posts';
 
-        // Mapa global de avatares por @handle para pintar fotos de perfil reales en posts, chats y modales
         const HANDLE_AVATAR_MAP = {};
 
         function registerHandleAvatar(handle, avatarUrl) {
@@ -3032,10 +3043,12 @@
             if (!handle) return fallbackUrl || null;
             const clean = (handle.startsWith('@') ? handle : '@' + handle).toLowerCase();
             if (clean === '@kinet_official') return OFFICIAL_KINET_LOGO_URL;
-            if (fallbackUrl) return fallbackUrl;
+            const myHandle = (localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '').toLowerCase();
+            if (clean === myHandle) {
+                return localStorage.getItem('kinet_user_avatar') || HANDLE_AVATAR_MAP[clean] || fallbackUrl || null;
+            }
             if (HANDLE_AVATAR_MAP[clean]) return HANDLE_AVATAR_MAP[clean];
-            const myHandle = (localStorage.getItem('kinet_social_handle') || '').toLowerCase();
-            if (clean === myHandle) return localStorage.getItem('kinet_user_avatar') || null;
+            if (fallbackUrl) return fallbackUrl;
             const person = NETWORK_DIRECTORY.find(u => (u.handle || '').toLowerCase() === clean);
             return person?.avatarUrl || null;
         }
@@ -3044,7 +3057,6 @@
             const clean = ((handle || '').startsWith('@') ? handle : '@' + handle).toLowerCase();
             const dynamicFollowers = REAL_FOLLOWERS_COUNT_MAP[clean] || 0;
             if (clean === '@kinet_official') {
-                // Base oficial de 10.000 seguidores + los usuarios reales que la siguen
                 const iFollowOfficial = isFollowingHandle('@kinet_official') ? 1 : 0;
                 return (10000 + Math.max(dynamicFollowers, iFollowOfficial)).toLocaleString('es-ES');
             }
@@ -3075,7 +3087,6 @@
             return avatarUrl ? '' : (initials || 'K');
         }
 
-        // Formateador de tiempo relativo estilo Instagram ("Enviado hace 1 min", "Visto hace un momento", "Visto hace más de 5 min", etc.)
         function formatRelativeTimeIG(timestampMs, prefixWord) {
             const now = Date.now();
             const ts = timestampMs || now;
@@ -3106,7 +3117,6 @@
             return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
         }
 
-        // Filtro para descartar el antiguo post de prueba de SQL ("Conexión oficial con la base de datos KINET Cloud...")
         function isDeprecatedTestPost(textStr, badgeStr) {
             const t = (textStr || '').toLowerCase();
             const b = (badgeStr || '').toLowerCase();
@@ -3189,7 +3199,6 @@
             return defaults;
         }
 
-        // Controladores de los menús desplegables personalizados Glassmorphism (sin menú nativo azul de Windows)
         function toggleCustomDropdown(ddId, event) {
             if (event) event.stopPropagation();
             const el = document.getElementById(ddId);
@@ -3274,6 +3283,10 @@
         }
 
         function setComposerPostType(typeVal, btnEl) {
+            if (typeVal === 'reels' && !isPaidAccount()) {
+                alert('⚡ Los KINET Shorts de vídeo (24-30 FPS) están reservados para cuentas KINET PRO / Club.\n\nEn el Plan Gratuito puedes publicar fotos, textos y telemetría en KINET Pulse.');
+                return;
+            }
             const input = document.getElementById('new-post-type');
             if (input) input.value = typeVal;
             document.querySelectorAll('[data-ptype]').forEach(b => b.classList.remove('active'));
@@ -3354,8 +3367,8 @@
         }
 
         function isPaidAccount() {
-            const tier = localStorage.getItem('kinet_account_tier') || 'free';
-            return tier === 'pro' || tier === 'club';
+            const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
+            return tier === 'pro' || tier === 'club' || localStorage.getItem('kinet_is_pro') === 'true';
         }
 
         function startShortVideoHudAnimation() {
@@ -3466,7 +3479,8 @@
                 'nav-vestuario': 'app.html', 'drawer-vestuario': 'app.html', 'mob-vestuario': 'app.html',
                 'nav-cuerpo-tecnico': 'cuerpo-tecnico.html', 'drawer-cuerpo-tecnico': 'cuerpo-tecnico.html', 'mob-cuerpo-tecnico': 'cuerpo-tecnico.html',
                 'nav-ficha-pro': 'ficha-pro.html', 'drawer-ficha-pro': 'ficha-pro.html', 'mob-ficha-pro': 'ficha-pro.html', 'side-link-card': 'ficha-pro.html', 'in-card-link': 'ficha-pro.html', 'fs-card-link': 'ficha-pro.html',
-                'nav-ojeador-live': 'ojeador-live.html', 'drawer-ojeador-live': 'ojeador-live.html', 'mob-ojeador-live': 'ojeador-live.html', 'link-to-scout-matrix': 'ojeador-live.html',
+                'nav-ojeador-live': 'ojeador-live.html', 'drawer-ojeador-live': 'ojeador-live.html',
+                'nav-analizador': 'analizador.html', 'drawer-analizador': 'analizador.html', 'mob-analizador': 'analizador.html', 'link-to-scout-matrix': 'analizador.html',
                 'nav-comunidad': 'comunidad.html', 'drawer-comunidad': 'comunidad.html',
                 'nav-media-studio': 'media-studio.html', 'drawer-media-studio': 'media-studio.html', 'in-create-reel-btn': 'media-studio.html',
                 'nav-perfil': 'perfil.html', 'drawer-perfil': 'perfil.html',
@@ -3536,7 +3550,6 @@
                 localStorage.setItem('kinet_social_configured', 'true');
             }
 
-            // Inicializar los switches de privacidad y estado de lectura
             const isPrivateAcc = localStorage.getItem('kinet_private_account') === 'true';
             const privSwitch = document.getElementById('private-account-switch');
             if (privSwitch) privSwitch.checked = isPrivateAcc;
@@ -3561,9 +3574,10 @@
                 openSocialSetupModal();
             }
 
-            selectConversationAllViews(currentDmContact);
+            // En la carga inicial NO forzamos la vista de chat individual en móvil (openMobileChatView = false)
+            selectConversationAllViews(currentDmContact, null, null, false);
             updateFollowingCountersAndButtons();
-            setTimeout(syncCommunityWithSupabase, 300);
+            setTimeout(syncCommunityWithSupabase, 200);
         }
 
         function togglePrivateAccountSetting(isPrivate) {
@@ -3576,6 +3590,7 @@
 
         function toggleReadReceiptsSetting(showReceipts) {
             localStorage.setItem('kinet_show_read_receipts', String(showReceipts));
+            localStorage.setItem('kinet_privacy_read_receipts', String(showReceipts));
             if (window.KinetBackend && typeof window.KinetBackend.pushLocalStateToCloud === 'function') {
                 window.KinetBackend.pushLocalStateToCloud();
             }
@@ -3601,11 +3616,11 @@
 
         function refreshMySocialCardUI() {
             const userName = localStorage.getItem('kinet_user_name') || 'Atleta KINET';
-            let savedHandle = localStorage.getItem('kinet_social_handle');
+            let savedHandle = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username');
             if (!savedHandle || (savedHandle === '@alexvance_pro' && userName.toLowerCase() !== 'alex vance')) {
                 savedHandle = `@${userName.toLowerCase().replace(/[^a-z0-9]/g, '')}_pro`;
             }
-            const bio = localStorage.getItem('kinet_social_bio') || 'Perfil Verificado KINET OS • Telemetría & Vídeo 120 FPS';
+            const bio = localStorage.getItem('kinet_social_bio') || 'Perfil Verificado KINET OS • Telemetría & Vídeo 30 FPS';
             const avatarUrl = localStorage.getItem('kinet_user_avatar');
 
             if (avatarUrl) registerHandleAvatar(savedHandle, avatarUrl);
@@ -3685,27 +3700,19 @@
             openInstagramDirectModal('discover');
         }
 
-        // =========================================================================
-        // ALGORITMO DE FEED PERSONALIZADO Y POPULARIDAD (ESTILO X / TWITTER)
-        // =========================================================================
         function calculatePostAffinityScore(post) {
             const mySport = normalizeSportOption(localStorage.getItem('kinet_sport') || 'Fútbol');
             const myRole = localStorage.getItem('kinet_active_role') || 'athlete';
             const following = isFollowingHandle(post.handle);
 
             let score = (post.likes || 1) * 3;
-            // Bonus si es del deporte del usuario
             if (post.sport === mySport) score += 45;
-            // Bonus si el usuario sigue al autor
             if (following) score += 60;
-            // Bonus si tiene archivo multimedia o vídeo Short
             if (post.mediaAttachment || post.reelData) score += 30;
-            // Bonus de frescura para publicaciones recientes de usuarios
             const ageHours = Math.max(0, (Date.now() - (post.createdAtMs || Date.now())) / 3600000);
             if (!post.isOfficialGuide) {
                 score += Math.max(0, 80 - ageHours * 4);
             } else {
-                // Las guías oficiales quedan visibles pero dejan brillar arriba los posts populares de usuarios cuando los hay
                 score += 15;
             }
             if (post.role === myRole) score += 12;
@@ -3769,13 +3776,11 @@
                 if (isDeprecatedTestPost(post.text, post.badge)) return false;
                 if (activeFeedMode === 'all' && post.id === 'kinet_official_shorts') return false;
 
-                // Respetar privacidad: si el post es "followers" (o de cuenta privada) y no eres tú ni le sigues, no mostrar
                 const postHandleLower = (post.handle || '').toLowerCase();
                 if (post.visibility === 'followers' && postHandleLower !== myHandle && !isFollowingHandle(post.handle)) {
                     return false;
                 }
 
-                // Si el filtro superior de algoritmo está en "Siguiendo", mostrar solo seguidos + tus posts + guía oficial
                 if (activeFeedSort === 'following' && postHandleLower !== myHandle && !isFollowingHandle(post.handle) && !post.isOfficialGuide) {
                     return false;
                 }
@@ -3795,7 +3800,6 @@
                 return matchSport && matchMode && matchRole && matchQuery;
             });
 
-            // Ordenar según el algoritmo elegido (Populares & Para Ti | Siguiendo | Recientes)
             if (activeFeedSort === 'popular') {
                 filtered.sort((a, b) => calculatePostAffinityScore(b) - calculatePostAffinityScore(a));
             } else {
@@ -3826,7 +3830,7 @@
             const avatarUrl = getAvatarForHandle(item.handle, item.avatarUrl);
 
             ['in', 'fs'].forEach(prefix => {
-                document.getElementById(`${prefix}-sport-pill`).textContent = `${sportTag} // 120 FPS`;
+                document.getElementById(`${prefix}-sport-pill`).textContent = `${sportTag} // 30 FPS`;
                 document.getElementById(`${prefix}-counter-pill`).textContent = `${currentShortIndex + 1} / ${currentShortsPlaylist.length}`;
                 document.getElementById(`${prefix}-video-title`).textContent = item.reelData.title;
                 document.getElementById(`${prefix}-metric-chip-1`).textContent = `⚡ ${item.reelData.metric}`;
@@ -3919,7 +3923,6 @@
             }
             localStorage.setItem('kinet_liked_post_ids', JSON.stringify(likedMap));
 
-            // Guardar en caché local de posts y sincronizar con Supabase si es un post en la nube
             try {
                 const localSaved = JSON.parse(localStorage.getItem('kinet_saved_posts') || '[]');
                 const idx = localSaved.findIndex(sp => sp.id === postId);
@@ -4041,10 +4044,14 @@
         }
 
         // =========================================================================
-        // MODAL DE CREAR PUBLICACIÓN ESTILO KINET (FOTO, VÍDEO, INSIGNIA Y VISIBILIDAD)
+        // MODAL DE CREAR PUBLICACIÓN (FOTOS GRATIS / VÍDEOS 30 FPS SOLO PRO)
         // =========================================================================
         function openCreatePostModal(initialType) {
             refreshMySocialCardUI();
+            if (initialType === 'reels' && !isPaidAccount()) {
+                alert('⚡ La subida de vídeos y KINET Shorts (24-30 FPS) es exclusiva del Plan KINET PRO / Club.\n\nEn el Plan Gratuito puedes publicar fotos, textos y telemetría libremente.');
+                initialType = 'post';
+            }
             const resolvedType = (initialType === 'reels' || initialType === 'market' || initialType === 'post') ? initialType : 'post';
             const pillBtn = document.querySelector(`[data-ptype="${resolvedType}"]`);
             setComposerPostType(resolvedType, pillBtn);
@@ -4062,9 +4069,13 @@
         }
 
         function triggerComposerFile(acceptMime) {
+            if (acceptMime && acceptMime.includes('video') && !isPaidAccount()) {
+                alert('⚡ La subida de vídeos y KINET Shorts (24-30 FPS) es exclusiva del Plan KINET PRO / Club.\n\nEn el Plan Gratuito puedes subir fotos y telemetría libremente.');
+                return;
+            }
             const fileInput = document.getElementById('composer-file-input');
             if (!fileInput) return;
-            fileInput.setAttribute('accept', acceptMime || 'image/*,video/*');
+            fileInput.setAttribute('accept', acceptMime || 'image/*');
             fileInput.click();
         }
 
@@ -4074,9 +4085,14 @@
             const isVideo = file.type.startsWith('video/');
 
             if (isVideo) {
+                if (!isPaidAccount()) {
+                    input.value = '';
+                    alert('⚡ La subida de vídeos (24-30 FPS) está reservada para cuentas KINET PRO / Club. En el Plan Gratuito puedes subir fotos.');
+                    return;
+                }
                 document.getElementById('new-post-type').value = 'reels';
                 const videoUrl = URL.createObjectURL(file);
-                pendingComposerAttachment = { type: 'video', url: videoUrl, label: file.name };
+                pendingComposerAttachment = { type: 'video', url: videoUrl, label: `${file.name} (Normalizado a 30 FPS)` };
                 renderComposerAttachmentPreview();
             } else {
                 const reader = new FileReader();
@@ -4118,7 +4134,7 @@
                 `;
             } else if (pendingComposerAttachment.type === 'video') {
                 box.innerHTML = `
-                    <div style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);margin-bottom:6px;">🎬 VÍDEO 120 FPS ADJUNTO: ${pendingComposerAttachment.label}</div>
+                    <div style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);margin-bottom:6px;">🎬 VÍDEO 30 FPS ADJUNTO: ${pendingComposerAttachment.label}</div>
                     <video src="${pendingComposerAttachment.url}" controls style="max-height:170px;border-radius:10px;display:block;"></video>
                 `;
             } else {
@@ -4134,6 +4150,11 @@
             if (!text && !pendingComposerAttachment) return;
 
             const postMode = document.getElementById('new-post-type').value;
+            if ((postMode === 'reels' || (pendingComposerAttachment && pendingComposerAttachment.type === 'video')) && !isPaidAccount()) {
+                alert('⚡ Los vídeos y KINET Shorts (24-30 FPS) son exclusivos para miembros KINET PRO / Club.');
+                return;
+            }
+
             const visibility = document.getElementById('modal-post-visibility')?.value || 'public';
             const userName = localStorage.getItem('kinet_user_name') || 'Atleta KINET';
             const handle = localStorage.getItem('kinet_social_handle') || `@${userName.toLowerCase().replace(/[^a-z0-9]/g, '')}_pro`;
@@ -4157,14 +4178,14 @@
                 avatarUrl: avatarUrl,
                 headline: bio,
                 marketOpen: document.getElementById('open-offers-switch').checked,
-                badge: postMode === 'reels' ? 'KINET SHORT 120 FPS' : (postMode === 'market' ? 'RADAR B2B' : 'KINET PULSE'),
+                badge: postMode === 'reels' ? 'KINET SHORT 30 FPS' : (postMode === 'market' ? 'RADAR B2B' : 'KINET PULSE'),
                 time: 'Ahora mismo',
                 createdAtMs: Date.now(),
                 text: text || (pendingComposerAttachment ? pendingComposerAttachment.label : ''),
                 mediaAttachment: pendingComposerAttachment ? { ...pendingComposerAttachment } : null,
                 reelData: postMode === 'reels' ? {
-                    title: text ? text.slice(0, 48) : 'Highlight Subido desde KINET OS',
-                    metric: 'TELEMETRÍA VERIFICADA • 92 GRL',
+                    title: text ? text.slice(0, 48) : 'Highlight Subido desde KINET OS (30 FPS)',
+                    metric: 'TELEMETRÍA VERIFICADA • 30 FPS',
                     track: 'Spotify Sync: Active Track'
                 } : null,
                 likes: 0
@@ -4193,7 +4214,7 @@
         }
 
         // =========================================================================
-        // VISOR COMPLETO DE PERFIL DE USUARIO / AMIGO (CON PUBLICACIONES, VÍDEOS Y PRIVACIDAD)
+        // VISOR COMPLETO DE PERFIL DE USUARIO / AMIGO
         // =========================================================================
         function openMyOwnPublicProfilePreview() {
             const userName = localStorage.getItem('kinet_user_name') || 'Atleta KINET';
@@ -4307,22 +4328,18 @@
                 post => (post.handle || '').toLowerCase() === (p.handle || '').toLowerCase()
             );
             document.getElementById('insp-posts-count').textContent = userPosts.length;
-
-            // Calcular seguidores reales de este usuario (más +1 si tú le sigues y aún no había refrescado)
-            const baseCountStr = getRealFollowersCountForHandle(p.handle);
-            document.getElementById('insp-followers-count').textContent = baseCountStr;
+            document.getElementById('insp-followers-count').textContent = getRealFollowersCountForHandle(p.handle);
 
             const contentBox = document.getElementById('insp-tab-content-box');
             if (!contentBox) return;
 
-            // Si la cuenta es privada y no la sigues (y no eres tú), mostrar bloqueo de privacidad estilo Instagram
             if (p.isPrivate && !following && !isMe) {
                 contentBox.innerHTML = `
                     <div style="text-align:center;padding:28px 18px;background:rgba(4,6,10,0.8);border:1px dashed rgba(var(--role-rgb),0.4);border-radius:16px;margin-top:8px;">
                         <div style="font-size:1.8rem;margin-bottom:6px;">🔒</div>
                         <div style="font-family:'Orbitron';font-size:0.88rem;font-weight:900;color:white;margin-bottom:4px;">Esta cuenta de KINET Network™ es privada</div>
                         <p style="font-size:0.75rem;color:#94A3B8;max-width:420px;margin:0 auto 12px auto;">
-                            Sigue a <strong>${p.handle}</strong> para ver sus publicaciones biométricas, vídeos a 120 FPS y su dossier deportivo completo.
+                            Sigue a <strong>${p.handle}</strong> para ver sus publicaciones biométricas, vídeos a 30 FPS y su dossier deportivo completo.
                         </p>
                         <button type="button" class="btn-primary" onclick="toggleFollowFromInspector()">+ Seguir a ${p.shortName}</button>
                     </div>
@@ -4352,7 +4369,7 @@
                     contentBox.innerHTML = videoPosts.map(vp => `
                         <div style="background:rgba(var(--role-rgb),0.06);border:1px solid rgba(var(--role-rgb),0.35);border-radius:14px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
                             <div>
-                                <div style="font-family:'Orbitron';font-size:0.78rem;font-weight:800;color:white;">🎬 ${vp.reelData ? vp.reelData.title : 'KINET Short 120 FPS'}</div>
+                                <div style="font-family:'Orbitron';font-size:0.78rem;font-weight:800;color:white;">🎬 ${vp.reelData ? vp.reelData.title : 'KINET Short 30 FPS'}</div>
                                 <div style="font-size:0.72rem;color:#CBD5E1;margin-top:3px;">${vp.text}</div>
                             </div>
                             <button type="button" class="btn-secondary" style="padding:6px 10px;font-size:0.62rem;" onclick="closeUserProfileInspector(); openSpecificShortInTheater('${vp.id}')">▶ Reproducir</button>
@@ -4395,13 +4412,11 @@
         async function handleSetupAvatarUpload(input) {
             if (!input.files || !input.files[0]) return;
             const file = input.files[0];
-            if (window.KinetBackend && typeof window.KinetBackend.compressAvatar === 'function') {
-                const compressedUrl = await window.KinetBackend.compressAvatar(file);
-                if (compressedUrl) {
-                    localStorage.setItem('kinet_user_avatar', compressedUrl);
+            if (window.KinetBackend && typeof window.KinetBackend.updateProfileAvatar === 'function') {
+                const res = await window.KinetBackend.updateProfileAvatar(file);
+                if (res && res.avatar_url) {
                     refreshMySocialCardUI();
                     filterSocialFeed();
-                    window.KinetBackend.pushLocalStateToCloud();
                     return;
                 }
             }
@@ -4444,7 +4459,7 @@
         }
 
         // =========================================================================
-        // SISTEMA KINET DIRECT (AVATARES REALES, ANIMACIÓN DE ENVÍO Y TICS/VISTO IG)
+        // SISTEMA KINET DIRECT (BANDEJA DE ENTRADA PRIMERO EN MÓVIL + TIEMPO REAL)
         // =========================================================================
         function findDirectoryPerson(contactKeyOrName, fallbackInitials, fallbackHandle) {
             const targetNameKey = normalizeNameKey(contactKeyOrName);
@@ -4520,7 +4535,7 @@
                     const tickPrefix = lastMsgObj && lastMsgObj.from === 'outgoing' ? 'Tú: ' : '';
 
                     return `
-                        <div class="dm-contact-item ${isActive ? 'active-chat' : ''}" onclick="${clickHandlerName}('${u.name}', '${u.initials}', '${u.handle}')">
+                        <div class="dm-contact-item ${isActive ? 'active-chat' : ''}" onclick="${clickHandlerName}('${u.name}', '${u.initials}', '${u.handle}', true)">
                             <div style="display:flex;align-items:center;gap:10px;min-width:0;">
                                 <div class="post-avatar" style="width:36px;height:36px;font-size:0.95rem;${avStyle}">
                                     ${getAvatarInnerText(avUrl, u.initials)}
@@ -4530,10 +4545,10 @@
                                         <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.shortName}</span>
                                         <span style="font-family:'JetBrains Mono';font-size:0.54rem;color:${borderCol};">${u.roleBadge}</span>
                                     </div>
-                                    <div style="font-size:0.65rem;color:#CBD5E1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${tickPrefix}${lastMsg}</div>
+                                    <div style="font-size:0.65rem;color:${u.unread ? '#00FF88' : '#CBD5E1'};font-weight:${u.unread ? '700' : '400'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${tickPrefix}${lastMsg}</div>
                                 </div>
                             </div>
-                            ${u.unread ? '<span class="dm-unread-dot"></span>' : ''}
+                            ${u.unread ? '<span class="dm-unread-dot" title="Mensaje nuevo sin leer"></span>' : ''}
                         </div>
                     `;
                 }).join('');
@@ -4552,7 +4567,7 @@
                     const safeShort = (u.shortName || u.name).replace(/'/g, "\'");
 
                     return `
-                        <div class="dm-contact-item" onclick="${clickHandlerName}('${u.name}', '${u.initials}', '${u.handle}')">
+                        <div class="dm-contact-item" onclick="${clickHandlerName}('${u.name}', '${u.initials}', '${u.handle}', true)">
                             <div style="display:flex;align-items:center;gap:9px;min-width:0;">
                                 <div class="post-avatar" style="width:35px;height:35px;font-size:0.92rem;${avStyle}" onclick="event.stopPropagation(); openUserProfileInspector('${u.handle}', '${safeShort}', '${u.initials}')" title="Ver Perfil">
                                     ${getAvatarInnerText(avUrl, u.initials)}
@@ -4597,13 +4612,17 @@
         }
 
         function openDmInTabOrModal(contactName, initials, handle) {
-            selectConversationAllViews(contactName, initials, handle);
-            openInstagramDirectModal('chats');
+            selectConversationAllViews(contactName, initials, handle, true);
+            document.getElementById('dm-chat-modal').classList.add('open');
         }
 
+        // Al pulsar "💬 DMs" arriba en móvil o PC: abre la BANDEJA DE ENTRADA general (sin meterte dentro de un chat abierto)
         function openInstagramDirectModal(initialTab) {
             switchModalDmTab(initialTab || 'chats');
-            selectConversationAllViews(currentDmContact);
+            document.getElementById('ig-direct-shell')?.classList.remove('mobile-chat-open');
+            document.getElementById('ig-inline-direct-panel')?.classList.remove('mobile-chat-open');
+            renderModalLeftList();
+            renderDmMessages();
             document.getElementById('dm-chat-modal').classList.add('open');
         }
 
@@ -4614,17 +4633,40 @@
             renderModalLeftList();
         }
 
-        function selectConversationAllViews(contactName, initials, handle) {
+        function updateUnreadBadgesUI() {
+            const unreadCount = NETWORK_DIRECTORY.filter(u => u.unread).length;
+            const topBadge = document.getElementById('topbar-unread-badge');
+            if (topBadge) {
+                topBadge.textContent = unreadCount;
+                topBadge.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+            }
+            ['sidebar-comunidad-notif', 'drawer-comunidad-notif'].forEach(nid => {
+                const nEl = document.getElementById(nid);
+                if (!nEl) return;
+                if (unreadCount > 0) {
+                    nEl.classList.remove('read-empty');
+                    nEl.textContent = '!';
+                    nEl.title = `${unreadCount} mensaje(s) nuevo(s) en KINET Direct`;
+                } else {
+                    nEl.classList.add('read-empty');
+                    nEl.textContent = '';
+                    nEl.title = 'Comunidad al día';
+                }
+            });
+        }
+
+        function selectConversationAllViews(contactName, initials, handle, openMobileChatView = true) {
             const person = findDirectoryPerson(contactName, initials, handle);
             currentDmContact = person.name;
-            person.unread = false;
+            if (openMobileChatView) {
+                person.unread = false;
+            }
 
             if (!DM_CONVERSATIONS[currentDmContact]) {
                 DM_CONVERSATIONS[currentDmContact] = [];
             }
 
-            // Cuando TÚ abres el chat de esta persona, marcas como VISTOS en Supabase los mensajes que ELLA te envió a ti
-            if (person.handle && window.KinetBackend && typeof window.KinetBackend.markDirectMessagesAsRead === 'function') {
+            if (openMobileChatView && person.handle && window.KinetBackend && typeof window.KinetBackend.markDirectMessagesAsRead === 'function') {
                 window.KinetBackend.markDirectMessagesAsRead(person.handle);
             }
 
@@ -4649,31 +4691,17 @@
                 if (subEl) subEl.textContent = `● ${person.handle} • ${person.sport.toUpperCase()} • EN LÍNEA`;
             });
 
-            const unreadCount = NETWORK_DIRECTORY.filter(u => u.unread).length;
-            const topBadge = document.getElementById('topbar-unread-badge');
-            if (topBadge) topBadge.textContent = unreadCount;
-            ['sidebar-comunidad-notif', 'drawer-comunidad-notif'].forEach(nid => {
-                const nEl = document.getElementById(nid);
-                if (!nEl) return;
-                if (unreadCount > 0) {
-                    nEl.classList.remove('read-empty');
-                    nEl.textContent = '!';
-                    nEl.title = `${unreadCount} notificación(es) nueva(s) en Comunidad`;
-                } else {
-                    nEl.classList.add('read-empty');
-                    nEl.textContent = '';
-                    nEl.title = 'Comunidad al día';
-                }
-            });
-
+            updateUnreadBadgesUI();
             syncDmHeaderFollowBtn();
             renderDmMessages();
             renderModalLeftList();
             renderInlineDirectLeftList();
             renderSidebarDmAndFriends();
 
-            document.getElementById('ig-direct-shell')?.classList.add('mobile-chat-open');
-            document.getElementById('ig-inline-direct-panel')?.classList.add('mobile-chat-open');
+            if (openMobileChatView) {
+                document.getElementById('ig-direct-shell')?.classList.add('mobile-chat-open');
+                document.getElementById('ig-inline-direct-panel')?.classList.add('mobile-chat-open');
+            }
         }
 
         function syncDmHeaderFollowBtn() {
@@ -4695,7 +4723,7 @@
         }
 
         function openDmModal(contactName, initials, handle) {
-            selectConversationAllViews(contactName, initials, handle);
+            selectConversationAllViews(contactName, initials, handle, true);
             document.getElementById('dm-chat-modal').classList.add('open');
         }
 
@@ -4716,7 +4744,6 @@
                 return;
             }
 
-            // Burbujas minimalistas: solo el texto y la hora en pequeño abajo a la derecha (ej: 00:25), sin "Enviado hace..." ni tics
             let html = msgs.map((m) => {
                 const animClass = m._justSent ? 'anim-send' : (m._justReceived ? 'anim-receive' : '');
                 const timeClock = formatClockTime(m.ts);
@@ -4731,8 +4758,6 @@
                 `;
             }).join('');
 
-            // Etiqueta inferior estilo Instagram Direct:
-            // Solo muestra "👁️ Visto..." cuando la otra persona realmente ha abierto el chat en su cuenta
             const lastMsg = msgs[msgs.length - 1];
             if (lastMsg && lastMsg.from === 'outgoing' && showReadReceipts) {
                 const seenText = lastMsg.status === 'read'
@@ -4758,7 +4783,7 @@
         function buildOfficialSupportReply(userText) {
             const q = (userText || '').toLowerCase();
             if (q.includes('card') || q.includes('carta') || q.includes('??')) {
-                return '🛠️ [Soporte KINET]: Para desbloquear tu KINET Card verificada (quitar las ??), entra en "Ficha & KINET Card" y sube los 3 micro-clips de tu posición (~1.5 min), o activa el Modo Custom Manual.';
+                return '🛠️ [Soporte KINET]: Para desbloquear tu KINET Card verificada (quitar las ??), entra en "Ficha & KINET Card" y sube los 3 bloques de vídeo de tu posición, o activa el Modo Custom Manual.';
             }
             if (q.includes('radar') || q.includes('scout') || q.includes('fichaje')) {
                 return '🛠️ [Soporte KINET]: En la pestaña "💼 KINET Radar" puedes ver y publicar convocatorias de clubes y scouts. Mantén activo el botón "Abierto a Ofertas" en tu perfil para destacar.';
@@ -4837,16 +4862,16 @@
         }
 
         // =========================================================================
-        // CONEXIÓN REAL EN VIVO CON SUPABASE (TABLAS: profiles, posts, direct_messages)
+        // CONEXIÓN REAL EN VIVO CON SUPABASE + TIEMPO REAL SIN RECARGAR LA PÁGINA
         // =========================================================================
         async function syncCommunityWithSupabase() {
             if (!window.KinetBackend || typeof window.KinetBackend.getClient !== 'function') return;
             const sb = window.KinetBackend.getClient();
 
             try {
-                await window.KinetBackend.pushLocalStateToCloud();
+                // Primero descargamos el estado más reciente de la nube para que la foto de perfil se iguale entre Móvil y PC
+                await window.KinetBackend.pullCloudStateToLocal();
 
-                // 1. Cargar usuarios reales registrados en public.profiles (incluyendo su foto de perfil avatar_url y privacidad)
                 let realProfiles = [];
                 if (sb) {
                     const { data } = await sb
@@ -4858,8 +4883,7 @@
                 }
 
                 if (realProfiles && realProfiles.length > 0) {
-                    const myHandle = (localStorage.getItem('kinet_social_handle') || '').toLowerCase();
-                    // Resetear y calcular el mapa real de seguidores contando a quién sigue cada usuario real registrado en Supabase
+                    const myHandle = (localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '').toLowerCase();
                     Object.keys(REAL_FOLLOWERS_COUNT_MAP).forEach(k => delete REAL_FOLLOWERS_COUNT_MAP[k]);
                     realProfiles.forEach(prof => {
                         try {
@@ -4882,8 +4906,8 @@
                         if (profAvatar) registerHandleAvatar(h, profAvatar);
 
                         if (h.toLowerCase() === myHandle) {
-                            // Unificar mi propia foto de perfil entre móvil y PC si la nube tiene una guardada
-                            if (profAvatar && !localStorage.getItem('kinet_user_avatar')) {
+                            // SIEMPRE sobrescribir con la foto de perfil de Supabase para que Móvil y PC muestren la misma foto
+                            if (profAvatar) {
                                 localStorage.setItem('kinet_user_avatar', profAvatar);
                             }
                             return;
@@ -4940,7 +4964,6 @@
                     });
                 }
 
-                // 2. Cargar publicaciones reales de public.posts (filtrando el antiguo post de prueba)
                 const cloudPosts = await window.KinetBackend.fetchCloudPosts();
                 if (cloudPosts && cloudPosts.length > 0) {
                     cloudPosts.reverse().forEach(cp => {
@@ -4979,57 +5002,13 @@
                     });
                 }
 
-                // 3. Cargar Mensajes Directos (DMs) reales de public.direct_messages (CON ESTADO REAL DE VISTO)
-                const myHandle = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username');
-                if (myHandle && sb) {
-                    const { data: cloudDms } = await sb
-                        .from('direct_messages')
-                        .select('*')
-                        .or(`sender_handle.ilike.${myHandle},receiver_handle.ilike.${myHandle}`)
-                        .order('created_at', { ascending: true })
-                        .limit(100);
-
-                    if (cloudDms && cloudDms.length > 0) {
-                        cloudDms.forEach(dm => {
-                            const isOutgoing = (dm.sender_handle || '').toLowerCase() === myHandle.toLowerCase();
-                            const otherHandle = isOutgoing ? dm.receiver_handle : dm.sender_handle;
-                            const person = findDirectoryPerson(otherHandle, null, otherHandle);
-                            if (!DM_CONVERSATIONS[person.name]) {
-                                DM_CONVERSATIONS[person.name] = [];
-                            }
-                            const msgTs = dm.created_at ? new Date(dm.created_at).getTime() : Date.now();
-                            const readStatus = dm.is_read ? 'read' : 'sent';
-                            const readTs = dm.read_at ? new Date(dm.read_at).getTime() : null;
-
-                            const existingMsg = DM_CONVERSATIONS[person.name].find(
-                                m => m._sbId === dm.id || (m.text === dm.message_text && m.from === (isOutgoing ? 'outgoing' : 'incoming'))
-                            );
-
-                            if (!existingMsg) {
-                                DM_CONVERSATIONS[person.name].push({
-                                    _sbId: dm.id,
-                                    from: isOutgoing ? 'outgoing' : 'incoming',
-                                    text: dm.message_text,
-                                    ts: msgTs,
-                                    status: readStatus,
-                                    seenAt: readTs
-                                });
-                            } else {
-                                existingMsg._sbId = dm.id;
-                                existingMsg.status = readStatus;
-                                existingMsg.seenAt = readTs;
-                            }
-                        });
-
-                        const activePerson = findDirectoryPerson(currentDmContact);
-                        if (activePerson && activePerson.handle && window.KinetBackend?.markDirectMessagesAsRead) {
-                            window.KinetBackend.markDirectMessagesAsRead(activePerson.handle);
-                        }
-                        persistDmsToLocalCache();
-                    }
+                const cloudDms = await window.KinetBackend.fetchCloudDirectMessages();
+                if (cloudDms && cloudDms.length > 0) {
+                    mergeIncomingCloudDms(cloudDms, false);
                 }
 
                 refreshMySocialCardUI();
+                updateUnreadBadgesUI();
                 filterSocialFeed();
                 renderSidebarDmAndFriends();
                 renderInlineDirectLeftList();
@@ -5039,6 +5018,90 @@
                 console.warn('Aviso sincronizando Comunidad con Supabase:', err);
             }
         }
+
+        function mergeIncomingCloudDms(cloudDms, animateNew = true) {
+            const myHandle = (localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '').toLowerCase();
+            if (!myHandle || !Array.isArray(cloudDms)) return false;
+
+            const isModalChatOpen = document.getElementById('dm-chat-modal')?.classList.contains('open') &&
+                (window.innerWidth > 780 || document.getElementById('ig-direct-shell')?.classList.contains('mobile-chat-open'));
+
+            let changed = false;
+            cloudDms.forEach(dm => {
+                const isOutgoing = (dm.sender_handle || '').toLowerCase() === myHandle;
+                const otherHandle = isOutgoing ? dm.receiver_handle : dm.sender_handle;
+                const person = findDirectoryPerson(otherHandle, null, otherHandle);
+                if (!DM_CONVERSATIONS[person.name]) {
+                    DM_CONVERSATIONS[person.name] = [];
+                }
+                const msgTs = dm.created_at ? new Date(dm.created_at).getTime() : Date.now();
+                const readStatus = dm.is_read ? 'read' : 'sent';
+                const readTs = dm.read_at ? new Date(dm.read_at).getTime() : null;
+
+                const existingMsg = DM_CONVERSATIONS[person.name].find(
+                    m => m._sbId === dm.id || (m.text === dm.message_text && m.from === (isOutgoing ? 'outgoing' : 'incoming') && Math.abs((m.ts || 0) - msgTs) < 60000)
+                );
+
+                if (!existingMsg) {
+                    DM_CONVERSATIONS[person.name].push({
+                        _sbId: dm.id,
+                        from: isOutgoing ? 'outgoing' : 'incoming',
+                        text: dm.message_text,
+                        ts: msgTs,
+                        status: readStatus,
+                        seenAt: readTs,
+                        _justReceived: animateNew && !isOutgoing
+                    });
+                    if (!isOutgoing) {
+                        if (isModalChatOpen && person.name === currentDmContact) {
+                            person.unread = false;
+                            window.KinetBackend?.markDirectMessagesAsRead(person.handle);
+                        } else if (!dm.is_read) {
+                            person.unread = true;
+                        }
+                    }
+                    changed = true;
+                } else {
+                    if (existingMsg.status !== readStatus) {
+                        existingMsg.status = readStatus;
+                        existingMsg.seenAt = readTs;
+                        changed = true;
+                    }
+                    existingMsg._sbId = dm.id;
+                }
+            });
+
+            if (changed) {
+                persistDmsToLocalCache();
+                updateUnreadBadgesUI();
+                renderDmMessages();
+                renderModalLeftList();
+                renderInlineDirectLeftList();
+                renderSidebarDmAndFriends();
+            }
+            return changed;
+        }
+
+        // Escuchadores globales en vivo conectados a kinet-backend.js v5.5
+        window.addEventListener('kinet:cloud-synced', () => {
+            refreshMySocialCardUI();
+            filterSocialFeed();
+            renderSidebarDmAndFriends();
+            renderModalLeftList();
+            renderInlineDirectLeftList();
+        });
+
+        window.addEventListener('kinet:avatar-updated', () => {
+            refreshMySocialCardUI();
+            filterSocialFeed();
+        });
+
+        window.addEventListener('kinet:dm-realtime-update', (e) => {
+            const detail = e.detail || {};
+            if (Array.isArray(detail.messages)) {
+                mergeIncomingCloudDms(detail.messages, Boolean(detail.isNewArrival));
+            }
+        });
 
         (function initGlobalKinetPersonalization() {
             const styleTag = document.createElement('style');
