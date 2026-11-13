@@ -384,15 +384,20 @@
         document.head.appendChild(style);
       }
 
-      // Inyectar el indicador de exclamación (!) en el botón de Comunidad de TODAS las páginas (Vestuario, Analizador, Ficha, etc.)
+     // Inyectar el indicador de exclamación (!) SOLO en la flecha derecha sin tocar el texto "Comunidad / Red Social"
       document.querySelectorAll('a[href*="comunidad.html"]:not([href*="setup=true"])').forEach((comLink) => {
-        let badge = comLink.querySelector('.kinet-notif-exclaim');
+        const leftGroup = comLink.querySelector('.side-link-left');
+        if (leftGroup) {
+          // Asegurar que el texto izquierdo sea siempre el icono + "Comunidad / Red Social"
+          leftGroup.innerHTML = '<span>🌐</span> <span>Comunidad / Red Social</span>';
+        }
+        let badge = comLink.querySelector(':scope > .kinet-notif-exclaim');
         if (!badge) {
-          const rightArrow = comLink.querySelector('span:last-child');
-          if (rightArrow && !rightArrow.classList.contains('side-link-left')) {
-            rightArrow.className = 'kinet-notif-exclaim read-empty';
-            rightArrow.textContent = '';
-            badge = rightArrow;
+          const rightSpan = comLink.querySelector(':scope > span:last-child');
+          if (rightSpan && !rightSpan.classList.contains('side-link-left')) {
+            rightSpan.className = 'kinet-notif-exclaim read-empty';
+            rightSpan.textContent = '';
+            badge = rightSpan;
           }
         }
       });
