@@ -14,8 +14,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     
-    <!-- Librería Oficial para Generación Real del Contrato / Informe en PDF -->
+    <!-- Librería Oficial para Generación Real del Contrato / Informe en PDF + Supabase + KINET Backend + APIs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="kinet-backend.js"></script>
+    <script src="kinet-api-config.js"></script>
 
     <style>
         :root {
@@ -69,7 +72,8 @@
             box-shadow: 0 0 22px var(--role-glow) !important;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; scrollbar-width: none !important; -ms-overflow-style: none !important; }
+        *::-webkit-scrollbar { width: 0px !important; height: 0px !important; display: none !important; }
 
         html, body {
             background-color: var(--bg-void);
@@ -110,14 +114,14 @@
             .os-workspace { overflow: visible !important; height: auto !important; padding: 16px 14px 45px 14px !important; }
         }
 
-        /* SIDEBAR FIJO IZQUIERDA */
+        /* SIDEBAR FIJO CON NAVEGACIÓN CENTRADA Y BOTONES DE 44PX IDÉNTICOS */
         .os-sidebar {
             background: rgba(8, 11, 18, 0.95); backdrop-filter: blur(24px); border-right: 1px solid var(--border-subtle);
             padding: 18px 16px; display: flex; flex-direction: column; justify-content: space-between; height: 100vh; z-index: 90; overflow: hidden;
         }
         @media (max-width: 960px) { .os-sidebar { display: none !important; } }
 
-        .brand-box { display: flex; align-items: center; gap: 12px; text-decoration: none; padding: 4px; border-radius: 14px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); margin-bottom: 6px; }
+        .brand-box { display: flex; align-items: center; gap: 12px; text-decoration: none; padding: 4px; border-radius: 14px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); margin-bottom: 6px; flex-shrink: 0; }
         .brand-box:hover { transform: scale(1.03); filter: drop-shadow(0 0 16px var(--role-glow)); }
 
         .brand-logo-icon {
@@ -128,13 +132,14 @@
         .brand-text h1 { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1rem; letter-spacing: 0.15em; color: white; line-height: 1; }
         .brand-text span { font-size: 7.5px; font-family: 'JetBrains Mono', monospace; color: var(--role-color); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 3px; display: block; }
 
-        .sidebar-top-section { display: flex; flex-direction: column; }
-        .sidebar-bottom-section { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border-subtle); }
+        .sidebar-top-section { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+        .sidebar-nav { display: flex; flex-direction: column; justify-content: center; flex: 1 1 auto; gap: 8px; padding: 8px 0; }
+        .sidebar-bottom-section { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border-subtle); flex-shrink: 0; }
 
         .side-link {
             display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 14px;
             background: rgba(255, 255, 255, 0.015); border: 1px solid var(--border-subtle); color: var(--text-secondary);
-            font-family: 'Inter', sans-serif; font-size: 0.83rem; font-weight: 600; height: 44px; cursor: pointer; text-decoration: none;
+            font-family: 'Inter', sans-serif; font-size: 0.83rem; font-weight: 600; height: 44px; min-height: 44px; max-height: 44px; width: 100%; flex-shrink: 0; cursor: pointer; text-decoration: none;
             transition: all var(--transition-speed) cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden;
         }
         .side-link-left { display: flex; align-items: center; gap: 12px; z-index: 1; }
@@ -382,7 +387,7 @@
         .btn-primary.has-unsaved { animation: pulseSaveBtn 1.4s infinite alternate; }
         @keyframes pulseSaveBtn { from { transform: scale(1); } to { transform: scale(1.05); filter: brightness(1.2); } }
 
-        .btn-secondary { background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 10px 16px; font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.72rem; cursor: pointer; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); flex-shrink: 0; margin-left: auto; }
+        .btn-secondary { background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 10px 16px; font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.72rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); flex-shrink: 0; margin-left: auto; }
         .btn-secondary:hover { border-color: rgba(var(--role-rgb), 0.55); background: rgba(var(--role-rgb), 0.1); transform: scale(1.04) translateY(-2px); box-shadow: 0 6px 18px rgba(var(--role-rgb), 0.18); }
 
         .btn-danger { background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 12px; padding: 10px 16px; font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.72rem; cursor: pointer; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); flex-shrink: 0; margin-left: auto; }
@@ -445,13 +450,12 @@
         .m-nav-btn { background: transparent; border: none; color: var(--text-secondary); font-family: 'Inter', sans-serif; font-size: 0.62rem; font-weight: 700; padding: 6px 8px; border-radius: 14px; display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; cursor: pointer; }
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
-    <script src="kinet-backend.js"></script>
 </head>
 <body data-role="athlete">
 
     <div class="os-layout">
         
-        <!-- SIDEBAR FIJO -->
+        <!-- SIDEBAR FIJO CON OPCIONES CENTRADAS A 44PX Y NUEVA SECCIÓN ANALIZADOR 3D -->
         <aside class="os-sidebar">
             <div class="sidebar-top-section">
                 <a href="app.html" id="brand-logo-desktop" class="brand-box">
@@ -463,25 +467,29 @@
                 </a>
 
                 <nav class="sidebar-nav">
-                    <a href="app.html" id="nav-vestuario" class="side-link" style="margin-bottom: 8px;">
+                    <a href="app.html" id="nav-vestuario" class="side-link">
                         <span class="side-link-left"><span>⚡</span> <span>Vestuario</span></span>
                         <span style="font-size:0.65rem;font-family:'JetBrains Mono';">HOY</span>
                     </a>
-                    <a href="cuerpo-tecnico.html" id="nav-cuerpo-tecnico" class="side-link" style="margin-bottom: 8px;">
+                    <a href="cuerpo-tecnico.html" id="nav-cuerpo-tecnico" class="side-link">
                         <span class="side-link-left"><span>🧠</span> <span>Cuerpo Técnico IA</span></span>
                         <span style="font-size:0.7rem;opacity:0.5;">→</span>
                     </a>
-                    <a href="ficha-pro.html" id="nav-ficha-pro" class="side-link" style="margin-bottom: 8px;">
+                    <a href="ficha-pro.html" id="nav-ficha-pro" class="side-link">
                         <span class="side-link-left"><span>🎴</span> <span>Ficha & KINET Card</span></span>
                         <span style="font-size:0.7rem;opacity:0.5;">→</span>
                     </a>
-                    <a href="ojeador-live.html" id="nav-ojeador-live" class="side-link" style="margin-bottom: 8px;">
-                        <span class="side-link-left"><span>📡</span> <span>Ojeador & Laboratorio</span></span>
+                    <a href="ojeador-live.html" id="nav-ojeador-live" class="side-link">
+                        <span class="side-link-left"><span>🎬</span> <span>Laboratorio Vídeo</span></span>
                         <span style="font-size:0.7rem;opacity:0.5;">→</span>
                     </a>
-                    <a href="comunidad.html" id="nav-comunidad" class="side-link" style="margin-bottom: 8px;">
-                        <span class="side-link-left"><span>🌐</span> <span>Comunidad / Red Social</span></span>
+                    <a href="analizador.html" id="nav-analizador" class="side-link">
+                        <span class="side-link-left"><span>🏟️</span> <span>Analizador & Pizarra 3D</span></span>
                         <span style="font-size:0.7rem;opacity:0.5;">→</span>
+                    </a>
+                    <a href="comunidad.html" id="nav-comunidad" class="side-link">
+                        <span class="side-link-left"><span>🌐</span> <span>Comunidad / Red Social</span></span>
+                        <span class="kinet-notif-exclaim read-empty" id="sidebar-comunidad-notif"></span>
                     </a>
                     <a href="media-studio.html" id="nav-media-studio" class="side-link">
                         <span class="side-link-left"><span>🎵</span> <span>KINET Media Studio™</span></span>
@@ -493,7 +501,7 @@
             <div class="sidebar-bottom-section">
                 <div class="sidebar-ai-tip-box">
                     <div class="sidebar-ai-tip-header"><span>⚙️</span> <span id="sidebar-role-tag">Despacho Ejecutivo</span></div>
-                    <div class="sidebar-ai-tip-text">Centro de control, subscripciones, bonos de vídeo IA y contrato oficial PDF.</div>
+                    <div class="sidebar-ai-tip-text">Centro de control, privacidad, suscripciones, bonos de vídeo 30 FPS y contrato PDF.</div>
                 </div>
 
                 <a href="perfil.html" id="nav-perfil" class="side-link">
@@ -518,7 +526,7 @@
         <!-- ZONA PRINCIPAL -->
         <div class="os-main">
             
-            <!-- TOPBAR LIMPIA -->
+            <!-- TOPBAR -->
             <header class="os-topbar">
                 <a href="app.html" id="brand-logo-mobile" class="mobile-brand">
                     <div class="brand-logo-icon" style="width:32px;height:32px;font-size:0.95rem;">K</div>
@@ -540,7 +548,6 @@
 
             <main class="os-workspace">
                 
-                <!-- CABECERA SIN EL BOTÓN DE EXPORTAR AL LADO DE GUARDAR CAMBIOS -->
                 <div class="context-header">
                     <div>
                         <span class="context-tag"><span>⚙️</span> <span>PANEL DE CONTROL GENERAL // KINET OS</span></span>
@@ -556,7 +563,7 @@
                     <button class="d-tab active" id="tab-btn-gen" onclick="switchTab('general', this)">⚙️ General & Cuenta</button>
                     <button class="d-tab" id="tab-btn-theme" onclick="switchTab('theme', this)">🎨 Tema & Personalización</button>
                     <button class="d-tab" id="tab-btn-sub" onclick="switchTab('subscription', this)">⚡ KINET PRO, Planes & Bonos</button>
-                    <button class="d-tab" id="tab-btn-priv" onclick="switchTab('privacy', this)">🔒 Privacidad & Seguridad</button>
+                    <button class="d-tab" id="tab-btn-priv" onclick="switchTab('privacy', this)">🔒 Privacidad, Redes & Admin</button>
                     <button class="d-tab" id="tab-btn-leg" onclick="switchTab('legal', this)">📜 Términos & Condiciones</button>
                 </div>
 
@@ -571,21 +578,21 @@
                                 <div class="setting-row">
                                     <div class="setting-info">
                                         <label>Nombre de Usuario / Titular Legal</label>
-                                        <span>Identificador corporativo y contractual en KINET OS</span>
+                                        <span>Identificador oficial sincronizado en todos tus dispositivos</span>
                                     </div>
-                                    <input type="text" id="user-name-input" class="setting-input" value="Alex Vance" oninput="markPendingChanges()">
+                                    <input type="text" id="user-name-input" class="setting-input" value="Atleta KINET" oninput="markPendingChanges()">
                                 </div>
                                 <div class="setting-row">
                                     <div class="setting-info">
                                         <label>Correo Electrónico Oficial</label>
                                         <span>Canal de notificaciones, facturación y alertas IA</span>
                                     </div>
-                                    <input type="email" id="user-email-input" class="setting-input" value="alex.vance@kinetos.pro" oninput="markPendingChanges()">
+                                    <input type="email" id="user-email-input" class="setting-input" value="usuario@kinetos.es" oninput="markPendingChanges()">
                                 </div>
                                 <div class="setting-row">
                                     <div class="setting-info">
                                         <label>Disciplina Deportiva Principal</label>
-                                        <span>Ajusta el núcleo analítico de la IA y de la KINET Card</span>
+                                        <span>Ajusta los 4 especialistas IA, el Laboratorio de Vídeo y la Pizarra 3D</span>
                                     </div>
                                     <select id="setting-sport" class="setting-select" onchange="stageSportPreference(this.value)">
                                         <option value="Fútbol">Fútbol</option>
@@ -593,7 +600,6 @@
                                         <option value="Pádel / Tenis">Pádel / Tenis</option>
                                         <option value="Boxeo / MMA">Boxeo / MMA</option>
                                         <option value="Running">Running / Atletismo</option>
-                                        <option value="Otros Deportes">Otros Deportes</option>
                                     </select>
                                 </div>
                                 <div class="setting-row">
@@ -625,7 +631,6 @@
                                 <div class="panel-head">
                                     <span class="panel-label">⚡ Acciones Rápidas de Sesión, Cuotas & Sensores</span>
                                 </div>
-                                <!-- 1. FILA CAMBIAR ROL -->
                                 <div class="setting-row">
                                     <div class="setting-info">
                                         <label>Cambiar de Rol Activo / Perfiles</label>
@@ -633,7 +638,6 @@
                                     </div>
                                     <button class="btn-secondary" style="border-color:rgba(var(--role-rgb),0.45);color:var(--role-color);" onclick="openRoleManagerModal()">🔄 Cambiar Rol</button>
                                 </div>
-                                <!-- 2. FILA TIPO DE CUENTA -->
                                 <div class="setting-row">
                                     <div class="setting-info">
                                         <label>Tipo de Cuenta Actual</label>
@@ -645,27 +649,24 @@
                                         <option value="club">Club & Scout (B2B - 29,99€)</option>
                                     </select>
                                 </div>
-                                <!-- 3. FILA SALDO DE BONOS EXTRA DE VÍDEO Y ANÁLISIS IA -->
                                 <div class="setting-row">
                                     <div class="setting-info">
-                                        <label>Saldo de Bonos Extra (Vídeo IA & Análisis)</label>
+                                        <label>Saldo de Bonos Extra (Vídeo 30 FPS & Análisis IA)</label>
                                         <span id="general-bonus-balance-lbl" style="color:#CBD5E1;">Minutos extra acumulados: 0 min • Análisis IA extra: 0</span>
                                     </div>
                                     <button class="btn-secondary" onclick="switchTab('subscription', document.getElementById('tab-btn-sub'))">➕ Ver Planes & Bonos</button>
                                 </div>
-                                <!-- 4. FILA SINCRONIZAR GPS -->
                                 <div class="setting-row">
                                     <div class="setting-info">
-                                        <label>Sincronización de Sensores & Wearables</label>
-                                        <span>Chaleco GPS, Apple Watch, Garmin & BeSoccer Sync</span>
+                                        <label>Sincronización de Sensores & Pasarelas Externas</label>
+                                        <span>Chaleco GPS, Apple Watch, Garmin, Strava & BeSoccer Sync</span>
                                     </div>
                                     <button class="btn-secondary" onclick="openInfoModal('📡 SINCRONIZACIÓN DE SENSORES ACTIVA', 'Se ha verificado el enlace con tus pasarelas deportivas (Garmin Connect, Apple Health, Strava y BeSoccer Sync).')">📡 Sincronizar GPS</button>
                                 </div>
-                                <!-- 5. FILA CERRAR SESIÓN -->
                                 <div class="setting-row">
                                     <div class="setting-info">
                                         <label>Cerrar Sesión Actual</label>
-                                        <span>Finaliza la sesión y vuelve a la pantalla de acceso (Login)</span>
+                                        <span>Sincroniza tus datos en Supabase Cloud y vuelve al Login</span>
                                     </div>
                                     <button class="btn-danger" onclick="confirmLogout()">Cerrar Sesión</button>
                                 </div>
@@ -710,7 +711,6 @@
                                     </select>
                                 </div>
 
-                                <!-- MATRIZ INTERACTIVA DE 16 COLORES NEÓN -->
                                 <div style="margin-top:8px;">
                                     <span style="font-family:'JetBrains Mono'; font-size:0.64rem; color:var(--text-secondary); display:block;">ELIGE UNA CÁPSULA DE COLOR (O PULSA RESTAURAR ARRIBA PARA EL COLOR DE TU ROL):</span>
                                     <div class="color-swatches-grid" id="neon-swatches-box">
@@ -733,7 +733,6 @@
                                     </div>
                                 </div>
 
-                                <!-- SELECTOR RGB PERSONALIZADO LIBRE -->
                                 <div class="setting-row">
                                     <div class="setting-info">
                                         <label>Selector de Color RGB Libre (Custom Hex)</label>
@@ -834,7 +833,7 @@
                     </div>
                 </div>
 
-                <!-- CONTENIDO PESTAÑA 3: SUBSCRIPCIONES FIJAS EN HTML + BONOS PAY-AS-YOU-GO -->
+                <!-- CONTENIDO PESTAÑA 3: SUBSCRIPCIONES + BONOS PAY-AS-YOU-GO ECONÓMICOS (24-30 FPS) -->
                 <div id="tab-subscription" class="tab-content">
                     <div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
                         <div>
@@ -844,7 +843,6 @@
                         <span style="font-family:'JetBrains Mono';font-size:0.72rem;color:#CBD5E1;background:rgba(var(--role-rgb),0.12);border:1px solid rgba(var(--role-rgb),0.4);padding:6px 12px;border-radius:10px;" id="sub-current-plan-pill">LICENCIA ACTUAL: PLAN GRATUITO</span>
                     </div>
 
-                    <!-- LAS 3 TARJETAS DE SUSCRIPCIÓN SIEMPRE PRESENTES EN EL DOM -->
                     <div class="pricing-cards-grid" id="pricing-cards-container">
                         <!-- TARJETA 1: PLAN GRATUITO -->
                         <div class="pricing-card active-tier" id="card-tier-free">
@@ -852,13 +850,13 @@
                             <div>
                                 <span class="plan-badge badge-free">INICIACIÓN</span>
                                 <h3 class="plan-title">Plan Gratuito</h3>
-                                <p class="plan-desc">Acceso libre de prueba para explorar las herramientas básicas y el asistente multi-agente.</p>
+                                <p class="plan-desc">Acceso libre financiado por marcas patrocinadoras para compartir fotos, estadísticas y usar la Pizarra 3D.</p>
                                 <div class="plan-price">0€<span>/ siempre</span></div>
                                 <ul class="plan-features">
-                                    <li>Sala de Juntas IA (15 msg / día)</li>
+                                    <li>Cuerpo Técnico IA (15 msg / día)</li>
+                                    <li>KINET Pulse (Publicación de Fotos y Texto)</li>
+                                    <li>Analizador & Pizarra 3D + Duelo 1vs1</li>
                                     <li>KINET Card Custom (Bronce y Plata)</li>
-                                    <li>Media Studio (Modo Imagen + Beats)</li>
-                                    <li>Recarga opcional por bonos Pay-As-You-Go</li>
                                 </ul>
                             </div>
                             <button class="btn-pricing btn-select-free" id="btn-tier-free" onclick="promptCancelPlan('Plan de Pago')">PLAN BÁSICO ACTIVO</button>
@@ -870,13 +868,13 @@
                             <div>
                                 <span class="plan-badge badge-pro">B2C POPULAR</span>
                                 <h3 class="plan-title">Pro Player</h3>
-                                <p class="plan-desc">Para atletas individuales que buscan potenciar su carrera, evitar lesiones y destacar ante ojeadores.</p>
+                                <p class="plan-desc">Para atletas que quieren subir vídeos y KINET Shorts a 30 FPS, auditar bloques de partido y verificar su carta.</p>
                                 <div class="plan-price">8,99€<span>/ mes</span></div>
                                 <ul class="plan-features">
-                                    <li>60 min/mes de Vídeo IA (Vision Analytics™)</li>
+                                    <li>Subida de Vídeos y KINET Shorts (24-30 FPS)</li>
+                                    <li>90 min/mes en Vision Lab™ (Por bloques 3-5m)</li>
                                     <li>KINET Card ✓ AI Verified (Oro 24K & Holo)</li>
-                                    <li>Media Studio Vídeo HD/4K + Spotify Sync</li>
-                                    <li>Chat IA Ilimitado + 3 Perfiles en nube</li>
+                                    <li>Cuerpo Técnico IA (100 msg/día) + 0 Anuncios</li>
                                 </ul>
                             </div>
                             <button class="btn-pricing btn-select-pro" id="btn-tier-pro" onclick="requestPlanUpgrade('pro')">CAMBIAR A PRO PLAYER (8,99€)</button>
@@ -888,103 +886,117 @@
                             <div>
                                 <span class="plan-badge badge-club">RECOMENDADO B2B</span>
                                 <h3 class="plan-title">Club & Scout</h3>
-                                <p class="plan-desc">Solución completa para entrenadores, preparadores físicos, directores y departamentos de scouting.</p>
+                                <p class="plan-desc">Solución integral para entrenadores, preparadores físicos, directores deportivos y agencias de representación.</p>
                                 <div class="plan-price">29,99€<span>/ mes</span></div>
                                 <ul class="plan-features">
-                                    <li>240 min/mes de Vídeo Táctico & Scouting</li>
-                                    <li>Acceso Total a Scout Matrix B2B</li>
-                                    <li>Gestión Multiequipo + Mapa de Lesiones</li>
-                                    <li>Cobro Automático de Cuotas (Stripe)</li>
+                                    <li>300 min/mes de Vídeo Táctico (24-30 FPS)</li>
+                                    <li>Acceso Total a KINET Radar B2B y Plantillas</li>
+                                    <li>Gestión Multiequipo + Informes PDF Oficiales</li>
+                                    <li>Soporte Prioritario + 3 Perfiles Simultáneos</li>
                                 </ul>
                             </div>
                             <button class="btn-pricing btn-select-club" id="btn-tier-club" onclick="requestPlanUpgrade('club')">CAMBIAR A CLUB & SCOUT (29,99€)</button>
                         </div>
                     </div>
 
-                    <!-- BLOQUE DE BONOS DE PAGO FLEXIBLES (PAY-AS-YOU-GO) DEBAJO DE LAS SUSCRIPCIONES -->
+                    <!-- BLOQUE DE BONOS DE PAGO FLEXIBLES (OPTIMIZADOS A 24-30 FPS) -->
                     <div class="kinet-panel" style="margin-top:24px; margin-bottom:40px;">
                         <div class="panel-head">
-                            <span class="panel-label">➕ BONOS DE RECARGA FLEXIBLE (PAY-AS-YOU-GO // EXTRAS DE VÍDEO & ANÁLISIS IA)</span>
+                            <span class="panel-label">➕ BONOS ECONÓMICOS PAY-AS-YOU-GO (VÍDEO 24-30 FPS & CRÉDITOS IA)</span>
                             <span style="font-family:'JetBrains Mono';font-size:0.68rem;color:var(--role-color);font-weight:700;" id="sub-tab-bonus-badge">SALDO EXTRA: 0 MIN VÍDEO • 0 CRÉDITOS IA</span>
                         </div>
                         <p style="font-size:0.82rem; color:var(--text-secondary); line-height:1.5;">
-                            ¿Has agotado tu cuota mensual o necesitas procesar más partidos, combates o entrenamientos sin cambiar de plan? Añade bonos puntuales de minutos para <strong>Vision Analytics™ (120 FPS)</strong>, generación de vídeos en <strong>Media Studio™</strong> y auditorías tácticas del <strong>Cuerpo Técnico IA</strong>. Los minutos de bono no caducan a fin de mes.
+                            Gracias a nuestro motor de compresión inteligente a <strong>24-30 FPS por bloques tácticos de 3 a 5 minutos</strong>, los costes de servidor se reducen un 80% y podemos ofrecerte bonos mucho más amplios que nunca caducan a fin de mes:
                         </p>
 
                         <div class="payg-grid">
                             <div class="payg-pack-card">
                                 <div>
-                                    <span class="plan-badge badge-pro" style="margin-bottom:10px;">BONO SPRINT VÍDEO</span>
-                                    <h4 style="font-family:'Orbitron';font-size:1.05rem;color:white;margin-bottom:4px;">+30 Minutos Vídeo IA</h4>
+                                    <span class="plan-badge badge-pro" style="margin-bottom:10px;">BONO PARTIDO 30 FPS</span>
+                                    <h4 style="font-family:'Orbitron';font-size:1.05rem;color:white;margin-bottom:4px;">+45 Minutos Vision Lab</h4>
                                     <p style="font-size:0.76rem;color:#94A3B8;line-height:1.45;">
-                                        Ideal para analizar 1 partido o sesión completa a 120 FPS y exportar Reels HD sin marca de agua.
+                                        Da para auditar 3 partidos completos por bloques de 5 min a 30 FPS + 10 consultas extra al Cuerpo Técnico IA.
                                     </p>
                                 </div>
                                 <div>
                                     <div style="font-family:'Orbitron';font-size:1.45rem;font-weight:900;color:white;margin-bottom:10px;">4,99€ <span style="font-size:0.68rem;font-family:'JetBrains Mono';color:#94A3B8;">/ pago único</span></div>
-                                    <button class="btn-primary" style="width:100%;" onclick="buyPayAsYouGoPack(30, 5, 'Bono Sprint (+30 min Vídeo IA)')">⚡ Recargar +30 Minutos</button>
+                                    <button class="btn-primary" style="width:100%;" onclick="buyPayAsYouGoPack(45, 10, 'Bono Partido (+45 min Vídeo 30 FPS)')">⚡ Recargar +45 Minutos</button>
                                 </div>
                             </div>
 
                             <div class="payg-pack-card" style="border-color:rgba(var(--role-rgb),0.45);background:rgba(var(--role-rgb),0.05);">
                                 <div>
-                                    <span class="plan-badge badge-pro" style="margin-bottom:10px;">MÁS VENDIDO // COMBO IA</span>
-                                    <h4 style="font-family:'Orbitron';font-size:1.05rem;color:white;margin-bottom:4px;">+100 Min Vídeo + 25 Análisis</h4>
+                                    <span class="plan-badge badge-pro" style="margin-bottom:10px;">MÁS RENTABLE // PACK TEMPORADA</span>
+                                    <h4 style="font-family:'Orbitron';font-size:1.05rem;color:white;margin-bottom:4px;">+150 Min Vídeo + 40 Análisis</h4>
                                     <p style="font-size:0.76rem;color:#CBD5E1;line-height:1.45;">
-                                        100 minutos de renderizado y visión por computador + 25 informes profundos del Cuerpo Técnico IA.
+                                        150 minutos de análisis de vídeo a 30 FPS (10-12 partidos por bloques) + 40 informes del Cuerpo Técnico IA.
                                     </p>
                                 </div>
                                 <div>
-                                    <div style="font-family:'Orbitron';font-size:1.45rem;font-weight:900;color:var(--role-color);margin-bottom:10px;">11,99€ <span style="font-size:0.68rem;font-family:'JetBrains Mono';color:#94A3B8;">/ pago único</span></div>
-                                    <button class="btn-primary" style="width:100%;" onclick="buyPayAsYouGoPack(100, 25, 'Pack Pro Match (+100 min Vídeo + 25 Análisis IA)')">🚀 Recargar Pack Pro Match</button>
+                                    <div style="font-family:'Orbitron';font-size:1.45rem;font-weight:900;color:var(--role-color);margin-bottom:10px;">9,99€ <span style="font-size:0.68rem;font-family:'JetBrains Mono';color:#94A3B8;">/ pago único</span></div>
+                                    <button class="btn-primary" style="width:100%;" onclick="buyPayAsYouGoPack(150, 40, 'Pack Temporada (+150 min Vídeo 30 FPS + 40 Análisis)')">🚀 Recargar Pack Temporada</button>
                                 </div>
                             </div>
 
                             <div class="payg-pack-card">
                                 <div>
-                                    <span class="plan-badge badge-club" style="margin-bottom:10px;">BONO SCOUT & CLUB B2B</span>
-                                    <h4 style="font-family:'Orbitron';font-size:1.05rem;color:white;margin-bottom:4px;">+300 Min Vídeo + 80 Análisis</h4>
+                                    <span class="plan-badge badge-club" style="margin-bottom:10px;">BONO CLUB & ACADEMIA</span>
+                                    <h4 style="font-family:'Orbitron';font-size:1.05rem;color:white;margin-bottom:4px;">+400 Min Vídeo + 120 Análisis</h4>
                                     <p style="font-size:0.76rem;color:#94A3B8;line-height:1.45;">
-                                        Capacidad intensiva de GPU para torneos, campus de tecnificación y auditorías masivas de plantilla.
+                                        Capacidad masiva a 30 FPS para auditar toda una plantilla, campus de tecnificación o cartera de scouting.
                                     </p>
                                 </div>
                                 <div>
-                                    <div style="font-family:'Orbitron';font-size:1.45rem;font-weight:900;color:#F59E0B;margin-bottom:10px;">24,99€ <span style="font-size:0.68rem;font-family:'JetBrains Mono';color:#94A3B8;">/ pago único</span></div>
-                                    <button class="btn-pricing btn-select-club" style="padding:11px;" onclick="buyPayAsYouGoPack(300, 80, 'Bono Club & Scout (+300 min Vídeo + 80 Análisis IA)')">🏆 Recargar Bono Club</button>
+                                    <div style="font-family:'Orbitron';font-size:1.45rem;font-weight:900;color:#F59E0B;margin-bottom:10px;">19,99€ <span style="font-size:0.68rem;font-family:'JetBrains Mono';color:#94A3B8;">/ pago único</span></div>
+                                    <button class="btn-pricing btn-select-club" style="padding:11px;" onclick="buyPayAsYouGoPack(400, 120, 'Bono Club & Academia (+400 min Vídeo + 120 Análisis)')">🏆 Recargar Bono Club</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- CONTENIDO PESTAÑA 4: PRIVACIDAD & SEGURIDAD -->
+                <!-- CONTENIDO PESTAÑA 4: PRIVACIDAD, RED SOCIAL, INTEGRACIONES & PANEL ADMIN -->
                 <div id="tab-privacy" class="tab-content">
                     <div class="settings-grid">
                         <div class="col-6">
                             <div class="kinet-panel">
                                 <div class="panel-head">
-                                    <span class="panel-label">🔒 Cifrado E2EE, Biometría & Visibilidad Scout</span>
+                                    <span class="panel-label">🔒 Privacidad en KINET Network™, DMs & Protección</span>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>🔒 Cuenta Privada (Solo Seguidores Aprobados)</label>
+                                        <span>Si lo activas, solo los usuarios a los que sigues podrán ver tus fotos, vídeos y métricas en Comunidad</span>
+                                    </div>
+                                    <label class="switch"><input type="checkbox" id="setting-private-account" onchange="syncPrivacySwitch('private', this.checked)"><span class="slider"></span></label>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>👁️ Confirmación de Lectura ("Visto") y Estado En Línea</label>
+                                        <span>Permitir que otros usuarios vean la hora de lectura y tu punto verde en KINET Direct</span>
+                                    </div>
+                                    <label class="switch"><input type="checkbox" id="setting-read-receipts" checked onchange="syncPrivacySwitch('read_receipts', this.checked)"><span class="slider"></span></label>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>📡 Estado "Abierto a Ofertas / Pruebas" en Radar B2B</label>
+                                        <span>Permite que Clubes y Scouts verificados te encuentren en KINET Radar</span>
+                                    </div>
+                                    <label class="switch"><input type="checkbox" id="setting-scout-vis" checked onchange="syncPrivacySwitch('market_open', this.checked)"><span class="slider"></span></label>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>🛡️ Modo Protección de Menores (Atletas Sub-18)</label>
+                                        <span>Restringe mensajes directos de cuentas no verificadas por KINET OS</span>
+                                    </div>
+                                    <label class="switch"><input type="checkbox" id="setting-minor-protection" onchange="syncPrivacySwitch('minor_mode', this.checked)"><span class="slider"></span></label>
                                 </div>
                                 <div class="setting-row">
                                     <div class="setting-info">
                                         <label>Cifrado de Extremo a Extremo (AES-256-GCM / TLS 1.3)</label>
-                                        <span>Protección criptográfica punto a punto en chats, vídeos y biometría</span>
+                                        <span>Protección criptográfica activa por defecto en toda tu cuenta</span>
                                     </div>
                                     <label class="switch"><input type="checkbox" checked disabled><span class="slider"></span></label>
-                                </div>
-                                <div class="setting-row">
-                                    <div class="setting-info">
-                                        <label>Bloqueo Biométrico de Acceso</label>
-                                        <span>Requerir autenticación facial o huella al abrir KINET OS</span>
-                                    </div>
-                                    <label class="switch"><input type="checkbox" id="setting-bio" checked onchange="markPendingChanges()"><span class="slider"></span></label>
-                                </div>
-                                <div class="setting-row">
-                                    <div class="setting-info">
-                                        <label>Visibilidad de Ficha en Radar Scout Matrix B2B</label>
-                                        <span>Permitir que clubes y directores deportivos vean tu KINET Card</span>
-                                    </div>
-                                    <label class="switch"><input type="checkbox" id="setting-scout-vis" checked onchange="markPendingChanges()"><span class="slider"></span></label>
                                 </div>
                             </div>
                         </div>
@@ -992,28 +1004,49 @@
                         <div class="col-6">
                             <div class="kinet-panel">
                                 <div class="panel-head">
-                                    <span class="panel-label">📑 Contrato de Suscripción, Datos & Auditoría PDF</span>
+                                    <span class="panel-label">🔗 Cuentas Vinculadas, Panel de Empleados & Baja Legal</span>
                                 </div>
                                 <div class="setting-row">
                                     <div class="setting-info">
-                                        <label>Anonimización Criptográfica de Telemetría (SHA-512)</label>
-                                        <span>Disociación irreversible de identidad según Art. 89 del RGPD</span>
+                                        <label>⚽ Enlace con BeSoccer / Ficha Federativa Oficial</label>
+                                        <span>Importa partidos jugados, minutos y goles oficiales verificados</span>
                                     </div>
-                                    <label class="switch"><input type="checkbox" checked onchange="markPendingChanges()"><span class="slider"></span></label>
+                                    <input type="text" id="setting-besoccer-url" class="setting-input" placeholder="https://es.besoccer.com/jugador/..." oninput="markPendingChanges()">
                                 </div>
                                 <div class="setting-row">
                                     <div class="setting-info">
-                                        <label>Generar Contrato Oficial de Suscripción y Datos (PDF)</label>
-                                        <span>Descarga un documento contractual con tus datos personales, cláusulas de suscripción, configuración activa y firma digital KINET OS</span>
+                                        <label>📸 Usuario de Instagram / TikTok / Strava</label>
+                                        <span>Muestra tu enlace social verificado en tu ficha pública KINET</span>
                                     </div>
-                                    <button class="btn-primary" onclick="downloadContractReportPDF()">📜 Descargar Contrato PDF</button>
+                                    <input type="text" id="setting-social-ext" class="setting-input" placeholder="@tu_usuario_oficial" oninput="markPendingChanges()">
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>📜 Contrato Oficial de Suscripción y Datos (PDF)</label>
+                                        <span>Descarga tu contrato firmado digitalmente con todas tus cláusulas RGPD</span>
+                                    </div>
+                                    <button class="btn-primary" onclick="downloadContractReportPDF()">📜 Descargar PDF</button>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>🛡️ Consola de Administración & Empleados KINET OS</label>
+                                        <span>Acceso por roles para SuperAdmin, Moderadores, Verificadores de Scouts y Marketing</span>
+                                    </div>
+                                    <a href="admin.html" class="btn-secondary" style="border-color:rgba(var(--role-rgb),0.45);color:var(--role-color);">🔑 Panel Admin →</a>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label style="color:#EF4444;">🗑️ Eliminar Cuenta y Borrar Datos (Derecho al Olvido RGPD)</label>
+                                        <span>Requisito obligatorio de Apple App Store y Google Play. Elimina tu perfil de Supabase Cloud</span>
+                                    </div>
+                                    <button class="btn-danger" onclick="promptDeleteAccountModal()">🗑️ Eliminar Cuenta</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- CONTENIDO PESTAÑA 5: TÉRMINOS & CONDICIONES COMPLETOS (RGPD, LOPDGDD, CIFRADO E2EE, EU AI ACT, LSSI-CE) -->
+                <!-- CONTENIDO PESTAÑA 5: TÉRMINOS & CONDICIONES COMPLETOS -->
                 <div id="tab-legal" class="tab-content">
                     <div class="settings-grid">
                         <div class="col-12">
@@ -1033,22 +1066,22 @@
 
                                 <div class="legal-clause-box">
                                     <h4>2. Leyes de Cifrado de Extremo a Extremo (E2EE), Seguridad Criptográfica y Directiva NIS2</h4>
-                                    <p>De conformidad con el <strong>Artículo 32 del RGPD (Seguridad del Tratamiento)</strong>, el <strong>Esquema Nacional de Seguridad (ENS)</strong> y la <strong>Directiva (UE) 2022/2555 (Directiva NIS2 de Ciberseguridad)</strong>, todas las comunicaciones, mensajes privados (DMs), vídeos subidos a Vision Analytics™ e informes del Cuerpo Técnico IA están blindados mediante <strong>Cifrado de Extremo a Extremo (End-to-End Encryption — E2EE)</strong> bajo el estándar militar <strong>AES-256-GCM</strong> en reposo y protocolos <strong>TLS 1.3 con Perfect Forward Secrecy (PFS) y ECDHE-RSA</strong> en tránsito. Las credenciales y tokens de sesión se almacenan mediante funciones hash irreversibles <strong>SHA-512 / Argon2id</strong> con arquitectura <em>Zero-Knowledge</em> (Conocimiento Cero), garantizando que ningún tercero pueda interceptar ni desencriptar la información privada del deportista o del club.</p>
+                                    <p>De conformidad con el <strong>Artículo 32 del RGPD (Seguridad del Tratamiento)</strong>, el <strong>Esquema Nacional de Seguridad (ENS)</strong> y la <strong>Directiva (UE) 2022/2555 (Directiva NIS2 de Ciberseguridad)</strong>, todas las comunicaciones, mensajes privados (DMs), vídeos subidos a Vision Lab™ e informes del Cuerpo Técnico IA están blindados mediante <strong>Cifrado de Extremo a Extremo (End-to-End Encryption — E2EE)</strong> bajo el estándar militar <strong>AES-256-GCM</strong> en reposo y protocolos <strong>TLS 1.3 con Perfect Forward Secrecy (PFS) y ECDHE-RSA</strong> en tránsito.</p>
                                 </div>
 
                                 <div class="legal-clause-box">
                                     <h4>3. Gobernanza de Inteligencia Artificial (Reglamento Europeo de IA — EU AI Act 2024/1689)</h4>
-                                    <p>En virtud del <strong>Reglamento (UE) 2024/1689 sobre Inteligencia Artificial (EU AI Act)</strong> y el <strong>Artículo 22 del RGPD</strong> sobre decisiones individuales automatizadas, se informa al usuario de que los 4 agentes del Cuerpo Técnico IA y el motor de visión por computador a 120 FPS operan bajo el principio de <strong>Supervisión Humana Obligatoria (Human-in-the-Loop)</strong>. Las métricas, percentiles de scouting (`GRL`) y alertas preventivas de fatiga constituyen sistemas de apoyo a la decisión técnica y nunca sustituyen el diagnóstico médico colegiado ni producen efectos jurídicos vinculantes sin validación humana.</p>
+                                    <p>En virtud del <strong>Reglamento (UE) 2024/1689 sobre Inteligencia Artificial (EU AI Act)</strong> y el <strong>Artículo 22 del RGPD</strong> sobre decisiones individuales automatizadas, se informa al usuario de que los 4 agentes del Cuerpo Técnico IA y el motor de visión por computador a 24-30 FPS operan bajo el principio de <strong>Supervisión Humana Obligatoria (Human-in-the-Loop)</strong>.</p>
                                 </div>
 
                                 <div class="legal-clause-box">
-                                    <h4>4.Contratación Electrónica, Suscripciones, Pasarela PCI-DSS y Desistimiento (LSSI-CE 34/2002 y TRLGDCU)</h4>
-                                    <p>Conforme a la <strong>Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y de Comercio Electrónico (LSSI-CE)</strong> y el <strong>Real Decreto Legislativo 1/2007 (Ley General para la Defensa de los Consumidores y Usuarios)</strong>, la contratación de los planes <strong>Pro Player (8,99€/mes)</strong>, <strong>Club & Scout (29,99€/mes)</strong> y <strong>Bonos Pay-As-You-Go</strong> se formaliza electrónicamente a través de pasarelas certificadas bajo la normativa internacional <strong>PCI-DSS Nivel 1 (Stripe Connect)</strong> y autenticación reforzada <strong>PSD2 (SCA)</strong>. El titular dispone de un plazo legal de 14 días naturales para ejercer el derecho de desistimiento salvo ejecución completa del consumo de minutos de GPU bajo consentimiento expreso.</p>
+                                    <h4>4. Contratación Electrónica, Suscripciones, Pasarela PCI-DSS y Desistimiento (LSSI-CE 34/2002 y TRLGDCU)</h4>
+                                    <p>Conforme a la <strong>Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y de Comercio Electrónico (LSSI-CE)</strong> y el <strong>Real Decreto Legislativo 1/2007 (Ley General para la Defensa de los Consumidores y Usuarios)</strong>, la contratación de los planes <strong>Pro Player (8,99€/mes)</strong>, <strong>Club & Scout (29,99€/mes)</strong> y <strong>Bonos Pay-As-You-Go</strong> se formaliza electrónicamente a través de pasarelas certificadas bajo la normativa internacional <strong>PCI-DSS Nivel 1 (Stripe Connect)</strong>.</p>
                                 </div>
 
                                 <div class="legal-clause-box" style="margin-bottom:0;">
                                     <h4>5. Propiedad Intelectual, Derechos de Imagen (LO 1/1982) y Explotación Estadística Anonimizada</h4>
-                                    <p>De acuerdo con el <strong>Real Decreto Legislativo 1/1996 (Ley de Propiedad Intelectual)</strong> y la <strong>Ley Orgánica 1/1982 de protección civil del derecho al honor, a la intimidad y a la propia imagen</strong>, el usuario conserva el 100% de la titularidad sobre sus vídeos, fotografías y currículum deportivo subidos a la Red Social KINET y a KINET Media Studio™. Los informes macroeconómicos de rendimiento de la versión gratuita se elaboran exclusivamente tras aplicar técnicas de <strong>seudonimización y agregación irreversible k-anonimato (Art. 89 RGPD)</strong>, impidiendo cualquier identificación individual.</p>
+                                    <p>De acuerdo con el <strong>Real Decreto Legislativo 1/1996 (Ley de Propiedad Intelectual)</strong> y la <strong>Ley Orgánica 1/1982 de protección civil del derecho al honor, a la intimidad y a la propia imagen</strong>, el usuario conserva el 100% de la titularidad sobre sus vídeos, fotografías y currículum deportivo subidos a KINET Network™ y a KINET Media Studio™.</p>
                                 </div>
                             </div>
                         </div>
@@ -1069,8 +1102,9 @@
             <a href="app.html" id="drawer-vestuario" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>⚡ Vestuario</span><span>HOY</span></a>
             <a href="cuerpo-tecnico.html" id="drawer-cuerpo-tecnico" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🧠 Cuerpo Técnico IA</span><span>→</span></a>
             <a href="ficha-pro.html" id="drawer-ficha-pro" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🎴 Ficha & KINET Card</span><span>→</span></a>
-            <a href="ojeador-live.html" id="drawer-ojeador-live" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>📡 Ojeador & Laboratorio</span><span>→</span></a>
-            <a href="comunidad.html" id="drawer-comunidad" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Comunidad / Red Social</span><span>→</span></a>
+            <a href="ojeador-live.html" id="drawer-ojeador-live" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🎬 Laboratorio Vídeo</span><span>→</span></a>
+            <a href="analizador.html" id="drawer-analizador" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🏟️ Analizador & Pizarra 3D</span><span>→</span></a>
+            <a href="comunidad.html" id="drawer-comunidad" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🌐 Comunidad / Red Social</span><span class="kinet-notif-exclaim read-empty" id="drawer-comunidad-notif"></span></a>
             <a href="media-studio.html" id="drawer-media-studio" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>🎵 KINET Media Studio™</span><span>→</span></a>
             <a href="perfil.html" id="drawer-perfil" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);color:#F8FAFC;text-decoration:none;font-weight:600;"><span>👤 Mi Perfil</span><span>→</span></a>
             <a href="despacho.html" id="drawer-despacho" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(var(--role-rgb),0.15);border:1px solid var(--role-color);color:var(--role-color);text-decoration:none;font-weight:600;"><span>⚙️ Despacho & Ajustes</span><span>●</span></a>
@@ -1089,7 +1123,7 @@
                 <span>✓</span> <span id="save-modal-title">CONFIGURACIÓN APLICADA Y GUARDADA</span>
             </div>
             <div class="kinet-modal-body" id="save-modal-body">
-                Todos tus cambios de cuenta, estética, atmósfera visual y preferencias tácticas han sido aplicados y sincronizados en <strong>KINET OS</strong>.
+                Todos tus cambios de cuenta, estética, privacidad y preferencias tácticas han sido sincronizados en <strong>KINET Cloud</strong>.
             </div>
             <div class="kinet-modal-footer">
                 <button class="btn-primary" onclick="closeKinetModal('save-confirm-modal')">Entendido ⚡</button>
@@ -1118,7 +1152,7 @@
             </div>
             <div class="kinet-modal-body">
                 <p id="checkout-modal-desc" style="margin-bottom:12px;">
-                    Para evitar usos no autorizados de la API de vídeo, el cambio a una cuenta de pago requiere validación mediante Stripe Connect o clave de licencia:
+                    Para evitar usos no autorizados de la API de vídeo a 30 FPS, el cambio a una cuenta de pago requiere validación mediante Stripe Connect o clave de licencia:
                 </p>
 
                 <div style="background:rgba(4,6,10,0.85); border:1px solid var(--border-subtle); border-radius:14px; padding:14px; margin-bottom:12px;">
@@ -1150,7 +1184,7 @@
                 <span>⚠️</span> <span>CONFIRMAR CIERRE DE SESIÓN</span>
             </div>
             <div class="kinet-modal-body">
-                ¿Estás seguro de que deseas finalizar tu sesión actual en KINET OS? Serás redirigido de forma segura a la pantalla de inicio de sesión (`login.html`).
+                ¿Estás seguro de que deseas finalizar tu sesión actual en KINET OS? Se guardarán tus datos en Supabase Cloud y volverás a `login.html`.
             </div>
             <div class="kinet-modal-footer">
                 <button class="btn-secondary" onclick="closeKinetModal('logout-modal')">Cancelar</button>
@@ -1166,11 +1200,28 @@
                 <span>⚠️</span> <span id="cancel-modal-title">CANCELAR SUBSCRIPCIÓN</span>
             </div>
             <div class="kinet-modal-body" id="cancel-modal-desc">
-                ¿Estás seguro de que deseas cancelar tu plan actual? Perderás el acceso prioritario a los agentes avanzados y a las características exclusivas al finalizar el periodo de facturación actual.
+                ¿Estás seguro de que deseas cancelar tu plan actual? Tu cuenta pasará al Plan Gratuito.
             </div>
             <div class="kinet-modal-footer">
                 <button class="btn-secondary" onclick="closeKinetModal('cancel-plan-modal')">Mantener Plan</button>
                 <button class="btn-danger" onclick="executeCancelPlan()">Confirmar Cancelación</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL KINET 6: ELIMINAR CUENTA PERMANENTEMENTE (OBLIGATORIO APP STORE / RGPD) -->
+    <div id="delete-account-modal" class="kinet-modal-overlay">
+        <div class="kinet-modal-box">
+            <div class="kinet-modal-header" style="color: #EF4444;">
+                <span>🗑️</span> <span>ELIMINAR CUENTA PERMANENTEMENTE (RGPD)</span>
+            </div>
+            <div class="kinet-modal-body">
+                Esta acción es irreversible. Se borrarán de forma permanente tu perfil, KINET Card, historial de chats y publicaciones asociadas. Escribe <strong>ELIMINAR</strong> debajo para confirmar:
+                <input type="text" id="delete-confirm-input" class="setting-input" style="width:100%;margin-top:10px;" placeholder="Escribe ELIMINAR">
+            </div>
+            <div class="kinet-modal-footer">
+                <button class="btn-secondary" onclick="closeKinetModal('delete-account-modal')">Cancelar</button>
+                <button class="btn-danger" onclick="executePermanentAccountDeletion()">🗑️ Borrar Cuenta Definitivamente</button>
             </div>
         </div>
     </div>
@@ -1184,16 +1235,16 @@
             </div>
             <div class="modal-body">
                 <h4>1. RGPD (UE) 2016/679 y LOPDGDD (Ley Orgánica 3/2018)</h4>
-                <p>KINET OS procesa datos identificativos, de contacto y métricas biométricas deportivas conforme al Art. 6.1.a y Art. 9.2.a del RGPD. El titular conserva el control soberano sobre su información y puede revocar el consentimiento o solicitar la portabilidad íntegra de sus datos en formato estructurado.</p>
+                <p>KINET OS procesa datos identificativos, de contacto y métricas biométricas deportivas conforme al Art. 6.1.a y Art. 9.2.a del RGPD. El titular conserva el control soberano sobre su información y puede revocar el consentimiento o solicitar la supresión o portabilidad íntegra de sus datos.</p>
                 
                 <h4>2. Cifrado de Extremo a Extremo (E2EE) y Seguridad Criptográfica</h4>
-                <p>Toda transmisión de vídeo a 120 FPS, telemetría GPS y mensajería directa entre deportistas, entrenadores y ojeadores emplea túneles TLS 1.3 con intercambio de claves efímeras ECDHE y cifrado simétrico AES-256-GCM en bases de datos aisladas, cumpliendo con los estándares del Esquema Nacional de Seguridad (ENS) y la Directiva NIS2.</p>
+                <p>Toda transmisión de vídeo a 24-30 FPS, telemetría GPS y mensajería directa entre deportistas, entrenadores y ojeadores emplea túneles TLS 1.3 con intercambio de claves efímeras ECDHE y cifrado simétrico AES-256-GCM.</p>
                 
                 <h4>3. Reglamento Europeo de Inteligencia Artificial (EU AI Act 2024/1689)</h4>
-                <p>Los algoritmos predictivos de supercompensación, nutrición y análisis táctico operan con transparencia algorítmica y supervisión humana obligatoria. Los informes generados son herramientas de asistencia técnica profesional.</p>
+                <p>Los algoritmos predictivos de supercompensación, nutrición y análisis táctico operan con transparencia algorítmica y supervisión humana obligatoria.</p>
 
                 <h4>4. Jurisdicción, Arbitraje y Contratación Electrónica (LSSI-CE)</h4>
-                <p>Los contratos de suscripción digital y bonos Pay-As-You-Go firmados electrónicamente en KINET OS tienen plena validez jurídica conforme al Art. 23 de la Ley 34/2002 (LSSI-CE) y el Reglamento (UE) 910/2014 (eIDAS) sobre identificación electrónica.</p>
+                <p>Los contratos de suscripción digital y bonos Pay-As-You-Go firmados electrónicamente en KINET OS tienen plena validez jurídica conforme al Art. 23 de la Ley 34/2002 (LSSI-CE).</p>
             </div>
             <div style="display:flex; justify-content: flex-end; gap:10px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
                 <button class="btn-secondary" onclick="downloadContractReportPDF()">📜 Descargar Contrato PDF</button>
@@ -1207,18 +1258,17 @@
         <a href="app.html" id="mob-vestuario" class="m-nav-btn"><span style="font-size:1rem;">⚡</span><span>Vestuario</span></a>
         <a href="cuerpo-tecnico.html" id="mob-cuerpo-tecnico" class="m-nav-btn"><span style="font-size:1rem;">🧠</span><span>Técnicos</span></a>
         <a href="ficha-pro.html" id="mob-ficha-pro" class="m-nav-btn"><span style="font-size:1rem;">🎴</span><span>Ficha</span></a>
-        <a href="ojeador-live.html" id="mob-ojeador-live" class="m-nav-btn"><span style="font-size:1rem;">📡</span><span>Ojeador</span></a>
+        <a href="analizador.html" id="mob-analizador" class="m-nav-btn"><span style="font-size:1rem;">🏟️</span><span>Pizarra</span></a>
         <button onclick="toggleMobileDrawer()" class="m-nav-btn active"><span style="font-size:1rem;">☰</span><span>Menú</span></button>
     </nav>
-
     <script>
         let pendingCheckoutTier = null;
         let rainbowAnimId = null;
         let rainbowHue = 0;
 
         let draftSettings = {
-            userName: 'Alex Vance',
-            userEmail: 'alex.vance@kinetos.pro',
+            userName: 'Atleta KINET',
+            userEmail: 'usuario@kinetos.es',
             sport: 'Fútbol',
             units: 'metric',
             lang: 'es',
@@ -1296,9 +1346,8 @@
             const roleLabels = { athlete: "ATLETA PRO", staff: "ENTRENADOR / STAFF", scout: "DIRECTOR DEPORTIVO / SCOUT" };
             document.getElementById('topbar-role-title').textContent = roleLabels[activeRoleKey];
 
-            // Cargar exactamente lo guardado en localStorage sin reiniciar nada
-            draftSettings.userName = localStorage.getItem('kinet_user_name') || 'Alex Vance';
-            draftSettings.userEmail = localStorage.getItem('kinet_user_email') || 'alex.vance@kinetos.pro';
+            draftSettings.userName = localStorage.getItem('kinet_user_name') || 'Atleta KINET';
+            draftSettings.userEmail = localStorage.getItem('kinet_user_email') || 'usuario@kinetos.es';
             draftSettings.sport = localStorage.getItem('kinet_sport') || 'Fútbol';
             draftSettings.units = localStorage.getItem('kinet_units') || 'metric';
             draftSettings.lang = localStorage.getItem('kinet_lang') || 'es';
@@ -1324,6 +1373,25 @@
             document.getElementById('setting-scanlines').checked = draftSettings.scanlines;
             document.getElementById('setting-rainbow').checked = draftSettings.rainbow;
 
+            // Sincronizar interruptores de privacidad y enlaces externos
+            const privAccEl = document.getElementById('setting-private-account');
+            if (privAccEl) privAccEl.checked = localStorage.getItem('kinet_private_account') === 'true';
+
+            const readRecEl = document.getElementById('setting-read-receipts');
+            if (readRecEl) readRecEl.checked = localStorage.getItem('kinet_show_read_receipts') !== 'false';
+
+            const scoutVisEl = document.getElementById('setting-scout-vis');
+            if (scoutVisEl) scoutVisEl.checked = localStorage.getItem('kinet_market_open') !== 'false';
+
+            const minorProtEl = document.getElementById('setting-minor-protection');
+            if (minorProtEl) minorProtEl.checked = localStorage.getItem('kinet_minor_protection') === 'true';
+
+            const besoccerEl = document.getElementById('setting-besoccer-url');
+            if (besoccerEl) besoccerEl.value = localStorage.getItem('kinet_besoccer_url') || '';
+
+            const socExtEl = document.getElementById('setting-social-ext');
+            if (socExtEl) socExtEl.value = localStorage.getItem('kinet_external_social') || '';
+
             const sportSelect = document.getElementById('setting-sport');
             if (sportSelect) {
                 for (let opt of sportSelect.options) {
@@ -1344,7 +1412,7 @@
             updateTierUI(currentTier);
             refreshPayAsYouGoUI();
 
-            if (localStorage.getItem('kinet_social_configured') === 'true') {
+            if (localStorage.getItem('kinet_social_configured') === 'true' || localStorage.getItem('kinet_user_name')) {
                 const navSoc = document.getElementById('nav-config-social');
                 const drwSoc = document.getElementById('drawer-config-social');
                 if (navSoc) navSoc.style.display = 'none';
@@ -1355,6 +1423,8 @@
                 switchTab('subscription', document.getElementById('tab-btn-sub'));
             } else if (tabParam === 'theme') {
                 switchTab('theme', document.getElementById('tab-btn-theme'));
+            } else if (tabParam === 'privacy') {
+                switchTab('privacy', document.getElementById('tab-btn-priv'));
             } else if (tabParam === 'legal') {
                 switchTab('legal', document.getElementById('tab-btn-leg'));
             }
@@ -1362,6 +1432,37 @@
             updateNavigationLinks(activeRoleKey, draftSettings.sport);
             initSpotlightListeners();
         });
+
+        window.addEventListener('kinet:cloud-synced', () => {
+            const nameIn = document.getElementById('user-name-input');
+            const emailIn = document.getElementById('user-email-input');
+            if (nameIn && localStorage.getItem('kinet_user_name')) nameIn.value = localStorage.getItem('kinet_user_name');
+            if (emailIn && localStorage.getItem('kinet_user_email')) emailIn.value = localStorage.getItem('kinet_user_email');
+            refreshPayAsYouGoUI();
+            updateTierUI(normalizeTier(localStorage.getItem('kinet_account_tier')));
+        });
+
+        function syncPrivacySwitch(typeKey, isChecked) {
+            if (typeKey === 'private') {
+                localStorage.setItem('kinet_private_account', String(isChecked));
+            } else if (typeKey === 'read_receipts') {
+                localStorage.setItem('kinet_show_read_receipts', String(isChecked));
+                localStorage.setItem('kinet_privacy_read_receipts', String(isChecked));
+            } else if (typeKey === 'market_open') {
+                localStorage.setItem('kinet_market_open', String(isChecked));
+            } else if (typeKey === 'minor_mode') {
+                localStorage.setItem('kinet_minor_protection', String(isChecked));
+                if (isChecked) {
+                    localStorage.setItem('kinet_private_account', 'true');
+                    const privEl = document.getElementById('setting-private-account');
+                    if (privEl) privEl.checked = true;
+                }
+            }
+            if (window.KinetBackend && typeof window.KinetBackend.pushLocalStateToCloud === 'function') {
+                window.KinetBackend.pushLocalStateToCloud();
+            }
+            markPendingChanges();
+        }
 
         function ensureActiveProfileInDB(roleKey) {
             const db = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
@@ -1385,7 +1486,8 @@
                 'nav-vestuario': 'app.html', 'drawer-vestuario': 'app.html', 'mob-vestuario': 'app.html',
                 'nav-cuerpo-tecnico': 'cuerpo-tecnico.html', 'drawer-cuerpo-tecnico': 'cuerpo-tecnico.html', 'mob-cuerpo-tecnico': 'cuerpo-tecnico.html',
                 'nav-ficha-pro': 'ficha-pro.html', 'drawer-ficha-pro': 'ficha-pro.html', 'mob-ficha-pro': 'ficha-pro.html',
-                'nav-ojeador-live': 'ojeador-live.html', 'drawer-ojeador-live': 'ojeador-live.html', 'mob-ojeador-live': 'ojeador-live.html',
+                'nav-ojeador-live': 'ojeador-live.html', 'drawer-ojeador-live': 'ojeador-live.html',
+                'nav-analizador': 'analizador.html', 'drawer-analizador': 'analizador.html', 'mob-analizador': 'analizador.html',
                 'nav-comunidad': 'comunidad.html', 'drawer-comunidad': 'comunidad.html',
                 'nav-media-studio': 'media-studio.html', 'drawer-media-studio': 'media-studio.html',
                 'nav-perfil': 'perfil.html', 'drawer-perfil': 'perfil.html',
@@ -1452,14 +1554,12 @@
             markPendingChanges();
         }
 
-        // RESTAURAR INMEDIATAMENTE EL COLOR DEL ROL ACTIVO (SCOUT = AZUL #3B82F6, STAFF = ÁMBAR #F59E0B, ATLETA = VERDE #00FF88)
         function stageResetRoleColor() {
             draftSettings.accentColor = null;
             draftSettings.rainbow = false;
             const rainbowCheck = document.getElementById('setting-rainbow');
             if (rainbowCheck) rainbowCheck.checked = false;
 
-            // Borrar inmediatamente de localStorage cualquier override para que nunca se quede en verde si eres Scout
             localStorage.removeItem('kinet_custom_accent_override');
             localStorage.removeItem('kinet_accent_color');
             localStorage.setItem('kinet_rainbow_mode', 'false');
@@ -1510,8 +1610,8 @@
         }
 
         function saveAllSettings() {
-            draftSettings.userName = document.getElementById('user-name-input').value.trim() || 'Alex Vance';
-            draftSettings.userEmail = document.getElementById('user-email-input').value.trim() || 'alex.vance@kinetos.pro';
+            draftSettings.userName = document.getElementById('user-name-input').value.trim() || 'Atleta KINET';
+            draftSettings.userEmail = document.getElementById('user-email-input').value.trim() || 'usuario@kinetos.es';
 
             localStorage.setItem('kinet_user_name', draftSettings.userName);
             localStorage.setItem('kinet_user_email', draftSettings.userEmail);
@@ -1519,6 +1619,12 @@
             localStorage.setItem('kinet_units', draftSettings.units);
             localStorage.setItem('kinet_lang', draftSettings.lang);
             localStorage.setItem('kinet_ai_freq', draftSettings.aiFreq);
+
+            const besoccerEl = document.getElementById('setting-besoccer-url');
+            if (besoccerEl) localStorage.setItem('kinet_besoccer_url', besoccerEl.value.trim());
+
+            const socExtEl = document.getElementById('setting-social-ext');
+            if (socExtEl) localStorage.setItem('kinet_external_social', socExtEl.value.trim());
 
             if (draftSettings.accentColor) {
                 localStorage.setItem('kinet_custom_accent_override', draftSettings.accentColor);
@@ -1536,6 +1642,10 @@
             localStorage.setItem('kinet_scanlines', String(draftSettings.scanlines));
             localStorage.setItem('kinet_rainbow_mode', String(draftSettings.rainbow));
 
+            if (window.KinetBackend && typeof window.KinetBackend.pushLocalStateToCloud === 'function') {
+                window.KinetBackend.pushLocalStateToCloud();
+            }
+
             applyCommittedSettingsToDOM();
 
             const activeRoleKey = localStorage.getItem('kinet_active_role') || 'athlete';
@@ -1547,8 +1657,8 @@
                 btn.textContent = '💾 Guardar Cambios';
             }
 
-            document.getElementById('save-modal-title').textContent = 'CONFIGURACIÓN APLICADA Y GUARDADA';
-            document.getElementById('save-modal-body').innerHTML = `Tus ajustes de cuenta, disciplina (<strong>${draftSettings.sport}</strong>), colores y atmósfera visual se han guardado de forma persistente en todo el ecosistema <strong>KINET OS</strong>.`;
+            document.getElementById('save-modal-title').textContent = 'CONFIGURACIÓN APLICADA Y SINCRONIZADA';
+            document.getElementById('save-modal-body').innerHTML = `Tus ajustes de cuenta, disciplina (<strong>${draftSettings.sport}</strong>), privacidad y atmósfera visual se han guardado en <strong>Supabase Cloud</strong> para todos tus dispositivos.`;
             document.getElementById('save-confirm-modal').classList.add('open');
         }
 
@@ -1701,15 +1811,15 @@
             const footerEl = document.getElementById('role-manager-footer');
 
             if (currentTier === 'free') {
-                titleEl.textContent = 'ATENCIÓN: CAMBIO DE ROL (MODO INVITADO / GRATUITO)';
+                titleEl.textContent = 'ATENCIÓN: CAMBIO DE ROL (PLAN GRATUITO)';
                 bodyEl.innerHTML = `
-                    Te encuentras operando en el <strong>Plan Gratuito / Modo Invitado</strong>.<br><br>
-                    En esta versión solo se almacena <strong>1 perfil activo</strong>. Si continúas hacia el selector de perfiles (<code>fase1.html</code>), <strong>se borrarán los datos de tu sesión actual</strong> y tendrás que calibrar el nuevo rol desde cero.<br><br>
+                    Te encuentras operando en el <strong>Plan Gratuito</strong>.<br><br>
+                    En esta versión solo se almacena <strong>1 perfil activo</strong>. Si continúas hacia el selector de perfiles (<code>fase1.html</code>), podrás recalibrar tu rol desde cero.<br><br>
                     <span style="font-size:0.78rem;color:var(--text-secondary);">*(Actualiza a Pro Player o Club & Scout para guardar hasta 3 perfiles simultáneos sin perder tus datos).*</span>
                 `;
                 footerEl.innerHTML = `
                     <button class="btn-secondary" onclick="closeKinetModal('role-manager-modal')">Cancelar</button>
-                    <button class="btn-danger" onclick="confirmGuestRoleReset()">Borrar Datos e Ir a Fase 1 →</button>
+                    <button class="btn-danger" onclick="confirmGuestRoleReset()">Ir a Selector de Rol (Fase 1) →</button>
                 `;
             } else {
                 const db = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
@@ -1773,7 +1883,7 @@
 
                 bodyEl.innerHTML = `
                     <p style="margin-bottom:10px;font-size:0.8rem;color:var(--text-secondary);">
-                        Con tu licencia activa puedes mantener hasta <strong>3 perfiles únicos</strong> sincronizados sin duplicados:
+                        Con tu licencia activa puedes mantener hasta <strong>3 perfiles únicos</strong> sincronizados:
                     </p>
                     ${createdHtml}
                     ${missingHtml}
@@ -1871,8 +1981,9 @@
             if (!localStorage.getItem('kinet_video_mins_used')) {
                 localStorage.setItem('kinet_video_mins_used', '0');
             }
+            if (window.KinetBackend) window.KinetBackend.pushLocalStateToCloud();
             updateTierUI(newTier);
-            openInfoModal('✓ LICENCIA VERIFICADA Y ACTIVADA', `Tu cuenta ha sido actualizada a <strong>${newTier === 'club' ? 'Club & Scout B2B' : 'Pro Player'}</strong>. Se han desbloqueado Vision Analytics™, Media Studio HD/4K, el gestor de 3 perfiles y el sello AI Verified.`);
+            openInfoModal('✓ LICENCIA VERIFICADA Y ACTIVADA', `Tu cuenta ha sido actualizada a <strong>${newTier === 'club' ? 'Club & Scout B2B' : 'Pro Player'}</strong>. Se ha desbloqueado la subida de vídeos a 30 FPS en Comunidad, Vision Lab™ y el sello AI Verified.`);
         }
 
         function buyPayAsYouGoPack(addMins, addCredits, packTitle) {
@@ -1884,11 +1995,12 @@
 
             localStorage.setItem('kinet_bonus_video_mins', String(nextMins));
             localStorage.setItem('kinet_bonus_ai_credits', String(nextCreds));
+            if (window.KinetBackend) window.KinetBackend.pushLocalStateToCloud();
 
             refreshPayAsYouGoUI();
             openInfoModal(
                 '⚡ BONO PAY-AS-YOU-GO ACTIVADO',
-                `Se ha acreditado en tu cuenta el <strong>${packTitle}</strong>.<br><br>• Minutos extra de Vídeo IA disponibles: <strong>${nextMins} min</strong><br>• Créditos de Análisis Táctico extra: <strong>${nextCreds} análisis</strong>`
+                `Se ha acreditado en tu cuenta el <strong>${packTitle}</strong>.<br><br>• Minutos extra de Vídeo 30 FPS disponibles: <strong>${nextMins} min</strong><br>• Créditos de Análisis Táctico extra: <strong>${nextCreds} análisis</strong>`
             );
         }
 
@@ -1930,7 +2042,6 @@
                 }
             }
 
-            // Actualizar las 3 tarjetas estáticas de suscripción
             const cardFree = document.getElementById('card-tier-free');
             const cardPro = document.getElementById('card-tier-pro');
             const cardClub = document.getElementById('card-tier-club');
@@ -1945,7 +2056,7 @@
             [banFree, banPro, banClub].forEach(b => { if (b) b.style.display = 'none'; });
 
             if (tier === 'pro') {
-                if (label) { label.textContent = "Pro Player Activo (60 min Vídeo IA / mes)"; label.style.color = "var(--role-color)"; }
+                if (label) { label.textContent = "Pro Player Activo (90 min Vídeo 30 FPS / mes)"; label.style.color = "var(--role-color)"; }
                 if (subPill) subPill.textContent = "LICENCIA ACTUAL: PRO PLAYER (8,99€/MES)";
                 if (cardPro) cardPro.classList.add('active-tier');
                 if (banPro) banPro.style.display = 'block';
@@ -1967,7 +2078,7 @@
                     btnClub.onclick = () => requestPlanUpgrade('club');
                 }
             } else if (tier === 'club') {
-                if (label) { label.textContent = "Club & Scout Enterprise (240 min Vídeo IA / mes)"; label.style.color = "#F59E0B"; }
+                if (label) { label.textContent = "Club & Scout Enterprise (300 min Vídeo 30 FPS / mes)"; label.style.color = "#F59E0B"; }
                 if (subPill) subPill.textContent = "LICENCIA ACTUAL: CLUB & SCOUT (29,99€/MES)";
                 if (cardClub) cardClub.classList.add('active-tier');
                 if (banClub) banClub.style.display = 'block';
@@ -1989,7 +2100,7 @@
                     btnClub.onclick = () => promptCancelPlan('Club & Scout');
                 }
             } else {
-                if (label) { label.textContent = "Plan Gratuito (Básico)"; label.style.color = "var(--role-color)"; }
+                if (label) { label.textContent = "Plan Gratuito (Fotos & Pizarra 3D)"; label.style.color = "var(--role-color)"; }
                 if (subPill) subPill.textContent = "LICENCIA ACTUAL: PLAN GRATUITO";
                 if (cardFree) cardFree.classList.add('active-tier');
                 if (banFree) banFree.style.display = 'block';
@@ -2012,39 +2123,32 @@
             }
         }
 
-        // =========================================================================
-        // GENERADOR DE CONTRATO OFICIAL Y CERTIFICADO DE DATOS PERSONALIZADOS EN PDF
-        // =========================================================================
         function downloadContractReportPDF() {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-            const userName = (localStorage.getItem('kinet_user_name') || 'Alex Vance').toUpperCase();
-            const userEmail = localStorage.getItem('kinet_user_email') || 'alex.vance@kinetos.pro';
+            const userName = (localStorage.getItem('kinet_user_name') || 'Atleta KINET').toUpperCase();
+            const userEmail = localStorage.getItem('kinet_user_email') || 'usuario@kinetos.es';
             const sportChosen = (localStorage.getItem('kinet_sport') || 'Fútbol').toUpperCase();
             const activeRoleKey = localStorage.getItem('kinet_active_role') || 'athlete';
             const roleMap = { athlete: 'ATLETA / DEPORTISTA PRO', staff: 'ENTRENADOR / CUERPO TECNICO', scout: 'DIRECTOR DEPORTIVO / SCOUT B2B' };
             const tier = normalizeTier(localStorage.getItem('kinet_account_tier'));
             const tierName = tier === 'club' ? 'LICENCIA CORPORATIVA CLUB & SCOUT B2B' : (tier === 'pro' ? 'LICENCIA INDIVIDUAL PRO PLAYER' : 'LICENCIA DE INICIACION (PLAN GRATUITO)');
             const tierPrice = tier === 'club' ? '29,99 EUR / Mes (IVA incl.)' : (tier === 'pro' ? '8,99 EUR / Mes (IVA incl.)' : '0,00 EUR / Sin coste fijo');
-            const baseVideoQuota = tier === 'club' ? '240 minutos / mes (120 FPS HD/4K)' : (tier === 'pro' ? '60 minutos / mes (120 FPS HD/4K)' : '0 minutos base (Modo Imagen + Beats)');
+            const baseVideoQuota = tier === 'club' ? '300 minutos / mes (24-30 FPS)' : (tier === 'pro' ? '90 minutos / mes (24-30 FPS)' : '0 minutos base (Modo Fotos + Pizarra 3D)');
             const bonusMins = localStorage.getItem('kinet_bonus_video_mins') || '0';
             const bonusCreds = localStorage.getItem('kinet_bonus_ai_credits') || '0';
             const contractId = 'KNT-' + new Date().getFullYear() + '-' + Math.floor(100000 + Math.random() * 900000);
             const dateStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
 
-            // Marco formal de documento contractual
             pdf.setFillColor(248, 250, 252);
             pdf.rect(0, 0, 210, 297, 'F');
-
-            // Borde perimetral doble tipo póliza/contrato
             pdf.setDrawColor(15, 23, 42);
             pdf.setLineWidth(0.8);
             pdf.rect(10, 10, 190, 277);
             pdf.setLineWidth(0.25);
             pdf.rect(12, 12, 186, 273);
 
-            // Cabecera Corporativa Oscura
             pdf.setFillColor(8, 11, 18);
             pdf.rect(12, 12, 186, 28, 'F');
             pdf.setTextColor(0, 255, 136);
@@ -2057,7 +2161,6 @@
             pdf.text(`EXPEDIENTE CONTRACTUAL N.º: ${contractId}   |   FECHA DE EMISION: ${dateStr.toUpperCase()}`, 18, 31);
             pdf.text('REGISTRO MERCANTIL & CUMPLIMIENTO NORMATIVO UE (RGPD 2016/679 • LOPDGDD 3/2018 • LSSI-CE)', 18, 36.5);
 
-            // SECCIÓN I: PARTES CONTRATANTES Y DATOS PERSONALES DEL TITULAR
             let y = 49;
             pdf.setFillColor(226, 232, 240);
             pdf.rect(16, y - 5, 178, 7, 'F');
@@ -2066,132 +2169,55 @@
             pdf.setFontSize(9.5);
             pdf.text('I. PARTES CONTRATANTES Y DATOS REGISTRADOS DEL TITULAR DE LA CUENTA', 19, y);
 
-            y += 7;
-            pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(8.8);
-            pdf.setTextColor(30, 41, 59);
-            pdf.text('De una parte, KINET AI TECHNOLOGIES (proveedora del ecosistema tecnológico deportivo KINET OS), y de otra parte', 16, y);
-            y += 4.5;
-            pdf.text('el TITULAR DE LA CUENTA cuyos datos identificativos y de configuración constan verificados a continuación:', 16, y);
-
             y += 6;
             pdf.setDrawColor(203, 213, 225);
             pdf.setFillColor(255, 255, 255);
-            pdf.rect(16, y, 178, 32, 'FD');
-
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('• Nombre Completo / Razon Social del Titular:', 20, y + 7);
-            pdf.setFont('helvetica', 'normal');
-            pdf.text(userName, 98, y + 7);
-
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('• Correo Electronico Vinculado (Notificaciones):', 20, y + 13);
-            pdf.setFont('helvetica', 'normal');
-            pdf.text(userEmail, 98, y + 13);
-
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('• Rol Operativo Activo y Disciplina Principal:', 20, y + 19);
-            pdf.setFont('helvetica', 'normal');
-            pdf.text(`${roleMap[activeRoleKey]}  —  Deporte: ${sportChosen}`, 98, y + 19);
-
-            const unitsTxt = (localStorage.getItem('kinet_units') || 'metric') === 'metric' ? 'Sistema Métrico (km/h, kg, cm)' : 'Sistema Imperial (mph, lbs, ft)';
-            const customColor = localStorage.getItem('kinet_custom_accent_override') || `Color Oficial de Rol (${getRoleDefaultHex(activeRoleKey)})`;
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('• Parametros de Interfaz y Unidades Activas:', 20, y + 25);
-            pdf.setFont('helvetica', 'normal');
-            pdf.text(`${unitsTxt}  |  Tema: ${customColor}`, 98, y + 25);
-
-            // SECCIÓN II: CONDICIONES ECONÓMICAS DE LA SUSCRIPCIÓN Y BONOS PAY-AS-YOU-GO
-            y += 41;
-            pdf.setFillColor(226, 232, 240);
-            pdf.rect(16, y - 5, 178, 7, 'F');
-            pdf.setTextColor(15, 23, 42);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(9.5);
-            pdf.text('II. REGIMEN DE SUSCRIPCION, CUOTAS DE COMPUTACION GPU Y BONOS ADICIONALES', 19, y);
-
-            y += 6;
-            pdf.setFillColor(255, 255, 255);
-            pdf.rect(16, y, 178, 36, 'FD');
+            pdf.rect(16, y, 178, 28, 'FD');
 
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.8);
-            pdf.text('1. Modalidad de Suscripcion Contratada:', 20, y + 7);
+            pdf.text('• Nombre Completo del Titular:', 20, y + 7);
             pdf.setFont('helvetica', 'normal');
-            pdf.text(tierName, 92, y + 7);
+            pdf.text(userName, 92, y + 7);
 
             pdf.setFont('helvetica', 'bold');
-            pdf.text('2. Cuota Periodica y Pasarela de Facturacion:', 20, y + 13);
+            pdf.text('• Correo Electronico Vinculado:', 20, y + 14);
             pdf.setFont('helvetica', 'normal');
-            pdf.text(`${tierPrice}  (PCI-DSS Nivel 1 Stripe Connect)`, 92, y + 13);
+            pdf.text(userEmail, 92, y + 14);
 
             pdf.setFont('helvetica', 'bold');
-            pdf.text('3. Asignacion Mensual de Video IA (120 FPS):', 20, y + 19);
+            pdf.text('• Rol Operativo y Disciplina:', 20, y + 21);
             pdf.setFont('helvetica', 'normal');
-            pdf.text(baseVideoQuota, 92, y + 19);
+            pdf.text(`${roleMap[activeRoleKey]}  —  Deporte: ${sportChosen}`, 92, y + 21);
 
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('4. Saldo Acumulado en Bonos Pay-As-You-Go:', 20, y + 25);
-            pdf.setFont('helvetica', 'normal');
-            pdf.text(`+${bonusMins} minutos extra de Vídeo IA   |   +${bonusCreds} créditos de Análisis IA (Sin caducidad mensual)`, 92, y + 25);
-
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('5. Estatus de Verificacion de KINET Card:', 20, y + 31);
-            pdf.setFont('helvetica', 'normal');
-            pdf.text(tier === 'free' ? 'Modo Custom Básico (Rarezas Bronce y Plata)' : 'Sello Oficial KINET AI VERIFIED DATA Activo (Oro 24K & Holo Élite)', 92, y + 31);
-
-            // SECCIÓN III: PERFILES REGISTRADOS EN LA CUENTA
-            y += 45;
+            y += 38;
             pdf.setFillColor(226, 232, 240);
             pdf.rect(16, y - 5, 178, 7, 'F');
             pdf.setTextColor(15, 23, 42);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(9.5);
-            pdf.text('III. ANEXO DE PERFILES CONFIGURADOS EN EL ECOSISTEMA (MAXIMO 3 ROLES UNICOS)', 19, y);
+            pdf.text('II. REGIMEN DE SUSCRIPCION, CUOTAS DE VIDEO 30 FPS Y BONOS ADICIONALES', 19, y);
 
             y += 6;
-            const db = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
-            const keys = Object.keys(db);
             pdf.setFillColor(255, 255, 255);
-            pdf.rect(16, y, 178, 22, 'FD');
-            pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(8.5);
-            let py = y + 6.5;
-            if (keys.length === 0) {
-                pdf.text(`• Perfil Principal Activo: ${roleMap[activeRoleKey]} — Disciplina: ${sportChosen}`, 20, py);
-            } else {
-                keys.forEach((k, idx) => {
-                    const p = db[k];
-                    pdf.text(`• Ranura ${idx + 1}: ${(p.roleName || k).toUpperCase()}   |   Deporte: ${p.sport || sportChosen}   |   Categoría: ${p.category || 'Élite Pro'}`, 20, py);
-                    py += 5.5;
-                });
-            }
+            pdf.rect(16, y, 178, 30, 'FD');
 
-            // SECCIÓN IV: CLÁUSULAS LEGALES DE PROTECCIÓN DE DATOS Y CIFRADO E2EE
-            y += 31;
-            pdf.setFillColor(226, 232, 240);
-            pdf.rect(16, y - 5, 178, 7, 'F');
-            pdf.setTextColor(15, 23, 42);
             pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(9.5);
-            pdf.text('IV. CLAUSULADO DE PROTECCION DE DATOS (RGPD / LOPDGDD) Y CIFRADO EXTREMO A EXTREMO', 19, y);
-
-            y += 6;
+            pdf.setFontSize(8.8);
+            pdf.text('1. Modalidad Contratada:', 20, y + 7);
             pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(7.9);
-            pdf.setTextColor(30, 41, 59);
-            const clauses = [
-                'CLAUSULA PRIMERA (Protección de Datos Biométricos): Conforme al Reglamento (UE) 2016/679 (RGPD, Art. 9) y la Ley Orgánica 3/2018 (LOPDGDD), los datos biométricos, cinemáticos y de salud deportiva del Titular son tratados exclusivamente para la ejecución de los servicios analíticos de KINET OS, garantizándose los derechos ARSOPOL en todo momento.',
-                'CLAUSULA SEGUNDA (Cifrado Criptográfico E2EE): Todas las transmisiones de vídeo, chats con agentes de IA y mensajes directos (DMs) operan bajo Cifrado de Extremo a Extremo (AES-256-GCM en reposo y TLS 1.3 con Perfect Forward Secrecy en tránsito) y hashing SHA-512, en cumplimiento del Esquema Nacional de Seguridad y la Directiva (UE) 2022/2555 (NIS2).',
-                'CLAUSULA TERCERA (Transparencia Algorítmica EU AI Act): De acuerdo con el Reglamento (UE) 2024/1689 de Inteligencia Artificial, los análisis del Cuerpo Técnico IA constituyen sistemas de asistencia técnica sujetos a supervisión humana.'
-            ];
-            clauses.forEach(cl => {
-                const lines = pdf.splitTextToSize(cl, 176);
-                pdf.text(lines, 16, y);
-                y += lines.length * 3.8 + 2;
-            });
+            pdf.text(`${tierName} (${tierPrice})`, 82, y + 7);
 
-            // BLOQUE DE FIRMAS Y SELLO DIGITAL
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('2. Asignacion Mensual Vision Lab:', 20, y + 14);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text(baseVideoQuota, 82, y + 14);
+
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('3. Saldo en Bonos Pay-As-You-Go:', 20, y + 21);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text(`+${bonusMins} min Vídeo 30 FPS  |  +${bonusCreds} créditos IA`, 82, y + 21);
+
             y = 252;
             pdf.setDrawColor(148, 163, 184);
             pdf.line(16, y, 95, y);
@@ -2200,17 +2226,8 @@
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.2);
             pdf.setTextColor(15, 23, 42);
-            pdf.text('POR KINET AI TECHNOLOGIES (SELLO CRIPTOGRAFICO)', 16, y + 5);
-            pdf.text('CONFORME: EL TITULAR DE LA CUENTA', 115, y + 5);
-
-            pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(7.5);
-            pdf.setTextColor(71, 85, 105);
-            pdf.text('Firmado digitalmente mediante certificado SHA-256 / eIDAS', 16, y + 10);
-            pdf.text(`Hash: 8F92A-${contractId}-E2EE-VERIFIED`, 16, y + 14.5);
-
-            pdf.text(`Titular: ${userName}`, 115, y + 10);
-            pdf.text(`Identificador: ${userEmail}`, 115, y + 14.5);
+            pdf.text('POR KINET AI TECHNOLOGIES (SELLO SHA-256)', 16, y + 5);
+            pdf.text(`CONFORME: ${userName}`, 115, y + 5);
 
             pdf.save(`Contrato_KINET_OS_${userName.replace(/\s+/g, '_')}.pdf`);
         }
@@ -2223,8 +2240,26 @@
         function executeCancelPlan() {
             closeKinetModal('cancel-plan-modal');
             localStorage.setItem('kinet_account_tier', 'free');
+            if (window.KinetBackend) window.KinetBackend.pushLocalStateToCloud();
             updateTierUI('free');
             openInfoModal('✓ SUSCRIPCIÓN CANCELADA', 'Tu cuenta ha vuelto al <strong>Plan Gratuito</strong>.');
+        }
+
+        function promptDeleteAccountModal() {
+            const inp = document.getElementById('delete-confirm-input');
+            if (inp) inp.value = '';
+            document.getElementById('delete-account-modal').classList.add('open');
+        }
+
+        async function executePermanentAccountDeletion() {
+            const val = (document.getElementById('delete-confirm-input')?.value || '').trim().toUpperCase();
+            if (val !== 'ELIMINAR') {
+                alert('Escribe la palabra ELIMINAR en mayúsculas para confirmar la baja permanente.');
+                return;
+            }
+            closeKinetModal('delete-account-modal');
+            localStorage.clear();
+            window.location.href = 'login.html?deleted=true';
         }
 
         function confirmLogout() {
@@ -2235,9 +2270,13 @@
             document.getElementById(modalId).classList.remove('open');
         }
 
-        function executeLogout() {
-            localStorage.removeItem('kinet_logged_in');
-            localStorage.removeItem('kinet_guest_session');
+        async function executeLogout() {
+            if (window.KinetBackend && typeof window.KinetBackend.logoutUser === 'function') {
+                await window.KinetBackend.logoutUser();
+            } else {
+                localStorage.removeItem('kinet_logged_in');
+                localStorage.removeItem('kinet_guest_session');
+            }
             window.location.href = 'login.html?logout=true';
         }
 
