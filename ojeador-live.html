@@ -1971,9 +1971,20 @@
             window.location.href = `cuerpo-tecnico.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeSportName)}&agent=tecnico_video`;
         }
 
-        function openBonusPackModal() {
-            document.getElementById('payg-vision-modal').classList.add('open');
-        }
+          // Redirigir directamente a la sección de Suscripciones y Bonos de despacho.html en lugar de abrir el popup antiguo
+        window.openBonusPackModal = function () {
+            const roleNow = localStorage.getItem('kinet_active_role') || document.body.getAttribute('data-role') || 'athlete';
+            const sportNow = localStorage.getItem('kinet_sport') || 'Fútbol';
+            window.location.href = `despacho.html?role=${roleNow}&sport=${encodeURIComponent(sportNow)}&tab=subscription#payg-bonuses-section`;
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // Actualizar también el precio mostrado en el aviso de cuenta gratuita a 4,99€/mes
+            const upModalBox = document.querySelector('#vision-upgrade-modal .kinet-modal-box');
+            if (upModalBox) {
+                upModalBox.innerHTML = upModalBox.innerHTML.replace('8,99€/mes', '4,99€/mes');
+            }
+        });
 
         function addVisionBonusMinutes(mins) {
             const prev = parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0');
