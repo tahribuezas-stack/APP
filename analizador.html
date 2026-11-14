@@ -14,7 +14,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     
-    <!-- Librería Oficial para Exportación PDF Ejecutiva + Supabase + KINET Backend v5.7 + APIs -->
+    <!-- Librerías Oficiales para Captura HD (html2canvas) + PDF + Supabase + KINET Backend v5.7 + APIs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="kinet-backend.js"></script>
@@ -320,6 +321,8 @@
             margin-bottom: 12px;
             flex-wrap: wrap;
             gap: 10px;
+            position: relative;
+            z-index: 80;
         }
         .context-tag {
             font-family: 'JetBrains Mono', monospace;
@@ -340,7 +343,164 @@
             color: white;
         }
 
-        /* BARRA DE COMANDO LIMPIA Y CON SOMBRA SPOTLIGHT */
+        /* =========================================================================
+           DESPLEGABLES PERSONALIZADOS KINET OS (SIN MENÚ AZUL DE WINDOWS + ANIMACIÓN DE ENTRADA Y SALIDA)
+           ========================================================================= */
+        .kinet-custom-select-wrap {
+            position: relative;
+            display: inline-block;
+            min-width: 175px;
+            user-select: none;
+            z-index: 65;
+        }
+        .kinet-custom-select-wrap.open { z-index: 120; }
+
+        .kinet-custom-select-trigger {
+            width: 100%;
+            background: rgba(6, 9, 16, 0.94);
+            border: 1px solid rgba(var(--role-rgb), 0.45);
+            border-radius: 11px;
+            padding: 8px 12px;
+            color: #F8FAFC;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.74rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+        }
+        .kinet-custom-select-trigger:hover,
+        .kinet-custom-select-wrap.open .kinet-custom-select-trigger {
+            border-color: var(--role-color);
+            box-shadow: 0 0 18px rgba(var(--role-rgb), 0.25);
+            background: rgba(var(--role-rgb), 0.08);
+        }
+        .kinet-custom-select-arrow {
+            font-size: 0.62rem;
+            color: var(--role-color);
+            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .kinet-custom-select-wrap.open .kinet-custom-select-arrow {
+            transform: rotate(180deg);
+        }
+
+        @keyframes kinetDropdownIn {
+            0% { opacity: 0; transform: translateY(-8px) scale(0.96); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes kinetDropdownOut {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-8px) scale(0.95); }
+        }
+
+        .kinet-custom-select-menu {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            min-width: 100%;
+            width: max-content;
+            max-width: 290px;
+            max-height: 270px;
+            overflow-y: auto;
+            background: rgba(9, 13, 22, 0.98);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(var(--role-rgb), 0.55);
+            border-radius: 13px;
+            padding: 5px;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.92), 0 0 25px rgba(var(--role-rgb), 0.22);
+            display: none;
+            z-index: 250;
+            transform-origin: top center;
+        }
+        .kinet-custom-select-wrap.open .kinet-custom-select-menu {
+            display: block;
+            animation: kinetDropdownIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .kinet-custom-select-wrap.closing .kinet-custom-select-menu {
+            display: block;
+            pointer-events: none;
+            animation: kinetDropdownOut 0.18s cubic-bezier(0.4, 0, 1, 1) forwards;
+        }
+
+        .kinet-custom-option {
+            padding: 8px 11px;
+            border-radius: 9px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.73rem;
+            font-weight: 600;
+            color: #CBD5E1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            transition: all 0.18s ease;
+            margin-bottom: 2px;
+        }
+        .kinet-custom-option:last-child { margin-bottom: 0; }
+        .kinet-custom-option:hover {
+            background: rgba(var(--role-rgb), 0.14);
+            color: #FFFFFF;
+            transform: translateX(3px);
+        }
+        .kinet-custom-option.selected {
+            background: var(--role-gradient);
+            color: #04060A;
+            font-weight: 800;
+            box-shadow: 0 0 12px var(--role-glow);
+        }
+
+        /* MENÚ DESPLEGABLE ANIMADO DE COMPARTIR & MATCHDAY */
+        .share-dropdown-wrap {
+            position: relative;
+            display: inline-block;
+            z-index: 95;
+        }
+        .share-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 7px);
+            right: 0;
+            width: 280px;
+            background: rgba(9, 13, 22, 0.98);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(var(--role-rgb), 0.55);
+            border-radius: 15px;
+            padding: 7px;
+            box-shadow: 0 22px 50px rgba(0,0,0,0.95), 0 0 28px rgba(var(--role-rgb), 0.25);
+            display: none;
+            z-index: 300;
+        }
+        .share-dropdown-wrap.open .share-dropdown-menu {
+            display: block;
+            animation: kinetDropdownIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .share-dropdown-wrap.closing .share-dropdown-menu {
+            display: block;
+            pointer-events: none;
+            animation: kinetDropdownOut 0.18s cubic-bezier(0.4, 0, 1, 1) forwards;
+        }
+        .share-menu-item {
+            padding: 9px 11px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            margin-bottom: 3px;
+        }
+        .share-menu-item:hover {
+            background: rgba(var(--role-rgb), 0.12);
+            border-color: rgba(var(--role-rgb), 0.35);
+            transform: translateX(3px);
+        }
+
+        /* BARRA DE COMANDO LIMPIA (SIN OVERFLOW:HIDDEN PARA PERMITIR LOS DESPLEGABLES ANIMADOS) */
         .analyzer-toolbar {
             background: rgba(13, 17, 26, 0.95);
             border: 1px solid var(--border-subtle);
@@ -354,7 +514,7 @@
             flex-wrap: wrap;
             box-shadow: 0 8px 22px rgba(0,0,0,0.4);
             position: relative;
-            overflow: hidden;
+            z-index: 70;
         }
         .analyzer-tabs-group {
             display: grid;
@@ -364,13 +524,12 @@
             border-radius: 12px;
             padding: 4px;
             gap: 6px;
-            flex: 1.35;
-            min-width: 310px;
+            flex: 1.3;
+            min-width: 300px;
         }
         @media (max-width: 720px) {
             .analyzer-tabs-group { grid-template-columns: 1fr; min-width: 100%; }
-            .analyzer-controls-right { width: 100%; display: grid !important; grid-template-columns: 1fr 1fr; }
-            #toggle-3d-btn { grid-column: span 2; }
+            .analyzer-controls-right { width: 100%; justify-content: space-between; }
         }
         .analyzer-tab-btn {
             background: transparent;
@@ -432,21 +591,21 @@
         .col-4 { grid-column: span 4; }
         @media (max-width: 1080px) { .col-8, .col-4 { grid-column: span 12; } }
 
-        /* PANELES CON SOMBRA DE CURSOR SPOTLIGHT REACTIVA */
+        /* PANELES CON TRANSICIÓN SUAVE DE TAMAÑO Y SOMBRA DE CURSOR SPOTLIGHT */
         .kinet-panel {
             background: var(--bg-panel);
             border: 1px solid var(--border-subtle);
             border-radius: 20px;
             padding: 16px 18px;
             position: relative;
-            overflow: hidden;
             box-shadow: 0 12px 30px rgba(0,0,0,0.45);
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            transition: all 0.38s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .kinet-panel::before {
             content: '';
             position: absolute;
             inset: 0;
+            border-radius: inherit;
             background: radial-gradient(240px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(var(--role-rgb), 0.16), transparent 70%);
             opacity: 0;
             transition: opacity 0.2s ease;
@@ -457,13 +616,16 @@
         .kinet-panel:hover::before { opacity: 1; }
         .kinet-panel:hover { border-color: rgba(var(--role-rgb), 0.42); }
 
+        /* Cabecera de pizarra con min-height estabilizado para que el campo jamás salte de golpe */
         .panel-head {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            min-height: 42px;
             margin-bottom: 10px;
             gap: 10px;
             flex-wrap: wrap;
+            transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .panel-label {
             font-family: 'JetBrains Mono', monospace;
@@ -526,37 +688,50 @@
         }
         .btn-secondary:hover { border-color: rgba(var(--role-rgb), 0.48); background: rgba(var(--role-rgb), 0.1); transform: translateY(-1px); }
 
-        /* BOTÓN DE DESASIGNAR / QUITAR JUGADOR BIEN VISIBLE Y DESTACADO */
+        /* BOTÓN DE DESASIGNAR CON ANIMACIÓN FLUIDA DE APARICIÓN (SIN SALTO BRUSCO) */
         .btn-unassign-prominent {
             background: rgba(239, 68, 68, 0.16);
             border: 1.5px solid #EF4444;
             color: #FCA5A5;
             border-radius: 10px;
-            padding: 6px 13px;
+            padding: 5px 11px;
             font-family: 'Orbitron', sans-serif;
-            font-size: 0.64rem;
+            font-size: 0.62rem;
             font-weight: 800;
             cursor: pointer;
-            display: none;
+            display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             box-shadow: 0 0 16px rgba(239, 68, 68, 0.3);
-            transition: all 0.2s ease;
+            opacity: 0;
+            max-width: 0;
+            padding-left: 0;
+            padding-right: 0;
+            border-width: 0;
+            overflow: hidden;
+            pointer-events: none;
+            white-space: nowrap;
+            transition: all 0.32s cubic-bezier(0.22, 1, 0.36, 1);
         }
-        .btn-unassign-prominent.visible { display: inline-flex; }
+        .btn-unassign-prominent.visible {
+            opacity: 1;
+            max-width: 210px;
+            padding: 5px 11px;
+            border-width: 1.5px;
+            pointer-events: auto;
+        }
         .btn-unassign-prominent:hover {
             background: #EF4444;
             color: #04060A;
             transform: scale(1.04);
-            box-shadow: 0 0 22px rgba(239, 68, 68, 0.6);
         }
 
         /* =========================================================================
-           ESCENARIO TÁCTICO 3D MEJORADO CON PLATAFORMA DE VOLUMEN Y FOCOS DE ESTADIO
+           ESCENARIO TÁCTICO 3D CON ANIMACIÓN SUAVE DE TAMAÑO Y PLATAFORMA DE ESTADIO
            ========================================================================= */
         .arena-3d-viewport {
             width: 100%;
-            height: 415px;
+            height: 418px;
             background:
                 radial-gradient(ellipse at 50% 8%, rgba(var(--role-rgb), 0.26), transparent 62%),
                 radial-gradient(circle at 15% 20%, rgba(56, 189, 248, 0.12), transparent 45%),
@@ -570,6 +745,7 @@
             align-items: center;
             justify-content: center;
             box-shadow: inset 0 0 65px rgba(0, 0, 0, 0.9), 0 16px 36px rgba(0, 0, 0, 0.65);
+            transition: height 0.45s cubic-bezier(0.22, 1, 0.36, 1), transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
         .arena-3d-surface {
@@ -578,7 +754,7 @@
             position: relative;
             transform: perspective(980px) rotateX(24deg) scale(0.95);
             transform-style: flat;
-            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease;
+            transition: all 0.52s cubic-bezier(0.22, 1, 0.36, 1);
             border-radius: 16px;
             border: 2px solid rgba(var(--role-rgb), 0.55);
             box-shadow:
@@ -588,7 +764,9 @@
                 0 0 38px rgba(var(--role-rgb), 0.22);
         }
         .arena-3d-viewport.flat-2d .arena-3d-surface {
-            transform: perspective(980px) rotateX(0deg) scale(0.97);
+            width: 95%;
+            height: 91%;
+            transform: perspective(980px) rotateX(0deg) scale(0.99);
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8), 0 0 22px rgba(var(--role-rgb), 0.15);
         }
 
@@ -601,7 +779,7 @@
         }
 
         /* =========================================================================
-           MINI KINET CARDS ESTILO FIFA / EA FC EN MINIATURA SOBRE EL CAMPO 3D
+           MINI KINET CARDS (MODO CARTA 6 STATS Y MODO RETRATO TV FOTO + MEDIA + POS)
            ========================================================================= */
         @keyframes cardDropBounce {
             0% { opacity: 0; transform: translate(-50%, -85%) scale(0.65); }
@@ -617,7 +795,7 @@
             padding: 5px 6px 6px 6px;
             text-align: center;
             cursor: pointer;
-            transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease, box-shadow 0.22s ease;
+            transition: left 0.48s cubic-bezier(0.22, 1, 0.36, 1), top 0.48s cubic-bezier(0.22, 1, 0.36, 1), transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease, box-shadow 0.22s ease;
             z-index: 30;
             user-select: none;
             pointer-events: auto !important;
@@ -630,6 +808,47 @@
                 linear-gradient(165deg, rgba(16, 24, 38, 0.98) 0%, rgba(6, 9, 16, 0.99) 100%);
             border: 1.5px solid var(--role-color);
             box-shadow: 0 10px 22px rgba(0, 0, 0, 0.92), 0 0 15px rgba(var(--role-rgb), 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+        }
+
+        /* MODO FOTO TV (FOTO PERFIL + MEDIA + POSICIÓN) */
+        .tactical-node-token.kinet-avatar-tv-token {
+            width: 78px;
+            background: rgba(8, 12, 20, 0.92);
+            border: 1.5px solid var(--role-color);
+            border-radius: 14px;
+            padding: 5px;
+            box-shadow: 0 10px 22px rgba(0,0,0,0.9), 0 0 16px rgba(var(--role-rgb), 0.3);
+        }
+        .tv-avatar-circle {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            margin: 0 auto 3px auto;
+            background: linear-gradient(135deg, rgba(var(--role-rgb), 0.3), rgba(15, 23, 42, 0.95));
+            border: 1.5px solid var(--role-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 900;
+            color: white;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        .tv-grl-badge {
+            position: absolute;
+            bottom: -3px;
+            right: -6px;
+            background: var(--role-gradient);
+            color: #04060A;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.52rem;
+            font-weight: 900;
+            padding: 1px 4px;
+            border-radius: 5px;
+            border: 1px solid #04060A;
         }
 
         .tactical-node-token.empty-slot {
@@ -845,10 +1064,7 @@
             padding: 2px;
         }
         @media (max-width: 680px) {
-            .cassette-slots-grid {
-                display: flex;
-                overflow-x: auto;
-            }
+            .cassette-slots-grid { display: flex; overflow-x: auto; }
         }
         .bench-slot-pill {
             min-width: 72px;
@@ -880,7 +1096,7 @@
         }
 
         /* =========================================================================
-           PANEL DERECHO CON DISEÑO LIMPIO EN CARTELERA (SIN CORTES NI DESBORDES)
+           PANEL DERECHO
            ========================================================================= */
         .right-panel-tabs {
             display: grid;
@@ -972,7 +1188,6 @@
             box-shadow: 0 0 18px rgba(var(--role-rgb), 0.28);
         }
 
-        /* Tarjeta limpia de Cartelera con fila de acciones separada para que jamás se corte el texto */
         .shortlist-pro-card {
             background: rgba(255, 255, 255, 0.025);
             border: 1px solid var(--border-subtle);
@@ -1031,7 +1246,7 @@
         }
 
         /* =========================================================================
-           VISTA 2: COMPARADOR 1VS1 CON TARJETAS INTERACTIVAS
+           VISTA 2: COMPARADOR 1VS1
            ========================================================================= */
         .duel-1v1-grid {
             display: grid;
@@ -1105,20 +1320,34 @@
         .duel-fill-a { background: var(--role-gradient); height: 100%; border-radius: 99px; transition: width 0.35s ease; }
         .duel-fill-b { background: linear-gradient(90deg, #38BDF8, #2563EB); height: 100%; border-radius: 99px; transition: width 0.35s ease; }
 
-        /* MODAL KINET DE CONFIRMACIÓN DE CAMBIO DE POSICIÓN / INTERCAMBIO */
+        /* MODALES KINET */
         .kinet-modal-overlay {
-            position: fixed; inset: 0; background: rgba(4, 6, 10, 0.86); backdrop-filter: blur(18px); z-index: 600;
+            position: fixed; inset: 0; background: rgba(4, 6, 10, 0.88); backdrop-filter: blur(18px); z-index: 600;
             display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
             padding: 14px;
         }
         .kinet-modal-overlay.open { opacity: 1; pointer-events: auto; }
         .kinet-modal-box {
-            background: rgba(13, 17, 26, 0.98); border: 1px solid rgba(var(--role-rgb), 0.55); border-radius: 22px; max-width: 480px; width: 100%;
-            padding: 22px; box-shadow: 0 25px 60px rgba(0,0,0,0.92), 0 0 35px rgba(var(--role-rgb), 0.22);
+            background: rgba(13, 17, 26, 0.98); border: 1px solid rgba(var(--role-rgb), 0.55); border-radius: 22px; max-width: 680px; width: 100%;
+            max-height: 92vh; overflow-y: auto; padding: 22px; box-shadow: 0 25px 60px rgba(0,0,0,0.92), 0 0 35px rgba(var(--role-rgb), 0.22);
             transform: scale(0.95) translateY(10px); transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex; flex-direction: column; gap: 14px; text-align: left;
         }
         .kinet-modal-overlay.open .kinet-modal-box { transform: scale(1) translateY(0); }
+
+        /* CARTEL OFICIAL DE CONVOCATORIA / ONCE DE PARTIDO (MATCHDAY POSTER KINET) */
+        .matchday-poster-canvas {
+            background:
+                radial-gradient(circle at 85% 15%, rgba(var(--role-rgb), 0.24), transparent 55%),
+                radial-gradient(circle at 10% 85%, rgba(56, 189, 248, 0.16), transparent 55%),
+                linear-gradient(150deg, #050811 0%, #0B1220 55%, #05080F 100%);
+            border: 2px solid var(--role-color);
+            border-radius: 18px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.85);
+        }
 
         .mobile-bottom-nav {
             display: none;
@@ -1160,6 +1389,9 @@
     </style>
 </head>
 <body data-role="athlete">
+
+    <!-- INPUT OCULTO PARA SUBIR ESCUDO DEL EQUIPO EN EL PÓSTER DE PARTIDO -->
+    <input type="file" id="hidden-club-crest-input" accept="image/*" style="display:none;" onchange="handleClubCrestSelected(this)">
 
     <div class="os-layout">
         
@@ -1270,14 +1502,51 @@
                         </span>
                         <h1 class="context-title" id="header-main-title">Analizador & Plantilla 3D</h1>
                     </div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
                         <div class="verified-badge" id="team-overall-pill">⚡ TITULARES: 0 • MEDIA: --</div>
-                        <button class="btn-secondary" onclick="clearAllBoardSlots()">🧹 Vaciar Plantilla</button>
-                        <button class="btn-secondary" onclick="exportAnalyzerReportPDF()">📄 Descargar Informe PDF</button>
+                        <button type="button" class="btn-secondary" onclick="openFullSquadStatsModal()">📊 Ver Stats Plantilla</button>
+                        <button type="button" class="btn-secondary" onclick="clearAllBoardSlots()">🧹 Vaciar</button>
+
+                        <!-- DESPLEGABLE ANIMADO DE COMPARTIR & MATCHDAY (PLANTILLA, CARTA, ONCE DE PARTIDO, CAPTURA 3D) -->
+                        <div class="share-dropdown-wrap" id="share-hub-dropdown">
+                            <button type="button" class="btn-primary" onclick="toggleShareHubDropdown(event)">
+                                🚀 Compartir & Matchday ▾
+                            </button>
+                            <div class="share-dropdown-menu" onclick="event.stopPropagation()">
+                                <div class="share-menu-item" onclick="openMatchdayBroadcasterModal('poster')">
+                                    <span style="font-size:1.15rem;">🏆</span>
+                                    <div>
+                                        <div style="font-family:'Orbitron';font-size:0.68rem;font-weight:800;color:white;">Cartel Oficial de Partido (11 / Convocatoria)</div>
+                                        <div style="font-size:0.6rem;color:#94A3B8;">Escudo, rival, hora, estadio y titulares</div>
+                                    </div>
+                                </div>
+                                <div class="share-menu-item" onclick="openMatchdayBroadcasterModal('pitch')">
+                                    <span style="font-size:1.15rem;">🏟️</span>
+                                    <div>
+                                        <div style="font-family:'Orbitron';font-size:0.68rem;font-weight:800;color:white;">Compartir Captura del Campo 3D</div>
+                                        <div style="font-size:0.6rem;color:#94A3B8;">Tal como se ve tu pizarra en pantalla</div>
+                                    </div>
+                                </div>
+                                <div class="share-menu-item" onclick="openMatchdayBroadcasterModal('player')">
+                                    <span style="font-size:1.15rem;">🎴</span>
+                                    <div>
+                                        <div style="font-family:'Orbitron';font-size:0.68rem;font-weight:800;color:white;">Compartir Jugador Activo y su Carta</div>
+                                        <div style="font-size:0.6rem;color:#94A3B8;">Exportar ficha KINET Card individual</div>
+                                    </div>
+                                </div>
+                                <div class="share-menu-item" onclick="closeShareHubDropdown(); exportAnalyzerReportPDF();">
+                                    <span style="font-size:1.15rem;">📄</span>
+                                    <div>
+                                        <div style="font-family:'Orbitron';font-size:0.68rem;font-weight:800;color:white;">Descargar Dossier Táctico PDF</div>
+                                        <div style="font-size:0.6rem;color:#94A3B8;">Informe completo de titulares y cartelera</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- BARRA DE COMANDO CON LOS 3 NOMBRES LIMPIOS: PLANTILLA | COMPARADOR 1VS1 | SINERGIA & NIVEL -->
+                <!-- BARRA DE COMANDO CON DESPLEGABLES KINET ANIMADOS -->
                 <div class="analyzer-toolbar">
                     <div class="analyzer-tabs-group">
                         <button type="button" class="analyzer-tab-btn active" id="tab-arena-3d" onclick="switchAnalyzerMode('arena', this)">
@@ -1301,6 +1570,10 @@
                             <option value="highpress">🔥 Estilo: Presión Alta</option>
                             <option value="counter">🛡️ Estilo: Bloque Bajo & Contra</option>
                         </select>
+
+                        <button type="button" class="btn-secondary" id="toggle-token-display-btn" onclick="toggleTokenVisualMode()" title="Alternar entre Carta completa o Foto de perfil + Media">
+                            🎴 Ficha: Carta 6 Stats
+                        </button>
 
                         <button type="button" class="btn-secondary" id="toggle-3d-btn" onclick="toggleArenaPerspective()">
                             📐 Vista: 3D Pro
@@ -1329,7 +1602,7 @@
                                 </div>
                             </div>
 
-                            <!-- ESCENARIO 3D CON PLATAFORMA Y RELIEVE -->
+                            <!-- ESCENARIO 3D CON PLATAFORMA Y RELIEVE (EXPORTABLE EN CAPTURA HD) -->
                             <div class="arena-3d-viewport" id="arena-viewport-box">
                                 <div class="arena-3d-surface" id="arena-3d-surface">
                                     <div id="arena-svg-mount" style="width:100%;height:100%;"></div>
@@ -1355,13 +1628,11 @@
 
                                 <div class="bench-reserve-slider-viewport">
                                     <div class="bench-reserve-slider-track" id="bench-reserve-slider-track">
-                                        <!-- PÁGINA 1: BANQUILLO OFICIAL COMPLETO -->
                                         <div class="bench-reserve-slide-page">
                                             <div class="cassette-slots-grid" id="bench-slots-container"></div>
                                             <button type="button" class="cassette-arrow-btn" onclick="switchBenchReserveView('reserve')" title="Deslizar a Reserva / Convocatoria">▶</button>
                                         </div>
 
-                                        <!-- PÁGINA 2: RESERVA / NO CONVOCADOS COMPLETA -->
                                         <div class="bench-reserve-slide-page">
                                             <button type="button" class="cassette-arrow-btn" style="border-color:rgba(56,189,248,0.5);color:#38BDF8;" onclick="switchBenchReserveView('bench')" title="Volver a Banquillo Oficial">◀</button>
                                             <div class="cassette-slots-grid" id="reserve-slots-container"></div>
@@ -1438,7 +1709,7 @@
                                         <button type="button" class="source-subbtn" id="subbtn-source-created" onclick="switchRosterSourceFilter('created')">🛠️ Mis Creados</button>
                                     </div>
 
-                                    <div style="display:grid;grid-template-columns:1.25fr 1fr;gap:6px;margin-bottom:8px;">
+                                    <div style="display:grid;grid-template-columns:1.15fr 1fr;gap:6px;margin-bottom:8px;">
                                         <input type="text" id="roster-search-input" class="kinet-input" style="width:100%;" placeholder="🔍 Buscar nombre..." oninput="renderRightRosterList()">
                                         <select id="roster-pos-filter" class="kinet-select" style="width:100%;" onchange="renderRightRosterList()">
                                             <option value="ALL">📍 Posición: Todas</option>
@@ -1507,15 +1778,76 @@
     </div>
 
     <!-- =========================================================================
-         MODAL KINET DE CONFIRMACIÓN DE INTERCAMBIO / SUSTITUCIÓN DE POSICIÓN
+         MODAL 1: CONFIRMACIÓN DE INTERCAMBIO / SUSTITUCIÓN DE POSICIÓN
          ========================================================================= -->
     <div id="slot-conflict-modal" class="kinet-modal-overlay">
-        <div class="kinet-modal-box">
+        <div class="kinet-modal-box" style="max-width:480px;">
             <div style="font-family:'Orbitron';font-size:0.92rem;font-weight:900;color:var(--role-color);display:flex;align-items:center;gap:8px;">
                 <span>🔄</span> <span id="conflict-modal-title">CONFIRMAR CAMBIO EN PLANTILLA</span>
             </div>
             <div style="font-size:0.82rem;color:#CBD5E1;line-height:1.55;" id="conflict-modal-desc"></div>
             <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:4px;" id="conflict-modal-actions"></div>
+        </div>
+    </div>
+
+    <!-- =========================================================================
+         MODAL 2: INSPECTOR COMPLETO DE CARACTERÍSTICAS DE TODA LA PLANTILLA (TODOS LOS DEPORTES)
+         ========================================================================= -->
+    <div id="full-squad-stats-modal" class="kinet-modal-overlay">
+        <div class="kinet-modal-box" style="max-width:740px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:10px;">
+                <div style="font-family:'Orbitron';font-size:0.94rem;font-weight:900;color:var(--role-color);display:flex;align-items:center;gap:8px;">
+                    <span>📊</span> <span id="full-squad-modal-title">MATRIZ DE CARACTERÍSTICAS DE LA PLANTILLA</span>
+                </div>
+                <button type="button" onclick="document.getElementById('full-squad-stats-modal').classList.remove('open')" style="background:none;border:none;color:white;font-size:1.2rem;cursor:pointer;">✕</button>
+            </div>
+            <div id="full-squad-stats-body" style="max-height:66vh;overflow-y:auto;"></div>
+            <div style="display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--border-subtle);padding-top:10px;">
+                <button type="button" class="btn-secondary" onclick="document.getElementById('full-squad-stats-modal').classList.remove('open')">Cerrar</button>
+                <button type="button" class="btn-primary" onclick="document.getElementById('full-squad-stats-modal').classList.remove('open'); openMatchdayBroadcasterModal('poster');">🚀 Crear Cartel Matchday de esta Plantilla</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================================
+         MODAL 3: SUITE BROADCASTER DE PARTIDO & DIFUSIÓN (ESCUDO, RIVAL, HORA, LUGAR, REDES Y COMUNIDAD)
+         ========================================================================= -->
+    <div id="matchday-broadcaster-modal" class="kinet-modal-overlay">
+        <div class="kinet-modal-box" style="max-width:720px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:10px;">
+                <div style="font-family:'Orbitron';font-size:0.92rem;font-weight:900;color:var(--role-color);display:flex;align-items:center;gap:8px;">
+                    <span>🚀</span> <span id="broadcaster-modal-title">KINET MATCHDAY & SHARE SUITE™</span>
+                </div>
+                <button type="button" onclick="document.getElementById('matchday-broadcaster-modal').classList.remove('open')" style="background:none;border:none;color:white;font-size:1.2rem;cursor:pointer;">✕</button>
+            </div>
+
+            <!-- Formulario de datos del Partido / Evento (Escudo, Equipo, Rival, Hora, Estadio) -->
+            <div id="broadcaster-match-inputs" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+                <input type="text" id="md-my-team" class="kinet-input" placeholder="Tu Club / Equipo..." value="KINET PRO FC" oninput="renderMatchdayPreviewCard()">
+                <input type="text" id="md-rival-team" class="kinet-input" placeholder="Contra: Rival..." value="RIVAL ÉLITE" oninput="renderMatchdayPreviewCard()">
+                <input type="text" id="md-match-time" class="kinet-input" placeholder="Hora / Jornada..." value="HOY • 20:00H" oninput="renderMatchdayPreviewCard()">
+                <input type="text" id="md-match-venue" class="kinet-input" placeholder="Estadio / Pista..." value="ESTADIO CENTRAL" oninput="renderMatchdayPreviewCard()">
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <button type="button" class="btn-secondary" style="padding:6px 10px;font-size:0.6rem;" onclick="document.getElementById('hidden-club-crest-input').click()">🛡️ Subir Escudo de tu Equipo</button>
+                    <button type="button" class="btn-secondary" style="padding:6px 10px;font-size:0.6rem;" onclick="switchBroadcasterFormat('poster')">🏆 Formato Cartel Oficial 11</button>
+                    <button type="button" class="btn-secondary" style="padding:6px 10px;font-size:0.6rem;" onclick="switchBroadcasterFormat('pitch')">🏟️ Formato Captura Campo 3D</button>
+                    <button type="button" class="btn-secondary" style="padding:6px 10px;font-size:0.6rem;" onclick="switchBroadcasterFormat('player')">🎴 Formato Carta Jugador</button>
+                </div>
+                <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);" id="broadcaster-status-msg">LISTO PARA EXPORTAR O PUBLICAR</span>
+            </div>
+
+            <!-- LIENZO DE PREVISUALIZACIÓN DE ALTA RESOLUCIÓN EXPORTABLE CON HTML2CANVAS -->
+            <div id="broadcaster-export-stage" class="matchday-poster-canvas"></div>
+
+            <!-- BOTONES DE COMPARTIR EN COMUNIDAD KINET, REDES SOCIALES EXTERNAS Y DESCARGA PNG HD -->
+            <div style="display:grid;grid-template-columns:1.3fr 1.1fr 1fr;gap:8px;border-top:1px solid var(--border-subtle);padding-top:12px;">
+                <button type="button" class="btn-primary" onclick="publishMatchdayToKinetCommunity()">🌐 Publicar en Comunidad KINET</button>
+                <button type="button" class="btn-secondary" style="border-color:var(--role-color);color:var(--role-color);" onclick="shareMatchdayExternalSocial()">📲 Compartir en Redes (WhatsApp/X/IG)</button>
+                <button type="button" class="btn-secondary" onclick="downloadMatchdayGraphicPNG()">📥 Descargar Imagen HD</button>
+            </div>
         </div>
     </div>
 
@@ -1568,13 +1900,13 @@
     </nav>
     <script>
         // =========================================================================
-        // MOTOR MULTIDEPORTE 3D CON MÁS FORMACIONES, ANTI-DUPLICADOS Y GUARDADO CLOUD
+        // MOTOR MULTIDEPORTE 3D: MINI KINET CARDS, DESPLEGABLES ANIMADOS Y MATCHDAY SUITE
         // =========================================================================
         const SPORT_ARENA_CONFIGS = {
             'Fútbol': {
                 statLabels: ['PAC', 'SHO', 'PAS', 'DRI', 'DEF', 'PHY'],
-                benchCount: 7,   // 7 Suplentes oficiales RFEF/FIFA
-                reserveCount: 5, // 5 Reservas / Convocatoria ampliada
+                benchCount: 7,
+                reserveCount: 5,
                 positions: ['POR', 'DFC', 'LI', 'LD', 'MCD', 'MC', 'MCO', 'EI', 'ED', 'DC'],
                 posSkills: {
                     'POR': ['Estirada (DIV)', 'Blocaje (HAN)', 'Saque Largo (KIC)', 'Reflejos (REF)', 'Velocidad Salida (SPD)', 'Colocación (POS)'],
@@ -1835,6 +2167,9 @@
         let currentPresetName = '';
         let currentPlayStyle = 'balanced';
         let isFlat2DView = false;
+        let tokenVisualMode = 'cards'; // 'cards' (Carta 6 Stats) | 'photos' (Foto + Media + Posición)
+        let activeBroadcasterFormat = 'poster'; // 'poster' | 'pitch' | 'player'
+        let uploadedClubCrestUrl = localStorage.getItem('kinet_club_crest_url') || null;
 
         let currentBoardSlots = [];
         let benchSlots = [];
@@ -1851,9 +2186,112 @@
         let duelFighterB = null;
         let activeDuelCorner = 'B';
         let builderSliderValues = [78, 78, 78, 78, 78, 78];
-
-        // Estado temporal para el modal de confirmación de cambio/intercambio de posición
         let pendingSlotConflict = null;
+
+        // =========================================================================
+        // MOTOR DE DESPLEGABLES PERSONALIZADOS KINET CON ANIMACIÓN DE ENTRADA Y SALIDA
+        // =========================================================================
+        function closeKinetCustomSelect(wrapEl) {
+            if (!wrapEl || !wrapEl.classList.contains('open')) return;
+            wrapEl.classList.remove('open');
+            wrapEl.classList.add('closing');
+            setTimeout(() => {
+                wrapEl.classList.remove('closing');
+            }, 180);
+        }
+
+        function refreshAllCustomKinetSelects() {
+            document.querySelectorAll('select.kinet-select').forEach(sel => {
+                let wrap = sel.closest('.kinet-custom-select-wrap');
+                if (!wrap) {
+                    wrap = document.createElement('div');
+                    wrap.className = 'kinet-custom-select-wrap';
+                    if (sel.style.width === '100%') wrap.style.width = '100%';
+                    sel.parentNode.insertBefore(wrap, sel);
+                    wrap.appendChild(sel);
+                    sel.style.display = 'none';
+
+                    const trigger = document.createElement('button');
+                    trigger.type = 'button';
+                    trigger.className = 'kinet-custom-select-trigger';
+                    trigger.innerHTML = `<span class="kinet-custom-select-label"></span><span class="kinet-custom-select-arrow">▾</span>`;
+                    wrap.appendChild(trigger);
+
+                    const menu = document.createElement('div');
+                    menu.className = 'kinet-custom-select-menu';
+                    wrap.appendChild(menu);
+
+                    trigger.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const isOpen = wrap.classList.contains('open');
+                        document.querySelectorAll('.kinet-custom-select-wrap.open').forEach(other => {
+                            if (other !== wrap) closeKinetCustomSelect(other);
+                        });
+                        closeShareHubDropdown();
+                        if (isOpen) {
+                            closeKinetCustomSelect(wrap);
+                        } else {
+                            wrap.classList.remove('closing');
+                            wrap.classList.add('open');
+                        }
+                    });
+                }
+
+                const labelEl = wrap.querySelector('.kinet-custom-select-label');
+                const menuEl = wrap.querySelector('.kinet-custom-select-menu');
+                const selectedOpt = sel.options[sel.selectedIndex] || sel.options[0];
+                if (labelEl) labelEl.textContent = selectedOpt ? selectedOpt.textContent : '';
+
+                if (menuEl) {
+                    menuEl.innerHTML = Array.from(sel.options).map((opt, idx) => {
+                        const isSel = idx === sel.selectedIndex;
+                        return `
+                            <div class="kinet-custom-option ${isSel ? 'selected' : ''}" data-idx="${idx}">
+                                <span>${opt.textContent}</span>
+                                ${isSel ? '<span>●</span>' : ''}
+                            </div>
+                        `;
+                    }).join('');
+
+                    menuEl.querySelectorAll('.kinet-custom-option').forEach(optEl => {
+                        optEl.addEventListener('click', (ev) => {
+                            ev.stopPropagation();
+                            const idx = parseInt(optEl.getAttribute('data-idx'), 10);
+                            sel.selectedIndex = idx;
+                            sel.dispatchEvent(new Event('change', { bubbles: true }));
+                            closeKinetCustomSelect(wrap);
+                            refreshAllCustomKinetSelects();
+                        });
+                    });
+                }
+            });
+        }
+
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.kinet-custom-select-wrap.open').forEach(w => closeKinetCustomSelect(w));
+            closeShareHubDropdown();
+        });
+
+        function toggleShareHubDropdown(e) {
+            if (e) e.stopPropagation();
+            const wrap = document.getElementById('share-hub-dropdown');
+            if (!wrap) return;
+            document.querySelectorAll('.kinet-custom-select-wrap.open').forEach(w => closeKinetCustomSelect(w));
+            if (wrap.classList.contains('open')) {
+                closeShareHubDropdown();
+            } else {
+                wrap.classList.remove('closing');
+                wrap.classList.add('open');
+            }
+        }
+
+        function closeShareHubDropdown() {
+            const wrap = document.getElementById('share-hub-dropdown');
+            if (!wrap || !wrap.classList.contains('open')) return;
+            wrap.classList.remove('open');
+            wrap.classList.add('closing');
+            setTimeout(() => wrap.classList.remove('closing'), 180);
+        }
 
         function toggleMobileDrawer() {
             const drawer = document.getElementById('mobile-menu-drawer');
@@ -1890,9 +2328,10 @@
         function getMyUserPlayerObject() {
             const myName = localStorage.getItem('kinet_user_name') || 'Mi Perfil KINET';
             const myPos = localStorage.getItem('kinet_position') || 'PRO';
+            const myAvatar = localStorage.getItem('kinet_user_avatar') || null;
             const override = calibratedKinetOverrides['me_user'];
             if (override) {
-                return { ...override, id: 'me_user', name: myName, isCurrentUser: true, isCalibrated: true };
+                return { ...override, id: 'me_user', name: myName, avatar: myAvatar, isCurrentUser: true, isCalibrated: true };
             }
 
             let savedStats = null;
@@ -1908,6 +2347,7 @@
                     name: myName,
                     pos: myPos,
                     grl: avg,
+                    avatar: myAvatar,
                     sub: '✓ KINET Card Activa',
                     traitNotes: localStorage.getItem('kinet_social_bio') || 'Titular de la cuenta',
                     stats: savedStats,
@@ -1921,6 +2361,7 @@
                 name: myName,
                 pos: myPos,
                 grl: null,
+                avatar: myAvatar,
                 sub: 'Sin Calibrar (Pulsa ✏️)',
                 traitNotes: '',
                 stats: null,
@@ -1929,7 +2370,6 @@
             };
         }
 
-        // Deslizar con animación suave entre Banquillo Oficial (Página 1) y Reserva (Página 2)
         function switchBenchReserveView(targetDeck) {
             const track = document.getElementById('bench-reserve-slider-track');
             const pillBench = document.getElementById('pill-show-bench');
@@ -2124,13 +2564,13 @@
             bindSpotlightToElements();
         });
 
-        // Escuchar cuando Supabase termina de hidratar desde la nube (ej. al abrir en el móvil lo que hiciste en el PC)
         window.addEventListener('kinet:cloud-synced', () => {
             loadPersistedCustomAndShortlistData();
             restoreFullSquadStateFromStorage();
             renderBoardTokensAndMetrics(false);
             renderRightRosterList();
             renderShortlistTab();
+            refreshAllCustomKinetSelects();
         });
 
         function loadPersistedCustomAndShortlistData() {
@@ -2140,6 +2580,7 @@
                 shortlistPlayers = JSON.parse(localStorage.getItem(`kinet_shortlist_${spKey}`) || '[]');
                 calibratedKinetOverrides = JSON.parse(localStorage.getItem(`kinet_calibrated_overrides_${spKey}`) || '{}');
                 isFlat2DView = localStorage.getItem('kinet_arena_flat_2d') === 'true';
+                tokenVisualMode = localStorage.getItem('kinet_token_visual_mode') || 'cards';
 
                 const bridgeRaw = JSON.parse(localStorage.getItem('kinet_analyzer_bridge_data') || '[]');
                 if (Array.isArray(bridgeRaw) && bridgeRaw.length > 0) {
@@ -2162,7 +2603,6 @@
             } catch (e) {}
         }
 
-        // Guarda TODA la plantilla (Titulares, Banquillo, Reserva, Formación, Estilo y Vista 2D/3D) en localStorage y en Supabase Cloud
         function saveCustomAndShortlistData() {
             try {
                 const spKey = activeArenaSport.toLowerCase();
@@ -2170,12 +2610,13 @@
                 localStorage.setItem(`kinet_shortlist_${spKey}`, JSON.stringify(shortlistPlayers));
                 localStorage.setItem(`kinet_calibrated_overrides_${spKey}`, JSON.stringify(calibratedKinetOverrides));
                 localStorage.setItem('kinet_arena_flat_2d', String(isFlat2DView));
+                localStorage.setItem('kinet_token_visual_mode', tokenVisualMode);
 
-                // Guardar el estado exacto de la pizarra para que NUNCA se borre al salir de la sección ni al abrir en el móvil
                 const fullBoardState = {
                     presetName: currentPresetName,
                     playStyle: currentPlayStyle,
                     isFlat2D: isFlat2DView,
+                    tokenVisualMode: tokenVisualMode,
                     boardSlots: currentBoardSlots,
                     benchSlots: benchSlots,
                     reserveSlots: reserveSlots,
@@ -2183,7 +2624,6 @@
                 };
                 localStorage.setItem(`kinet_full_board_state_${spKey}`, JSON.stringify(fullBoardState));
 
-                // Resumen ligero para que los chats del Cuerpo Técnico IA tengan contexto total
                 localStorage.setItem('kinet_active_tactical_board_summary', JSON.stringify({
                     sport: activeArenaSport,
                     formation: currentPresetName,
@@ -2211,6 +2651,7 @@
                         : Object.keys(cfg.presets)[0];
                     currentPlayStyle = rawSaved.playStyle || 'balanced';
                     isFlat2DView = Boolean(rawSaved.isFlat2D);
+                    if (rawSaved.tokenVisualMode) tokenVisualMode = rawSaved.tokenVisualMode;
 
                     currentBoardSlots = rawSaved.boardSlots;
                     benchSlots = Array.isArray(rawSaved.benchSlots) && rawSaved.benchSlots.length === cfg.benchCount
@@ -2225,6 +2666,7 @@
                     const styleSel = document.getElementById('tactical-style-selector');
                     if (styleSel) styleSel.value = currentPlayStyle;
                     sync2D3DViewportUI();
+                    syncTokenVisualModeButton();
                     return true;
                 }
             } catch (e) {}
@@ -2250,6 +2692,7 @@
                         if (!prof.full_name || (prof.email && prof.email.toLowerCase() === myEmail)) return;
                         const pid = prof.id || prof.handle || prof.full_name;
                         const savedOverride = calibratedKinetOverrides[pid];
+                        const avatarImg = prof.avatar_url || (prof.user_state && prof.user_state.kinet_user_avatar) || null;
 
                         let cloudCardStats = null;
                         try {
@@ -2264,6 +2707,7 @@
                                 ...savedOverride,
                                 id: pid,
                                 name: prof.full_name,
+                                avatar: avatarImg,
                                 isExternalCustom: false,
                                 isCalibrated: true
                             });
@@ -2274,6 +2718,7 @@
                                 name: prof.full_name,
                                 pos: prof.position || 'PRO',
                                 grl: avg,
+                                avatar: avatarImg,
                                 sub: `${prof.handle || '@kinet'} • Carta Activa`,
                                 traitNotes: prof.bio || '',
                                 stats: cloudCardStats,
@@ -2286,6 +2731,7 @@
                                 name: prof.full_name,
                                 pos: prof.position || 'Por definir',
                                 grl: null,
+                                avatar: avatarImg,
                                 sub: `${prof.handle || '@kinet'} • Sin Calibrar (Pulsa ✏️)`,
                                 traitNotes: prof.bio || '',
                                 stats: null,
@@ -2334,7 +2780,6 @@
 
             document.getElementById('arena-svg-mount').innerHTML = buildProfessionalSportSVG(activeArenaSport);
 
-            // Restaurar la plantilla guardada (si existe) para que nunca se pierdan los jugadores al cambiar de página
             const restored = restoreFullSquadStateFromStorage();
             if (!restored) {
                 benchSlots = Array.from({ length: bCount }, (_, i) => ({ pos: `SUP ${i + 1}`, player: null }));
@@ -2346,6 +2791,9 @@
             }
 
             sync2D3DViewportUI();
+            syncTokenVisualModeButton();
+            refreshAllCustomKinetSelects();
+
             duelFighterA = getMyUserPlayerObject();
             duelFighterB = null;
             renderDuel1v1View();
@@ -2368,6 +2816,21 @@
             saveCustomAndShortlistData();
         }
 
+        function syncTokenVisualModeButton() {
+            const btn = document.getElementById('toggle-token-display-btn');
+            if (!btn) return;
+            btn.textContent = tokenVisualMode === 'photos'
+                ? '📸 Ficha: Foto + Media'
+                : '🎴 Ficha: Carta 6 Stats';
+        }
+
+        // Alterna entre ver las Mini KINET Cards con sus 6 stats o ver la Foto de Perfil circular + Media + Posición
+        function toggleTokenVisualMode() {
+            tokenVisualMode = tokenVisualMode === 'cards' ? 'photos' : 'cards';
+            syncTokenVisualModeButton();
+            renderBoardTokensAndMetrics(true);
+        }
+
         function switchAnalyzerMode(mode, btnEl) {
             currentAnalyzerMode = mode;
             document.querySelectorAll('.analyzer-tabs-group .analyzer-tab-btn').forEach(b => b.classList.remove('active'));
@@ -2377,7 +2840,6 @@
             document.getElementById('view-duel-1v1').style.display = mode === 'duel' ? 'block' : 'none';
             document.getElementById('view-mirror-self').style.display = mode === 'mirror' ? 'block' : 'none';
 
-            // Mantener intacta la preferencia 2D/3D al cambiar entre pestañas
             sync2D3DViewportUI();
 
             if (mode === 'duel') renderDuel1v1View();
@@ -2418,6 +2880,7 @@
 
             activeSelection = { group: 'board', index: 0 };
             renderBoardTokensAndMetrics(persistChange);
+            refreshAllCustomKinetSelects();
         }
 
         function clearAllBoardSlots() {
@@ -2529,13 +2992,11 @@
             const existingLoc = findPlayerExistingLocation(playerObj);
             const occupant = targetSlot.player;
 
-            // Si ya es exactamente el mismo puesto donde está ese jugador, no hacemos nada
             if (existingLoc && existingLoc.group === targetGroup && existingLoc.index === targetIdx) {
                 renderRightRosterList();
                 return;
             }
 
-            // CASO 1: El jugador YA estaba en otra posición y el puesto destino está VACÍO -> Lo movemos automáticamente de posición sin duplicarlo
             if (existingLoc && !occupant) {
                 const originArr = getSlotArrayByGroup(existingLoc.group);
                 originArr[existingLoc.index].player = null;
@@ -2545,7 +3006,6 @@
                 return;
             }
 
-            // CASO 2: El jugador YA estaba en otra posición y el puesto destino está OCUPADO por otro -> Cartel KINET para Intercambiar o Sustituir
             if (existingLoc && occupant) {
                 pendingSlotConflict = { playerObj, targetGroup, targetIdx, existingLoc };
                 document.getElementById('conflict-modal-title').textContent = '🔄 INTERCAMBIAR O SUSTITUIR POSICIÓN';
@@ -2562,7 +3022,6 @@
                 return;
             }
 
-            // CASO 3: El jugador NO estaba en el campo, pero en el puesto destino YA había otro jugador -> Cartel KINET de confirmación de sustitución
             if (!existingLoc && occupant) {
                 pendingSlotConflict = { playerObj, targetGroup, targetIdx, existingLoc: null };
                 document.getElementById('conflict-modal-title').textContent = '⚡ CONFIRMAR REEMPLAZO EN PUESTO';
@@ -2578,15 +3037,19 @@
                 return;
             }
 
-            // CASO 4: El jugador no estaba en el campo y el puesto destino está vacío -> Asignación limpia
             targetSlot.player = { ...playerObj };
             renderBoardTokensAndMetrics(true);
             renderRightRosterList();
         }
 
         // =========================================================================
-        // RENDERIZADO DE MINI KINET CARDS ESTILO FIFA EN EL CAMPO 3D Y BANQUILLO
+        // RENDERIZADO DE FICHAS EN PISTA (MODO CARTA 6 STATS O MODO FOTO TV)
         // =========================================================================
+        function getInitials(fullName) {
+            const parts = (fullName || 'KN').trim().split(/\s+/);
+            return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+        }
+
         function renderBoardTokensAndMetrics(shouldPersist = true) {
             const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
             const layer = document.getElementById('arena-tokens-layer');
@@ -2609,6 +3072,25 @@
 
                 const shortName = p.name.split(' ')[0] + (p.name.split(' ')[1] ? ' ' + p.name.split(' ')[1][0] + '.' : '');
                 const grlDisplay = p.grl ? p.grl : '??';
+
+                // MODO FOTO TV: Foto circular / iniciales + Media + Posición
+                if (tokenVisualMode === 'photos') {
+                    const avStyle = p.avatar ? `background-image:url('${p.avatar}');` : '';
+                    const initialsTxt = p.avatar ? '' : getInitials(p.name);
+                    return `
+                        <div class="tactical-node-token kinet-avatar-tv-token ${isSel ? 'selected-slot' : ''}" style="left:${slot.x}%;top:${slot.y}%;" onclick="selectAnySlot('board', ${idx}, event)">
+                            <button type="button" class="mini-card-remove-x" title="Quitar de este puesto" onclick="quickRemoveSlotPlayer('board', ${idx}, event)">✕</button>
+                            <div class="tv-avatar-circle" style="${avStyle}">
+                                ${initialsTxt}
+                                <span class="tv-grl-badge">${grlDisplay}</span>
+                            </div>
+                            <div class="mini-fifa-name" style="margin-bottom:1px;">${shortName}</div>
+                            <span class="mini-fifa-pos" style="font-size:0.46rem;padding:1px 5px;">${slot.pos}</span>
+                        </div>
+                    `;
+                }
+
+                // MODO CARTA FIFA 6 STATS
                 const st = Array.isArray(p.stats) && p.stats.length === 6 ? p.stats : ['--', '--', '--', '--', '--', '--'];
                 const lb = cfg.statLabels;
 
@@ -2706,6 +3188,7 @@
         function updatePlayStyleSynergy(styleVal) {
             currentPlayStyle = styleVal;
             renderBoardTokensAndMetrics(true);
+            refreshAllCustomKinetSelects();
         }
 
         function evaluateTeamTacticalFit() {
@@ -2772,6 +3255,264 @@
         }
 
         // =========================================================================
+        // MODAL INSPECTOR DE CARACTERÍSTICAS COMPLETAS DE TODA LA PLANTILLA
+        // =========================================================================
+        function openFullSquadStatsModal() {
+            const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
+            const lb = cfg.statLabels;
+            const body = document.getElementById('full-squad-stats-body');
+            document.getElementById('full-squad-modal-title').textContent = `CARACTERÍSTICAS DE TODA LA PLANTILLA (${activeArenaSport.toUpperCase()})`;
+
+            const allAssigned = [
+                ...currentBoardSlots.filter(s => s.player).map(s => ({ roleTag: 'TITULAR', pos: s.pos, p: s.player })),
+                ...benchSlots.filter(s => s.player).map(s => ({ roleTag: 'SUPLENTE', pos: s.pos, p: s.player })),
+                ...reserveSlots.filter(s => s.player).map(s => ({ roleTag: 'RESERVA', pos: s.pos, p: s.player }))
+            ];
+
+            if (allAssigned.length === 0) {
+                body.innerHTML = `<div style="text-align:center;padding:26px;font-size:0.8rem;color:var(--text-secondary);">Aún no has asignado jugadores en tu Plantilla 3D. Toca cualquier puesto del campo y elige perfiles a la derecha.</div>`;
+            } else {
+                body.innerHTML = allAssigned.map(item => {
+                    const p = item.p;
+                    const st = Array.isArray(p.stats) && p.stats.length === 6 ? p.stats : ['--', '--', '--', '--', '--', '--'];
+                    return `
+                        <div style="background:rgba(255,255,255,0.025);border:1px solid var(--border-subtle);border-radius:13px;padding:11px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+                            <div style="display:flex;align-items:center;gap:10px;min-width:190px;">
+                                <span class="grl-Execution-chip">${p.grl || '??'}</span>
+                                <div>
+                                    <div style="font-weight:800;font-size:0.82rem;color:white;">${p.name} <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);">[${item.pos} • ${item.roleTag}]</span></div>
+                                    <div style="font-size:0.66rem;color:#94A3B8;">Rasgo: ${p.traitNotes || 'Equilibrado'}</div>
+                                </div>
+                            </div>
+                            <div style="display:grid;grid-template-columns:repeat(6, minmax(46px, 1fr));gap:6px;flex:1;">
+                                ${lb.map((statName, i) => `
+                                    <div style="background:rgba(4,6,10,0.8);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:4px 6px;text-align:center;">
+                                        <span style="font-family:'JetBrains Mono';font-size:0.52rem;color:var(--text-secondary);display:block;">${statName}</span>
+                                        <strong style="font-family:'Orbitron';font-size:0.74rem;color:var(--role-color);">${st[i]}</strong>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            document.getElementById('full-squad-stats-modal').classList.add('open');
+        }
+
+        // =========================================================================
+        // SUITE BROADCASTER DE PARTIDO & DIFUSIÓN (CARTEL 11 OFICIAL, ESCUDO, CAPTURA 3D Y CARTA)
+        // =========================================================================
+        function openMatchdayBroadcasterModal(formatMode) {
+            closeShareHubDropdown();
+            activeBroadcasterFormat = formatMode || 'poster';
+            const savedClub = localStorage.getItem('kinet_user_club');
+            if (savedClub) {
+                const teamInput = document.getElementById('md-my-team');
+                if (teamInput && teamInput.value === 'KINET PRO FC') teamInput.value = savedClub.toUpperCase();
+            }
+            renderMatchdayPreviewCard();
+            document.getElementById('matchday-broadcaster-modal').classList.add('open');
+        }
+
+        function switchBroadcasterFormat(formatMode) {
+            activeBroadcasterFormat = formatMode;
+            renderMatchdayPreviewCard();
+        }
+
+        function handleClubCrestSelected(input) {
+            if (!input.files || !input.files[0]) return;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                uploadedClubCrestUrl = e.target.result;
+                try { localStorage.setItem('kinet_club_crest_url', uploadedClubCrestUrl); } catch (err) {}
+                renderMatchdayPreviewCard();
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        function renderMatchdayPreviewCard() {
+            const stage = document.getElementById('broadcaster-export-stage');
+            const inputsRow = document.getElementById('broadcaster-match-inputs');
+            if (!stage) return;
+
+            const myTeam = (document.getElementById('md-my-team')?.value || 'KINET PRO FC').toUpperCase();
+            const rivalTeam = (document.getElementById('md-rival-team')?.value || 'RIVAL ÉLITE').toUpperCase();
+            const matchTime = (document.getElementById('md-match-time')?.value || 'HOY • 20:00H').toUpperCase();
+            const matchVenue = (document.getElementById('md-match-venue')?.value || 'ESTADIO CENTRAL').toUpperCase();
+
+            const crestHtml = uploadedClubCrestUrl
+                ? `<img src="${uploadedClubCrestUrl}" style="width:52px;height:52px;border-radius:12px;object-fit:contain;background:rgba(255,255,255,0.06);padding:4px;border:1.5px solid var(--role-color);">`
+                : `<div style="width:52px;height:52px;border-radius:12px;background:var(--role-gradient);color:#04060A;font-family:'Orbitron';font-weight:900;font-size:1.45rem;display:flex;align-items:center;justify-content:center;box-shadow:0 0 18px var(--role-glow);">K</div>`;
+
+            // FORMATO 1: CARTEL OFICIAL DE CONVOCATORIA / ALINEACIÓN DE PARTIDO (MATCHDAY POSTER)
+            if (activeBroadcasterFormat === 'poster') {
+                if (inputsRow) inputsRow.style.display = 'grid';
+                const starters = currentBoardSlots.map((s, idx) => ({
+                    num: idx + 1,
+                    pos: s.pos,
+                    name: s.player ? s.player.name : 'Por asignar',
+                    grl: s.player && s.player.grl ? s.player.grl : '--',
+                    avatar: s.player ? pAvatar(s.player) : null
+                }));
+                const subs = benchSlots.filter(b => b.player).map(b => `${b.player.name.split(' ')[0]} (${b.pos})`);
+
+                stage.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.12);padding-bottom:12px;margin-bottom:14px;gap:12px;flex-wrap:wrap;">
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            ${crestHtml}
+                            <div>
+                                <div style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);letter-spacing:0.15em;">OFFICIAL MATCHDAY LINEUP • ${activeArenaSport.toUpperCase()}</div>
+                                <div style="font-family:'Orbitron';font-size:1.25rem;font-weight:900;color:white;letter-spacing:-0.01em;">${myTeam} <span style="color:var(--role-color);font-size:0.85rem;">VS</span> ${rivalTeam}</div>
+                                <div style="font-family:'JetBrains Mono';font-size:0.62rem;color:#94A3B8;margin-top:2px;">📍 ${matchVenue}   |   🕒 ${matchTime}   |   📐 ${currentPresetName}</div>
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-family:'Orbitron';font-size:0.75rem;font-weight:900;color:var(--role-color);border:1px solid var(--role-color);padding:4px 10px;border-radius:8px;background:rgba(var(--role-rgb),0.12);">✓ KINET OS VERIFIED</div>
+                        </div>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(145px, 1fr));gap:8px;margin-bottom:12px;">
+                        ${starters.map(st => `
+                            <div style="background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.1);border-left:3px solid var(--role-color);border-radius:10px;padding:7px 9px;display:flex;align-items:center;justify-content:space-between;gap:6px;">
+                                <div style="min-width:0;">
+                                    <div style="font-family:'JetBrains Mono';font-size:0.54rem;color:var(--role-color);font-weight:700;">#${st.num} • ${st.pos}</div>
+                                    <div style="font-family:'Orbitron';font-size:0.7rem;font-weight:800;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${st.name}</div>
+                                </div>
+                                <span style="font-family:'Orbitron';font-size:0.72rem;font-weight:900;color:var(--role-color);background:rgba(0,0,0,0.45);padding:3px 6px;border-radius:6px;">${st.grl}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:8px 12px;font-size:0.66rem;color:#CBD5E1;flex-wrap:wrap;gap:8px;">
+                        <div><strong style="color:var(--role-color);font-family:'Orbitron';">🪑 SUPLENTES / ROTACIÓN:</strong> ${subs.length > 0 ? subs.join(' • ') : 'Convocatoria abierta'}</div>
+                        <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:#94A3B8;">jkinetos.es</span>
+                    </div>
+                `;
+                return;
+            }
+
+            // FORMATO 2: CAPTURA VISUAL DE LA PIZARRA 3D CON DATOS DE PARTIDO
+            if (activeBroadcasterFormat === 'pitch') {
+                if (inputsRow) inputsRow.style.display = 'grid';
+                const pitchHtml = document.getElementById('arena-viewport-box')?.outerHTML || '';
+                stage.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            ${crestHtml}
+                            <div>
+                                <div style="font-family:'Orbitron';font-size:1.05rem;font-weight:900;color:white;">${myTeam} VS ${rivalTeam}</div>
+                                <div style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);">${currentPresetName} • ${matchTime} • ${matchVenue}</div>
+                            </div>
+                        </div>
+                        <span style="font-family:'JetBrains Mono';font-size:0.6rem;color:#94A3B8;">KINET TACTICAL 3D</span>
+                    </div>
+                    ${pitchHtml}
+                `;
+                return;
+            }
+
+            // FORMATO 3: CARTA OFICIAL DEL JUGADOR ACTIVO SELECCIONADO
+            if (inputsRow) inputsRow.style.display = 'none';
+            const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
+            const activeSlot = getSlotArrayByGroup(activeSelection.group)[activeSelection.index];
+            const p = (activeSlot && activeSlot.player) ? activeSlot.player : getMyUserPlayerObject();
+            const st = Array.isArray(p.stats) && p.stats.length === 6 ? p.stats : [85, 84, 85, 86, 82, 84];
+
+            stage.innerHTML = `
+                <div style="display:flex;align-items:center;justify-content:center;gap:22px;padding:10px;flex-wrap:wrap;">
+                    <div style="width:190px;background:linear-gradient(160deg, rgba(var(--role-rgb),0.28), #070B14);border:2px solid var(--role-color);border-radius:18px;padding:14px;text-align:center;box-shadow:0 0 30px rgba(var(--role-rgb),0.3);">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                            <span style="font-family:'Orbitron';font-size:1.4rem;font-weight:900;color:var(--role-color);">${p.grl || '??'}</span>
+                            <span style="font-family:'JetBrains Mono';font-size:0.68rem;font-weight:800;background:var(--role-color);color:#04060A;padding:2px 7px;border-radius:6px;">${p.pos}</span>
+                        </div>
+                        <div style="font-family:'Orbitron';font-size:0.95rem;font-weight:900;color:white;margin-bottom:8px;">${p.name.toUpperCase()}</div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;background:rgba(0,0,0,0.5);padding:8px;border-radius:10px;font-family:'JetBrains Mono';font-size:0.66rem;">
+                            ${cfg.statLabels.map((lbl, i) => `<div style="display:flex;justify-content:space-between;"><span>${lbl}</span><strong style="color:var(--role-color);">${st[i]}</strong></div>`).join('')}
+                        </div>
+                    </div>
+                    <div style="max-width:340px;">
+                        <div style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);">FICHA OFICIAL DE SCOUTING // ${activeArenaSport.toUpperCase()}</div>
+                        <h3 style="font-family:'Orbitron';font-size:1.2rem;color:white;margin:4px 0 8px 0;">${p.name} (${p.pos})</h3>
+                        <p style="font-size:0.78rem;color:#CBD5E1;line-height:1.5;">Rasgo táctico analizado: "${p.traitNotes || 'Jugador polivalente sincronizado en KINET OS'}."</p>
+                        <div style="margin-top:10px;font-family:'JetBrains Mono';font-size:0.64rem;color:#94A3B8;">Generado con KINET Squad & Card Analyzer™</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function pAvatar(playerObj) {
+            return playerObj.avatar || null;
+        }
+
+        async function downloadMatchdayGraphicPNG() {
+            const statusEl = document.getElementById('broadcaster-status-msg');
+            if (statusEl) statusEl.textContent = '⏳ RENDERIZANDO IMAGEN HD...';
+            try {
+                const target = document.getElementById('broadcaster-export-stage');
+                const canvas = await html2canvas(target, { scale: 2.5, backgroundColor: '#050811', useCORS: true, logging: false });
+                const link = document.createElement('a');
+                link.download = `KINET_Matchday_${activeArenaSport}_${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                if (statusEl) statusEl.textContent = '✓ IMAGEN HD DESCARGADA';
+            } catch (e) {
+                if (statusEl) statusEl.textContent = '⚠️ ERROR AL EXPORTAR';
+            }
+        }
+
+        async function publishMatchdayToKinetCommunity() {
+            const myTeam = (document.getElementById('md-my-team')?.value || 'Mi Equipo').trim();
+            const rivalTeam = (document.getElementById('md-rival-team')?.value || 'Rival').trim();
+            const matchTime = (document.getElementById('md-match-time')?.value || 'Hoy').trim();
+            const matchVenue = (document.getElementById('md-match-venue')?.value || 'Estadio').trim();
+            const startersList = currentBoardSlots.filter(s => s.player).map(s => `${s.pos}: ${s.player.name} (${s.player.grl || '??'})`).join(' • ');
+
+            const postText = activeBroadcasterFormat === 'player'
+                ? `🎴 [Carta KINET — ${activeArenaSport}]: Compartiendo ficha táctica desde el Analizador 3D.`
+                : `🏆 [CONVOCATORIA OFICIAL // ${myTeam.toUpperCase()} vs ${rivalTeam.toUpperCase()}] 📍 ${matchVenue} (${matchTime}) • Sistema ${currentPresetName}: ${startersList || 'Plantilla en preparación'}.`;
+
+            if (window.KinetBackend && typeof window.KinetBackend.createCloudPost === 'function') {
+                await window.KinetBackend.createCloudPost({
+                    id: 'md_' + Date.now(),
+                    mode: 'post',
+                    text: postText,
+                    badge: 'MATCHDAY 11 OFICIAL',
+                    likes: 0
+                });
+            }
+
+            const statusEl = document.getElementById('broadcaster-status-msg');
+            if (statusEl) statusEl.textContent = '✓ PUBLICADO EN COMUNIDAD KINET (ABRIENDO...)';
+            setTimeout(() => {
+                window.location.href = `comunidad.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`;
+            }, 650);
+        }
+
+        async function shareMatchdayExternalSocial() {
+            const myTeam = (document.getElementById('md-my-team')?.value || 'KINET PRO').trim();
+            const rivalTeam = (document.getElementById('md-rival-team')?.value || 'Rival').trim();
+            const shareText = `🏆 ${myTeam} vs ${rivalTeam} (${currentPresetName} - ${activeArenaSport}) creado en KINET OS`;
+
+            try {
+                const target = document.getElementById('broadcaster-export-stage');
+                const canvas = await html2canvas(target, { scale: 2, backgroundColor: '#050811', useCORS: true, logging: false });
+                canvas.toBlob(async (blob) => {
+                    if (navigator.share && blob) {
+                        const file = new File([blob], 'KINET_Matchday.png', { type: 'image/png' });
+                        try {
+                            await navigator.share({ title: 'KINET OS Matchday', text: shareText, files: [file] });
+                            return;
+                        } catch (err) {}
+                    }
+                    await downloadMatchdayGraphicPNG();
+                });
+            } catch (e) {
+                await downloadMatchdayGraphicPNG();
+            }
+        }
+
+        // =========================================================================
         // CREADOR Y EDITOR DE PERFILES (50-99)
         // =========================================================================
         function updateBuilderSlidersForPosition(posName) {
@@ -2793,6 +3534,7 @@
                 `;
             }).join('');
             recalcBuilderLiveGrl();
+            refreshAllCustomKinetSelects();
         }
 
         function onBuilderSliderMove(idx, val) {
@@ -2873,6 +3615,7 @@
             const kinetIdx = realKinetProfiles.findIndex(k => k.id === editId || k.name.toLowerCase() === nameVal.toLowerCase());
             if (kinetIdx !== -1 && !String(editId).startsWith('ext_')) {
                 savedObj.id = realKinetProfiles[kinetIdx].id;
+                savedObj.avatar = realKinetProfiles[kinetIdx].avatar || null;
                 savedObj.isExternalCustom = false;
                 realKinetProfiles[kinetIdx] = { ...realKinetProfiles[kinetIdx], ...savedObj };
                 calibratedKinetOverrides[savedObj.id] = savedObj;
@@ -2912,7 +3655,7 @@
         }
 
         // =========================================================================
-        // RENDERIZADO DE LA LISTA DERECHA Y CARTELERA SIN CORTES DE DISEÑO
+        // RENDERIZADO DE LA LISTA DERECHA Y CARTELERA
         // =========================================================================
         function renderRightRosterList() {
             if (realKinetProfiles.length > 0 && realKinetProfiles[0].id === 'me_user') {
@@ -3000,7 +3743,6 @@
             assignOrComparePlayer(playerObj);
         }
 
-        // Tarjeta de Cartelera estructurada en 3 filas limpias para que NUNCA se corte el nombre ni el % de Compatibilidad IA
         function renderShortlistTab() {
             const box = document.getElementById('shortlist-items-box');
             if (!box) return;
