@@ -5803,6 +5803,113 @@
                 renderSidebarDmAndFriends();
             }
         };
+        // =========================================================================
+        // TRANSICIÓN MORFOLÓGICA SEDOSA (0.72s SIN REESCALADO) ENTRE PULSE <-> SHORTS <-> RADAR
+        // =========================================================================
+        (function enableSmoothMorphInCommunity() {
+            const morphStyle = document.createElement('style');
+            morphStyle.textContent = `
+                .bento-grid > .col-8 {
+                    position: relative;
+                    transition: height 0.72s cubic-bezier(0.22, 1, 0.36, 1) !important;
+                    overflow: hidden;
+                }
+                #pulse-feed-panel,
+                #kinet-shorts-stage,
+                #ig-inline-direct-panel,
+                #social-feed-list {
+                    transition: opacity 0.46s cubic-bezier(0.22, 1, 0.36, 1) !important;
+                    transform: none !important;
+                    scale: 1 !important;
+                }
+            `;
+            document.head.appendChild(morphStyle);
+        })();
+
+        // Sobrescribir setFeedMode con interpolación suave de altura sin saltos ni reescalado
+        window.setFeedMode = function (mode, btn) {
+            if (activeFeedMode === mode) return;
+
+            const colLeft = document.querySelector('.bento-grid > .col-8');
+            const pulsePanel = document.getElementById('pulse-feed-panel');
+            const shortsStage = document.getElementById('kinet-shorts-stage');
+            const inlineDm = document.getElementById('ig-inline-direct-panel');
+
+            const getVisibleStage = () => {
+                if (activeFeedMode === 'reels') return shortsStage;
+                if (activeFeedMode === 'dms') return inlineDm;
+                return pulsePanel;
+            };
+
+            const prevStage = getVisibleStage();
+            const startHeight = prevStage ? prevStage.offsetHeight : (colLeft ? colLeft.offsetHeight : 0);
+
+            if (colLeft && startHeight > 0) {
+                colLeft.style.height = `${startHeight}px`;
+            }
+            if (prevStage) {
+                prevStage.style.opacity = '0';
+            }
+
+            setTimeout(() => {
+                activeFeedMode = mode;
+                document.querySelectorAll('.kinet-tabs-row .mode-tab-btn').forEach(b => b.classList.remove('active'));
+                if (btn) btn.classList.add('active');
+
+                if (mode !== 'reels') closeFullscreenTheater();
+
+                // Forzar actualización del contenido de la nueva pestaña
+                filterSocialFeed(true);
+
+                const nextStage = getVisibleStage();
+                if (nextStage) {
+                    nextStage.style.opacity = '0';
+                    requestAnimationFrame(() => {
+                        const targetHeight = nextStage.offsetHeight;
+                        if (colLeft && targetHeight > 0) {
+                            colLeft.style.height = `${targetHeight}px`;
+                        }
+                        nextStage.style.opacity = '1';
+                    });
+                }
+
+                if (colLeft) {
+                    clearTimeout(colLeft._morphTimer);
+                    colLeft._morphTimer = setTimeout(() => {
+                        colLeft.style.height = '';
+                    }, 740);
+                }
+            }, 190);
+        };
+
+        // Animar también la altura al cambiar entre "Para Ti", "Siguiendo" y "Recientes" dentro de Pulse/Radar
+        window.setFeedSortOrder = function (sortKey, btn) {
+            if (activeFeedSort === sortKey) return;
+            const colLeft = document.querySelector('.bento-grid > .col-8');
+            const feedList = document.getElementById('social-feed-list');
+
+            if (colLeft) colLeft.style.height = `${colLeft.offsetHeight}px`;
+            if (feedList) feedList.style.opacity = '0';
+
+            setTimeout(() => {
+                activeFeedSort = sortKey;
+                document.querySelectorAll('.feed-algo-pills .feed-algo-btn').forEach(b => b.classList.remove('active'));
+                if (btn) btn.classList.add('active');
+
+                filterSocialFeed(true);
+
+                requestAnimationFrame(() => {
+                    const pulsePanel = document.getElementById('pulse-feed-panel');
+                    if (colLeft && pulsePanel) colLeft.style.height = `${pulsePanel.offsetHeight}px`;
+                    if (feedList) feedList.style.opacity = '1';
+                });
+
+                if (colLeft) {
+                    clearTimeout(colLeft._morphTimer);
+                    colLeft._morphTimer = setTimeout(() => { colLeft.style.height = ''; }, 740);
+                }
+            }, 180);
+        };
     </script>
 </body>
 </html>
