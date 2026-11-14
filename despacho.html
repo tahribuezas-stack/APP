@@ -1805,7 +1805,16 @@
 
         function openRoleManagerModal() {
             const currentTier = normalizeTier(localStorage.getItem('kinet_account_tier'));
-            const activeRoleKey = localStorage.getItem('kinet_active_role') || 'athlete';
+            const urlRole = normalizeRole(new URLSearchParams(window.location.search).get('role'));
+            const domRole = normalizeRole(document.body.getAttribute('data-role'));
+            const activeRoleKey = urlRole || domRole || normalizeRole(localStorage.getItem('kinet_active_role')) || 'athlete';
+
+            // Sincronizar inmediatamente localStorage y la base de perfiles con el rol que estás viendo en pantalla
+            localStorage.setItem('kinet_active_role', activeRoleKey);
+            localStorage.setItem('kinet_role', activeRoleKey);
+            document.body.setAttribute('data-role', activeRoleKey);
+            ensureActiveProfileInDB(activeRoleKey);
+
             const titleEl = document.getElementById('role-manager-title');
             const bodyEl = document.getElementById('role-manager-body');
             const footerEl = document.getElementById('role-manager-footer');
@@ -1904,12 +1913,19 @@
             window.location.href = 'fase1.html';
         }
 
-        function switchActiveProProfile(roleKey) {
+      async function switchActiveProProfile(roleKey) {
             const db = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
             const prof = db[roleKey];
             localStorage.setItem('kinet_active_role', roleKey);
             localStorage.setItem('kinet_role', roleKey);
+            document.body.setAttribute('data-role', roleKey);
             if (prof && prof.sport) localStorage.setItem('kinet_sport', prof.sport);
+
+            // Empujar inmediatamente el nuevo rol activo a Supabase Cloud antes de recargar
+            if (window.KinetBackend && typeof window.KinetBackend.pushLocalStateToCloud === 'function') {
+                await window.KinetBackend.pushLocalStateToCloud();
+            }
+
             const sportChosen = (prof && prof.sport) || localStorage.getItem('kinet_sport') || 'Fútbol';
             window.location.href = `despacho.html?role=${roleKey}&sport=${encodeURIComponent(sportChosen)}`;
         }
