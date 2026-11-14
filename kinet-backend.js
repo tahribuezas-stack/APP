@@ -351,12 +351,12 @@
             flex-shrink: 0 !important;
           }
           /* Altura fija exacta (76px) en el recuadro de consejo IA para que Mi Perfil y las demás secciones midan lo mismo al milímetro */
-          .os-sidebar .sidebar-ai-tip-box,
+         .os-sidebar .sidebar-ai-tip-box,
           .sidebar-ai-tip-box {
-            height: 76px !important;
-            min-height: 76px !important;
-            max-height: 76px !important;
-            padding: 9px 12px !important;
+            height: 86px !important;
+            min-height: 86px !important;
+            max-height: 86px !important;
+            padding: 8px 11px !important;
             margin-bottom: 2px !important;
             box-sizing: border-box !important;
             overflow: hidden !important;
@@ -366,10 +366,10 @@
             flex-shrink: 0 !important;
           }
           .sidebar-ai-tip-text {
-            font-size: 0.71rem !important;
-            line-height: 1.32 !important;
+            font-size: 0.68rem !important;
+            line-height: 1.28 !important;
             display: -webkit-box !important;
-            -webkit-line-clamp: 3 !important;
+            -webkit-line-clamp: 4 !important;
             -webkit-box-orient: vertical !important;
             overflow: hidden !important;
             text-overflow: ellipsis !important;
