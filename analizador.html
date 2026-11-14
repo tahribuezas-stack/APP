@@ -4423,6 +4423,381 @@
             window.addEventListener('DOMContentLoaded', applyDespachoThemeSettings);
             window.addEventListener('kinet:cloud-synced', applyDespachoThemeSettings);
         })();
+        // =========================================================================
+        // PARCHE DEFINITIVO: TRANSICIÓN SIN REESCALADO + MICRO-CARTAS MÓVIL + DOCUMENTOS PDF INFALIBLES
+        // =========================================================================
+        (function applyFinalAnalyzerFixes() {
+            const fixStyle = document.createElement('style');
+            fixStyle.textContent = `
+                /* 1. CERO EFECTO DE REESCALADO AL CAMBIAR ENTRE PLANTILLA, COMPARADOR Y SINERGIA */
+                #left-morph-column,
+                .col-8 {
+                    display: grid !important;
+                    grid-template-columns: 100% !important;
+                    align-items: start !important;
+                    transition: height 0.72s cubic-bezier(0.22, 1, 0.36, 1) !important;
+                    overflow: hidden !important;
+                }
+
+                #view-arena-3d,
+                #view-duel-1v1,
+                #view-mirror-self {
+                    grid-area: 1 / 1 !important;
+                    width: 100% !important;
+                    transform: none !important;
+                    scale: 1 !important;
+                    filter: none !important;
+                    transition: opacity 0.48s cubic-bezier(0.22, 1, 0.36, 1) !important;
+                }
+
+                .kinet-view-entering {
+                    opacity: 0 !important;
+                    transform: none !important;
+                    filter: none !important;
+                }
+                .kinet-view-active {
+                    opacity: 1 !important;
+                    transform: none !important;
+                    filter: none !important;
+                }
+
+                /* 2. REDIMENSIONADO EXCLUSIVO EN MÓVIL PARA QUE LAS 11 CARTAS ENTREN EN EL CAMPO SIN SOLAPARSE */
+                @media (max-width: 768px) {
+                    .arena-3d-viewport {
+                        height: 330px !important;
+                    }
+                    .arena-3d-surface {
+                        width: 96% !important;
+                        height: 90% !important;
+                        transform: perspective(900px) rotateX(16deg) scale(0.98) !important;
+                    }
+                    .arena-3d-viewport.flat-2d .arena-3d-surface {
+                        transform: none !important;
+                    }
+                    .tactical-node-token,
+                    .tactical-node-token.kinet-mini-fifa-card,
+                    .tactical-node-token.kinet-avatar-tv-token,
+                    .tactical-node-token.empty-slot {
+                        width: 48px !important;
+                        min-width: 48px !important;
+                        max-width: 48px !important;
+                        padding: 3px 2px !important;
+                        border-radius: 7px !important;
+                    }
+                    .tactical-node-token:hover,
+                    .tactical-node-token.selected-slot {
+                        transform: translate(-50%, -54%) scale(1.08) !important;
+                    }
+                    .mini-fifa-header {
+                        padding-bottom: 1px !important;
+                        margin-bottom: 1px !important;
+                        justify-content: center !important;
+                        gap: 2px !important;
+                    }
+                    .mini-fifa-grl {
+                        font-size: 0.54rem !important;
+                    }
+                    .mini-fifa-pos {
+                        font-size: 0.38rem !important;
+                        padding: 1px 2px !important;
+                    }
+                    .mini-fifa-name {
+                        font-size: 0.44rem !important;
+                        margin-bottom: 0 !important;
+                    }
+                    .mini-fifa-stats-grid {
+                        display: none !important;
+                    }
+                    .tv-avatar-circle {
+                        width: 22px !important;
+                        height: 22px !important;
+                        font-size: 0.46rem !important;
+                        margin-bottom: 1px !important;
+                    }
+                    .tv-grl-badge {
+                        font-size: 0.38rem !important;
+                        padding: 0 2px !important;
+                        right: -4px !important;
+                    }
+                    .mini-card-remove-x {
+                        width: 14px !important;
+                        height: 14px !important;
+                        font-size: 0.45rem !important;
+                        top: -5px !important;
+                        right: -5px !important;
+                    }
+                }
+
+                @media (max-width: 420px) {
+                    .tactical-node-token,
+                    .tactical-node-token.kinet-mini-fifa-card,
+                    .tactical-node-token.kinet-avatar-tv-token,
+                    .tactical-node-token.empty-slot {
+                        width: 42px !important;
+                        min-width: 42px !important;
+                        max-width: 42px !important;
+                        padding: 2px !important;
+                    }
+                    .mini-fifa-name {
+                        font-size: 0.4rem !important;
+                    }
+                }
+            `;
+            document.head.appendChild(fixStyle);
+        })();
+
+        // Sobrescribir switchAnalyzerMode: anima SOLO la altura del contenedor exterior sin reescalar ni deformar el interior
+        window.switchAnalyzerMode = function (mode, btnEl) {
+            if (currentAnalyzerMode === mode) return;
+
+            const colLeft = document.getElementById('left-morph-column') || document.querySelector('.col-8');
+            const viewMap = {
+                arena: document.getElementById('view-arena-3d'),
+                duel: document.getElementById('view-duel-1v1'),
+                mirror: document.getElementById('view-mirror-self')
+            };
+
+            const currentViewEl = viewMap[currentAnalyzerMode];
+            const nextViewEl = viewMap[mode];
+            if (!nextViewEl || !colLeft) return;
+
+            // Fijar altura actual antes del cambio
+            const startHeight = currentViewEl ? currentViewEl.offsetHeight : colLeft.offsetHeight;
+            colLeft.style.height = `${startHeight}px`;
+
+            currentAnalyzerMode = mode;
+            document.querySelectorAll('.analyzer-tabs-group .analyzer-tab-btn').forEach(b => b.classList.remove('active'));
+            if (btnEl) btnEl.classList.add('active');
+
+            if (mode === 'duel') renderDuel1v1View();
+            if (mode === 'mirror') renderMirrorSelfView();
+            sync2D3DViewportUI();
+            renderRightRosterList();
+
+            // Mostrar la nueva vista superpuesta en su escala real 1:1 (sin scale)
+            nextViewEl.style.display = 'block';
+            nextViewEl.style.opacity = '0';
+            nextViewEl.style.pointerEvents = 'none';
+
+            const targetHeight = nextViewEl.offsetHeight;
+
+            if (currentViewEl && currentViewEl !== nextViewEl) {
+                currentViewEl.style.opacity = '0';
+                currentViewEl.style.pointerEvents = 'none';
+            }
+
+            requestAnimationFrame(() => {
+                colLeft.style.height = `${targetHeight}px`;
+                nextViewEl.style.opacity = '1';
+                nextViewEl.style.pointerEvents = 'auto';
+            });
+
+            clearTimeout(colLeft._morphTimer);
+            colLeft._morphTimer = setTimeout(() => {
+                Object.keys(viewMap).forEach(k => {
+                    if (viewMap[k] && k !== mode) {
+                        viewMap[k].style.display = 'none';
+                    }
+                });
+                colLeft.style.height = '';
+            }, 730);
+        };
+
+        // Sobrescribir la descarga de documentos de Matchday para que genere un PDF Oficial con jsPDF (igual que el Dossier Táctico que nunca falla)
+        window.downloadMatchdayGraphicPNG = function () {
+            const statusEl = document.getElementById('broadcaster-status-msg');
+            if (statusEl) statusEl.textContent = '⏳ GENERANDO DOCUMENTO OFICIAL PDF...';
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+                const myTeam = (document.getElementById('md-my-team')?.value || 'KINET PERFORMANCE').toUpperCase();
+                const rivalTeam = (document.getElementById('md-rival-team')?.value || 'RIVAL ELITE').toUpperCase();
+                const matchTime = (document.getElementById('md-match-time')?.value || 'HOY • 20:00H').toUpperCase();
+                const matchVenue = (document.getElementById('md-match-venue')?.value || 'ESTADIO CENTRAL').toUpperCase();
+                const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
+
+                // Fondo oscuro corporativo KINET OS
+                pdf.setFillColor(6, 8, 14);
+                pdf.rect(0, 0, 297, 210, 'F');
+
+                // Marco perimetral neón
+                pdf.setDrawColor(0, 255, 136);
+                pdf.setLineWidth(0.7);
+                pdf.roundedRect(10, 10, 277, 190, 4, 4, 'S');
+
+                // Cabecera oficial del documento
+                pdf.setFillColor(13, 17, 26);
+                pdf.roundedRect(14, 14, 269, 30, 3, 3, 'F');
+
+                if (uploadedClubCrestUrl && uploadedClubCrestUrl.startsWith('data:image')) {
+                    try {
+                        pdf.addImage(uploadedClubCrestUrl, 'PNG', 18, 17, 22, 22);
+                    } catch (imgErr) {}
+                }
+
+                const textStartX = uploadedClubCrestUrl ? 45 : 20;
+                pdf.setTextColor(0, 255, 136);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(9.5);
+                pdf.text(`KINET OS MATCHDAY SUITE // ${activeArenaSport.toUpperCase()} • ${currentPresetName.toUpperCase()}`, textStartX, 23);
+
+                pdf.setTextColor(248, 250, 252);
+                pdf.setFontSize(16);
+                pdf.text(`${myTeam}   VS   ${rivalTeam}`, textStartX, 32);
+
+                pdf.setTextColor(148, 163, 184);
+                pdf.setFontSize(9);
+                pdf.text(`ESTADIO / PISTA: ${matchVenue}   |   HORARIO: ${matchTime}`, textStartX, 39);
+
+                // MODO 3: CARTA INDIVIDUAL DEL JUGADOR ACTIVO
+                if (activeBroadcasterFormat === 'player') {
+                    const activeSlot = getSlotArrayByGroup(activeSelection.group)[activeSelection.index];
+                    const p = (activeSlot && activeSlot.player) ? activeSlot.player : getMyUserPlayerObject();
+                    const st = Array.isArray(p.stats) && p.stats.length === 6 ? p.stats : [85, 84, 85, 86, 82, 84];
+
+                    pdf.setFillColor(15, 22, 36);
+                    pdf.setDrawColor(0, 255, 136);
+                    pdf.roundedRect(24, 54, 85, 125, 6, 6, 'FD');
+
+                    pdf.setTextColor(0, 255, 136);
+                    pdf.setFontSize(26);
+                    pdf.text(String(p.grl || '??'), 32, 72);
+                    pdf.setFontSize(12);
+                    pdf.text(String(p.pos || 'PRO'), 82, 70);
+
+                    pdf.setTextColor(255, 255, 255);
+                    pdf.setFontSize(14);
+                    pdf.text(p.name.toUpperCase(), 66.5, 92, { align: 'center' });
+
+                    let sy = 110;
+                    cfg.statLabels.forEach((lbl, idx) => {
+                        pdf.setTextColor(148, 163, 184);
+                        pdf.setFontSize(10);
+                        pdf.text(`${lbl}:`, 34, sy);
+                        pdf.setTextColor(0, 255, 136);
+                        pdf.text(String(st[idx]), 92, sy, { align: 'right' });
+                        sy += 10;
+                    });
+
+                    pdf.setTextColor(0, 255, 136);
+                    pdf.setFontSize(12);
+                    pdf.text('INFORME TECNICO Y RASGOS ESPECIFICOS', 122, 66);
+                    pdf.setTextColor(226, 232, 240);
+                    pdf.setFontSize(10);
+                    const lines = pdf.splitTextToSize(`Jugador: ${p.name} (${p.pos})\nValoración Media: ${p.grl || '??'} GRL\nObservación Táctica: ${p.traitNotes || 'Jugador polivalente verificado en KINET OS.'}`, 150);
+                    pdf.text(lines, 122, 78);
+                }
+                // MODO 2: CAPTURA VISUAL DEL CAMPO 3D CON LAS CARTAS EN SUS COORDENADAS
+                else if (activeBroadcasterFormat === 'pitch') {
+                    pdf.setFillColor(7, 24, 17);
+                    pdf.setDrawColor(255, 255, 255);
+                    pdf.setLineWidth(0.5);
+                    pdf.roundedRect(20, 50, 185, 136, 3, 3, 'FD');
+
+                    // Líneas del campo
+                    pdf.line(20, 118, 205, 118);
+                    pdf.circle(112.5, 118, 18, 'S');
+                    pdf.rect(68, 50, 89, 24, 'S');
+                    pdf.rect(68, 162, 89, 24, 'S');
+
+                    // Dibujar cada ficha en su coordenada (x, y)
+                    currentBoardSlots.forEach((s) => {
+                        const cx = 20 + (s.x / 100) * 185;
+                        const cy = 50 + (s.y / 100) * 136;
+                        pdf.setFillColor(13, 19, 32);
+                        pdf.setDrawColor(0, 255, 136);
+                        pdf.roundedRect(cx - 14, cy - 8, 28, 16, 2, 2, 'FD');
+
+                        pdf.setTextColor(0, 255, 136);
+                        pdf.setFontSize(7.5);
+                        const grlTxt = s.player && s.player.grl ? String(s.player.grl) : '--';
+                        pdf.text(`${grlTxt} ${s.pos}`, cx, cy - 2, { align: 'center' });
+
+                        pdf.setTextColor(255, 255, 255);
+                        pdf.setFontSize(7);
+                        const shortN = s.player ? s.player.name.split(' ')[0].slice(0, 10) : 'Vacío';
+                        pdf.text(shortN, cx, cy + 4, { align: 'center' });
+                    });
+
+                    // Columna derecha de suplentes
+                    pdf.setFillColor(13, 17, 26);
+                    pdf.roundedRect(212, 50, 71, 136, 3, 3, 'F');
+                    pdf.setTextColor(0, 255, 136);
+                    pdf.setFontSize(9.5);
+                    pdf.text('SUPLENTES / ROTACION', 217, 60);
+
+                    let by = 70;
+                    benchSlots.forEach((b) => {
+                        pdf.setTextColor(226, 232, 240);
+                        pdf.setFontSize(8.2);
+                        const bTxt = b.player ? `${b.pos}: ${b.player.name} (${b.player.grl || '??'})` : `${b.pos}: Vacío`;
+                        pdf.text(bTxt.slice(0, 28), 217, by);
+                        by += 9;
+                    });
+                }
+                // MODO 1: PÓSTER OFICIAL DE ALINEACIÓN / CONVOCATORIA (CUADRÍCULA DE TARJETAS)
+                else {
+                    let col = 0, row = 0;
+                    currentBoardSlots.forEach((s, idx) => {
+                        const x = 14 + col * 68;
+                        const y = 52 + row * 32;
+                        pdf.setFillColor(15, 21, 34);
+                        pdf.setDrawColor(0, 255, 136);
+                        pdf.roundedRect(x, y, 64, 26, 3, 3, 'FD');
+
+                        pdf.setTextColor(0, 255, 136);
+                        pdf.setFontSize(8);
+                        pdf.text(`#${idx + 1} • ${s.pos}`, x + 4, y + 8);
+
+                        pdf.setFontSize(12);
+                        pdf.text(String(s.player && s.player.grl ? s.player.grl : '--'), x + 59, y + 9, { align: 'right' });
+
+                        pdf.setTextColor(255, 255, 255);
+                        pdf.setFontSize(9.5);
+                        const pName = s.player ? s.player.name : 'Por asignar';
+                        pdf.text(pName.slice(0, 18), x + 4, y + 17);
+
+                        pdf.setTextColor(148, 163, 184);
+                        pdf.setFontSize(7);
+                        const pTrait = s.player && s.player.traitNotes ? s.player.traitNotes.slice(0, 26) : 'Convocado oficial';
+                        pdf.text(pTrait, x + 4, y + 23);
+
+                        col++;
+                        if (col >= 4) { col = 0; row++; }
+                    });
+
+                    const subs = benchSlots.filter(b => b.player).map(b => `${b.pos}: ${b.player.name} (${b.player.grl || '??'})`);
+                    pdf.setFillColor(13, 17, 26);
+                    pdf.roundedRect(14, 158, 269, 24, 3, 3, 'F');
+                    pdf.setTextColor(0, 255, 136);
+                    pdf.setFontSize(9);
+                    pdf.text('BANQUILLO OFICIAL / ROTACION:', 19, 167);
+                    pdf.setTextColor(226, 232, 240);
+                    pdf.setFontSize(8.5);
+                    pdf.text(subs.length > 0 ? subs.join('   •   ') : 'Convocatoria abierta', 19, 175);
+                }
+
+                pdf.setTextColor(148, 163, 184);
+                pdf.setFontSize(7.5);
+                pdf.text('Documento oficial generado por KINET Matchday & Share Suite™ • jkinetos.es', 14, 196);
+
+                const safeSp = activeArenaSport.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]/g, '_');
+                pdf.save(`KINET_Matchday_${activeBroadcasterFormat.toUpperCase()}_${safeSp}.pdf`);
+
+                if (statusEl) statusEl.textContent = '✓ DOCUMENTO OFICIAL PDF DESCARGADO';
+            } catch (err) {
+                console.error(err);
+                if (statusEl) statusEl.textContent = '⚠️ ERROR AL GENERAR DOCUMENTO';
+            }
+        };
+
+        // Asegurar que los botones de la ventana Matchday indiquen claramente que descargan el PDF oficial sin errores
+        window.addEventListener('DOMContentLoaded', () => {
+            const dlBtn = document.querySelector('#matchday-broadcaster-modal button[onclick*="downloadMatchdayGraphicPNG"]');
+            if (dlBtn) dlBtn.innerHTML = '📥 Descargar Documento PDF';
+        });
     </script>
 </body>
 </html>
