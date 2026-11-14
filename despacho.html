@@ -2305,58 +2305,6 @@
                 document.getElementById('legal-modal').classList.remove('open');
             }
         }
-      // =========================================================================
-        // ACTUALIZACIÓN DE PRECIOS EN NODOS DE TEXTO REALES (SOPORTA SPANS HIJOS "/ pago único" Y "/mes")
-        // =========================================================================
-        function applyKinet30PercentMarginPrices() {
-            const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
-            const textNodes = [];
-            let currentNode;
-            while ((currentNode = walker.nextNode())) {
-                textNodes.push(currentNode);
-            }
-
-            textNodes.forEach(node => {
-                if (!node.nodeValue) return;
-                let val = node.nodeValue;
-                if (val.includes('4,99') || val.includes('9,99') || val.includes('19,99') || val.includes('8,99') || val.includes('24,99')) {
-                    // Evitar que "19,99" se reemplace parcialmente por la regla de "9,99" evaluando primero los números de 2 cifras
-                    val = val
-                        .replace(/24,99\s*€/g, '11,99€')
-                        .replace(/19,99\s*€/g, '7,99€')
-                        .replace(/9,99\s*€/g, '3,99€')
-                        .replace(/8,99\s*€/g, '4,99€')
-                        .replace(/4,99\s*€/g, '1,99€');
-                    node.nodeValue = val;
-                }
-            });
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            applyKinet30PercentMarginPrices();
-            setTimeout(applyKinet30PercentMarginPrices, 250);
-
-            // Si viene desde Laboratorio ("➕ Bono Minutos Extra") o con ?tab=subscription, enfocar e iluminar la sección
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('tab') === 'subscription' || window.location.hash === '#payg-bonuses-section') {
-                setTimeout(() => {
-                    const targetPanel = Array.from(document.querySelectorAll('.kinet-panel')).find(
-                        p => p.textContent.includes('PAY-AS-YOU-GO') || p.textContent.includes('BONOS ECONÓMICOS')
-                    );
-                    if (targetPanel) {
-                        targetPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        targetPanel.style.transition = 'box-shadow 0.5s ease, border-color 0.5s ease';
-                        targetPanel.style.borderColor = 'var(--role-color)';
-                        targetPanel.style.boxShadow = '0 0 35px var(--role-glow)';
-                        setTimeout(() => {
-                            targetPanel.style.boxShadow = '';
-                        }, 2600);
-                    }
-                }, 220);
-            }
-        });
-
-        window.addEventListener('kinet:cloud-synced', applyKinet30PercentMarginPrices);
     </script>
 </body>
 </html>
