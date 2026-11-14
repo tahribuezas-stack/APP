@@ -5910,6 +5910,219 @@
                 }
             }, 180);
         };
+        // =========================================================================
+        // VISOR DE PERFIL DE PANTALLA COMPLETA ESTILO INSTAGRAM WEB EN COMUNIDAD.HTML
+        // =========================================================================
+        (function upgradeProfileInspectorToInstagramFullView() {
+            const igProfStyle = document.createElement('style');
+            igProfStyle.textContent = `
+                /* Ampliar el visor de perfil a una ventana panorámica tipo Instagram Web (1040px x 88vh) */
+                #user-profile-inspector-modal .kinet-modal-box {
+                    max-width: 1020px !important;
+                    width: 95vw !important;
+                    max-height: 90vh !important;
+                    padding: 26px 28px !important;
+                    border-radius: 26px !important;
+                    background: linear-gradient(160deg, rgba(13, 18, 29, 0.99) 0%, rgba(6, 9, 16, 0.99) 100%) !important;
+                    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.95), 0 0 45px rgba(var(--role-rgb), 0.22) !important;
+                }
+                #insp-tab-content-box {
+                    max-height: 52vh !important;
+                    min-height: 260px !important;
+                    padding-right: 6px !important;
+                }
+                .ig-passport-badges-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+                    gap: 10px;
+                    margin-bottom: 12px;
+                }
+                .ig-passport-cell {
+                    background: rgba(255, 255, 255, 0.025);
+                    border: 1px solid var(--border-subtle);
+                    border-left: 3px solid var(--role-color);
+                    border-radius: 12px;
+                    padding: 10px 12px;
+                }
+                .ig-passport-cell span {
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.56rem;
+                    color: var(--text-secondary);
+                    text-transform: uppercase;
+                    display: block;
+                    margin-bottom: 3px;
+                }
+                .ig-passport-cell strong {
+                    font-family: 'Inter', sans-serif;
+                    font-size: 0.82rem;
+                    font-weight: 800;
+                    color: #FFFFFF;
+                    display: block;
+                }
+                .ig-posts-grid-2col {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+                    gap: 12px;
+                }
+                .ig-ext-link-pill {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 6px 12px;
+                    border-radius: 99px;
+                    background: rgba(var(--role-rgb), 0.12);
+                    border: 1px solid rgba(var(--role-rgb), 0.45);
+                    color: var(--role-color);
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.64rem;
+                    font-weight: 700;
+                    text-decoration: none;
+                    transition: all 0.2s ease;
+                }
+                .ig-ext-link-pill:hover {
+                    background: var(--role-gradient);
+                    color: #04060A;
+                    transform: translateY(-1px);
+                }
+            `;
+            document.head.appendChild(igProfStyle);
+        })();
+
+        // Calcular edad desde fecha YYYY-MM-DD para mostrarla en el perfil de Comunidad
+        function computeInspectorAge(bdateStr) {
+            if (!bdateStr) return null;
+            const b = new Date(bdateStr);
+            if (isNaN(b.getTime())) return null;
+            const now = new Date();
+            let age = now.getFullYear() - b.getFullYear();
+            const m = now.getMonth() - b.getMonth();
+            if (m < 0 || (m === 0 && now.getDate() < b.getDate())) age--;
+            return (age >= 5 && age <= 99) ? age : null;
+        }
+
+        // Enriquecer openUserProfileInspector para que cargue TODOS los datos de perfil.html (propios y de otros usuarios en Supabase)
+        const _baseOpenInspector = window.openUserProfileInspector;
+        window.openUserProfileInspector = function (handle, fallbackName, fallbackInitials) {
+            _baseOpenInspector(handle, fallbackName, fallbackInitials);
+            if (!currentInspectedPerson) return;
+
+            const isMe = isMyOwnPostOrHandle(currentInspectedPerson.handle, currentInspectedPerson.shortName);
+            if (isMe) {
+                currentInspectedPerson.birthdate = localStorage.getItem('kinet_user_birthdate') || '';
+                currentInspectedPerson.city = localStorage.getItem('kinet_user_city') || localStorage.getItem('kinet_city') || '';
+                currentInspectedPerson.hometown = localStorage.getItem('kinet_user_hometown') || '';
+                currentInspectedPerson.club = localStorage.getItem('kinet_user_club') || 'KINET Performance';
+                currentInspectedPerson.category = localStorage.getItem('kinet_user_category') || localStorage.getItem('kinet_category') || '';
+                currentInspectedPerson.position = localStorage.getItem('kinet_position') || 'PRO';
+                currentInspectedPerson.anthropometry = localStorage.getItem('kinet_user_anthropometry') || '';
+                currentInspectedPerson.laterality = localStorage.getItem('kinet_user_laterality') || '';
+                currentInspectedPerson.transfermarktUrl = localStorage.getItem('kinet_user_transfermarkt') || '';
+                currentInspectedPerson.videoUrl = localStorage.getItem('kinet_user_videolink') || '';
+            }
+            renderUserProfileInspectorContent();
+        };
+
+        // Sobrescribir el contenido de las pestañas del Visor de Perfil para mostrar el Pasaporte Deportivo Completo estilo Instagram
+        const _prevRenderInspContent = window.renderUserProfileInspectorContent;
+        window.renderUserProfileInspectorContent = function () {
+            _prevRenderInspContent();
+            const p = currentInspectedPerson;
+            if (!p) return;
+
+            const isMe = isMyOwnPostOrHandle(p.handle, p.shortName);
+            const following = isFollowingHandle(p.handle);
+            const ageVal = computeInspectorAge(p.birthdate);
+
+            // Añadir píldoras rápidas debajo de la bio en la cabecera del modal (Ciudad, Club, Categoría, Edad y Enlaces Oficiales)
+            const bioEl = document.getElementById('insp-bio');
+            if (bioEl) {
+                const quickTags = [];
+                if (ageVal) quickTags.push(`🎂 ${ageVal} años`);
+                if (p.position) quickTags.push(`🎯 ${p.position}`);
+                if (p.club) quickTags.push(`🏟️ ${p.club}`);
+                if (p.category) quickTags.push(`🏆 ${p.category}`);
+                if (p.city) quickTags.push(`📍 ${p.city}`);
+                if (p.anthropometry) quickTags.push(`📏 ${p.anthropometry}`);
+
+                const linksRow = [];
+                if (p.transfermarktUrl) {
+                    const safeTm = /^https?:\/\//i.test(p.transfermarktUrl) ? p.transfermarktUrl : `https://${p.transfermarktUrl}`;
+                    linksRow.push(`<a href="${safeTm}" target="_blank" rel="noopener" class="ig-ext-link-pill">🔗 Transfermarkt / BeSoccer ↗</a>`);
+                }
+                if (p.videoUrl) {
+                    const safeVid = /^https?:\/\//i.test(p.videoUrl) ? p.videoUrl : `https://${p.videoUrl}`;
+                    linksRow.push(`<a href="${safeVid}" target="_blank" rel="noopener" class="ig-ext-link-pill" style="border-color:#38BDF8;color:#38BDF8;">🎬 Ver Highlight Reel ▶</a>`);
+                }
+                if (isMe) {
+                    linksRow.push(`<a href="perfil.html" class="ig-ext-link-pill">✏️ Editar Mi Pasaporte Completo</a>`);
+                }
+
+                bioEl.innerHTML = `
+                    <div style="color:#E2E8F0;font-size:0.8rem;margin-bottom:6px;">${p.headline || 'Perfil Verificado KINET OS'}</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;font-family:'JetBrains Mono';font-size:0.62rem;color:#94A3B8;margin-bottom:${linksRow.length ? '8px' : '0'};">
+                        ${quickTags.map(t => `<span style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);padding:3px 8px;border-radius:6px;color:#CBD5E1;">${t}</span>`).join('')}
+                    </div>
+                    ${linksRow.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px;">${linksRow.join('')}</div>` : ''}
+                `;
+            }
+
+            const contentBox = document.getElementById('insp-tab-content-box');
+            if (!contentBox || (p.isPrivate && !following && !isMe)) return;
+
+            // En la pestaña "🎴 Información & CV", mostrar los 9 bloques completos del Pasaporte Deportivo recogidos en Onboarding / Perfil
+            if (activeInspectorTab === 'info') {
+                contentBox.innerHTML = `
+                    <div class="ig-passport-badges-grid">
+                        <div class="ig-passport-cell">
+                            <span>🎯 DEMARCACIÓN / ESPECIALIDAD</span>
+                            <strong style="color:var(--role-color);">${p.position || 'PRO'}</strong>
+                        </div>
+                        <div class="ig-passport-cell">
+                            <span>🏟️ CLUB / EQUIPO ACTUAL</span>
+                            <strong>${p.club || 'KINET Performance'}</strong>
+                        </div>
+                        <div class="ig-passport-cell">
+                            <span>🏆 CATEGORÍA / DIVISIÓN / GRUPO</span>
+                            <strong>${p.category || p.sport || 'Élite'}</strong>
+                        </div>
+                        <div class="ig-passport-cell">
+                            <span>📍 CIUDAD DE RESIDENCIA</span>
+                            <strong>${p.city || 'No especificada'}</strong>
+                        </div>
+                        <div class="ig-passport-cell">
+                            <span>🏠 CIUDAD NATAL / ORIGEN</span>
+                            <strong>${p.hometown || 'No especificada'}</strong>
+                        </div>
+                        <div class="ig-passport-cell">
+                            <span>📅 EDAD / FECHA NACIMIENTO</span>
+                            <strong>${ageVal ? ageVal + ' años (' + p.birthdate + ')' : (p.birthdate || 'No especificada')}</strong>
+                        </div>
+                        <div class="ig-passport-cell">
+                            <span>📏 ALTURA & PESO</span>
+                            <strong>${p.anthropometry || 'No especificado'}</strong>
+                        </div>
+                        <div class="ig-passport-cell">
+                            <span>⚡ PIERNA HÁBIL / MANO / GUARDIA</span>
+                            <strong>${p.laterality || 'No especificado'}</strong>
+                        </div>
+                        <div class="ig-passport-cell">
+                            <span>📡 ESTADO EN RADAR SCOUT B2B</span>
+                            <strong style="color:#00FF88;">${p.marketOpen !== false ? '🟢 Abierto a Ofertas / Pruebas' : '🔒 Contrato Cerrado'}</strong>
+                        </div>
+                    </div>
+                `;
+            } else if (activeInspectorTab === 'posts') {
+                // Organizar las publicaciones en cuadrícula panorámica de 2 columnas para aprovechar la ventana grande
+                const childrenCount = contentBox.children.length;
+                if (childrenCount > 1) {
+                    contentBox.className = 'ig-posts-grid-2col';
+                } else {
+                    contentBox.className = '';
+                }
+            } else {
+                contentBox.className = '';
+            }
+        };
     </script>
 </body>
 </html>
