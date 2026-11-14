@@ -5305,6 +5305,171 @@
                 if (statusEl) statusEl.textContent = '⚠️ ERROR AL EXPORTAR DOCUMENTO';
             }
         };
+        // =========================================================================
+        // PULIDO VISUAL DEFINITIVO: VISTA PREVIA COMPLETA + TABLA STATS ALINEADA + RECUADRO CONSEJO 86PX
+        // =========================================================================
+        (function applyFinalVisualPolish() {
+            const polishStyle = document.createElement('style');
+            polishStyle.textContent = `
+                /* 1. Hacer que tanto la Pizarra 3D como la Carta Jugador entren 100% completas en la vista previa */
+                #broadcaster-export-stage {
+                    padding: 14px 16px !important;
+                }
+                #broadcaster-export-stage .arena-3d-viewport {
+                    height: 300px !important;
+                    margin-bottom: 0 !important;
+                }
+                #broadcaster-export-stage .arena-3d-surface {
+                    width: 92% !important;
+                    height: 88% !important;
+                    transform: perspective(900px) rotateX(20deg) scale(0.92) !important;
+                }
+                #broadcaster-export-stage .tactical-node-token {
+                    transform: translate(-50%, -50%) scale(0.84) !important;
+                }
+
+                /* Layout fijo de 2 columnas para la Carta Jugador en la vista previa (nunca cae abajo ni se corta) */
+                .broadcaster-player-grid {
+                    display: grid !important;
+                    grid-template-columns: 265px 1fr !important;
+                    gap: 20px !important;
+                    align-items: center !important;
+                    width: 100% !important;
+                }
+                @media (max-width: 640px) {
+                    .broadcaster-player-grid {
+                        grid-template-columns: 1fr !important;
+                        justify-items: center !important;
+                    }
+                }
+                #broadcaster-export-stage .official-kinet-holo-card {
+                    width: 265px !important;
+                    padding: 14px !important;
+                    border-radius: 20px !important;
+                }
+                #broadcaster-export-stage .holo-card-grl-num {
+                    font-size: 1.95rem !important;
+                }
+                #broadcaster-export-stage .holo-portrait-wrap,
+                #broadcaster-export-stage .holo-portrait-img {
+                    width: 70px !important;
+                    height: 70px !important;
+                }
+                #broadcaster-export-stage .holo-player-title {
+                    font-size: 0.92rem !important;
+                }
+                #broadcaster-export-stage .holo-stat-cell strong {
+                    font-size: 0.85rem !important;
+                }
+
+                /* 2. Grid fijo en "Ver Stats Plantilla" para que las 6 columnas queden alineadas al milímetro */
+                .squad-stats-fixed-row {
+                    background: rgba(255, 255, 255, 0.025);
+                    border: 1px solid var(--border-subtle);
+                    border-radius: 13px;
+                    padding: 10px 14px;
+                    margin-bottom: 8px;
+                    display: grid !important;
+                    grid-template-columns: 235px 1fr !important;
+                    align-items: center !important;
+                    gap: 14px !important;
+                }
+                @media (max-width: 680px) {
+                    .squad-stats-fixed-row {
+                        grid-template-columns: 1fr !important;
+                    }
+                }
+
+                /* 3. Evitar que el consejo inferior de la barra lateral se corte en la 4ª línea */
+                .os-sidebar .sidebar-ai-tip-box,
+                .sidebar-ai-tip-box {
+                    height: 86px !important;
+                    min-height: 86px !important;
+                    max-height: 86px !important;
+                    padding: 8px 11px !important;
+                }
+                .sidebar-ai-tip-text {
+                    font-size: 0.68rem !important;
+                    line-height: 1.28 !important;
+                    -webkit-line-clamp: 4 !important;
+                }
+            `;
+            document.head.appendChild(polishStyle);
+        })();
+
+        // Función auxiliar que devuelve siempre Nombre + Primer Apellido para evitar desbordamientos
+        function formatFirstAndFirstSurname(fullName) {
+            const parts = String(fullName || 'Atleta KINET').trim().split(/\s+/);
+            if (parts.length <= 2) return parts.join(' ');
+            return `${parts[0]} ${parts[1]}`;
+        }
+
+        // Sobrescribir openFullSquadStatsModal con columna izquierda de ancho fijo (235px) y Nombre + 1er Apellido
+        window.openFullSquadStatsModal = function () {
+            const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
+            const lb = cfg.statLabels;
+            const body = document.getElementById('full-squad-stats-body');
+            document.getElementById('full-squad-modal-title').textContent = `CARACTERÍSTICAS DE TODA LA PLANTILLA (${activeArenaSport.toUpperCase()})`;
+
+            const allAssigned = [
+                ...currentBoardSlots.filter(s => s.player).map(s => ({ roleTag: 'TITULAR', pos: s.pos, p: s.player })),
+                ...benchSlots.filter(s => s.player).map(s => ({ roleTag: 'SUPLENTE', pos: s.pos, p: s.player })),
+                ...reserveSlots.filter(s => s.player).map(s => ({ roleTag: 'RESERVA', pos: s.pos, p: s.player }))
+            ];
+
+            if (allAssigned.length === 0) {
+                body.innerHTML = `<div style="text-align:center;padding:26px;font-size:0.8rem;color:var(--text-secondary);">Aún no has asignado jugadores en tu Plantilla 3D. Toca cualquier puesto del campo y elige perfiles a la derecha.</div>`;
+            } else {
+                body.innerHTML = allAssigned.map(item => {
+                    const p = item.p;
+                    const shortCleanName = formatFirstAndFirstSurname(p.name);
+                    const st = Array.isArray(p.stats) && p.stats.length === 6 ? p.stats : ['--', '--', '--', '--', '--', '--'];
+                    return `
+                        <div class="squad-stats-fixed-row">
+                            <div style="display:flex;align-items:center;gap:10px;min-width:0;overflow:hidden;">
+                                <span class="grl-Execution-chip">${p.grl || '??'}</span>
+                                <div style="min-width:0;overflow:hidden;">
+                                    <div style="font-weight:800;font-size:0.82rem;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${p.name}">
+                                        ${shortCleanName} <span style="font-family:'JetBrains Mono';font-size:0.56rem;color:var(--role-color);">[${item.pos} • ${item.roleTag}]</span>
+                                    </div>
+                                    <div style="font-size:0.65rem;color:#94A3B8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                        Rasgo: ${p.traitNotes || 'Equilibrado'}
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display:grid;grid-template-columns:repeat(6, 1fr);gap:6px;width:100%;">
+                                ${lb.map((statName, i) => `
+                                    <div style="background:rgba(4,6,10,0.85);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:5px 4px;text-align:center;">
+                                        <span style="font-family:'JetBrains Mono';font-size:0.52rem;color:var(--text-secondary);display:block;">${statName}</span>
+                                        <strong style="font-family:'Orbitron';font-size:0.76rem;color:var(--role-color);">${st[i]}</strong>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            document.getElementById('full-squad-stats-modal').classList.add('open');
+        };
+
+        // Asegurar que la vista previa de "3. Carta Jugador Activo" use el Grid de 2 columnas sin caer debajo ni cortarse
+        const _prevCardPreviewFn = window.renderMatchdayPreviewCard;
+        window.renderMatchdayPreviewCard = function () {
+            if (typeof _prevCardPreviewFn === 'function') _prevCardPreviewFn();
+            if (activeBroadcasterFormat === 'player') {
+                const stage = document.getElementById('broadcaster-export-stage');
+                const innerFlex = stage ? stage.firstElementChild : null;
+                if (innerFlex) {
+                    innerFlex.className = 'broadcaster-player-grid';
+                    innerFlex.style.cssText = '';
+                }
+                const titleEl = stage ? stage.querySelector('.holo-player-title') : null;
+                if (titleEl) {
+                    titleEl.textContent = formatFirstAndFirstSurname(titleEl.textContent).toUpperCase();
+                }
+            }
+        };
     </script>
 </body>
 </html>
