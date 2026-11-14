@@ -4798,6 +4798,513 @@
             const dlBtn = document.querySelector('#matchday-broadcaster-modal button[onclick*="downloadMatchdayGraphicPNG"]');
             if (dlBtn) dlBtn.innerHTML = '📥 Descargar Documento PDF';
         });
+        // =========================================================================
+        // UPGRADE DEFINITIVO MATCHDAY SUITE: BARRA UNIFICADA + TRANSICIÓN DE ALTURA + KINET CARD OFICIAL + PDF WYSIWYG
+        // =========================================================================
+        (function upgradeMatchdaySuiteToPro() {
+            const suiteStyle = document.createElement('style');
+            suiteStyle.textContent = `
+                /* 1. Barra segmentada limpia y ordenada (Adiós a los botones flotantes desordenados) */
+                .matchday-segmented-header {
+                    display: grid;
+                    grid-template-columns: 1fr auto;
+                    gap: 10px;
+                    align-items: center;
+                    width: 100%;
+                }
+                @media (max-width: 680px) {
+                    .matchday-segmented-header { grid-template-columns: 1fr; }
+                }
+                .matchday-segmented-tabs {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    background: rgba(4, 6, 10, 0.95);
+                    border: 1px solid rgba(255, 255, 255, 0.09);
+                    border-radius: 12px;
+                    padding: 4px;
+                    gap: 5px;
+                }
+                .matchday-seg-btn {
+                    background: transparent;
+                    border: none;
+                    color: var(--text-secondary);
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 0.65rem;
+                    font-weight: 800;
+                    padding: 9px 10px;
+                    border-radius: 9px;
+                    cursor: pointer;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 6px;
+                    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+                    white-space: nowrap;
+                }
+                .matchday-seg-btn:hover {
+                    color: #FFFFFF;
+                    background: rgba(255, 255, 255, 0.04);
+                }
+                .matchday-seg-btn.active {
+                    background: var(--role-gradient);
+                    color: #04060A;
+                    font-weight: 900;
+                    box-shadow: 0 0 16px var(--role-glow);
+                }
+
+                /* 2. Contenedor con transición de altura suave (0.72s) sin efecto de reescalado */
+                #broadcaster-morph-wrapper {
+                    position: relative;
+                    width: 100%;
+                    overflow: hidden;
+                    transition: height 0.72s cubic-bezier(0.22, 1, 0.36, 1);
+                }
+                #broadcaster-export-stage {
+                    transition: opacity 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+                    width: 100%;
+                }
+
+                /* 3. Diseño exacto de la KINET Card Oficial (Holo Neón Élite S2026) */
+                .official-kinet-holo-card {
+                    width: 330px;
+                    background:
+                        radial-gradient(circle at 50% 18%, rgba(var(--role-rgb), 0.26), transparent 62%),
+                        linear-gradient(165deg, #131129 0%, #090B14 55%, #06070D 100%);
+                    border: 2px solid var(--role-color);
+                    border-radius: 24px;
+                    padding: 18px 18px 16px 18px;
+                    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.92), 0 0 28px rgba(var(--role-rgb), 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+                    position: relative;
+                    overflow: hidden;
+                    flex-shrink: 0;
+                }
+                .holo-card-top-bar {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                    padding-bottom: 10px;
+                    margin-bottom: 12px;
+                }
+                .holo-card-grl-num {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 2.35rem;
+                    font-weight: 900;
+                    color: var(--role-color);
+                    line-height: 0.9;
+                    text-shadow: 0 0 16px rgba(var(--role-rgb), 0.45);
+                }
+                .holo-card-pos-lbl {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 0.76rem;
+                    font-weight: 800;
+                    color: #FFFFFF;
+                    margin-top: 5px;
+                    letter-spacing: 0.06em;
+                }
+                .holo-sim-pill {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 4px;
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.54rem;
+                    font-weight: 700;
+                    color: var(--role-color);
+                    background: rgba(var(--role-rgb), 0.12);
+                    border: 1px solid rgba(var(--role-rgb), 0.4);
+                    padding: 3px 8px;
+                    border-radius: 7px;
+                    margin-left: 6px;
+                }
+                .holo-portrait-wrap {
+                    position: relative;
+                    width: 86px;
+                    height: 86px;
+                    margin: 0 auto 12px auto;
+                }
+                .holo-portrait-img {
+                    width: 86px;
+                    height: 86px;
+                    border-radius: 20px;
+                    border: 2px solid var(--role-color);
+                    background: linear-gradient(135deg, rgba(var(--role-rgb), 0.25), #0B101E);
+                    background-size: cover;
+                    background-position: center;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 1.6rem;
+                    font-weight: 900;
+                    color: #FFFFFF;
+                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.75), 0 0 16px rgba(var(--role-rgb), 0.28);
+                }
+                .holo-lvl-pill {
+                    position: absolute;
+                    bottom: -7px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: #080B14;
+                    border: 1.5px solid var(--role-color);
+                    color: var(--role-color);
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 0.54rem;
+                    font-weight: 900;
+                    padding: 2px 9px;
+                    border-radius: 99px;
+                    white-space: nowrap;
+                }
+                .holo-player-title {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 1.05rem;
+                    font-weight: 900;
+                    color: #FFFFFF;
+                    text-align: center;
+                    letter-spacing: 0.04em;
+                    text-transform: uppercase;
+                }
+                .holo-edition-sub {
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.56rem;
+                    font-weight: 700;
+                    color: var(--role-color);
+                    text-align: center;
+                    letter-spacing: 0.16em;
+                    margin: 3px 0 10px 0;
+                }
+                .holo-xp-box {
+                    background: rgba(4, 6, 12, 0.78);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 9px;
+                    padding: 6px 9px;
+                    margin-bottom: 10px;
+                }
+                .holo-stats-6grid {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 7px;
+                    margin-bottom: 10px;
+                }
+                .holo-stat-cell {
+                    background: rgba(8, 11, 20, 0.9);
+                    border: 1px solid rgba(var(--role-rgb), 0.28);
+                    border-radius: 10px;
+                    padding: 6px 7px;
+                    text-align: center;
+                }
+                .holo-stat-cell span {
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.52rem;
+                    color: #94A3B8;
+                    display: block;
+                }
+                .holo-stat-cell strong {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 0.95rem;
+                    font-weight: 900;
+                    color: #FFFFFF;
+                    display: block;
+                    margin: 1px 0 4px 0;
+                }
+                .holo-stat-minibar {
+                    height: 3px;
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 99px;
+                    overflow: hidden;
+                }
+                .holo-stat-minifill {
+                    height: 100%;
+                    background: var(--role-color);
+                    border-radius: 99px;
+                }
+                .holo-playstyles-row {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 5px;
+                    margin-bottom: 9px;
+                }
+                .holo-playstyle-chip {
+                    background: rgba(255, 255, 255, 0.03);
+                    border: 1px solid rgba(255, 255, 255, 0.12);
+                    border-radius: 7px;
+                    padding: 4px 3px;
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 0.45rem;
+                    font-weight: 800;
+                    color: #E2E8F0;
+                    text-align: center;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+                .holo-footer-seal {
+                    background: rgba(var(--role-rgb), 0.08);
+                    border: 1px solid rgba(var(--role-rgb), 0.38);
+                    border-radius: 99px;
+                    padding: 5px 10px;
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.52rem;
+                    font-weight: 700;
+                    color: var(--role-color);
+                    text-align: center;
+                    letter-spacing: 0.08em;
+                }
+            `;
+            document.head.appendChild(suiteStyle);
+
+            // Reestructurar la cabecera de botones en #matchday-broadcaster-modal para que sea una barra segmentada limpia
+            window.addEventListener('DOMContentLoaded', () => {
+                const stage = document.getElementById('broadcaster-export-stage');
+                if (stage && !document.getElementById('broadcaster-morph-wrapper')) {
+                    const morphWrap = document.createElement('div');
+                    morphWrap.id = 'broadcaster-morph-wrapper';
+                    stage.parentNode.insertBefore(morphWrap, stage);
+                    morphWrap.appendChild(stage);
+                }
+
+                const fmtPosterBtn = document.getElementById('fmt-btn-poster');
+                if (fmtPosterBtn) {
+                    const topControlsRow = fmtPosterBtn.parentElement.parentElement;
+                    if (topControlsRow) {
+                        topControlsRow.outerHTML = `
+                            <div class="matchday-segmented-header">
+                                <div class="matchday-segmented-tabs">
+                                    <button type="button" class="matchday-seg-btn active" id="fmt-btn-poster" onclick="switchBroadcasterFormat('poster')">
+                                        <span>🏆</span> <span>1. Póster Oficial 11</span>
+                                    </button>
+                                    <button type="button" class="matchday-seg-btn" id="fmt-btn-pitch" onclick="switchBroadcasterFormat('pitch')">
+                                        <span>🏟️</span> <span>2. Pizarra 3D Visual</span>
+                                    </button>
+                                    <button type="button" class="matchday-seg-btn" id="fmt-btn-player" onclick="switchBroadcasterFormat('player')">
+                                        <span>🎴</span> <span>3. Carta Jugador Activo</span>
+                                    </button>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;">
+                                    <button type="button" class="btn-secondary" style="padding:9px 13px;font-size:0.62rem;border-color:var(--role-color);color:var(--role-color);white-space:nowrap;" onclick="document.getElementById('hidden-club-crest-input').click()">
+                                        🛡️ Subir Escudo Club
+                                    </button>
+                                </div>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:-4px;">
+                                <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--text-secondary);">VISTA PREVIA EN TIEMPO REAL (IDÉNTICA AL PDF Y A LA IMAGEN COMPARTIDA)</span>
+                                <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);font-weight:700;" id="broadcaster-status-msg">● LISTO PARA EXPORTAR O PUBLICAR</span>
+                            </div>
+                        `;
+                    }
+                }
+            });
+        })();
+
+        // Cambio entre los 3 formatos con animación de redimensionado suave de altura (0.72s) sin reescalado
+        window.switchBroadcasterFormat = function (formatMode) {
+            const morphWrap = document.getElementById('broadcaster-morph-wrapper');
+            const stage = document.getElementById('broadcaster-export-stage');
+
+            if (morphWrap && stage && activeBroadcasterFormat !== formatMode) {
+                const startH = stage.offsetHeight;
+                morphWrap.style.height = `${startH}px`;
+                stage.style.opacity = '0';
+
+                activeBroadcasterFormat = formatMode || 'poster';
+                ['poster', 'pitch', 'player'].forEach(k => {
+                    document.getElementById(`fmt-btn-${k}`)?.classList.toggle('active', k === activeBroadcasterFormat);
+                });
+
+                setTimeout(() => {
+                    renderMatchdayPreviewCard();
+                    requestAnimationFrame(() => {
+                        const targetH = stage.offsetHeight;
+                        morphWrap.style.height = `${targetH}px`;
+                        stage.style.opacity = '1';
+                    });
+                    clearTimeout(morphWrap._t);
+                    morphWrap._t = setTimeout(() => {
+                        morphWrap.style.height = '';
+                    }, 740);
+                }, 160);
+                return;
+            }
+
+            activeBroadcasterFormat = formatMode || 'poster';
+            ['poster', 'pitch', 'player'].forEach(k => {
+                document.getElementById(`fmt-btn-${k}`)?.classList.toggle('active', k === activeBroadcasterFormat);
+            });
+            renderMatchdayPreviewCard();
+        };
+
+        // Sobrescribir el formato 'player' dentro de renderMatchdayPreviewCard para que renderice la KINET Card Oficial (Holo Neón Élite)
+        const _editorialRenderFn = window.renderMatchdayPreviewCard;
+        window.renderMatchdayPreviewCard = function () {
+            if (activeBroadcasterFormat !== 'player') {
+                const stage = document.getElementById('broadcaster-export-stage');
+                if (activeBroadcasterFormat === 'pitch' && stage) {
+                    stage.className = 'matchday-poster-canvas';
+                }
+                if (typeof _editorialRenderFn === 'function') _editorialRenderFn();
+                return;
+            }
+
+            const stage = document.getElementById('broadcaster-export-stage');
+            const inputsRow = document.getElementById('broadcaster-match-inputs');
+            if (!stage) return;
+            if (inputsRow) inputsRow.style.display = 'none';
+
+            const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
+            const activeSlot = getSlotArrayByGroup(activeSelection.group)[activeSelection.index];
+            const p = (activeSlot && activeSlot.player) ? activeSlot.player : getMyUserPlayerObject();
+            const st = Array.isArray(p.stats) && p.stats.length === 6 ? p.stats : [92, 90, 88, 91, 86, 89];
+            const myAvatar = p.avatar || (p.isCurrentUser ? localStorage.getItem('kinet_user_avatar') : null);
+            const avatarBgStyle = myAvatar ? `background-image:url('${myAvatar}');` : '';
+            const avatarInitials = myAvatar ? '' : getInitials(p.name);
+
+            const playstylesBySport = {
+                'Fútbol': ['⚡ VELOCISTA+', '🎯 REGATEADOR+', '🔋 MOTOR 90\''],
+                'Baloncesto': ['🎯 TIRADOR 3PT+', '⚡ PRIMER PASO+', '🛡️ REBOTEADOR+'],
+                'Pádel / Tenis': ['🚀 REMATE X3+', '🧱 MURALLA+', '⚡ VOLEA PRO+'],
+                'Boxeo / MMA': ['💥 KO POWER+', '🌪️ FOOTWORK+', '🛡️ GUARDIA+'],
+                'Running': ['⚡ UMBRAL VO2+', '🏃 CADENCIA+', '🔋 SPRINT FINAL+']
+            };
+            const pStyles = playstylesBySport[activeArenaSport] || playstylesBySport['Fútbol'];
+
+            stage.className = 'matchday-poster-canvas';
+            stage.innerHTML = `
+                <div style="display:flex;align-items:center;justify-content:center;gap:28px;padding:6px;flex-wrap:wrap;">
+                    <!-- CARTA KINET OFICIAL HOLO NEÓN ÉLITE EXACTA -->
+                    <div class="official-kinet-holo-card">
+                        <div class="holo-card-top-bar">
+                            <div>
+                                <div style="display:flex;align-items:center;">
+                                    <span class="holo-card-grl-num">${p.grl || '92'}</span>
+                                    <span class="holo-sim-pill">⚙️ ${p.isExternalCustom ? 'SIMULACIÓN' : 'KINET CARD'}</span>
+                                </div>
+                                <div class="holo-card-pos-lbl">${p.pos || 'PRO'}</div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="font-family:'Orbitron';font-size:0.78rem;font-weight:900;color:#FFFFFF;letter-spacing:0.08em;">KINET OS</div>
+                                <div style="font-family:'JetBrains Mono';font-size:0.55rem;color:var(--role-color);margin-top:2px;">⚽ ${activeArenaSport.toUpperCase()}</div>
+                                <div style="font-family:'JetBrains Mono';font-size:0.48rem;color:#94A3B8;margin-top:2px;">TEMPORADA // S2026</div>
+                            </div>
+                        </div>
+
+                        <div class="holo-portrait-wrap">
+                            <div class="holo-portrait-img" style="${avatarBgStyle}">${avatarInitials}</div>
+                            <span class="holo-lvl-pill">LVL 27</span>
+                        </div>
+
+                        <div class="holo-player-title">${p.name}</div>
+                        <div class="holo-edition-sub">★ HOLO NEÓN ÉLITE • S2026 ★</div>
+
+                        <div class="holo-xp-box">
+                            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono';font-size:0.5rem;color:#CBD5E1;margin-bottom:4px;">
+                                <span>RANGO: ÉLITE KINET</span>
+                                <span style="color:var(--role-color);">2,760 / 3,000 XP</span>
+                            </div>
+                            <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:99px;overflow:hidden;">
+                                <div style="width:92%;height:100%;background:linear-gradient(90deg, var(--role-color), #00E5FF);border-radius:99px;"></div>
+                            </div>
+                        </div>
+
+                        <div class="holo-stats-6grid">
+                            ${cfg.statLabels.map((lbl, i) => `
+                                <div class="holo-stat-cell">
+                                    <span>${lbl}</span>
+                                    <strong>${st[i]}</strong>
+                                    <div class="holo-stat-minibar">
+                                        <div class="holo-stat-minifill" style="width:${st[i]}%"></div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <div class="holo-playstyles-row">
+                            ${pStyles.map(ps => `<div class="holo-playstyle-chip">${ps}</div>`).join('')}
+                        </div>
+
+                        <div class="holo-footer-seal">
+                            ⚙️ ${p.isExternalCustom ? 'MODO CUSTOM MANUAL (50-99)' : 'PERFIL OFICIAL KINET OS'}
+                        </div>
+                    </div>
+
+                    <!-- FICHA LATERAL DE CONTEXTO Y COMPATIBILIDAD IA -->
+                    <div style="max-width:300px;text-align:left;">
+                        <div style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);letter-spacing:0.12em;">DOSSIER OFICIAL DE JUGADOR // ${activeArenaSport.toUpperCase()}</div>
+                        <h3 style="font-family:'Orbitron';font-size:1.35rem;font-weight:900;color:white;margin:6px 0 10px 0;">${p.name.toUpperCase()}</h3>
+                        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.09);border-left:3px solid var(--role-color);border-radius:12px;padding:12px;margin-bottom:12px;">
+                            <div style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);margin-bottom:4px;">RASGO TÁCTICO REGISTRADO:</div>
+                            <div style="font-size:0.78rem;color:#E2E8F0;line-height:1.45;">"${p.traitNotes || 'Jugador calibrado de alto rendimiento en la pizarra 3D de KINET OS.'}"</div>
+                        </div>
+                        <div style="font-family:'JetBrains Mono';font-size:0.62rem;color:#94A3B8;line-height:1.5;">
+                            • Demarcación: <strong style="color:white;">${p.pos}</strong><br>
+                            • Valoración Media: <strong style="color:var(--role-color);">${p.grl || '92'} GRL</strong><br>
+                            • Sistema Activo: <strong style="color:white;">${currentPresetName}</strong>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        // Sobrescribir la descarga PDF para que capture en ALTA RESOLUCIÓN REAL (html2canvas -> jsPDF) exactamente lo que se ve en pantalla (Póster 11, Pizarra 3D idéntica al Analizador o la KINET Card Oficial)
+        window.downloadMatchdayGraphicPNG = async function () {
+            const statusEl = document.getElementById('broadcaster-status-msg');
+            if (statusEl) statusEl.textContent = '⏳ CAPTURANDO EN ALTA RESOLUCIÓN PARA PDF...';
+
+            try {
+                const target = document.getElementById('broadcaster-export-stage');
+                const canvas = await html2canvas(target, {
+                    scale: 2.6,
+                    backgroundColor: '#050811',
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false
+                });
+
+                const imgData = canvas.toDataURL('image/png');
+                const isPortraitPoster = activeBroadcasterFormat === 'poster';
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({
+                    orientation: isPortraitPoster ? 'portrait' : 'landscape',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+
+                const pageW = isPortraitPoster ? 210 : 297;
+                const pageH = isPortraitPoster ? 297 : 210;
+
+                pdf.setFillColor(5, 8, 15);
+                pdf.rect(0, 0, pageW, pageH, 'F');
+
+                const margin = 10;
+                const maxW = pageW - margin * 2;
+                const maxH = pageH - margin * 2 - 8;
+
+                const imgRatio = canvas.width / canvas.height;
+                let renderW = maxW;
+                let renderH = renderW / imgRatio;
+
+                if (renderH > maxH) {
+                    renderH = maxH;
+                    renderW = renderH * imgRatio;
+                }
+
+                const offsetX = (pageW - renderW) / 2;
+                const offsetY = (pageH - 8 - renderH) / 2;
+
+                pdf.addImage(imgData, 'PNG', offsetX, offsetY, renderW, renderH);
+
+                pdf.setTextColor(148, 163, 184);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(7.5);
+                pdf.text('Exportacion visual de alta definicion generada por KINET Matchday & Share Suite™ • jkinetos.es', pageW / 2, pageH - 4, { align: 'center' });
+
+                const safeSp = activeArenaSport.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]/g, '_');
+                pdf.save(`KINET_Matchday_${activeBroadcasterFormat.toUpperCase()}_${safeSp}.pdf`);
+
+                if (statusEl) statusEl.textContent = '✓ DOCUMENTO PDF IDÉNTICO DESCARGADO';
+            } catch (err) {
+                console.error(err);
+                if (statusEl) statusEl.textContent = '⚠️ ERROR AL EXPORTAR DOCUMENTO';
+            }
+        };
     </script>
 </body>
 </html>
