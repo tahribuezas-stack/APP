@@ -2046,6 +2046,9 @@
             pdf.text('Certificado biomecánico oficial generado por KINET Vision Analytics™ • jkinetos.es', 14, 286);
             pdf.save(`Dossier_Vision_Analytics_${activeSportName}.pdf`);
         }
+     // =========================================================================
+        // MOTOR GLOBAL DE PERSONALIZACIÓN DE DESPACHO (COMPLETO Y CERRADO SIN ERRORES)
+        // =========================================================================
         (function initGlobalKinetPersonalization() {
             const styleTag = document.createElement('style');
             styleTag.innerHTML = `
@@ -2064,7 +2067,7 @@
                 }
                 body.rainbow-mode .btn-primary,
                 body.rainbow-mode .brand-logo-icon,
-                body.rainbow-mode .analyzer-tab-btn.active {
+                body.rainbow-mode .quota-fill {
                     background: linear-gradient(270deg, #ff0055, #ff9900, #ffee00, #00ff88, #00e5ff, #7700ff, #ff00aa, #ff0055) !important;
                     background-size: 400% 400% !important;
                     animation: kinetRainbowFlowBg 5s linear infinite !important;
@@ -2090,6 +2093,112 @@
                 const hex = '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('').toUpperCase();
                 return { r, g, b, hex };
             }
+
+            function forceUpdateTabFavicon(hexColor) {
+                const clean = (hexColor || '#00FF88').replace('#', '');
+                const svgHref = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%23${clean}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`;
+                document.querySelectorAll("link[rel*='icon']").forEach(el => el.remove());
+                const newFav = document.createElement('link');
+                newFav.id = 'dynamic-favicon';
+                newFav.rel = 'icon';
+                newFav.type = 'image/svg+xml';
+                newFav.href = svgHref;
+                document.head.appendChild(newFav);
+            }
+
+            function applyDespachoThemeSettings() {
+                // Ocultar siempre el botón de Config. Red Social si la cuenta ya está iniciada o sincronizada
+                const navSoc = document.getElementById('nav-config-social');
+                const drwSoc = document.getElementById('drawer-config-social');
+                if (navSoc) navSoc.style.setProperty('display', 'none', 'important');
+                if (drwSoc) drwSoc.style.setProperty('display', 'none', 'important');
+
+                // Asegurar que el sombreado del cursor (Spotlight) esté activo en todos los paneles y botones
+                document.querySelectorAll('.kinet-panel, .side-link, .wizard-option-card, .wizard-subblock-card').forEach(el => {
+                    if (el._spotBound) return;
+                    el._spotBound = true;
+                    el.addEventListener('mousemove', (e) => {
+                        const rect = el.getBoundingClientRect();
+                        el.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+                        el.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+                    });
+                });
+
+                const scanlinesOn = localStorage.getItem('kinet_scanlines') === 'true';
+                document.body.classList.toggle('scanlines-active', scanlinesOn);
+
+                const urlRole = new URLSearchParams(window.location.search).get('role');
+                const activeRole = normalizeRole(urlRole) || localStorage.getItem('kinet_active_role') || document.body.getAttribute('data-role') || 'athlete';
+                const roleHexMap = { athlete: '#00FF88', staff: '#F59E0B', scout: '#3B82F6' };
+                const defaultRoleHex = roleHexMap[activeRole] || '#00FF88';
+
+                let savedAccent = localStorage.getItem('kinet_custom_accent_override');
+                if (activeRole !== 'athlete' && savedAccent && savedAccent.toUpperCase() === '#00FF88') {
+                    savedAccent = null;
+                }
+
+                const rainbowOn = localStorage.getItem('kinet_rainbow_mode') === 'true';
+
+                if (rainbowOn) {
+                    document.body.classList.add('rainbow-mode');
+                    let hue = 0, lastFav = 0;
+                    function stepRainbow(ts) {
+                        if (localStorage.getItem('kinet_rainbow_mode') !== 'true') return;
+                        hue = (hue + 1.4) % 360;
+                        const c1 = hslToHexRgb(hue, 100, 54);
+                        const c2 = hslToHexRgb((hue + 60) % 360, 100, 48);
+                        document.body.style.setProperty('--role-color', c1.hex);
+                        document.body.style.setProperty('--role-rgb', `${c1.r}, ${c1.g}, ${c1.b}`);
+                        document.body.style.setProperty('--role-glow', `rgba(${c1.r}, ${c1.g}, ${c1.b}, 0.45)`);
+                        document.body.style.setProperty('--role-gradient', `linear-gradient(135deg, ${c1.hex} 0%, ${c2.hex} 100%)`);
+                        if (ts - lastFav > 500) { forceUpdateTabFavicon(c1.hex); lastFav = ts; }
+                        requestAnimationFrame(stepRainbow);
+                    }
+                    requestAnimationFrame(stepRainbow);
+                } else if (savedAccent) {
+                    document.body.classList.remove('rainbow-mode');
+                    const clean = savedAccent.replace('#', '');
+                    const num = parseInt(clean, 16);
+                    const r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
+                    document.body.style.setProperty('--role-color', savedAccent);
+                    document.body.style.setProperty('--role-rgb', `${r}, ${g}, ${b}`);
+                    document.body.style.setProperty('--role-glow', `rgba(${r}, ${g}, ${b}, 0.42)`);
+                    document.body.style.setProperty('--role-gradient', `linear-gradient(135deg, ${savedAccent} 0%, rgba(${r},${g},${b},0.75) 100%)`);
+                    forceUpdateTabFavicon(savedAccent);
+                } else {
+                    document.body.classList.remove('rainbow-mode');
+                    document.body.style.removeProperty('--role-color');
+                    document.body.style.removeProperty('--role-rgb');
+                    document.body.style.removeProperty('--role-glow');
+                    document.body.style.removeProperty('--role-gradient');
+                    forceUpdateTabFavicon(defaultRoleHex);
+                }
+
+                const savedBg = localStorage.getItem('kinet_bg_intensity');
+                const bgMap = { deep: '#020305', contrast: '#0B1222', emerald: '#04120E', crimson: '#120509', standard: '#06080E' };
+                if (savedBg && bgMap[savedBg]) document.documentElement.style.setProperty('--bg-void', bgMap[savedBg]);
+
+                const savedPanelStyle = localStorage.getItem('kinet_panel_style');
+                if (savedPanelStyle === 'carbon') {
+                    document.documentElement.style.setProperty('--bg-panel', 'rgba(8, 10, 15, 0.98)');
+                    document.documentElement.style.setProperty('--border-subtle', 'rgba(255, 255, 255, 0.14)');
+                } else if (savedPanelStyle === 'neon-border') {
+                    document.documentElement.style.setProperty('--bg-panel', 'rgba(10, 14, 22, 0.92)');
+                    document.documentElement.style.setProperty('--border-subtle', 'rgba(var(--role-rgb), 0.38)');
+                }
+
+                const savedRadius = localStorage.getItem('kinet_corner_radius');
+                if (savedRadius) {
+                    document.querySelectorAll('.kinet-panel').forEach(p => p.style.borderRadius = savedRadius);
+                }
+            }
+
+            window.addEventListener('DOMContentLoaded', applyDespachoThemeSettings);
+            window.addEventListener('kinet:cloud-synced', () => {
+                applyDespachoThemeSettings();
+                refreshVideoQuotaUI();
+            });
+        })();
     </script>
 </body>
 </html>
