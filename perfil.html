@@ -1689,6 +1689,154 @@
             window.addEventListener('DOMContentLoaded', applyDespachoThemeSettings);
             window.addEventListener('kinet:cloud-synced', applyDespachoThemeSettings);
         })();
+        // =========================================================================
+        // PUENTE AUTOMÁTICO DE DATOS DE ONBOARDING -> PERFIL.HTML (RESCATA TODOS LOS CAMPOS RECOGIDOS)
+        // =========================================================================
+        function hydrateProfileFromOnboardingKeys() {
+            let obData = {};
+            try {
+                obData = JSON.parse(localStorage.getItem('kinet_onboarding_data') || localStorage.getItem('kinet_athlete_data') || '{}');
+            } catch (e) {}
+
+            let profDb = {};
+            try {
+                const allDb = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
+                profDb = allDb[activeRoleKey] || allDb['athlete'] || {};
+            } catch (e) {}
+
+            const pickFirst = (...vals) => {
+                for (const v of vals) {
+                    if (v !== undefined && v !== null && String(v).trim() !== '' && String(v) !== 'null' && String(v) !== 'undefined') {
+                        return String(v).trim();
+                    }
+                }
+                return '';
+            };
+
+            // 1. Altura y Peso (combina kinet_height + kinet_weight si estaban separados en el onboarding)
+            if (!localStorage.getItem('kinet_user_anthropometry')) {
+                const rawH = pickFirst(localStorage.getItem('kinet_height'), localStorage.getItem('height'), obData.height, profDb.height);
+                const rawW = pickFirst(localStorage.getItem('kinet_weight'), localStorage.getItem('weight'), obData.weight, profDb.weight);
+                const combinedAnthro = pickFirst(
+                    localStorage.getItem('kinet_anthropometry'),
+                    profDb.anthropometry,
+                    (rawH && rawW) ? `${rawH.replace(/cm/i, '').trim()} cm • ${rawW.replace(/kg/i, '').trim()} kg` : (rawH ? `${rawH} cm` : (rawW ? `${rawW} kg` : ''))
+                );
+                if (combinedAnthro) localStorage.setItem('kinet_user_anthropometry', combinedAnthro);
+            }
+
+            // 2. Pierna hábil / Mano dominante / Guardia / Especialidad
+            if (!localStorage.getItem('kinet_user_laterality')) {
+                const lat = pickFirst(
+                    localStorage.getItem('kinet_laterality'),
+                    localStorage.getItem('kinet_foot'),
+                    localStorage.getItem('kinet_dominant_hand'),
+                    localStorage.getItem('kinet_stance'),
+                    localStorage.getItem('foot'),
+                    obData.foot,
+                    obData.laterality,
+                    obData.stance,
+                    profDb.laterality,
+                    profDb.foot
+                );
+                if (lat) localStorage.setItem('kinet_user_laterality', lat);
+            }
+
+            // 3. Categoría / División / Nivel competitivo
+            if (!localStorage.getItem('kinet_user_category')) {
+                const cat = pickFirst(
+                    localStorage.getItem('kinet_category'),
+                    localStorage.getItem('kinet_division'),
+                    localStorage.getItem('kinet_level'),
+                    localStorage.getItem('kinet_league'),
+                    obData.category,
+                    obData.division,
+                    obData.level,
+                    profDb.category,
+                    profDb.level
+                );
+                if (cat) localStorage.setItem('kinet_user_category', cat);
+            }
+
+            // 4. Demarcación / Posición real del campo del onboarding (sustituye "PRO" genérico si hay posición guardada)
+            const currentPos = localStorage.getItem('kinet_position') || '';
+            if (!currentPos || currentPos === 'PRO') {
+                const onboardingPos = pickFirst(
+                    localStorage.getItem('kinet_primary_pos'),
+                    localStorage.getItem('kinet_pos'),
+                    localStorage.getItem('position'),
+                    obData.position,
+                    obData.primaryPos,
+                    profDb.position
+                );
+                if (onboardingPos) localStorage.setItem('kinet_position', onboardingPos);
+            }
+
+            // 5. Ciudad Actual y Ciudad Natal
+            if (!localStorage.getItem('kinet_user_city')) {
+                const city = pickFirst(
+                    localStorage.getItem('kinet_city'),
+                    localStorage.getItem('kinet_location'),
+                    obData.city,
+                    obData.location,
+                    profDb.city
+                );
+                if (city) localStorage.setItem('kinet_user_city', city);
+            }
+            if (!localStorage.getItem('kinet_user_hometown')) {
+                const hometown = pickFirst(
+                    localStorage.getItem('kinet_hometown'),
+                    localStorage.getItem('kinet_birthplace'),
+                    obData.hometown,
+                    profDb.hometown
+                );
+                if (hometown) localStorage.setItem('kinet_user_hometown', hometown);
+            }
+
+            // 6. Fecha de nacimiento o Edad recogida en el onboarding
+            if (!localStorage.getItem('kinet_user_birthdate')) {
+                const bdate = pickFirst(
+                    localStorage.getItem('kinet_birthdate'),
+                    localStorage.getItem('kinet_dob'),
+                    obData.birthdate,
+                    obData.dob,
+                    profDb.birthdate
+                );
+                if (bdate) {
+                    localStorage.setItem('kinet_user_birthdate', bdate);
+                } else {
+                    const savedAge = parseInt(pickFirst(localStorage.getItem('kinet_age'), obData.age, profDb.age), 10);
+                    if (savedAge && savedAge >= 6 && savedAge <= 80) {
+                        const approxYear = new Date().getFullYear() - savedAge;
+                        localStorage.setItem('kinet_user_birthdate', `${approxYear}-01-01`);
+                    }
+                }
+            }
+
+            // 7. Club / Organización y Enlaces
+            if (!localStorage.getItem('kinet_user_club')) {
+                const club = pickFirst(localStorage.getItem('kinet_club'), localStorage.getItem('club'), obData.club, profDb.club);
+                if (club) localStorage.setItem('kinet_user_club', club);
+            }
+            if (!localStorage.getItem('kinet_user_transfermarkt')) {
+                const tm = pickFirst(localStorage.getItem('kinet_transfermarkt'), obData.transfermarktUrl, profDb.transfermarktUrl);
+                if (tm) localStorage.setItem('kinet_user_transfermarkt', tm);
+            }
+            if (!localStorage.getItem('kinet_user_videolink')) {
+                const vl = pickFirst(localStorage.getItem('kinet_videolink'), localStorage.getItem('kinet_video_url'), obData.videoUrl, profDb.videoUrl);
+                if (vl) localStorage.setItem('kinet_user_videolink', vl);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            hydrateProfileFromOnboardingKeys();
+            loadProfileFields();
+        });
+
+        window.addEventListener('kinet:cloud-synced', () => {
+            hydrateProfileFromOnboardingKeys();
+            loadProfileFields();
+        });
     </script>
 </body>
 </html>
