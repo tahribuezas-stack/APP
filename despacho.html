@@ -2305,28 +2305,43 @@
                 document.getElementById('legal-modal').classList.remove('open');
             }
         }
+      // =========================================================================
+        // ACTUALIZACIÓN DE PRECIOS EN NODOS DE TEXTO REALES (SOPORTA SPANS HIJOS "/ pago único" Y "/mes")
         // =========================================================================
-        // ACTUALIZACIÓN DE PRECIOS AL 30% DE MARGEN REAL + ENFOQUE AUTOMÁTICO DESDE LABORATORIO
-        // =========================================================================
-        window.addEventListener('DOMContentLoaded', () => {
-            // 1. Actualizar precios de los 3 Bonos Pay-As-You-Go (4,99€ -> 1,99€ | 9,99€ -> 3,99€ | 19,99€ -> 7,99€) y Suscripciones (8,99€ -> 4,99€ | 24,99€ -> 11,99€)
-            document.querySelectorAll('.kinet-panel, .tier-card, div, span, strong, h2, h3, button').forEach(el => {
-                if (el.children.length === 0 && el.textContent) {
-                    const txt = el.textContent.trim();
-                    if (txt === '4,99€' || txt === '4,99 €') el.textContent = '1,99€';
-                    else if (txt === '9,99€' || txt === '9,99 €') el.textContent = '3,99€';
-                    else if (txt === '19,99€' || txt === '19,99 €') el.textContent = '7,99€';
-                    else if (txt === '8,99€' || txt === '8,99€/mes' || txt === '8,99 €') el.textContent = txt.includes('/mes') ? '4,99€/mes' : '4,99€';
-                    else if (txt === '24,99€' || txt === '24,99€/mes' || txt === '24,99 €') el.textContent = txt.includes('/mes') ? '11,99€/mes' : '11,99€';
+        function applyKinet30PercentMarginPrices() {
+            const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+            const textNodes = [];
+            let currentNode;
+            while ((currentNode = walker.nextNode())) {
+                textNodes.push(currentNode);
+            }
+
+            textNodes.forEach(node => {
+                if (!node.nodeValue) return;
+                let val = node.nodeValue;
+                if (val.includes('4,99') || val.includes('9,99') || val.includes('19,99') || val.includes('8,99') || val.includes('24,99')) {
+                    // Evitar que "19,99" se reemplace parcialmente por la regla de "9,99" evaluando primero los números de 2 cifras
+                    val = val
+                        .replace(/24,99\s*€/g, '11,99€')
+                        .replace(/19,99\s*€/g, '7,99€')
+                        .replace(/9,99\s*€/g, '3,99€')
+                        .replace(/8,99\s*€/g, '4,99€')
+                        .replace(/4,99\s*€/g, '1,99€');
+                    node.nodeValue = val;
                 }
             });
+        }
 
-            // 2. Si el usuario viene desde Laboratorio ("➕ Bono Minutos Extra") o con ?tab=subscription, hacer scroll suave y resaltar la sección
+        window.addEventListener('DOMContentLoaded', () => {
+            applyKinet30PercentMarginPrices();
+            setTimeout(applyKinet30PercentMarginPrices, 250);
+
+            // Si viene desde Laboratorio ("➕ Bono Minutos Extra") o con ?tab=subscription, enfocar e iluminar la sección
             const params = new URLSearchParams(window.location.search);
             if (params.get('tab') === 'subscription' || window.location.hash === '#payg-bonuses-section') {
                 setTimeout(() => {
                     const targetPanel = Array.from(document.querySelectorAll('.kinet-panel')).find(
-                        p => p.textContent.includes('PAY-AS-YOU-GO') || p.textContent.includes('SUSCRIPCIÓN') || p.textContent.includes('BONOS ECONÓMICOS')
+                        p => p.textContent.includes('PAY-AS-YOU-GO') || p.textContent.includes('BONOS ECONÓMICOS')
                     );
                     if (targetPanel) {
                         targetPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -2340,6 +2355,8 @@
                 }, 220);
             }
         });
+
+        window.addEventListener('kinet:cloud-synced', applyKinet30PercentMarginPrices);
     </script>
 </body>
 </html>
