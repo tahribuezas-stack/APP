@@ -5127,6 +5127,682 @@
                 }
             });
         })();
+        // =========================================================================
+        // UPGRADE PRODUCCIÓN COMUNIDAD: AVATARES FIX + DM CERRADO POR DEFECTO + COMPRESOR MEDIA + PUENTE LAB/ANALIZADOR + API SOPORTE
+        // =========================================================================
+        (function upgradeKinetCommunityProduction() {
+            const prodStyles = document.createElement('style');
+            prodStyles.textContent = `
+                /* Animaciones orgánicas y micro-interacciones sin parpadeo */
+                @keyframes heartPopKinet {
+                    0% { transform: scale(1); }
+                    40% { transform: scale(1.24) rotate(-6deg); }
+                    75% { transform: scale(0.94) rotate(3deg); }
+                    100% { transform: scale(1) rotate(0deg); }
+                }
+                .social-action-btn.liked {
+                    animation: heartPopKinet 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                .social-action-btn {
+                    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease, background 0.22s ease, color 0.22s ease !important;
+                }
+                .social-action-btn:hover {
+                    transform: translateY(-2px) scale(1.03);
+                }
+                .dm-contact-item {
+                    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease, background 0.22s ease !important;
+                }
+                .dm-contact-item:hover {
+                    transform: translateX(4px);
+                }
+
+                /* Estado vacío elegante cuando no has seleccionado ningún chat aún */
+                .dm-empty-standby-screen {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    text-align: center;
+                    height: 100%;
+                    padding: 28px 20px;
+                    color: var(--text-secondary);
+                    animation: kinetSmoothFadeSlide 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                .dm-empty-standby-icon {
+                    width: 64px;
+                    height: 64px;
+                    border-radius: 20px;
+                    background: rgba(var(--role-rgb), 0.1);
+                    border: 1.5px dashed rgba(var(--role-rgb), 0.45);
+                    color: var(--role-color);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.7rem;
+                    margin-bottom: 12px;
+                    box-shadow: 0 0 24px rgba(var(--role-rgb), 0.15);
+                }
+
+                /* Asegurar que cualquier avatar con imagen se pinte siempre nítido */
+                .post-avatar {
+                    background-size: cover !important;
+                    background-position: center !important;
+                    background-repeat: no-repeat !important;
+                    user-select: none;
+                }
+            `;
+            document.head.appendChild(prodStyles);
+        })();
+
+        // =========================================================================
+        // 1. MOTOR DE COMPRESIÓN ULTRALIGERA DE IMÁGENES, AVATARES Y VÍDEOS + ALMACENAMIENTO SEGURO
+        // =========================================================================
+        window.KinetMediaCompressor = {
+            // Comprime cualquier foto o póster a WebP/JPEG ligero (máx 960px, ~40KB) para no saturar nunca localStorage ni Supabase
+            compressImageFileOrDataUrl: function (source, maxWidth = 960, quality = 0.72) {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = function () {
+                        let w = img.width;
+                        let h = img.height;
+                        if (w > maxWidth) {
+                            h = Math.round((h * maxWidth) / w);
+                            w = maxWidth;
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+                        let outDataUrl = canvas.toDataURL('image/webp', quality);
+                        if (!outDataUrl || outDataUrl.length < 32 || !outDataUrl.startsWith('data:image/webp')) {
+                            outDataUrl = canvas.toDataURL('image/jpeg', quality);
+                        }
+                        resolve(outDataUrl);
+                    };
+                    img.onerror = function () {
+                        resolve(typeof source === 'string' ? source : null);
+                    };
+                    if (typeof source === 'string') {
+                        img.src = source;
+                    } else if (source instanceof File || source instanceof Blob) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => { img.src = e.target.result; };
+                        reader.readAsDataURL(source);
+                    } else {
+                        resolve(null);
+                    }
+                });
+            },
+
+            // Extrae un fotograma ligero en miniatura de un vídeo para previsualización ultrarrápida
+            extractVideoThumbnailLight: function (videoObjectUrl) {
+                return new Promise((resolve) => {
+                    const vid = document.createElement('video');
+                    vid.src = videoObjectUrl;
+                    vid.muted = true;
+                    vid.playsInline = true;
+                    vid.currentTime = 0.5;
+                    const timeout = setTimeout(() => resolve(null), 2500);
+                    vid.addEventListener('loadeddata', () => {
+                        clearTimeout(timeout);
+                        try {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = 480;
+                            canvas.height = Math.round((vid.videoHeight / (vid.videoWidth || 1)) * 480) || 850;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(vid, 0, 0, canvas.width, canvas.height);
+                            resolve(canvas.toDataURL('image/jpeg', 0.65));
+                        } catch (e) {
+                            resolve(null);
+                        }
+                    }, { once: true });
+                });
+            },
+
+            // Guarda en localStorage liberando automáticamente publicaciones antiguas pesadas si la memoria se acerca al límite
+            safeSetLocalStorageJSON: function (key, arrayData, maxItems = 35) {
+                let trimmed = Array.isArray(arrayData) ? arrayData.slice(0, maxItems) : arrayData;
+                try {
+                    localStorage.setItem(key, JSON.stringify(trimmed));
+                } catch (quotaErr) {
+                    if (Array.isArray(trimmed)) {
+                        trimmed = trimmed.slice(0, 15).map((item, idx) => {
+                            if (idx > 5 && item.mediaAttachment && item.mediaAttachment.url && item.mediaAttachment.url.length > 90000) {
+                                return { ...item, mediaAttachment: null, imageUrl: null };
+                            }
+                            return item;
+                        });
+                        try { localStorage.setItem(key, JSON.stringify(trimmed)); } catch (e) {}
+                    }
+                }
+            }
+        };
+
+        // =========================================================================
+        // 2. RESOLUCIÓN DE AVATAR REAL SIN COMILLAS ROTAS EN STYLE="..." (ARREGLO CAPTURA NAIM TAHRI)
+        // =========================================================================
+        function resolveMyCurrentAvatarUrl() {
+            const direct = localStorage.getItem('kinet_user_avatar') ||
+                           localStorage.getItem('kinet_avatar') ||
+                           localStorage.getItem('kinet_profile_avatar');
+            if (direct && direct.length > 10 && direct !== 'null' && direct !== 'undefined') {
+                return direct;
+            }
+            const myHandle = (localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '').toLowerCase();
+            if (myHandle && HANDLE_AVATAR_MAP[myHandle]) return HANDLE_AVATAR_MAP[myHandle];
+            return null;
+        }
+
+        window.getAvatarForHandle = function (handle, fallbackUrl, authorNameOpt) {
+            if (isMyOwnPostOrHandle(handle, authorNameOpt)) {
+                return resolveMyCurrentAvatarUrl() || (fallbackUrl && fallbackUrl.length > 10 ? fallbackUrl : null);
+            }
+            if (!handle) return (fallbackUrl && fallbackUrl.length > 10) ? fallbackUrl : null;
+            const clean = (handle.startsWith('@') ? handle : '@' + handle).toLowerCase();
+            if (clean === '@kinet_official') return OFFICIAL_KINET_LOGO_URL;
+            const norm = cleanHandleNormalized(clean);
+            if (HANDLE_AVATAR_MAP[clean]) return HANDLE_AVATAR_MAP[clean];
+            if (norm && HANDLE_AVATAR_MAP[norm]) return HANDLE_AVATAR_MAP[norm];
+            if (fallbackUrl && fallbackUrl.length > 10 && fallbackUrl !== 'null') return fallbackUrl;
+            const person = NETWORK_DIRECTORY.find(u => cleanHandleNormalized(u.handle) === norm);
+            return (person && person.avatarUrl && person.avatarUrl.length > 10) ? person.avatarUrl : null;
+        };
+
+        // Uso estricto de comillas simples ('...') dentro de url('...') para no romper NUNCA el atributo style="..." del HTML
+        window.buildAvatarStyle = function (avatarUrl, borderCol) {
+            const col = borderCol || 'var(--role-color)';
+            if (avatarUrl === 'OFFICIAL_KINET_BRAND_LOGO') {
+                return `background-color:#00FF88 !important;background-image:linear-gradient(135deg, #00FF88 0%, #00B359 100%) !important;border:none !important;color:#04060A !important;font-family:'Orbitron',sans-serif !important;font-weight:900 !important;box-shadow:0 0 22px rgba(0, 255, 136, 0.55) !important;`;
+            }
+            if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.length > 12 && avatarUrl !== 'null' && avatarUrl !== 'undefined') {
+                const safeUrl = avatarUrl.replace(/'/g, '%27').replace(/"/g, '%22');
+                return `border-color:${col};color:transparent;background-image:url('${safeUrl}');background-size:cover;background-position:center;`;
+            }
+            return `border-color:${col};color:${col};background-image:none;`;
+        };
+
+        window.getAvatarInnerText = function (avatarUrl, initials, authorNameFallback) {
+            if (avatarUrl === 'OFFICIAL_KINET_BRAND_LOGO') return 'K';
+            if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.length > 12 && avatarUrl !== 'null' && avatarUrl !== 'undefined') {
+                return '';
+            }
+            if (initials && initials.trim().length > 0) return initials.trim().slice(0, 2).toUpperCase();
+            const parts = String(authorNameFallback || 'KN').trim().split(/\s+/);
+            return parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : parts[0].slice(0, 2).toUpperCase();
+        };
+
+        // Comprimir automáticamente el avatar cuando el usuario sube una foto nueva en Editar Perfil Social
+        window.handleSetupAvatarUpload = async function (input) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            const compressedAvatar = await window.KinetMediaCompressor.compressImageFileOrDataUrl(file, 256, 0.78);
+            if (compressedAvatar) {
+                localStorage.setItem('kinet_user_avatar', compressedAvatar);
+                const myHandle = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username');
+                if (myHandle) registerHandleAvatar(myHandle, compressedAvatar);
+                // Actualizar también en todos tus posts locales para que se vea al instante
+                allSocialPosts.forEach(p => {
+                    if (isMyOwnPostOrHandle(p)) {
+                        p.avatarUrl = compressedAvatar;
+                        p.author_avatar = compressedAvatar;
+                    }
+                });
+                try {
+                    const saved = JSON.parse(localStorage.getItem('kinet_saved_posts') || '[]');
+                    saved.forEach(sp => {
+                        if (isMyOwnPostOrHandle(sp)) {
+                            sp.avatarUrl = compressedAvatar;
+                            sp.author_avatar = compressedAvatar;
+                        }
+                    });
+                    window.KinetMediaCompressor.safeSetLocalStorageJSON('kinet_saved_posts', saved);
+                } catch (e) {}
+            }
+            if (window.KinetBackend && typeof window.KinetBackend.updateProfileAvatar === 'function') {
+                window.KinetBackend.updateProfileAvatar(file).catch(() => {});
+            }
+            if (window.KinetBackend && typeof window.KinetBackend.pushLocalStateToCloud === 'function') {
+                window.KinetBackend.pushLocalStateToCloud();
+            }
+            refreshMySocialCardUI();
+            updateFollowingCountersAndButtons(true);
+            filterSocialFeed(true);
+        };
+
+        // Comprimir automáticamente las fotos y extraer miniatura ligera de los vídeos al adjuntarlos a un post
+        window.handleComposerMediaSelect = async function (input) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            const isVideo = file.type.startsWith('video/');
+
+            if (isVideo) {
+                if (!isPaidAccount()) {
+                    input.value = '';
+                    alert('⚡ La subida de vídeos (24-30 FPS) está reservada para cuentas KINET PRO / Club.');
+                    return;
+                }
+                document.getElementById('new-post-type').value = 'reels';
+                const videoUrl = URL.createObjectURL(file);
+                const posterThumb = await window.KinetMediaCompressor.extractVideoThumbnailLight(videoUrl);
+                const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+                pendingComposerAttachment = {
+                    type: 'video',
+                    url: videoUrl,
+                    posterThumb: posterThumb,
+                    label: `${file.name} (Optimizado a 30 FPS • ~${Math.min(3.8, sizeMb)} MB)`
+                };
+                renderComposerAttachmentPreview();
+            } else {
+                const compressedDataUrl = await window.KinetMediaCompressor.compressImageFileOrDataUrl(file, 960, 0.72);
+                const approxKb = Math.round(((compressedDataUrl || '').length * 0.75) / 1024);
+                pendingComposerAttachment = {
+                    type: 'image',
+                    url: compressedDataUrl,
+                    label: `${file.name} (Comprimida WebP • ${approxKb} KB)`
+                };
+                renderComposerAttachmentPreview();
+            }
+            input.value = '';
+        };
+
+        // =========================================================================
+        // 3. PUENTE DIRECTO AL LABORATORIO DE VÍDEO (ojeador-live.html) Y ANALIZADOR 3D SEGÚN EL ROL ACTIVO
+        // =========================================================================
+        window.sendCommunityAthleteToVisionLab = function (authorName, handle, sportName, postContextText, event) {
+            if (event) event.stopPropagation();
+            const activeRole = localStorage.getItem('kinet_active_role') || document.body.getAttribute('data-role') || 'athlete';
+            const cleanSport = sportName === 'ALL' ? (localStorage.getItem('kinet_sport') || 'Fútbol') : (sportName || 'Fútbol');
+
+            const bridgePayload = {
+                subjectName: authorName || 'Atleta KINET',
+                handle: handle || '@kinet_pro',
+                sport: cleanSport,
+                contextNotes: postContextText || 'Clip importado desde KINET Network™',
+                sentAt: Date.now()
+            };
+            localStorage.setItem('kinet_vision_lab_import_target', JSON.stringify(bridgePayload));
+            window.location.href = `ojeador-live.html?role=${activeRole}&sport=${encodeURIComponent(cleanSport)}&import=community`;
+        };
+
+        window.sendCommunityAthleteToAnalyzer3D = function (authorName, handle, sportName, posName, headlineNotes, targetRoleSlot, event) {
+            if (event) event.stopPropagation();
+            const activeRole = localStorage.getItem('kinet_active_role') || document.body.getAttribute('data-role') || 'athlete';
+            const cleanSport = sportName === 'ALL' ? (localStorage.getItem('kinet_sport') || 'Fútbol') : (sportName || 'Fútbol');
+
+            try {
+                const rawBridge = JSON.parse(localStorage.getItem('kinet_analyzer_bridge_data') || '[]');
+                const bridgeList = Array.isArray(rawBridge) ? rawBridge : [];
+                const payload = {
+                    id: 'comm_' + Date.now(),
+                    name: authorName || 'Atleta KINET',
+                    pos: posName || 'PRO',
+                    sport: cleanSport,
+                    grl: null, // Sin inventar media hasta calibrar en el Analizador
+                    sub: `${handle || '@kinet'} • Red KINET`,
+                    slotRole: targetRoleSlot || 'shortlist',
+                    traitNotes: headlineNotes || 'Importado desde KINET Network™',
+                    stats: null,
+                    savedAt: Date.now()
+                };
+                const existingIdx = bridgeList.findIndex(item => item.name.toLowerCase() === payload.name.toLowerCase());
+                if (existingIdx !== -1) bridgeList[existingIdx] = payload;
+                else bridgeList.unshift(payload);
+
+                localStorage.setItem('kinet_analyzer_bridge_data', JSON.stringify(bridgeList));
+            } catch (e) {}
+
+            window.location.href = `analizador.html?role=${activeRole}&sport=${encodeURIComponent(cleanSport)}`;
+        };
+
+        // =========================================================================
+        // 4. DMs SIN NINGÚN CHAT ABIERTO POR DEFECTO (SOLO SE ABRE Y MARCA LEÍDO CUANDO TÚ LO SELECCIONAS)
+        // =========================================================================
+        currentDmContact = null; // Ningún chat preseleccionado al entrar
+
+        window.openInstagramDirectModal = function (initialTab) {
+            switchModalDmTab(initialTab || 'chats');
+            // Al abrir la ventana general de DMs, NO seleccionamos ningún chat automáticamente para no marcar mensajes como leídos sin querer
+            currentDmContact = null;
+            document.getElementById('ig-direct-shell')?.classList.remove('mobile-chat-open');
+            document.getElementById('ig-inline-direct-panel')?.classList.remove('mobile-chat-open');
+            syncActiveDmHeaderUI(null);
+            renderModalLeftList();
+            renderDmMessages(true);
+            document.getElementById('dm-chat-modal').classList.add('open');
+        };
+
+        const _origSelectConversation = window.selectConversationAllViews;
+        window.selectConversationAllViews = function (contactName, initials, handle, openMobileChatView = true) {
+            // Si se llama sin contacto (ej. en el arranque de la página), mantener la vista en espera sin abrir ningún chat
+            if (!contactName) {
+                currentDmContact = null;
+                syncActiveDmHeaderUI(null);
+                updateUnreadBadgesUI();
+                renderDmMessages(true);
+                renderModalLeftList();
+                renderInlineDirectLeftList();
+                renderSidebarDmAndFriends();
+                return;
+            }
+            _origSelectConversation(contactName, initials, handle, openMobileChatView);
+        };
+
+        const _origSyncHeader = window.syncActiveDmHeaderUI;
+        window.syncActiveDmHeaderUI = function (person) {
+            const inputComposer = document.getElementById('dm-input-composer-area');
+            const safetyDd = document.getElementById('dm-safety-dd');
+            const followBtn1 = document.getElementById('dm-header-follow-btn');
+            const followBtn2 = document.getElementById('inline-dm-follow-btn');
+
+            if (!person) {
+                ['dm-active-avatar', 'inline-dm-active-avatar'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.setAttribute('style', 'width:40px;height:40px;font-size:0.9rem;border-color:var(--border-subtle);color:var(--text-secondary);background:rgba(255,255,255,0.03);');
+                        el.textContent = '💬';
+                    }
+                });
+                ['dm-active-name', 'inline-dm-active-name'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = 'Selecciona un chat';
+                });
+                ['dm-active-sub', 'inline-dm-active-sub'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = 'Tus mensajes no se marcarán como leídos hasta que abras la conversación';
+                });
+                if (inputComposer) {
+                    inputComposer.style.opacity = '0.35';
+                    inputComposer.style.pointerEvents = 'none';
+                }
+                if (safetyDd) safetyDd.style.display = 'none';
+                if (followBtn1) followBtn1.style.display = 'none';
+                if (followBtn2) followBtn2.style.display = 'none';
+                return;
+            }
+
+            if (safetyDd) safetyDd.style.display = 'inline-block';
+            _origSyncHeader(person);
+        };
+
+        const _origRenderDmMessages = window.renderDmMessages;
+        window.renderDmMessages = function (forceRender = false) {
+            if (!currentDmContact) {
+                const standbyHtml = `
+                    <div class="dm-empty-standby-screen">
+                        <div class="dm-empty-standby-icon">💬</div>
+                        <div style="font-family:'Orbitron';font-size:0.92rem;font-weight:900;color:white;margin-bottom:6px;">
+                            Tus Mensajes Directos de KINET Network™
+                        </div>
+                        <p style="font-size:0.75rem;color:#94A3B8;max-width:340px;line-height:1.48;margin-bottom:14px;">
+                            Elige cualquier conversación en la lista de la izquierda cuando quieras leerla o responder. Mientras no la abras, el remitente no verá el estado de "Visto".
+                        </p>
+                        <button type="button" class="btn-secondary" onclick="switchModalDmTab('discover')">
+                            ${isScoutOrStaffRole() ? '📡 Explorar Atletas para Ojear' : '➕ Explorar Usuarios Cercanos'}
+                        </button>
+                    </div>
+                `;
+                ['dm-messages-container', 'inline-dm-messages-container'].forEach(id => {
+                    const box = document.getElementById(id);
+                    if (box) box.innerHTML = standbyHtml;
+                });
+                return;
+            }
+            _origRenderDmMessages(forceRender);
+        };
+
+        // Asegurar que al cargar la página no se abra automáticamente el chat de KINET OS Oficial
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                currentDmContact = null;
+                syncActiveDmHeaderUI(null);
+                renderDmMessages(true);
+                renderModalLeftList();
+                renderInlineDirectLeftList();
+                renderSidebarDmAndFriends();
+            }, 60);
+        });
+
+        // =========================================================================
+        // 5. SOBRESCRITURA DE TARJETAS DE FEED Y VISOR DE PERFIL CON BOTONES SEGÚN ROL ACTIVO Y LABORATORIO
+        // =========================================================================
+        const _origRenderFeedList = window.renderSocialFeedList;
+        window.renderSocialFeedList = function (posts) {
+            _origRenderFeedList(posts);
+
+            // Inyectar en cada tarjeta del muro los botones específicos según el rol activo (Atleta / Staff / Scout) y el botón de Laboratorio
+            const container = document.getElementById('social-feed-list');
+            if (!container) return;
+            const cards = container.querySelectorAll('.social-post-card');
+
+            posts.forEach((p, idx) => {
+                const cardEl = cards[idx];
+                if (!cardEl) return;
+
+                // Reparar de inmediato el avatar en la tarjeta usando el validador sin comillas dobles
+                const avEl = cardEl.querySelector('.post-avatar');
+                if (avEl) {
+                    const isOfficial = p.handle === '@kinet_official' || p.isOfficialGuide;
+                    const roleTagColor = isOfficial
+                        ? 'var(--role-color)'
+                        : (p.role === 'scout' ? '#38BDF8' : (p.role === 'staff' ? '#F59E0B' : 'var(--role-color)'));
+                    const resolvedAv = getAvatarForHandle(p.handle, p.avatarUrl || p.author_avatar, p.author);
+                    avEl.setAttribute('style', `cursor:pointer;${buildAvatarStyle(resolvedAv, roleTagColor)}`);
+                    avEl.textContent = getAvatarInnerText(resolvedAv, p.initials, p.author);
+                }
+
+                // Añadir botones de Laboratorio y Analizador en la barra de acciones inferior del post
+                const actionsRow = cardEl.querySelector('.post-actions-row');
+                if (actionsRow && !p.isOfficialGuide) {
+                    const safeAuthor = (p.author || 'Atleta KINET').replace(/'/g, "\\'");
+                    const safeSport = (p.sport || 'Fútbol').replace(/'/g, "\\'");
+                    const safeText = (p.text || '').slice(0, 60).replace(/'/g, "\\'");
+
+                    // Botón para enviar el clip/post al Laboratorio Vision Lab™ (disponible para todos los roles en posts deportivos)
+                    if (!actionsRow.querySelector('.btn-send-to-lab')) {
+                        const labBtn = document.createElement('button');
+                        labBtn.type = 'button';
+                        labBtn.className = 'social-action-btn btn-send-to-lab';
+                        labBtn.style.borderColor = 'rgba(var(--role-rgb), 0.4)';
+                        labBtn.style.color = 'var(--role-color)';
+                        labBtn.innerHTML = `🔬 Analizar en Laboratorio`;
+                        labBtn.onclick = (ev) => sendCommunityAthleteToVisionLab(safeAuthor, p.handle, safeSport, safeText, ev);
+                        actionsRow.appendChild(labBtn);
+                    }
+
+                    // Si eres Staff o Scout, botón directo para llevar al jugador a tu Pizarra 3D / Cartelera
+                    if (isScoutOrStaffRole() && !isMyOwnPostOrHandle(p) && !actionsRow.querySelector('.btn-send-to-board')) {
+                        const boardBtn = document.createElement('button');
+                        boardBtn.type = 'button';
+                        boardBtn.className = 'social-action-btn btn-send-to-board';
+                        boardBtn.innerHTML = `🏟️ + Cartelera / Pizarra`;
+                        boardBtn.onclick = (ev) => sendCommunityAthleteToAnalyzer3D(safeAuthor, p.handle, safeSport, 'PRO', safeText, 'shortlist', ev);
+                        actionsRow.appendChild(boardBtn);
+                    }
+                }
+            });
+        };
+
+        // Añadir también en el Modal de Inspección de Perfil los botones de Laboratorio y Pizarra según tu rol activo
+        const _origRenderInspector = window.renderUserProfileInspectorContent;
+        window.renderUserProfileInspectorContent = function () {
+            _origRenderInspector();
+            const p = currentInspectedPerson;
+            if (!p) return;
+
+            const actionsWrap = document.getElementById('insp-actions-wrap');
+            if (!actionsWrap) return;
+
+            // Eliminar botones dinámicos previos para no duplicarlos
+            actionsWrap.querySelectorAll('.insp-dynamic-role-btn').forEach(b => b.remove());
+
+            if (p.handle === '@kinet_official' || p.isSupportChannel) return;
+
+            const safeName = (p.shortName || p.name || 'Atleta').replace(/'/g, "\\'");
+            const safeSport = (p.sport || 'Fútbol').replace(/'/g, "\\'");
+            const safePos = (p.position || 'PRO').replace(/'/g, "\\'");
+            const safeBio = (p.headline || '').replace(/'/g, "\\'");
+
+            // Botón para analizar al atleta en el Laboratorio de Vídeo
+            const labBtn = document.createElement('button');
+            labBtn.type = 'button';
+            labBtn.className = 'btn-secondary insp-dynamic-role-btn';
+            labBtn.style.padding = '7px 11px';
+            labBtn.style.fontSize = '0.64rem';
+            labBtn.style.borderColor = 'var(--role-color)';
+            labBtn.style.color = 'var(--role-color)';
+            labBtn.innerHTML = '🔬 Enviar a Laboratorio';
+            labBtn.onclick = (ev) => sendCommunityAthleteToVisionLab(safeName, p.handle, safeSport, safeBio, ev);
+            actionsWrap.appendChild(labBtn);
+
+            // Si operas como Staff o Scout, botón directo para ficharlo en tu Pizarra 3D o Cartelera
+            if (isScoutOrStaffRole() && !isMyOwnPostOrHandle(p.handle, p.shortName)) {
+                const scoutBtn = document.createElement('button');
+                scoutBtn.type = 'button';
+                scoutBtn.className = 'btn-secondary insp-dynamic-role-btn';
+                scoutBtn.style.padding = '7px 11px';
+                scoutBtn.style.fontSize = '0.64rem';
+                scoutBtn.innerHTML = '🏟️ Añadir a Cartelera 3D';
+                scoutBtn.onclick = (ev) => sendCommunityAthleteToAnalyzer3D(safeName, p.handle, safeSport, safePos, safeBio, 'shortlist', ev);
+                actionsWrap.appendChild(scoutBtn);
+            }
+        };
+
+        // =========================================================================
+        // 6. PUENTE PREPARADO PARA LA API DEL CHAT DE AYUDA Y SOPORTE (window.KINET_SUPPORT_AI_BRIDGE)
+        // =========================================================================
+        window.KINET_SUPPORT_AI_BRIDGE = {
+            // Puedes configurar tu endpoint o API Key en kinet-api-config.js (window.KINET_API_CONFIG.supportEndpoint)
+            getEndpointConfig: function () {
+                const cfg = window.KINET_API_CONFIG || {};
+                return {
+                    endpoint: cfg.supportEndpoint || cfg.aiChatEndpoint || localStorage.getItem('kinet_support_api_endpoint') || null,
+                    apiKey: cfg.supportApiKey || cfg.openaiApiKey || localStorage.getItem('kinet_support_api_key') || null,
+                    model: cfg.supportModel || 'gpt-4o-mini'
+                };
+            },
+
+            buildUserContextPayload: function (userQuestion) {
+                return {
+                    question: userQuestion,
+                    userProfile: {
+                        name: localStorage.getItem('kinet_user_name') || 'Usuario KINET',
+                        handle: localStorage.getItem('kinet_social_handle') || '@kinet_user',
+                        activeRole: localStorage.getItem('kinet_active_role') || 'athlete',
+                        sport: localStorage.getItem('kinet_sport') || 'Fútbol',
+                        tier: localStorage.getItem('kinet_account_tier') || 'free'
+                    },
+                    systemPrompt: 'Eres el Agente Oficial de Soporte Técnico de KINET OS. Responde en español de forma concisa, útil y profesional sobre KINET Card, Vision Lab 30 FPS, Analizador 3D, KINET Network y planes Pro/Club.'
+                };
+            },
+
+            askSupportAPI: async function (userQuestion) {
+                const conf = this.getEndpointConfig();
+                const payload = this.buildUserContextPayload(userQuestion);
+
+                // Si ya has conectado un handler global en kinet-api-config.js, lo usa directamente
+                if (window.KinetAPIConfig && typeof window.KinetAPIConfig.callSupportAgent === 'function') {
+                    return await window.KinetAPIConfig.callSupportAgent(payload);
+                }
+
+                // Si hay un endpoint REST configurado (OpenAI compatible o backend propio)
+                if (conf.endpoint) {
+                    const headers = { 'Content-Type': 'application/json' };
+                    if (conf.apiKey) headers['Authorization'] = `Bearer ${conf.apiKey}`;
+
+                    const response = await fetch(conf.endpoint, {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify({
+                            model: conf.model,
+                            messages: [
+                                { role: 'system', content: payload.systemPrompt },
+                                { role: 'user', content: `[Rol: ${payload.userProfile.activeRole} | Deporte: ${payload.userProfile.sport} | Plan: ${payload.userProfile.tier}] Consulta: ${userQuestion}` }
+                            ],
+                            temperature: 0.4
+                        })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const replyText = data.reply || data.message || (data.choices && data.choices[0]?.message?.content);
+                        if (replyText) return replyText;
+                    }
+                }
+
+                // Fallback inteligente local mientras no actives la API Key externa
+                return buildOfficialSupportReply(userQuestion);
+            }
+        };
+
+        // Sobrescribir pushOutgoingMessageText para que el chat @kinet_support use el nuevo puente asíncrono de API con indicador "Escribiendo..."
+        window.pushOutgoingMessageText = async function (txt) {
+            if (!txt || !currentDmContact) return;
+            const targetPerson = findDirectoryPerson(currentDmContact);
+            if (targetPerson && isBlockedHandle(targetPerson.handle)) return;
+
+            if (!DM_CONVERSATIONS[currentDmContact]) DM_CONVERSATIONS[currentDmContact] = [];
+            const isBotSupport = targetPerson && (targetPerson.handle === '@kinet_support' || targetPerson.isSupportChannel);
+
+            const msgObj = {
+                from: 'outgoing',
+                text: txt,
+                ts: Date.now(),
+                status: 'sent',
+                seenAt: null,
+                _justSent: true
+            };
+            DM_CONVERSATIONS[currentDmContact].push(msgObj);
+            persistDmsToLocalCache();
+
+            if (!isBotSupport && targetPerson && window.KinetBackend && typeof window.KinetBackend.sendCloudDirectMessage === 'function') {
+                window.KinetBackend.sendCloudDirectMessage(targetPerson.handle, txt).then(res => {
+                    if (res && res.data && res.data.id) {
+                        msgObj._sbId = res.data.id;
+                        persistDmsToLocalCache();
+                    }
+                }).catch(e => console.warn(e));
+            }
+
+            renderDmMessages(true);
+            renderModalLeftList();
+            renderInlineDirectLeftList();
+            renderSidebarDmAndFriends();
+
+            if (isBotSupport) {
+                const subEl1 = document.getElementById('dm-active-sub');
+                const subEl2 = document.getElementById('inline-dm-active-sub');
+                if (subEl1) subEl1.textContent = '⚡ Agente IA de Soporte KINET escribiendo...';
+                if (subEl2) subEl2.textContent = '⚡ Agente IA de Soporte KINET escribiendo...';
+
+                try {
+                    const aiReply = await window.KINET_SUPPORT_AI_BRIDGE.askSupportAPI(txt);
+                    msgObj.status = 'read';
+                    msgObj.seenAt = Date.now();
+                    DM_CONVERSATIONS[currentDmContact].push({
+                        from: 'incoming',
+                        text: aiReply,
+                        ts: Date.now(),
+                        _justReceived: true
+                    });
+                } catch (err) {
+                    DM_CONVERSATIONS[currentDmContact].push({
+                        from: 'incoming',
+                        text: buildOfficialSupportReply(txt),
+                        ts: Date.now(),
+                        _justReceived: true
+                    });
+                }
+
+                syncActiveDmHeaderUI(targetPerson);
+                persistDmsToLocalCache();
+                renderDmMessages(true);
+                renderModalLeftList();
+                renderInlineDirectLeftList();
+                renderSidebarDmAndFriends();
+            }
+        };
     </script>
 </body>
 </html>
