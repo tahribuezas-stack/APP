@@ -6,64 +6,20 @@
   </script>
   <script src="kinet-spotlight.js" defer></script>
   <link rel="stylesheet" href="kinet-motion.css">
-  <style>
-  :root {
-    --spotlight-color: rgba(59, 130, 246, 0.25) !important;
-  }
-
-  @media screen and (max-width: 768px) {
-    body {
-      align-items: flex-start !important;
-      padding: 8px !important;
-    }
-    .relative.w-full.max-w-4xl {
-      width: 100% !important;
-      max-width: 100% !important;
-      min-height: auto !important;
-      max-height: none !important;
-      border-radius: 20px !important;
-      padding: 16px !important;
-      margin-top: 10px;
-      margin-bottom: 10px;
-    }
-    .grid {
-      gap: 8px !important;
-    }
-    .glass-card {
-      padding: 12px !important;
-    }
-  }
-
-  @keyframes kinetSubtleBounce {
-    0% {
-      opacity: 0;
-      transform: translateY(12px) scale(0.98);
-    }
-    60% {
-      opacity: 1;
-      transform: translateY(-3px) scale(1.005);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-
-  .step-liquid-enter {
-    animation: kinetSubtleBounce 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-  }
-</style>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>KINET OS - Club & Scout Precision Onboarding</title>
   
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%233B82F6%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%23000%22>K</text></svg>">
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="kinet-backend.js"></script>
+  <script src="kinet-api-config.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
   <script>
     tailwind.config = {
@@ -80,12 +36,32 @@
           fontFamily: {
             sans: ['Inter', 'sans-serif'],
             display: ['Orbitron', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
           }
         }
       }
     }
   </script>
   <style>
+    :root { --spotlight-color: rgba(59, 130, 246, 0.25) !important; }
+    * { scrollbar-width: none !important; -ms-overflow-style: none !important; }
+    *::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; }
+    @media screen and (max-width: 768px) {
+      body { align-items: flex-start !important; padding: 8px !important; }
+      .relative.w-full.max-w-4xl {
+        width: 100% !important; max-width: 100% !important; min-height: auto !important;
+        max-height: none !important; border-radius: 20px !important; padding: 16px !important;
+        margin-top: 10px; margin-bottom: 10px;
+      }
+      .grid { gap: 8px !important; }
+      .glass-card { padding: 12px !important; }
+    }
+    @keyframes kinetSubtleBounce {
+      0% { opacity: 0; transform: translateY(12px) scale(0.98); }
+      60% { opacity: 1; transform: translateY(-3px) scale(1.005); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .step-liquid-enter { animation: kinetSubtleBounce 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
     .bg-cyber-pattern {
       background-color: #080A0C;
       background-image: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.12) 0%, transparent 60%);
@@ -106,42 +82,41 @@
       box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
       background: rgba(59, 130, 246, 0.04);
     }
-    .logo-glow {
-      transition: all 0.3s ease;
-    }
-    .logo-glow:hover {
-      filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.65));
-      transform: scale(1.02);
-    }
+    .logo-glow { transition: all 0.3s ease; }
+    .logo-glow:hover { filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.65)); transform: scale(1.02); }
     .scout-radar-bg {
-      background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(10, 14, 18, 0.95) 80%),
-                  linear-gradient(to bottom, #0d131a, #080a0c);
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(10, 14, 18, 0.95) 80%), linear-gradient(to bottom, #0d131a, #080a0c);
       border: 2px solid rgba(59, 130, 246, 0.4);
     }
     input[type=range] {
-      -webkit-appearance: none;
-      background: #181C22;
-      border-radius: 8px;
-      height: 6px;
-      border: 1px solid #262D37;
+      -webkit-appearance: none; background: #181C22; border-radius: 8px; height: 6px; border: 1px solid #262D37;
     }
     input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      height: 20px;
-      width: 20px;
-      border-radius: 50%;
-      background: #3B82F6;
-      box-shadow: 0 0 12px rgba(59, 130, 246, 0.8);
-      cursor: pointer;
+      -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%;
+      background: #3B82F6; box-shadow: 0 0 12px rgba(59, 130, 246, 0.8); cursor: pointer;
+    }
+    @keyframes scoutRevealPulse {
+      0%, 100% { box-shadow: 0 0 35px rgba(59, 130, 246, 0.38), inset 0 0 25px rgba(59, 130, 246, 0.15); }
+      50% { box-shadow: 0 0 65px rgba(59, 130, 246, 0.72), inset 0 0 35px rgba(59, 130, 246, 0.3); }
+    }
+    @keyframes scoutScanBeam {
+      0% { top: -10%; opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { top: 105%; opacity: 0; }
+    }
+    .scout-reveal-card { animation: scoutRevealPulse 2.4s infinite ease-in-out; position: relative; overflow: hidden; transition: opacity 0.25s ease, transform 0.25s ease; }
+    .scout-reveal-beam {
+      position: absolute; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, transparent, #3B82F6, #FFFFFF, #3B82F6, transparent);
+      box-shadow: 0 0 18px #3B82F6; animation: scoutScanBeam 1.8s infinite linear; pointer-events: none;
     }
   </style>
 </head>
 <body style="--spotlight-color: rgba(59, 130, 246, 0.25);" class="bg-cyber-pattern text-slate-100 font-sans min-h-screen flex items-center justify-center p-2 sm:p-4">
 
-  <!-- CONTENEDOR PRINCIPAL UNIFICADO -->
   <div class="relative w-full max-w-4xl h-auto max-h-[95vh] bg-[#0A0C0E] sm:rounded-[32px] border border-slate-800/80 shadow-[0_0_90px_rgba(0,0,0,0.95)] p-5 sm:p-8 flex flex-col justify-between space-y-6 overflow-y-auto">
     
-    <!-- HEADER BRANDING UNIFICADO & PASOS (1 / 6) -->
     <div class="flex justify-between items-center border-b border-slate-800/80 pb-4">
       <div class="flex items-center space-x-3 logo-glow cursor-pointer" onclick="window.location.href='fase1.html'">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 font-display font-black text-black text-lg flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.4)]">
@@ -160,7 +135,7 @@
       </div>
     </div>
 
-    <!-- ================= PASO 1: PERFIL DE SCOUTING ================= -->
+    <!-- PASO 1: PERFIL DE SCOUTING (LOS 4 ORIGINALES) -->
     <div id="step-1" class="space-y-6 my-auto step-liquid-enter">
       <div class="flex justify-between items-center">
         <div class="space-y-1">
@@ -220,7 +195,7 @@
       </button>
     </div>
 
-    <!-- ================= PASO 2: DEPORTE OBJETIVO ================= -->
+    <!-- PASO 2: DEPORTE OBJETIVO -->
     <div id="step-2" class="space-y-6 my-auto hidden">
       <div class="flex justify-between items-center">
         <div class="space-y-1">
@@ -265,7 +240,7 @@
       </button>
     </div>
 
-    <!-- ================= PASO 3: CATEGORÍA DE MERCADO UNIFICADA CON ATLETA PRO ================= -->
+    <!-- PASO 3: CATEGORÍA DE MERCADO (LAS 6 ORIGINALES EN FÚTBOL Y LAS PROPIAS EN CADA DEPORTE) -->
     <div id="step-3" class="space-y-6 my-auto hidden">
       <div class="flex justify-between items-center">
         <div class="space-y-1">
@@ -285,7 +260,7 @@
       </button>
     </div>
 
-    <!-- ================= PASO 4: CRITERIOS Y RADAR ================= -->
+    <!-- PASO 4: CRITERIOS Y RADAR LIMPIO (SIN CAJA DE COMPETICIONES DE FÚTBOL) -->
     <div id="step-4" class="space-y-5 my-auto hidden">
       <div class="flex justify-between items-center">
         <div class="space-y-1">
@@ -310,7 +285,7 @@
       </button>
     </div>
 
-    <!-- ================= PASO 5: SLIDERS DE MERCADO Y BLOQUES GENERACIONALES ================= -->
+    <!-- PASO 5: SLIDERS DINÁMICOS ADAPTADOS POR DEPORTE Y NIVEL COMPETITIVO -->
     <div id="step-5" class="space-y-6 my-auto hidden">
       <div class="flex justify-between items-center">
         <div class="space-y-1">
@@ -329,7 +304,7 @@
             <span class="text-xs font-mono text-slate-300 uppercase">Bloque Generacional Objetivo</span>
             <span id="val-scout-edad" class="font-display font-bold text-xs text-blue-400">Juvenil / Promesa (Sub-18)</span>
           </div>
-          <input type="range" id="slider-scout-edad" min="1" max="4" value="2" onchange="updateAgeLabel(this.value)" class="w-full">
+          <input type="range" id="slider-scout-edad" min="1" max="4" value="2" oninput="updateAgeLabel(this.value)" class="w-full">
           <div class="flex justify-between text-[9px] font-mono text-slate-500">
             <span id="gen-min-label">Cantera / Base</span>
             <span id="gen-mid1-label">Juvenil / Promesa</span>
@@ -373,7 +348,7 @@
       </button>
     </div>
 
-    <!-- ================= PASO 6: CHAT IA (FINAL) ================= -->
+    <!-- PASO 6: CHAT IA AMPLIO Y LIMPIO PERSONALIZADO POR PROFESIÓN DE SCOUT -->
     <div id="step-6" class="space-y-5 my-auto hidden">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3">
         <div class="flex items-center space-x-3">
@@ -382,7 +357,7 @@
           </div>
           <div>
             <h2 class="font-display font-bold text-xs text-white">KINET SCOUT AI AGENT SETUP</h2>
-            <p class="text-[10px] text-slate-400">Calibración de algoritmos de recomendación de fichajes</p>
+            <p class="text-[10px] text-slate-400">Calibración personalizada para tu rol de Scouting y Agenda B2B</p>
           </div>
         </div>
 
@@ -397,21 +372,12 @@
         </div>
       </div>
 
-      <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3 h-[200px] overflow-y-auto flex flex-col justify-between">
-        <div class="space-y-2">
-          <div class="flex items-start space-x-2.5">
-            <div class="w-6 h-6 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
-              AI
-            </div>
-            <div id="ai-scout-greeting" class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-xs text-slate-200 leading-relaxed max-w-[88%]">
-              ¡Hola! Soy tu agente de Scouting KINET. He configurado tus filtros para buscar talento en el mercado. ¿Qué demarcación o perfil específico deseas priorizar en las alertas del sistema?
-            </div>
-          </div>
-        </div>
+      <div class="glass-card p-4 rounded-2xl border border-slate-800 flex flex-col justify-between h-[285px]">
+        <div class="space-y-3 overflow-y-auto pr-1 flex-1" id="scout-chat-messages-container"></div>
 
-        <div class="flex space-x-2">
-          <input type="text" id="ai-chat-input" placeholder="Ej: Busco pivote defensivo sub-23 con buena salida de balón..." class="flex-1 bg-[#12161C] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition">
-          <button onclick="sendAiResponse()" class="px-4 py-2 rounded-xl bg-blue-600 text-white font-bold text-xs">
+        <div class="flex space-x-2 pt-3 border-t border-slate-800/80 mt-2">
+          <input type="text" id="ai-chat-input" onkeydown="if(event.key==='Enter'){event.preventDefault();sendAiResponse();}" placeholder="Escribe tu respuesta aquí..." class="flex-1 bg-[#12161C] border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500 transition">
+          <button type="button" onclick="sendAiResponse()" class="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-display font-bold text-xs hover:bg-blue-500 transition">
             Enviar
           </button>
         </div>
@@ -420,7 +386,7 @@
       <div id="ai-incomplete-alert" class="hidden p-3 rounded-2xl bg-blue-500/10 border border-blue-500/30 text-xs text-blue-300 flex justify-between items-center">
         <div class="flex items-center space-x-2">
           <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0"></i>
-          <span>Perfil al 70%. Las alertas automáticas del mercado funcionarán en modo estándar.</span>
+          <span>Has saltado el chat. Los datos pendientes podrás rellenarlos cuando quieras en Mi Perfil.</span>
         </div>
       </div>
 
@@ -429,11 +395,54 @@
       </button>
     </div>
 
-    <!-- FOOTER -->
     <div class="pt-2 border-t border-slate-800/80 text-center text-[9px] text-slate-500 font-mono">
       KINET OS • CLUB & SCOUT RECRUITMENT INTELLIGENCE
     </div>
 
+  </div>
+
+  <!-- MODAL ANIMACIÓN REVEAL CON EXPLOSIÓN DE PARTÍCULAS Y RECONSTRUCCIÓN -->
+  <div id="scout-surprise-reveal-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background: rgba(4, 6, 12, 0.96); backdrop-filter: blur(24px);">
+    <canvas id="scout-shatter-canvas" class="fixed inset-0 pointer-events-none z-50 hidden"></canvas>
+    <div id="scout-reveal-card-box" class="scout-reveal-card w-full max-w-lg bg-[#090D16] border-2 border-blue-500 rounded-[28px] p-6 md:p-8 text-center space-y-5 relative z-40">
+      <div class="scout-reveal-beam"></div>
+
+      <div class="inline-flex items-center space-x-2 bg-blue-500/15 border border-blue-500/50 px-3.5 py-1 rounded-full text-[10px] font-mono text-blue-400 font-bold uppercase tracking-widest">
+        <span>📡 RADAR SCOUT MATRIX B2B ACTIVADO</span>
+      </div>
+
+      <div class="space-y-1">
+        <h2 id="reveal-scout-name" class="font-display font-black text-2xl text-white tracking-wider">DIRECTOR DEPORTIVO</h2>
+        <p id="reveal-scout-sub" class="text-xs font-mono text-blue-400">FÚTBOL • DIRECTOR DEPORTIVO / HEAD SCOUT</p>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2.5 text-left font-mono">
+        <div class="bg-[#101726] border border-slate-800 rounded-xl p-3">
+          <span class="text-[9px] text-slate-400 block">CORTE MÍNIMO</span>
+          <strong id="reveal-scout-grl" class="text-xs text-white font-display">78.0 GRL</strong>
+        </div>
+        <div class="bg-[#101726] border border-slate-800 rounded-xl p-3">
+          <span class="text-[9px] text-slate-400 block">LÍMITE</span>
+          <strong id="reveal-scout-budget" class="text-xs text-blue-400 font-display">50 k €</strong>
+        </div>
+        <div class="bg-[#101726] border border-slate-800 rounded-xl p-3">
+          <span class="text-[9px] text-slate-400 block">CATEGORÍA</span>
+          <strong id="reveal-scout-zone" class="text-xs text-white font-display truncate block">Senior</strong>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 text-left space-y-1.5">
+        <div class="text-[10px] font-mono text-blue-400 font-bold uppercase">🧠 DIRECTIVA DE CAPTACIÓN PROGRAMADA EN TU DESPACHO:</div>
+        <p id="reveal-scout-directive" class="text-xs text-slate-300 leading-relaxed"></p>
+      </div>
+
+      <div class="pt-1">
+        <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800">
+          <div id="reveal-scout-bar" class="bg-blue-500 h-full transition-all duration-1000" style="width: 15%;"></div>
+        </div>
+        <p id="reveal-scout-status" class="text-[10px] font-mono text-slate-400 mt-2">Sincronizando Radar B2B, Agenda de Ojeo y Analistas IA...</p>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -443,11 +452,21 @@
       role: 'Director Deportivo / Head Scout',
       sport: 'Fútbol',
       category: 'Aficionado / Ligas de Barrio',
-      priority: 'Evaluación de Potencial y Proyección (Sub-21)',
+      priority: 'Equilibrio de Masa Salarial & GRL',
       maxAge: 'Juvenil / Promesa',
       budget: '50 k €',
       minGrl: '78.0',
-      aiCompleted: true
+      aiCompleted: false,
+      chatStepIndex: 0,
+      chatHistory: [],
+      extracted: {
+        clubOrAgency: '',
+        city: '',
+        hometown: '',
+        marketZone: '',
+        targetProfile: '',
+        redFlags: ''
+      }
     };
 
     function nextStep(stepNum) {
@@ -466,15 +485,10 @@
         target.classList.add('step-liquid-enter');
       }
 
-      if (stepNum === 3) {
-        renderScoutCategories();
-      } else if (stepNum === 4) {
-        renderScoutRadarOptions();
-      } else if (stepNum === 5) {
-        configureAgeAndBudgetScales();
-      } else if (stepNum === 6) {
-        setupAiScoutGreeting();
-      }
+      if (stepNum === 3) renderScoutCategories();
+      else if (stepNum === 4) renderScoutRadarOptions();
+      else if (stepNum === 5) configureAgeAndBudgetScales();
+      else if (stepNum === 6) setupAiScoutGreeting();
     }
 
     function selectScoutRole(role) {
@@ -485,7 +499,6 @@
         'Analista de Datos B2B (Data Scout)',
         'Agencia de Representación / Intermediario'
       ];
-
       roles.forEach((r, idx) => {
         const card = document.getElementById('scout-role-' + (idx + 1));
         if (role === r) {
@@ -499,20 +512,17 @@
     function selectScoutSport(sport) {
       scoutState.sport = sport;
       const sportsMap = { 'Fútbol': 'futbol', 'Baloncesto': 'baloncesto', 'Pádel / Tenis': 'padel', 'Boxeo / MMA': 'boxeo', 'Running': 'running', 'Otros Deportes': 'otros' };
-      
       Object.keys(sportsMap).forEach(s => {
         const el = document.getElementById('scout-sport-' + sportsMap[s]);
         if (el) {
-          if (s === sport) {
-            el.className = "glass-card selected p-4 rounded-2xl cursor-pointer transition text-center space-y-1.5 bg-blue-500/5 border-2 border-blue-500";
-          } else {
-            el.className = "glass-card p-4 rounded-2xl cursor-pointer transition text-center space-y-1.5";
-          }
+          el.className = (s === sport)
+            ? "glass-card selected p-4 rounded-2xl cursor-pointer transition text-center space-y-1.5 bg-blue-500/5 border-2 border-blue-500"
+            : "glass-card p-4 rounded-2xl cursor-pointer transition text-center space-y-1.5";
         }
       });
     }
 
-    // COMPETICIONES IDÉNTICAS A ONBOARDING_PRO.HTML (ATLETA)
+    // LAS 6 CATEGORÍAS ORIGINALES EN FÚTBOL Y LAS DE CADA DEPORTE INTACTAS
     function renderScoutCategories() {
       const container = document.getElementById('scout-categories-container');
       const sport = scoutState.sport;
@@ -607,12 +617,12 @@
         ];
       } else if (role.includes('Datos')) {
         options = [
-          { title: 'Scouting por Percentiles & xG / xA', desc: 'Búsqueda algorítmica de performance avanzada.' },
-          { title: 'Detección de Anomalías Físicas & GPS', desc: 'Estudio de picos de velocidad y resistencia sostenida.' }
+          { title: 'Scouting por Percentiles & Métricas Avanzadas', desc: 'Búsqueda algorítmica de performance.' },
+          { title: 'Detección de Anomalías Físicas & Biometría', desc: 'Estudio de potencia y resistencia sostenida.' }
         ];
       } else {
         options = [
-          { title: 'Valoración de Mercado & Oportunidades', desc: 'Jugadores libres o con cláusulas accesibles.' },
+          { title: 'Valoración de Mercado & Oportunidades', desc: 'Deportistas libres o con cláusulas accesibles.' },
           { title: 'Exhibición de Cartera en KINET OS', desc: 'Visibilidad directa ante directores deportivos.' }
         ];
       }
@@ -623,7 +633,7 @@
       container.innerHTML = `
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 z-10 w-full">
           ${options.map((opt, idx) => `
-            <button onclick="setScoutPriority('${opt.title}', '${opt.desc}', this)" class="p-4 rounded-2xl text-left transition ${idx === 0 ? 'bg-blue-500/20 border-2 border-blue-400 text-white' : 'bg-slate-900/90 border border-slate-700 text-slate-300 hover:border-blue-400'}">
+            <button type="button" onclick="setScoutPriority('${opt.title}', '${opt.desc}', this)" class="p-4 rounded-2xl text-left transition ${idx === 0 ? 'bg-blue-500/20 border-2 border-blue-400 text-white' : 'bg-slate-900/90 border border-slate-700 text-slate-300 hover:border-blue-400'}">
               <h4 class="font-display font-bold text-xs text-white">${opt.title}</h4>
               <p class="text-[10px] text-slate-400 mt-1">${opt.desc}</p>
             </button>
@@ -642,11 +652,11 @@
       btnEl.className = "p-4 rounded-2xl text-left transition bg-blue-500/20 border-2 border-blue-400 text-white";
     }
 
+    // FUNCIÓN ORIGINAL INTACTA: ADAPTA PRESUPUESTO Y BLOQUES GENERACIONALES SEGÚN DEPORTE, PROFESIÓN Y NIVEL COMPETITIVO
     function configureAgeAndBudgetScales() {
       const sport = scoutState.sport;
       const role = scoutState.role;
       const cat = scoutState.category;
-      
       const isPro = cat.includes('Profesional') || cat.includes('Semiprofesional') || cat.includes('Élite') || cat.includes('Internacional');
 
       const minLbl = document.getElementById('gen-min-label');
@@ -655,30 +665,20 @@
       const maxLbl = document.getElementById('gen-max-label');
 
       if (sport === 'Boxeo / MMA') {
-        minLbl.textContent = "Amateur / Base";
-        mid1Lbl.textContent = "Promesas Regionales";
-        mid2Lbl.textContent = "Contendientes Pro";
-        maxLbl.textContent = "Campeones Mundiales";
+        minLbl.textContent = "Amateur / Base"; mid1Lbl.textContent = "Promesas Regionales";
+        mid2Lbl.textContent = "Contendientes Pro"; maxLbl.textContent = "Campeones Mundiales";
       } else if (sport === 'Pádel / Tenis') {
-        minLbl.textContent = "Menores / FEP";
-        mid1Lbl.textContent = "Challenger / Previa";
-        mid2Lbl.textContent = "Circuito Pro Regular";
-        maxLbl.textContent = "Top 10 / Élite Global";
+        minLbl.textContent = "Menores / FEP"; mid1Lbl.textContent = "Challenger / Previa";
+        mid2Lbl.textContent = "Circuito Pro Regular"; maxLbl.textContent = "Top 10 / Élite Global";
       } else if (sport === 'Running') {
-        minLbl.textContent = "Sub-23 / Promesas";
-        mid1Lbl.textContent = "Ruta y Pista Nacional";
-        mid2Lbl.textContent = "Élite Internacional";
-        maxLbl.textContent = "World Majors";
+        minLbl.textContent = "Sub-23 / Promesas"; mid1Lbl.textContent = "Ruta y Pista Nacional";
+        mid2Lbl.textContent = "Élite Internacional"; maxLbl.textContent = "World Majors";
       } else if (sport === 'Otros Deportes') {
-        minLbl.textContent = "Ámbito Local";
-        mid1Lbl.textContent = "Regional";
-        mid2Lbl.textContent = "Nacional";
-        maxLbl.textContent = "Internacional";
+        minLbl.textContent = "Ámbito Local"; mid1Lbl.textContent = "Regional";
+        mid2Lbl.textContent = "Nacional"; maxLbl.textContent = "Internacional";
       } else {
-        minLbl.textContent = "Cantera / Base";
-        mid1Lbl.textContent = "Juvenil / Promesa";
-        mid2Lbl.textContent = "Prime / Crecimiento";
-        maxLbl.textContent = "Élite / Veteranía";
+        minLbl.textContent = "Cantera / Base"; mid1Lbl.textContent = "Juvenil / Promesa";
+        mid2Lbl.textContent = "Prime / Crecimiento"; maxLbl.textContent = "Élite / Veteranía";
       }
 
       updateAgeLabel(document.getElementById('slider-scout-edad').value);
@@ -686,27 +686,17 @@
       const budgetSlider = document.getElementById('slider-scout-budget');
       const budgetTitle = document.getElementById('budget-title-label');
 
-      if (role.includes('Analista')) {
-        budgetTitle.textContent = "Rango de Valor de Mercado en BD";
-      } else if (role.includes('Agencia')) {
-        budgetTitle.textContent = "Valoración Cartera Representada";
-      } else {
-        budgetTitle.textContent = "Presupuesto Máximo de Fichaje";
-      }
+      if (role.includes('Analista')) budgetTitle.textContent = "Rango de Valor de Mercado en BD";
+      else if (role.includes('Agencia')) budgetTitle.textContent = "Valoración Cartera Representada";
+      else budgetTitle.textContent = "Presupuesto Máximo de Fichaje";
 
       if (isPro || sport === 'Boxeo / MMA') {
-        budgetSlider.min = "0.1";
-        budgetSlider.max = "150";
-        budgetSlider.step = "0.5";
-        budgetSlider.value = "5.0";
+        budgetSlider.min = "0.1"; budgetSlider.max = "150"; budgetSlider.step = "0.5"; budgetSlider.value = "5.0";
         document.getElementById('budget-min-label').textContent = sport === 'Boxeo / MMA' ? "5k bolsa" : "100k €";
         document.getElementById('budget-mid-label').textContent = sport === 'Boxeo / MMA' ? "2M bolsa" : "75 M €";
         document.getElementById('budget-max-label').textContent = sport === 'Boxeo / MMA' ? "20M+ bolsa" : "150 M+ €";
       } else {
-        budgetSlider.min = "0.01";
-        budgetSlider.max = "0.2";
-        budgetSlider.step = "0.005";
-        budgetSlider.value = "0.05";
+        budgetSlider.min = "0.01"; budgetSlider.max = "0.2"; budgetSlider.step = "0.005"; budgetSlider.value = "0.05";
         document.getElementById('budget-min-label').textContent = "10k €";
         document.getElementById('budget-mid-label').textContent = "100k €";
         document.getElementById('budget-max-label').textContent = "200k €";
@@ -716,64 +706,171 @@
 
     function updateAgeLabel(val) {
       const sport = scoutState.sport;
-      let stages = {};
-
-      if (sport === 'Otros Deportes') {
-        stages = {
-          '1': 'Ámbito Local (Iniciación y Territorial)',
-          '2': 'Nivel Regional (Autonómico competitivo)',
-          '3': 'Campeonatos Nacionales (Estatal)',
-          '4': 'Ámbito Internacional (Selección / Global)'
-        };
-      } else {
-        stages = {
-          '1': 'Base / Formación (Iniciación)',
-          '2': 'Juvenil / Promesa en Ascenso',
-          '3': 'Edad Prime / Crecimiento Deportivo',
-          '4': 'Consolidación / Élite / Veteranía'
-        };
-      }
-
+      const stages = sport === 'Otros Deportes'
+        ? { '1': 'Ámbito Local', '2': 'Nivel Regional', '3': 'Campeonatos Nacionales', '4': 'Ámbito Internacional' }
+        : { '1': 'Base / Formación (Iniciación)', '2': 'Juvenil / Promesa en Ascenso', '3': 'Edad Prime / Crecimiento Deportivo', '4': 'Consolidación / Élite / Veteranía' };
       scoutState.maxAge = stages[val];
       document.getElementById('val-scout-edad').textContent = stages[val];
     }
 
     function updateBudgetLabel(val) {
-      let displayVal = parseFloat(val);
+      const displayVal = parseFloat(val);
       const cat = scoutState.category;
       const sport = scoutState.sport;
       const isPro = cat.includes('Profesional') || cat.includes('Semiprofesional') || cat.includes('Élite') || cat.includes('Internacional');
-
       if (!isPro && sport !== 'Boxeo / MMA') {
-        let euros = Math.round(displayVal * 1000);
-        document.getElementById('val-scout-budget').textContent = euros + ' k €';
+        scoutState.budget = Math.round(displayVal * 1000) + ' k €';
       } else {
-        if (displayVal < 1) {
-          document.getElementById('val-scout-budget').textContent = Math.round(displayVal * 1000) + ' k €';
-        } else {
-          document.getElementById('val-scout-budget').textContent = displayVal.toFixed(1) + (sport === 'Boxeo / MMA' ? ' M Bolsas' : ' M €');
-        }
+        scoutState.budget = displayVal < 1 ? Math.round(displayVal * 1000) + ' k €' : displayVal.toFixed(1) + (sport === 'Boxeo / MMA' ? ' M Bolsas' : ' M €');
       }
+      document.getElementById('val-scout-budget').textContent = scoutState.budget;
+    }
+
+    // GUION IA PERSONALIZADO SEGÚN LA PROFESIÓN EXACTA DE SCOUT (DIRECTOR, OJEADOR DE CAMPO, ANALISTA DE DATOS O AGENTE)
+    function getScoutChatQuestionsByProfession() {
+      const r = scoutState.role;
+      const s = scoutState.sport;
+      if (r.includes('Agencia')) {
+        return [
+          `¡Hola! He configurado tu entorno como **Agencia / Representante** en **${s}** (${scoutState.category}). Cuéntame para tu ficha: **¿cómo se llama tu agencia, en qué ciudad tienes tu sede y en qué mercado geográfico mueves principalmente a tus representados?**`,
+          `Perfecto. **¿Qué tipo de perfiles tienes ahora mismo en cartera buscando equipo o qué oportunidades te interesa detectar primero en el radar de clubes?**`,
+          `Anotado. **¿Qué días de la semana sueles dedicar a reuniones con clubes/jugadores y qué días vas a ver competición en directo?** *(Con esto dejaré programada tu Agenda en el Vestuario).*`
+        ];
+      } else if (r.includes('Datos')) {
+        return [
+          `¡Hola! Panel calibrado como **Analista de Datos B2B** en **${s}** (${scoutState.category}). **¿Para qué club o secretaría técnica trabajas actualmente y desde qué ciudad operas?**`,
+          `Genial. Con el corte en **${document.getElementById('slider-scout-grl').value} GRL**, **¿qué métricas o perfiles específicos te urge más filtrar ahora mismo y cuál es tu criterio estadístico o físico de descarte inmediato?**`,
+          `Registrado para tus Analistas IA. **¿Qué días de la semana dedicas a auditoría de vídeo/datos y qué días entregas informes al Director Deportivo?**`
+        ];
+      } else if (r.includes('Campo')) {
+        return [
+          `¡Hola! Perfil activo como **Ojeador de Campo (Zona)** en **${s}** (${scoutState.category}). **¿Para qué club o red de captación ojeas, en qué ciudad vives y qué zona geográfica cubres?**`,
+          `Perfecto. Cuando vas a ver un partido o entreno en directo, **¿qué demarcaciones te han pedido buscar prioritariamente y qué detalle en el campo te hace descartar a un jugador?**`,
+          `Tomado nota. **¿Qué días de la semana redactas informes/vídeo y qué días vas a ver partidos en directo?**`
+        ];
+      }
+      return [
+        `¡Hola! He registrado tu perfil como **Director Deportivo / Head Scout** en **${s}** (${scoutState.category}) con tope de **${document.getElementById('val-scout-budget').textContent}**. **¿En qué club o entidad diriges actualmente, en qué ciudad estás y qué mercado geográfico priorizas?**`,
+        `Anotado en tu Perfil. **¿Qué 2 o 3 posiciones te urge más reforzar en la plantilla ahora mismo y qué requisito es innegociable para firmar a un deportista?**`,
+        `Perfecto. Para dejar programado tu **Calendario Semanal y Mensual**: **¿qué días dedicas a despacho/vídeo, qué días a reuniones y qué días vas a ver competición en vivo?**`
+      ];
+    }
+
+    function appendScoutBubble(sender, text) {
+      const box = document.getElementById('scout-chat-messages-container');
+      if (!box) return;
+      const div = document.createElement('div');
+      if (sender === 'ai') {
+        div.className = "flex items-start space-x-2.5";
+        div.innerHTML = `
+          <div class="w-6 h-6 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">AI</div>
+          <div class="bg-slate-900 border border-slate-800 p-3 rounded-2xl text-xs text-slate-200 leading-relaxed max-w-[88%]">${text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-blue-400">$1</strong>')}</div>
+        `;
+      } else {
+        div.className = "flex justify-end";
+        div.innerHTML = `<div class="bg-blue-500/15 border border-blue-500/50 text-white p-2.5 px-3.5 rounded-2xl text-xs max-w-[85%] font-medium">${text}</div>`;
+      }
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
     }
 
     function setupAiScoutGreeting() {
-      const msgBox = document.getElementById('ai-scout-greeting');
-      msgBox.textContent = `¡Hola! Soy tu agente de Scouting KINET. He registrado tu perfil como ${scoutState.role} enfocado en ${scoutState.sport} (${scoutState.category}). ¿Quieres que activemos las alertas automáticas para jugadores con GRL superior a ${document.getElementById('slider-scout-grl').value}?`;
+      const box = document.getElementById('scout-chat-messages-container');
+      if (box) {
+        box.innerHTML = '';
+        scoutState.chatStepIndex = 0;
+        const qs = getScoutChatQuestionsByProfession();
+        appendScoutBubble('ai', qs[0]);
+      }
+    }
+
+    function sendAiResponse() {
+      const input = document.getElementById('ai-chat-input');
+      const val = (input?.value || '').trim();
+      if (!val) return;
+
+      appendScoutBubble('user', val);
+      input.value = '';
+      scoutState.chatHistory.push({ role: 'user', content: val });
+
+      if (scoutState.chatStepIndex === 0) {
+        const cityM = val.match(/(?:vivo en|sede en|estoy en|oper[oa] en)\s+([A-ZÁÉÍÓÚÑa-záéíóúñ\s]{2,20}?)(?:,|\sy\s|\.|$)/i);
+        if (cityM) scoutState.extracted.city = cityM[1].trim();
+        scoutState.extracted.clubOrAgency = val.split(',')[0].trim().slice(0, 32);
+        scoutState.extracted.marketZone = val;
+      } else if (scoutState.chatStepIndex === 1) {
+        scoutState.extracted.targetProfile = val;
+      }
+
+      scoutState.chatStepIndex++;
+      scoutState.aiCompleted = true;
+      document.getElementById('ai-incomplete-alert').classList.add('hidden');
+
+      const qs = getScoutChatQuestionsByProfession();
+      setTimeout(() => {
+        if (scoutState.chatStepIndex < qs.length) {
+          appendScoutBubble('ai', qs[scoutState.chatStepIndex]);
+        } else {
+          appendScoutBubble('ai', `✅ **¡Radar B2B y Agenda configurados!** He guardado tus criterios en Scout Matrix, en tu Perfil y en los 4 Analistas IA. Pulsa abajo en **FINALIZAR REGISTRO & ACTIVAR RADAR SCOUT**.`);
+        }
+      }, 240);
     }
 
     function skipAiSetup() {
       scoutState.aiCompleted = false;
       document.getElementById('ai-incomplete-alert').classList.remove('hidden');
+      appendScoutBubble('ai', `⚡ Has saltado el chat. Podrás completar los datos pendientes cuando quieras en **Mi Perfil**.`);
     }
 
-    function sendAiResponse() {
-      const input = document.getElementById('ai-chat-input');
-      if (input.value.trim() !== '') {
-        scoutState.aiCompleted = true;
-        document.getElementById('ai-incomplete-alert').classList.add('hidden');
-        alert('Parámetros de IA y filtros de radar guardados correctamente.');
-        input.value = '';
+    function trpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(targetUrl) {
+      const cardEl = document.getElementById('scout-reveal-card-box');
+      const canvas = document.getElementById('scout-shatter-canvas');
+      if (!cardEl || !canvas) {
+        window.location.replace(targetUrl);
+        return;
       }
+      const rect = cardEl.getBoundingClientRect();
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      canvas.classList.remove('hidden');
+      cardEl.style.opacity = '0';
+      cardEl.style.transform = 'scale(0.92)';
+
+      const ctx = canvas.getContext('2d');
+      const particles = [];
+      const cols = 26, rows = 18;
+      const cellW = rect.width / cols, cellH = rect.height / rows;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const x = rect.left + c * cellW + cellW / 2;
+          const y = rect.top + r * cellH + cellH / 2;
+          const angle = Math.atan2(y - (rect.top + rect.height / 2), x - (rect.left + rect.width / 2)) + (Math.random() - 0.5) * 0.8;
+          const speed = 6 + Math.random() * 16;
+          const targetX = (c / cols) * (window.innerWidth * 0.84) + window.innerWidth * 0.08;
+          const targetY = (r / rows) * (window.innerHeight * 0.82) + window.innerHeight * 0.09;
+          particles.push({
+            x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+            tx: targetX, ty: targetY, size: Math.max(3, Math.min(cellW, cellH) * 0.65),
+            color: (r + c) % 3 === 0 ? '#3B82F6' : ((r + c) % 5 === 0 ? '#FFFFFF' : '#0F172A'), alpha: 1
+          });
+        }
+      }
+
+      let frame = 0;
+      function animate() {
+        frame++;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+          if (frame < 24) { p.x += p.vx; p.y += p.vy; p.vx *= 0.92; p.vy *= 0.92; }
+          else { p.x += (p.tx - p.x) * 0.22; p.y += (p.ty - p.y) * 0.22; if (frame > 42) p.alpha = Math.max(0, p.alpha - 0.08); }
+          ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color; ctx.shadowColor = '#3B82F6'; ctx.shadowBlur = 8;
+          ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+        });
+        if (frame < 52) requestAnimationFrame(animate);
+        else window.location.replace(targetUrl);
+      }
+      requestAnimationFrame(animate);
     }
 
     function finishScoutOnboarding() {
@@ -781,8 +878,10 @@
       scoutState.budget = document.getElementById('val-scout-budget').textContent;
       scoutState.minGrl = document.getElementById('slider-scout-grl').value + ' GRL';
 
-      const profilesDB = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
+      if (scoutState.extracted.clubOrAgency) localStorage.setItem('kinet_user_club', scoutState.extracted.clubOrAgency);
+      if (scoutState.extracted.city) localStorage.setItem('kinet_user_city', scoutState.extracted.city);
 
+      const profilesDB = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
       profilesDB.scout = {
         roleType: 'scout',
         roleName: scoutState.role,
@@ -792,20 +891,47 @@
         maxAge: scoutState.maxAge,
         budget: scoutState.budget,
         minGrl: scoutState.minGrl,
+        club: scoutState.extracted.clubOrAgency || localStorage.getItem('kinet_user_club') || '',
+        city: scoutState.extracted.city || localStorage.getItem('kinet_user_city') || '',
         aiCompleted: scoutState.aiCompleted,
         updatedAt: new Date().toISOString()
       };
 
       localStorage.setItem('kinet_profiles_db', JSON.stringify(profilesDB));
-      localStorage.setItem('kinet_role', scoutState.role);
+      localStorage.setItem('kinet_role', 'scout');
+      localStorage.setItem('kinet_active_role', 'scout');
       localStorage.setItem('kinet_sport', scoutState.sport);
       localStorage.setItem('kinet_category', scoutState.category);
-      localStorage.setItem('kinet_position', scoutState.priority);
-      localStorage.setItem('kinet_active_role', 'scout');
+      localStorage.setItem('kinet_user_category', scoutState.category);
+      localStorage.setItem('kinet_position', scoutState.role);
       localStorage.setItem('kinet_profile_completed', 'true');
-      localStorage.setItem('kinet_logged_in', 'true');
 
-      window.location.href = `app.html?role=scout&sport=${encodeURIComponent(scoutState.sport)}`;
+      if (localStorage.getItem('kinet_is_guest') !== 'true') {
+        localStorage.setItem('kinet_logged_in', 'true');
+        if (window.KinetBackend && typeof window.KinetBackend.pushLocalStateToCloud === 'function') {
+          window.KinetBackend.pushLocalStateToCloud();
+        }
+      }
+
+      const targetUrl = `app.html?role=scout&sport=${encodeURIComponent(scoutState.sport)}`;
+      const revealModal = document.getElementById('scout-surprise-reveal-modal');
+      if (revealModal) {
+        document.getElementById('reveal-scout-name').textContent = (localStorage.getItem('kinet_user_name') || 'DIRECTOR DEPORTIVO').toUpperCase();
+        document.getElementById('reveal-scout-sub').textContent = `${scoutState.sport.toUpperCase()} • ${scoutState.role.toUpperCase()}`;
+        document.getElementById('reveal-scout-grl').textContent = scoutState.minGrl;
+        document.getElementById('reveal-scout-budget').textContent = scoutState.budget;
+        document.getElementById('reveal-scout-zone').textContent = scoutState.category;
+        document.getElementById('reveal-scout-directive').textContent = `Radar activo para ${scoutState.role} (${scoutState.category}). Prioridad: ${(scoutState.extracted.targetProfile || scoutState.priority).slice(0, 58)}.`;
+
+        revealModal.classList.remove('hidden');
+        const pBar = document.getElementById('reveal-scout-bar');
+        const sTxt = document.getElementById('reveal-scout-status');
+        setTimeout(() => { if (pBar) pBar.style.width = '100%'; }, 120);
+        setTimeout(() => { if (sTxt) sTxt.textContent = '✓ RADAR SCOUT MATRIX Y DESPACHO ACTIVADOS...'; }, 1050);
+        setTimeout(() => { trpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(targetUrl); }, 1450);
+      } else {
+        window.location.replace(targetUrl);
+      }
     }
   </script>
 </body>
