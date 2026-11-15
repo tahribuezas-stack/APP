@@ -935,3 +935,235 @@
       }
     });
   });
+// =========================================================================
+  // CANDADO ANTI-USO COMPARTIDO: ROL ACTIVO ÚNICO EN TODOS LOS DISPOSITIVOS + IDENTIDAD RAÍZ ÚNICA
+  // =========================================================================
+  (function initSingleActiveRoleAndIdentityLock() {
+    // 1. Generar ID único del dispositivo actual
+    let myDeviceId = sessionStorage.getItem('kinet_device_instance_id');
+    if (!myDeviceId) {
+      myDeviceId = 'dev_' + Math.random().toString(36).slice(2, 10) + '_' + Date.now();
+      sessionStorage.setItem('kinet_device_instance_id', myDeviceId);
+    }
+
+    function normalizeRoleStrict(val) {
+      if (!val) return 'athlete';
+      const v = String(val).toLowerCase().trim();
+      if (v === 'staff' || v.includes('entrenador') || v.includes('coach') || v.includes('staff')) return 'staff';
+      if (v === 'scout' || v.includes('scout') || v.includes('director') || v.includes('ojeador')) return 'scout';
+      return 'athlete';
+    }
+
+    // 2. Blindar que el Nombre, Fecha de Nacimiento y Foto sean SIEMPRE de la misma persona en los 3 perfiles (Atleta, Staff y Scout)
+    function enforceSinglePersonIdentityAcrossRoles() {
+      const masterName = localStorage.getItem('kinet_user_name');
+      const masterBirth = localStorage.getItem('kinet_user_birthdate');
+      const masterAvatar = localStorage.getItem('kinet_user_avatar');
+      const masterHandle = localStorage.getItem('kinet_social_handle');
+
+      try {
+        const rawDb = localStorage.getItem('kinet_profiles_db');
+        if (!rawDb) return;
+        const db = JSON.parse(rawDb);
+        let modified = false;
+
+        ['athlete', 'staff', 'scout'].forEach((rKey) => {
+          if (db[rKey] && typeof db[rKey] === 'object') {
+            if (masterName && db[rKey].name && db[rKey].name !== masterName) {
+              db[rKey].name = masterName;
+              modified = true;
+            }
+            if (masterBirth && db[rKey].birthdate && db[rKey].birthdate !== masterBirth) {
+              db[rKey].birthdate = masterBirth;
+              modified = true;
+            }
+            if (masterAvatar && db[rKey].avatar !== masterAvatar) {
+              db[rKey].avatar = masterAvatar;
+              modified = true;
+            }
+            if (masterHandle && db[rKey].handle && db[rKey].handle !== masterHandle) {
+              db[rKey].handle = masterHandle;
+              modified = true;
+            }
+          }
+        });
+
+        if (modified) {
+          localStorage.setItem('kinet_profiles_db', JSON.stringify(db));
+        }
+      } catch (e) {}
+    }
+
+    // 3. Mostrar aviso flotante cuando otro dispositivo cambia el rol activo y este dispositivo se sincroniza a la fuerza
+    function showRoleSyncLockToast(newRoleKey, newSportName) {
+      const roleNames = {
+        athlete: 'ATLETA PRO',
+        staff: 'ENTRENADOR / STAFF',
+        scout: 'DIRECTOR DEPORTIVO / SCOUT'
+      };
+      let toast = document.getElementById('kinet-role-lock-toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'kinet-role-lock-toast';
+        toast.style.cssText = `
+          position: fixed;
+          top: 18px;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 2147483647;
+          background: rgba(8, 12, 22, 0.98);
+          border: 1.5px solid var(--role-color, #00FF88);
+          color: #FFFFFF;
+          padding: 12px 20px;
+          border-radius: 14px;
+          font-family: 'Orbitron', sans-serif;
+          font-size: 0.72rem;
+          font-weight: 800;
+          box-shadow: 0 20px 50px rgba(0,0,0,0.92), 0 0 30px rgba(0,255,136,0.3);
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          text-align: center;
+        `;
+        document.body.appendChild(toast);
+      }
+      toast.innerHTML = `<span>🔒</span> <span>ROL SINCRONIZADO EN TODOS TUS DISPOSITIVOS: <strong>${roleNames[newRoleKey] || 'ATLETA PRO'}</strong> (${(newSportName || 'Fútbol').toUpperCase()})</span>`;
+    }
+
+    // 4. Aplicar en caliente el cambio de rol forzoso en la pantalla actual si otro dispositivo o pestaña ha cambiado de perfil
+    function forceApplyGlobalRoleState(cloudRole, cloudSport) {
+      const targetRole = normalizeRoleStrict(cloudRole);
+      const currentDomRole = normalizeRoleStrict(document.body?.getAttribute('data-role') || localStorage.getItem('kinet_active_role'));
+      const targetSport = cloudSport || localStorage.getItem('kinet_sport') || 'Fútbol';
+
+      localStorage.setItem('kinet_active_role', targetRole);
+      localStorage.setItem('kinet_role', targetRole);
+      if (cloudSport) localStorage.setItem('kinet_sport', targetSport);
+      enforceSinglePersonIdentityAcrossRoles();
+
+      // Si el dispositivo actual tenía en la URL un ?role= distinto al que se acaba de activar en la cuenta, corregir la URL y recargar
+      const url = new URL(window.location.href);
+      const urlRole = url.searchParams.get('role');
+
+      if (currentDomRole !== targetRole || (urlRole && normalizeRoleStrict(urlRole) !== targetRole)) {
+        showRoleSyncLockToast(targetRole, targetSport);
+        if (document.body) document.body.setAttribute('data-role', targetRole);
+
+        setTimeout(() => {
+          url.searchParams.set('role', targetRole);
+          url.searchParams.set('sport', targetSport);
+          window.location.replace(url.toString());
+        }, 650);
+      }
+    }
+
+    // 5. Si el usuario cambia de rol explícitamente en este dispositivo (ej. en Despacho o por URL), marcar timestamp maestro para que mande sobre los demás dispositivos
+    window.addEventListener('DOMContentLoaded', () => {
+      enforceSinglePersonIdentityAcrossRoles();
+
+      const urlRoleParam = new URLSearchParams(window.location.search).get('role');
+      const lastKnownRole = localStorage.getItem('kinet_last_synced_cloud_role');
+      if (urlRoleParam) {
+        const cleanUrlRole = normalizeRoleStrict(urlRoleParam);
+        // Si este dispositivo acaba de cambiar voluntariamente de rol, actualizar la marca de tiempo maestra y subirlo a Supabase
+        if (lastKnownRole && cleanUrlRole !== lastKnownRole) {
+          localStorage.setItem('kinet_active_role', cleanUrlRole);
+          localStorage.setItem('kinet_role', cleanUrlRole);
+          localStorage.setItem('kinet_last_synced_cloud_role', cleanUrlRole);
+          localStorage.setItem('kinet_role_updated_at', String(Date.now()));
+          localStorage.setItem('kinet_active_device_id', myDeviceId);
+          if (window.KinetBackend && typeof window.KinetBackend.pushLocalStateToCloud === 'function') {
+            window.KinetBackend.pushLocalStateToCloud();
+          }
+        }
+      }
+    });
+
+    // 6. Sincronización instantánea entre pestañas del mismo navegador
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'kinet_active_role' && e.newValue) {
+        const newRole = normalizeRoleStrict(e.newValue);
+        const currentDomRole = normalizeRoleStrict(document.body?.getAttribute('data-role'));
+        if (newRole !== currentDomRole) {
+          forceApplyGlobalRoleState(newRole, localStorage.getItem('kinet_sport'));
+        }
+      }
+      if (e.key === 'kinet_user_name' || e.key === 'kinet_profiles_db') {
+        enforceSinglePersonIdentityAcrossRoles();
+      }
+    });
+
+    // 7. Vigilante en vivo contra Supabase cada 6 segundos: si otro dispositivo (PC/Móvil/Tablet) cambió el rol activo, obliga a este dispositivo a cambiar al mismo rol
+    async function pollCloudActiveRoleLock() {
+      if (localStorage.getItem('kinet_is_guest') === 'true') return;
+      if (!window.KinetBackend || typeof window.KinetBackend.getClient !== 'function') return;
+      const sb = window.KinetBackend.getClient();
+      if (!sb) return;
+
+      try {
+        const myEmail = localStorage.getItem('kinet_user_email');
+        const myUserId = localStorage.getItem('kinet_supabase_user_id');
+        if (!myEmail && !myUserId) return;
+
+        let query = sb.from('profiles').select('active_role, active_sport, full_name, user_state, updated_at');
+        if (myUserId) query = query.eq('id', myUserId);
+        else query = query.eq('email', myEmail);
+
+        const { data, error } = await query.maybeSingle();
+        if (error || !data) return;
+
+        // Bloquear que intenten cambiar el nombre del titular en perfiles secundarios
+        if (data.full_name && data.full_name.trim()) {
+          localStorage.setItem('kinet_user_name', data.full_name.trim());
+          enforceSinglePersonIdentityAcrossRoles();
+        }
+
+        const cloudRole = normalizeRoleStrict(
+          (data.user_state && data.user_state.kinet_active_role) || data.active_role || 'athlete'
+        );
+        const cloudSport = (data.user_state && data.user_state.kinet_sport) || data.active_sport || localStorage.getItem('kinet_sport') || 'Fútbol';
+        const cloudRoleTs = parseInt((data.user_state && data.user_state.kinet_role_updated_at) || '0', 10);
+        const localRoleTs = parseInt(localStorage.getItem('kinet_role_updated_at') || '0', 10);
+        const currentLocalRole = normalizeRoleStrict(localStorage.getItem('kinet_active_role'));
+
+        localStorage.setItem('kinet_last_synced_cloud_role', cloudRole);
+
+        // Si en la nube hay un rol distinto y su cambio es más reciente (o igual), forzar a este dispositivo a adoptar ese rol inmediatamente
+        if (cloudRole !== currentLocalRole && cloudRoleTs >= localRoleTs) {
+          localStorage.setItem('kinet_role_updated_at', String(cloudRoleTs));
+          forceApplyGlobalRoleState(cloudRole, cloudSport);
+        }
+      } catch (err) {}
+    }
+
+    // Ejecutar al sincronizar con la nube y mantener vigilancia activa cada 6 segundos
+    window.addEventListener('kinet:cloud-synced', () => {
+      enforceSinglePersonIdentityAcrossRoles();
+      pollCloudActiveRoleLock();
+    });
+
+    setInterval(pollCloudActiveRoleLock, 6000);
+
+    // Exponer función oficial para cuando el usuario cambia de perfil en Despacho
+    if (window.KinetBackend) {
+      window.KinetBackend.switchGlobalAccountRole = async function (newRoleKey, newSportOpt) {
+        const cleanRole = normalizeRoleStrict(newRoleKey);
+        const cleanSport = newSportOpt || localStorage.getItem('kinet_sport') || 'Fútbol';
+        const nowTs = Date.now();
+
+        localStorage.setItem('kinet_active_role', cleanRole);
+        localStorage.setItem('kinet_role', cleanRole);
+        localStorage.setItem('kinet_sport', cleanSport);
+        localStorage.setItem('kinet_last_synced_cloud_role', cleanRole);
+        localStorage.setItem('kinet_role_updated_at', String(nowTs));
+        localStorage.setItem('kinet_active_device_id', myDeviceId);
+
+        enforceSinglePersonIdentityAcrossRoles();
+
+        if (typeof window.KinetBackend.pushLocalStateToCloud === 'function') {
+          await window.KinetBackend.pushLocalStateToCloud();
+        }
+        forceApplyGlobalRoleState(cleanRole, cleanSport);
+      };
+    }
+  })();
