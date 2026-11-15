@@ -3,41 +3,22 @@
 <head>
   <script src="kinet-spotlight.js" defer></script>
   <link rel="stylesheet" href="kinet-motion.css">
-  <style>
-  @media screen and (max-width: 768px) {
-    body {
-      align-items: flex-start !important;
-      padding: 8px !important;
-    }
-    .relative.w-full.max-w-4xl {
-      width: 100% !important;
-      max-width: 100% !important;
-      min-height: auto !important;
-      max-height: none !important;
-      border-radius: 20px !important;
-      padding: 16px !important;
-      margin-top: 10px;
-      margin-bottom: 10px;
-    }
-    .grid {
-      gap: 8px !important;
-    }
-    .glass-card {
-      padding: 12px !important;
-    }
-  }
-</style>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>KINET OS - Multi-Sport Precision Calibration</title>
   
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%2300FF66%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%23000%22>K</text></svg>">
 
+  <!-- Supabase + KINET Backend + Configuración de APIs -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="kinet-backend.js"></script>
+  <script src="kinet-api-config.js"></script>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
   <script>
     tailwind.config = {
@@ -54,21 +35,54 @@
           fontFamily: {
             sans: ['Inter', 'sans-serif'],
             display: ['Orbitron', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
           }
         }
       }
     }
   </script>
+
   <style>
+    * {
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+    *::-webkit-scrollbar {
+      width: 0 !important;
+      height: 0 !important;
+      display: none !important;
+    }
+    @media screen and (max-width: 768px) {
+      body {
+        align-items: flex-start !important;
+        padding: 8px !important;
+      }
+      .relative.w-full.max-w-4xl {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: auto !important;
+        max-height: none !important;
+        border-radius: 20px !important;
+        padding: 16px !important;
+        margin-top: 10px;
+        margin-bottom: 10px;
+      }
+      .grid {
+        gap: 8px !important;
+      }
+      .glass-card {
+        padding: 12px !important;
+      }
+    }
     .bg-cyber-pattern {
       background-color: #080A0C;
-      background-image: radial-gradient(circle at 50% 0%, rgba(0, 255, 102, 0.08) 0%, transparent 60%);
+      background-image: radial-gradient(circle at 50% 0%, rgba(0, 255, 102, 0.09) 0%, transparent 60%);
     }
     .glass-card {
       background: rgba(14, 18, 24, 0.9);
       backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      transition: all 0.3s ease;
+      transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .glass-card:hover {
       border-color: rgba(0, 255, 102, 0.4);
@@ -77,8 +91,8 @@
     }
     .glass-card.selected {
       border-color: #00FF66 !important;
-      box-shadow: 0 0 20px rgba(0, 255, 102, 0.2);
-      background: rgba(0, 255, 102, 0.03);
+      box-shadow: 0 0 22px rgba(0, 255, 102, 0.24);
+      background: rgba(0, 255, 102, 0.05);
     }
     .logo-glow {
       transition: all 0.3s ease;
@@ -87,36 +101,67 @@
       filter: drop-shadow(0 0 12px rgba(0, 255, 102, 0.65));
       transform: scale(1.02);
     }
+
+    /* ESCENARIOS TÁCTICOS CON LÍNEAS REGLAMENTARIAS */
     .pitch-futbol {
-      background: radial-gradient(circle, rgba(0, 255, 102, 0.15) 0%, rgba(10, 14, 18, 0.95) 80%),
-                  linear-gradient(to bottom, #0d1a12, #080d0a);
-      border: 2px solid rgba(0, 255, 102, 0.3);
+      background:
+        radial-gradient(circle at 50% 50%, rgba(0, 255, 102, 0.14) 0%, rgba(6, 14, 10, 0.96) 78%),
+        repeating-linear-gradient(0deg, rgba(0, 255, 102, 0.025) 0px, rgba(0, 255, 102, 0.025) 24px, transparent 24px, transparent 48px),
+        linear-gradient(to bottom, #0b1911, #060c09);
+      border: 2px solid rgba(0, 255, 102, 0.42);
+      box-shadow: inset 0 0 40px rgba(0, 255, 102, 0.08);
     }
     .pitch-basket {
-      background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, rgba(18, 12, 8, 0.95) 80%),
-                  linear-gradient(to bottom, #1c130b, #0d0905);
-      border: 2px solid rgba(245, 158, 11, 0.4);
+      background:
+        radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.16) 0%, rgba(18, 12, 7, 0.96) 80%),
+        linear-gradient(to bottom, #1c1209, #0c0804);
+      border: 2px solid rgba(245, 158, 11, 0.48);
+      box-shadow: inset 0 0 40px rgba(245, 158, 11, 0.08);
     }
     .pitch-padel {
-      background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(8, 12, 18, 0.95) 80%),
-                  linear-gradient(to bottom, #0a1322, #050a12);
-      border: 2px solid rgba(59, 130, 246, 0.4);
+      background:
+        radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.18) 0%, rgba(7, 13, 24, 0.96) 80%),
+        linear-gradient(to bottom, #091526, #050a12);
+      border: 2px solid rgba(59, 130, 246, 0.48);
+      box-shadow: inset 0 0 40px rgba(59, 130, 246, 0.1);
     }
     .pitch-boxeo {
-      background: radial-gradient(circle, rgba(239, 68, 68, 0.15) 0%, rgba(18, 8, 8, 0.95) 80%),
-                  linear-gradient(to bottom, #220a0a, #100404);
-      border: 2px solid rgba(239, 68, 68, 0.4);
+      background:
+        radial-gradient(circle at 50% 50%, rgba(239, 68, 68, 0.18) 0%, rgba(20, 8, 8, 0.96) 80%),
+        linear-gradient(to bottom, #220909, #0e0404);
+      border: 2px solid rgba(239, 68, 68, 0.48);
     }
     .pitch-running {
-      background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, rgba(14, 8, 18, 0.95) 80%),
-                  linear-gradient(to bottom, #190a22, #0a0410);
-      border: 2px solid rgba(168, 85, 247, 0.4);
+      background:
+        radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.18) 0%, rgba(14, 8, 20, 0.96) 80%),
+        linear-gradient(to bottom, #190a22, #09040e);
+      border: 2px solid rgba(168, 85, 247, 0.48);
     }
     .pitch-custom {
-      background: radial-gradient(circle, rgba(0, 255, 102, 0.1) 0%, rgba(10, 14, 18, 0.98) 80%),
-                  linear-gradient(to bottom, #121815, #080a0c);
+      background:
+        radial-gradient(circle, rgba(0, 255, 102, 0.1) 0%, rgba(10, 14, 18, 0.98) 80%),
+        linear-gradient(to bottom, #121815, #080a0c);
       border: 2px dashed rgba(0, 255, 102, 0.4);
     }
+
+    .pitch-node-btn {
+      position: relative;
+      z-index: 10;
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      backdrop-filter: blur(8px);
+    }
+    .pitch-node-btn:hover {
+      transform: translateY(-2px) scale(1.05);
+    }
+    .pitch-node-btn.active-node {
+      background: #00FF66 !important;
+      color: #04060A !important;
+      border-color: #FFFFFF !important;
+      box-shadow: 0 0 22px rgba(0, 255, 102, 0.75) !important;
+      font-weight: 900 !important;
+      transform: scale(1.07);
+    }
+
     input[type=range] {
       -webkit-appearance: none;
       background: #181C22;
@@ -133,12 +178,40 @@
       box-shadow: 0 0 12px rgba(0, 255, 102, 0.8);
       cursor: pointer;
     }
+
+    /* ANIMACIÓN SORPRESA REVEAL HOLOGRÁFICO AL TERMINAR EL ONBOARDING */
+    @keyframes revealPulseGlow {
+      0%, 100% { box-shadow: 0 0 35px rgba(0, 255, 102, 0.35), inset 0 0 25px rgba(0, 255, 102, 0.15); transform: scale(1); }
+      50% { box-shadow: 0 0 65px rgba(0, 255, 102, 0.7), inset 0 0 35px rgba(0, 255, 102, 0.3); transform: scale(1.02); }
+    }
+    @keyframes revealScanBeam {
+      0% { top: -10%; opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { top: 105%; opacity: 0; }
+    }
+    .kinet-reveal-card {
+      animation: revealPulseGlow 2.4s infinite ease-in-out;
+      position: relative;
+      overflow: hidden;
+    }
+    .kinet-reveal-beam {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #00FF66, #FFFFFF, #00FF66, transparent);
+      box-shadow: 0 0 18px #00FF66;
+      animation: revealScanBeam 1.8s infinite linear;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body class="bg-cyber-pattern text-slate-100 font-sans min-h-screen flex items-center justify-center p-4">
 
   <div class="relative w-full max-w-4xl card-liquid-transition bg-[#090B0E] rounded-[32px] border border-slate-800/80 shadow-[0_0_90px_rgba(0,0,0,0.9)] p-6 md:p-8 space-y-6">
     
+    <!-- CABECERA -->
     <div class="flex items-center justify-between border-b border-slate-800/80 pb-4">
       <div class="flex items-center space-x-3 logo-glow cursor-pointer" onclick="cambiarPagina(event, 'fase1.html')">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-kinet-neon to-emerald-600 font-display font-black text-black text-lg flex items-center justify-center shadow-[0_0_15px_rgba(0,255,102,0.4)]">
@@ -162,7 +235,7 @@
       <div class="flex justify-between items-center">
         <div class="space-y-1">
           <h2 class="font-display font-bold text-lg md:text-xl text-white tracking-wide">1. SELECCIONA TU DEPORTE</h2>
-          <p class="text-xs text-slate-400">La interfaz adaptará la categoría, el terreno y la táctica.</p>
+          <p class="text-xs text-slate-400">La interfaz adaptará la categoría, el terreno 3D, el laboratorio y tu Cuerpo Técnico IA.</p>
         </div>
         <button onclick="cambiarPagina(event, 'fase1.html')" class="flex items-center space-x-1.5 bg-[#12161C] hover:bg-slate-800 border border-slate-700/80 px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-300 transition">
           <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
@@ -175,49 +248,49 @@
           <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-xl">⚽</div>
           <div class="space-y-0.5">
             <h3 class="font-display font-bold text-xs text-white">Fútbol</h3>
-            <p class="text-[10px] text-slate-400">Campo 11 y césped natural/artificial.</p>
+            <p class="text-[10px] text-slate-400">Campo 11, táctica y césped natural/artificial.</p>
           </div>
         </div>
         <div onclick="selectSport('Baloncesto')" id="sport-baloncesto" class="glass-card p-5 rounded-2xl cursor-pointer space-y-3">
           <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-xl">🏀</div>
           <div class="space-y-0.5">
             <h3 class="font-display font-bold text-xs text-white">Baloncesto</h3>
-            <p class="text-[10px] text-slate-400">Pista cubierta y alta intensidad.</p>
+            <p class="text-[10px] text-slate-400">Pista FIBA/NBA 5vs5 y 3x3 de alta intensidad.</p>
           </div>
         </div>
         <div onclick="selectSport('Pádel / Tenis')" id="sport-padel" class="glass-card p-5 rounded-2xl cursor-pointer space-y-3">
           <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-xl">🎾</div>
           <div class="space-y-0.5">
             <h3 class="font-display font-bold text-xs text-white">Pádel / Tenis</h3>
-            <p class="text-[10px] text-slate-400">Pista de vidrio y moqueta.</p>
+            <p class="text-[10px] text-slate-400">20x10m cristal/moqueta y pista rápida/tierra.</p>
           </div>
         </div>
         <div onclick="selectSport('Boxeo / MMA')" id="sport-boxeo" class="glass-card p-5 rounded-2xl cursor-pointer space-y-3">
           <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-xl">🥊</div>
           <div class="space-y-0.5">
             <h3 class="font-display font-bold text-xs text-white">Boxeo / MMA</h3>
-            <p class="text-[10px] text-slate-400">Ring, jaula y preparación de combate.</p>
+            <p class="text-[10px] text-slate-400">Ring, octágono, striking y campamento de combate.</p>
           </div>
         </div>
         <div onclick="selectSport('Running')" id="sport-running" class="glass-card p-5 rounded-2xl cursor-pointer space-y-3">
           <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-xl">🏃</div>
           <div class="space-y-0.5">
             <h3 class="font-display font-bold text-xs text-white">Running / Atletismo</h3>
-            <p class="text-[10px] text-slate-400">Asfalto, pista y resistencia.</p>
+            <p class="text-[10px] text-slate-400">Pista de tartán, ruta 10K/Maratón y Trail.</p>
           </div>
         </div>
         <div onclick="selectSport('Otros Deportes')" id="sport-otros" class="glass-card p-5 rounded-2xl cursor-pointer space-y-3">
           <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-xl">🥇</div>
           <div class="space-y-0.5">
             <h3 class="font-display font-bold text-xs text-white">Otros Deportes</h3>
-            <p class="text-[10px] text-slate-400">Multidisciplina y personalización.</p>
+            <p class="text-[10px] text-slate-400">Multidisciplina y calibración específica.</p>
           </div>
         </div>
       </div>
 
       <div>
         <button onclick="nextStep(3)" class="w-full py-4 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(0,255,102,0.25)] text-center">
-          CONTINUAR A CATEGORÍA
+          CONTINUAR A CATEGORÍA →
         </button>
       </div>
     </div>
@@ -227,7 +300,7 @@
       <div class="flex justify-between items-center">
         <div class="space-y-1">
           <h2 id="cat-title" class="font-display font-bold text-lg md:text-xl text-white tracking-wide">2. NIVEL DE COMPETICIÓN</h2>
-          <p class="text-xs text-slate-400">Categorías adaptadas a tu disciplina deportiva.</p>
+          <p class="text-xs text-slate-400">Selecciona tu categoría actual (se guardará en tu Pasaporte Deportivo).</p>
         </div>
         <button onclick="nextStep(2)" class="flex items-center space-x-1.5 bg-[#12161C] hover:bg-slate-800 border border-slate-700/80 px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-300 transition">
           <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
@@ -239,17 +312,17 @@
 
       <div>
         <button onclick="nextStep(4)" class="w-full py-4 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(0,255,102,0.25)] text-center">
-          CONTINUAR A POSICIÓN / TÁCTICA
+          CONTINUAR A POSICIÓN / TÁCTICA →
         </button>
       </div>
     </div>
 
     <!-- PASO 3: CANCHA / POSICIÓN ESPECÍFICA -->
-    <div id="step-4" class="space-y-6 hidden">
+    <div id="step-4" class="space-y-5 hidden">
       <div class="flex justify-between items-center">
         <div class="space-y-1">
           <h2 id="pitch-title" class="font-display font-bold text-lg md:text-xl text-white tracking-wide">3. POSICIÓN & TÁCTICA</h2>
-          <p id="pitch-subtitle" class="text-xs text-slate-400">Selecciona tu rol o demarcación específica.</p>
+          <p id="pitch-subtitle" class="text-xs text-slate-400">Toca tu demarcación en la pista y elige abajo tu rol específico.</p>
         </div>
         <button onclick="nextStep(3)" class="flex items-center space-x-1.5 bg-[#12161C] hover:bg-slate-800 border border-slate-700/80 px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-300 transition">
           <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
@@ -257,27 +330,29 @@
         </button>
       </div>
 
-      <div id="pitch-container" class="relative w-full h-[240px] pitch-futbol rounded-2xl p-4 flex flex-col justify-between overflow-hidden"></div>
+      <div id="pitch-container" class="relative w-full h-[255px] pitch-futbol rounded-2xl p-4 flex flex-col justify-between overflow-hidden"></div>
 
       <div id="sub-position-box" class="glass-card p-4 rounded-2xl border border-kinet-neon/40 space-y-2">
-        <p class="text-[10px] font-mono text-kinet-neon uppercase">Especialidad seleccionada:</p>
-        <p id="selected-pos-display" class="font-display font-bold text-xs text-white">Selecciona una posición arriba</p>
+        <div class="flex justify-between items-center flex-wrap gap-2">
+          <p class="text-[10px] font-mono text-kinet-neon uppercase">Demarcación Oficial Sincronizada con Perfil:</p>
+          <span id="selected-pos-display" class="font-display font-bold text-xs text-white bg-kinet-neon/15 border border-kinet-neon/40 px-2.5 py-0.5 rounded-lg">Delantero Centro / Nueve (DC)</span>
+        </div>
         <div id="sub-position-options" class="flex flex-wrap gap-2 pt-1"></div>
       </div>
 
       <div>
         <button onclick="nextStep(5)" class="w-full py-4 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(0,255,102,0.25)] text-center">
-          CONTINUAR A DATOS FÍSICOS
+          CONTINUAR A PARÁMETROS BIOMÉTRICOS →
         </button>
       </div>
     </div>
 
-    <!-- PASO 4: BIOMETRÍA -->
-    <div id="step-5" class="space-y-6 hidden">
+    <!-- PASO 4: BIOMETRÍA SEPARADA (ALTURA, PESO, EDAD/FECHA Y LATERALIDAD) -->
+    <div id="step-5" class="space-y-5 hidden">
       <div class="flex justify-between items-center">
         <div class="space-y-1">
           <h2 class="font-display font-bold text-lg md:text-xl text-white tracking-wide">4. PARÁMETROS BIOMÉTRICOS</h2>
-          <p class="text-xs text-slate-400">Ajusta las líneas con tus métricas reales.</p>
+          <p class="text-xs text-slate-400">Estos valores se guardan directamente en las casillas separadas de tu Perfil y CV PDF.</p>
         </div>
         <button onclick="nextStep(4)" class="flex items-center space-x-1.5 bg-[#12161C] hover:bg-slate-800 border border-slate-700/80 px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-300 transition">
           <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
@@ -285,94 +360,130 @@
         </button>
       </div>
 
-      <div class="space-y-4">
-        <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-2">
+      <div class="space-y-3.5">
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2">
           <div class="flex justify-between items-center">
-            <span class="text-xs font-mono text-slate-300 uppercase">Altura</span>
+            <span class="text-xs font-mono text-slate-300 uppercase">📏 Altura (Estatura)</span>
             <span id="val-altura" class="font-display font-bold text-xs text-kinet-neon">178 cm</span>
           </div>
-          <input type="range" id="slider-altura" min="100" max="220" value="178" oninput="document.getElementById('val-altura').textContent = this.value + ' cm'" class="w-full">
+          <input type="range" id="slider-altura" min="120" max="220" value="178" oninput="document.getElementById('val-altura').textContent = this.value + ' cm'" class="w-full">
         </div>
 
-        <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-2">
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2">
           <div class="flex justify-between items-center">
-            <span class="text-xs font-mono text-slate-300 uppercase">Peso Corporal (Báscula)</span>
+            <span class="text-xs font-mono text-slate-300 uppercase">⚖️ Peso Corporal (Báscula)</span>
             <div class="px-3 py-1 rounded-lg bg-slate-900 border border-kinet-neon/40 text-kinet-neon font-display font-bold text-xs flex items-center space-x-1.5">
               <i data-lucide="scale" class="w-3.5 h-3.5"></i>
               <span id="val-peso">72.5 kg</span>
             </div>
           </div>
-          <input type="range" id="slider-peso" min="40" max="140" step="0.5" value="72.5" oninput="document.getElementById('val-peso').textContent = this.value + ' kg'" class="w-full">
+          <input type="range" id="slider-peso" min="35" max="140" step="0.5" value="72.5" oninput="document.getElementById('val-peso').textContent = this.value + ' kg'" class="w-full">
         </div>
 
-        <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-2">
-          <div class="flex justify-between items-center">
-            <span class="text-xs font-mono text-slate-300 uppercase">Edad</span>
-            <span id="val-edad" class="font-display font-bold text-xs text-kinet-neon">22 años</span>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-mono text-slate-300 uppercase">🎂 Edad / Fecha Nac.</span>
+              <span id="val-edad" class="font-display font-bold text-xs text-kinet-neon">22 años</span>
+            </div>
+            <input type="range" id="slider-edad" min="8" max="65" value="22" oninput="syncAgeSliderWithDate(this.value)" class="w-full">
+            <div class="pt-1 flex items-center justify-between gap-2">
+              <span class="text-[10px] font-mono text-slate-400">Fecha exacta (opcional):</span>
+              <input type="date" id="onboarding-birthdate-input" onchange="syncDateWithAgeSlider(this.value)" class="bg-[#12161C] border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-kinet-neon">
+            </div>
           </div>
-          <input type="range" id="slider-edad" min="10" max="65" value="22" oninput="document.getElementById('val-edad').textContent = this.value + ' años'" class="w-full">
+
+          <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2 flex flex-col justify-between">
+            <div class="flex justify-between items-center">
+              <span id="onboarding-lat-label" class="text-xs font-mono text-slate-300 uppercase">🦶 Pierna Hábil / Guardia</span>
+              <span id="val-laterality" class="font-display font-bold text-[11px] text-kinet-neon">Diestro</span>
+            </div>
+            <div id="onboarding-laterality-pills" class="flex flex-wrap gap-1.5 pt-1">
+              <button type="button" onclick="selectOnboardingLaterality('Diestro', this)" class="px-3 py-1.5 rounded-xl bg-kinet-neon text-black font-bold text-xs">Diestro</button>
+              <button type="button" onclick="selectOnboardingLaterality('Zurdo', this)" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 text-xs hover:text-white">Zurdo</button>
+              <button type="button" onclick="selectOnboardingLaterality('Ambidiestro (2 Piernas)', this)" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 text-xs hover:text-white">Ambidiestro</button>
+            </div>
+          </div>
         </div>
       </div>
 
       <div>
         <button onclick="nextStep(6)" class="w-full py-4 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(0,255,102,0.25)] text-center">
-          CONTINUAR AL ASISTENTE IA
+          CONTINUAR AL ASISTENTE IA (PASO FINAL) →
         </button>
       </div>
     </div>
 
-    <!-- PASO 5: CHAT ASISTENTE IA -->
-    <div id="step-6" class="space-y-6 hidden">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+    <!-- PASO 5: CHAT CONVERSACIONAL CON IA PARA PERSONALIZAR VESTUARIO Y RELLENAR EL PERFIL -->
+    <div id="step-6" class="space-y-4 hidden">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
         <div class="flex items-center space-x-3">
-          <div class="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 flex items-center justify-center font-bold">
+          <div class="w-9 h-9 rounded-xl bg-kinet-neon/15 border border-kinet-neon/40 text-kinet-neon flex items-center justify-center font-bold">
             <i data-lucide="bot" class="w-5 h-5"></i>
           </div>
           <div>
-            <h2 class="font-display font-bold text-xs text-white">KINET AI COACH SETUP</h2>
-            <p class="text-[10px] text-slate-400">Personalización de tus agentes de entrenamiento</p>
+            <h2 class="font-display font-bold text-xs text-white">5. ENTREVISTA IA // PERSONALIZACIÓN DE VESTUARIO & PERFIL</h2>
+            <p class="text-[10px] text-slate-400">Lo que respondas rellenará automáticamente las casillas de tu Perfil y creará tu rutina en Vestuario.</p>
           </div>
         </div>
 
         <div class="flex items-center space-x-2">
-          <button onclick="nextStep(5)" class="flex items-center space-x-1.5 bg-[#12161C] hover:bg-slate-800 border border-slate-700/80 px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-300 transition">
+          <button onclick="nextStep(5)" class="flex items-center space-x-1.5 bg-[#12161C] hover:bg-slate-800 border border-slate-700/80 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-300 transition">
             <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
             <span>Atrás</span>
           </button>
-          <button onclick="skipAiSetup()" class="px-3.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold hover:bg-amber-500/20 transition">
+          <button onclick="skipAiSetup()" class="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold hover:bg-amber-500/20 transition">
             Saltar ⚡
           </button>
         </div>
       </div>
 
-      <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3 h-[200px] overflow-y-auto flex flex-col justify-between">
-        <div class="space-y-2.5" id="chat-messages-container">
-          <div class="flex items-start space-x-2.5">
-            <div class="w-6 h-6 rounded-lg bg-kinet-neon/20 text-kinet-neon flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
-              AI
-            </div>
-            <div id="ai-greeting-msg" class="bg-slate-900 border border-slate-800 p-3 rounded-2xl text-xs text-slate-200 leading-relaxed max-w-[88%]"></div>
+      <!-- VENTANA DE CHAT EN VIVO -->
+      <div class="glass-card p-4 rounded-2xl border border-slate-800 flex flex-col justify-between h-[265px]">
+        <div class="space-y-3 overflow-y-auto pr-1 flex-1" id="chat-messages-container"></div>
+
+        <!-- PÍLDORAS DE RESPUESTA RÁPIDA + INPUT -->
+        <div class="pt-2 border-t border-slate-800/80 space-y-2">
+          <div id="ai-quick-chips" class="flex flex-wrap gap-1.5"></div>
+          <div class="flex space-x-2">
+            <input type="text" id="ai-chat-input" onkeydown="if(event.key==='Enter'){event.preventDefault();sendAiResponse();}" placeholder="Ej: Juego en el Melilla CD, vivo en Melilla, nací en Tánger y quiero ganar explosividad..." class="flex-1 bg-[#12161C] border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+            <button type="button" id="btn-send-ai-chat" onclick="sendAiResponse()" class="px-4 py-2.5 rounded-xl bg-kinet-neon text-black font-display font-bold text-xs hover:bg-emerald-400 transition shrink-0">
+              Enviar →
+            </button>
           </div>
         </div>
+      </div>
 
-        <div class="flex space-x-2">
-          <input type="text" id="ai-chat-input" placeholder="Escribe tu respuesta para calibrar la IA..." class="flex-1 bg-[#12161C] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
-          <button onclick="sendAiResponse()" class="px-4 py-2 rounded-xl bg-kinet-neon text-black font-bold text-xs">
-            Enviar
-          </button>
+      <!-- RESUMEN EN VIVO DE CAMPOS DETECTADOS POR LA IA -->
+      <div id="ai-extracted-preview" class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] font-mono">
+        <div class="bg-[#12161C] border border-slate-800 rounded-xl p-2">
+          <span class="text-slate-500 block">🏟️ CLUB DETECTADO</span>
+          <strong id="prev-ai-club" class="text-white truncate block">Pendiente (o en Perfil)</strong>
+        </div>
+        <div class="bg-[#12161C] border border-slate-800 rounded-xl p-2">
+          <span class="text-slate-500 block">📍 CIUDAD ACTUAL</span>
+          <strong id="prev-ai-city" class="text-white truncate block">Pendiente (o en Perfil)</strong>
+        </div>
+        <div class="bg-[#12161C] border border-slate-800 rounded-xl p-2">
+          <span class="text-slate-500 block">🏠 CIUDAD NATAL</span>
+          <strong id="prev-ai-hometown" class="text-white truncate block">Pendiente (o en Perfil)</strong>
+        </div>
+        <div class="bg-[#12161C] border border-slate-800 rounded-xl p-2">
+          <span class="text-slate-500 block">⚡ FOCO VESTUARIO IA</span>
+          <strong id="prev-ai-goal" class="text-kinet-neon truncate block">Alto Rendimiento</strong>
         </div>
       </div>
 
       <div id="ai-incomplete-alert" class="hidden p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 flex justify-between items-center">
         <div class="flex items-center space-x-2">
           <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0"></i>
-          <span>Perfil al 70%. Se activará un aviso permanente en tu panel de control.</span>
+          <span>Has saltado la entrevista IA. Los campos no respondidos podrás completarlos cuando quieras en <strong>Mi Perfil</strong>.</span>
         </div>
       </div>
 
       <div>
-        <button onclick="finishOnboarding()" class="w-full py-4 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(0,255,102,0.25)] text-center">
-          FINALIZAR REGISTRO & ACTIVAR PERFIL
+        <button id="btn-finish-onboarding" onclick="finishOnboarding()" class="w-full py-4 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(0,255,102,0.25)] text-center">
+          FINALIZAR CALIBRACIÓN & LANZAR KINET OS 🚀
         </button>
       </div>
     </div>
@@ -383,6 +494,51 @@
 
   </div>
 
+  <!-- ========================================================================= -->
+  <!-- MODAL CINEMATOGRÁFICO SORPRESA: KINET PASSPORT & LOCKER ROOM REVEAL -->
+  <!-- ========================================================================= -->
+  <div id="kinet-surprise-reveal-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background: rgba(4, 6, 10, 0.96); backdrop-filter: blur(24px);">
+    <div class="kinet-reveal-card w-full max-w-lg bg-[#0B0F17] border-2 border-kinet-neon rounded-[28px] p-6 md:p-8 text-center space-y-5 relative">
+      <div class="kinet-reveal-beam"></div>
+
+      <div class="inline-flex items-center space-x-2 bg-kinet-neon/15 border border-kinet-neon/50 px-3.5 py-1 rounded-full text-[10px] font-mono text-kinet-neon font-bold uppercase tracking-widest">
+        <span>⚡ CALIBRACIÓN BIOMÉTRICA COMPLETADA</span>
+      </div>
+
+      <div class="space-y-1">
+        <h2 id="reveal-athlete-name" class="font-display font-black text-2xl text-white tracking-wider">ATLETA KINET</h2>
+        <p id="reveal-athlete-sub" class="text-xs font-mono text-kinet-neon">FÚTBOL • DELANTERO CENTRO / NUEVE (DC)</p>
+      </div>
+
+      <!-- TARJETA RESUMEN DE IDENTIDAD Y VESTUARIO GENERADO -->
+      <div class="grid grid-cols-3 gap-2.5 text-left font-mono">
+        <div class="bg-[#111722] border border-slate-800 rounded-xl p-3">
+          <span class="text-[9px] text-slate-400 block">BIOMETRÍA</span>
+          <strong id="reveal-bio-stat" class="text-xs text-white font-display">178cm • 72.5kg</strong>
+        </div>
+        <div class="bg-[#111722] border border-slate-800 rounded-xl p-3">
+          <span class="text-[9px] text-slate-400 block">LATERALIDAD</span>
+          <strong id="reveal-lat-stat" class="text-xs text-kinet-neon font-display">Diestro</strong>
+        </div>
+        <div class="bg-[#111722] border border-slate-800 rounded-xl p-3">
+          <span class="text-[9px] text-slate-400 block">CATEGORÍA</span>
+          <strong id="reveal-cat-stat" class="text-xs text-white font-display truncate block">Senior</strong>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 text-left space-y-1.5">
+        <div class="text-[10px] font-mono text-kinet-neon font-bold uppercase">🧠 DIRECTIVA IA GENERADA PARA TU VESTUARIO HOY:</div>
+        <p id="reveal-ai-directive" class="text-xs text-slate-300 leading-relaxed"></p>
+      </div>
+
+      <div class="pt-1">
+        <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800">
+          <div id="reveal-progress-bar" class="bg-kinet-neon h-full transition-all duration-1000" style="width: 15%;"></div>
+        </div>
+        <p id="reveal-status-txt" class="text-[10px] font-mono text-slate-400 mt-2">Sincronizando Pasaporte con Vestuario, Pizarra 3D y Cuerpo Técnico IA...</p>
+      </div>
+    </div>
+  </div>
   <script>
     lucide.createIcons();
 
@@ -391,27 +547,57 @@
       sport: 'Fútbol',
       customSportName: '',
       category: 'Profesional High-Performance',
-      position: 'Delantero Centro (DC Standard)',
+      position: 'Delantero Centro / Nueve (DC)',
       altura: '178',
       peso: '72.5',
       edad: '22',
-      aiCompleted: true
+      birthdate: '',
+      laterality: 'Diestro',
+      aiCompleted: false,
+      chatStepIndex: 0,
+      chatHistory: [],
+      extracted: {
+        motivation: '',
+        club: '',
+        city: '',
+        hometown: '',
+        strength: '',
+        weakness: '',
+        trainingDays: [1, 3, 5], // Lunes, Miércoles, Viernes por defecto hasta que responda
+        gymDays: [2, 4],         // Martes, Jueves
+        matchDay: 6,            // Sábado (6) o Domingo (0)
+        restDays: [0],
+        rawScheduleText: '',
+        injuryHistory: '',
+        sleepHours: '7.5',
+        seasonGoal: '',
+        transfermarktUrl: '',
+        videoUrl: ''
+      }
+    };
+
+    const SPORT_LATERALITY_OPTIONS = {
+      'Fútbol': { label: '🦶 Pierna Hábil', opts: ['Diestro', 'Zurdo', 'Ambidiestro (2 Piernas)', 'Diestro (Maneja Zurda)'] },
+      'Baloncesto': { label: '✋ Mano de Tiro', opts: ['Diestro', 'Zurdo', 'Ambidiestro en Finalización'] },
+      'Pádel / Tenis': { label: '✋ Mano y Revés', opts: ['Diestro (Revés a 2 Manos)', 'Diestro (Revés a 1 Mano)', 'Zurdo (Bandera / Sombra)'] },
+      'Boxeo / MMA': { label: '🛡️ Guardia de Combate', opts: ['Guardia Ortodoxa (Diestro)', 'Guardia Zurda (Southpaw)', 'Ambidiestro (Switch-Hitter)'] },
+      'Running': { label: '👟 Tipo de Pisada', opts: ['Pisada Neutra (Mediopié)', 'Pisada Neutra (Antepié)', 'Ligero Pronador'] },
+      'Otros Deportes': { label: '⚡ Lateralidad', opts: ['Diestro', 'Zurdo', 'Ambidiestro'] }
     };
 
     window.addEventListener('DOMContentLoaded', () => {
       renderCategories();
       renderSportPitch();
+      updateLateralitySelectorBySport();
     });
 
     function cambiarPagina(event, urlDestino) {
       if (event) event.preventDefault();
       const contenedor = document.querySelector('.card-liquid-transition');
-      if (contenedor) {
-        contenedor.classList.add('page-exit');
-      }
+      if (contenedor) contenedor.classList.add('page-exit');
       setTimeout(() => {
         window.location.href = urlDestino;
-      }, 250); 
+      }, 240);
     }
 
     function nextStep(stepNum) {
@@ -436,7 +622,7 @@
 
       if (stepNum === 3) renderCategories();
       else if (stepNum === 4) renderSportPitch();
-      else if (stepNum === 5 && typeof configureAgeAndBudgetScales === 'function') configureAgeAndBudgetScales();
+      else if (stepNum === 5) updateLateralitySelectorBySport();
       else if (stepNum === 6) setupAiChatGreeting();
     }
 
@@ -444,7 +630,59 @@
       state.sport = val;
       document.querySelectorAll('[id^="sport-"]').forEach(el => el.className = "glass-card p-5 rounded-2xl cursor-pointer space-y-3");
       const map = { 'Fútbol': 'futbol', 'Baloncesto': 'baloncesto', 'Pádel / Tenis': 'padel', 'Boxeo / MMA': 'boxeo', 'Running': 'running', 'Otros Deportes': 'otros' };
-      if (map[val]) document.getElementById('sport-' + map[val]).className = "glass-card p-5 rounded-2xl cursor-pointer space-y-3 border-2 border-kinet-neon bg-kinet-neon/5";
+      if (map[val]) document.getElementById('sport-' + map[val]).className = "glass-card selected p-5 rounded-2xl cursor-pointer space-y-3 bg-kinet-neon/5";
+    }
+
+    function updateLateralitySelectorBySport() {
+      const cfg = SPORT_LATERALITY_OPTIONS[state.sport] || SPORT_LATERALITY_OPTIONS['Fútbol'];
+      const lblEl = document.getElementById('onboarding-lat-label');
+      const pillsBox = document.getElementById('onboarding-laterality-pills');
+      if (lblEl) lblEl.textContent = cfg.label;
+      if (!pillsBox) return;
+
+      if (!cfg.opts.includes(state.laterality)) {
+        state.laterality = cfg.opts[0];
+      }
+      document.getElementById('val-laterality').textContent = state.laterality;
+
+      pillsBox.innerHTML = cfg.opts.map((opt) => {
+        const active = opt === state.laterality;
+        return `<button type="button" onclick="selectOnboardingLaterality('${opt.replace(/'/g, "\\'")}', this)" class="${active ? 'px-3 py-1.5 rounded-xl bg-kinet-neon text-black font-bold text-xs' : 'px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 text-xs hover:text-white'}">${opt}</button>`;
+      }).join('');
+    }
+
+    function selectOnboardingLaterality(val, btnEl) {
+      state.laterality = val;
+      const disp = document.getElementById('val-laterality');
+      if (disp) disp.textContent = val;
+      const parent = document.getElementById('onboarding-laterality-pills');
+      if (parent) {
+        Array.from(parent.children).forEach(b => {
+          b.className = "px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 text-xs hover:text-white";
+        });
+      }
+      if (btnEl) btnEl.className = "px-3 py-1.5 rounded-xl bg-kinet-neon text-black font-bold text-xs";
+    }
+
+    function syncAgeSliderWithDate(ageVal) {
+      state.edad = String(ageVal);
+      document.getElementById('val-edad').textContent = `${ageVal} años`;
+    }
+
+    function syncDateWithAgeSlider(dateStr) {
+      if (!dateStr) return;
+      state.birthdate = dateStr;
+      const b = new Date(dateStr);
+      if (isNaN(b.getTime())) return;
+      const today = new Date();
+      let age = today.getFullYear() - b.getFullYear();
+      const m = today.getMonth() - b.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < b.getDate())) age--;
+      if (age >= 8 && age <= 65) {
+        state.edad = String(age);
+        document.getElementById('slider-edad').value = age;
+        document.getElementById('val-edad').textContent = `${age} años`;
+      }
     }
 
     function renderCategories() {
@@ -454,47 +692,39 @@
 
       if (sport === 'Boxeo / MMA') {
         catData = [
-          { icon: '🥊', title: 'Local / Gimnasio (Sparring)', desc: 'Entrenamientos e interclubes.' },
-          { icon: '🥉', title: 'Regional / Veladas Autonómicas', desc: 'Veladas de boxeo amateur oficial.' },
-          { icon: '🥈', title: 'Nacional (Campeonatos)', desc: 'Torneos de federación nacional.' },
-          { icon: '🥇', title: 'Internacional / Profesional', desc: 'Rankings mundiales (WBC, WBA, UFC).' }
+          { icon: '🥊', title: 'Local / Gimnasio (Sparring)', desc: 'Entrenamientos técnicos e interclubes.' },
+          { icon: '🥉', title: 'Regional / Veladas Autonómicas', desc: 'Veladas de boxeo o MMA amateur oficial.' },
+          { icon: '🥈', title: 'Nacional (Campeonatos FEBoxeo)', desc: 'Torneos oficiales de federación nacional.' },
+          { icon: '🥇', title: 'Internacional / Profesional', desc: 'Rankings profesionales (WBC, WBA, UFC).' }
         ];
       } else if (sport === 'Pádel / Tenis') {
         catData = [
-          { icon: '⚡', title: 'Social / Aficionado', desc: 'Partidos de club, pozos y torneos.' },
-          { icon: '🥉', title: 'Ligas Locales / Federado 3ª-2ª', desc: 'Ligas locales y torneos autonómicos.' },
-          { icon: '🥈', title: 'Nacional / Federado 1ª', desc: 'Absolutos y pruebas oficiales.' },
-          { icon: '🥇', title: 'Circuito Internacional', desc: 'Premier Padel, ATP, WTA.' }
+          { icon: '⚡', title: 'Social / Club (4ª - 3ª Categoría)', desc: 'Partidos de club, ligas sociales y pozos.' },
+          { icon: '🥉', title: 'Federado Autonómico (2ª Categoría)', desc: 'Ligas regionales y torneos absolutos.' },
+          { icon: '🥈', title: 'Nacional / 1ª Categoría Absoluta', desc: 'Cuadros principales y pruebas nacionales.' },
+          { icon: '🥇', title: 'Circuito Internacional (FIP / ATP)', desc: 'Premier Padel, FIP Tour, ITF, ATP/WTA.' }
         ];
       } else if (sport === 'Baloncesto') {
         catData = [
-          { icon: '⚡', title: 'Basket Social / Ligas 3x3', desc: 'Pachangas y ligas municipales.' },
-          { icon: '🌱', title: 'Cantera / Formación', desc: 'Minibasket a Junior federado.' },
-          { icon: '📜', title: 'Senior Autonómico', desc: 'Ligas regionales de la federación.' },
-          { icon: '🥇', title: 'Profesional High-Performance', desc: 'ACB, EuroLeague, NBA.' }
+          { icon: '⚡', title: 'Basket Social / Circuito 3x3', desc: 'Ligas municipales y torneos 3x3.' },
+          { icon: '🌱', title: 'Cantera / Junior Preferente-Autonómico', desc: 'Categorías de formación federadas.' },
+          { icon: '📜', title: 'Senior Nacional / Tercera FEB (EBA)', desc: 'Competición federada autonómica y nacional.' },
+          { icon: '🥇', title: 'Profesional Élite (ACB / FEB)', desc: 'Primera/Segunda FEB, Liga Endesa, EuroLeague.' }
         ];
       } else if (sport === 'Running') {
         catData = [
-          { icon: '🏃', title: 'Aficionado / Corredor Popular', desc: 'Entrenamientos libres y carreras populares.' },
-          { icon: '🥉', title: 'Amateur Competitivo', desc: 'Marcas personales preparadas con plan especifico.' },
-          { icon: '📜', title: 'Federado RFEA / Maratón', desc: 'Licencia oficial y campeonatos de España.' },
-          { icon: '🥇', title: 'Élite / Profesional', desc: 'Meeting internacional y Maratones World Majors.' }
-        ];
-      } else if (sport === 'Otros Deportes') {
-        catData = [
-          { icon: '📍', title: 'Local', desc: 'Competiciones locales e interclubes.' },
-          { icon: '🥈', title: 'Regional', desc: 'Campeonatos autonómicos y provinciales.' },
-          { icon: '🥇', title: 'Nacional', desc: 'Liga o torneos oficiales de ámbito estatal.' },
-          { icon: '🏆', title: 'Internacional', desc: 'Circuitos y representación internacional.' }
+          { icon: '🏃', title: 'Corredor Popular / 5K - 10K', desc: 'Carreras populares homologadas en ruta.' },
+          { icon: '🥉', title: 'Amateur Competitivo (Sub-40 / Media)', desc: 'Preparación específica por ritmos y series.' },
+          { icon: '📜', title: 'Federado RFEA / Maratoniano', desc: 'Licencia oficial en pista, cross o 42K.' },
+          { icon: '🥇', title: 'Élite / Internacional', desc: 'Meetings nacionales y World Marathon Majors.' }
         ];
       } else {
         catData = [
-          { icon: '⚡', title: 'Aficionado / Ligas de Barrio', desc: 'Partidos informales y torneos de ocio.' },
-          { icon: '🥉', title: 'Amateur Competitivo', desc: 'Entrenamiento constante.' },
-          { icon: '🌱', title: 'Cantera / Formación', desc: 'Deporte base y categorías juveniles.' },
-          { icon: '📜', title: 'Federado Senior', desc: 'Licencia oficial en divisiones regionales.' },
-          { icon: '🥈', title: 'Semiprofesional', desc: 'Estructura profesional con alta exigencia.' },
-          { icon: '🥇', title: 'Profesional High-Performance', desc: 'Máxima categoría nacional o internacional.' }
+          { icon: '⚡', title: 'Aficionado / Fútbol 7 & Barrio', desc: 'Ligas locales y torneos competitivos.' },
+          { icon: '🌱', title: 'Cantera / Juvenil División de Honor', desc: 'Cadete, Juvenil Nacional y División de Honor.' },
+          { icon: '📜', title: 'Senior Regional / Preferente', desc: 'Divisiones autonómicas federadas.' },
+          { icon: '🥈', title: 'Semiprofesional (3ª / 2ª RFEF)', desc: 'Competición nacional de alto rendimiento.' },
+          { icon: '🥇', title: 'Profesional Élite (1ª RFEF / LaLiga)', desc: 'Estructura profesional de máxima exigencia.' }
         ];
       }
 
@@ -504,13 +734,13 @@
       catData.forEach((item, index) => {
         const div = document.createElement('div');
         div.className = index === 0 
-          ? "glass-card p-4 rounded-2xl border-2 border-kinet-neon cursor-pointer transition bg-kinet-neon/5 flex items-center space-x-3.5"
+          ? "glass-card selected p-4 rounded-2xl border-2 border-kinet-neon cursor-pointer transition bg-kinet-neon/5 flex items-center space-x-3.5"
           : "glass-card p-4 rounded-2xl border-2 border-slate-800 cursor-pointer transition hover:border-slate-600 flex items-center space-x-3.5";
 
         div.onclick = () => {
           state.category = item.title;
           Array.from(container.children).forEach(c => c.className = "glass-card p-4 rounded-2xl border-2 border-slate-800 cursor-pointer transition hover:border-slate-600 flex items-center space-x-3.5");
-          div.className = "glass-card p-4 rounded-2xl border-2 border-kinet-neon cursor-pointer transition bg-kinet-neon/5 flex items-center space-x-3.5";
+          div.className = "glass-card selected p-4 rounded-2xl border-2 border-kinet-neon cursor-pointer transition bg-kinet-neon/5 flex items-center space-x-3.5";
         };
 
         div.innerHTML = `
@@ -534,180 +764,721 @@
       subBox.classList.remove('hidden');
 
       if (sport === 'Fútbol') {
-        title.textContent = "3. CAMPO DE FÚTBOL & POSICIONES";
-        subtitle.textContent = "Toca tu zona o especialidad en el terreno.";
-        container.className = "relative w-full h-[240px] pitch-futbol rounded-2xl p-4 flex flex-col justify-between overflow-hidden";
+        title.textContent = "3. CAMPO TÁCTICO DE FÚTBOL & DEMARCACIÓN";
+        subtitle.textContent = "Toca tu zona en el césped y elige tu rol exacto abajo.";
+        container.className = "relative w-full h-[255px] pitch-futbol rounded-2xl p-4 flex flex-col justify-between overflow-hidden";
         container.innerHTML = `
+          <svg class="absolute inset-0 w-full h-full pointer-events-none opacity-25" viewBox="0 0 400 250" preserveAspectRatio="none">
+            <rect x="10" y="8" width="380" height="234" fill="none" stroke="#00FF66" stroke-width="1.5"/>
+            <line x1="10" y1="125" x2="390" y2="125" stroke="#00FF66" stroke-width="1.2"/>
+            <circle cx="200" cy="125" r="32" fill="none" stroke="#00FF66" stroke-width="1.2"/>
+            <rect x="115" y="8" width="170" height="42" fill="none" stroke="#00FF66" stroke-width="1.2"/>
+            <rect x="115" y="200" width="170" height="42" fill="none" stroke="#00FF66" stroke-width="1.2"/>
+          </svg>
+
           <div class="flex justify-around items-center z-10">
-            <button onclick="setSubOptions('Delantero', ['Delantero Centro (DC)', 'Falso 9', 'Mediapunta (10)', 'Segundo Delantero'])" class="px-3 py-1.5 rounded-xl bg-emerald-500/20 border border-kinet-neon text-kinet-neon font-bold text-xs">DELANTERO</button>
+            <button type="button" onclick="activatePitchNode(this, ['Extremo Izquierdo (EI)', 'Segundo Delantero / Media Punta (SD)'])" class="pitch-node-btn px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-200 font-display font-bold text-[10px]">⚡ EXT. IZQ (EI)</button>
+            <button type="button" id="default-pitch-node" onclick="activatePitchNode(this, ['Delantero Centro / Nueve (DC)', 'Segundo Delantero / Media Punta (SD)'])" class="pitch-node-btn active-node px-4 py-1.5 rounded-xl bg-emerald-500/20 border border-kinet-neon text-kinet-neon font-display font-bold text-xs">🎯 DELANTERO (DC)</button>
+            <button type="button" onclick="activatePitchNode(this, ['Extremo Derecho (ED)', 'Segundo Delantero / Media Punta (SD)'])" class="pitch-node-btn px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-200 font-display font-bold text-[10px]">⚡ EXT. DER (ED)</button>
           </div>
           <div class="flex justify-around items-center z-10">
-            <button onclick="setSubOptions('Extremo Izquierdo', ['Extremo Puro', 'A Banda Cambiada'])" class="px-2.5 py-1 rounded-lg bg-slate-900/90 border border-slate-700 text-slate-200 text-[10px]">EXT. IZQ</button>
-            <button onclick="setSubOptions('Mediocentro', ['Pivote Defensivo (MCD)', 'Interior Creador (MC)', 'Mediapunta Ofensivo'])" class="px-3 py-1.5 rounded-xl bg-emerald-500/20 border border-kinet-neon text-kinet-neon font-bold text-xs">MEDIOCENTRO</button>
-            <button onclick="setSubOptions('Extremo Derecho', ['Extremo Puro', 'A Banda Cambiada'])" class="px-2.5 py-1 rounded-lg bg-slate-900/90 border border-slate-700 text-slate-200 text-[10px]">EXT. DER</button>
+            <button type="button" onclick="activatePitchNode(this, ['Mediapunta / Interior Ofensivo (MCO)', 'Mediocentro Organizador / Box-to-Box (MC)'])" class="pitch-node-btn px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-200 font-display font-bold text-[10px]">🧠 MEDIAPUNTA (MCO)</button>
+            <button type="button" onclick="activatePitchNode(this, ['Mediocentro Defensivo / Pivote (MCD)', 'Mediocentro Organizador / Box-to-Box (MC)'])" class="pitch-node-btn px-4 py-1.5 rounded-xl bg-slate-900/90 border border-kinet-neon/60 text-kinet-neon font-display font-bold text-xs">⚙️ MEDIOCENTRO (MC/MCD)</button>
           </div>
           <div class="flex justify-around items-center z-10">
-            <button onclick="setSubOptions('Lateral Izquierdo', ['Lateral Ofensivo', 'Defensivo'])" class="px-2 py-0.5 rounded bg-slate-900/90 border border-slate-700 text-slate-200 text-[9px]">LAT. IZQ</button>
-            <button onclick="setSubOptions('Defensa Central', ['Central Físico', 'Salida de Balón', 'Líbero'])" class="px-3 py-1.5 rounded-xl bg-emerald-500/20 border border-kinet-neon text-kinet-neon font-bold text-xs">DEFENSA CENTRAL</button>
-            <button onclick="setSubOptions('Lateral Derecho', ['Lateral Ofensivo', 'Defensivo'])" class="px-2 py-0.5 rounded bg-slate-900/90 border border-slate-700 text-slate-200 text-[9px]">LAT. DER</button>
+            <button type="button" onclick="activatePitchNode(this, ['Lateral Izquierdo / Carrilero (LI)'])" class="pitch-node-btn px-2.5 py-1 rounded-lg bg-slate-900/90 border border-slate-700 text-slate-200 font-display font-bold text-[10px]">🛡️ LAT. IZQ (LI)</button>
+            <button type="button" onclick="activatePitchNode(this, ['Defensa Central Derecho (DFC)', 'Defensa Central Izquierdo (DFC)'])" class="pitch-node-btn px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-kinet-neon/60 text-kinet-neon font-display font-bold text-xs">🧱 CENTRAL (DFC)</button>
+            <button type="button" onclick="activatePitchNode(this, ['Lateral Derecho / Carrilero (LD)'])" class="pitch-node-btn px-2.5 py-1 rounded-lg bg-slate-900/90 border border-slate-700 text-slate-200 font-display font-bold text-[10px]">🛡️ LAT. DER (LD)</button>
           </div>
           <div class="flex justify-center items-center z-10">
-            <button onclick="setSubOptions('Portero', ['Portero Bajo Palos', 'Portero-Líbero'])" class="px-2.5 py-1 rounded-lg bg-slate-900/90 border border-slate-700 text-amber-400 text-[10px]">PORTERO</button>
+            <button type="button" onclick="activatePitchNode(this, ['Portero (POR)'])" class="pitch-node-btn px-4 py-1 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-display font-bold text-[11px]">🧤 PORTERO (POR)</button>
           </div>
         `;
-        setSubOptions('Delantero', ['Delantero Centro (DC)', 'Falso 9', 'Mediapunta (10)', 'Segundo Delantero']);
+        setSubOptions(['Delantero Centro / Nueve (DC)', 'Segundo Delantero / Media Punta (SD)']);
 
       } else if (sport === 'Baloncesto') {
-        title.textContent = "3. CANCHA DE BALONCESTO & ROL TÁCTICO";
-        subtitle.textContent = "Selecciona tu demarcación en la pista.";
-        container.className = "relative w-full h-[240px] pitch-basket rounded-2xl p-4 flex flex-col justify-between overflow-hidden";
+        title.textContent = "3. CANCHA DE BALONCESTO & DEMARCACIÓN";
+        subtitle.textContent = "Selecciona tu posición oficial en pista.";
+        container.className = "relative w-full h-[255px] pitch-basket rounded-2xl p-4 flex flex-col justify-between overflow-hidden";
         container.innerHTML = `
-          <div class="flex justify-around items-center z-10 pt-1">
-            <button onclick="setSubOptions('Base (Point Guard)', ['Director de Juego', 'Base Anotador', 'Combo Guard'])" class="px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-bold text-xs">1. BASE (PG)</button>
-            <button onclick="setSubOptions('Escolta (Shooting Guard)', ['Tirador 3&D', 'Escolta Penetrador'])" class="px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-bold text-xs">2. ESCOLTA (SG)</button>
+          <svg class="absolute inset-0 w-full h-full pointer-events-none opacity-25" viewBox="0 0 400 250" preserveAspectRatio="none">
+            <rect x="10" y="8" width="380" height="234" fill="none" stroke="#F59E0B" stroke-width="1.5"/>
+            <path d="M 60 242 A 145 145 0 0 1 340 242" fill="none" stroke="#F59E0B" stroke-width="1.5"/>
+            <rect x="145" y="135" width="110" height="107" fill="none" stroke="#F59E0B" stroke-width="1.5"/>
+            <circle cx="200" cy="135" r="32" fill="none" stroke="#F59E0B" stroke-width="1.2"/>
+          </svg>
+          <div class="flex justify-around items-center z-10 pt-2">
+            <button type="button" onclick="activatePitchNode(this, ['Base Director / Playmaker (PG)', 'Especialista 3x3 Polivalente'])" class="pitch-node-btn active-node px-3.5 py-2 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-display font-bold text-xs">1. BASE (PG)</button>
+            <button type="button" onclick="activatePitchNode(this, ['Escolta Tirador / Combo Guard (SG)', 'Especialista 3x3 Polivalente'])" class="pitch-node-btn px-3.5 py-2 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-display font-bold text-xs">2. ESCOLTA (SG)</button>
           </div>
           <div class="flex justify-center items-center z-10">
-            <button onclick="setSubOptions('Alero (Small Forward)', ['Alero Versátil', '3&D Especialista'])" class="px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-bold text-xs">3. ALERO (SF)</button>
+            <button type="button" onclick="activatePitchNode(this, ['Alero Versátil / 3&D (SF)', 'Especialista 3x3 Polivalente'])" class="pitch-node-btn px-4 py-2 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-display font-bold text-xs">3. ALERO (SF)</button>
           </div>
-          <div class="flex justify-around items-center z-10 pb-1">
-            <button onclick="setSubOptions('Ala-Pívot (Power Forward)', ['Stretch-4', 'Poste Bajo Tradicional'])" class="px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-bold text-xs">4. ALA-PÍVOT (PF)</button>
-            <button onclick="setSubOptions('Pívot (Center)', ['Protector del Aro', 'Rim-Runner'])" class="px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-bold text-xs">5. PÍVOT (C)</button>
+          <div class="flex justify-around items-center z-10 pb-2">
+            <button type="button" onclick="activatePitchNode(this, ['Ala-Pívot Abierto / Stretch 4 (PF)'])" class="pitch-node-btn px-3.5 py-2 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-display font-bold text-xs">4. ALA-PÍVOT (PF)</button>
+            <button type="button" onclick="activatePitchNode(this, ['Pívot Interior / Protector de Aro (C)'])" class="pitch-node-btn px-3.5 py-2 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-display font-bold text-xs">5. PÍVOT (C)</button>
           </div>
         `;
-        setSubOptions('Base (Point Guard)', ['Director de Juego', 'Base Anotador', 'Combo Guard']);
+        setSubOptions(['Base Director / Playmaker (PG)', 'Especialista 3x3 Polivalente']);
 
       } else if (sport === 'Pádel / Tenis') {
-        title.textContent = "3. PISTA DE PÁDEL / TENIS & LADO";
-        subtitle.textContent = "Indica tu lado o estilo en la pista.";
-        container.className = "relative w-full h-[240px] pitch-padel rounded-2xl p-4 flex flex-col justify-around items-center overflow-hidden";
+        title.textContent = "3. PISTA DE PÁDEL / TENIS & LADO DE JUEGO";
+        subtitle.textContent = "Elige tu lado en el 20x10m o tu estilo de pista individual.";
+        container.className = "relative w-full h-[255px] pitch-padel rounded-2xl p-4 flex flex-col justify-around items-center overflow-hidden";
         container.innerHTML = `
+          <svg class="absolute inset-0 w-full h-full pointer-events-none opacity-25" viewBox="0 0 400 250" preserveAspectRatio="none">
+            <rect x="20" y="12" width="360" height="226" fill="none" stroke="#3B82F6" stroke-width="2"/>
+            <line x1="20" y1="125" x2="380" y2="125" stroke="#FFFFFF" stroke-width="2" stroke-dasharray="5,5"/>
+            <line x1="200" y1="45" x2="200" y2="205" stroke="#3B82F6" stroke-width="1.5"/>
+            <line x1="20" y1="45" x2="380" y2="45" stroke="#3B82F6" stroke-width="1.5"/>
+            <line x1="20" y1="205" x2="380" y2="205" stroke="#3B82F6" stroke-width="1.5"/>
+          </svg>
           <div class="flex justify-around w-full z-10">
-            <button onclick="setSubOptions('Jugador de Revés (Izquierda)', ['Rematador / Potencia', 'Creador de Juego', 'Agresivo de Red'])" class="px-4 py-2 rounded-xl bg-blue-500/20 border border-blue-400 text-blue-300 font-bold text-xs">REVÉS (LADO IZQUIERDO)</button>
-            <button onclick="setSubOptions('Jugador de Drive (Derecha)', ['Defensor / Táctico', 'Consistente', 'Muro de Contención'])" class="px-4 py-2 rounded-xl bg-blue-500/20 border border-blue-400 text-blue-300 font-bold text-xs">DRIVE (LADO DERECHO)</button>
+            <button type="button" onclick="activatePitchNode(this, ['Pádel: Jugador de Revés (Definición y Potencia)', 'Pádel: Polivalente Ambos Lados (Drive / Revés)'])" class="pitch-node-btn active-node px-4 py-2.5 rounded-xl bg-blue-500/20 border border-blue-400 text-blue-300 font-display font-bold text-xs">⚡ LADO REVÉS (IZQUIERDA)</button>
+            <button type="button" onclick="activatePitchNode(this, ['Pádel: Jugador de Drive (Construcción y Defensa)', 'Pádel: Polivalente Ambos Lados (Drive / Revés)'])" class="pitch-node-btn px-4 py-2.5 rounded-xl bg-blue-500/20 border border-blue-400 text-blue-300 font-display font-bold text-xs">🛡️ LADO DRIVE (DERECHA)</button>
           </div>
           <div class="z-10">
-            <button onclick="setSubOptions('Individuales / Polivalente', ['Fondo de Pista', 'Saque y Red', 'Jugador de Ataque'])" class="px-4 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-white font-bold text-xs">JUGADOR POLIVALENTE / TENIS SINGLE</button>
+            <button type="button" onclick="activatePitchNode(this, ['Tenis: Jugador Agresivo de Fondo de Pista', 'Tenis: Jugador de Toda la Pista (All-Court)', 'Tenis: Especialista en Saque y Red', 'Tenis: Contraatacante Defensivo'])" class="pitch-node-btn px-5 py-2 rounded-xl bg-slate-900/95 border border-blue-400/60 text-white font-display font-bold text-xs">🎾 TENIS INDIVIDUAL / ALL-COURT</button>
           </div>
         `;
-        setSubOptions('Jugador de Revés (Izquierda)', ['Rematador / Potencia', 'Creador de Juego', 'Agresivo de Red']);
+        setSubOptions(['Pádel: Jugador de Revés (Definición y Potencia)', 'Pádel: Polivalente Ambos Lados (Drive / Revés)']);
 
       } else if (sport === 'Boxeo / MMA') {
-        title.textContent = "3. RING & ESTILO DE COMBATE";
-        subtitle.textContent = "Define tu estrategia principal en el combate.";
-        container.className = "relative w-full h-[240px] pitch-boxeo rounded-2xl p-4 flex flex-col justify-around items-center overflow-hidden";
+        title.textContent = "3. RING / OCTÁGONO & ESTILO DE COMBATE";
+        subtitle.textContent = "Define tu arquetipo táctico principal en el combate.";
+        container.className = "relative w-full h-[255px] pitch-boxeo rounded-2xl p-4 flex flex-col justify-around items-center overflow-hidden";
         container.innerHTML = `
           <div class="grid grid-cols-2 gap-3 w-full z-10">
-            <button onclick="setSubOptions('Out-Boxer / Estilista', ['Control Distancia', 'Jab Constante'])" class="p-3 rounded-xl bg-red-500/20 border border-red-500 text-red-300 font-bold text-xs">OUT-BOXER (ESTILISTA)</button>
-            <button onclick="setSubOptions('Swarmer / In-Fighter', ['Presión Constante', 'Ganchos Cuerpo'])" class="p-3 rounded-xl bg-red-500/20 border border-red-500 text-red-300 font-bold text-xs">SWARMER (IN-FIGHTER)</button>
-            <button onclick="setSubOptions('Slugger / Puncher', ['Potencia KO', 'Contragolpeador Físico'])" class="p-3 rounded-xl bg-red-500/20 border border-red-500 text-red-300 font-bold text-xs">SLUGGER (PEGADOR)</button>
-            <button onclick="setSubOptions('Counter-Puncher / MMA', ['Reflejos & Esquiva', 'Anticipación', 'Grappling & Striking'])" class="p-3 rounded-xl bg-red-500/20 border border-red-500 text-red-300 font-bold text-xs">COUNTER-PUNCHER / LUCHA</button>
+            <button type="button" onclick="activatePitchNode(this, ['Boxeo: Estilista de Larga Distancia (Out-Boxer)', 'Boxeo: Contraatacante (Counter-Puncher)'])" class="pitch-node-btn active-node p-3.5 rounded-xl bg-red-500/20 border border-red-500 text-red-300 font-display font-bold text-xs">🥊 ESTILISTA / OUT-BOXER</button>
+            <button type="button" onclick="activatePitchNode(this, ['Boxeo: Fajador de Presión (Swarmer)', 'Boxeo: Pegador Técnico (Boxer-Puncher)'])" class="pitch-node-btn p-3.5 rounded-xl bg-red-500/20 border border-red-500 text-red-300 font-display font-bold text-xs">🔥 FAJADOR / PEGADOR KO</button>
+            <button type="button" onclick="activatePitchNode(this, ['MMA: Striker / Kickboxer / Muay Thai', 'MMA: Peleador Completo (Well-Rounded)'])" class="pitch-node-btn p-3.5 rounded-xl bg-red-500/20 border border-red-500 text-red-300 font-display font-bold text-xs">⚡ MMA STRIKER / MUAY THAI</button>
+            <button type="button" onclick="activatePitchNode(this, ['MMA: Wrestler / Grappler de Presión', 'MMA: Especialista BJJ / Sumisión'])" class="pitch-node-btn p-3.5 rounded-xl bg-red-500/20 border border-red-500 text-red-300 font-display font-bold text-xs">🤼 MMA WRESTLER / BJJ</button>
           </div>
         `;
-        setSubOptions('Out-Boxer / Estilista', ['Control Distancia', 'Jab Constante']);
+        setSubOptions(['Boxeo: Estilista de Larga Distancia (Out-Boxer)', 'Boxeo: Contraatacante (Counter-Puncher)']);
 
       } else if (sport === 'Running') {
-        title.textContent = "3. ESPECIALIDAD DE CARRERA";
-        subtitle.textContent = "Indica tu distancia o disciplina principal.";
-        container.className = "relative w-full h-[240px] pitch-running rounded-2xl p-4 flex flex-col justify-around items-center overflow-hidden";
+        title.textContent = "3. PISTA / RUTA & PRUEBA PRINCIPAL";
+        subtitle.textContent = "Selecciona tu distancia objetivo actual.";
+        container.className = "relative w-full h-[255px] pitch-running rounded-2xl p-4 flex flex-col justify-around items-center overflow-hidden";
         container.innerHTML = `
           <div class="grid grid-cols-2 gap-3 w-full z-10">
-            <button onclick="setSubOptions('Velocista (Sprinter)', ['100m - 200m', '400m Llanos / Vallas'])" class="p-3 rounded-xl bg-purple-500/20 border border-purple-400 text-purple-300 font-bold text-xs">VELOCIDAD (100m - 400m)</button>
-            <button onclick="setSubOptions('Medio Fondo', ['800m - 1500m', '3000m Obstáculos'])" class="p-3 rounded-xl bg-purple-500/20 border border-purple-400 text-purple-300 font-bold text-xs">MEDIO FONDO (800m - 1500m)</button>
-            <button onclick="setSubOptions('Fondo / Ruta', ['5k / 10k', 'Media Maratón', 'Maratón 42k'])" class="p-3 rounded-xl bg-purple-500/20 border border-purple-400 text-purple-300 font-bold text-xs">FONDO / MARATÓN</button>
-            <button onclick="setSubOptions('Trail / Montaña', ['Ultra Trail', 'Kilómetro Vertical'])" class="p-3 rounded-xl bg-purple-500/20 border border-purple-400 text-purple-300 font-bold text-xs">TRAIL RUNNING</button>
+            <button type="button" onclick="activatePitchNode(this, ['Velocista Pista (100m / 200m / 400m)', 'Medio Fondo en Pista (800m / 1500m)'])" class="pitch-node-btn active-node p-3.5 rounded-xl bg-purple-500/20 border border-purple-400 text-purple-300 font-display font-bold text-xs">⚡ VELOCIDAD & MEDIO FONDO</button>
+            <button type="button" onclick="activatePitchNode(this, ['Fondo en Ruta (5K / 10K Homologado)', 'Opositor / Pruebas Físicas (CNPn / Bomberos)'])" class="pitch-node-btn p-3.5 rounded-xl bg-purple-500/20 border border-purple-400 text-purple-300 font-display font-bold text-xs">🏃 RUTA 5K / 10K & OPOSICIÓN</button>
+            <button type="button" onclick="activatePitchNode(this, ['Especialista en Media Maratón (21K)', 'Maratoniano Oficial (42.195m)'])" class="pitch-node-btn p-3.5 rounded-xl bg-purple-500/20 border border-purple-400 text-purple-300 font-display font-bold text-xs">🏅 MEDIA MARATÓN & MARATÓN 42K</button>
+            <button type="button" onclick="activatePitchNode(this, ['Trail Running / Carreras por Montaña'])" class="pitch-node-btn p-3.5 rounded-xl bg-purple-500/20 border border-purple-400 text-purple-300 font-display font-bold text-xs">⛰️ TRAIL RUNNING / ULTRA</button>
           </div>
         `;
-        setSubOptions('Velocista (Sprinter)', ['100m - 200m', '400m Llanos / Vallas']);
+        setSubOptions(['Fondo en Ruta (5K / 10K Homologado)', 'Especialista en Media Maratón (21K)']);
 
       } else {
-        title.textContent = "3. IDENTIFICACIÓN DE TU DISCIPLINA";
-        subtitle.textContent = "Escribe tu especialidad exacta.";
+        title.textContent = "3. IDENTIFICACIÓN DE TU ESPECIALIDAD";
+        subtitle.textContent = "Escribe tu posición o prueba principal.";
         subBox.classList.add('hidden');
-        container.className = "relative w-full h-[240px] pitch-custom rounded-2xl p-4 flex flex-col justify-center items-center space-y-3 text-center overflow-hidden";
+        container.className = "relative w-full h-[255px] pitch-custom rounded-2xl p-4 flex flex-col justify-center items-center space-y-3 text-center overflow-hidden";
         container.innerHTML = `
           <div class="w-10 h-10 rounded-2xl bg-kinet-neon/10 border border-kinet-neon/30 text-kinet-neon flex items-center justify-center font-bold">
             <i data-lucide="trophy" class="w-5 h-5"></i>
           </div>
-          <div class="space-y-1">
-            <h3 class="font-display font-bold text-xs text-white">¿Cuál es tu posición o especialidad principal?</h3>
-          </div>
-          <input type="text" id="custom-sport-input" placeholder="Escribe aquí tu especialidad..." oninput="state.position = this.value" class="w-full max-w-sm bg-[#080A0C] border border-kinet-neon/40 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition text-center font-bold">
+          <h3 class="font-display font-bold text-xs text-white">¿Cuál es tu posición o especialidad principal?</h3>
+          <input type="text" id="custom-sport-input" placeholder="Ej: Central, Apertura, Velocista..." oninput="state.position = this.value" class="w-full max-w-sm bg-[#080A0C] border border-kinet-neon/40 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition text-center font-bold">
         `;
         lucide.createIcons();
       }
     }
 
-    function setSubOptions(mainTitle, opts) {
+    function activatePitchNode(btnEl, cleanCatalogOptions) {
+      document.querySelectorAll('#pitch-container .pitch-node-btn').forEach(b => b.classList.remove('active-node'));
+      if (btnEl) btnEl.classList.add('active-node');
+      setSubOptions(cleanCatalogOptions);
+    }
+
+    function setSubOptions(opts) {
       const display = document.getElementById('selected-pos-display');
       const box = document.getElementById('sub-position-options');
-      state.position = mainTitle + " (" + opts[0] + ")";
-      display.textContent = state.position;
+      state.position = opts[0];
+      if (display) display.textContent = state.position;
+      if (!box) return;
       box.innerHTML = '';
+
       opts.forEach((opt, idx) => {
         const btn = document.createElement('button');
-        btn.className = idx === 0 ? "px-3 py-1 rounded-xl bg-kinet-neon text-black font-bold text-xs" : "px-3 py-1 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 text-xs hover:text-white";
+        btn.type = 'button';
+        btn.className = idx === 0
+          ? "px-3 py-1.5 rounded-xl bg-kinet-neon text-black font-bold text-xs transition"
+          : "px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 text-xs hover:text-white transition";
         btn.textContent = opt;
         btn.onclick = () => {
-          state.position = mainTitle + " (" + opt + ")";
-          display.textContent = state.position;
-          Array.from(box.children).forEach(b => b.className = "px-3 py-1 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 text-xs hover:text-white");
-          btn.className = "px-3 py-1 rounded-xl bg-kinet-neon text-black font-bold text-xs";
+          state.position = opt;
+          if (display) display.textContent = state.position;
+          Array.from(box.children).forEach(b => b.className = "px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 text-xs hover:text-white transition");
+          btn.className = "px-3 py-1.5 rounded-xl bg-kinet-neon text-black font-bold text-xs transition";
         };
         box.appendChild(btn);
       });
     }
 
+    // =========================================================================
+    // MOTOR CONVERSACIONAL "DE COLEGA A COLEGA" (GEMINI 2.0 FLASH GRATIS / GROQ / OPENAI)
+    // =========================================================================
+    function getFirstNameFriendly() {
+      const full = localStorage.getItem('kinet_user_name') || '';
+      if (!full || full === 'Atleta Invitado' || full === 'Usuario KINET') return 'crack';
+      return full.trim().split(' ')[0];
+    }
+
+    // Guion dinámico que adapta cada pregunta a lo que el jugador acaba de responder
+    function getDynamicBuddyStepConfig(stepIdx) {
+      const name = getFirstNameFriendly();
+      const s = state.sport;
+      const pos = state.position;
+
+      const script = [
+        {
+          id: 'motivation',
+          prompt: `¡Qué pasa ${name}! Qué alegría tenerte por aquí. He visto que compites en **${s}** como **${pos}** (${state.altura} cm • ${state.peso} kg). Antes de armarte el Vestuario y presentarte al Cuerpo Técnico, cuéntame aquí en confianza como a un colega: **¿qué te ha traído a KINET hoy?** ¿Buscas dar el salto de categoría, preparar unas pruebas, salir de una racha o ponerte como un toro físicamente?`,
+          chips: [
+            'Quiero dar el salto de nivel y destacar este año',
+            'Busco ponerme al 100% físicamente y prevenir lesiones',
+            'Quiero analizar mi juego y preparar pruebas de captación',
+            'Acabo de volver de un parón y quiero recuperar mi mejor versión'
+          ]
+        },
+        {
+          id: 'club_and_cities',
+          prompt: () => `¡Ese es el mentalidad que buscamos, ${name}! Vamos a ir a fuego con eso. Y dime una cosa para ubicarte bien en el radar y en tu ficha: **¿en qué club, equipo o gimnasio estás entrenando ahora mismo, en qué ciudad vives y de qué ciudad eres natural?**`,
+          chips: [
+            'Juego en el KINET Performance, vivo en Melilla y nací en Melilla',
+            'Estoy sin equipo (Agente Libre) entrenando por mi cuenta',
+            'Vivo en Madrid y juego en liga autonómica/nacional',
+            'Vivo en Barcelona y busco club para esta temporada'
+          ]
+        },
+        {
+          id: 'strength_and_weakness',
+          prompt: () => `Brutal ${state.extracted.city ? `por tierras de **${state.extracted.city}**` : 'hermano'}. Ahora hablemos de pista pura: jugando de **${pos}**, **¿cuál dirías que es tu mejor arma donde te sientes imparable, y qué es eso que sientes que más te cuesta o te frustra en los últimos minutos de partido?**`,
+          chips: [
+            'Mi fuerte es el 1vs1 y velocidad, pero me falta fondo al final',
+            'Tengo buena visión y golpeo, quiero ganar explosividad en arranque',
+            'Soy muy sólido atrás, pero quiero mejorar salida y pierna menos hábil',
+            'Tengo mucha potencia, pero quiero mejorar toma de decisiones bajo presión'
+          ]
+        },
+        {
+          id: 'weekly_calendar',
+          prompt: () => `Uff, clave eso que dices; se lo voy a dejar subrayado al Entrenador Táctico y al Preparador Físico para que tus tareas vayan directas ahí. Para montarte ahora mismo tu **Calendario Semanal y Mensual real en el Vestuario**: **¿qué días de la semana entrenas en pista/campo, qué días haces gimnasio y qué día sueles tener partido o competición?**`,
+          chips: [
+            'Campo Lunes, Miércoles y Viernes • Gym Martes y Jueves • Partido Sábado',
+            'Entreno Lunes, Martes, Jueves y Viernes • Partido el Domingo',
+            'Entreno Martes y Jueves + Gym Lunes y Miércoles • Partido Sábado',
+            'Entreno de Lunes a Viernes • Competición Sábado • Descanso Domingo'
+          ]
+        },
+        {
+          id: 'health_and_sleep',
+          prompt: () => `Calendario anotado al milímetro (con tus días de pista, gym, partido y descanso marcados). Antes de cerrar, cuéntame para que el **Fisioterapeuta IA** lo tenga en cuenta: **¿tienes alguna molestia muscular o lesión antigua que vigilar (isquios, tobillo, rodilla, espalda...) y cuántas horas sueles dormir?**`,
+          chips: [
+            'Cero lesiones ahora mismo • Duermo unas 8 horas',
+            'A veces se me cargan los isquiotibiales • Duermo 7 horas',
+            'Tuve un esguince de tobillo/rodilla y quiero prevenir • Duermo 7h',
+            'Se me carga la zona lumbar/gemelos con mucha carga • Duermo 6-7h'
+          ]
+        },
+        {
+          id: 'goal_and_links',
+          prompt: () => `Perfecto ${name}, el Fisio IA ya tiene el aviso activo para cuidarte esa zona. **Última cosita:** **¿cuál es el reto número 1 que quieres tachar de aquí a final de temporada?** *(Y si tienes a mano algún link tuyo de Transfermarkt, BeSoccer o un vídeo de YouTube, pégalo también y te lo dejo puesto en el Perfil)*.`,
+          chips: [
+            'Ser titular indiscutible, hacer mi mejor año y subir de categoría',
+            'Firmar por un club superior y estar en el radar de Scouts',
+            'Superar mis registros del año pasado sin perderme un partido',
+            'Llegar a mi pico de forma física en los meses clave'
+          ]
+        }
+      ];
+
+      return script[stepIdx] || null;
+    }
+
+    // Extrae automáticamente los días reales de la semana (0=Dom, 1=Lun, ..., 6=Sáb) del mensaje del jugador
+    function parseRealWeeklyScheduleFromText(txt) {
+      const lower = txt.toLowerCase();
+      const dayMap = [
+        { idx: 1, regex: /lunes/i },
+        { idx: 2, regex: /martes/i },
+        { idx: 3, regex: /mi[eé]rcoles/i },
+        { idx: 4, regex: /jueves/i },
+        { idx: 5, regex: /viernes/i },
+        { idx: 6, regex: /s[aá]bado/i },
+        { idx: 0, regex: /domingo/i }
+      ];
+
+      if (/lunes a viernes/i.test(lower)) {
+        state.extracted.trainingDays = [1, 2, 3, 4, 5];
+        state.extracted.gymDays = [2, 4];
+        state.extracted.matchDay = /domingo/i.test(lower) ? 0 : 6;
+        state.extracted.restDays = state.extracted.matchDay === 6 ? [0] : [6];
+        return;
+      }
+
+      // Separar bloques por "gym/gimnasio" y "partido/competición"
+      const clauses = lower.split(/[•·.;+]|(?=\bgym\b|\bgimnasio\b|\bpartido\b|\bcompetici[oó]n\b|\bdescanso\b)/i);
+      const tDays = new Set();
+      const gDays = new Set();
+      let mDay = null;
+
+      clauses.forEach(cl => {
+        const isGym = /\bgym\b|\bgimnasio\b|\bpesas\b|\bfuerza\b/i.test(cl);
+        const isMatch = /\bpartido\b|\bcompetici[oó]n\b|\bjornada\b|\bvelada\b|\btorneo\b/i.test(cl);
+        const isRest = /\bdescanso\b|\blibre\b/i.test(cl);
+
+        dayMap.forEach(d => {
+          if (d.regex.test(cl)) {
+            if (isMatch) mDay = d.idx;
+            else if (isGym) gDays.add(d.idx);
+            else if (!isRest) tDays.add(d.idx);
+          }
+        });
+      });
+
+      if (tDays.size > 0) state.extracted.trainingDays = Array.from(tDays);
+      if (gDays.size > 0) state.extracted.gymDays = Array.from(gDays);
+      if (mDay !== null) state.extracted.matchDay = mDay;
+
+      const busy = new Set([...state.extracted.trainingDays, ...state.extracted.gymDays, state.extracted.matchDay]);
+      const rest = [0, 1, 2, 3, 4, 5, 6].filter(d => !busy.has(d));
+      state.extracted.restDays = rest.length > 0 ? rest : [0];
+    }
+
+    function parseAndStoreAnswerByStep(stepIdx, answerText) {
+      const t = answerText.trim();
+      state.chatHistory.push({ role: 'user', content: t });
+
+      // Detectar URLs pegadas en cualquier momento
+      const urls = t.match(/https?:\/\/[^\s]+/gi) || [];
+      urls.forEach(u => {
+        if (/transfermarkt|besoccer|rfef|boxrec|fip|atp|fiba/i.test(u)) state.extracted.transfermarktUrl = u;
+        else if (/youtube|youtu\.be|vimeo|drive\.google|tiktok|instagram/i.test(u)) state.extracted.videoUrl = u;
+      });
+
+      if (stepIdx === 0) {
+        state.extracted.motivation = t;
+        document.getElementById('prev-ai-goal').textContent = t.slice(0, 26);
+      } else if (stepIdx === 1) {
+        // Extraer club, ciudad actual y ciudad natal de una respuesta natural
+        const cityMatch = t.match(/vivo en\s+([A-ZÁÉÍÓÚÑa-záéíóúñ\s]{2,20}?)(?:,|\sy\s|\.|$)/i);
+        const bornMatch = t.match(/(?:nac[ií] en|soy de|natural de)\s+([A-ZÁÉÍÓÚÑa-záéíóúñ\s]{2,20}?)(?:,|\sy\s|\.|$)/i);
+        const clubMatch = t.match(/(?:juego en el|juego en|entreno en el|entreno en|club)\s+([A-ZÁÉÍÓÚÑa-záéíóúñ0-9\s]{2,28}?)(?:,|\svivo|\sy\s|\.|$)/i);
+
+        if (clubMatch) state.extracted.club = clubMatch[1].trim();
+        else if (/agente libre|sin equipo|por mi cuenta/i.test(t)) state.extracted.club = 'Agente Libre';
+        else state.extracted.club = t.split(',')[0].trim().slice(0, 32);
+
+        if (cityMatch) state.extracted.city = cityMatch[1].trim();
+        if (bornMatch) state.extracted.hometown = bornMatch[1].trim();
+        if (!state.extracted.hometown && state.extracted.city) state.extracted.hometown = state.extracted.city;
+
+        document.getElementById('prev-ai-club').textContent = state.extracted.club || 'Registrado';
+        if (state.extracted.city) document.getElementById('prev-ai-city').textContent = state.extracted.city;
+        if (state.extracted.hometown) document.getElementById('prev-ai-hometown').textContent = state.extracted.hometown;
+      } else if (stepIdx === 2) {
+        const parts = t.split(/pero|aunque|falta|cuesta|mejorar/i);
+        state.extracted.strength = (parts[0] || t).trim();
+        state.extracted.weakness = (parts[1] || t).trim();
+      } else if (stepIdx === 3) {
+        state.extracted.rawScheduleText = t;
+        parseRealWeeklyScheduleFromText(t);
+      } else if (stepIdx === 4) {
+        state.extracted.injuryHistory = t;
+        const sleepM = t.match(/(\d+(?:[.,]\d)?)\s*h/i);
+        if (sleepM) state.extracted.sleepHours = sleepM[1].replace(',', '.');
+      } else if (stepIdx === 5) {
+        state.extracted.seasonGoal = t;
+        document.getElementById('prev-ai-goal').textContent = t.slice(0, 28);
+      }
+    }
+
+    function appendChatMessageBubble(sender, text) {
+      const box = document.getElementById('chat-messages-container');
+      if (!box) return;
+      const div = document.createElement('div');
+      if (sender === 'ai') {
+        div.className = "flex items-start space-x-2.5";
+        div.innerHTML = `
+          <div class="w-6 h-6 rounded-lg bg-kinet-neon/20 border border-kinet-neon/40 text-kinet-neon flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">AI</div>
+          <div class="bg-slate-900/95 border border-slate-800 p-3 rounded-2xl text-xs text-slate-200 leading-relaxed max-w-[90%]">${text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong class="text-kinet-neon">$1</strong>')}</div>
+        `;
+      } else {
+        div.className = "flex justify-end";
+        div.innerHTML = `
+          <div class="bg-kinet-neon/15 border border-kinet-neon/50 text-white p-2.5 px-3.5 rounded-2xl text-xs max-w-[85%] font-medium">${text}</div>
+        `;
+      }
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function renderQuickReplyChips(chips) {
+      const chipBox = document.getElementById('ai-quick-chips');
+      if (!chipBox) return;
+      if (!chips || !chips.length) {
+        chipBox.innerHTML = '';
+        return;
+      }
+      chipBox.innerHTML = chips.map(c => `
+        <button type="button" onclick="useQuickChipAnswer('${c.replace(/'/g, "\\'")}')" class="text-[10px] bg-slate-900 hover:bg-kinet-neon/20 border border-slate-700 hover:border-kinet-neon text-slate-300 hover:text-white px-2.5 py-1 rounded-lg transition font-mono">
+          + ${c}
+        </button>
+      `).join('');
+    }
+
+    function useQuickChipAnswer(txt) {
+      const input = document.getElementById('ai-chat-input');
+      if (input) {
+        input.value = txt;
+        sendAiResponse();
+      }
+    }
+
     function setupAiChatGreeting() {
-      const msgBox = document.getElementById('ai-greeting-msg');
-      msgBox.textContent = `¡Hola! Soy tu asistente biométrico KINET. He detectado que compites en ${state.sport} (${state.category}). ¿Cuál es tu objetivo principal esta temporada?`;
+      const box = document.getElementById('chat-messages-container');
+      if (!box) return;
+      if (state.chatStepIndex === 0 && box.children.length === 0) {
+        const firstStep = getDynamicBuddyStepConfig(0);
+        const txt = typeof firstStep.prompt === 'function' ? firstStep.prompt() : firstStep.prompt;
+        state.chatHistory.push({ role: 'assistant', content: txt });
+        appendChatMessageBubble('ai', txt);
+        renderQuickReplyChips(firstStep.chips);
+      }
+    }
+
+    // Llamada opcional en vivo a Gemini 2.0 Flash (GRATIS) / Groq (GRATIS) / OpenAI para que responda como un amigo siguiendo el guion
+    async function generateDynamicBuddyFollowUp(nextStepConfig, userLastMessage) {
+      const basePromptText = typeof nextStepConfig.prompt === 'function' ? nextStepConfig.prompt() : nextStepConfig.prompt;
+      const apiCfg = window.KINET_API_CONFIG || {};
+      const geminiKey = apiCfg.GEMINI_API_KEY || localStorage.getItem('kinet_gemini_api_key') || '';
+      const groqKey = apiCfg.GROQ_API_KEY || localStorage.getItem('kinet_groq_api_key') || '';
+      const openaiKey = apiCfg.OPENAI_API_KEY || localStorage.getItem('kinet_ai_api_key') || '';
+
+      const systemInstruction = `Eres el colega y Director de Rendimiento de KINET OS hablando con un deportista de ${state.sport} (${state.position}). Sé cercano, motivador y natural (2-3 frases máximo). Primero comenta brevemente lo que te acaba de decir ("${userLastMessage}") como un amigo de vestuario y luego hazle EXACTAMENTE esta siguiente pregunta del guion: ${basePromptText}`;
+
+      try {
+        if (geminiKey) {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: systemInstruction }] }],
+              generationConfig: { temperature: 0.7, maxOutputTokens: 180 }
+            })
+          });
+          if (res.ok) {
+            const d = await res.json();
+            const reply = d?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (reply) return reply.trim();
+          }
+        } else if (groqKey) {
+          const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
+            body: JSON.stringify({
+              model: 'llama-3.3-70b-versatile',
+              messages: [{ role: 'user', content: systemInstruction }],
+              max_tokens: 180
+            })
+          });
+          if (res.ok) {
+            const d = await res.json();
+            if (d?.choices?.[0]?.message?.content) return d.choices[0].message.content.trim();
+          }
+        } else if (openaiKey) {
+          const res = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaiKey}` },
+            body: JSON.stringify({
+              model: 'gpt-4o-mini',
+              messages: [{ role: 'user', content: systemInstruction }],
+              max_tokens: 180
+            })
+          });
+          if (res.ok) {
+            const d = await res.json();
+            if (d?.choices?.[0]?.message?.content) return d.choices[0].message.content.trim();
+          }
+        }
+      } catch (e) {}
+
+      return basePromptText;
+    }
+
+    async function sendAiResponse() {
+      const input = document.getElementById('ai-chat-input');
+      const sendBtn = document.getElementById('btn-send-ai-chat');
+      const val = (input?.value || '').trim();
+      if (!val) return;
+
+      appendChatMessageBubble('user', val);
+      input.value = '';
+      if (sendBtn) sendBtn.disabled = true;
+
+      parseAndStoreAnswerByStep(state.chatStepIndex, val);
+      state.chatStepIndex++;
+      state.aiCompleted = true;
+      document.getElementById('ai-incomplete-alert').classList.add('hidden');
+
+      const nextCfg = getDynamicBuddyStepConfig(state.chatStepIndex);
+      if (nextCfg) {
+        const aiText = await generateDynamicBuddyFollowUp(nextCfg, val);
+        state.chatHistory.push({ role: 'assistant', content: aiText });
+        appendChatMessageBubble('ai', aiText);
+        renderQuickReplyChips(nextCfg.chips);
+      } else {
+        renderQuickReplyChips([]);
+        const finalMsg = `🔥 **¡Lo tenemos todo listo, ${getFirstNameFriendly()}!** Ya he dejado configurado tu **Calendario Semanal y Mensual** con tus días reales de entrenamiento, gimnasio y descanso, he rellenado las casillas de tu **Perfil** y les he pasado el informe completo a tus **4 entrenadores del Cuerpo Técnico IA**. Dale abajo a **FINALIZAR CALIBRACIÓN & LANZAR KINET OS 🚀**.`;
+        state.chatHistory.push({ role: 'assistant', content: finalMsg });
+        appendChatMessageBubble('ai', finalMsg);
+      }
+
+      if (sendBtn) sendBtn.disabled = false;
     }
 
     function skipAiSetup() {
       state.aiCompleted = false;
       document.getElementById('ai-incomplete-alert').classList.remove('hidden');
+      renderQuickReplyChips([]);
+      appendChatMessageBubble(
+        'ai',
+        `⚡ Sin problema, crack. Guardamos lo que ya has respondido y el resto podrás configurarlo cuando quieras desde el Calendario del Vestuario o en Mi Perfil.`
+      );
     }
 
-    function sendAiResponse() {
-      const input = document.getElementById('ai-chat-input');
-      if (input.value.trim() !== '') {
-        state.aiCompleted = true;
-        document.getElementById('ai-incomplete-alert').classList.add('hidden');
-        alert('Respuesta registrada. Los agentes de IA han sido calibrados.');
-        input.value = '';
+    // Construye el Plan Maestro que alimenta el Calendario Semanal/Mensual de app.html y pre-programa los 4 Agentes de cuerpo-tecnico.html
+    function buildMasterEcosystemStateFromOnboarding() {
+      const name = localStorage.getItem('kinet_user_name') || 'Atleta KINET';
+      const ext = state.extracted;
+
+      // 1. Generar el mapa de los 7 días de la semana para el Calendario Semanal y Mensual de app.html
+      const dayLabels = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      const weeklyScheduleMap = {};
+
+      for (let d = 0; d <= 6; d++) {
+        const isMatch = d === ext.matchDay;
+        const isField = ext.trainingDays.includes(d);
+        const isGym = ext.gymDays.includes(d);
+
+        const sessions = [];
+        if (isMatch) {
+          sessions.push({
+            type: 'match',
+            badge: '🏆 DÍA DE COMPETICIÓN',
+            color: '#F59E0B',
+            time: '18:00 H',
+            title: `Competición Oficial (${state.sport} • ${state.category})`,
+            focus: `Aplicar foco en: ${ext.strength || state.position}`,
+            agentTarget: 'tactical'
+          });
+        } else {
+          if (isGym) {
+            sessions.push({
+              type: 'gym',
+              badge: '🏋️ GIMNASIO & PREVENCIÓN',
+              color: '#A855F7',
+              time: '17:30 H',
+              title: `Fuerza Específica (${state.position}) & Prevención (${ext.injuryHistory ? ext.injuryHistory.slice(0, 26) : 'Tren Inferior'})`,
+              focus: `Potencia reactiva adaptada a ${state.altura}cm / ${state.peso}kg`,
+              agentTarget: 'physical'
+            });
+          }
+          if (isField) {
+            sessions.push({
+              type: 'field',
+              badge: '⚽ PISTA / CAMPO',
+              color: '#00FF88',
+              time: '19:30 H',
+              title: `Sesión Técnica-Táctica (${state.sport}): Pulir ${(ext.weakness || 'Toma de decisiones y finalización').slice(0, 38)}`,
+              focus: `Potenciar arma principal: ${(ext.strength || state.position).slice(0, 36)}`,
+              agentTarget: 'tactical'
+            });
+          }
+          if (!isGym && !isField) {
+            sessions.push({
+              type: 'rest',
+              badge: '🛌 DESCANSO & DESCARGA',
+              color: '#38BDF8',
+              time: 'TODO EL DÍA',
+              title: `Recuperación Activa, Movilidad & Sueño (${ext.sleepHours || '8'}h objetivo)`,
+              focus: `Control de carga por Fisioterapeuta IA (${ext.injuryHistory || '0 molestias'})`,
+              agentTarget: 'physio'
+            });
+          }
+        }
+        weeklyScheduleMap[d] = {
+          dayIndex: d,
+          dayName: dayLabels[d],
+          primaryType: isMatch ? 'match' : (isField && isGym ? 'double' : (isField ? 'field' : (isGym ? 'gym' : 'rest'))),
+          sessions
+        };
+      }
+
+      // 2. Dejar pre-programados los 4 chats de cuerpo-tecnico.html con toda la información del usuario
+      const preprogrammedAgents = {
+        tactical: {
+          agentName: 'Entrenador Táctico IA',
+          systemMemory: `Jugador: ${name} (${state.edad} años, ${state.altura}cm, ${state.peso}kg, ${state.laterality}). Deporte: ${state.sport}. Posición: ${state.position}. Club: ${ext.club || 'Independiente'} (${state.category}). Virtud: ${ext.strength || 'Por definir'}. A mejorar: ${ext.weakness || 'Por definir'}. Motivación: ${ext.motivation || 'Mejorar rendimiento'}.`,
+          welcomeMessage: `¡Qué pasa ${getFirstNameFriendly()}! Ya tengo en mi pizarra lo que hablamos en tu calibración: compites como **${state.position}** en **${ext.club || state.sport}** (${state.category}). Vamos a exprimir al máximo tu virtud (**${ext.strength || 'tu juego ofensivo'}**) y a corregir esta semana **${ext.weakness || 'los detalles tácticos del tramo final'}**. ¿Qué jugada o partido analizamos hoy?`
+        },
+        physical: {
+          agentName: 'Preparador Físico IA',
+          systemMemory: `Biometría: ${state.altura}cm, ${state.peso}kg, ${state.edad} años. Días campo: ${ext.trainingDays.join(',')} | Días gym: ${ext.gymDays.join(',')} | Partido: día ${ext.matchDay}. Objetivo físico: ${ext.weakness || 'Explosividad'}.`,
+          welcomeMessage: `¡Hola ${getFirstNameFriendly()}! Con tus **${state.altura} cm y ${state.peso} kg**, ya he estructurado tu microciclo en el Calendario del Vestuario según los días de campo y gimnasio que me indicaste. Hoy no inventamos picos de GPS si no llevas sensor: trabajamos sobre tu carga real para ganar chispa en **${ext.weakness || 'los últimos 20 minutos'}**. ¿Cómo te notas de piernas hoy?`
+        },
+        physio: {
+          agentName: 'Fisioterapeuta & Readaptador IA',
+          systemMemory: `Historial médico reportado: ${ext.injuryHistory || 'Sin lesiones activas'}. Horas de sueño: ${ext.sleepHours || '7.5'}h. Deporte: ${state.sport} (${state.position}).`,
+          welcomeMessage: `¡Buenas ${getFirstNameFriendly()}! He dejado anotado en tu expediente biométrico tu reporte: **"${ext.injuryHistory || '0 lesiones activas y descanso controlado'}"**. Antes de tus días fuertes de carga, te dejaré pautas preventivas específicas en el calendario. Si notas cualquier pinchazo o sobrecarga en un entreno, pulsa en ese día del calendario y avísame al instante.`
+        },
+        nutrition: {
+          agentName: 'Nutricionista & Psicólogo Deportivo IA',
+          systemMemory: `Peso actual: ${state.peso}kg (${state.altura}cm). Objetivo temporada: ${ext.seasonGoal || ext.motivation || 'Alto rendimiento'}. Día de competición: ${dayLabels[ext.matchDay]}.`,
+          welcomeMessage: `¡Bienvenido ${getFirstNameFriendly()}! Para mantener tus **${state.peso} kg** con máxima potencia en **${state.sport}** y cumplir tu meta (**"${ext.seasonGoal || ext.motivation || 'destacar esta temporada'}"**), he ajustado tus pautas de hidratación y carga de glucógeno previas a tu día de competición (${dayLabels[ext.matchDay]}). ¿Quieres que armemos tu comida pre-partido?`
+        }
+      };
+
+      const todayIdx = new Date().getDay();
+      const todayBlock = weeklyScheduleMap[todayIdx] || weeklyScheduleMap[1];
+
+      return {
+        sport: state.sport,
+        position: state.position,
+        category: state.category,
+        club: ext.club,
+        city: ext.city,
+        hometown: ext.hometown,
+        motivation: ext.motivation,
+        strength: ext.strength || 'Explosividad y lectura táctica',
+        weakness: ext.weakness || 'Resistencia específica en tramo final',
+        rawScheduleText: ext.rawScheduleText || '3 días campo + 2 días gimnasio + Partido fin de semana',
+        injuryPrevention: ext.injuryHistory || 'Sin lesiones activas • Descanso óptimo',
+        sleepHours: ext.sleepHours || '7.5',
+        seasonGoal: ext.seasonGoal || ext.motivation || 'Rendimiento Élite en competición oficial',
+        gpsMeasuredReal: false, // Evita inventar "34.2 km/h" si el usuario no lo ha medido en Laboratorio o con sensor
+        coachDirective: `Plan activo para ${state.position} (${ext.club || state.category}). Hoy (${todayBlock.dayName}) toca: ${todayBlock.sessions.map(s => s.title).join(' + ')}. Prioridad técnica: ${(ext.weakness || 'mantener intensidad competitiva').slice(0, 55)}.`,
+        todayGymSession: (todayBlock.sessions.find(s => s.type === 'gym') || todayBlock.sessions[0]).title,
+        todayFieldSession: (todayBlock.sessions.find(s => s.type === 'field' || s.type === 'match') || todayBlock.sessions[0]).title,
+        weeklyScheduleMap,
+        preprogrammedAgents,
+        bioHeadline: `${state.position} ${ext.club ? `en ${ext.club}` : ''} (${state.category}) • ${(ext.strength || state.sport).slice(0, 45)}`.trim(),
+        generatedAt: new Date().toISOString()
+      };
+    }
+
+    async function finishOnboarding() {
+      const btn = document.getElementById('btn-finish-onboarding');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'PROGRAMANDO VESTUARIO, CALENDARIO Y AGENTES IA...';
+      }
+
+      state.altura = document.getElementById('slider-altura').value;
+      state.peso = document.getElementById('slider-peso').value;
+      state.edad = document.getElementById('slider-edad').value;
+      const customSportIn = document.getElementById('custom-sport-input');
+      if (customSportIn && customSportIn.value.trim()) {
+        state.position = customSportIn.value.trim();
+      }
+
+      // 1. Construir y guardar el Cerebro Maestro de Personalización (Calendario Semanal/Mensual + 4 Chats IA + Perfil)
+      const masterPlan = buildMasterEcosystemStateFromOnboarding();
+      localStorage.setItem('kinet_ai_personalization_plan', JSON.stringify(masterPlan));
+      localStorage.setItem('kinet_weekly_schedule_map', JSON.stringify(masterPlan.weeklyScheduleMap));
+      localStorage.setItem('kinet_preprogrammed_agents', JSON.stringify(masterPlan.preprogrammedAgents));
+      localStorage.setItem('kinet_onboarding_chat_log', JSON.stringify(state.chatHistory));
+
+      // 2. Guardar Altura, Peso, Edad, Fecha, Posición y Lateralidad en las claves exactas de perfil.html
+      const cleanH = `${state.altura} cm`;
+      const cleanW = `${state.peso} kg`;
+      localStorage.setItem('kinet_height', cleanH);
+      localStorage.setItem('kinet_weight', cleanW);
+      localStorage.setItem('kinet_user_anthropometry', `${cleanH} • ${cleanW}`);
+      localStorage.setItem('kinet_age', String(state.edad));
+      localStorage.setItem('kinet_age_years_direct', String(state.edad));
+      if (state.birthdate) {
+        localStorage.setItem('kinet_user_birthdate', state.birthdate);
+      }
+      localStorage.setItem('kinet_user_laterality', state.laterality);
+      localStorage.setItem('kinet_sport', state.sport);
+      localStorage.setItem('kinet_category', state.category);
+      localStorage.setItem('kinet_user_category', state.category);
+      localStorage.setItem('kinet_position', state.position);
+
+      // 3. Guardar las respuestas del chat que el usuario haya contestado
+      if (state.extracted.club) localStorage.setItem('kinet_user_club', state.extracted.club);
+      if (state.extracted.city) localStorage.setItem('kinet_user_city', state.extracted.city);
+      if (state.extracted.hometown) localStorage.setItem('kinet_user_hometown', state.extracted.hometown);
+      if (state.extracted.transfermarktUrl) localStorage.setItem('kinet_user_transfermarkt', state.extracted.transfermarktUrl);
+      if (state.extracted.videoUrl) localStorage.setItem('kinet_user_videolink', state.extracted.videoUrl);
+      if (state.aiCompleted && masterPlan.bioHeadline) {
+        localStorage.setItem('kinet_social_bio', masterPlan.bioHeadline);
+      }
+
+      // 4. Actualizar diccionario multi-perfil
+      const profilesDB = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
+      profilesDB.athlete = {
+        ...(profilesDB.athlete || {}),
+        roleType: 'athlete',
+        roleName: 'Atleta Pro',
+        name: localStorage.getItem('kinet_user_name') || 'Atleta KINET',
+        sport: state.sport,
+        category: state.category,
+        position: state.position,
+        height: cleanH,
+        weight: cleanW,
+        anthropometry: `${cleanH} • ${cleanW}`,
+        laterality: state.laterality,
+        edad: state.edad,
+        birthdate: state.birthdate || localStorage.getItem('kinet_user_birthdate') || '',
+        club: state.extracted.club || localStorage.getItem('kinet_user_club') || '',
+        city: state.extracted.city || localStorage.getItem('kinet_user_city') || '',
+        hometown: state.extracted.hometown || localStorage.getItem('kinet_user_hometown') || '',
+        aiCompleted: state.aiCompleted,
+        aiPlan: masterPlan,
+        updatedAt: new Date().toISOString()
+      };
+      localStorage.setItem('kinet_profiles_db', JSON.stringify(profilesDB));
+
+      localStorage.setItem('kinet_role', 'athlete');
+      localStorage.setItem('kinet_active_role', 'athlete');
+      localStorage.setItem('kinet_profile_completed', 'true');
+
+      if (localStorage.getItem('kinet_is_guest') !== 'true' && window.KinetBackend && typeof window.KinetBackend.pushLocalStateToCloud === 'function') {
+        localStorage.setItem('kinet_logged_in', 'true');
+        window.KinetBackend.pushLocalStateToCloud();
+      }
+
+      // 5. Lanzar la Animación Sorpresa Reveal antes de entrar al Vestuario
+      const revealModal = document.getElementById('kinet-surprise-reveal-modal');
+      if (revealModal) {
+        document.getElementById('reveal-athlete-name').textContent = (localStorage.getItem('kinet_user_name') || 'ATLETA KINET').toUpperCase();
+        document.getElementById('reveal-athlete-sub').textContent = `${state.sport.toUpperCase()} • ${state.position.toUpperCase()}`;
+        document.getElementById('reveal-bio-stat').textContent = `${state.altura}cm • ${state.peso}kg`;
+        document.getElementById('reveal-lat-stat').textContent = state.laterality;
+        document.getElementById('reveal-cat-stat').textContent = state.extracted.club || state.category;
+        document.getElementById('reveal-ai-directive').textContent = masterPlan.coachDirective;
+
+        revealModal.classList.remove('hidden');
+        const pBar = document.getElementById('reveal-progress-bar');
+        const sTxt = document.getElementById('reveal-status-txt');
+        setTimeout(() => { if (pBar) pBar.style.width = '65%'; }, 150);
+        setTimeout(() => {
+          if (pBar) pBar.style.width = '100%';
+          if (sTxt) sTxt.textContent = '✓ CALENDARIO MENSUAL, PERFIL Y 4 AGENTES IA PROGRAMADOS...';
+        }, 1250);
+        setTimeout(() => {
+          window.location.href = `app.html?role=athlete&sport=${encodeURIComponent(state.sport)}`;
+        }, 2350);
+      } else {
+        window.location.href = `app.html?role=athlete&sport=${encodeURIComponent(state.sport)}`;
       }
     }
-
-function finishOnboarding() {
-    state.altura = document.getElementById('slider-altura').value;
-    state.peso = document.getElementById('slider-peso').value;
-    state.edad = document.getElementById('slider-edad').value;
-
-    const profilesDB = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
-
-    profilesDB.athlete = {
-      roleType: 'athlete',
-      roleName: 'Atleta Pro',
-      sport: state.sport,
-      category: state.category,
-      position: state.position,
-      altura: state.altura,
-      peso: state.peso,
-      edad: state.edad,
-      aiCompleted: state.aiCompleted,
-      updatedAt: new Date().toISOString()
-    };
-
-    localStorage.setItem('kinet_profiles_db', JSON.stringify(profilesDB));
-    localStorage.setItem('kinet_role', 'Atleta Pro');
-    localStorage.setItem('kinet_sport', state.sport);
-    localStorage.setItem('kinet_category', state.category);
-    localStorage.setItem('kinet_position', state.position);
-    localStorage.setItem('kinet_active_role', 'athlete');
-    localStorage.setItem('kinet_profile_completed', 'true');
-    localStorage.setItem('kinet_logged_in', 'true');
-
-    window.location.href = `app.html?role=athlete&sport=${encodeURIComponent(state.sport)}`;
-  }
   </script>
 </body>
 </html>
