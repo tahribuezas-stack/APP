@@ -652,7 +652,6 @@
 
     async pushLocalStateToCloud() {
       try {
-        // 1. CORTAFUEGOS ANTI-INCÓGNITO: Si la ventana no tiene sesión autenticada real, PROHIBIDO subir nada a la nube
         if (localStorage.getItem('kinet_is_guest') === 'true') {
           return { ok: false, skippedGuest: true };
         }
@@ -663,7 +662,6 @@
         const currentName = (localStorage.getItem('kinet_user_name') || '').trim();
         const currentHandle = (localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '').trim();
 
-        // 2. PROHIBIDO subir a Supabase si el nombre o handle son los placeholders por defecto de una ventana vacía
         const forbiddenNames = ['NAIM T', 'USUARIO KINET', 'ATLETA INVITADO', 'ATLETA KINET', ''];
         const forbiddenHandles = ['@naimt_pro', '@usuariokinet_pro', '@invitado_kinet', '@kinet_pro', ''];
 
@@ -683,7 +681,6 @@
           if (avatarData) originalSetItem.call(localStorage, 'kinet_user_avatar', avatarData);
         }
 
-        // 3. Leer siempre primero la fila actual en Supabase para NO borrar nunca datos que ya existan en la nube si en local están vacíos
         let existingRow = null;
         try {
           const existing = await supabaseRestRequest(`profiles?id=eq.${userId}&select=*&limit=1`, 'GET');
@@ -748,7 +745,6 @@
           if (Array.isArray(rows) && rows[0]) row = rows[0];
         }
 
-        // Si la fila fue pisada por la ventana de incógnito con "NAIM T" o "@naimt_pro", rescatar tus datos reales desde tus Posts e Historial
         if (!row || row.full_name === 'NAIM T' || row.handle === '@naimt_pro' || !row.avatar_url) {
           try {
             const myPosts = await supabaseRestRequest(
