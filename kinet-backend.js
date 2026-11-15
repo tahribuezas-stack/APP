@@ -730,73 +730,159 @@
       }
     },
 
+// 1. CORTAFUEGOS ESTRICTO: Si no ha iniciado sesión explícitamente en este navegador (kinet_logged_in === 'true'), NO descarga nada en Incógnito
     async pullCloudStateToLocal() {
       try {
-        if (localStorage.getItem('kinet_is_guest') === 'true') {
+        if (localStorage.getItem('kinet_is_guest') === 'true' || localStorage.getItem('kinet_logged_in') !== 'true') {
           initialCloudPullFinished = true;
           return null;
         }
 
-        let userId = await resolveCurrentUserId();
-        let row = null;
-
-        if (userId) {
-          const rows = await supabaseRestRequest(`profiles?id=eq.${userId}&select=*`, 'GET');
-          if (Array.isArray(rows) && rows[0]) row = rows[0];
-        }
-
-        if (!row || row.full_name === 'NAIM T' || row.handle === '@naimt_pro' || !row.avatar_url) {
-          try {
-            const myPosts = await supabaseRestRequest(
-              `posts?or=(author_handle.ilike.*naim*,author_name.ilike.*Naim*)&select=*&order=created_at.desc&limit=5`,
-              'GET'
-            );
-            const allNaimProfiles = await supabaseRestRequest(
-              `profiles?or=(handle.ilike.*naim*,full_name.ilike.*Naim*)&select=*&order=updated_at.desc&limit=5`,
-              'GET'
-            );
-
-            const goodProfile = Array.isArray(allNaimProfiles)
-              ? allNaimProfiles.find(p => p.full_name && p.full_name !== 'NAIM T' && p.handle !== '@naimt_pro') || allNaimProfiles[0]
-              : null;
-
-            const latestPost = Array.isArray(myPosts) && myPosts.length > 0 ? myPosts[0] : null;
-
-            let recoveredAvatar = (goodProfile && (goodProfile.avatar_url || (goodProfile.user_state && goodProfile.user_state.kinet_user_avatar))) || null;
-            if (!recoveredAvatar) {
-              try {
-                const savedLocalPosts = JSON.parse(localStorage.getItem('kinet_saved_posts') || '[]');
-                const postWithAv = savedLocalPosts.find(p => (p.avatarUrl || p.author_avatar) && String(p.handle || '').toLowerCase().includes('naim'));
-                if (postWithAv) recoveredAvatar = postWithAv.avatarUrl || postWithAv.author_avatar;
-              } catch (e) {}
-            }
-
-            if (goodProfile || latestPost) {
-              const baseRow = goodProfile || row || {};
-              baseRow.full_name = (goodProfile && goodProfile.full_name !== 'NAIM T')
-                ? goodProfile.full_name
-                : ((latestPost && latestPost.author_name) ? latestPost.author_name : 'Naim Tahri Buezas');
-              baseRow.handle = (goodProfile && goodProfile.handle !== '@naimt_pro')
-                ? goodProfile.handle
-                : ((latestPost && latestPost.author_handle) ? latestPost.author_handle : '@naimtahri');
-              if (recoveredAvatar) baseRow.avatar_url = recoveredAvatar;
-              if (latestPost && latestPost.author_headline && (!baseRow.bio || baseRow.bio.includes('120 FPS'))) {
-                baseRow.bio = latestPost.author_headline;
-              }
-              row = baseRow;
-            }
-          } catch (recErr) {}
-        }
-
-        if (row) {
-          restoreCloudStateToLocal(row);
+        const userId = await resolveCurrentUserId();
+        if (!userId) {
           initialCloudPullFinished = true;
-          window.dispatchEvent(new CustomEvent('kinet:cloud-synced', { detail: row }));
-          return row;
+          return null;
+        }
+
+        const rows = await supabaseRestRequest(`profiles?id=eq.${userId}&select=*`, 'GET');
+        if (Array.isArray(rows) && rows[0]) {
+          restoreCloudStateToLocal(rows[0]);
+          initialCloudPullFinished = true;
+          window.dispatchEvent(new CustomEvent('kinet:cloud-synced', { detail: rows[0] }));
+          return rows[0];
         }
       } catch (e) {}
       initialCloudPullFinished = true;
       return null;
+    },
+
+    // 2. INICIAR SESIÓN CON GOOGLE (Abre la ventana emergente centrada con tus cuentas de Gmail)
+    async loginWithGooglePopup() {
+      localStorage.removeItem('kinet_is_guest');
+      const sb = initSupabase();
+      const redirectUrl = window.location.origin + '/login.html?oauth=google_callback';
+      const oauthUrl = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}&prompt=select_account`;
+
+      const width = 500, height = 620;
+      const left = Math.max(0, Math.round((window.screen.width - width) / 2));
+      const top = Math.max(0, Math.round((window.screen.height - height) / 2));
+
+      const popup = window.open(
+        oauthUrl,
+        'KinetGoogleAuthPopup',
+        `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,status=yes`
+      );
+
+      if (!popup) {
+        // Si el navegador bloquea popups, redirigir en la misma pestaña con selector de cuenta Google
+        window.location.href = oauthUrl;
+        return;
+      }
+
+      return new Promise((resolve, reject) => {
+        const timer = setInterval(async () => {
+          try {
+            if (popup.closed) {
+              clearInterval(timer);
+              if (sb && sb.auth) {
+                const { data } = await sb.auth.getSession();
+                if (data?.session?.user) {
+                  await this.syncGoogleUserToProfile(data.session.user);
+                  resolve({ ok: true, user: data.session.user });
+                  return;
+                }
+              }
+              resolve({ ok: false, closedByUser: true });
+            }
+          } catch (err) {}
+        }, 600);
+      });
+    },
+
+    async syncGoogleUserToProfile(googleUser) {
+      if (!googleUser) return null;
+      const email = (googleUser.email || '').toLowerCase();
+      const meta = googleUser.user_metadata || {};
+      const fullName = meta.full_name || meta.name || email.split('@')[0] || 'Atleta KINET';
+      const avatar = meta.avatar_url || meta.picture || null;
+      const cleanHandle = `@${fullName.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 16)}`;
+
+      originalSetItem.call(localStorage, 'kinet_logged_in', 'true');
+      localStorage.removeItem('kinet_is_guest');
+
+      const existing = await supabaseRestRequest(`profiles?email=ilike.${encodeURIComponent(email)}&select=*&limit=1`, 'GET');
+      if (Array.isArray(existing) && existing[0]) {
+        restoreCloudStateToLocal(existing[0]);
+        return existing[0];
+      }
+
+      const newId = googleUser.id || generateUUID();
+      originalSetItem.call(localStorage, 'kinet_user_id', newId);
+      originalSetItem.call(localStorage, 'kinet_user_email', email);
+      originalSetItem.call(localStorage, 'kinet_user_name', fullName);
+      originalSetItem.call(localStorage, 'kinet_social_handle', cleanHandle);
+      if (avatar) originalSetItem.call(localStorage, 'kinet_user_avatar', avatar);
+
+      const newRow = {
+        id: newId,
+        email,
+        full_name: fullName,
+        handle: cleanHandle,
+        avatar_url: avatar,
+        active_role: 'athlete',
+        active_sport: 'Fútbol',
+        account_tier: 'free',
+        user_state: collectAllKinetLocalState(),
+        updated_at: new Date().toISOString()
+      };
+      await supabaseRestRequest('profiles', 'POST', newRow, true);
+      return newRow;
+    },
+
+    // 3. INICIAR SESIÓN CON CÓDIGO SMS (OTP al teléfono móvil)
+    async sendSmsOtpCode(phoneNumber) {
+      const cleanPhone = String(phoneNumber || '').replace(/\s+/g, '').trim();
+      if (!cleanPhone || cleanPhone.length < 9) {
+        throw new Error('Introduce un número de teléfono móvil válido con prefijo (ej: +34 600 000 000).');
+      }
+      const formattedPhone = cleanPhone.startsWith('+') ? cleanPhone : `+34${cleanPhone}`;
+      await supabaseAuthRequest('otp', {
+        phone: formattedPhone,
+        create_user: true
+      });
+      return { ok: true, phone: formattedPhone };
+    },
+
+    async verifySmsOtpCode(phoneNumber, tokenCode) {
+      const cleanPhone = String(phoneNumber || '').replace(/\s+/g, '').trim();
+      const formattedPhone = cleanPhone.startsWith('+') ? cleanPhone : `+34${cleanPhone}`;
+      const cleanToken = String(tokenCode || '').trim();
+
+      const data = await supabaseAuthRequest('verify', {
+        type: 'sms',
+        phone: formattedPhone,
+        token: cleanToken
+      });
+
+      localStorage.removeItem('kinet_is_guest');
+      originalSetItem.call(localStorage, 'kinet_logged_in', 'true');
+      if (data?.user?.id) {
+        originalSetItem.call(localStorage, 'kinet_user_id', data.user.id);
+        await this.pullCloudStateToLocal();
+      }
+      return { ok: true, data };
+    },
+
+    // 4. RECUPERAR CONTRASEÑA POR CORREO ELECTRÓNICO
+    async sendPasswordResetEmail(emailAddress) {
+      const cleanEmail = String(emailAddress || '').trim().toLowerCase();
+      if (!cleanEmail || !cleanEmail.includes('@')) {
+        throw new Error('Introduce tu correo electrónico registrado para enviarte el enlace de recuperación.');
+      }
+      await supabaseAuthRequest('recover', {
+        email: cleanEmail
+      });
+      return { ok: true };
     },
 
     async createCloudPost(postObj) {
