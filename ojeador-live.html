@@ -9,12 +9,38 @@
     <!-- Favicon Corporativo Dinámico por JavaScript -->
     <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
 
+    <!-- BLOQUEO SÍNCRONO 0ms CONTRA EL MICRO-PESTAÑEO DE COLOR -->
+    <script>
+        (function applyZeroFlashStyleRule() {
+            try {
+                var savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
+                var rainbowOn = localStorage.getItem('kinet_rainbow_mode') === 'true';
+                if (savedAccent && savedAccent.charAt(0) === '#' && !rainbowOn) {
+                    var clean = savedAccent.replace('#', '');
+                    var num = parseInt(clean, 16);
+                    if (!isNaN(num)) {
+                        var r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
+                        var st = document.createElement('style');
+                        st.id = 'kinet-zero-flash-override';
+                        st.textContent = ':root, html, body, body[data-role="athlete"], body[data-role="staff"], body[data-role="scout"] {' +
+                            '--role-color: ' + savedAccent + ' !important;' +
+                            '--role-rgb: ' + r + ', ' + g + ', ' + b + ' !important;' +
+                            '--role-glow: rgba(' + r + ', ' + g + ', ' + b + ', 0.42) !important;' +
+                            '--role-gradient: linear-gradient(135deg, ' + savedAccent + ' 0%, rgba(' + r + ',' + g + ',' + b + ',0.75) 100%) !important;' +
+                        '}';
+                        document.head.appendChild(st);
+                    }
+                }
+            } catch (e) {}
+        })();
+    </script>
+
     <!-- Tipografías Oficiales -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     
-    <!-- Librerías Oficiales PDF + Supabase + KINET Backend v5.7 + Config APIs -->
+    <!-- Librerías Oficiales PDF + Supabase + KINET Backend + Config APIs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="kinet-backend.js"></script>
@@ -103,7 +129,7 @@
             .os-workspace { overflow: visible !important; height: auto !important; padding: 14px 14px 40px 14px !important; justify-content: flex-start !important; }
         }
 
-        /* SIDEBAR FIJO CON NAVEGACIÓN CENTRADA Y ALTURA FIJA 44PX */
+        /* SIDEBAR FIJO */
         .os-sidebar {
             background: rgba(8, 11, 18, 0.95);
             backdrop-filter: blur(24px);
@@ -244,9 +270,9 @@
             border-radius: 12px;
             padding: 9px 12px;
             margin-bottom: 2px;
-            height: 76px;
-            min-height: 76px;
-            max-height: 76px;
+            height: 86px;
+            min-height: 86px;
+            max-height: 86px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -264,7 +290,7 @@
             margin-bottom: 3px;
             font-weight: 700;
         }
-        .sidebar-ai-tip-text { font-size: 0.71rem; color: #CBD5E1; line-height: 1.32; }
+        .sidebar-ai-tip-text { font-size: 0.68rem; color: #CBD5E1; line-height: 1.28; }
 
         /* ZONA PRINCIPAL */
         .os-main { display: flex; flex-direction: column; min-width: 0; height: 100vh; overflow: hidden; }
@@ -282,7 +308,31 @@
         .mobile-brand { display: none; align-items: center; gap: 10px; text-decoration: none; color: white; }
         @media (max-width: 960px) { .mobile-brand { display: flex; } .os-topbar { padding: 12px 16px; } }
 
-        .topbar-actions { display: flex; align-items: center; gap: 12px; }
+        .topbar-actions { display: flex; align-items: center; gap: 10px; }
+
+        .kinet-section-info-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(var(--role-rgb), 0.35);
+            color: var(--role-color);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.22s ease;
+        }
+        .kinet-section-info-btn:hover {
+            background: var(--role-gradient);
+            color: #04060A;
+            box-shadow: 0 0 14px var(--role-glow);
+            transform: scale(1.08);
+        }
+
         .active-role-indicator {
             display: flex;
             align-items: center;
@@ -308,7 +358,7 @@
             text-transform: uppercase;
         }
 
-        /* WORKSPACE CENTRADO VERTICALMENTE CON ESTÉTICA MONITOR GRANDE */
+        /* WORKSPACE */
         .os-workspace {
             max-width: 1280px;
             width: 100%;
@@ -427,7 +477,6 @@
             font-weight: 700;
         }
 
-        /* BARRA DE CUOTA MENSUAL DE VÍDEO IA */
         .quota-bar-box {
             background: rgba(4, 6, 10, 0.78);
             border: 1px solid var(--border-subtle);
@@ -456,9 +505,7 @@
             transition: width 0.4s ease;
         }
 
-        /* =========================================================================
-           MONITOR PANORÁMICO GRANDE CON LÁSER DE PUNTA A PUNTA EN MOVIMIENTO REAL
-           ========================================================================= */
+        /* MONITOR PANORÁMICO GRANDE CON LÁSER DE PUNTA A PUNTA */
         .vision-hud-viewport {
             background: radial-gradient(circle at 50% 42%, rgba(var(--role-rgb), 0.18), rgba(4, 6, 10, 0.96) 74%);
             border: 1px solid rgba(var(--role-rgb), 0.44);
@@ -483,7 +530,6 @@
             z-index: 0;
             display: none;
         }
-        /* CRÍTICO: Excluimos .vision-scanline para que NUNCA pierda su position:absolute de punta a punta */
         .vision-hud-viewport > *:not(.vision-video-bg):not(.vision-scanline) {
             position: relative;
             z-index: 2;
@@ -521,7 +567,6 @@
         .t-pill span { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: var(--text-secondary); display: block; }
         .t-pill strong { font-family: 'Orbitron', sans-serif; font-size: 0.94rem; color: white; margin-top: 3px; display: block; }
 
-        /* BOTONES */
         .btn-primary {
             background: var(--role-gradient);
             color: #04060A;
@@ -611,9 +656,7 @@
             transform: translateX(3px);
         }
 
-        /* =========================================================================
-           ASISTENTE MODAL EN 2 PASOS CON CUADRÍCULA 2x2 PROFESIONAL (4 OPCIONES)
-           ========================================================================= */
+        /* MODALES KINET */
         .kinet-modal-overlay {
             position: fixed; inset: 0; background: rgba(4, 6, 10, 0.88); backdrop-filter: blur(18px); z-index: 500;
             display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
@@ -654,7 +697,6 @@
             box-shadow: 0 0 18px rgba(var(--role-rgb), 0.2);
         }
 
-        /* CUADRÍCULA 2x2 PROFESIONAL DE 4 SUB-BLOQUES (NUNCA PÍLDORAS DESALINEADAS) */
         .wizard-4blocks-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -708,7 +750,6 @@
             line-height: 1.32;
         }
 
-        /* SELECTOR KINET DE DESTINO EN ANALIZADOR (4 TARJETAS EN LUGAR DEL DESPLEGABLE AZUL WINDOWS) */
         .wizard-dest-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -796,7 +837,7 @@
 
     <div class="os-layout">
         
-        <!-- SIDEBAR FIJO CON OPCIONES CENTRADAS A 44PX -->
+        <!-- SIDEBAR FIJO -->
         <aside class="os-sidebar">
             <div class="sidebar-top-section">
                 <a href="app.html" id="brand-logo-desktop" class="brand-box">
@@ -885,6 +926,7 @@
                 </div>
 
                 <div class="topbar-actions">
+                    <button type="button" class="kinet-section-info-btn" onclick="openSectionInfoModal()" title="Guía del Laboratorio de Vídeo">i</button>
                     <a href="analizador.html" id="topbar-analyzer-btn" class="btn-secondary" style="padding:6px 11px;font-size:0.62rem;">🏟️ Ir a Analizador & Pizarra 3D →</a>
                     <div class="active-role-indicator">
                         <span class="dot"></span>
@@ -893,7 +935,7 @@
                 </div>
             </header>
 
-            <!-- WORKSPACE CENTRADO VERTICALMENTE -->
+            <!-- WORKSPACE -->
             <main class="os-workspace">
                 <div class="context-header">
                     <div>
@@ -910,7 +952,7 @@
                 </div>
 
                 <div class="bento-grid">
-                    <!-- COLUMNA IZQUIERDA (7 COL): MONITOR GRANDE CON LÍNEA LÁSER DE PUNTA A PUNTA EN MOVIMIENTO -->
+                    <!-- COLUMNA IZQUIERDA (7 COL): MONITOR GRANDE CON LÍNEA LÁSER DE PUNTA A PUNTA -->
                     <div class="col-7">
                         <div class="kinet-panel" style="height:100%; display:flex; flex-direction:column; justify-content:space-between;">
                             <div>
@@ -1034,7 +1076,7 @@
     <!-- =========================================================================
          MODAL ASISTENTE KINET PROFESIONAL DE SUBIDA DE VÍDEO (2 PASOS CON CUADRÍCULA 2x2)
          ========================================================================= -->
-    <div id="upload-wizard-modal" class="kinet-modal-overlay">
+    <div id="upload-wizard-modal" class="kinet-modal-overlay" onclick="if(event.target===this)closeUploadWizardModal()">
         <div class="kinet-modal-box">
             <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:10px;">
                 <div style="font-family:'Orbitron';font-size:0.9rem;font-weight:900;color:var(--role-color);display:flex;align-items:center;gap:8px;">
@@ -1078,13 +1120,12 @@
                 </div>
             </div>
 
-            <!-- PASO 2: DETALLAR CONTEXTO ESPECÍFICO PARA LA IA Y DESTINO CON TARJETAS KINET (SIN SELECT AZUL DE WINDOWS) -->
+            <!-- PASO 2: DETALLAR CONTEXTO ESPECÍFICO PARA LA IA Y DESTINO -->
             <div id="wizard-step-2" style="display:none;">
                 <p style="font-size:0.76rem;color:#CBD5E1;margin-bottom:10px;" id="wizard-step2-intro">
                     Añade la información clave sobre este clip para que la IA personalice el análisis y elige dónde guardarlo en el Analizador:
                 </p>
 
-                <!-- Campos exclusivos en 3ª persona cuando eres Staff o Scout -->
                 <div id="wizard-third-person-fields" style="display:none;grid-template-columns:1.3fr 1fr;gap:10px;margin-bottom:10px;">
                     <div>
                         <label style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);display:block;margin-bottom:4px;">NOMBRE DEL DEPORTISTA EVALUADO (3ª PERSONA)</label>
@@ -1149,51 +1190,53 @@
         </div>
     </div>
 
-    <!-- MODAL BLOQUEO PLAN GRATUITO -->
-    <div id="vision-upgrade-modal" class="kinet-modal-overlay">
+    <!-- =========================================================================
+         MODAL BLOQUEO PLAN GRATUITO (PRECIO ACTUALIZADO A 8,99€/MES Y BOTÓN ÚNICO "VER PLANES →")
+         ========================================================================= -->
+    <div id="vision-upgrade-modal" class="kinet-modal-overlay" onclick="if(event.target===this)this.classList.remove('open')">
         <div class="kinet-modal-box" style="max-width:480px;">
             <div style="font-family:'Orbitron';font-size:0.95rem;font-weight:800;color:var(--role-color);display:flex;align-items:center;gap:8px;">
                 <span>🔒</span> <span>KINET VISION ANALYTICS™ // BLOQUEADO</span>
             </div>
             <div style="font-size:0.84rem;color:#CBD5E1;line-height:1.55;">
                 El procesamiento biomecánico de vídeo a 24-30 FPS requiere servidores GPU dedicados y no está incluido en el <strong>Plan Gratuito</strong>.<br><br>
-                Actualiza a <strong>Pro Player (8,99€/mes — 90 min/mes)</strong> o adquiere un <strong>Bono de Minutos Extra (*Pay-As-You-Go*)</strong> para analizar tus vídeos.
+                Actualiza a <strong>Pro Player (8,99€/mes — 90 min/mes)</strong> o adquiere un <strong>Bono de Minutos Extra (*Pay-As-You-Go* desde 1,99€)</strong> para analizar tus vídeos.
             </div>
             <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:6px;flex-wrap:wrap;">
                 <button class="btn-secondary" onclick="document.getElementById('vision-upgrade-modal').classList.remove('open')">Cerrar</button>
-                <button class="btn-secondary" onclick="document.getElementById('vision-upgrade-modal').classList.remove('open'); openBonusPackModal();">➕ Comprar Bono Vídeo</button>
-                <a href="despacho.html?tab=subscription" id="modal-sub-link" class="btn-primary">⚡ Ver Planes Pro →</a>
+                <a href="despacho.html?tab=subscription" id="modal-sub-link" class="btn-primary">⚡ Ver Planes →</a>
             </div>
         </div>
     </div>
 
-    <!-- MODAL BONOS PAY-AS-YOU-GO DE VÍDEO IA -->
-    <div id="payg-vision-modal" class="kinet-modal-overlay">
-        <div class="kinet-modal-box" style="max-width:480px;">
-            <div style="font-family:'Orbitron';font-size:0.95rem;font-weight:800;color:var(--role-color);display:flex;align-items:center;gap:8px;">
-                <span>⚡</span> <span>RECARGAR BONOS DE VÍDEO IA (24-30 FPS)</span>
+    <!-- =========================================================================
+         MODAL GUÍA INTERACTIVA DE LA SECCIÓN (BOTÓN ⓘ)
+         ========================================================================= -->
+    <div id="section-info-modal" class="kinet-modal-overlay" onclick="if(event.target===this)closeSectionInfoModal()">
+        <div class="kinet-modal-box" style="max-width:560px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:10px;">
+                <div>
+                    <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);">ⓘ GUÍA OFICIAL DE SECCIÓN // KINET OS</span>
+                    <h3 style="font-family:'Orbitron';font-size:1rem;font-weight:900;color:white;margin-top:2px;">¿Cómo funciona Laboratorio Vision Analytics™?</h3>
+                </div>
+                <button type="button" onclick="closeSectionInfoModal()" style="background:none;border:none;color:white;font-size:1.15rem;cursor:pointer;">✕</button>
             </div>
-            <div style="font-size:0.84rem;color:#CBD5E1;line-height:1.55;">
-                Añade minutos extra de análisis para Vision Analytics™ sin fecha de caducidad mensual:
-                <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle);border-radius:12px;padding:10px 12px;">
-                        <div>
-                            <div style="font-weight:800;color:white;font-size:0.82rem;">🎬 Bono Partido: +45 Minutos Vision IA (30 FPS)</div>
-                            <div style="font-size:0.68rem;color:var(--text-secondary);">Da para auditar 3 partidos por bloques o 30 jugadas</div>
-                        </div>
-                        <button class="btn-primary" style="padding:7px 12px;font-size:0.68rem;" onclick="addVisionBonusMinutes(45)">4,99 €</button>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(var(--role-rgb),0.08);border:1px solid var(--role-color);border-radius:12px;padding:10px 12px;">
-                        <div>
-                            <div style="font-weight:800;color:white;font-size:0.82rem;">🚀 Pack Temporada: +150 Minutos Vision IA</div>
-                            <div style="font-size:0.68rem;color:#CBD5E1;">El más rentable • No caduca a fin de mes</div>
-                        </div>
-                        <button class="btn-primary" style="padding:7px 12px;font-size:0.68rem;" onclick="addVisionBonusMinutes(150)">9,99 €</button>
-                    </div>
+            <div style="display:flex;flex-direction:column;gap:10px;font-size:0.78rem;color:#CBD5E1;line-height:1.45;">
+                <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
+                    <strong style="color:white;display:block;margin-bottom:2px;">🎬 1. Asistente Guiado en 2 Pasos (Partido, Entreno o Acción)</strong>
+                    Pulsa en <em>🎥 Subir Vídeo a Vision IA</em>, selecciona uno de los 4 bloques tácticos de tu deporte (incluyendo Portero/Especialista) y escribe qué detalle quieres que audite la IA.
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
+                    <strong style="color:white;display:block;margin-bottom:2px;">🏟️ 2. Conexión Directa con Analizador & Pizarra 3D</strong>
+                    Al terminar el análisis, pulsa <em>💾 Guardar en Analizador & Pizarra 3D</em> para enviar directamente al deportista auditado como Titular, Banquillo, Reserva o Cartelera de Fichajes.
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
+                    <strong style="color:white;display:block;margin-bottom:2px;">📄 3. Dossier Ejecutivo en PDF con Logo Oficial KINET</strong>
+                    Descarga el certificado biomecánico completo en PDF para adjuntarlo a tu Dossier Deportivo o enviarlo por Mensaje Directo a clubes y entrenadores.
                 </div>
             </div>
-            <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:6px;">
-                <button class="btn-secondary" onclick="document.getElementById('payg-vision-modal').classList.remove('open')">Cerrar</button>
+            <div style="display:flex;justify-content:flex-end;">
+                <button type="button" class="btn-primary" onclick="closeSectionInfoModal()">Entendido</button>
             </div>
         </div>
     </div>
@@ -1246,6 +1289,13 @@
         </button>
     </nav>
     <script>
+        function openSectionInfoModal() {
+            document.getElementById('section-info-modal').classList.add('open');
+        }
+        function closeSectionInfoModal() {
+            document.getElementById('section-info-modal').classList.remove('open');
+        }
+
         // =========================================================================
         // MOTOR MULTIDEPORTE DEL ASISTENTE VISION LAB™ (SIEMPRE 4 TARJETAS 2x2 POR CATEGORÍA)
         // =========================================================================
@@ -1637,16 +1687,16 @@
             }
 
             refreshVideoQuotaUI();
-            renderSessionsHistoryList();
+            rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
 
             if (analyzedSessionsHistory.length > 0) {
                 loadSessionIntoMonitor(analyzedSessionsHistory[0]);
             } else {
-                renderEmptyNewUserMonitor();
+                rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
             }
         }
 
-        function renderEmptyNewUserMonitor() {
+        function rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63() {
             currentActiveSession = null;
             const myName = localStorage.getItem('kinet_user_name') || 'Usuario Nuevo';
             document.getElementById('vision-active-subject').textContent =
@@ -1691,14 +1741,12 @@
             }
         }
 
-        // =========================================================================
-        // CONTROLADORES DEL ASISTENTE MODAL EN 2 PASOS (4 TARJETAS 2x2)
-        // =========================================================================
         function openUploadWizardModal() {
             if (!isPaidOrBonusAccount()) {
                 document.getElementById('vision-upgrade-modal').classList.add('open');
                 return;
             }
+            syncWizardTopCardsBySport();
             backToWizardStep1();
             selectWizardCategory('match');
             document.getElementById('upload-wizard-modal').classList.add('open');
@@ -1715,7 +1763,6 @@
             });
 
             const list = currentSportSchema.categories[catKey] || [];
-            // Si el usuario tiene puesto en su perfil que es Portero (POR), le preseleccionamos la 4ª tarjeta automáticamente
             const myPos = (localStorage.getItem('kinet_position') || '').toUpperCase();
             if (myPos.includes('POR') && list.length === 4) {
                 selectedWizardSubOption = list[3];
@@ -1820,6 +1867,10 @@
             const actionNotes = (document.getElementById('wizard-action-notes')?.value || '').trim() || opt.title;
             const slotRole = document.getElementById('wizard-roster-slot-role')?.value || 'starter';
 
+            if (/km\/h/i.test(opt.metrics[1])) {
+                localStorage.setItem('kinet_verified_gps_speed', opt.metrics[1]);
+            }
+
             const aiPersonalizedVerdict = (activeRoleKey === 'athlete')
                 ? `✓ [Análisis en 1ª Persona sobre "${matchCtx}"]: En tu bloque "${opt.title}" donde destacas "${actionNotes}", el escáner a 30 FPS confirma una precisión biomecánica del ${opt.metrics[0]} y un registro de ${opt.metrics[1]}. Sello AI Verified actualizado (${opt.metrics[3]}).`
                 : `✓ [Informe Técnico en 3ª Persona — ${evaluatedPerson} (${evaluatedPos})]: Evaluando "${matchCtx}" (${opt.title}) bajo la observación "${actionNotes}", el deportista registra ${opt.metrics[0]} de eficacia cinemática y ${opt.metrics[1]} (${opt.metrics[2]} de su categoría). Listo para transferir al Analizador 3D.`;
@@ -1845,7 +1896,7 @@
             analyzedSessionsHistory.unshift(newSession);
             saveSessionsToStorage();
             loadSessionIntoMonitor(newSession);
-            renderSessionsHistoryList();
+            rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
             input.value = '';
         }
 
@@ -1881,14 +1932,14 @@
             `).join('');
         }
 
-        function renderSessionsHistoryList() {
+        function rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63() {
             const box = document.getElementById('vision-sessions-list');
             document.getElementById('sessions-count-badge').textContent = `${analyzedSessionsHistory.length} CLIPS EN HISTORIAL`;
 
             if (analyzedSessionsHistory.length === 0) {
                 box.innerHTML = `
                     <div style="text-align:center;padding:14px;background:rgba(255,255,255,0.015);border:1px dashed var(--border-subtle);border-radius:12px;font-size:0.73rem;color:var(--text-secondary);">
-                        Tu historial está limpio (0 vídeos). Sube tu primer clip desde el botón verde de la izquierda.
+                        Tu historial está limpio (0 vídeos). Sube tu primer clip desde el botón de la izquierda.
                     </div>
                 `;
                 return;
@@ -1971,31 +2022,14 @@
             window.location.href = `cuerpo-tecnico.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeSportName)}&agent=tecnico_video`;
         }
 
-          // Redirigir directamente a la sección de Suscripciones y Bonos de despacho.html en lugar de abrir el popup antiguo
         window.openBonusPackModal = function () {
             const roleNow = localStorage.getItem('kinet_active_role') || document.body.getAttribute('data-role') || 'athlete';
             const sportNow = localStorage.getItem('kinet_sport') || 'Fútbol';
             window.location.href = `despacho.html?role=${roleNow}&sport=${encodeURIComponent(sportNow)}&tab=subscription#payg-bonuses-section`;
         };
 
-        window.addEventListener('DOMContentLoaded', () => {
-            // Actualizar también el precio mostrado en el aviso de cuenta gratuita a 4,99€/mes
-            const upModalBox = document.querySelector('#vision-upgrade-modal .kinet-modal-box');
-            if (upModalBox) {
-                upModalBox.innerHTML = upModalBox.innerHTML.replace('8,99€/mes', '4,99€/mes');
-            }
-        });
-
-        function addVisionBonusMinutes(mins) {
-            const prev = parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0');
-            localStorage.setItem('kinet_bonus_video_mins', String(prev + mins));
-            if (window.KinetBackend) window.KinetBackend.pushLocalStateToCloud();
-            document.getElementById('payg-vision-modal').classList.remove('open');
-            refreshVideoQuotaUI();
-        }
-
         // =========================================================================
-        // EXPORTACIÓN PDF EJECUTIVA PROFESIONAL DEL INFORME DE LABORATORIO
+        // EXPORTACIÓN PDF EJECUTIVA PROFESIONAL CON LOGO KINET ARRIBA A LA IZQUIERDA
         // =========================================================================
         function exportVisionReportPDF() {
             const { jsPDF } = window.jspdf;
@@ -2007,14 +2041,22 @@
 
             pdf.setFillColor(13, 17, 26);
             pdf.roundedRect(14, 14, 182, 28, 4, 4, 'F');
-            pdf.setTextColor(0, 255, 136);
+
+            // LOGO OFICIAL KINET OS ARRIBA A LA IZQUIERDA
+            pdf.setFillColor(0, 255, 136);
+            pdf.roundedRect(18, 18, 12, 12, 3, 3, 'F');
+            pdf.setTextColor(4, 6, 10);
             pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(13.5);
-            pdf.text('KINET VISION ANALYTICS™ // DOSSIER EJECUTIVO DE VIDEO (30 FPS)', 20, 25);
+            pdf.setFontSize(11);
+            pdf.text('K', 22.3, 26);
+
+            pdf.setTextColor(0, 255, 136);
+            pdf.setFontSize(12.5);
+            pdf.text('KINET VISION ANALYTICS™ // DOSSIER EJECUTIVO DE VIDEO (30 FPS)', 34, 24);
 
             pdf.setTextColor(203, 213, 225);
-            pdf.setFontSize(9);
-            pdf.text(`DISCIPLINA: ${activeSportName.toUpperCase()}   |   SUJETO EVALUADO: ${(s ? s.subjectName + ' (' + s.subjectPos + ')' : 'PENDIENTE').toUpperCase()}`, 20, 34);
+            pdf.setFontSize(8.8);
+            pdf.text(`DISCIPLINA: ${activeSportName.toUpperCase()}   |   SUJETO EVALUADO: ${(s ? s.subjectName + ' (' + s.subjectPos + ')' : 'PENDIENTE').toUpperCase()}`, 34, 33);
 
             if (!s) {
                 pdf.setTextColor(248, 250, 252);
@@ -2057,8 +2099,9 @@
             pdf.text('Certificado biomecánico oficial generado por KINET Vision Analytics™ • jkinetos.es', 14, 286);
             pdf.save(`Dossier_Vision_Analytics_${activeSportName}.pdf`);
         }
-     // =========================================================================
-        // MOTOR GLOBAL DE PERSONALIZACIÓN DE DESPACHO (COMPLETO Y CERRADO SIN ERRORES)
+
+        // =========================================================================
+        // MOTOR GLOBAL DE PERSONALIZACIÓN DE DESPACHO
         // =========================================================================
         (function initGlobalKinetPersonalization() {
             const styleTag = document.createElement('style');
@@ -2118,13 +2161,11 @@
             }
 
             function applyDespachoThemeSettings() {
-                // Ocultar siempre el botón de Config. Red Social si la cuenta ya está iniciada o sincronizada
                 const navSoc = document.getElementById('nav-config-social');
                 const drwSoc = document.getElementById('drawer-config-social');
                 if (navSoc) navSoc.style.setProperty('display', 'none', 'important');
                 if (drwSoc) drwSoc.style.setProperty('display', 'none', 'important');
 
-                // Asegurar que el sombreado del cursor (Spotlight) esté activo en todos los paneles y botones
                 document.querySelectorAll('.kinet-panel, .side-link, .wizard-option-card, .wizard-subblock-card').forEach(el => {
                     if (el._spotBound) return;
                     el._spotBound = true;
@@ -2143,11 +2184,7 @@
                 const roleHexMap = { athlete: '#00FF88', staff: '#F59E0B', scout: '#3B82F6' };
                 const defaultRoleHex = roleHexMap[activeRole] || '#00FF88';
 
-                let savedAccent = localStorage.getItem('kinet_custom_accent_override');
-                if (activeRole !== 'athlete' && savedAccent && savedAccent.toUpperCase() === '#00FF88') {
-                    savedAccent = null;
-                }
-
+                let savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
                 const rainbowOn = localStorage.getItem('kinet_rainbow_mode') === 'true';
 
                 if (rainbowOn) {
@@ -2166,7 +2203,7 @@
                         requestAnimationFrame(stepRainbow);
                     }
                     requestAnimationFrame(stepRainbow);
-                } else if (savedAccent) {
+                } else if (savedAccent && savedAccent.startsWith('#')) {
                     document.body.classList.remove('rainbow-mode');
                     const clean = savedAccent.replace('#', '');
                     const num = parseInt(clean, 16);
@@ -2177,7 +2214,6 @@
                     document.body.style.setProperty('--role-gradient', `linear-gradient(135deg, ${savedAccent} 0%, rgba(${r},${g},${b},0.75) 100%)`);
                     forceUpdateTabFavicon(savedAccent);
                 } else {
-                    document.body.classList.remove('rainbow-mode');
                     document.body.style.removeProperty('--role-color');
                     document.body.style.removeProperty('--role-rgb');
                     document.body.style.removeProperty('--role-glow');
@@ -2210,9 +2246,8 @@
                 refreshVideoQuotaUI();
             });
         })();
-        // =========================================================================
+
         // ADAPTACIÓN MULTIDEPORTE REAL DE LAS 3 TARJETAS SUPERIORES Y EJEMPLOS DEL WIZARD
-        // =========================================================================
         const SPORT_TOP_CARDS_META = {
             'fútbol': {
                 matchDesc: 'Bloques tácticos de 3 a 5 min en partido oficial o amistoso.',
@@ -2282,18 +2317,11 @@
             const notesInput = document.getElementById('wizard-action-notes');
             if (notesInput) notesInput.placeholder = meta.notesPlaceholder;
 
-            // Actualizar también la descripción central del monitor grande
             const statusDesc = document.getElementById('vision-status-desc');
             if (statusDesc && !currentActiveSession) {
                 statusDesc.textContent = `Pulsa abajo en "🎥 Subir Vídeo a Vision IA" para abrir los 4 bloques tácticos de ${currentSportSchema.sportTitle} y detallar el contexto que evaluará la IA.`;
             }
         }
-
-        const _baseOpenWizard = window.openUploadWizardModal;
-        window.openUploadWizardModal = function () {
-            syncWizardTopCardsBySport();
-            _baseOpenWizard();
-        };
 
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(syncWizardTopCardsBySport, 80);
