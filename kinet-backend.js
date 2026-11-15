@@ -869,3 +869,69 @@
     applyGlobalSidebarEnhancements();
   });
 })(window);
+// =========================================================================
+  // AISLAMIENTO ESTRICTO DE MODO INVITADO Y LIMPIEZA TOTAL AL CERRAR SESIÓN
+  // =========================================================================
+  KinetBackend.resetAndStartCleanGuestSession = async function () {
+    try {
+      const sb = KinetBackend.getClient && KinetBackend.getClient();
+      if (sb && sb.auth) {
+        await sb.auth.signOut();
+      }
+    } catch (e) {}
+
+    // Borrar absolutamente todas las claves de usuario anterior y tokens de Supabase (sb-*)
+    Object.keys(localStorage).forEach((k) => {
+      if (k.startsWith('kinet_') || k.startsWith('sb-') || k.includes('supabase')) {
+        localStorage.removeItem(k);
+      }
+    });
+    sessionStorage.clear();
+
+    // Marcar explícitamente que estamos en una sesión limpia de Invitado
+    localStorage.setItem('kinet_is_guest', 'true');
+    localStorage.setItem('kinet_account_tier', 'free');
+    localStorage.setItem('kinet_user_name', 'Atleta Invitado');
+    localStorage.setItem('kinet_social_handle', '@invitado_kinet');
+  };
+
+  // Interceptar pullCloudStateToLocal y pushLocalStateToCloud para que NUNCA mezclen una cuenta de correo cuando el usuario entró como Invitado
+  const _origPullCloud = KinetBackend.pullCloudStateToLocal;
+  KinetBackend.pullCloudStateToLocal = async function () {
+    if (localStorage.getItem('kinet_is_guest') === 'true') {
+      return null; // Si es Invitado, prohibido descargar datos de cuentas registradas en la nube
+    }
+    if (typeof _origPullCloud === 'function') {
+      return await _origPullCloud.apply(this, arguments);
+    }
+  };
+
+  const _origPushCloud = KinetBackend.pushLocalStateToCloud;
+  KinetBackend.pushLocalStateToCloud = async function () {
+    if (localStorage.getItem('kinet_is_guest') === 'true') {
+      return null; // Si es Invitado, opera 100% en local sin pisar la nube
+    }
+    if (typeof _origPushCloud === 'function') {
+      return await _origPushCloud.apply(this, arguments);
+    }
+  };
+
+  // Asegurar que cuando inicies sesión real con correo y contraseña en login.html se desactive la bandera de invitado
+  window.addEventListener('DOMContentLoaded', () => {
+    // Si estamos en login.html o fase1.html y el usuario pulsa "Entrar como Invitado" o "Cerrar Sesión", limpiar todo el rastro anterior
+    document.querySelectorAll('a, button').forEach((el) => {
+      const txt = (el.textContent || '').toLowerCase();
+      const onclickAttr = (el.getAttribute('onclick') || '').toLowerCase();
+      if (txt.includes('invitado') || txt.includes('cerrar sesión') || txt.includes('cerrar sesion') || onclickAttr.includes('guest') || onclickAttr.includes('logout')) {
+        el.addEventListener('click', () => {
+          if (txt.includes('invitado') || onclickAttr.includes('guest')) {
+            KinetBackend.resetAndStartCleanGuestSession();
+          } else {
+            Object.keys(localStorage).forEach((k) => {
+              if (k.startsWith('kinet_') || k.startsWith('sb-')) localStorage.removeItem(k);
+            });
+          }
+        }, true);
+      }
+    });
+  });
