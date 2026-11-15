@@ -9,12 +9,39 @@
     <!-- Favicon Corporativo Dinámico por JavaScript -->
     <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
 
+    <!-- BLOQUEO SÍNCRONO 0ms CONTRA EL MICRO-PESTAÑEO DE COLOR -->
+    <script>
+        (function applyZeroFlashStyleRule() {
+            try {
+                var savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
+                var rainbowOn = localStorage.getItem('kinet_rainbow_mode') === 'true';
+                if (savedAccent && savedAccent.charAt(0) === '#' && !rainbowOn) {
+                    var clean = savedAccent.replace('#', '');
+                    var num = parseInt(clean, 16);
+                    if (!isNaN(num)) {
+                        var r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
+                        var st = document.createElement('style');
+                        st.id = 'kinet-zero-flash-override';
+                        st.textContent = ':root, html, body, body[data-role="athlete"], body[data-role="staff"], body[data-role="scout"] {' +
+                            '--role-color: ' + savedAccent + ' !important;' +
+                            '--role-rgb: ' + r + ', ' + g + ', ' + b + ' !important;' +
+                            '--role-glow: rgba(' + r + ', ' + g + ', ' + b + ', 0.42) !important;' +
+                            '--role-gradient: linear-gradient(135deg, ' + savedAccent + ' 0%, rgba(' + r + ',' + g + ',' + b + ',0.75) 100%) !important;' +
+                        '}';
+                        document.head.appendChild(st);
+                    }
+                }
+            } catch (e) {}
+        })();
+    </script>
+
     <!-- Tipografías Oficiales -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     
-    <!-- Librería Oficial para Exportar Actas e Informes del Cuerpo Técnico IA en PDF -->
+    <!-- Librerías Oficiales para Exportar Rutinas, Imágenes y Actas en PDF / PNG -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <!-- SDK Oficial de Supabase + Motor Central KINET Backend + Config APIs -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -84,7 +111,6 @@
             transition: background-image 0.4s ease;
         }
 
-        /* LAYOUT PRINCIPAL A PANTALLA COMPLETA ESTÁTICA */
         .os-layout {
             display: grid;
             grid-template-columns: 270px 1fr;
@@ -98,7 +124,7 @@
             .os-main { height: 100vh !important; height: 100dvh !important; overflow: hidden !important; }
         }
 
-        /* SIDEBAR FIJO CON NAVEGACIÓN CENTRADA VERTICALMENTE */
+        /* SIDEBAR FIJO */
         .os-sidebar {
             background: rgba(8, 11, 18, 0.95);
             backdrop-filter: blur(24px);
@@ -192,7 +218,6 @@
             flex-shrink: 0;
         }
 
-        /* ENLACES LATERALES CON SPOTLIGHT DINÁMICO DE ROL */
         .side-link {
             display: flex;
             align-items: center;
@@ -245,7 +270,6 @@
             box-shadow: 0 0 18px rgba(var(--role-rgb), 0.18);
         }
 
-        /* WIDGET DE CONSEJO IA */
         .sidebar-ai-tip-box {
             background: rgba(var(--role-rgb), 0.05);
             border: 1px solid rgba(var(--role-rgb), 0.24);
@@ -304,6 +328,29 @@
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+
+        .kinet-section-info-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(var(--role-rgb), 0.35);
+            color: var(--role-color);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.22s ease;
+        }
+        .kinet-section-info-btn:hover {
+            background: var(--role-gradient);
+            color: #04060A;
+            box-shadow: 0 0 14px var(--role-glow);
+            transform: scale(1.08);
         }
 
         .ai-quota-pill {
@@ -367,7 +414,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* CONTENEDOR CHAT WHATSAPP KINET CON ESTILO MÓVIL ADAPTATIVO */
+        /* CONTENEDOR CHAT CON SPOTLIGHT DINÁMICO DE CURSOR */
         .chat-container {
             display: grid;
             grid-template-columns: 325px 1fr;
@@ -382,9 +429,22 @@
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
+        .chat-container::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(320px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(var(--role-rgb), 0.14), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .chat-container:hover::before { opacity: 1; }
+        .chat-container > * { position: relative; z-index: 1; }
+
         .chat-container:hover {
-            border-color: rgba(var(--role-rgb), 0.38);
-            box-shadow: 0 16px 36px rgba(0,0,0,0.6), 0 0 22px rgba(var(--role-rgb), 0.1);
+            border-color: rgba(var(--role-rgb), 0.45);
+            box-shadow: 0 16px 36px rgba(0,0,0,0.6), 0 0 22px rgba(var(--role-rgb), 0.12);
         }
 
         @media (max-width: 850px) {
@@ -450,14 +510,26 @@
             gap: 12px;
             padding: 14px 16px;
             cursor: pointer;
-            transition: all 0.22s ease;
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
             border-bottom: 1px solid rgba(255,255,255,0.025);
             position: relative;
             overflow: hidden;
         }
 
+        .contact-item::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(150px circle at var(--mouse-x, -300px) var(--mouse-y, -300px), rgba(var(--role-rgb), 0.22), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+        .contact-item:hover::before { opacity: 1; }
+
         .contact-item:hover {
-            background: rgba(var(--role-rgb), 0.05);
+            background: rgba(var(--role-rgb), 0.06);
+            transform: translateX(3px);
         }
 
         .contact-item.active {
@@ -545,7 +617,6 @@
             box-shadow: 0 0 14px var(--role-glow);
         }
 
-        /* CHIPS RÁPIDOS DE CONSULTA POR ESPECIALISTA */
         .quick-prompts-bar {
             display: flex;
             gap: 7px;
@@ -583,6 +654,18 @@
             gap: 14px;
         }
 
+        /* ANIMACIONES DIFERENCIADAS AL ENVIAR Y RECIBIR MENSAJES + SOMBREADO SPOTLIGHT */
+        @keyframes kinetMsgSendPop {
+            0% { opacity: 0; transform: translateY(18px) scale(0.92); }
+            65% { opacity: 1; transform: translateY(-2px) scale(1.015); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes kinetMsgReceiveWave {
+            0% { opacity: 0; transform: translateX(-18px) scale(0.94); }
+            65% { opacity: 1; transform: translateX(2px) scale(1.01); }
+            100% { opacity: 1; transform: translateX(0) scale(1); }
+        }
+
         .msg-bubble {
             max-width: 82%;
             padding: 12px 16px;
@@ -590,12 +673,21 @@
             font-size: 0.85rem;
             line-height: 1.48;
             position: relative;
-            animation: msgEnter 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
         }
-
-        @keyframes msgEnter {
-            from { opacity: 0; transform: translateY(6px); }
-            to { opacity: 1; transform: translateY(0); }
+        .msg-bubble::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(180px circle at var(--mouse-x, -300px) var(--mouse-y, -300px), rgba(var(--role-rgb), 0.18), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+        .msg-bubble:hover::before { opacity: 1; }
+        .msg-bubble:hover {
+            border-color: rgba(var(--role-rgb), 0.45);
         }
 
         .msg-bubble.incoming {
@@ -604,6 +696,7 @@
             color: #E2E8F0;
             align-self: flex-start;
             border-top-left-radius: 4px;
+            animation: kinetMsgReceiveWave 0.36s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .msg-bubble.outgoing {
@@ -613,9 +706,35 @@
             align-self: flex-end;
             border-top-right-radius: 4px;
             box-shadow: 0 4px 15px rgba(var(--role-rgb), 0.12);
+            animation: kinetMsgSendPop 0.34s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* TARJETA DE DERIVACIÓN / HANDOFF ENTRE AGENTES */
+        /* INDICADOR DE RESPUESTA CON TIEMPO ESTIMADO (~10-15 SEGUNDOS) */
+        .ai-thinking-eta-card {
+            align-self: flex-start;
+            max-width: 410px;
+            width: 100%;
+            background: rgba(10, 14, 24, 0.95);
+            border: 1px solid rgba(var(--role-rgb), 0.5);
+            border-radius: 14px;
+            padding: 11px 14px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 18px rgba(var(--role-rgb), 0.16);
+            animation: kinetMsgReceiveWave 0.3s ease;
+        }
+        @keyframes etaPulseDot {
+            0%, 100% { opacity: 0.35; transform: scale(0.85); }
+            50% { opacity: 1; transform: scale(1.18); }
+        }
+        .eta-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--role-color);
+            display: inline-block;
+            animation: etaPulseDot 1.1s infinite ease-in-out;
+        }
+
+        /* TARJETA DE DERIVACIÓN / HANDOFF Y ACCIONES RÁPIDAS (RUTINA / MEDIA STUDIO) */
         .handoff-action-card {
             margin-top: 10px;
             padding: 10px 12px;
@@ -656,6 +775,34 @@
             filter: brightness(1.08);
         }
 
+        .msg-inline-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+            padding-top: 7px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .msg-mini-pill-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(var(--role-rgb), 0.38);
+            color: var(--role-color);
+            border-radius: 8px;
+            padding: 4px 9px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+        .msg-mini-pill-btn:hover {
+            background: var(--role-gradient);
+            color: #04060A;
+        }
+
         .msg-time {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.58rem;
@@ -665,13 +812,46 @@
             margin-top: 4px;
         }
 
+        /* BARRA DE PREVISUALIZACIÓN DE IMAGEN COMPRIMIDA ADJUNTA AL CHAT */
+        .chat-image-preview-bar {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 8px 16px;
+            background: rgba(13, 18, 28, 0.96);
+            border-top: 1px solid rgba(var(--role-rgb), 0.4);
+        }
+        .chat-image-preview-bar.visible { display: flex; }
+
         .chat-input-bar {
             padding: 12px 16px;
             background: rgba(8, 11, 18, 0.95);
             border-top: 1px solid var(--border-subtle);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 9px;
+        }
+
+        .upload-img-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(var(--role-rgb), 0.38);
+            color: var(--role-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05rem;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.22s ease;
+        }
+        .upload-img-btn:hover {
+            background: rgba(var(--role-rgb), 0.16);
+            border-color: var(--role-color);
+            transform: translateY(-1px);
         }
 
         .chat-input {
@@ -713,6 +893,46 @@
             transform: translateY(-2px) scale(1.05);
             box-shadow: 0 0 24px var(--role-glow);
             filter: brightness(1.08);
+        }
+
+        /* MODALES DE PLANTILLAS DE RUTINAS E INFORMES + GUÍA DE SECCIÓN */
+        .kinet-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(4, 6, 10, 0.88);
+            backdrop-filter: blur(18px);
+            z-index: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.28s ease;
+            padding: 14px;
+        }
+        .kinet-modal-overlay.open { opacity: 1; pointer-events: auto; }
+        .kinet-modal-box {
+            background: rgba(13, 17, 26, 0.98);
+            border: 1px solid rgba(var(--role-rgb), 0.55);
+            border-radius: 22px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 92vh;
+            overflow-y: auto;
+            padding: 22px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.92), 0 0 35px rgba(var(--role-rgb), 0.22);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .routine-template-canvas {
+            background: linear-gradient(155deg, #070B14 0%, #0D1424 55%, #060911 100%);
+            border: 2px solid var(--role-color);
+            border-radius: 18px;
+            padding: 20px;
+            color: #F8FAFC;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.85);
         }
 
         /* NAVEGACIÓN MÓVIL */
@@ -761,9 +981,12 @@
 </head>
 <body data-role="athlete">
 
+    <!-- INPUT OCULTO ESTRICTAMENTE LIMITADO A IMÁGENES CON COMPRESIÓN EN NUBE -->
+    <input type="file" id="chat-image-upload-input" accept="image/png,image/jpeg,image/webp" style="display:none;" onchange="handleChatImageSelected(this)">
+
     <div class="os-layout">
         
-        <!-- SIDEBAR FIJO CON MENÚ CENTRADO VERTICALMENTE Y NUEVA SECCIÓN ANALIZADOR 3D -->
+        <!-- SIDEBAR FIJO -->
         <aside class="os-sidebar">
             <div class="sidebar-top-section">
                 <a href="app.html" id="brand-logo-desktop" class="brand-box">
@@ -852,6 +1075,7 @@
                 </div>
 
                 <div class="topbar-actions">
+                    <button type="button" class="kinet-section-info-btn" onclick="openSectionInfoModal()" title="Guía del Cuerpo Técnico IA">i</button>
                     <div class="ai-quota-pill" id="ai-quota-badge" title="Consultas diarias restantes de IA">
                         <span>⚡ IA HOY:</span> <span id="ai-quota-count">15/15</span>
                     </div>
@@ -867,7 +1091,7 @@
                 
                 <div class="chat-container" id="chat-wrapper">
                     
-                    <!-- SIDEBAR DE CONVERSACIONES (SALA DE JUNTAS + LOS 4 ESPECIALISTAS DEFINITIVOS) -->
+                    <!-- SIDEBAR DE CONVERSACIONES -->
                     <div class="chat-sidebar">
                         <div class="chat-sidebar-header">
                             <span>💬 CUERPO TÉCNICO IA</span>
@@ -915,7 +1139,7 @@
                         </div>
                     </div>
 
-                    <!-- AREA PRINCIPAL DEL CHAT (CONVERSACIÓN ACTIVA) -->
+                    <!-- AREA PRINCIPAL DEL CHAT -->
                     <div class="chat-main-area">
                         
                         <div class="chat-header-bar">
@@ -927,20 +1151,36 @@
                                     <span id="active-chat-status" style="font-family:'JetBrains Mono',monospace; font-size:0.6rem; color:var(--role-color);">Sincronizado con tu deporte y perfil real</span>
                                 </div>
                             </div>
-                            <div style="display:flex;align-items:center;gap:8px;">
+                            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                                 <a href="ojeador-live.html" id="header-lab-shortcut" class="btn-pdf-chat" style="text-decoration:none;display:none;">🎬 Subir Clip 30 FPS</a>
-                                <button class="btn-pdf-chat" onclick="downloadChatReportPDF()">📄 Exportar Informe PDF</button>
+                                <button type="button" class="btn-pdf-chat" onclick="openRoutineTemplateModal()">📋 Generar Rutina / Plantilla</button>
+                                <button type="button" class="btn-pdf-chat" onclick="downloadChatReportPDF()">📄 Exportar Informe PDF</button>
                             </div>
                         </div>
 
-                        <!-- BARRA DE CONSULTAS RÁPIDAS PERSONALIZADAS SEGÚN EL ESPECIALISTA ACTIVO -->
+                        <!-- BARRA DE CONSULTAS RÁPIDAS -->
                         <div class="quick-prompts-bar" id="quick-prompts-container"></div>
 
                         <div class="chat-messages-scroll" id="chat-messages-box"></div>
 
+                        <!-- PREVISUALIZACIÓN DE IMAGEN COMPRIMIDA ADJUNTA -->
+                        <div class="chat-image-preview-bar" id="chat-image-preview-bar">
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <img id="chat-image-preview-thumb" src="" alt="Preview" style="width:38px;height:38px;border-radius:8px;object-fit:cover;border:1px solid var(--role-color);">
+                                <div>
+                                    <div id="chat-image-preview-name" style="font-size:0.75rem;font-weight:700;color:white;">Imagen comprimida lista</div>
+                                    <div id="chat-image-preview-size" style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);">Filtro ligero WebP aplicado (~38 KB)</div>
+                                </div>
+                            </div>
+                            <button type="button" onclick="clearPendingChatImage()" style="background:none;border:none;color:#FCA5A5;font-size:0.8rem;cursor:pointer;font-weight:800;">✕ Quitar</button>
+                        </div>
+
                         <div class="chat-input-bar">
-                            <input type="text" id="chat-user-input" class="chat-input" placeholder="Escribe tu consulta al especialista IA (si es de otra área te derivará con 1 clic)..." onkeydown="if(event.key==='Enter') sendUserMessage()">
-                            <button class="send-btn" onclick="sendUserMessage()">→</button>
+                            <button type="button" class="upload-img-btn" onclick="document.getElementById('chat-image-upload-input').click()" title="Subir imagen al especialista IA (compresión automática ligera)">
+                                🖼️
+                            </button>
+                            <input type="text" id="chat-user-input" class="chat-input" placeholder="Escribe tu consulta o sube una foto (ej: hazme una rutina o un edit para Media Studio)..." onkeydown="if(event.key==='Enter') sendUserMessage()">
+                            <button class="send-btn" id="chat-send-btn" onclick="sendUserMessage()">→</button>
                         </div>
 
                     </div>
@@ -948,6 +1188,73 @@
                 </div>
 
             </main>
+        </div>
+    </div>
+
+    <!-- =========================================================================
+         MODAL 1: GENERADOR DE PLANTILLAS DE RUTINAS EN IMAGEN PNG / PDF OFICIAL CON LOGO KINET ARRIBA A LA IZQUIERDA
+         ========================================================================= -->
+    <div id="routine-template-modal" class="kinet-modal-overlay" onclick="if(event.target===this)closeRoutineTemplateModal()">
+        <div class="kinet-modal-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:10px;">
+                <div>
+                    <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);">📋 PLANTILLAS EJECUTIVAS // KINET OS</span>
+                    <h3 style="font-family:'Orbitron';font-size:0.98rem;font-weight:900;color:white;margin-top:2px;">Generador de Rutinas e Informes (Imagen & PDF)</h3>
+                </div>
+                <button type="button" onclick="closeRoutineTemplateModal()" style="background:none;border:none;color:white;font-size:1.15rem;cursor:pointer;">✕</button>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <button type="button" class="btn-pdf-chat" id="tpl-btn-workout" onclick="switchRoutineTemplateType('workout')">🏋️ 1. Rutina Campo & Gym</button>
+                    <button type="button" class="btn-pdf-chat" id="tpl-btn-nutrition" onclick="switchRoutineTemplateType('nutrition')">🥗 2. Dieta & Protocolo Fisio</button>
+                    <button type="button" class="btn-pdf-chat" id="tpl-btn-tactical" onclick="switchRoutineTemplateType('tactical')">🧠 3. Hoja de Ruta Táctica</button>
+                </div>
+                <span id="tpl-tier-badge" style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);">● PLANTILLA OFICIAL KINET</span>
+            </div>
+
+            <!-- LIENZO VISUAL DE LA PLANTILLA CON LOGO ARRIBA A LA IZQUIERDA -->
+            <div id="routine-export-canvas" class="routine-template-canvas"></div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;border-top:1px solid var(--border-subtle);padding-top:12px;">
+                <span style="font-size:0.7rem;color:var(--text-secondary);" id="routine-quota-note">Plan Gratuito: 1 plantilla exportable/día • KINET PRO: Plantillas ilimitadas HD</span>
+                <div style="display:flex;gap:8px;">
+                    <button type="button" class="btn-pdf-chat" onclick="exportRoutineTemplateAsImage()">🖼️ Descargar en Imagen (PNG)</button>
+                    <button type="button" class="btn-pdf-chat" style="background:var(--role-gradient);color:#04060A;" onclick="exportRoutineTemplateAsPDF()">📄 Descargar en PDF Oficial</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================================
+         MODAL 2: GUÍA INTERACTIVA DE LA SECCIÓN (BOTÓN ⓘ)
+         ========================================================================= -->
+    <div id="section-info-modal" class="kinet-modal-overlay" onclick="if(event.target===this)closeSectionInfoModal()">
+        <div class="kinet-modal-box" style="max-width:560px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:10px;">
+                <div>
+                    <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);">ⓘ GUÍA OFICIAL DE SECCIÓN // KINET OS</span>
+                    <h3 style="font-family:'Orbitron';font-size:1rem;font-weight:900;color:white;margin-top:2px;">¿Cómo funciona el Cuerpo Técnico IA?</h3>
+                </div>
+                <button type="button" onclick="closeSectionInfoModal()" style="background:none;border:none;color:white;font-size:1.15rem;cursor:pointer;">✕</button>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;font-size:0.78rem;color:#CBD5E1;line-height:1.45;">
+                <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
+                    <strong style="color:white;display:block;margin-bottom:2px;">👥 1. Sala de Juntas + 4 Especialistas con Derivación (Handoff)</strong>
+                    Tus 4 entrenadores conocen los datos de tu Onboarding, tu Calendario y tu Pizarra 3D. Si preguntas sobre una lesión al Entrenador de Vídeo, te derivará con 1 clic al Fisioterapeuta pasándole el resumen.
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
+                    <strong style="color:white;display:block;margin-bottom:2px;">🖼️ 2. Subida de Imágenes Comprimidas & Plantillas PDF/PNG</strong>
+                    Usa el botón <strong>🖼️</strong> para subir fotos (comprimidas automáticamente para no saturar la nube) y pulsa <em>📋 Generar Rutina / Plantilla</em> para descargar tu plan en imagen o PDF con sello oficial KINET.
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
+                    <strong style="color:white;display:block;margin-bottom:2px;">🎨 3. Conexión Directa con KINET Media Studio™</strong>
+                    Pídele al <em>Agente de Carrera & Marketing IA</em> ideas o un edit para una foto: te generará el prompt exacto y un botón para abrir Media Studio con ese prompt ya configurado.
+                </div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;">
+                <button type="button" class="btn-pdf-chat" style="background:var(--role-gradient);color:#04060A;padding:8px 16px;" onclick="closeSectionInfoModal()">Entendido</button>
+            </div>
         </div>
     </div>
 
@@ -1009,9 +1316,16 @@
             }
         }
 
-        // Mapa de compatibilidad con enlaces antiguos (?agent=physical -> fisico_nutri, etc.)
+        function openSectionInfoModal() {
+            document.getElementById('section-info-modal').classList.add('open');
+        }
+        function closeSectionInfoModal() {
+            document.getElementById('section-info-modal').classList.remove('open');
+        }
+
         const LEGACY_AGENT_MAP = {
             physical: 'fisico_nutri',
+            physio: 'fisico_nutri',
             nutrition: 'fisico_nutri',
             mental: 'psicologia',
             career: 'agente_marketing',
@@ -1019,10 +1333,174 @@
             video: 'tecnico_video'
         };
 
-        // Construcción dinámica de los 4 Especialistas según Rol y Deporte
+        let activeRoleKey = 'athlete';
+        let currentChatKey = 'group';
+        let activeChatsState = null;
+        let currentProfileCfg = null;
+        let pendingCompressedChatImage = null;
+        let activeRoutineTemplateType = 'workout';
+        let etaIntervalTimer = null;
+
+        // =========================================================================
+        // 1. FILTRO COMPRESOR DE IMÁGENES PARA EL CHAT (SOLO IMÁGENES, ~35-45 KB WEBP/JPEG)
+        // =========================================================================
+        function compressImageForChatCloud(file, maxDim = 900, quality = 0.72) {
+            return new Promise((resolve, reject) => {
+                if (!file || !file.type.startsWith('image/')) {
+                    reject(new Error('Solo se permiten archivos de imagen (PNG, JPG, WEBP).'));
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.onload = function () {
+                        let w = img.width || 600;
+                        let h = img.height || 600;
+                        if (w > h && w > maxDim) {
+                            h = Math.round((h * maxDim) / w);
+                            w = maxDim;
+                        } else if (h >= w && h > maxDim) {
+                            w = Math.round((w * maxDim) / h);
+                            h = maxDim;
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+                        let compressedUrl = canvas.toDataURL('image/webp', quality);
+                        if (!compressedUrl || !compressedUrl.startsWith('data:image/webp')) {
+                            compressedUrl = canvas.toDataURL('image/jpeg', quality);
+                        }
+                        const sizeKB = Math.max(8, Math.round((compressedUrl.length * 0.75) / 1024));
+                        resolve({ dataUrl: compressedUrl, sizeKB, name: file.name });
+                    };
+                    img.onerror = () => reject(new Error('No se pudo procesar la imagen.'));
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function handleChatImageSelected(inputEl) {
+            const file = inputEl && inputEl.files && inputEl.files[0];
+            if (!file) return;
+            if (!file.type.startsWith('image/')) {
+                alert('⚠️ En el chat del Cuerpo Técnico IA solo está permitido subir imágenes (PNG, JPG, WEBP). Para auditar vídeos usa Laboratorio Vídeo.');
+                inputEl.value = '';
+                return;
+            }
+            try {
+                const compressed = await compressImageForChatCloud(file);
+                pendingCompressedChatImage = compressed;
+                document.getElementById('chat-image-preview-thumb').src = compressed.dataUrl;
+                document.getElementById('chat-image-preview-name').textContent = compressed.name;
+                document.getElementById('chat-image-preview-size').textContent = `✓ Filtro Cloud WebP aplicado (~${compressed.sizeKB} KB)`;
+                document.getElementById('chat-image-preview-bar').classList.add('visible');
+            } catch (err) {
+                alert(err.message || 'Error al comprimir la imagen.');
+            }
+            inputEl.value = '';
+        }
+
+        function clearPendingChatImage() {
+            pendingCompressedChatImage = null;
+            document.getElementById('chat-image-preview-bar').classList.remove('visible');
+        }
+
+        // =========================================================================
+        // 2. PUENTE DIRECTO CON MEDIA STUDIO (AUTO-AJUSTA EL PROMPT Y ABRE MEDIA-STUDIO.HTML)
+        // =========================================================================
+        function openMediaStudioWithAutoPrompt(promptText, presetKey) {
+            const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
+            const cleanPrompt = promptText || `Póster oficial Match Day de ${sportChosen} con iluminación dramática de estadio, contraste alto, telemetría HUD neón y sello Verified Athlete.`;
+            localStorage.setItem('kinet_media_studio_auto_prompt', cleanPrompt);
+            localStorage.setItem('kinet_media_studio_auto_preset', presetKey || 'matchday');
+            window.location.href = `media-studio.html?role=${activeRoleKey}&sport=${encodeURIComponent(sportChosen)}&autoprompt=true`;
+        }
+
+        // =========================================================================
+        // 3. CONECTOR LISTO PARA TUS APIS DE IA (GEMINI 2.0 FLASH / GROQ / OPENAI)
+        // =========================================================================
+        window.KINET_STAFF_AI_ENGINE = {
+            callExternalLLM: async function (systemPrompt, userMessage, imageDataUrl) {
+                const cfg = window.KINET_API_CONFIG || {};
+                const geminiKey = cfg.GEMINI_API_KEY || localStorage.getItem('kinet_gemini_api_key') || '';
+                const groqKey = cfg.GROQ_API_KEY || localStorage.getItem('kinet_groq_api_key') || '';
+                const openaiKey = cfg.OPENAI_API_KEY || localStorage.getItem('kinet_ai_api_key') || '';
+
+                try {
+                    if (geminiKey) {
+                        const parts = [{ text: `${systemPrompt}\n\nConsulta del usuario: ${userMessage}` }];
+                        if (imageDataUrl && imageDataUrl.includes(',')) {
+                            const mime = imageDataUrl.substring(imageDataUrl.indexOf(':') + 1, imageDataUrl.indexOf(';'));
+                            const b64 = imageDataUrl.split(',')[1];
+                            parts.push({ inline_data: { mime_type: mime, data: b64 } });
+                        }
+                        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{ parts }],
+                                generationConfig: { temperature: 0.65, maxOutputTokens: 360 }
+                            })
+                        });
+                        if (res.ok) {
+                            const d = await res.json();
+                            const txt = d?.candidates?.[0]?.content?.parts?.[0]?.text;
+                            if (txt) return txt.trim();
+                        }
+                    } else if (groqKey) {
+                        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
+                            body: JSON.stringify({
+                                model: 'llama-3.3-70b-versatile',
+                                messages: [
+                                    { role: 'system', content: systemPrompt },
+                                    { role: 'user', content: userMessage }
+                                ],
+                                max_tokens: 340
+                            })
+                        });
+                        if (res.ok) {
+                            const d = await res.json();
+                            if (d?.choices?.[0]?.message?.content) return d.choices[0].message.content.trim();
+                        }
+                    } else if (openaiKey) {
+                        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaiKey}` },
+                            body: JSON.stringify({
+                                model: 'gpt-4o-mini',
+                                messages: [
+                                    { role: 'system', content: systemPrompt },
+                                    { role: 'user', content: userMessage }
+                                ],
+                                max_tokens: 340
+                            })
+                        });
+                        if (res.ok) {
+                            const d = await res.json();
+                            if (d?.choices?.[0]?.message?.content) return d.choices[0].message.content.trim();
+                        }
+                    }
+                } catch (e) {}
+                return null;
+            }
+        };
+
+        // Construcción dinámica de los 4 Especialistas leyendo también los datos guardados en el Onboarding
         function buildSportAwareChats(roleKey, sportName) {
             const sp = sportName || 'Fútbol';
             const userName = localStorage.getItem('kinet_user_name') || 'Atleta';
+            const userPos = localStorage.getItem('kinet_position') || 'PRO';
+            const userClub = localStorage.getItem('kinet_user_club') || '';
+
+            let preprogrammed = null;
+            try {
+                preprogrammed = JSON.parse(localStorage.getItem('kinet_preprogrammed_agents') || 'null');
+            } catch (e) {}
 
             const BASE = {
                 athlete: {
@@ -1054,9 +1532,9 @@
                             `🔋 Tengo sobrecarga muscular y partido este fin de semana`
                         ],
                         fisico_nutri: [
+                            `🏋️ Genérame una rutina de fuerza explosiva y prevención en plantilla PDF`,
                             `🥗 ¿Qué debo comer e hidratar antes de competir en ${sp}?`,
-                            `🩹 Noto sobrecarga en isquios/gemelos, ¿cómo descargo hoy?`,
-                            `⚡ Rutina de explosividad y potencia para ${sp}`
+                            `🩹 Noto sobrecarga en isquios/gemelos, ¿cómo descargo hoy?`
                         ],
                         psicologia: [
                             `🧠 Cómo mantener la calma tras fallar una acción clave`,
@@ -1065,24 +1543,26 @@
                         ],
                         tecnico_video: [
                             `🎬 ¿Qué 3 bloques de vídeo (3-5 min) debo subir en ${sp}?`,
-                            `📐 Cómo mejorar mi toma de decisiones y posicionamiento táctico`,
+                            `📐 Cómo mejorar mi toma de decisiones como ${userPos}`,
                             `⚡ Ejercicio técnico específico para mi posición en ${sp}`
                         ],
                         agente_marketing: [
+                            `🎨 Hazme un prompt para editar mi foto en KINET Media Studio`,
                             `💼 Cómo destacar mi perfil en KINET Radar ante Scouts`,
-                            `📈 Qué tipo de KINET Shorts atraen más patrocinadores y clubes`,
                             `📄 Cómo optimizar mi bio y CV Deportivo para pruebas`
                         ]
                     },
                     chats: {
                         group: {
                             title: `Sala de Juntas KINET (${sp} • Los 4 Especialistas)`,
-                            status: `Coordinación integral para ${userName} (${sp})`,
+                            status: `Coordinación integral para ${userName} (${userPos}${userClub ? ' • ' + userClub : ''})`,
                             icon: "👥",
                             messages: [
                                 {
                                     sender: "Físico, Fisio & Nutrición IA",
-                                    text: `¡Hola ${userName}! En mi área unificamos tu preparación física de ${sp}, fisioterapia preventiva y nutrición de competición.`,
+                                    text: (preprogrammed && preprogrammed.physical && preprogrammed.physical.welcomeMessage)
+                                        ? preprogrammed.physical.welcomeMessage
+                                        : `¡Hola ${userName}! En mi área unificamos tu preparación física de ${sp}, fisioterapia preventiva y nutrición de competición. Pídeme cualquier rutina y te la generaré en plantilla visual o PDF.`,
                                     time: "09:00",
                                     incoming: true
                                 },
@@ -1094,13 +1574,15 @@
                                 },
                                 {
                                     sender: "Entrenador Técnico & Vídeo IA",
-                                    text: `Yo audito tus bloques tácticos de vídeo a 24-30 FPS en ${sp} y te doy correcciones técnicas exactas para subir tu KINET Card.`,
+                                    text: (preprogrammed && preprogrammed.tactical && preprogrammed.tactical.welcomeMessage)
+                                        ? preprogrammed.tactical.welcomeMessage
+                                        : `Yo audito tus bloques tácticos de vídeo a 24-30 FPS en ${sp} como ${userPos} y te doy correcciones técnicas exactas para subir tu KINET Card.`,
                                     time: "09:02",
                                     incoming: true
                                 },
                                 {
                                     sender: "Agente de Carrera & Marketing IA",
-                                    text: "Y desde Representación & Marketing te ayudo a potenciar tu visibilidad ante Scouts, clubes y marcas patrocinadoras. Escribe aquí o entra al chat de cualquiera de nosotros.",
+                                    text: "Y desde Representación & Marketing te ayudo a potenciar tu visibilidad ante Scouts y a crear pósters con IA: pídeme un edit para tu foto y te configuraré el prompt directo para KINET Media Studio™.",
                                     time: "09:03",
                                     incoming: true
                                 }
@@ -1113,7 +1595,9 @@
                             messages: [
                                 {
                                     sender: "Físico, Fisio & Nutrición IA",
-                                    text: `Hola ${userName}. Soy tu especialista en Rendimiento Físico, Fisioterapia y Nutrición aplicado a ${sp}. Cuéntame si quieres ajustar tus cargas de esta semana, tratar alguna molestia muscular o planificar tu hidratación y comidas.`,
+                                    text: (preprogrammed && preprogrammed.physio && preprogrammed.physio.welcomeMessage)
+                                        ? preprogrammed.physio.welcomeMessage
+                                        : `Hola ${userName}. Soy tu especialista en Rendimiento Físico, Fisioterapia y Nutrición aplicado a ${sp}. Puedes subir una foto de tu comida o zona cargada con el botón 🖼️ o pedirme que te genere tu rutina en plantilla PDF/Imagen.`,
                                     time: "09:00",
                                     incoming: true
                                 }
@@ -1126,7 +1610,7 @@
                             messages: [
                                 {
                                     sender: "Psicología & Mind Coach IA",
-                                    text: `Hola ${userName}.Aquí trabajamos tu fortaleza mental en ${sp}: control de nervios antes de competir, confianza tras el error y foco bajo fatiga. ¿Cómo te sientes de cara a tu próximo reto?`,
+                                    text: `Hola ${userName}. Aquí trabajamos tu fortaleza mental en ${sp}: control de nervios antes de competir, confianza tras el error y foco bajo fatiga. ¿Cómo te sientes de cara a tu próximo reto?`,
                                     time: "09:00",
                                     incoming: true
                                 }
@@ -1139,7 +1623,9 @@
                             messages: [
                                 {
                                     sender: "Entrenador Técnico & Vídeo IA",
-                                    text: `¡Listo en pizarra, ${userName}! Soy tu Entrenador Técnico de ${sp}. Puedo ayudarte a corregir gestos técnicos, lectura táctica o analizar los resultados de tus bloques de 3-5 min del Laboratorio de Vídeo.`,
+                                    text: (preprogrammed && preprogrammed.tactical && preprogrammed.tactical.welcomeMessage)
+                                        ? preprogrammed.tactical.welcomeMessage
+                                        : `¡Listo en pizarra, ${userName}! Soy tu Entrenador Técnico de ${sp}. Puedo ayudarte a corregir gestos técnicos, lectura táctica o analizar capturas de tu Pizarra 3D.`,
                                     time: "09:00",
                                     incoming: true
                                 }
@@ -1147,12 +1633,12 @@
                         },
                         agente_marketing: {
                             title: "Agente de Carrera & Marketing IA",
-                            status: `Representación, Visibilidad en Radar & Marca Personal`,
+                            status: `Representación, Visibilidad en Radar & Media Studio Sync`,
                             icon: "💼",
                             messages: [
                                 {
                                     sender: "Agente de Carrera & Marketing IA",
-                                    text: `Hola ${userName}. Como tu Agente de Carrera y Marketing en ${sp}, mi objetivo es que tu perfil destaque en KINET Radar ante ojeadores y que construyas una marca atractiva para patrocinadores. ¿Qué objetivo de carrera tienes este trimestre?`,
+                                    text: `Hola ${userName}. Como tu Agente de Carrera y Marketing en ${sp}, te ayudo a destacar en KINET Radar y a diseñar contenido profesional. Si quieres subir una foto con un edit brutal, dime cómo la quieres y te prepararé el prompt automático para **KINET Media Studio™**.`,
                                     time: "09:00",
                                     incoming: true
                                 }
@@ -1204,9 +1690,9 @@
                             `📐 Tareas reducidas para mejorar salida bajo presión en ${sp}`
                         ],
                         agente_marketing: [
+                            `🎨 Generar prompt de cartel Matchday para Media Studio`,
                             `💼 Qué perfil de jugador nos falta fichar en KINET Radar`,
-                            `📢 Cómo redactar una convocatoria de pruebas para captar talento`,
-                            `📈 Mejorar la presencia del cuerpo técnico en KINET Network™`
+                            `📢 Cómo redactar una convocatoria de pruebas para captar talento`
                         ]
                     },
                     chats: {
@@ -1217,13 +1703,13 @@
                             messages: [
                                 {
                                     sender: "Readaptador, Físico & Nutrición IA",
-                                    text: `Mister, tenemos el control de cargas, prevención de lesiones y nutrición del grupo de ${sp} listo para ajustar el microciclo.`,
+                                    text: `Míster, tenemos el control de cargas, prevención de lesiones y nutrición del grupo de ${sp} listo para ajustar el microciclo.`,
                                     time: "09:00",
                                     incoming: true
                                 },
                                 {
                                     sender: "Analista Táctico & Vídeo IA",
-                                    text: `Los bloques de vídeo a 30 FPS y la nueva Pizarra Táctica 3D de ${sp} están conectados para preparar la próxima jornada.`,
+                                    text: `Los bloques de vídeo a 30 FPS y la Pizarra Táctica 3D de ${sp} están conectados para preparar la próxima jornada.`,
                                     time: "09:02",
                                     incoming: true
                                 }
@@ -1236,7 +1722,7 @@
                             messages: [
                                 {
                                     sender: "Readaptador, Físico & Nutrición IA",
-                                    text: `Hola Coach. Dime qué carga quieres aplicar hoy al grupo de ${sp} o si necesitas readaptar a algún deportista tocado.`,
+                                    text: `Hola Coach. Dime qué carga quieres aplicar hoy al grupo de ${sp} o si necesitas generar una plantilla PDF de readaptación.`,
                                     time: "09:00",
                                     incoming: true
                                 }
@@ -1249,7 +1735,7 @@
                             messages: [
                                 {
                                     sender: "Psicólogo de Vestuario & Liderazgo IA",
-                                    text: "Hola Mister. Trabajemos el mensaje al vestuario, la gestión de roles en la plantilla y el foco competitivo del grupo.",
+                                    text: "Hola Míster. Trabajemos el mensaje al vestuario, la gestión de roles en la plantilla y el foco competitivo del grupo.",
                                     time: "09:00",
                                     incoming: true
                                 }
@@ -1275,7 +1761,7 @@
                             messages: [
                                 {
                                     sender: "Director de Captación & Imagen IA",
-                                    text: `Desde aquí definimos qué perfiles buscar en KINET Radar para reforzar tu equipo de ${sp} y cómo potenciar tu marca como entrenador.`,
+                                    text: `Desde aquí definimos qué perfiles buscar en KINET Radar para reforzar tu equipo de ${sp} y creamos los prompts de carteles para Media Studio™.`,
                                     time: "09:00",
                                     incoming: true
                                 }
@@ -1324,10 +1810,10 @@
                         tecnico_video: [
                             `🎬 Qué buscar en los 3 bloques de vídeo (ofensivo, defensivo, individual)`,
                             `🏟️ Cómo encaja este perfil en nuestra Pizarra Táctica 3D`,
-                            `📐Diferenciar estadísticas infladas de impacto real en el juego`
+                            `📐 Diferenciar estadísticas infladas de impacto real en el juego`
                         ],
                         agente_marketing: [
-                            `💼 Cómo estructurar una propuesta de prueba o beca deportiva`,
+                            `🎨 Generar prompt de póster de fichaje para Media Studio`,
                             `📈 Estimación de revalorización de un talento joven en 18 meses`,
                             `🤝 Primer mensaje profesional de contacto para un jugador en Radar`
                         ]
@@ -1346,7 +1832,7 @@
                                 },
                                 {
                                     sender: "Analista de Vídeo & Encaje Táctico IA",
-                                    text: `Cruza sus clips de 3-5 min a 30 FPS con el comparador cara a cara de la nueva sección Analizador & Pizarra 3D.`,
+                                    text: `Cruza sus clips de 3-5 min a 30 FPS con el comparador cara a cara de la sección Analizador & Pizarra 3D.`,
                                     time: "09:02",
                                     incoming: true
                                 }
@@ -1398,7 +1884,7 @@
                             messages: [
                                 {
                                     sender: "Negociación, Mercado & ROI IA",
-                                    text: `Preparemos la estrategia de captación, el mensaje de contacto en KINET Direct y el análisis de retorno deportivo/económico.`,
+                                    text: `Preparemos la estrategia de captación, el dossier PDF con logo oficial y el análisis de retorno deportivo/económico.`,
                                     time: "09:00",
                                     incoming: true
                                 }
@@ -1410,11 +1896,6 @@
 
             return BASE[roleKey] || BASE.athlete;
         }
-
-        let activeRoleKey = 'athlete';
-        let currentChatKey = 'group';
-        let activeChatsState = null;
-        let currentProfileCfg = null;
 
         function normalizeRole(val) {
             if (!val) return null;
@@ -1442,9 +1923,21 @@
         function saveChatHistoryToLocal() {
             try {
                 const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
-                const storageKey = `kinet_staff_chats_v2_${activeRoleKey}_${sportChosen}`;
+                const storageKey = `kinet_staff_chats_v3_${activeRoleKey}_${sportChosen}`;
                 localStorage.setItem(storageKey, JSON.stringify(activeChatsState));
             } catch (e) {}
+        }
+
+        function bindSpotlightMouseEffect() {
+            document.querySelectorAll('.chat-container, .contact-item, .side-link, .msg-bubble').forEach(el => {
+                if (el._spotBound) return;
+                el._spotBound = true;
+                el.addEventListener('mousemove', (e) => {
+                    const rect = el.getBoundingClientRect();
+                    el.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+                    el.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+                });
+            });
         }
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -1528,8 +2021,7 @@
                 if (drwUp) drwUp.style.setProperty('display', 'none', 'important');
             }
 
-            // Cargar historial guardado o inicializar con los 4 especialistas
-            const storageKey = `kinet_staff_chats_v2_${activeRoleKey}_${sportChosen}`;
+            const storageKey = `kinet_staff_chats_v3_${activeRoleKey}_${sportChosen}`;
             try {
                 const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
                 if (saved && saved.fisico_nutri && saved.psicologia && saved.tecnico_video && saved.agente_marketing) {
@@ -1565,20 +2057,13 @@
                 localStorage.removeItem('kinet_target_agent');
 
                 setTimeout(() => {
-                    processSpecialistReply(pendingQ);
-                }, 450);
+                    processSpecialistReply(pendingQ, null);
+                }, 350);
             }
 
             updateQuotaHeaderUI();
             renderCurrentChat();
-
-            document.querySelectorAll('.side-link').forEach(link => {
-                link.addEventListener('mousemove', (e) => {
-                    const rect = link.getBoundingClientRect();
-                    link.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
-                    link.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
-                });
-            });
+            bindSpotlightMouseEffect();
         });
 
         function switchChat(chatKey, element) {
@@ -1615,6 +2100,12 @@
             sendUserMessage();
         }
 
+        function formatMessageMarkdown(rawText) {
+            return String(rawText || '')
+                .replace(/\*\*(.*?)\*\*/g, '<strong style="color:white;">$1</strong>')
+                .replace(/\n/g, '<br>');
+        }
+
         function renderCurrentChat() {
             const chat = activeChatsState[currentChatKey];
             document.getElementById('active-chat-title').textContent = chat.title;
@@ -1630,6 +2121,10 @@
 
             const box = document.getElementById('chat-messages-box');
             box.innerHTML = chat.messages.map((m, idx) => {
+                const imgAttachmentHtml = m.imageUrl
+                    ? `<div style="margin-bottom:8px;border-radius:12px;overflow:hidden;border:1px solid rgba(var(--role-rgb),0.45);max-width:260px;"><img src="${m.imageUrl}" alt="Adjunto" style="width:100%;display:block;"></div>`
+                    : '';
+
                 let handoffHtml = '';
                 if (m.handoff && m.handoff.targetAgentId && activeChatsState[m.handoff.targetAgentId]) {
                     const targetTitle = activeChatsState[m.handoff.targetAgentId].title;
@@ -1644,19 +2139,49 @@
                     `;
                 }
 
+                // Si el mensaje viene del Agente de Marketing con un Prompt para Media Studio, mostrar botón directo
+                let mediaStudioBridgeHtml = '';
+                if (m.mediaStudioPrompt) {
+                    const safePrompt = m.mediaStudioPrompt.replace(/'/g, "\\'");
+                    mediaStudioBridgeHtml = `
+                        <div class="handoff-action-card" style="margin-top:9px;">
+                            <div class="handoff-action-title">🎨 PROMPT AUTO-AJUSTADO LISTO PARA KINET MEDIA STUDIO™</div>
+                            <div style="font-family:'JetBrains Mono';font-size:0.68rem;color:#F8FAFC;background:rgba(4,6,10,0.75);padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);">"${m.mediaStudioPrompt}"</div>
+                            <button type="button" class="handoff-action-btn" onclick="openMediaStudioWithAutoPrompt('${safePrompt}', 'matchday')">
+                                🎵 Ir a Media Studio con este Prompt Ajustado (Solo Subir Imagen) →
+                            </button>
+                        </div>
+                    `;
+                }
+
+                // En los mensajes entrantes del Cuerpo Técnico IA, añadir píldora para convertir la pauta en Plantilla Visual / PDF
+                let inlineToolsHtml = '';
+                if (m.incoming) {
+                    const tplType = currentChatKey === 'fisico_nutri' ? 'workout' : (currentChatKey === 'tecnico_video' ? 'tactical' : 'workout');
+                    inlineToolsHtml = `
+                        <div class="msg-inline-actions">
+                            <button type="button" class="msg-mini-pill-btn" onclick="openRoutineTemplateModal('${tplType}')">📋 Convertir en Plantilla Imagen / PDF</button>
+                            ${currentChatKey === 'agente_marketing' && !m.mediaStudioPrompt ? `<button type="button" class="msg-mini-pill-btn" onclick="openMediaStudioWithAutoPrompt('', 'matchday')">🎨 Abrir Media Studio</button>` : ''}
+                        </div>
+                    `;
+                }
+
                 return `
                     <div class="msg-bubble ${m.incoming ? 'incoming' : 'outgoing'}">
-                        ${m.incoming ? `<strong style="font-size:0.7rem; color:var(--role-color); display:block; margin-bottom:3px;">${m.sender}</strong>` : ''}
-                        <div>${m.text}</div>
+                        ${m.incoming ? `<strong style="font-size:0.7rem; color:var(--role-color); display:block; margin-bottom:4px;">${m.sender}</strong>` : ''}
+                        ${imgAttachmentHtml}
+                        <div>${formatMessageMarkdown(m.text)}</div>
                         ${handoffHtml}
+                        ${mediaStudioBridgeHtml}
+                        ${inlineToolsHtml}
                         <span class="msg-time">${m.time}</span>
                     </div>
                 `;
             }).join('');
             box.scrollTop = box.scrollHeight;
+            bindSpotlightMouseEffect();
         }
 
-        // Detector inteligente de si la pregunta del usuario corresponde a OTRO especialista para activar el Handoff
         function detectCrossSpecialistHandoff(userText, currentAgent) {
             if (currentAgent === 'group') return null;
             const q = (userText || '').toLowerCase();
@@ -1664,7 +2189,7 @@
             const isFisicoNutriTopic = /lesi[oó]n|dolor|molestia|isquio|gemelo|rodilla|tobillo|sobrecarga|fatiga|cansad|dieta|comer|comida|hidrat|suplement|prote[ií]na|carbohidrat|calor[ií]a|peso|fisio|aguja|contractura/.test(q);
             const isPsicoTopic = /nervio|ansiedad|presi[oó]n|miedo|confianza|concentraci[oó]n|mental|bloqueo|frustraci[oó]n|foco|motivaci[oó]n|cabeza|estr[eé]s/.test(q);
             const isTecnicoVideoTopic = /v[ií]deo|clip|t[aá]ctica|t[eé]cnica|pizarra|formaci[oó]n|4-3-3|posicionamiento|desmarque|tiro|pase|regate|defensa|ataque|guardia|volea|cadencia|bloque/.test(q);
-            const isMarketingTopic = /scout|ojeador|fichaje|contrato|patrocin|marca|sponsor|representante|agente|radar|oferta|club|seguidores|cv|redes/.test(q);
+            const isMarketingTopic = /scout|ojeador|fichaje|contrato|patrocin|marca|sponsor|representante|agente|radar|oferta|club|seguidores|cv|redes|edit|p[oó]ster|foto para subir/.test(q);
 
             if (currentAgent !== 'fisico_nutri' && isFisicoNutriTopic) {
                 return {
@@ -1690,52 +2215,86 @@
             if (currentAgent !== 'agente_marketing' && isMarketingTopic) {
                 return {
                     targetAgentId: 'agente_marketing',
-                    reason: 'Detectada consulta sobre captación de Scouts, pruebas en clubes, patrocinios o marca personal.',
-                    summary: `[Traspaso desde ${activeChatsState[currentChatKey].title}]: El usuario busca impulsar su carrera: "${userText}". Diseña la estrategia de visibilidad en KINET Radar y patrocinios.`
+                    reason: 'Detectada consulta sobre captación de Scouts, patrocinios, edición de fotos o marca personal.',
+                    summary: `[Traspaso desde ${activeChatsState[currentChatKey].title}]: El usuario busca impulsar su marca o carrera: "${userText}". Diseña la estrategia o el prompt para Media Studio.`
                 };
             }
             return null;
         }
 
-        // Genera la respuesta experta adaptada al Deporte, Rol y Especialista + Handoff si aplica
-        function buildContextualSpecialistResponse(userText, agentKey, sportChosen, handoffObj) {
+        function buildContextualSpecialistResponse(userText, agentKey, sportChosen, handoffObj, hasAttachedImage) {
             const q = (userText || '').toLowerCase();
+            const userPos = localStorage.getItem('kinet_position') || 'PRO';
             const schema = (window.KinetAPIs && window.KinetAPIs.getSportSchema)
                 ? window.KinetAPIs.getSportSchema(sportChosen)
                 : { cardStats: ['PAC','SHO','PAS','DRI','DEF','PHY'], videoBlocks: ['Fase Ofensiva','Fase Defensiva','Involucración'] };
 
             if (handoffObj) {
                 const targetName = activeChatsState[handoffObj.targetAgentId].title;
-                return `He tomado nota desde mi área de **${activeChatsState[agentKey].title}**, pero esta consulta entra de lleno en la especialidad de **${targetName}**. Pulsa el botón de abajo para que le pase automáticamente el resumen de tu caso y te dé la pauta exacta sin que tengas que repetirlo:`;
+                return {
+                    text: `He tomado nota desde mi área de **${activeChatsState[agentKey].title}**, pero esta consulta entra de lleno en la especialidad de **${targetName}**. Pulsa el botón de abajo para que le pase automáticamente el resumen de tu caso y te dé la pauta exacta:`,
+                    mediaStudioPrompt: null
+                };
+            }
+
+            const imgPrefix = hasAttachedImage ? `🖼️ **[Imagen analizada con filtro ligero KINET Vision]** • ` : '';
+
+            // Si pregunta por una foto, edit o póster al Agente de Marketing (o en Sala de Juntas), generar el Prompt auto-ajustado para Media Studio
+            if ((agentKey === 'agente_marketing' || agentKey === 'group') && /foto|edit|imagen|p[oó]ster|subir|instagram|redes|media studio|cartel|dise[ñn]o/.test(q)) {
+                const customGeneratedPrompt = `Póster editorial de alto contraste para ${sportChosen} (${userPos}) • Iluminación dramática de estadio nocturno, partículas neón sutiles, capa de telemetría oficial KINET Broadcast 30 FPS (VERIFIED ATHLETE • 92 GRL) y estética limpia lista para KINET Pulse e Instagram.`;
+                return {
+                    text: `${imgPrefix}💼 **[Agente de Carrera & Marketing • ${sportChosen}]**: He diseñado el concepto visual perfecto para que tu foto destaque ante Scouts y patrocinadores. Ya te he dejado el **prompt ajustado abajo**: solo tienes que pulsar el botón para ir a **KINET Media Studio™**, subir tu imagen y publicarla con 1 clic:`,
+                    mediaStudioPrompt: customGeneratedPrompt
+                };
             }
 
             if (agentKey === 'fisico_nutri') {
                 if (/comer|dieta|hidrat|pre|post|nutri/.test(q)) {
-                    return `🥗 **[Pauta Nutricional • ${sportChosen}]**: 3 horas antes de competir prioriza carbohidratos complejos de índice glucémico medio (arroz/pasta/avena, ~1.5g/kg) + proteína magra. Durante los calentamientos y descansos mantén hidratación isotónica con sodio (500-700ml/h), y en los primeros 30 min tras terminar combina proteína rápida (25-30g) con carbohidrato para recargar glucógeno y acelerar la regeneración fibrilar.`;
+                    return {
+                        text: `${imgPrefix}🥗 **[Pauta Nutricional • ${sportChosen}]**: 3 horas antes de competir prioriza carbohidratos complejos de índice glucémico medio (arroz/pasta/avena, ~1.5g/kg) + proteína magra. Durante el calentamiento mantén hidratación isotónica con sodio (500-700ml/h), y en los primeros 30 min al terminar combina proteína rápida (28g) con carbohidrato para recargar glucógeno. *(Pulsa abajo en "Convertir en Plantilla Imagen / PDF" para descargar esta pauta).*`,
+                        mediaStudioPrompt: null
+                    };
                 }
                 if (/lesi[oó]n|dolor|molestia|sobrecarga|isquio|gemelo|rodilla/.test(q)) {
-                    return `🩹 **[Protocolo Fisio & Readaptación • ${sportChosen}]**: Ante sobrecarga muscular, reducimos hoy un **25% el volumen de impactos y deceleraciones bruscas**. Aplica 12 min de liberación miofascial suave, movilidad activa sin dolor (escala EVA < 3/10) e isométricos submáximos (4 series x 30 seg). Si la molestia persiste a las 48h en el test de activación, ajustamos tu semáforo de carga en Vestuario.`;
+                    return {
+                        text: `${imgPrefix}🩹 **[Protocolo Fisio & Readaptación • ${sportChosen}]**: Ante sobrecarga muscular, reducimos hoy un **25% el volumen de impactos y deceleraciones bruscas**. Aplica 12 min de liberación miofascial suave, movilidad activa sin dolor (escala EVA menor de 3/10) e isométricos submáximos (4 series x 30 seg).`,
+                        mediaStudioPrompt: null
+                    };
                 }
-                return `⚡ **[Preparación Física • ${sportChosen}]**: Para potenciar tus siglas clave de KINET Card (${schema.cardStats.slice(0,3).join(' • ')}) en ${sportChosen}, estructuramos la sesión de hoy en: 1) Activación neuromuscular y pliometría reactiva (12 min), 2) Bloque principal de potencia específica a máxima velocidad de ejecución con descansos completos (1:5), y 3) Vuelta a la calma con descarga articular.`;
+                return {
+                    text: `${imgPrefix}⚡ **[Preparación Física • ${sportChosen}]**: Para potenciar tus siglas clave de KINET Card (${schema.cardStats.slice(0,3).join(' • ')}) como **${userPos}**, estructuramos la rutina de hoy en:\n1. **Activación & Movilidad (12m):** Core anti-rotacional + pliometría baja.\n2. **Bloque de Potencia Específica (25m):** 4x6 repeticiones explosivas con descanso completo (1:5).\n3. **Prevención Excéntrica (10m):** Isquiotibiales y estabilidad de tobillo/rodilla.`,
+                    mediaStudioPrompt: null
+                };
             }
 
             if (agentKey === 'psicologia') {
-                return `🧠 **[Psicología & Mind Coach • ${sportChosen}]**: Para blindar tu foco en ${sportChosen}: aplica antes de empezar la **Respiración Táctica 4-4-4-4** (inhala 4s, mantén 4s, exhala 4s, pausa 4s durante 3 ciclos) para bajar pulsaciones y activar la corteza prefrontal. Define una **palabra ancla de reinicio** (ej. *"Siguiente"*) para cortar cualquier pensamiento tras un fallo en menos de 3 segundos y volver al presente competitivo.`;
+                return {
+                    text: `${imgPrefix}🧠 **[Psicología & Mind Coach • ${sportChosen}]**: Para blindar tu foco competitivo como **${userPos}**: aplica antes de salir la **Respiración Táctica 4-4-4-4** (inhala 4s, mantén 4s, exhala 4s, pausa 4s durante 3 ciclos) para bajar pulsaciones y activar la corteza prefrontal. Define una **palabra ancla de reinicio** (ej. *"Siguiente"*) para cortar cualquier pensamiento tras un fallo en menos de 3 segundos.`,
+                    mediaStudioPrompt: null
+                };
             }
 
             if (agentKey === 'tecnico_video') {
-                return `🎬 **[Entrenador Técnico & Vision Lab • ${sportChosen}]**: Para auditar tu partido o entrenamiento de ${sportChosen} con precisión profesional y sin tiempos muertos, sube en **Laboratorio Vídeo** estos 3 bloques a 24-30 FPS:\n• **Bloque 1:** ${schema.videoBlocks[0]}\n• **Bloque 2:** ${schema.videoBlocks[1]}\n• **Bloque 3:** ${schema.videoBlocks[2]}\nAdemás, puedes abrir la nueva sección **🏟️ Analizador & Pizarra 3D** para simular tu posicionamiento y compararte cara a cara (1vs1).`;
+                return {
+                    text: `${imgPrefix}🎬 **[Entrenador Técnico & Vision Lab • ${sportChosen}]**: Para auditar tu rendimiento en **${userPos}** a 24-30 FPS, enfoca tu sesión en:\n• **1. Lectura previa (Scanning):** Perfilar el cuerpo antes de recibir para ganar 0.4s de ventaja.\n• **2. Ejecución en zona clave:** Finalización o pase progresivo en máximo 2 toques.\n• **3. Transición:** Reacción inmediata tras pérdida en los primeros 4 segundos.`,
+                    mediaStudioPrompt: null
+                };
             }
 
             if (agentKey === 'agente_marketing') {
-                return `💼 **[Agente de Carrera & Marketing • ${sportChosen}]**: Para maximizar tu visibilidad ante Scouts y marcas en KINET OS:\n1. Mantén activo el interruptor **🟢 Abierto a Ofertas / Pruebas** en Comunidad.\n2. Publica 2 actualizaciones semanales en *KINET Pulse* adjuntando tu sello de telemetría verificada (${schema.cardStats[0]} / ${schema.cardStats[1]}).\n3. Si tienes cuenta PRO, sube tus mejores acciones en *KINET Shorts 9:16 (30 FPS)*: los perfiles con vídeo verificado reciben **4 veces más contactos directos por DM** de clubes y patrocinadores.`;
+                const autoPrompt = `Póster Match Day Pro de ${sportChosen} (${userPos}) con telemetría verificada KINET OS, iluminación neón elegante y sello AI Verified.`;
+                return {
+                    text: `${imgPrefix}💼 **[Agente de Carrera & Marketing • ${sportChosen}]**: Para maximizar tu visibilidad ante Scouts y marcas:\n1. Mantén activo el interruptor **🟢 Abierto a Ofertas / Pruebas** en Comunidad.\n2. Actualiza tu Dossier CV con tus links de Transfermarkt/BeSoccer y YouTube.\n3. Sube un póster semanal desde Media Studio™ usando el prompt que te he dejado preparado abajo:`,
+                    mediaStudioPrompt: autoPrompt
+                };
             }
 
-            // Sala de Juntas (Los 4 especialistas coordinados)
-            return `👥 **[Dictamen Conjunto — Sala de Juntas (${sportChosen})]**:\n• **⚡ Físico/Nutri:** Carga óptima ajustada y pauta de hidratación lista.\n• **🧠 Mind Coach:** Foco competitivo activado con protocolo pre-partido.\n• **🎬 Técnico/Vídeo:** Recuerda subir tus bloques de 3-5 min (${schema.videoBlocks[0]}) a 30 FPS en Laboratorio.\n• **💼 Agente/Marketing:** Tu evolución de percentiles en ${sportChosen} está lista para mostrarse en KINET Radar y en el Analizador 3D.`;
+            return {
+                text: `${imgPrefix}👥 **[Dictamen Conjunto — Sala de Juntas (${sportChosen})]**\n• **⚡ Físico/Nutri:** Carga óptima ajustada y protocolo preventivo activo.\n• **🧠 Mind Coach:** Foco competitivo activado con protocolo pre-partido.\n• **🎬 Técnico/Vídeo:** Tarea táctica sincronizada para tu demarcación de **${userPos}**.\n• **💼 Agente/Marketing:** Perfil listo para destacar en KINET Radar.`,
+                mediaStudioPrompt: null
+            };
         }
 
-        // Ejecuta el traspaso automático de un especialista a otro pasando el resumen del problema
         function executeSpecialistHandoff(messageIndex) {
             const currentChat = activeChatsState[currentChatKey];
             const msg = currentChat && currentChat.messages[messageIndex];
@@ -1748,11 +2307,9 @@
             const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
             const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
 
-            // Cambiar a la conversación del especialista destino
             const targetNavEl = document.querySelector(`.contact-item[data-agent="${targetAgentId}"]`);
             switchChat(targetAgentId, targetNavEl);
 
-            // Insertar el parte de traspaso automático
             activeChatsState[targetAgentId].messages.push({
                 sender: "🔀 Traspaso Automático del Cuerpo Técnico",
                 text: summary,
@@ -1761,26 +2318,71 @@
             });
             renderCurrentChat();
 
-            // El nuevo especialista responde directamente al resumen recibido
             setTimeout(() => {
-                const replyText = buildContextualSpecialistResponse(summary, targetAgentId, sportChosen, null);
+                const replyObj = buildContextualSpecialistResponse(summary, targetAgentId, sportChosen, null, false);
                 activeChatsState[targetAgentId].messages.push({
                     sender: activeChatsState[targetAgentId].title,
-                    text: `✓ **Resumen recibido de mi compañero.** ${replyText}`,
+                    text: `✓ **Resumen recibido de mi compañero.** ${replyObj.text}`,
+                    mediaStudioPrompt: replyObj.mediaStudioPrompt,
                     time: timeStr,
                     incoming: true
                 });
                 saveChatHistoryToLocal();
                 renderCurrentChat();
-            }, 500);
+            }, 600);
         }
 
-        async function processSpecialistReply(userText) {
+        // Muestra el indicador de carga con Tiempo Estimado (~10-15s) para que el usuario sepa que no se ha quedado bloqueado
+        function showThinkingEtaIndicator() {
+            const box = document.getElementById('chat-messages-box');
+            if (!box) return;
+            removeThinkingEtaIndicator();
+
+            let remainingSec = 12;
+            const etaEl = document.createElement('div');
+            etaEl.id = 'kinet-ai-eta-indicator';
+            etaEl.className = 'ai-thinking-eta-card';
+            etaEl.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <div style="display:flex;align-items:center;gap:7px;font-family:'Orbitron';font-size:0.68rem;font-weight:800;color:var(--role-color);">
+                        <span class="eta-dot"></span>
+                        <span>PROCESANDO RESPUESTA DEL ESPECIALISTA IA...</span>
+                    </div>
+                    <span id="eta-countdown-lbl" style="font-family:'JetBrains Mono';font-size:0.62rem;color:#CBD5E1;">Tiempo est: ~12s</span>
+                </div>
+                <div style="height:4px;background:rgba(255,255,255,0.08);border-radius:99px;overflow:hidden;">
+                    <div id="eta-progress-fill" style="width:18%;height:100%;background:var(--role-gradient);transition:width 0.4s ease;"></div>
+                </div>
+            `;
+            box.appendChild(etaEl);
+            box.scrollTop = box.scrollHeight;
+
+            etaIntervalTimer = setInterval(() => {
+                remainingSec = Math.max(1, remainingSec - 1);
+                const lbl = document.getElementById('eta-countdown-lbl');
+                const fill = document.getElementById('eta-progress-fill');
+                if (lbl) lbl.textContent = `Tiempo est: ~${remainingSec}s`;
+                if (fill) fill.style.width = `${Math.min(95, Math.round(((12 - remainingSec) / 12) * 100) + 18)}%`;
+            }, 950);
+        }
+
+        function removeThinkingEtaIndicator() {
+            if (etaIntervalTimer) {
+                clearInterval(etaIntervalTimer);
+                etaIntervalTimer = null;
+            }
+            const existing = document.getElementById('kinet-ai-eta-indicator');
+            if (existing) existing.remove();
+        }
+
+        async function processSpecialistReply(userText, attachedImageUrl) {
             const now = new Date();
             const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
             const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
+            const userPos = localStorage.getItem('kinet_position') || 'PRO';
 
-            // Verificar cuota diaria en KinetAPIs
+            showThinkingEtaIndicator();
+
             if (window.KinetAPIs && typeof window.KinetAPIs.askSpecialistAI === 'function') {
                 const apiRes = await window.KinetAPIs.askSpecialistAI({
                     agentId: currentChatKey,
@@ -1790,6 +2392,7 @@
                 updateQuotaHeaderUI();
 
                 if (apiRes && apiRes.limitReached) {
+                    removeThinkingEtaIndicator();
                     activeChatsState[currentChatKey].messages.push({
                         sender: "Sistema de Cuota KINET IA",
                         text: apiRes.reply,
@@ -1807,46 +2410,204 @@
                 ? `Sala de Juntas IA (${sportChosen})`
                 : activeChatsState[currentChatKey].title;
 
-            const replyText = buildContextualSpecialistResponse(userText, currentChatKey, sportChosen, handoffObj);
+            // Intentar primero con la API externa si hay clave configurada, o usar el motor experto contextual
+            const sysPrompt = `Eres ${senderName} de KINET OS para un deportista/técnico de ${sportChosen} (${userPos}). Sé directo, profesional y estructurado en puntos claros.`;
+            let externalReply = null;
+            if (!handoffObj) {
+                externalReply = await window.KINET_STAFF_AI_ENGINE.callExternalLLM(sysPrompt, userText, attachedImageUrl);
+            }
 
-            activeChatsState[currentChatKey].messages.push({
-                sender: senderName,
-                text: replyText,
-                time: timeStr,
-                incoming: true,
-                handoff: handoffObj
-            });
+            const localReplyObj = buildContextualSpecialistResponse(userText, currentChatKey, sportChosen, handoffObj, Boolean(attachedImageUrl));
 
-            saveChatHistoryToLocal();
-            renderCurrentChat();
+            setTimeout(() => {
+                removeThinkingEtaIndicator();
+                activeChatsState[currentChatKey].messages.push({
+                    sender: senderName,
+                    text: externalReply || localReplyObj.text,
+                    mediaStudioPrompt: localReplyObj.mediaStudioPrompt,
+                    time: timeStr,
+                    incoming: true,
+                    handoff: handoffObj
+                });
+
+                saveChatHistoryToLocal();
+                renderCurrentChat();
+            }, 850);
         }
 
         function sendUserMessage() {
             const input = document.getElementById('chat-user-input');
             const text = input.value.trim();
-            if (!text) return;
+            if (!text && !pendingCompressedChatImage) return;
 
             const now = new Date();
             const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+            const imgDataUrl = pendingCompressedChatImage ? pendingCompressedChatImage.dataUrl : null;
+            const finalText = text || 'Adjunto esta imagen para que la analices y me des tu pauta.';
 
             activeChatsState[currentChatKey].messages.push({
                 sender: "Tú",
-                text: text,
+                text: finalText,
+                imageUrl: imgDataUrl,
                 time: timeStr,
                 incoming: false
             });
 
             input.value = '';
+            clearPendingChatImage();
             saveChatHistoryToLocal();
             renderCurrentChat();
 
-            setTimeout(() => {
-                processSpecialistReply(text);
-            }, 520);
+            processSpecialistReply(finalText, imgDataUrl);
         }
 
         // =========================================================================
-        // EXPORTACIÓN REAL EN PDF DEL ACTA / INFORME DEL CUERPO TÉCNICO IA
+        // 4. GENERADOR DE PLANTILLAS PROFESIONALES DE RUTINAS (IMAGEN PNG Y PDF CON LOGO KINET ARRIBA A LA IZQUIERDA)
+        // =========================================================================
+        function checkFreeTierTemplateLimit() {
+            if (isPaidAccount()) return true;
+            const todayKey = new Date().toISOString().slice(0, 10);
+            const lastUsedDay = localStorage.getItem('kinet_free_template_used_date');
+            if (lastUsedDay === todayKey) {
+                alert('⚡ En el Plan Gratuito puedes exportar 1 Plantilla Oficial de Rutina al día.\n\nPásate a Pro Player (8,99€/mes) en el Despacho para desbloquear plantillas visuales e informes PDF ilimitados.');
+                return false;
+            }
+            localStorage.setItem('kinet_free_template_used_date', todayKey);
+            return true;
+        }
+
+        function openRoutineTemplateModal(defaultType) {
+            activeRoutineTemplateType = defaultType || (currentChatKey === 'tecnico_video' ? 'tactical' : 'workout');
+            renderRoutineTemplateCanvas();
+            document.getElementById('routine-template-modal').classList.add('open');
+        }
+
+        function closeRoutineTemplateModal() {
+            document.getElementById('routine-template-modal').classList.remove('open');
+        }
+
+        function switchRoutineTemplateType(typeKey) {
+            activeRoutineTemplateType = typeKey;
+            renderRoutineTemplateCanvas();
+        }
+
+        function renderRoutineTemplateCanvas() {
+            const canvasBox = document.getElementById('routine-export-canvas');
+            if (!canvasBox) return;
+
+            const sportChosen = (localStorage.getItem('kinet_sport') || 'Fútbol').toUpperCase();
+            const userName = (localStorage.getItem('kinet_user_name') || 'ATLETA KINET').toUpperCase();
+            const userPos = (localStorage.getItem('kinet_position') || 'PRO').toUpperCase();
+            const anthropometry = localStorage.getItem('kinet_user_anthropometry') || '178 cm • 72.5 kg';
+
+            const templatesData = {
+                workout: {
+                    tag: 'PLANTILLA OFICIAL // PREPARACIÓN FÍSICA & GIMNASIO',
+                    title: `RUTINA DE POTENCIA REACTIVA & PREVENCIÓN (${sportChosen})`,
+                    blocks: [
+                        { phase: 'BLOQUE 1 • ACTIVACIÓN & MOVILIDAD (12 MIN)', items: ['Movilidad dinámica de cadera y tobillo (2x45s)', 'Plancha isométrica anti-rotación + activación glúteo medio (3x35s)', 'Skipping reactivo + apoyos unipodales de estabilización (3x20m)'] },
+                        { phase: 'BLOQUE 2 • FUERZA EXPLOSIVA & TRANSFERENCIA (25 MIN)', items: [`Sentadilla búlgara explosiva / Trap-Bar Jump adaptada a ${userPos} (4x6 reps • RIR 2)`, 'Aceleración resistida + salida lanzada 15 metros al 95% (5 series • Rec 90s)', 'Cambio de dirección reactivo 45° con frenada controlada (4x4 por lado)'] },
+                        { phase: 'BLOQUE 3 • PREVENCIÓN LESIONAL & DESCARGA (10 MIN)', items: ['Curl nórdico asistido / Excéntrico de isquiotibiales (3x6 reps lentas 4s)', 'Isométrico de tendón rotuliano y sóleo (3x40s)', 'Liberación miofascial + hidratación con electrolitos (500 ml)'] }
+                    ]
+                },
+                nutrition: {
+                    tag: 'PLANTILLA OFICIAL // NUTRICIÓN DE COMPETICIÓN & FISIO',
+                    title: `PROTOCOLO DE CARGA ENERGÉTICA Y RECUPERACIÓN (${sportChosen})`,
+                    blocks: [
+                        { phase: 'FASE 1 • PRE-COMPETICIÓN (3H A 45M ANTES)', items: ['Comida principal (3h antes): Arroz blanco o pasta (1.8g/kg) + pechuga de pavo/pollo (30g proteína)', 'Activación (45m antes): 1 plátano maduro + 400 ml de agua con sales minerales', 'Evitar grasas pesadas y fibra excesiva antes de saltar a pista'] },
+                        { phase: 'FASE 2 • INTRA-SESIÓN & HIDRATACIÓN', items: ['500 - 700 ml/hora de bebida isotónica (6% carbohidratos + 400mg sodio)', 'En días de doble sesión o calor: añadir 1 gel isotónico en el minuto 45'] },
+                        { phase: 'FASE 3 • VENTANA METABÓLICA & FISIO POST-ENTRENO', items: ['Primeros 30 min: Batido Recovery (30g Whey Isolate + 50g amilopectina/fruta)', 'Cena regenerativa: Pescado azul (Omega-3 antiinflamatorio) + patata asada + verduras', 'Descanso nocturno objetivo: 8.0 horas + descarga de piernas en alto (12 min)'] }
+                    ]
+                },
+                tactical: {
+                    tag: 'PLANTILLA OFICIAL // HOJA DE RUTA TÁCTICA & MIND COACH',
+                    title: `PLAN ESPECÍFICO DE CAMPO Y FOCO MENTAL (${userPos})`,
+                    blocks: [
+                        { phase: 'OBJETIVO 1 • LECTURA TÁCTICA & POSICIONAMIENTO', items: [`Escaneo visual (Scanning) cada 3 segundos antes de recibir en zona de ${userPos}`, 'Perfilado corporal abierto hacia línea de progresión para superar primera línea de presión', 'Temporización en el 1vs1 y ataque al espacio débil del defensor'] },
+                        { phase: 'OBJETIVO 2 • AUDITORÍA DE VÍDEO (VISION LAB 30 FPS)', items: ['Grabar 3 micro-clips de 30-45 segundos en el próximo partido/entreno', 'Analizar ángulo de apoyo y velocidad de ejecución en los últimos 20 minutos'] },
+                        { phase: 'OBJETIVO 3 • PROTOCOLO MIND COACH PRE-PARTIDO', items: ['Respiración cuadrada 4-4-4-4 en vestuario (3 minutos)', 'Visualización de 3 acciones exitosas propias de tu demarcación', 'Palabra ancla de reinicio inmediato tras pérdida o error: "SIGUIENTE"'] }
+                    ]
+                }
+            };
+
+            const cur = templatesData[activeRoutineTemplateType] || templatesData.workout;
+
+            canvasBox.innerHTML = `
+                <!-- CABECERA OFICIAL CON LOGO KINET SIEMPRE ARRIBA A LA IZQUIERDA -->
+                <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.12);padding-bottom:14px;margin-bottom:16px;gap:12px;flex-wrap:wrap;">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="width:42px;height:42px;border-radius:12px;background:var(--role-gradient);color:#04060A;font-family:'Orbitron';font-weight:900;font-size:1.3rem;display:flex;align-items:center;justify-content:center;box-shadow:0 0 16px var(--role-glow);">K</div>
+                        <div>
+                            <div style="font-family:'Orbitron';font-weight:900;font-size:1.02rem;letter-spacing:0.14em;color:white;">KINET OS</div>
+                            <div style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);letter-spacing:0.08em;">${cur.tag}</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right;font-family:'JetBrains Mono';font-size:0.62rem;color:#CBD5E1;">
+                        <div><strong>${userName}</strong> (${userPos})</div>
+                        <div style="color:#94A3B8;">${anthropometry} • ${new Date().toLocaleDateString('es-ES')}</div>
+                    </div>
+                </div>
+
+                <h4 style="font-family:'Orbitron';font-size:0.95rem;font-weight:900;color:var(--role-color);margin-bottom:12px;letter-spacing:0.03em;">${cur.title}</h4>
+
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                    ${cur.blocks.map(b => `
+                        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.09);border-left:3px solid var(--role-color);border-radius:12px;padding:10px 13px;">
+                            <div style="font-family:'Orbitron';font-size:0.72rem;font-weight:800;color:white;margin-bottom:6px;">${b.phase}</div>
+                            <ul style="margin:0;padding-left:16px;font-size:0.76rem;color:#E2E8F0;line-height:1.5;">
+                                ${b.items.map(it => `<li>${it}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div style="margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono';font-size:0.58rem;color:#94A3B8;">
+                    <span>✓ CERTIFICADO POR KINET AI TECHNICAL STAFF</span>
+                    <span>jkinetos.es</span>
+                </div>
+            `;
+        }
+
+        async function exportRoutineTemplateAsImage() {
+            if (!checkFreeTierTemplateLimit()) return;
+            const target = document.getElementById('routine-export-canvas');
+            if (!target) return;
+            try {
+                const canvas = await html2canvas(target, { scale: 2.4, backgroundColor: '#070B14', useCORS: true, logging: false });
+                canvas.toBlob((blob) => {
+                    if (!blob) return;
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Rutina_KINET_${activeRoutineTemplateType.toUpperCase()}_${Date.now()}.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1200);
+                }, 'image/png');
+            } catch (e) {}
+        }
+
+        async function exportRoutineTemplateAsPDF() {
+            if (!checkFreeTierTemplateLimit()) return;
+            const target = document.getElementById('routine-export-canvas');
+            if (!target) return;
+            try {
+                const canvas = await html2canvas(target, { scale: 2.4, backgroundColor: '#070B14', useCORS: true, logging: false });
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                pdf.setFillColor(6, 8, 14);
+                pdf.rect(0, 0, 210, 297, 'F');
+                const ratio = canvas.width / canvas.height;
+                const w = 186;
+                const h = Math.min(265, w / ratio);
+                pdf.addImage(imgData, 'PNG', 12, 16, w, h);
+                pdf.save(`Plantilla_Rutina_KINET_${activeRoutineTemplateType.toUpperCase()}.pdf`);
+            } catch (e) {}
+        }
+
+        // =========================================================================
+        // 5. EXPORTACIÓN REAL EN PDF DEL ACTA COMPLETA CON LOGO KINET ARRIBA A LA IZQUIERDA
         // =========================================================================
         function downloadChatReportPDF() {
             const { jsPDF } = window.jspdf;
@@ -1861,19 +2622,27 @@
 
             pdf.setFillColor(13, 17, 26);
             pdf.roundedRect(14, 14, 182, 26, 4, 4, 'F');
-            pdf.setTextColor(0, 255, 136);
+
+            // LOGO OFICIAL KINET OS SIEMPRE ARRIBA A LA IZQUIERDA
+            pdf.setFillColor(0, 255, 136);
+            pdf.roundedRect(18, 18, 12, 12, 3, 3, 'F');
+            pdf.setTextColor(4, 6, 10);
             pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(13);
-            pdf.text('KINET OS // ACTA OFICIAL E INFORME DEL CUERPO TECNICO IA', 20, 25);
+            pdf.setFontSize(11);
+            pdf.text('K', 22.3, 26);
+
+            pdf.setTextColor(0, 255, 136);
+            pdf.setFontSize(12);
+            pdf.text('KINET OS // ACTA OFICIAL E INFORME DEL CUERPO TECNICO IA', 34, 23);
 
             pdf.setTextColor(203, 213, 225);
-            pdf.setFontSize(9);
-            pdf.text(`TITULAR: ${userName}   |   DISCIPLINA: ${sportChosen}   |   ESPECIALISTA: ${chat.title.toUpperCase()}`, 20, 34);
+            pdf.setFontSize(8.8);
+            pdf.text(`TITULAR: ${userName}   |   DISCIPLINA: ${sportChosen}   |   ESPECIALISTA: ${chat.title.toUpperCase()}`, 34, 32);
 
-            let y = 50;
+            let y = 48;
             chat.messages.forEach((m) => {
                 const cleanText = String(m.text || '').replace(/\*\*/g, '');
-                if (y > 265) {
+                if (y > 260) {
                     pdf.addPage();
                     pdf.setFillColor(6, 8, 14);
                     pdf.rect(0, 0, 210, 297, 'F');
@@ -1971,13 +2740,7 @@
                 const roleHexMap = { athlete: '#00FF88', staff: '#F59E0B', scout: '#3B82F6' };
                 const defaultRoleHex = roleHexMap[activeRole] || '#00FF88';
 
-                let savedAccent = localStorage.getItem('kinet_custom_accent_override');
-                if (activeRole !== 'athlete' && savedAccent && savedAccent.toUpperCase() === '#00FF88') {
-                    localStorage.removeItem('kinet_custom_accent_override');
-                    localStorage.removeItem('kinet_accent_color');
-                    savedAccent = null;
-                }
-
+                let savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
                 const rainbowOn = localStorage.getItem('kinet_rainbow_mode') === 'true';
 
                 if (rainbowOn) {
@@ -1995,7 +2758,7 @@
                         requestAnimationFrame(stepRainbow);
                     }
                     requestAnimationFrame(stepRainbow);
-                } else if (savedAccent) {
+                } else if (savedAccent && savedAccent.startsWith('#')) {
                     const clean = savedAccent.replace('#', '');
                     const num = parseInt(clean, 16);
                     const r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
