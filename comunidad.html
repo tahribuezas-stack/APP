@@ -5994,7 +5994,7 @@
                     60% { opacity: 1; transform: translateY(2px) scale(1.005); box-shadow: 0 0 25px var(--role-glow); }
                     100% { opacity: 1; transform: translateY(0) scale(1); box-shadow: none; }
                 }
-                .social-post-card:first-child {
+              .social-post-card.just-created-post {
                     animation: kinetNewPostGlowEnter 0.55s cubic-bezier(0.16, 1, 0.3, 1);
                 }
 
@@ -6453,8 +6453,8 @@
                 contentBox.className = '';
             }
         };
-        // =========================================================================
-        // 1. PURGA AUTOMÁTICA DE "ATLETA INVITADO" (LOCAL + SUPABASE) Y BLOQUEO DE SUBIDAS A INVITADOS
+      // =========================================================================
+        // 1. PURGA SILENCIOSA DE "ATLETA INVITADO" (SIN REBOTES AL RECARGAR) + ANIMACIÓN SOLO AL PUBLICAR
         // =========================================================================
         function isGuestPostOrIdentity(authorName, handleStr) {
             const a = String(authorName || '').toLowerCase();
@@ -6463,24 +6463,24 @@
         }
 
         async function purgeAllGuestPostsAndProfilesEverywhere() {
-            // A. Limpiar del array en vivo del muro
+            const beforeCount = allSocialPosts.length;
             allSocialPosts = allSocialPosts.filter(p => !isGuestPostOrIdentity(p.author, p.handle));
+            const removedFromFeed = allSocialPosts.length !== beforeCount;
 
-            // B. Limpiar del directorio de usuarios en memoria
             for (let i = NETWORK_DIRECTORY.length - 1; i >= 0; i--) {
                 if (isGuestPostOrIdentity(NETWORK_DIRECTORY[i].name, NETWORK_DIRECTORY[i].handle)) {
                     NETWORK_DIRECTORY.splice(i, 1);
                 }
             }
 
-            // C. Limpiar de la caché local (kinet_saved_posts)
             try {
                 const saved = JSON.parse(localStorage.getItem('kinet_saved_posts') || '[]');
                 const cleanSaved = saved.filter(p => !isGuestPostOrIdentity(p.author, p.handle));
-                localStorage.setItem('kinet_saved_posts', JSON.stringify(cleanSaved));
+                if (cleanSaved.length !== saved.length) {
+                    localStorage.setItem('kinet_saved_posts', JSON.stringify(cleanSaved));
+                }
             } catch (e) {}
 
-            // D. Borrar de raíz en las tablas "posts" y "profiles" de Supabase para que no vuelva a descargarse nunca
             try {
                 const sb = window.KinetBackend && typeof window.KinetBackend.getClient === 'function'
                     ? window.KinetBackend.getClient()
@@ -6493,17 +6493,18 @@
                 }
             } catch (e) {}
 
-            filterSocialFeed(true);
-            rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+            // SOLO repintar si realmente se eliminó algún post de invitado (evita cualquier rebote al recargar)
+            if (removedFromFeed) {
+                filterSocialFeed(true);
+                rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+            }
         }
 
-        // Ejecutar la limpieza nada más abrir Comunidad y cada vez que sincronice con la nube
         window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(purgeAllGuestPostsAndProfilesEverywhere, 150);
-            setTimeout(purgeAllGuestPostsAndProfilesEverywhere, 1200);
+            purgeAllGuestPostsAndProfilesEverywhere();
         });
 
-        // Bloquear que un invitado pueda publicar en Comunidad o subir a Supabase
+        // Bloquear invitados al publicar y animar ÚNICAMENTE la tarjeta recién publicada por ti
         const _origPublishSocialPost = window.publishSocialPost;
         window.publishSocialPost = function () {
             const myName = localStorage.getItem('kinet_user_name') || '';
@@ -6512,7 +6513,15 @@
                 alert('🔒 En Modo Invitado no está permitido subir publicaciones a la nube. Inicia sesión con tu cuenta para publicar.');
                 return;
             }
-            return _origPublishSocialPost.apply(this, arguments);
+            const res = _origPublishSocialPost.apply(this, arguments);
+            requestAnimationFrame(() => {
+                const firstCard = document.querySelector('#social-feed-list .social-post-card:first-child');
+                if (firstCard) {
+                    firstCard.classList.add('just-created-post');
+                    setTimeout(() => firstCard.classList.remove('just-created-post'), 650);
+                }
+            });
+            return res;
         };
 
         // =========================================================================
