@@ -3,88 +3,20 @@
 <head>
   <script src="kinet-spotlight.js" defer></script>
   <link rel="stylesheet" href="kinet-motion.css">
-  <style>
-  @media screen and (max-width: 768px) {
-    body {
-      align-items: flex-start !important;
-      padding: 8px !important;
-    }
-    .relative.w-full.max-w-4xl {
-      width: 100% !important;
-      max-width: 100% !important;
-      min-height: auto !important;
-      max-height: none !important;
-      border-radius: 20px !important;
-      padding: 16px !important;
-      margin-top: 10px;
-      margin-bottom: 10px;
-    }
-    .grid {
-      gap: 8px !important;
-    }
-    .glass-card {
-      padding: 12px !important;
-    }
-  }
-
-  /* Estilos personalizados para el slider de deportistas */
-  input[type=range] {
-    -webkit-appearance: none;
-    width: 100%;
-    background: transparent;
-  }
-  input[type=range]:focus {
-    outline: none;
-  }
-  input[type=range]::-webkit-slider-runnable-track {
-    width: 100%;
-    height: 6px;
-    cursor: pointer;
-    background: #1e293b;
-    border-radius: 9999px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-  }
-  input[type=range]::-webkit-slider-thumb {
-    height: 20px;
-    width: 20px;
-    border-radius: 50%;
-    background: #F59E0B;
-    cursor: pointer;
-    -webkit-appearance: none;
-    margin-top: -7px;
-    box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
-    transition: transform 0.15s ease;
-  }
-  input[type=range]::-webkit-slider-thumb:hover {
-    transform: scale(1.2);
-  }
-  input[type=range]::-moz-range-track {
-    width: 100%;
-    height: 6px;
-    cursor: pointer;
-    background: #1e293b;
-    border-radius: 9999px;
-  }
-  input[type=range]::-moz-range-thumb {
-    height: 20px;
-    width: 20px;
-    border-radius: 50%;
-    background: #F59E0B;
-    cursor: pointer;
-    box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
-  }
-</style>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>KINET OS - Staff & Coach Precision Onboarding</title>
   
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23F59E0B%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%23000%22>K</text></svg>">
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="kinet-backend.js"></script>
+  <script src="kinet-api-config.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
   <script>
     tailwind.config = {
@@ -101,12 +33,37 @@
           fontFamily: {
             sans: ['Inter', 'sans-serif'],
             display: ['Orbitron', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
           }
         }
       }
     }
   </script>
   <style>
+    * { scrollbar-width: none !important; -ms-overflow-style: none !important; }
+    *::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; }
+    @media screen and (max-width: 768px) {
+      body { align-items: flex-start !important; padding: 8px !important; }
+      .relative.w-full.max-w-4xl {
+        width: 100% !important; max-width: 100% !important; min-height: auto !important;
+        max-height: none !important; border-radius: 20px !important; padding: 16px !important;
+        margin-top: 10px; margin-bottom: 10px;
+      }
+      .grid { gap: 8px !important; }
+      .glass-card { padding: 12px !important; }
+    }
+    input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+    input[type=range]:focus { outline: none; }
+    input[type=range]::-webkit-slider-runnable-track {
+      width: 100%; height: 6px; cursor: pointer; background: #1e293b;
+      border-radius: 9999px; border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    input[type=range]::-webkit-slider-thumb {
+      height: 20px; width: 20px; border-radius: 50%; background: #F59E0B;
+      cursor: pointer; -webkit-appearance: none; margin-top: -7px;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.6); transition: transform 0.15s ease;
+    }
+    input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
     .bg-cyber-pattern {
       background-color: #080A0C;
       background-image: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.12) 0%, transparent 60%);
@@ -127,12 +84,23 @@
       box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
       background: rgba(245, 158, 11, 0.04);
     }
-    .logo-glow {
-      transition: all 0.3s ease;
+    .logo-glow { transition: all 0.3s ease; }
+    .logo-glow:hover { filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.65)); transform: scale(1.02); }
+    @keyframes staffRevealPulse {
+      0%, 100% { box-shadow: 0 0 35px rgba(245, 158, 11, 0.38), inset 0 0 25px rgba(245, 158, 11, 0.15); }
+      50% { box-shadow: 0 0 65px rgba(245, 158, 11, 0.72), inset 0 0 35px rgba(245, 158, 11, 0.3); }
     }
-    .logo-glow:hover {
-      filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.65));
-      transform: scale(1.02);
+    @keyframes staffScanBeam {
+      0% { top: -10%; opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { top: 105%; opacity: 0; }
+    }
+    .staff-reveal-card { animation: staffRevealPulse 2.4s infinite ease-in-out; position: relative; overflow: hidden; transition: opacity 0.25s ease, transform 0.25s ease; }
+    .staff-reveal-beam {
+      position: absolute; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, transparent, #F59E0B, #FFFFFF, #F59E0B, transparent);
+      box-shadow: 0 0 18px #F59E0B; animation: staffScanBeam 1.8s infinite linear; pointer-events: none;
     }
   </style>
 </head>
@@ -158,7 +126,7 @@
       </div>
     </div>
 
-    <!-- ================= PASO 1: ROL EN EL STAFF (6 PROFESIONES) ================= -->
+    <!-- PASO 1: ROL EN EL STAFF (LOS 6 ROLES ORIGINALES) -->
     <div id="step-1" class="space-y-3.5 my-auto">
       <div class="flex justify-between items-center">
         <div class="space-y-0.5">
@@ -238,7 +206,7 @@
       </button>
     </div>
 
-    <!-- ================= PASO 2: DEPORTE ================= -->
+    <!-- PASO 2: DEPORTE -->
     <div id="step-2" class="space-y-4 my-auto hidden">
       <div class="flex justify-between items-center">
         <div class="space-y-0.5">
@@ -283,7 +251,7 @@
       </button>
     </div>
 
-    <!-- ================= PASO 3: CATEGORÍAS UNIFICADAS CON ATLETA PRO ================= -->
+    <!-- PASO 3: CATEGORÍAS ORIGINALES (6 EN FÚTBOL Y LAS PROPIAS EN CADA DEPORTE) -->
     <div id="step-3" class="space-y-4 my-auto hidden">
       <div class="flex justify-between items-center">
         <div class="space-y-0.5">
@@ -303,7 +271,7 @@
       </button>
     </div>
 
-    <!-- ================= PASO 4: TAMAÑO DE PLANTILLA & FUNCIONALIDAD TÉCNICA ================= -->
+    <!-- PASO 4: TAMAÑO DE PLANTILLA & FUNCIONALIDAD TÉCNICA LIMPIA (SIN LICENCIA UEFA) -->
     <div id="step-4" class="space-y-4 my-auto hidden">
       <div class="flex justify-between items-center">
         <div class="space-y-0.5">
@@ -341,67 +309,101 @@
       </button>
     </div>
 
-    <!-- ================= PASO 5: CHAT IA ================= -->
+    <!-- PASO 5: CHAT IA AMPLIO, LIMPIO Y 100% PERSONALIZADO POR PROFESIÓN (FISIO, PREPARADOR, ANALISTA, ENTRENADOR) -->
     <div id="step-5" class="space-y-4 my-auto hidden">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
         <div class="flex items-center space-x-3">
-          <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center font-bold">
-            <i data-lucide="bot" class="w-4 h-4"></i>
+          <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center font-bold">
+            <i data-lucide="bot" class="w-5 h-5"></i>
           </div>
           <div>
             <h2 class="font-display font-bold text-xs text-white">KINET OS COACH AI SETUP</h2>
-            <p class="text-[9px] text-slate-400">Configuración de informes automáticos e IA táctica</p>
+            <p class="text-[10px] text-slate-400" id="step5-ai-subtitle">Configuración personalizada para tu especialidad en el Cuerpo Técnico</p>
           </div>
         </div>
 
         <div class="flex items-center space-x-2">
-          <button onclick="nextCoachStep(4)" class="flex items-center space-x-1.5 bg-[#12161C] hover:bg-slate-800 border border-slate-700/80 px-3 py-1 rounded-xl text-xs font-medium text-slate-300 transition">
+          <button onclick="nextCoachStep(4)" class="flex items-center space-x-1.5 bg-[#12161C] hover:bg-slate-800 border border-slate-700/80 px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-300 transition">
             <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
             <span>Atrás</span>
           </button>
-          <button onclick="skipCoachAiSetup()" class="px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold hover:bg-amber-500/20 transition">
+          <button onclick="skipCoachAiSetup()" class="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold hover:bg-amber-500/20 transition">
             Saltar ⚡
           </button>
         </div>
       </div>
 
-      <div class="glass-card p-3.5 rounded-xl border border-slate-800 space-y-2.5 h-[170px] overflow-y-auto flex flex-col justify-between">
-        <div class="space-y-2">
-          <div class="flex items-start space-x-2">
-            <div class="w-5 h-5 rounded-md bg-amber-500/20 text-amber-400 flex items-center justify-center text-[9px] font-bold shrink-0 mt-0.5">
-              AI
-            </div>
-            <div id="ai-coach-greeting" class="bg-slate-900 border border-slate-800 p-2.5 rounded-xl text-[11px] text-slate-200 leading-relaxed max-w-[88%]">
-              ¡Hola! Soy tu asistente de Staff KINET. ¿Qué aspectos te gustaría monitorizar prioritariamente con tus deportistas?
-            </div>
-          </div>
-        </div>
+      <div class="glass-card p-4 rounded-2xl border border-slate-800 flex flex-col justify-between h-[285px]">
+        <div class="space-y-3 overflow-y-auto pr-1 flex-1" id="coach-chat-messages-container"></div>
 
-        <div class="flex space-x-2">
-          <input type="text" id="ai-coach-chat-input" placeholder="Ej: Control de RPE post-partido y prevención de sobrecargas..." class="flex-1 bg-[#12161C] border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500 transition">
-          <button onclick="sendCoachAiResponse()" class="px-3 py-1.5 rounded-lg bg-amber-500 text-black font-bold text-xs">
+        <div class="flex space-x-2 pt-3 border-t border-slate-800/80 mt-2">
+          <input type="text" id="ai-coach-chat-input" onkeydown="if(event.key==='Enter'){event.preventDefault();sendCoachAiResponse();}" placeholder="Escribe tu respuesta aquí..." class="flex-1 bg-[#12161C] border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 transition">
+          <button type="button" onclick="sendCoachAiResponse()" class="px-5 py-2.5 rounded-xl bg-amber-500 text-black font-display font-bold text-xs hover:bg-amber-400 transition">
             Enviar
           </button>
         </div>
       </div>
 
-      <div id="ai-coach-incomplete-alert" class="hidden p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[10px] text-amber-300 flex justify-between items-center">
-        <div class="flex items-center space-x-1.5">
-          <i data-lucide="alert-triangle" class="w-3.5 h-3.5 shrink-0"></i>
-          <span>Perfil al 70%. La asistencia táctica automática funcionará en modo estándar.</span>
+      <div id="ai-coach-incomplete-alert" class="hidden p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0"></i>
+          <span>Has saltado el chat. Los datos pendientes podrás rellenarlos cuando quieras en Mi Perfil.</span>
         </div>
       </div>
 
-      <button onclick="finishCoachOnboarding()" class="w-full py-3.5 rounded-xl bg-amber-500 text-black font-display font-black text-xs tracking-[0.2em] uppercase hover:bg-amber-400 transition shadow-[0_0_20px_rgba(245,158,11,0.3)] text-center">
+      <button onclick="finishCoachOnboarding()" class="w-full py-4 rounded-xl bg-amber-500 text-black font-display font-black text-xs tracking-[0.2em] uppercase hover:bg-amber-400 transition shadow-[0_0_20px_rgba(245,158,11,0.3)] text-center">
         FINALIZAR REGISTRO & ACTIVAR PANEL STAFF
       </button>
     </div>
 
-    <!-- FOOTER -->
     <div class="pt-1 border-t border-slate-800/80 text-center text-[8px] text-slate-500 font-mono">
       KINET OS • TECHNICAL STAFF & SQUAD CALIBRATION SYSTEM
     </div>
 
+  </div>
+
+  <!-- MODAL ANIMACIÓN REVEAL CON EXPLOSIÓN DE PARTÍCULAS Y RECONSTRUCCIÓN -->
+  <div id="coach-surprise-reveal-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background: rgba(6, 6, 10, 0.96); backdrop-filter: blur(24px);">
+    <canvas id="coach-shatter-canvas" class="fixed inset-0 pointer-events-none z-50 hidden"></canvas>
+    <div id="coach-reveal-card-box" class="staff-reveal-card w-full max-w-lg bg-[#110E08] border-2 border-amber-500 rounded-[28px] p-6 md:p-8 text-center space-y-5 relative z-40">
+      <div class="staff-reveal-beam"></div>
+
+      <div class="inline-flex items-center space-x-2 bg-amber-500/15 border border-amber-500/50 px-3.5 py-1 rounded-full text-[10px] font-mono text-amber-400 font-bold uppercase tracking-widest">
+        <span>🧠 SUITE DE CUERPO TÉCNICO CALIBRADA</span>
+      </div>
+
+      <div class="space-y-1">
+        <h2 id="reveal-coach-name" class="font-display font-black text-2xl text-white tracking-wider">STAFF KINET</h2>
+        <p id="reveal-coach-sub" class="text-xs font-mono text-amber-400">FÚTBOL • ENTRENADOR PRINCIPAL</p>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2.5 text-left font-mono">
+        <div class="bg-[#1A140B] border border-slate-800 rounded-xl p-3">
+          <span class="text-[9px] text-slate-400 block">PLANTILLA</span>
+          <strong id="reveal-coach-squad" class="text-xs text-white font-display">22 Efectivos</strong>
+        </div>
+        <div class="bg-[#1A140B] border border-slate-800 rounded-xl p-3">
+          <span class="text-[9px] text-slate-400 block">ÁREA CLAVE</span>
+          <strong id="reveal-coach-area" class="text-xs text-amber-400 font-display truncate block">Dirección</strong>
+        </div>
+        <div class="bg-[#1A140B] border border-slate-800 rounded-xl p-3">
+          <span class="text-[9px] text-slate-400 block">NIVEL</span>
+          <strong id="reveal-coach-cat" class="text-xs text-white font-display truncate block">Senior</strong>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 text-left space-y-1.5">
+        <div class="text-[10px] font-mono text-amber-400 font-bold uppercase">📋 HOJA DE RUTA DE HOY PARA TU PLANTILLA:</div>
+        <p id="reveal-coach-directive" class="text-xs text-slate-300 leading-relaxed"></p>
+      </div>
+
+      <div class="pt-1">
+        <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800">
+          <div id="reveal-coach-bar" class="bg-amber-500 h-full transition-all duration-1000" style="width: 15%;"></div>
+        </div>
+        <p id="reveal-coach-status" class="text-[10px] font-mono text-slate-400 mt-2">Sincronizando Calendario de Plantilla, Vestuario y Especialistas IA...</p>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -413,7 +415,16 @@
       category: 'Profesional High-Performance',
       squadSize: 22,
       methodology: '',
-      aiCompleted: true
+      aiCompleted: false,
+      chatStepIndex: 0,
+      chatHistory: [],
+      extracted: {
+        club: '',
+        city: '',
+        hometown: '',
+        specificFocus: '',
+        scheduleText: ''
+      }
     };
 
     function updateSquadSize(val) {
@@ -424,12 +435,8 @@
     function cambiarPagina(event, urlDestino) {
       if (event) event.preventDefault();
       const contenedor = document.querySelector('.card-liquid-transition');
-      if (contenedor) {
-        contenedor.classList.add('page-exit');
-      }
-      setTimeout(() => {
-        window.location.href = urlDestino;
-      }, 250); 
+      if (contenedor) contenedor.classList.add('page-exit');
+      setTimeout(() => { window.location.href = urlDestino; }, 240);
     }
 
     function nextCoachStep(stepNum) {
@@ -448,13 +455,9 @@
         target.classList.add('step-liquid-enter');
       }
 
-      if (stepNum === 3) {
-        renderCoachCategories();
-      } else if (stepNum === 4) {
-        renderRoleFunctions();
-      } else if (stepNum === 5) {
-        setupCoachAiGreeting();
-      }
+      if (stepNum === 3) renderCoachCategories();
+      else if (stepNum === 4) renderRoleFunctions();
+      else if (stepNum === 5) setupCoachAiGreeting();
     }
 
     function selectCoachRole(role) {
@@ -467,15 +470,12 @@
         'Fisioterapeuta / Médico',
         'Entrenador Totalitario (Solo)'
       ];
-
       roles.forEach((r, idx) => {
         const card = document.getElementById('coach-role-' + (idx + 1));
         if (card) {
-          if (role === r) {
-            card.className = "glass-card selected p-3 rounded-xl cursor-pointer transition space-y-1 bg-amber-500/5 border-2 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.15)]";
-          } else {
-            card.className = "glass-card p-3 rounded-xl cursor-pointer transition space-y-1";
-          }
+          card.className = (role === r)
+            ? "glass-card selected p-3 rounded-xl cursor-pointer transition space-y-1 bg-amber-500/5 border-2 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
+            : "glass-card p-3 rounded-xl cursor-pointer transition space-y-1";
         }
       });
     }
@@ -483,34 +483,27 @@
     function selectCoachSport(sport) {
       coachState.sport = sport;
       const sportsMap = { 'Fútbol': 'futbol', 'Baloncesto': 'baloncesto', 'Pádel / Tenis': 'padel', 'Boxeo / MMA': 'boxeo', 'Running': 'running', 'Otros Deportes': 'otros' };
-      
       Object.keys(sportsMap).forEach(s => {
         const el = document.getElementById('coach-sport-' + sportsMap[s]);
         if (el) {
-          if (s === sport) {
-            el.className = "glass-card selected p-3.5 rounded-xl cursor-pointer transition text-center space-y-1.5 bg-amber-500/5 border-2 border-amber-500";
-          } else {
-            el.className = "glass-card p-3.5 rounded-xl cursor-pointer transition text-center space-y-1.5";
-          }
+          el.className = (s === sport)
+            ? "glass-card selected p-3.5 rounded-xl cursor-pointer transition text-center space-y-1.5 bg-amber-500/5 border-2 border-amber-500"
+            : "glass-card p-3.5 rounded-xl cursor-pointer transition text-center space-y-1.5";
         }
       });
 
       if (sport === 'Pádel / Tenis' || sport === 'Boxeo / MMA') {
-        updateSquadSize(2);
-        document.getElementById('squad-size-slider').value = 2;
+        updateSquadSize(2); document.getElementById('squad-size-slider').value = 2;
       } else if (sport === 'Baloncesto') {
-        updateSquadSize(12);
-        document.getElementById('squad-size-slider').value = 12;
+        updateSquadSize(12); document.getElementById('squad-size-slider').value = 12;
       } else if (sport === 'Running') {
-        updateSquadSize(5);
-        document.getElementById('squad-size-slider').value = 5;
+        updateSquadSize(5); document.getElementById('squad-size-slider').value = 5;
       } else {
-        updateSquadSize(22);
-        document.getElementById('squad-size-slider').value = 22;
+        updateSquadSize(22); document.getElementById('squad-size-slider').value = 22;
       }
     }
 
-    // COMPETICIONES IDÉNTICAS A ONBOARDING_PRO.HTML (ATLETA)
+    // LAS 6 CATEGORÍAS ORIGINALES EN FÚTBOL Y LAS PROPIAS EN CADA DEPORTE
     function renderCoachCategories() {
       const container = document.getElementById('coach-categories-container');
       const sport = coachState.sport;
@@ -614,13 +607,6 @@
           { icon: 'shield-alert', title: 'Tratamiento de Fisioterapia & Terapia Manual', desc: 'Gestión de cargas articulares y musculares diarias.' },
           { icon: 'stethoscope', title: 'Parámetros Biomédicos & Análisis Preventivo', desc: 'Detección precoz de sobrecargas y desequilibrios.' }
         ];
-      } else if (role.includes('Entrenador Totalitario')) {
-        options = [
-          { icon: 'crown', title: 'Modelo de Juego & Estrategia', desc: 'Sistemas tácticos, principios de juego y plan de partido.' },
-          { icon: 'layout-grid', title: 'Alineaciones & Convocatorias', desc: 'Gestión de minutas, titularidad y rotaciones.' },
-          { icon: 'message-square', title: 'Gestión de Vestuario & Liderazgo', desc: 'Feedback directo con atletas y control de dinámicas de grupo.' },
-          { icon: 'target', title: 'Planificación de Objetivos', desc: 'Microciclo competitivo y picos de forma para la liga.' }
-        ];
       } else if (role.includes('Preparador Físico')) {
         options = [
           { icon: 'flame', title: 'Monitorización de Cargas GPS / RPE', desc: 'Control de volumen e intensidad del microciclo.' },
@@ -676,27 +662,163 @@
       el.className = "glass-card p-3.5 rounded-xl cursor-pointer transition space-y-1 bg-amber-500/10 border-2 border-amber-500";
     }
 
+    // GUION DE IA 100% PERSONALIZADO POR PROFESIÓN (FISIOTERAPEUTA, PREPARADOR FÍSICO, ANALISTA, SEGUNDO O PRIMER ENTRENADOR)
+    function getStaffChatQuestionsByProfession() {
+      const r = coachState.role;
+      const s = coachState.sport;
+      const n = coachState.squadSize;
+
+      if (r.includes('Fisioterapeuta / Médico')) {
+        return [
+          `¡Hola! He configurado tu entorno clínico como **Fisioterapeuta / Médico** en **${s}** (${coachState.category}) para una plantilla de **${n} deportistas**. **¿En qué club o clínica trabajas actualmente y en qué ciudad estás?**`,
+          `Perfecto. **¿Cuáles son las lesiones o sobrecargas más frecuentes que estás tratando ahora mismo en tus deportistas y qué protocolo priorizas (terapia manual, readaptación en campo, prevención de isquios/tobillo)?**`,
+          `Anotado para tu área médica IA. **¿Qué días de la semana pasas consulta/camilla o readaptación y qué día compite el equipo?** *(Con esto programaré tu Calendario Semanal y Mensual en el Vestuario).*`
+        ];
+      } else if (r.includes('Preparador Físico')) {
+        return [
+          `¡Hola! Panel calibrado como **Preparador Físico** en **${s}** (${coachState.category}, **${n} deportistas**). **¿En qué club o centro entrenas actualmente y en qué ciudad estás?**`,
+          `Genial. **¿Cuál es tu objetivo físico prioritario con el grupo este mes (ganar fuerza explosiva, mejorar resistencia en los últimos 20 minutos, reducir fatiga acumulada)?**`,
+          `Tomado nota. **¿Qué días de la semana metéis carga en gimnasio, qué días pista/campo y qué día tenéis partido o competición?**`
+        ];
+      } else if (r.includes('Analista / Scout')) {
+        return [
+          `¡Hola! Suite lista como **Analista / Scout** de cuerpo técnico en **${s}** (${coachState.category}). **¿En qué club o cuerpo técnico estás trabajando ahora mismo y en qué ciudad vives?**`,
+          `Perfecto. **¿Qué priorizas analizar esta semana en el Laboratorio de Vídeo y Pizarra 3D (informe del próximo rival, balón parado ABP o correcciones individuales de tu plantilla)?**`,
+          `Registrado. **¿Qué días de la semana proyectáis vídeo a los jugadores y qué día tenéis el partido oficial?**`
+        ];
+      }
+      return [
+        `¡Hola! He configurado tu perfil como **${r}** en **${s}** (${coachState.category}) al frente de **${n} deportistas**. **¿En qué club o equipo entrenas actualmente y en qué ciudad vives?**`,
+        `Anotado en tu ficha. **¿Cuál es tu estilo o modelo de juego principal y qué aspecto táctico o competitivo quieres corregir prioritariamente esta semana con la plantilla?**`,
+        `Perfecto. Para dejarte montado el **Calendario Semanal y Mensual del Vestuario**: **¿qué días de la semana entrenáis y qué día jugáis partido oficial?**`
+      ];
+    }
+
+    function appendCoachBubble(sender, text) {
+      const box = document.getElementById('coach-chat-messages-container');
+      if (!box) return;
+      const div = document.createElement('div');
+      if (sender === 'ai') {
+        div.className = "flex items-start space-x-2.5";
+        div.innerHTML = `
+          <div class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">AI</div>
+          <div class="bg-slate-900 border border-slate-800 p-3 rounded-2xl text-xs text-slate-200 leading-relaxed max-w-[88%]">${text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-amber-400">$1</strong>')}</div>
+        `;
+      } else {
+        div.className = "flex justify-end";
+        div.innerHTML = `<div class="bg-amber-500/15 border border-amber-500/50 text-white p-2.5 px-3.5 rounded-2xl text-xs max-w-[85%] font-medium">${text}</div>`;
+      }
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
     function setupCoachAiGreeting() {
-      const msgBox = document.getElementById('ai-coach-greeting');
-      msgBox.textContent = `¡Hola! Soy tu asistente de Staff KINET. He configurado tu perfil como ${coachState.role} en ${coachState.sport} (${coachState.category}) gestionando una plantilla de ${coachState.squadSize} deportistas. ¿Quieres activar las alertas diarias de carga y rendimiento?`;
+      const box = document.getElementById('coach-chat-messages-container');
+      const sub = document.getElementById('step5-ai-subtitle');
+      if (sub) sub.textContent = `Asistente IA especializado para: ${coachState.role} (${coachState.sport})`;
+      if (box) {
+        box.innerHTML = '';
+        coachState.chatStepIndex = 0;
+        const qs = getStaffChatQuestionsByProfession();
+        appendCoachBubble('ai', qs[0]);
+      }
+    }
+
+    function sendCoachAiResponse() {
+      const input = document.getElementById('ai-coach-chat-input');
+      const val = (input?.value || '').trim();
+      if (!val) return;
+
+      appendCoachBubble('user', val);
+      input.value = '';
+      coachState.chatHistory.push({ role: 'user', content: val });
+
+      if (coachState.chatStepIndex === 0) {
+        const cityM = val.match(/(?:vivo en|estoy en|trabajo en)\s+([A-ZÁÉÍÓÚÑa-záéíóúñ\s]{2,20}?)(?:,|\sy\s|\.|$)/i);
+        if (cityM) coachState.extracted.city = cityM[1].trim();
+        coachState.extracted.club = val.split(',')[0].trim().slice(0, 32);
+      } else if (coachState.chatStepIndex === 1) {
+        coachState.extracted.specificFocus = val;
+      } else if (coachState.chatStepIndex === 2) {
+        coachState.extracted.scheduleText = val;
+      }
+
+      coachState.chatStepIndex++;
+      coachState.aiCompleted = true;
+      document.getElementById('ai-coach-incomplete-alert').classList.add('hidden');
+
+      const qs = getStaffChatQuestionsByProfession();
+      setTimeout(() => {
+        if (coachState.chatStepIndex < qs.length) {
+          appendCoachBubble('ai', qs[coachState.chatStepIndex]);
+        } else {
+          appendCoachBubble('ai', `✅ **¡Configuración de ${coachState.role} completada!** He guardado tus datos en el Perfil y he dejado programado tu Calendario del Vestuario y tus especialistas de IA. Pulsa abajo en **FINALIZAR REGISTRO & ACTIVAR PANEL STAFF**.`);
+        }
+      }, 240);
     }
 
     function skipCoachAiSetup() {
       coachState.aiCompleted = false;
       document.getElementById('ai-coach-incomplete-alert').classList.remove('hidden');
+      appendCoachBubble('ai', `⚡ Has saltado el chat. Podrás completar los datos pendientes cuando quieras en **Mi Perfil**.`);
     }
 
-    function sendCoachAiResponse() {
-      const input = document.getElementById('ai-coach-chat-input');
-      if (input.value.trim() !== '') {
-        coachState.aiCompleted = true;
-        document.getElementById('ai-coach-incomplete-alert').classList.add('hidden');
-        alert('Configuración guardada. La IA analizará los datos de tu plantilla.');
-        input.value = '';
+    function trpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(targetUrl) {
+      const cardEl = document.getElementById('coach-reveal-card-box');
+      const canvas = document.getElementById('coach-shatter-canvas');
+      if (!cardEl || !canvas) {
+        window.location.replace(targetUrl);
+        return;
       }
+      const rect = cardEl.getBoundingClientRect();
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      canvas.classList.remove('hidden');
+      cardEl.style.opacity = '0';
+      cardEl.style.transform = 'scale(0.92)';
+
+      const ctx = canvas.getContext('2d');
+      const particles = [];
+      const cols = 26, rows = 18;
+      const cellW = rect.width / cols, cellH = rect.height / rows;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const x = rect.left + c * cellW + cellW / 2;
+          const y = rect.top + r * cellH + cellH / 2;
+          const angle = Math.atan2(y - (rect.top + rect.height / 2), x - (rect.left + rect.width / 2)) + (Math.random() - 0.5) * 0.8;
+          const speed = 6 + Math.random() * 16;
+          const targetX = (c / cols) * (window.innerWidth * 0.84) + window.innerWidth * 0.08;
+          const targetY = (r / rows) * (window.innerHeight * 0.82) + window.innerHeight * 0.09;
+          particles.push({
+            x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+            tx: targetX, ty: targetY, size: Math.max(3, Math.min(cellW, cellH) * 0.65),
+            color: (r + c) % 3 === 0 ? '#F59E0B' : ((r + c) % 5 === 0 ? '#FFFFFF' : '#1C1917'), alpha: 1
+          });
+        }
+      }
+
+      let frame = 0;
+      function animate() {
+        frame++;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+          if (frame < 24) { p.x += p.vx; p.y += p.vy; p.vx *= 0.92; p.vy *= 0.92; }
+          else { p.x += (p.tx - p.x) * 0.22; p.y += (p.ty - p.y) * 0.22; if (frame > 42) p.alpha = Math.max(0, p.alpha - 0.08); }
+          ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color; ctx.shadowColor = '#F59E0B'; ctx.shadowBlur = 8;
+          ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+        });
+        if (frame < 52) requestAnimationFrame(animate);
+        else window.location.replace(targetUrl);
+      }
+      requestAnimationFrame(animate);
     }
 
     function finishCoachOnboarding() {
+      if (coachState.extracted.club) localStorage.setItem('kinet_user_club', coachState.extracted.club);
+      if (coachState.extracted.city) localStorage.setItem('kinet_user_city', coachState.extracted.city);
+
+      const focusSummary = coachState.extracted.specificFocus || coachState.methodology || coachState.role;
       const profilesDB = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
 
       profilesDB.staff = {
@@ -705,20 +827,48 @@
         sport: coachState.sport,
         category: coachState.category,
         squadSize: coachState.squadSize,
-        style: coachState.methodology || 'Presión Alta 4-3-3',
+        style: focusSummary,
+        club: coachState.extracted.club || localStorage.getItem('kinet_user_club') || '',
+        city: coachState.extracted.city || localStorage.getItem('kinet_user_city') || '',
+        aiCompleted: coachState.aiCompleted,
         updatedAt: new Date().toISOString()
       };
 
       localStorage.setItem('kinet_profiles_db', JSON.stringify(profilesDB));
-      localStorage.setItem('kinet_role', coachState.role);
+      localStorage.setItem('kinet_role', 'staff');
+      localStorage.setItem('kinet_active_role', 'staff');
       localStorage.setItem('kinet_sport', coachState.sport);
       localStorage.setItem('kinet_category', coachState.category);
-      localStorage.setItem('kinet_position', coachState.methodology || coachState.role);
-      localStorage.setItem('kinet_active_role', 'staff');
+      localStorage.setItem('kinet_user_category', coachState.category);
+      localStorage.setItem('kinet_position', coachState.role);
       localStorage.setItem('kinet_profile_completed', 'true');
-      localStorage.setItem('kinet_logged_in', 'true');
 
-      window.location.href = `app.html?role=staff&sport=${encodeURIComponent(coachState.sport)}`;
+      if (localStorage.getItem('kinet_is_guest') !== 'true') {
+        localStorage.setItem('kinet_logged_in', 'true');
+        if (window.KinetBackend && typeof window.KinetBackend.pushLocalStateToCloud === 'function') {
+          window.KinetBackend.pushLocalStateToCloud();
+        }
+      }
+
+      const targetUrl = `app.html?role=staff&sport=${encodeURIComponent(coachState.sport)}`;
+      const revealModal = document.getElementById('coach-surprise-reveal-modal');
+      if (revealModal) {
+        document.getElementById('reveal-coach-name').textContent = (localStorage.getItem('kinet_user_name') || 'STAFF KINET').toUpperCase();
+        document.getElementById('reveal-coach-sub').textContent = `${coachState.sport.toUpperCase()} • ${coachState.role.toUpperCase()}`;
+        document.getElementById('reveal-coach-squad').textContent = `${coachState.squadSize} Efectivos`;
+        document.getElementById('reveal-coach-area').textContent = coachState.methodology.split('&')[0].trim();
+        document.getElementById('reveal-coach-cat').textContent = coachState.category;
+        document.getElementById('reveal-coach-directive').textContent = `Plan operativo activo para ${coachState.squadSize} deportistas (${coachState.category}). Prioridad de ${coachState.role}: ${focusSummary.slice(0, 62)}.`;
+
+        revealModal.classList.remove('hidden');
+        const pBar = document.getElementById('reveal-coach-bar');
+        const sTxt = document.getElementById('reveal-coach-status');
+        setTimeout(() => { if (pBar) pBar.style.width = '100%'; }, 120);
+        setTimeout(() => { if (sTxt) sTxt.textContent = '✓ SUITE DE CUERPO TÉCNICO Y VESTUARIO ACTIVADOS...'; }, 1050);
+        setTimeout(() => { trpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(targetUrl); }, 1450);
+      } else {
+        window.location.replace(targetUrl);
+      }
     }
   </script>
 </body>
