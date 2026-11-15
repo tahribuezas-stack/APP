@@ -1,5 +1,5 @@
 /**
- * KINET OS // Motor Oficial de Backend & Sincronización Directa REST con Supabase (v6.0 Zero-Block & Auto-Heal)
+ * KINET OS // Motor Oficial de Backend & Sincronización Directa REST con Supabase (v6.1 Strict Guest Isolation)
  * Servidor: https://bhqgsbtkwdxdxlvlcaes.supabase.co
  */
 (function (window) {
@@ -16,16 +16,25 @@
   let lastKnownMessageSignature = -1;
   let lastUnreadCount = 0;
 
-  // Si no estamos entrando con ?guest=true explícito en la URL y quedaron restos de "Atleta Invitado", limpiar la bandera para no bloquear la cuenta real del usuario
+  // Si la URL trae ?guest=true explícito, forzar modo invitado aislado inmediatamente
   try {
-    const isExplicitGuestUrl = new URLSearchParams(window.location.search).get('guest') === 'true';
-    const pathNow = (window.location.pathname || '').toLowerCase();
-    if (!isExplicitGuestUrl && !pathNow.includes('login') && !pathNow.includes('index') && !pathNow.includes('fase1')) {
-      localStorage.removeItem('kinet_is_guest');
-      localStorage.removeItem('kinet_guest_session');
-      localStorage.setItem('kinet_logged_in', 'true');
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('guest') === 'true') {
+      localStorage.setItem('kinet_is_guest', 'true');
+      localStorage.setItem('kinet_guest_session', 'true');
+      localStorage.removeItem('kinet_logged_in');
+      localStorage.removeItem('kinet_user_id');
+      localStorage.removeItem('kinet_user_email');
     }
   } catch (e) {}
+
+  function isGuestSessionActive() {
+    return (
+      localStorage.getItem('kinet_is_guest') === 'true' ||
+      localStorage.getItem('kinet_guest_session') === 'true' ||
+      localStorage.getItem('kinet_mode') === 'guest'
+    );
+  }
 
   async function supabaseRestRequest(tableAndQuery, method = 'GET', bodyObj = null, upsert = false) {
     const headers = {
@@ -115,7 +124,14 @@
     const state = {};
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
-      if (k && k.startsWith('kinet_') && k !== 'kinet_sb_key' && k !== 'kinet_saved_posts' && k !== 'kinet_is_guest') {
+      if (
+        k &&
+        k.startsWith('kinet_') &&
+        k !== 'kinet_sb_key' &&
+        k !== 'kinet_saved_posts' &&
+        k !== 'kinet_is_guest' &&
+        k !== 'kinet_guest_session'
+      ) {
         const val = localStorage.getItem(k);
         if (val && val.length < 180000) {
           state[k] = val;
@@ -135,13 +151,13 @@
     if (key === 'kinet_unread_dm_count' || key === 'kinet_official_welcome_read') {
       updateGlobalCommunityExclamationBadge();
     }
-    if (!isHydratingFromCloud && initialCloudPullFinished && key && key.startsWith('kinet_') && localStorage.getItem('kinet_is_guest') !== 'true') {
+    if (!isHydratingFromCloud && initialCloudPullFinished && key && key.startsWith('kinet_') && !isGuestSessionActive()) {
       scheduleCloudSync();
     }
   };
 
   function scheduleCloudSync() {
-    if (!initialCloudPullFinished || localStorage.getItem('kinet_is_guest') === 'true') return;
+    if (!initialCloudPullFinished || isGuestSessionActive()) return;
     if (syncTimeout) clearTimeout(syncTimeout);
     syncTimeout = setTimeout(() => {
       KinetBackend.pushLocalStateToCloud();
@@ -203,14 +219,14 @@
     if (!profileRow) return;
     isHydratingFromCloud = true;
     try {
-      originalSetItem.call(localStorage, 'kinet_is_guest', 'false');
       localStorage.removeItem('kinet_is_guest');
       localStorage.removeItem('kinet_guest_session');
+      originalSetItem.call(localStorage, 'kinet_mode', 'pro');
 
       const cloudState = profileRow.user_state || {};
       Object.keys(cloudState).forEach((k) => {
         if (k !== 'kinet_is_guest' && k !== 'kinet_guest_session' && cloudState[k] !== null && cloudState[k] !== undefined && String(cloudState[k]).trim() !== '') {
-          if (k === 'kinet_user_name' && (cloudState[k] === 'NAIM T' || cloudState[k] === 'Usuario KINET' || cloudState[k] === 'Atleta Invitado')) {
+          if (k === 'kinet_user_name' && (cloudState[k] === 'Usuario KINET' || cloudState[k] === 'Atleta Invitado')) {
             return;
           }
           originalSetItem.call(localStorage, k, String(cloudState[k]));
@@ -219,10 +235,10 @@
 
       if (profileRow.id) originalSetItem.call(localStorage, 'kinet_user_id', profileRow.id);
       if (profileRow.email) originalSetItem.call(localStorage, 'kinet_user_email', profileRow.email);
-      if (profileRow.full_name && profileRow.full_name !== 'NAIM T' && profileRow.full_name !== 'Atleta Invitado') {
+      if (profileRow.full_name && profileRow.full_name !== 'Atleta Invitado') {
         originalSetItem.call(localStorage, 'kinet_user_name', profileRow.full_name);
       }
-      if (profileRow.handle && profileRow.handle !== '@naimt_pro' && !profileRow.handle.includes('invitado')) {
+      if (profileRow.handle && !profileRow.handle.includes('invitado')) {
         originalSetItem.call(localStorage, 'kinet_username', profileRow.handle);
         originalSetItem.call(localStorage, 'kinet_social_handle', profileRow.handle);
       }
@@ -253,14 +269,16 @@
     }
   }
 
+  // Resuelve EXCLUSIVAMENTE el ID del usuario autenticado en ESTE navegador (PROHIBIDO usar correos o nombres hardcodeados)
   async function resolveCurrentUserId() {
+    if (isGuestSessionActive()) return null;
+
     let uid = localStorage.getItem('kinet_user_id');
     const email = (localStorage.getItem('kinet_user_email') || '').trim();
     const handle = (localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '').trim();
-    const userName = (localStorage.getItem('kinet_user_name') || '').trim();
 
     try {
-      // 1. Si hay sesión activa en Supabase Auth (ej. Google OAuth), usar ese email
+      // 1. Verificar si hay una sesión real de Supabase Auth en este navegador
       const sb = initSupabase();
       if (sb && sb.auth) {
         const { data } = await sb.auth.getSession();
@@ -275,6 +293,7 @@
         }
       }
 
+      // 2. Buscar por el email guardado tras login explícito en este navegador
       if (email && email.includes('@')) {
         const rows = await supabaseRestRequest(`profiles?email=ilike.${encodeURIComponent(email)}&select=*&order=updated_at.desc&limit=1`, 'GET');
         if (Array.isArray(rows) && rows[0]?.id) {
@@ -282,7 +301,9 @@
           return rows[0].id;
         }
       }
-      if (handle && handle !== '@naimt_pro' && !handle.includes('invitado') && handle !== '@usuariokinet_pro') {
+
+      // 3. Buscar por el @handle propio si no es de invitado
+      if (handle && !handle.includes('invitado') && !handle.includes('guest') && handle !== '@usuariokinet_pro') {
         const cleanH = handle.startsWith('@') ? handle : '@' + handle;
         const rows = await supabaseRestRequest(`profiles?handle=ilike.${encodeURIComponent(cleanH)}&select=*&order=updated_at.desc&limit=1`, 'GET');
         if (Array.isArray(rows) && rows[0]?.id) {
@@ -290,14 +311,8 @@
           return rows[0].id;
         }
       }
-      if (userName && userName !== 'NAIM T' && userName !== 'Usuario KINET' && !userName.includes('Invitado')) {
-        const rows = await supabaseRestRequest(`profiles?full_name=ilike.${encodeURIComponent(userName)}&select=*&order=updated_at.desc&limit=1`, 'GET');
-        if (Array.isArray(rows) && rows[0]?.id) {
-          originalSetItem.call(localStorage, 'kinet_user_id', rows[0].id);
-          return rows[0].id;
-        }
-      }
     } catch (e) {}
+
     if (uid && uid.length > 20) return uid;
     return null;
   }
@@ -531,8 +546,10 @@
     compressAvatar: compressAvatarDataUrl,
     refreshUI: refreshDOMAvatarsAndProfileUI,
     updateCommunityBadge: updateGlobalCommunityExclamationBadge,
+    isGuest: isGuestSessionActive,
 
     canUploadVideo() {
+      if (isGuestSessionActive()) return false;
       const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
       return tier === 'pro' || tier === 'club' || localStorage.getItem('kinet_is_pro') === 'true';
     },
@@ -547,6 +564,7 @@
       };
     },
 
+    // Limpia al 100% cualquier sesión previa y arranca un entorno Invitado aislado que NO puede leer ni escribir perfiles en Supabase
     async resetAndStartCleanGuestSession() {
       try {
         const sb = initSupabase();
@@ -561,6 +579,8 @@
       sessionStorage.clear();
 
       originalSetItem.call(localStorage, 'kinet_is_guest', 'true');
+      originalSetItem.call(localStorage, 'kinet_guest_session', 'true');
+      originalSetItem.call(localStorage, 'kinet_mode', 'guest');
       originalSetItem.call(localStorage, 'kinet_account_tier', 'free');
       originalSetItem.call(localStorage, 'kinet_user_name', 'Atleta Invitado');
       originalSetItem.call(localStorage, 'kinet_social_handle', '@invitado_kinet');
@@ -569,6 +589,8 @@
     async registerUser({ firstName, lastName, handle, email, phone, password, birthDate }) {
       localStorage.removeItem('kinet_is_guest');
       localStorage.removeItem('kinet_guest_session');
+      originalSetItem.call(localStorage, 'kinet_mode', 'pro');
+
       const fullName = `${firstName || ''} ${lastName || ''}`.trim() || 'Atleta KINET';
       const cleanHandle = (handle || '').startsWith('@') ? handle : `@${handle}`;
       const cleanEmail = (email || '').trim().toLowerCase();
@@ -624,6 +646,8 @@
     async loginUser({ email, password }) {
       localStorage.removeItem('kinet_is_guest');
       localStorage.removeItem('kinet_guest_session');
+      originalSetItem.call(localStorage, 'kinet_mode', 'pro');
+
       const cleanInput = (email || '').trim();
       const isHandleLogin = cleanInput.startsWith('@') || !cleanInput.includes('@');
 
@@ -665,6 +689,7 @@
     },
 
     async updateProfileAvatar(fileOrDataUrl) {
+      if (isGuestSessionActive()) return { ok: false, skippedGuest: true };
       const compressed = await compressAvatarDataUrl(fileOrDataUrl);
       if (!compressed) return { ok: false };
       originalSetItem.call(localStorage, 'kinet_user_avatar', compressed);
@@ -679,7 +704,7 @@
 
     async pushLocalStateToCloud() {
       try {
-        if (localStorage.getItem('kinet_is_guest') === 'true') {
+        if (isGuestSessionActive()) {
           return { ok: false, skippedGuest: true };
         }
         if (localStorage.getItem('kinet_logged_in') !== 'true') {
@@ -689,8 +714,8 @@
         const currentName = (localStorage.getItem('kinet_user_name') || '').trim();
         const currentHandle = (localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '').trim();
 
-        const forbiddenNames = ['NAIM T', 'USUARIO KINET', 'ATLETA INVITADO', 'ATLETA KINET', ''];
-        const forbiddenHandles = ['@naimt_pro', '@usuariokinet_pro', '@invitado_kinet', '@kinet_pro', ''];
+        const forbiddenNames = ['USUARIO KINET', 'ATLETA INVITADO', 'ATLETA KINET', ''];
+        const forbiddenHandles = ['@usuariokinet_pro', '@invitado_kinet', '@kinet_pro', ''];
 
         if (
           forbiddenNames.includes(currentName.toUpperCase()) ||
@@ -728,7 +753,7 @@
         const safeMergedState = { ...cloudPrevState };
         Object.keys(localNowState).forEach((k) => {
           const val = localNowState[k];
-          if (val !== null && val !== undefined && String(val).trim() !== '' && val !== 'NAIM T' && val !== '@naimt_pro' && !String(val).includes('invitado_')) {
+          if (val !== null && val !== undefined && String(val).trim() !== '' && !String(val).includes('invitado_')) {
             safeMergedState[k] = val;
           }
         });
@@ -759,34 +784,15 @@
       }
     },
 
+    // CORTAFUEGOS ESTRICTO: Si es Invitado o no hay sesión iniciada en este navegador, NO descarga ningún perfil de la nube
     async pullCloudStateToLocal() {
       try {
-        const isExplicitGuestUrl = new URLSearchParams(window.location.search).get('guest') === 'true';
-        if (isExplicitGuestUrl) {
+        if (isGuestSessionActive() || localStorage.getItem('kinet_logged_in') !== 'true') {
           initialCloudPullFinished = true;
           return null;
         }
 
-        let userId = await resolveCurrentUserId();
-
-        // Si en este navegador quedó "Atleta Invitado" por una prueba previa pero no estamos en ?guest=true, recuperar tu perfil real si ya habías personalizado la app
-        const curName = localStorage.getItem('kinet_user_name') || '';
-        const hasCustomThemeOrHistory = Boolean(
-          localStorage.getItem('kinet_custom_accent_override') ||
-          localStorage.getItem('kinet_accent_color') ||
-          localStorage.getItem('kinet_logged_in') === 'true'
-        );
-
-        if (!userId && curName.includes('Invitado') && hasCustomThemeOrHistory) {
-          const rows = await supabaseRestRequest(`profiles?email=ilike.*tahribuezas*&select=*&limit=1`, 'GET');
-          if (Array.isArray(rows) && rows[0]) {
-            restoreCloudStateToLocal(rows[0]);
-            initialCloudPullFinished = true;
-            window.dispatchEvent(new CustomEvent('kinet:cloud-synced', { detail: rows[0] }));
-            return rows[0];
-          }
-        }
-
+        const userId = await resolveCurrentUserId();
         if (!userId) {
           initialCloudPullFinished = true;
           return null;
@@ -805,6 +811,9 @@
     },
 
     async createCloudPost(postObj) {
+      if (isGuestSessionActive()) {
+        return { ok: false, error: new Error('Los invitados no pueden publicar en la nube.') };
+      }
       if (postObj && (postObj.mode === 'reel' || postObj.mode === 'reels' || postObj.isVideo || postObj.videoUrl) && !this.canUploadVideo()) {
         return {
           ok: false,
@@ -854,6 +863,7 @@
     },
 
     async updateCloudPostLikes(sbPostId, newLikesCount) {
+      if (isGuestSessionActive()) return { ok: false };
       try {
         const cleanId = String(sbPostId || '').replace(/^sb_/, '');
         if (!cleanId || cleanId.startsWith('u_') || cleanId.startsWith('kinet_')) return { ok: false };
@@ -867,9 +877,10 @@
     },
 
     async fetchCloudDirectMessages() {
+      if (isGuestSessionActive()) return [];
       try {
         const rawHandle = (localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '').trim();
-        if (!rawHandle) return [];
+        if (!rawHandle || rawHandle.includes('invitado')) return [];
         const myHandle = rawHandle.startsWith('@') ? rawHandle : `@${rawHandle}`;
         const encoded = encodeURIComponent(myHandle);
         const rows = await supabaseRestRequest(
@@ -883,9 +894,10 @@
     },
 
     async sendCloudDirectMessage(receiverHandle, messageText) {
+      if (isGuestSessionActive()) return { ok: false };
       try {
         const userId = await resolveCurrentUserId();
-        const rawSender = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '@naimtahri';
+        const rawSender = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '@kinet_user';
         const senderHandle = rawSender.startsWith('@') ? rawSender : `@${rawSender}`;
         const cleanReceiver = (receiverHandle || '').startsWith('@') ? receiverHandle : `@${receiverHandle}`;
 
@@ -907,6 +919,7 @@
     },
 
     async markDirectMessagesAsRead(otherPersonHandle) {
+      if (isGuestSessionActive()) return { ok: false };
       try {
         if (localStorage.getItem('kinet_privacy_read_receipts') === 'false') {
           return { ok: true, skippedByPrivacy: true };
@@ -934,9 +947,9 @@
 
       const pollFn = async () => {
         try {
-          if (document.hidden) return;
+          if (document.hidden || isGuestSessionActive()) return;
           const rawMy = (localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '').trim();
-          if (!rawMy) return;
+          if (!rawMy || rawMy.includes('invitado')) return;
           const myHandleLower = (rawMy.startsWith('@') ? rawMy : `@${rawMy}`).toLowerCase();
 
           const messages = await this.fetchCloudDirectMessages();
@@ -971,7 +984,13 @@
     },
 
     async logoutUser() {
-      await this.pushLocalStateToCloud();
+      if (!isGuestSessionActive()) {
+        await this.pushLocalStateToCloud();
+      }
+      try {
+        const sb = initSupabase();
+        if (sb && sb.auth) await sb.auth.signOut();
+      } catch (e) {}
       Object.keys(localStorage).forEach((k) => {
         if (k.startsWith('kinet_') || k.startsWith('sb-')) localStorage.removeItem(k);
       });
@@ -987,7 +1006,9 @@
   });
 
   window.addEventListener('focus', () => {
-    KinetBackend.pullCloudStateToLocal();
+    if (!isGuestSessionActive()) {
+      KinetBackend.pullCloudStateToLocal();
+    }
   });
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -997,9 +1018,9 @@
 })(window);
 
 // =========================================================================
-// MOTOR GLOBAL v6.0: ZERO-FLASH COLOR + MEMORIA DE PESTAÑA/SCROLL + RESET PASSWORD
+// MOTOR GLOBAL v6.1: ZERO-FLASH COLOR + MEMORIA DE PESTAÑA/SCROLL + BLOQUEO LIMPIO DE INVITADOS EN COMUNIDAD
 // =========================================================================
-(function initKinetGlobalFixesV60() {
+(function initKinetGlobalFixesV61() {
   function applyInstantZeroFlashTheme() {
     try {
       const savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
@@ -1040,10 +1061,6 @@
   });
 
   window.addEventListener('DOMContentLoaded', () => {
-    // Asegurar que no exista ningún overlay viejo bloqueando Comunidad
-    const oldLock = document.getElementById('kinet-guest-social-lock');
-    if (oldLock) oldLock.remove();
-
     if (pageKey.includes('despacho')) {
       const savedTab = new URLSearchParams(window.location.search).get('tab') || sessionStorage.getItem('kinet_despacho_active_tab');
       if (savedTab && typeof window.switchDespachoTab === 'function') {
@@ -1058,6 +1075,31 @@
         if (ws) ws.scrollTop = savedScroll;
         else window.scrollTo(0, savedScroll);
       }, 60);
+    }
+
+    // BLOQUEO DE COMUNIDAD EXCLUSIVO PARA INVITADOS REALES (kinet_is_guest === 'true')
+    if (pageKey.includes('comunidad') && window.KinetBackend && window.KinetBackend.isGuest()) {
+      const overlay = document.createElement('div');
+      overlay.id = 'kinet-guest-social-lock';
+      overlay.style.cssText = `
+        position: fixed; inset: 0; z-index: 2147483646;
+        background: rgba(5, 7, 12, 0.94); backdrop-filter: blur(22px);
+        display: flex; align-items: center; justify-content: center; padding: 20px;
+      `;
+      overlay.innerHTML = `
+        <div style="max-width:440px;width:100%;background:#0B0F17;border:1.5px solid var(--role-color,#00FF88);border-radius:24px;padding:28px 24px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,0.95),0 0 35px rgba(var(--role-rgb,0,255,136),0.22);">
+          <div style="width:54px;height:54px;border-radius:16px;background:rgba(var(--role-rgb,0,255,136),0.14);border:1px solid var(--role-color,#00FF88);display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin:0 auto 14px auto;">🔒</div>
+          <h2 style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.1rem;color:#FFF;margin-bottom:8px;">RED SOCIAL EXCLUSIVA PARA CUENTAS REGISTRADAS</h2>
+          <p style="font-family:'Inter',sans-serif;font-size:0.8rem;color:#94A3B8;line-height:1.5;margin-bottom:20px;">
+            Estás navegando en <strong>Modo Invitado</strong>. Para tener perfil público en KINET Network™, publicar en Pulse o usar Mensajes Directos, inicia sesión o crea tu cuenta gratuita.
+          </p>
+          <div style="display:flex;gap:10px;justify-content:center;">
+            <a href="app.html" style="flex:1;padding:11px 14px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);color:#FFF;font-family:'Orbitron',sans-serif;font-size:0.7rem;font-weight:700;text-decoration:none;">← Volver a Vestuario</a>
+            <a href="login.html" style="flex:1.2;padding:11px 14px;border-radius:12px;background:var(--role-gradient,linear-gradient(135deg,#00FF88,#00B359));color:#04060A;font-family:'Orbitron',sans-serif;font-size:0.7rem;font-weight:900;text-decoration:none;">Crear Cuenta / Login →</a>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
     }
 
     const hash = window.location.hash || '';
