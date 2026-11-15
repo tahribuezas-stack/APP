@@ -45,31 +45,55 @@
 
   const originalSetItem = localStorage.setItem;
 
+// =========================================================================
+  // 1. VALIDADOR INTELIGENTE DE SESIÓN REAL / PRO VS INVITADO (NUNCA BLOQUEA CUENTAS PRO)
   // =========================================================================
-  // 1. VALIDADOR ESTRICTO DE SESIÓN REAL VS INVITADO (CERO FUGAS DE PERFIL)
-  // =========================================================================
-  // Un usuario SOLO está autenticado si tiene un token de sesión real (kinet_auth_session_token)
-  // y un kinet_user_id válido, y NO tiene activa ninguna bandera de invitado.
   function isStrictlyAuthenticatedUser() {
-    if (localStorage.getItem('kinet_is_guest') === 'true') return false;
-    if (localStorage.getItem('kinet_guest_session') === 'true') return false;
-    if (localStorage.getItem('kinet_mode') === 'guest') return false;
+    // Si la URL actual pide explícitamente entrar como invitado (?guest=true), es invitado
+    try {
+      if (new URLSearchParams(window.location.search).get('guest') === 'true') {
+        return false;
+      }
+    } catch (e) {}
 
+    const tier = (localStorage.getItem('kinet_account_tier') || '').toLowerCase();
+    const isProOrClub = tier === 'pro' || tier === 'club' || localStorage.getItem('kinet_is_pro') === 'true';
     const token = localStorage.getItem('kinet_auth_session_token');
     const uid = localStorage.getItem('kinet_user_id');
-    const email = localStorage.getItem('kinet_user_email');
+    const email = (localStorage.getItem('kinet_user_email') || '').trim();
+    const name = (localStorage.getItem('kinet_user_name') || '').trim();
+    const handle = (localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '').trim();
+    const loggedInFlag = localStorage.getItem('kinet_logged_in') === 'true';
 
-    // Si no tiene token de login real ni email válido ni UID válido, ES INVITADO
-    if (!token || !uid || uid.length < 15 || !email || !email.includes('@')) {
-      return false;
+    const hasRealUserData =
+      isProOrClub ||
+      Boolean(token) ||
+      (email && email.includes('@')) ||
+      (uid && uid.length > 15) ||
+      (loggedInFlag && name && !name.toLowerCase().includes('invitado') && !handle.toLowerCase().includes('invitado'));
+
+    // Si es cuenta Pro/Club o tiene sesión real iniciada, limpiar cualquier basura residual de modo invitado y autogenerar el token si faltaba
+    if (hasRealUserData) {
+      if (localStorage.getItem('kinet_is_guest') === 'true' || localStorage.getItem('kinet_guest_session') === 'true' || localStorage.getItem('kinet_mode') === 'guest') {
+        localStorage.removeItem('kinet_is_guest');
+        localStorage.removeItem('kinet_guest_session');
+        originalSetItem.call(localStorage, 'kinet_mode', 'pro');
+      }
+      if (!token) {
+        originalSetItem.call(localStorage, 'kinet_auth_session_token', 'auth_' + (uid || 'pro') + '_' + Date.now());
+      }
+      if (!loggedInFlag) {
+        originalSetItem.call(localStorage, 'kinet_logged_in', 'true');
+      }
+      return true;
     }
-    return true;
+
+    return false;
   }
 
   function isGuestSessionActive() {
     return !isStrictlyAuthenticatedUser();
   }
-
   // Si entra con ?guest=true en la URL, destruir inmediatamente cualquier rastro de cuenta anterior
   try {
     const urlParams = new URLSearchParams(window.location.search);
