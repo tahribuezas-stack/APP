@@ -7,7 +7,29 @@
     <title>KINET OS // Vestuario & Centro de Mando</title>
     
     <!-- Favicon Corporativo Dinámico por JavaScript -->
-    <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%233B82F6%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
+    <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
+
+    <!-- PRE-CARGA SÍNCRONA DEL COLOR ELEGIDO EN DESPACHO (0ms, EVITA MICRO-PESTAÑEO AL CAMBIAR DE SECCIÓN) -->
+    <script>
+        (function applyZeroFlashAccentBeforePaint() {
+            try {
+                var savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
+                var rainbowOn = localStorage.getItem('kinet_rainbow_mode') === 'true';
+                if (savedAccent && savedAccent.charAt(0) === '#' && !rainbowOn) {
+                    var clean = savedAccent.replace('#', '');
+                    var num = parseInt(clean, 16);
+                    if (!isNaN(num)) {
+                        var r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
+                        var root = document.documentElement;
+                        root.style.setProperty('--role-color', savedAccent);
+                        root.style.setProperty('--role-rgb', r + ', ' + g + ', ' + b);
+                        root.style.setProperty('--role-glow', 'rgba(' + r + ', ' + g + ', ' + b + ', 0.42)');
+                        root.style.setProperty('--role-gradient', 'linear-gradient(135deg, ' + savedAccent + ' 0%, rgba(' + r + ',' + g + ',' + b + ',0.75) 100%)');
+                    }
+                }
+            } catch (e) {}
+        })();
+    </script>
 
     <!-- Tipografías Oficiales -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -273,7 +295,31 @@
         .topbar-actions {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+        }
+
+        /* BOTÓN DISCRETO DE AYUDA / INFORMACIÓN DE SECCIÓN (ⓘ) */
+        .kinet-section-info-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(var(--role-rgb), 0.35);
+            color: var(--role-color);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.22s ease;
+        }
+        .kinet-section-info-btn:hover {
+            background: var(--role-gradient);
+            color: #04060A;
+            box-shadow: 0 0 14px var(--role-glow);
+            transform: scale(1.08);
         }
 
         .active-role-indicator {
@@ -443,7 +489,28 @@
             text-transform: uppercase;
         }
 
-        /* KPIs & BARRAS */
+        .mini-action-pill {
+            background: rgba(255, 255, 255, 0.035);
+            border: 1px solid rgba(var(--role-rgb), 0.35);
+            color: var(--role-color);
+            border-radius: 8px;
+            padding: 4px 9px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.62rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s ease;
+        }
+        .mini-action-pill:hover {
+            background: var(--role-gradient);
+            color: #04060A;
+            box-shadow: 0 0 12px var(--role-glow);
+        }
+
+        /* KPIs & BARRAS PERSONALIZABLES */
         .kpi-row {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -458,14 +525,28 @@
             border: 1px solid var(--border-subtle);
             border-radius: 14px;
             padding: 12px;
+            cursor: pointer;
+            position: relative;
             transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
         }
 
         .kpi-box:hover {
-            border-color: rgba(var(--role-rgb), 0.4);
+            border-color: rgba(var(--role-rgb), 0.45);
             transform: scale(1.02);
-            background: rgba(var(--role-rgb), 0.04);
+            background: rgba(var(--role-rgb), 0.05);
         }
+
+        .kpi-swap-hint {
+            position: absolute;
+            top: 8px;
+            right: 9px;
+            font-size: 0.58rem;
+            color: var(--text-secondary);
+            opacity: 0;
+            font-family: 'JetBrains Mono', monospace;
+            transition: opacity 0.2s ease;
+        }
+        .kpi-box:hover .kpi-swap-hint { opacity: 0.85; color: var(--role-color); }
 
         .kpi-val {
             font-family: 'Orbitron', sans-serif;
@@ -485,12 +566,12 @@
             transition: color 0.4s ease;
         }
 
-        .bar-group { margin-bottom: 10px; }
+        .bar-group { margin-bottom: 10px; cursor: pointer; }
         .bar-meta { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; margin-bottom: 5px; color: #E2E8F0; }
         .bar-track { height: 7px; background: rgba(255, 255, 255, 0.06); border-radius: 99px; overflow: hidden; }
         .bar-fill { height: 100%; background: var(--role-gradient); border-radius: 99px; box-shadow: 0 0 12px var(--role-glow); transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1), background 0.4s ease, box-shadow 0.4s ease; }
 
-        /* CALENDARIO Y SESIONES */
+        /* CALENDARIO SEMANAL CON MINI-ICONO EN ESQUINA SIN AGRANDAR LA CAJA */
         .week-strip {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -505,14 +586,25 @@
             padding: 8px 4px;
             text-align: center;
             cursor: pointer;
-            transition: border-color 0.2s ease, transform 0.2s ease;
+            position: relative;
+            transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
         }
 
-        .day-pill:hover { border-color: rgba(var(--role-rgb), 0.4); transform: translateY(-2px); }
+        .day-pill:hover { border-color: rgba(var(--role-rgb), 0.45); transform: translateY(-2px); }
         .day-pill.active {
             background: rgba(var(--role-rgb), 0.15);
             border-color: var(--role-color);
             box-shadow: 0 0 16px rgba(var(--role-rgb), 0.2);
+        }
+
+        .day-type-mini-icon {
+            position: absolute;
+            top: 3px;
+            right: 4px;
+            font-size: 0.56rem;
+            line-height: 1;
+            opacity: 0.9;
+            pointer-events: none;
         }
 
         .day-name { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--text-secondary); display: block; }
@@ -582,28 +674,90 @@
             color: white;
         }
 
-        /* CHAT Y ENRUTADOR */
-        .quick-router-input-wrap { display: flex; gap: 8px; margin-top: 10px; }
+        /* WIDGET DIVERTIDO DE RETO KINET DEL DÍA (EN LUGAR DE LOS BOTONES REPETIDOS DE FICHA Y PERFIL) */
+        .daily-challenge-card {
+            margin-top: 12px;
+            background: rgba(4, 6, 10, 0.65);
+            border: 1px solid rgba(var(--role-rgb), 0.35);
+            border-radius: 14px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            transition: all 0.25s ease;
+        }
+        .daily-challenge-card:hover {
+            border-color: var(--role-color);
+            box-shadow: 0 0 18px rgba(var(--role-rgb), 0.16);
+        }
+
+        /* MINI-CHAT ESTÉTICO EN EL BLOQUE 4 (SIN HUECO VACÍO) */
+        .mini-chat-shell {
+            background: rgba(4, 6, 10, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .mini-chat-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+        }
+        .mini-chat-bubble {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 0.76rem;
+            line-height: 1.38;
+            color: #E2E8F0;
+        }
+        .mini-chat-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 8px;
+            background: rgba(var(--role-rgb), 0.16);
+            border: 1px solid var(--role-color);
+            color: var(--role-color);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.58rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .quick-router-input-wrap { display: flex; gap: 8px; margin-top: 2px; }
         .quick-input {
             flex: 1;
-            background: rgba(4, 6, 10, 0.75);
+            background: rgba(13, 17, 26, 0.92);
             border: 1px solid rgba(255, 255, 255, 0.14);
-            border-radius: 12px;
-            padding: 10px 14px;
+            border-radius: 10px;
+            padding: 9px 12px;
             color: white;
             font-family: 'Inter', sans-serif;
-            font-size: 0.84rem;
+            font-size: 0.8rem;
             outline: none;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .quick-input:focus { border-color: var(--role-color); box-shadow: 0 0 14px rgba(var(--role-rgb), 0.15); }
-        .quick-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+        .quick-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
         .q-tag {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border-subtle);
             color: var(--text-secondary);
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             padding: 5px 10px;
             border-radius: 99px;
             cursor: pointer;
@@ -636,6 +790,57 @@
             transform: translateY(-2px) scale(1.02);
             box-shadow: 0 0 26px var(--role-glow);
             filter: brightness(1.08);
+        }
+
+        /* MODALES FLOTANTES (CALENDARIO MENSUAL, PERSONALIZADOR DE MÉTRICAS Y GUÍA DE SECCIÓN) */
+        .kinet-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(4, 6, 12, 0.88);
+            backdrop-filter: blur(18px);
+            z-index: 300;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .kinet-modal-backdrop.open { display: flex; animation: pageEnter 0.24s ease forwards; }
+
+        .kinet-modal-box {
+            background: #0A0E17;
+            border: 1.5px solid rgba(var(--role-rgb), 0.5);
+            border-radius: 22px;
+            padding: 20px;
+            width: 100%;
+            max-width: 680px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.95), 0 0 35px rgba(var(--role-rgb), 0.2);
+        }
+
+        .month-calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .month-day-cell {
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid var(--border-subtle);
+            border-radius: 11px;
+            padding: 8px 6px;
+            min-height: 54px;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.18s ease;
+        }
+        .month-day-cell:hover,
+        .month-day-cell.selected {
+            border-color: var(--role-color);
+            background: rgba(var(--role-rgb), 0.14);
         }
 
         /* NAVEGACIÓN MÓVIL */
@@ -726,7 +931,7 @@
                 </nav>
             </div>
 
-            <!-- BLOQUE INFERIOR SIDEBAR (IDÉNTICO A FICHA-PRO, COMUNIDAD Y MEDIA STUDIO) -->
+            <!-- BLOQUE INFERIOR SIDEBAR -->
             <div class="sidebar-bottom-section">
                 <div class="sidebar-ai-tip-box" id="sidebar-dynamic-tip">
                     <div class="sidebar-ai-tip-header">
@@ -745,12 +950,10 @@
                     <span class="side-link-left"><span>⚙️</span> <span>Despacho & Ajustes</span></span>
                     <span style="font-size:0.7rem;opacity:0.5;">→</span>
                 </a>
-                <!-- SE OCULTA AUTOMÁTICAMENTE SI LA RED SOCIAL YA FUE CONFIGURADA -->
                 <a href="comunidad.html?setup=true" id="nav-config-social" class="side-link" style="border-color: rgba(var(--role-rgb), 0.3); background: rgba(var(--role-rgb), 0.05);">
                     <span class="side-link-left"><span>🌐</span> <span>Config. Red Social</span></span>
                     <span style="font-size:0.7rem;color:var(--role-color);">⚡</span>
                 </a>
-                <!-- SE OCULTA POR COMPLETO SI YA ERES PRO O CLUB (NUNCA MUESTRA "✓ LICENCIA KINET PRO") -->
                 <a href="despacho.html?tab=subscription" id="nav-upgrade-pro" class="side-link" style="background: var(--role-gradient); color: #04060A; font-weight: 900; border: none;">
                     <span class="side-link-left"><span>⚡</span> <span>Pásate a KINET PRO</span></span>
                     <span style="font-size:0.7rem;">→</span>
@@ -774,6 +977,7 @@
                 </div>
 
                 <div class="topbar-actions">
+                    <button type="button" class="kinet-section-info-btn" onclick="openSectionInfoModal()" title="Guía rápida de cómo funciona el Vestuario">i</button>
                     <div class="active-role-indicator">
                         <span class="dot"></span>
                         <span class="active-role-text" id="topbar-role-title">ATLETA</span>
@@ -801,30 +1005,36 @@
                 <!-- BENTO GRID -->
                 <div class="bento-grid">
                     
-                    <!-- BLOQUE 1 -->
+                    <!-- BLOQUE 1: ESTADO FÍSICO CON SELECTOR PERSONALIZABLE DE MÉTRICAS Y BARRAS -->
                     <div class="col-7">
                         <div class="kinet-panel" style="height:100%;">
                             <div class="panel-head">
                                 <span class="panel-label" id="bio-panel-title">ESTADO FÍSICO & DISPONIBILIDAD DE HOY</span>
-                                <span class="verified-badge" id="readiness-pill">LISTO PARA COMPETIR (92%)</span>
+                                <div style="display:flex;align-items:center;gap:6px;">
+                                    <button type="button" class="mini-action-pill" onclick="openMetricsCustomizerModal()" title="Elegir qué métricas mostrar">⚙️ Personalizar</button>
+                                    <span class="verified-badge" id="readiness-pill">LISTO PARA COMPETIR (92%)</span>
+                                </div>
                             </div>
 
                             <div class="kpi-row">
-                                <div class="kpi-box">
+                                <div class="kpi-box" onclick="cycleSingleKpiSlot(0)" title="Pulsa para cambiar esta métrica">
+                                    <span class="kpi-swap-hint">↻ Cambiar</span>
                                     <span class="kpi-val" id="kpi-1-val">92%</span>
                                     <span class="kpi-sub" id="kpi-1-lbl">ENERGÍA & BATERÍA</span>
                                 </div>
-                                <div class="kpi-box">
+                                <div class="kpi-box" onclick="cycleSingleKpiSlot(1)" title="Pulsa para cambiar esta métrica">
+                                    <span class="kpi-swap-hint">↻ Cambiar</span>
                                     <span class="kpi-val" id="kpi-2-val">8.0 h</span>
                                     <span class="kpi-sub" id="kpi-2-lbl">DESCANSO / SUEÑO</span>
                                 </div>
-                                <div class="kpi-box">
+                                <div class="kpi-box" onclick="cycleSingleKpiSlot(2)" title="Pulsa para cambiar esta métrica">
+                                    <span class="kpi-swap-hint">↻ Cambiar</span>
                                     <span class="kpi-val" id="kpi-3-val">BAJO</span>
                                     <span class="kpi-sub" id="kpi-3-lbl">RIESGO SOBRECARGA</span>
                                 </div>
                             </div>
 
-                            <div class="bar-group">
+                            <div class="bar-group" onclick="cycleSingleBarSlot(0)" title="Pulsa para cambiar esta barra">
                                 <div class="bar-meta">
                                     <span id="bar-1-title">Nivel de Frescura Muscular</span>
                                     <span id="bar-1-pct">92%</span>
@@ -832,9 +1042,9 @@
                                 <div class="bar-track"><div class="bar-fill" id="bar-1-fill" style="width:92%"></div></div>
                             </div>
 
-                            <div class="bar-group" style="margin-bottom:0;">
+                            <div class="bar-group" style="margin-bottom:0;" onclick="cycleSingleBarSlot(1)" title="Pulsa para cambiar esta barra">
                                 <div class="bar-meta">
-                                    <span id="bar-2-title">Carga Acumulada de la Semana</span>
+                                    <span id="bar-2-title">Carga Acumulada del Microciclo</span>
                                     <span id="bar-2-pct">35% (Óptima)</span>
                                 </div>
                                 <div class="bar-track"><div class="bar-fill" id="bar-2-fill" style="width:35%"></div></div>
@@ -842,36 +1052,46 @@
                         </div>
                     </div>
 
-                    <!-- BLOQUE 2 -->
+                    <!-- BLOQUE 2: CONSEJO IA + WIDGET DIVERTIDO DE RETO DIARIO KINET (SIN BOTONES REPETIDOS DE PERFIL/FICHA) -->
                     <div class="col-5">
                         <div class="kinet-panel" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
                             <div>
                                 <div class="panel-head">
                                     <span class="panel-label" id="directive-label">CONSEJO DIRECTO DEL CUERPO TÉCNICO IA</span>
-                                    <span style="font-family:'JetBrains Mono';font-size:0.65rem;color:var(--role-color);">ACTIVO</span>
+                                    <span style="font-family:'JetBrains Mono';font-size:0.65rem;color:var(--role-color);" id="xp-score-badge">⚡ 450 XP</span>
                                 </div>
-                                <p id="daily-ai-advice" style="font-size:0.86rem;line-height:1.5;color:#CBD5E1;background:rgba(255,255,255,0.02);padding:12px;border-radius:12px;border-left:3px solid var(--role-color);">
+                                <p id="daily-ai-advice" style="font-size:0.84rem;line-height:1.48;color:#CBD5E1;background:rgba(255,255,255,0.02);padding:11px 12px;border-radius:12px;border-left:3px solid var(--role-color);">
                                     "Hoy tienes el depósito de energía al 92%. Aprovecha los primeros 30 minutos de sesión para trabajo explosivo y prioriza hidratación + carbohidratos complejos al terminar."
                                 </p>
                             </div>
 
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;">
-                                <a href="ficha-pro.html" id="btn-vestuario-card" class="btn-primary" style="background:rgba(var(--role-rgb),0.14);color:var(--role-color);border:1px solid var(--role-color);box-shadow:none;padding:10px 14px;">
-                                    🎴 Ver Ficha 3D
-                                </a>
-                                <a href="perfil.html" id="btn-vestuario-profile" class="btn-primary" style="background:rgba(255,255,255,0.04);color:white;border:1px solid var(--border-subtle);box-shadow:none;padding:10px 14px;">
-                                    👤 Mi Perfil
-                                </a>
+                            <div class="daily-challenge-card">
+                                <div style="min-width:0;flex:1;">
+                                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+                                        <span style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--role-color);font-weight:800;letter-spacing:0.06em;">🎯 RETO KINET DEL DÍA (+50 XP)</span>
+                                        <button type="button" onclick="nextFunDailyChallenge()" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:0.66rem;" title="Cambiar reto">↻ Otro</button>
+                                    </div>
+                                    <div id="fun-challenge-text" style="font-size:0.77rem;font-weight:700;color:#F8FAFC;line-height:1.3;">
+                                        Clavar 8/10 finalizaciones al primer toque con pierna menos hábil.
+                                    </div>
+                                </div>
+                                <button type="button" id="btn-claim-challenge" class="check-btn" onclick="completeFunDailyChallenge()">
+                                    🔥 ¡Logrado!
+                                </button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- BLOQUE 3 -->
+                    <!-- BLOQUE 3: PLANIFICACIÓN SEMANAL CON MINI-ICONOS + BOTÓN CALENDARIO MENSUAL & REPORTE -->
                     <div class="col-7">
                         <div class="kinet-panel">
                             <div class="panel-head">
                                 <span class="panel-label" id="schedule-panel-title">PLANIFICACIÓN SEMANAL & SESIONES DE HOY</span>
-                                <span style="font-family:'JetBrains Mono';font-size:0.68rem;color:var(--role-color);" id="completed-counter">1 / 2 COMPLETADAS</span>
+                                <div style="display:flex;align-items:center;gap:6px;">
+                                    <button type="button" class="mini-action-pill" onclick="openMonthCalendarModal()">📅 Ver Mes</button>
+                                    <button type="button" class="mini-action-pill" onclick="openDayIssueReportModal()">💬 Informar / Cambio</button>
+                                    <span style="font-family:'JetBrains Mono';font-size:0.66rem;color:var(--role-color);" id="completed-counter">1 / 2 HECHAS</span>
+                                </div>
                             </div>
 
                             <div class="week-strip" id="week-strip"></div>
@@ -888,21 +1108,30 @@
                         </div>
                     </div>
 
-                    <!-- BLOQUE 4 -->
+                    <!-- BLOQUE 4: MINI-CHAT ESTÉTICO EN LÍNEA DIRECTA (SIN HUECO VACÍO) -->
                     <div class="col-5">
                         <div class="kinet-panel" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
                             <div>
-                                <div class="panel-head">
+                                <div class="panel-head" style="margin-bottom:10px;">
                                     <span class="panel-label">LÍNEA DIRECTA CON TU CUERPO TÉCNICO IA</span>
-                                    <span style="font-size:0.68rem;color:var(--text-secondary);">Auto-Asignación</span>
+                                    <span style="font-size:0.64rem;font-family:'JetBrains Mono';color:var(--role-color);">● 4 ONLINE</span>
                                 </div>
-                                <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.4;">
-                                    Escribe cualquier duda sobre tu disciplina y te abriré directamente el chat con el especialista que te toca:
-                                </p>
 
-                                <div class="quick-router-input-wrap">
-                                    <input type="text" id="quick-doubt-input" class="quick-input" placeholder="Ej: Me noto cargado del gemelo..." onkeydown="if(event.key==='Enter') routeToAgent()">
-                                    <button class="btn-primary" onclick="routeToAgent()" style="padding:10px 14px;">Ir →</button>
+                                <div class="mini-chat-shell">
+                                    <div class="mini-chat-topbar">
+                                        <span id="mini-chat-agent-tag">🧠 SALA CENTRAL // AUTO-ASIGNACIÓN</span>
+                                        <span>Respuesta instantánea</span>
+                                    </div>
+                                    <div class="mini-chat-bubble">
+                                        <div class="mini-chat-avatar">IA</div>
+                                        <div id="mini-chat-live-msg">
+                                            Dime cómo te notas hoy o qué duda tienes de tu sesión y te paso al instante con el especialista exacto (Físico, Fisio, Táctico o Nutrición).
+                                        </div>
+                                    </div>
+                                    <div class="quick-router-input-wrap">
+                                        <input type="text" id="quick-doubt-input" class="quick-input" placeholder="Ej: Me noto cargado del isquio tras los sprints..." onkeydown="if(event.key==='Enter') routeToAgent()">
+                                        <button class="btn-primary" onclick="routeToAgent()" style="padding:9px 14px;">Ir →</button>
+                                    </div>
                                 </div>
 
                                 <div class="quick-tags" id="sport-quick-tags">
@@ -912,9 +1141,9 @@
                                 </div>
                             </div>
 
-                            <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border-subtle);display:flex;justify-content:space-between;align-items:center;">
-                                <span style="font-size:0.72rem;color:var(--text-secondary);">4 Especialistas en sala</span>
-                                <a href="cuerpo-tecnico.html" id="nav-cuerpo-footer" style="font-size:0.74rem;color:var(--role-color);font-weight:700;text-decoration:none;">Entrar →</a>
+                            <div style="margin-top:10px;padding-top:9px;border-top:1px solid var(--border-subtle);display:flex;justify-content:space-between;align-items:center;">
+                                <span style="font-size:0.72rem;color:var(--text-secondary);">Físico, Fisio, Táctico & Mind Coach</span>
+                                <a href="cuerpo-tecnico.html" id="nav-cuerpo-footer" style="font-size:0.74rem;color:var(--role-color);font-weight:700;text-decoration:none;">Abrir Sala Completa →</a>
                             </div>
                         </div>
                     </div>
@@ -922,6 +1151,109 @@
                 </div>
 
             </main>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- MODAL 1: CALENDARIO MENSUAL EN GRANDE + CAMBIO DE SESIÓN E INCIDENCIAS A ENTRENADOR / DM -->
+    <!-- ========================================================================= -->
+    <div id="month-calendar-modal" class="kinet-modal-backdrop" onclick="if(event.target===this)closeMonthCalendarModal()">
+        <div class="kinet-modal-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:12px;">
+                <div>
+                    <span style="font-family:'JetBrains Mono';font-size:0.64rem;color:var(--role-color);text-transform:uppercase;">🗓️ PLANIFICACIÓN COMPLETA DEL MICROCICLO & MES</span>
+                    <h3 id="month-modal-title" style="font-family:'Orbitron';font-size:1.05rem;font-weight:900;color:white;margin-top:2px;">CALENDARIO DEL MES</h3>
+                </div>
+                <button type="button" onclick="closeMonthCalendarModal()" style="background:none;border:none;color:white;font-size:1.2rem;cursor:pointer;">✕</button>
+            </div>
+
+            <!-- LEYENDA DE ICONOS -->
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-family:'JetBrains Mono';font-size:0.64rem;color:#CBD5E1;">
+                <span>⚽ Pista / Campo</span>
+                <span>🏋️ Gimnasio / Fuerza</span>
+                <span>🩹 Recuperación / Fisio</span>
+                <span>🏆 Partido / Competición</span>
+            </div>
+
+            <div class="month-calendar-grid" id="full-month-grid"></div>
+
+            <!-- PANEL DE ACCIÓN RÁPIDA SOBRE EL DÍA SELECCIONADO -->
+            <div style="margin-top:14px;background:rgba(4,6,10,0.85);border:1px solid rgba(var(--role-rgb),0.4);border-radius:14px;padding:14px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+                    <strong id="selected-month-day-label" style="font-family:'Orbitron';font-size:0.8rem;color:var(--role-color);">DÍA SELECCIONADO: HOY</strong>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                        <button type="button" class="mini-action-pill" onclick="setDayTypeQuick('field')">⚽ Pista</button>
+                        <button type="button" class="mini-action-pill" onclick="setDayTypeQuick('gym')">🏋️ Gimnasio</button>
+                        <button type="button" class="mini-action-pill" onclick="setDayTypeQuick('double')">⚽+🏋️ Doble</button>
+                        <button type="button" class="mini-action-pill" onclick="setDayTypeQuick('rest')">🩹 Recuperación</button>
+                        <button type="button" class="mini-action-pill" onclick="setDayTypeQuick('match')">🏆 Partido</button>
+                    </div>
+                </div>
+
+                <p style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:8px;">
+                    ¿Tienes una molestia física, cambio de horario o quieres avisar de algo sobre este día?
+                </p>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <input type="text" id="calendar-incident-input" class="quick-input" placeholder="Ej: Hoy no puedo hacer pierna por sobrecarga en el isquio / Cambio el gym al jueves...">
+                    <button type="button" class="btn-primary" style="padding:8px 12px;font-size:0.66rem;" onclick="sendCalendarIncidentToCoach()">🧠 Consultar Entrenador IA</button>
+                    <button type="button" class="mini-action-pill" style="padding:8px 12px;" onclick="sendCalendarIncidentToGroupDM()">💬 Avisar al Grupo (DM)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- MODAL 2: PERSONALIZADOR DE MÉTRICAS Y BARRAS DEL ESTADO FÍSICO -->
+    <!-- ========================================================================= -->
+    <div id="metrics-customizer-modal" class="kinet-modal-backdrop" onclick="if(event.target===this)closeMetricsCustomizerModal()">
+        <div class="kinet-modal-box" style="max-width:540px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:10px;margin-bottom:12px;">
+                <div>
+                    <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);">⚙️ CONFIGURACIÓN A MEDIDA</span>
+                    <h3 style="font-family:'Orbitron';font-size:0.98rem;font-weight:900;color:white;">Personalizar Métricas del Vestuario</h3>
+                </div>
+                <button type="button" onclick="closeMetricsCustomizerModal()" style="background:none;border:none;color:white;font-size:1.2rem;cursor:pointer;">✕</button>
+            </div>
+            <p style="font-size:0.76rem;color:var(--text-secondary);margin-bottom:12px;">
+                Elige qué 3 indicadores principales y qué 2 barras de progreso prefieres ver en tu panel de Estado Físico (también puedes pulsar directamente sobre cualquier tarjeta para rotarla):
+            </p>
+            <div id="customizer-slots-container" style="display:flex;flex-direction:column;gap:10px;"></div>
+            <div style="margin-top:14px;display:flex;justify-content:flex-end;">
+                <button type="button" class="btn-primary" onclick="closeMetricsCustomizerModal()">✓ Guardar Vista</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- MODAL 3: GUÍA INTERACTIVA DE LA SECCIÓN (BOTÓN ⓘ) -->
+    <!-- ========================================================================= -->
+    <div id="section-info-modal" class="kinet-modal-backdrop" onclick="if(event.target===this)closeSectionInfoModal()">
+        <div class="kinet-modal-box" style="max-width:560px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:10px;margin-bottom:12px;">
+                <div>
+                    <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);">ⓘ GUÍA OFICIAL DE SECCIÓN // KINET OS</span>
+                    <h3 style="font-family:'Orbitron';font-size:1rem;font-weight:900;color:white;">¿Cómo funciona el Vestuario Central?</h3>
+                </div>
+                <button type="button" onclick="closeSectionInfoModal()" style="background:none;border:none;color:white;font-size:1.2rem;cursor:pointer;">✕</button>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;font-size:0.78rem;color:#CBD5E1;line-height:1.45;">
+                <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
+                    <strong style="color:white;display:block;margin-bottom:2px;">1. Estado Físico & Disponibilidad Personalizable</strong>
+                    Pulsa sobre cualquiera de las 3 casillas o en <em>⚙️ Personalizar</em> para elegir tus métricas favoritas (Energía, Horas de Sueño, RPE, Hidratación, Riesgo Lesional o Media GRL) sin datos inventados.
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
+                    <strong style="color:white;display:block;margin-bottom:2px;">2. Calendario Semanal y Mensual con Iconos Inteligentes</strong>
+                    Cada día muestra un icono según lo que te toque: <strong>⚽ Pista</strong>, <strong>🏋️ Gimnasio</strong>, <strong>🩹 Recuperación</strong> o <strong>🏆 Partido</strong>. Pulsa <em>📅 Ver Mes</em> o <em>💬 Informar / Cambio</em> para modificar tu día o avisar a tu Entrenador IA / Grupo de DMs.
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
+                    <strong style="color:white;display:block;margin-bottom:2px;">3. Reto KINET del Día (+50 XP) & Línea Directa IA</strong>
+                    Completa retos técnicos diarios para subir tu XP competitivo y usa el mini-chat de <em>Línea Directa</em> para que el sistema te derive automáticamente con el especialista exacto de los 4 disponibles.
+                </div>
+            </div>
+            <div style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;">
+                <a href="despacho.html?tab=tutorials" style="font-size:0.72rem;color:var(--role-color);font-family:'JetBrains Mono';text-decoration:underline;">Abrir Simulador de Tutoriales en Despacho →</a>
+                <button type="button" class="btn-primary" style="padding:8px 16px;" onclick="closeSectionInfoModal()">Entendido</button>
+            </div>
         </div>
     </div>
 
@@ -973,6 +1305,12 @@
     </nav>
 
     <script>
+        // Bloquear que el botón "Atrás" en app.html te devuelva al onboarding o animación anterior (app.html actúa como pantalla raíz)
+        history.pushState({ kinetRoot: true }, '', window.location.href);
+        window.addEventListener('popstate', () => {
+            history.pushState({ kinetRoot: true }, '', window.location.href);
+        });
+
         function toggleMobileDrawer() {
             const drawer = document.getElementById('mobile-menu-drawer');
             if (drawer.style.transform === 'translateY(0px)') {
@@ -980,6 +1318,365 @@
             } else {
                 drawer.style.transform = 'translateY(0px)';
             }
+        }
+
+        function openSectionInfoModal() {
+            document.getElementById('section-info-modal').classList.add('open');
+        }
+        function closeSectionInfoModal() {
+            document.getElementById('section-info-modal').classList.remove('open');
+        }
+
+        // =========================================================================
+        // CATÁLOGO DE MÉTRICAS Y BARRAS ELEGIBLES (CERO VALORES GPS INVENTADOS)
+        // =========================================================================
+        function getSelectableKpiCatalog() {
+            let realGrl = '-- GRL';
+            try {
+                const rawCard = JSON.parse(localStorage.getItem('kinet_custom_card_stats') || 'null');
+                if (Array.isArray(rawCard) && rawCard.length === 6) {
+                    realGrl = Math.round(rawCard.reduce((a, b) => a + b, 0) / 6) + ' GRL';
+                }
+            } catch (e) {}
+
+            const sleepVal = (localStorage.getItem('kinet_sleep_hours') || '8.0') + ' h';
+            const gpsVerified = localStorage.getItem('kinet_verified_gps_speed') || 'SIN MEDIR';
+
+            return [
+                { id: 'energy', val: '92%', lbl: 'ENERGÍA & BATERÍA' },
+                { id: 'sleep', val: sleepVal, lbl: 'DESCANSO / SUEÑO' },
+                { id: 'risk', val: 'BAJO', lbl: 'RIESGO LESIONAL' },
+                { id: 'rpe', val: '7 / 10', lbl: 'CARGA RPE SESIÓN' },
+                { id: 'hydration', val: '2.8 L', lbl: 'HIDRATACIÓN HOY' },
+                { id: 'mental', val: '95%', lbl: 'FOCO COMPETITIVO' },
+                { id: 'grl', val: realGrl, lbl: 'MEDIA KINET CARD' },
+                { id: 'gps', val: gpsVerified, lbl: 'VELOCIDAD GPS (LAB)' }
+            ];
+        }
+
+        function getSelectableBarCatalog() {
+            return [
+                { id: 'freshness', title: 'Nivel de Frescura Muscular', pctText: '92%', width: '92%' },
+                { id: 'load', title: 'Carga Acumulada del Microciclo', pctText: '35% (Óptima)', width: '35%' },
+                { id: 'recovery', title: 'Calidad de Recuperación Nocturna', pctText: '88% (Alta)', width: '88%' },
+                { id: 'compliance', title: 'Cumplimiento del Plan Semanal', pctText: '85%', width: '85%' }
+            ];
+        }
+
+        let activeKpiSlots = JSON.parse(localStorage.getItem('kinet_selected_kpi_slots') || '["energy","sleep","risk"]');
+        let activeBarSlots = JSON.parse(localStorage.getItem('kinet_selected_bar_slots') || '["freshness","load"]');
+
+        function renderSelectedKpisAndBars() {
+            const kCatalog = getSelectableKpiCatalog();
+            [0, 1, 2].forEach((slotIdx) => {
+                const chosenId = activeKpiSlots[slotIdx] || kCatalog[slotIdx].id;
+                const item = kCatalog.find(k => k.id === chosenId) || kCatalog[slotIdx];
+                const vEl = document.getElementById(`kpi-${slotIdx + 1}-val`);
+                const lEl = document.getElementById(`kpi-${slotIdx + 1}-lbl`);
+                if (vEl) vEl.textContent = item.val;
+                if (lEl) lEl.textContent = item.lbl;
+            });
+
+            const bCatalog = getSelectableBarCatalog();
+            [0, 1].forEach((barIdx) => {
+                const chosenId = activeBarSlots[barIdx] || bCatalog[barIdx].id;
+                const item = bCatalog.find(b => b.id === chosenId) || bCatalog[barIdx];
+                const tEl = document.getElementById(`bar-${barIdx + 1}-title`);
+                const pEl = document.getElementById(`bar-${barIdx + 1}-pct`);
+                const fEl = document.getElementById(`bar-${barIdx + 1}-fill`);
+                if (tEl) tEl.textContent = item.title;
+                if (pEl) pEl.textContent = item.pctText;
+                if (fEl) fEl.style.width = item.width;
+            });
+        }
+
+        function cycleSingleKpiSlot(slotIdx) {
+            const kCatalog = getSelectableKpiCatalog();
+            const curId = activeKpiSlots[slotIdx];
+            const curIndex = kCatalog.findIndex(k => k.id === curId);
+            const nextItem = kCatalog[(curIndex + 1) % kCatalog.length];
+            activeKpiSlots[slotIdx] = nextItem.id;
+            localStorage.setItem('kinet_selected_kpi_slots', JSON.stringify(activeKpiSlots));
+            renderSelectedKpisAndBars();
+        }
+
+        function cycleSingleBarSlot(barIdx) {
+            const bCatalog = getSelectableBarCatalog();
+            const curId = activeBarSlots[barIdx];
+            const curIndex = bCatalog.findIndex(b => b.id === curId);
+            const nextItem = bCatalog[(curIndex + 1) % bCatalog.length];
+            activeBarSlots[barIdx] = nextItem.id;
+            localStorage.setItem('kinet_selected_bar_slots', JSON.stringify(activeBarSlots));
+            renderSelectedKpisAndBars();
+        }
+
+        function openMetricsCustomizerModal() {
+            const box = document.getElementById('customizer-slots-container');
+            const kCatalog = getSelectableKpiCatalog();
+            const bCatalog = getSelectableBarCatalog();
+
+            box.innerHTML = [0, 1, 2].map(idx => `
+                <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.03);padding:9px 12px;border-radius:10px;border:1px solid var(--border-subtle);">
+                    <span style="font-family:'JetBrains Mono';font-size:0.7rem;color:#CBD5E1;">Casilla KPI #${idx + 1}</span>
+                    <select onchange="setCustomKpiSlot(${idx}, this.value)" style="background:#12161C;color:white;border:1px solid rgba(var(--role-rgb),0.45);border-radius:8px;padding:5px 8px;font-size:0.74rem;">
+                        ${kCatalog.map(k => `<option value="${k.id}" ${activeKpiSlots[idx] === k.id ? 'selected' : ''}>${k.lbl} (${k.val})</option>`).join('')}
+                    </select>
+                </div>
+            `).join('') + [0, 1].map(idx => `
+                <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.03);padding:9px 12px;border-radius:10px;border:1px solid var(--border-subtle);">
+                    <span style="font-family:'JetBrains Mono';font-size:0.7rem;color:#CBD5E1;">Barra Inferior #${idx + 1}</span>
+                    <select onchange="setCustomBarSlot(${idx}, this.value)" style="background:#12161C;color:white;border:1px solid rgba(var(--role-rgb),0.45);border-radius:8px;padding:5px 8px;font-size:0.74rem;">
+                        ${bCatalog.map(b => `<option value="${b.id}" ${activeBarSlots[idx] === b.id ? 'selected' : ''}>${b.title}</option>`).join('')}
+                    </select>
+                </div>
+            `).join('');
+
+            document.getElementById('metrics-customizer-modal').classList.add('open');
+        }
+
+        function setCustomKpiSlot(slotIdx, val) {
+            activeKpiSlots[slotIdx] = val;
+            localStorage.setItem('kinet_selected_kpi_slots', JSON.stringify(activeKpiSlots));
+            renderSelectedKpisAndBars();
+        }
+        function setCustomBarSlot(barIdx, val) {
+            activeBarSlots[barIdx] = val;
+            localStorage.setItem('kinet_selected_bar_slots', JSON.stringify(activeBarSlots));
+            renderSelectedKpisAndBars();
+        }
+        function closeMetricsCustomizerModal() {
+            document.getElementById('metrics-customizer-modal').classList.remove('open');
+        }
+
+        // =========================================================================
+        // WIDGET DIVERTIDO DE RETOS DIARIOS KINET (+50 XP)
+        // =========================================================================
+        const FUN_DAILY_CHALLENGES = [
+            'Clavar 8/10 finalizaciones al primer toque con pierna o mano menos hábil.',
+            'Completar 4 series de sprint reactivo de 15m sin perder técnica de braceo.',
+            'Aguantar 90 segundos de plancha isométrica + movilidad de cadera post-entreno.',
+            'Subir o auditar 1 clip técnico en Laboratorio o repasar tu posición en Pizarra 3D.',
+            'Hidratación perfecta hoy (+2.5L) y 0 pantallas 45 min antes de dormir.'
+        ];
+        let funChallengeIdx = 0;
+
+        function nextFunDailyChallenge() {
+            funChallengeIdx = (funChallengeIdx + 1) % FUN_DAILY_CHALLENGES.length;
+            const txtEl = document.getElementById('fun-challenge-text');
+            const btnEl = document.getElementById('btn-claim-challenge');
+            if (txtEl) txtEl.textContent = FUN_DAILY_CHALLENGES[funChallengeIdx];
+            if (btnEl) {
+                btnEl.textContent = '🔥 ¡Logrado!';
+                btnEl.disabled = false;
+            }
+        }
+
+        function completeFunDailyChallenge() {
+            let currentXp = parseInt(localStorage.getItem('kinet_user_xp') || '450', 10);
+            currentXp += 50;
+            localStorage.setItem('kinet_user_xp', String(currentXp));
+            const xpBadge = document.getElementById('xp-score-badge');
+            if (xpBadge) xpBadge.textContent = `⚡ ${currentXp} XP`;
+            const btn = document.getElementById('btn-claim-challenge');
+            if (btn) {
+                btn.textContent = '✓ +50 XP';
+                btn.disabled = true;
+            }
+        }
+
+        // =========================================================================
+        // CALENDARIO SEMANAL CON MINI-ICONOS Y CALENDARIO MENSUAL DESPLEGABLE
+        // =========================================================================
+        let selectedWeekDayOffset = 0; // 0 = Lunes ... 6 = Domingo
+        let selectedMonthDateNum = new Date().getDate();
+
+        function getDayIconAndSessionsMap() {
+            let savedMap = null;
+            try {
+                savedMap = JSON.parse(localStorage.getItem('kinet_weekly_schedule_map') || 'null');
+            } catch (e) {}
+
+            // Mapa por defecto con iconos según el tipo de entrenamiento: 🏋️ (pesa), ⚽ (balón), 🩹 (tirita recuperación), 🏆 (partido)
+            const defaultByJsDay = {
+                1: { icon: '⚽', type: 'field', sessions: [{ time: '18:30', title: 'Sesión de Pista / Campo: Técnica & Transiciones', done: true }] },
+                2: { icon: '🏋️', type: 'gym', sessions: [{ time: '17:30', title: 'Gimnasio: Fuerza Explosiva & Prevención Isquios (45m)', done: false }] },
+                3: { icon: '⚽', type: 'field', sessions: [{ time: '18:30', title: 'Sesión Táctica MD-3: Presión y Finalización', done: false }] },
+                4: { icon: '🏋️', type: 'gym', sessions: [{ time: '17:30', title: 'Gimnasio Reactivo + Sesión de Campo MD-2', done: false }] },
+                5: { icon: '⚽', type: 'field', sessions: [{ time: '18:00', title: 'Activación Pre-Partido & Balón Parado (MD-1)', done: false }] },
+                6: { icon: '🏆', type: 'match', sessions: [{ time: '18:00', title: 'Día de Competición Oficial • Máximo Foco', done: false }] },
+                0: { icon: '🩹', type: 'rest', sessions: [{ time: 'TODO EL DÍA', title: 'Recuperación Activa, Descarga Muscular & Fisio', done: false }] }
+            };
+
+            if (!savedMap) return defaultByJsDay;
+
+            const merged = {};
+            for (let d = 0; d <= 6; d++) {
+                const row = savedMap[d];
+                if (row && Array.isArray(row.sessions) && row.sessions.length > 0) {
+                    const hasMatch = row.sessions.some(s => s.type === 'match');
+                    const hasGym = row.sessions.some(s => s.type === 'gym');
+                    const hasField = row.sessions.some(s => s.type === 'field');
+                    let icon = '🩹';
+                    if (hasMatch) icon = '🏆';
+                    else if (hasGym && hasField) icon = '⚽🏋️';
+                    else if (hasGym) icon = '🏋️';
+                    else if (hasField) icon = '⚽';
+
+                    merged[d] = {
+                        icon,
+                        type: row.primaryType || 'field',
+                        sessions: row.sessions.map(s => ({
+                            time: (s.time || '18:00').replace(' H', ''),
+                            title: s.title,
+                            done: false
+                        }))
+                    };
+                } else {
+                    merged[d] = defaultByJsDay[d];
+                }
+            }
+            return merged;
+        }
+
+        function renderWeekStrip() {
+            const days = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
+            const jsDayOrder = [1, 2, 3, 4, 5, 6, 0];
+            const today = new Date();
+            const currentDayIndex = (today.getDay() + 6) % 7;
+            if (selectedWeekDayOffset === null) selectedWeekDayOffset = currentDayIndex;
+
+            const scheduleMap = getDayIconAndSessionsMap();
+            const customDayOverrides = JSON.parse(localStorage.getItem('kinet_calendar_day_overrides') || '{}');
+            const strip = document.getElementById('week-strip');
+
+            strip.innerHTML = days.map((d, idx) => {
+                const dateObj = new Date(today);
+                dateObj.setDate(today.getDate() - currentDayIndex + idx);
+                const dayNumber = dateObj.getDate();
+                const jsDay = jsDayOrder[idx];
+                const overrideType = customDayOverrides[dayNumber];
+                let dayInfo = scheduleMap[jsDay] || { icon: '⚽', sessions: [] };
+
+                if (overrideType) {
+                    const iconByType = { field: '⚽', gym: '🏋️', double: '⚽🏋️', rest: '🩹', match: '🏆' };
+                    dayInfo = { ...dayInfo, icon: iconByType[overrideType] || '⚽' };
+                }
+
+                const isSelected = idx === selectedWeekDayOffset;
+                return `
+                    <div class="day-pill ${isSelected ? 'active' : ''}" onclick="selectWeekStripDay(${idx}, ${dayNumber})">
+                        <span class="day-type-mini-icon">${dayInfo.icon}</span>
+                        <span class="day-name">${d}</span>
+                        <span class="day-num">${dayNumber}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectWeekStripDay(stripIdx, dayNumber) {
+            selectedWeekDayOffset = stripIdx;
+            selectedMonthDateNum = dayNumber;
+            const jsDayOrder = [1, 2, 3, 4, 5, 6, 0];
+            const jsDay = jsDayOrder[stripIdx];
+            const scheduleMap = getDayIconAndSessionsMap();
+            const customDayOverrides = JSON.parse(localStorage.getItem('kinet_calendar_day_overrides') || '{}');
+            const overrideType = customDayOverrides[dayNumber];
+
+            let daySessions = (scheduleMap[jsDay] && scheduleMap[jsDay].sessions) ? scheduleMap[jsDay].sessions : [];
+            if (overrideType) {
+                const customTitles = {
+                    field: [{ time: '18:30', title: 'Sesión de Pista / Campo: Técnica & Táctica', done: false }],
+                    gym: [{ time: '17:30', title: 'Gimnasio: Fuerza Explosiva & Prevención (45m)', done: false }],
+                    double: [
+                        { time: '10:30', title: 'Gimnasio: Fuerza & Prevención Muscular', done: false },
+                        { time: '18:30', title: 'Sesión de Pista / Campo: Transiciones', done: false }
+                    ],
+                    rest: [{ time: 'DESCANSO', title: '🩹 Día de Recuperación Activa, Fisio & Movilidad', done: false }],
+                    match: [{ time: '18:00', title: '🏆 Competición Oficial • Día de Partido', done: false }]
+                };
+                daySessions = customTitles[overrideType] || daySessions;
+            }
+
+            sessionsState = JSON.parse(JSON.stringify(daySessions));
+            renderWeekStrip();
+            renderSessions();
+        }
+
+        function openMonthCalendarModal() {
+            const now = new Date();
+            const monthNames = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+            document.getElementById('month-modal-title').textContent = `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+
+            const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            const scheduleMap = getDayIconAndSessionsMap();
+            const customDayOverrides = JSON.parse(localStorage.getItem('kinet_calendar_day_overrides') || '{}');
+            const grid = document.getElementById('full-month-grid');
+
+            let html = '';
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateObj = new Date(now.getFullYear(), now.getMonth(), d);
+                const jsDay = dateObj.getDay();
+                const overrideType = customDayOverrides[d];
+                const iconByType = { field: '⚽', gym: '🏋️', double: '⚽🏋️', rest: '🩹', match: '🏆' };
+                const icon = overrideType ? iconByType[overrideType] : ((scheduleMap[jsDay] && scheduleMap[jsDay].icon) || '⚽');
+                const isSel = d === selectedMonthDateNum;
+
+                html += `
+                    <div class="month-day-cell ${isSel ? 'selected' : ''}" onclick="selectMonthModalDay(${d})">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-family:'Orbitron';font-size:0.78rem;font-weight:800;color:white;">${d}</span>
+                            <span style="font-size:0.78rem;">${icon}</span>
+                        </div>
+                        <span style="font-family:'JetBrains Mono';font-size:0.54rem;color:var(--text-secondary);">
+                            ${icon === '🩹' ? 'Descanso' : (icon === '🏆' ? 'Partido' : (icon.includes('🏋️') ? 'Gym' : 'Pista'))}
+                        </span>
+                    </div>
+                `;
+            }
+            grid.innerHTML = html;
+            document.getElementById('selected-month-day-label').textContent = `DÍA SELECCIONADO: DÍA ${selectedMonthDateNum}`;
+            document.getElementById('month-calendar-modal').classList.add('open');
+        }
+
+        function closeMonthCalendarModal() {
+            document.getElementById('month-calendar-modal').classList.remove('open');
+        }
+
+        function selectMonthModalDay(dayNum) {
+            selectedMonthDateNum = dayNum;
+            openMonthCalendarModal();
+        }
+
+        function setDayTypeQuick(typeKey) {
+            const customDayOverrides = JSON.parse(localStorage.getItem('kinet_calendar_day_overrides') || '{}');
+            customDayOverrides[selectedMonthDateNum] = typeKey;
+            localStorage.setItem('kinet_calendar_day_overrides', JSON.stringify(customDayOverrides));
+            openMonthCalendarModal();
+            selectWeekStripDay(selectedWeekDayOffset, selectedMonthDateNum);
+        }
+
+        function openDayIssueReportModal() {
+            openMonthCalendarModal();
+            setTimeout(() => {
+                document.getElementById('calendar-incident-input')?.focus();
+            }, 120);
+        }
+
+        function sendCalendarIncidentToCoach() {
+            const txt = (document.getElementById('calendar-incident-input')?.value || '').trim();
+            const msg = txt || `Hola Míster/Fisio, quiero ajustar la sesión del día ${selectedMonthDateNum} del calendario.`;
+            const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
+            localStorage.setItem('kinet_pending_question', `[Calendario Día ${selectedMonthDateNum}] ${msg}`);
+            localStorage.setItem('kinet_target_agent', 'physical');
+            window.location.href = `cuerpo-tecnico.html?role=${activeRoleKey}&sport=${encodeURIComponent(sportChosen)}&agent=physical`;
+        }
+
+        function sendCalendarIncidentToGroupDM() {
+            const txt = (document.getElementById('calendar-incident-input')?.value || '').trim();
+            const msg = txt || `Aviso de Calendario (Día ${selectedMonthDateNum}): actualización en la sesión de entrenamiento.`;
+            const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
+            localStorage.setItem('kinet_pending_dm_broadcast', msg);
+            window.location.href = `comunidad.html?role=${activeRoleKey}&sport=${encodeURIComponent(sportChosen)}&openDm=true`;
         }
 
         // =========================================================================
@@ -1013,11 +1710,6 @@
                         title: 'Vestuario & Control Diario',
                         panel1Title: 'ESTADO FÍSICO & DISPONIBILIDAD DE HOY',
                         readiness: 'LISTO PARA COMPETIR (92%)',
-                        kpi1: { val: '92%', lbl: 'ENERGÍA & BATERÍA' },
-                        kpi2: { val: '34.2 km/h', lbl: 'PICO VELOCIDAD GPS' },
-                        kpi3: { val: 'BAJO', lbl: 'RIESGO LESIONAL' },
-                        bar1Title: 'Nivel de Frescura Muscular (Tren Inferior)',
-                        bar2Title: 'Carga Acumulada del Microciclo',
                         advice: '"Hoy tienes el depósito de energía al 92%. Aprovecha los primeros 30 minutos de campo para sprints repetidos y prioriza recarga de carbohidratos complejos al terminar."',
                         sessions: [
                             { time: '10:00', title: 'Gimnasio: Fuerza Explosiva & Prevención Isquios (45m)', done: true },
@@ -1027,13 +1719,8 @@
                     staff: {
                         tagText: 'DESPACHO DEL ENTRENADOR • GESTIÓN DE PLANTILLA',
                         title: 'Pizarra & Control de Equipo',
-                        panel1Title: 'DISPONIBILIDAD DE LA PLANTILLA & CARGAS GPS',
+                        panel1Title: 'DISPONIBILIDAD DE LA PLANTILLA & CARGAS',
                         readiness: 'PLANTILLA AL 91%',
-                        kpi1: { val: '91%', lbl: 'PLANTILLA DISPONIBLE' },
-                        kpi2: { val: '22 / 24', lbl: 'APTOS PARA ENTRENAR' },
-                        kpi3: { val: '2 AVISOS', lbl: 'JUGADORES CARGADOS' },
-                        bar1Title: 'Intensidad Táctica del Microciclo',
-                        bar2Title: 'Fatiga Neuromuscular Media del Vestuario',
                         advice: '"La plantilla asimiló bien el trabajo táctico de ayer. El Preparador Físico IA recomienda reducir 15 minutos el rondo de presión alta para los dos laterales titulares."',
                         sessions: [
                             { time: '09:30', title: 'Vídeo-Análisis Rival & Balón Parado ABP (Staff)', done: true },
@@ -1045,15 +1732,10 @@
                         title: 'Central de Scouting & Mercado',
                         panel1Title: 'RADAR DE CAPTACIÓN & COBERTURA DE MERCADO',
                         readiness: 'RADAR LIVE ACTIVO (94%)',
-                        kpi1: { val: '14', lbl: 'FUTBOLISTAS EN CARTERA' },
-                        kpi2: { val: '3 HOY', lbl: 'PARTIDOS EN VIVO' },
-                        kpi3: { val: '94%', lbl: 'PRECISIÓN DE FILTROS' },
-                        bar1Title: 'Cobertura de Ligas & Canteras Objetivo',
-                        bar2Title: 'Presupuesto de Fichajes Utilizado',
-                        advice: '"El Radar Live detecta que 2 de tus objetivos Sub-21 juegan esta tarde. El Analista IA registrará sus picos de velocidad GPS y duelos ganados en tiempo real."',
+                        advice: '"El Radar Live detecta que 2 de tus objetivos Sub-21 juegan esta tarde. El Analista IA registrará sus duelos ganados y métricas en tiempo real."',
                         sessions: [
                             { time: '12:00', title: 'Auditoría de Informes y Filtro de Percentiles GRL', done: true },
-                            { time: '19:00', title: 'Seguimiento en Vivo: Lucas Vance (BeSoccer Sync)', done: false }
+                            { time: '19:00', title: 'Seguimiento en Vivo: Objetivos Sub-21 en Radar', done: false }
                         ]
                     }
                 },
@@ -1068,14 +1750,9 @@
                     athlete: {
                         tagText: 'CENTRO DEL CORREDOR • TELEMETRÍA & RITMOS',
                         title: 'Vestuario & Control de Carrera',
-                        panel1Title: 'BIOMETRÍA AERÓBICA, HRV & ECONOMÍA DE ZANCADA',
-                        readiness: 'VO2 MAX ÓPTIMO (94%)',
-                        kpi1: { val: '82 ml/kg', lbl: 'VO2 MÁX ESTIMADO' },
-                        kpi2: { val: '186 spm', lbl: 'CADENCIA MEDIA' },
-                        kpi3: { val: 'BAJO', lbl: 'IMPACTO ARTICULAR' },
-                        bar1Title: 'Recuperación Autonómica (HRV & Frescura de Piernas)',
-                        bar2Title: 'Volumen Kilométrico Semanal (85 / 110 km)',
-                        advice: '"Tu variabilidad cardíaca (HRV) está en el 94%. Hoy es el día idóneo para la sesión de series a ritmo sub-3:00/km en pista sin riesgo de sobrecarga en el tendón de Aquiles."',
+                        panel1Title: 'BIOMETRÍA AERÓBICA & ECONOMÍA DE ZANCADA',
+                        readiness: 'ESTADO ÓPTIMO (94%)',
+                        advice: '"Tu recuperación muscular está en el 94%. Hoy es el día idóneo para la sesión de series a ritmo umbral en pista sin riesgo de sobrecarga en el tendón de Aquiles."',
                         sessions: [
                             { time: '08:30', title: 'Pista: 8x1000m a Ritmo Umbral Anaeróbico (Rec 90s)', done: true },
                             { time: '18:30', title: 'Movilidad de Cadera, Técnica de Pisada & Core', done: false }
@@ -1086,31 +1763,21 @@
                         title: 'Planificación de Ciclos & Ritmos',
                         panel1Title: 'ESTADO DEL EQUIPO DE FONDO & CARGA KILOMÉTRICA',
                         readiness: 'EQUIPO APTO (93%)',
-                        kpi1: { val: '93%', lbl: 'CORREDORES APTOS' },
-                        kpi2: { val: '18 / 19', lbl: 'EN UMBRAL ÓPTIMO' },
-                        kpi3: { val: '1 AVISO', lbl: 'FATIGA SÓLEO/TIBIAL' },
-                        bar1Title: 'Asimilación del Bloque de Volumen Aeróbico',
-                        bar2Title: 'Índice de Fatiga Muscular del Grupo',
-                        advice: '"El grupo de media maratón ha mejorado un 3.2% su economía de carrera esta semana. Se recomienda sesión regenerativa en césped para los atletas con carga tibial."',
+                        advice: '"El grupo de media maratón ha mejorado su economía de carrera esta semana. Se recomienda sesión regenerativa en césped para los atletas con carga tibial."',
                         sessions: [
-                            { time: '09:00', title: 'Control de Lactato y Ritmos en Pista de Atletismo', done: true },
-                            { time: '17:30', title: 'Revisión de Telemetría Garmin & Strava del Equipo', done: false }
+                            { time: '09:00', title: 'Control de Ritmos en Pista de Atletismo', done: true },
+                            { time: '17:30', title: 'Revisión de Planificación Semanal del Equipo', done: false }
                         ]
                     },
                     scout: {
                         tagText: 'CAPTACIÓN ATLETISMO & RUNNING • AGENDA DE SEGUIMIENTO',
                         title: 'Central de Scouting & Marcas',
-                        panel1Title: 'RADAR DE FONDISTAS, MARCAS & TELEMETRÍA OFICIAL',
+                        panel1Title: 'RADAR DE FONDISTAS & MARCAS OFICIALES',
                         readiness: 'RADAR RUNNING ACTIVO (95%)',
-                        kpi1: { val: '16', lbl: 'ATLETAS EN CARTERA' },
-                        kpi2: { val: '2 HOY', lbl: 'MEETINGS / CARRERAS' },
-                        kpi3: { val: '95%', lbl: 'PRECISIÓN BIOMÉTRICA' },
-                        bar1Title: 'Cobertura de Pruebas Nacionales & World Athletics',
-                        bar2Title: 'Presupuesto de Becas y Patrocinios Utilizado',
-                        advice: '"El Radar Live detecta que 2 de tus fondistas Sub-23 compiten hoy en 10K Ruta. El Analista IA auditará sus parciales cada 2 km, cadencia (SPM) y VO2 Max en tiempo real."',
+                        advice: '"El Radar detecta que 2 de tus fondistas Sub-23 compiten hoy en 10K Ruta. El Analista IA auditará sus parciales cada 2 km."',
                         sessions: [
-                            { time: '11:30', title: 'Auditoría de Marcas 10K / Maratón y Percentiles VO2', done: true },
-                            { time: '18:30', title: 'Seguimiento en Vivo: Mateo Kipchoge (Garmin & Strava Sync)', done: false }
+                            { time: '11:30', title: 'Auditoría de Marcas 10K / Maratón', done: true },
+                            { time: '18:30', title: 'Seguimiento en Competición Oficial', done: false }
                         ]
                     }
                 },
@@ -1125,14 +1792,9 @@
                     athlete: {
                         tagText: 'FIGHT CAMP • CONTROL DE COMBATE & PESO',
                         title: 'Vestuario & Fight Camp',
-                        panel1Title: 'BIOMETRÍA DE COMBATE, PEGADA & CORTE DE PESO',
+                        panel1Title: 'BIOMETRÍA DE COMBATE, PEGADA & PESO',
                         readiness: 'LISTO PARA SPARRING (93%)',
-                        kpi1: { val: '93%', lbl: 'ENERGÍA & CARDIO 12R' },
-                        kpi2: { val: '76.8 kg', lbl: 'PESO ACTUAL (WELTER)' },
-                        kpi3: { val: 'ÓPTIMO', lbl: 'REFLEJOS & GUARDIA' },
-                        bar1Title: 'Potencia de Impacto & Velocidad de Manos',
-                        bar2Title: 'Carga Acumulada del Fight Camp',
-                        advice: '"Estás a solo 200g del peso pactado con un 93% de batería neuromuscular. Prioriza velocidad de manos en manoplas hoy y evita asaltos de castigo innecesario."',
+                        advice: '"Estás con un 93% de batería neuromuscular. Prioriza velocidad de manos en manoplas hoy y evita asaltos de castigo innecesario."',
                         sessions: [
                             { time: '10:30', title: 'Preparación Física: Cuello, Core & Explosividad Rotacional', done: true },
                             { time: '18:00', title: 'Sparring Técnico (6 Asaltos) + Trabajo de Manoplas', done: false }
@@ -1141,17 +1803,12 @@
                     staff: {
                         tagText: 'ESQUINA TÉCNICA • GESTIÓN DEL GIMNASIO DE COMBATE',
                         title: 'Pizarra de Combate & Esquina',
-                        panel1Title: 'ESTADO DE LOS PELEADORES & CONTROL DE PESAJES',
+                        panel1Title: 'ESTADO DE LOS PELEADORES & PESAJES',
                         readiness: 'EQUIPO EN PESO (92%)',
-                        kpi1: { val: '92%', lbl: 'PELEADORES APTOS' },
-                        kpi2: { val: '12 / 12', lbl: 'EN RANGO DE PESO' },
-                        kpi3: { val: '0 BAJAS', lbl: 'CONTROL MÉDICO OK' },
-                        bar1Title: 'Asimilación de Sparring de la Semana',
-                        bar2Title: 'Fatiga del Sistema Nervioso Central',
-                        advice: '"Todos los peleadores de la cartelera del sábado están en rango óptimo de hidratación. Reducir el sparring de contacto hoy y centrar la sesión en estrategia y defensa."',
+                        advice: '"Todos los peleadores de la cartelera del sábado están en rango óptimo de hidratación. Reducir el sparring de contacto hoy y centrar la sesión en estrategia."',
                         sessions: [
                             { time: '11:00', title: 'Vídeo-Análisis de Guardia y Patrones del Rival', done: true },
-                            { time: '17:30', title: 'Sesión de Manoplas, Defensa de Derribos y Pesaje Control', done: false }
+                            { time: '17:30', title: 'Sesión de Manoplas, Defensa y Control de Peso', done: false }
                         ]
                     },
                     scout: {
@@ -1159,15 +1816,10 @@
                         title: 'Central de Scouting Boxeo & MMA',
                         panel1Title: 'CARTERA DE PELEADORES, RÉCORDS & CARTELERAS',
                         readiness: 'RADAR COMBATE ACTIVO (95%)',
-                        kpi1: { val: '18', lbl: 'PELEADORES EN RADAR' },
-                        kpi2: { val: '2 HOY', lbl: 'VELADAS EN VIVO' },
-                        kpi3: { val: '95%', lbl: 'PRECISIÓN MATCHMAKING' },
-                        bar1Title: 'Cobertura de Divisiones de Peso Objetivo',
-                        bar2Title: 'Presupuesto de Bolsas de Velada Utilizado',
-                        advice: '"El Radar detecta a 2 prospectos invictos (77 kg) haciendo sparring verificado hoy. El Analista IA auditará su volumen de golpes significativos por minuto y cardio."',
+                        advice: '"El Radar detecta a 2 prospectos invictos haciendo sparring verificado hoy. El Analista IA auditará su volumen de golpeo y cardio."',
                         sessions: [
-                            { time: '12:00', title: 'Revisión de Récords, Fichas Médicas y Percentiles KO', done: true },
-                            { time: '20:00', title: 'Seguimiento en Vivo: Javier Morales (Fight Telemetry Sync)', done: false }
+                            { time: '12:00', title: 'Revisión de Récords y Fichas Médicas', done: true },
+                            { time: '20:00', title: 'Seguimiento de Velada en Vivo', done: false }
                         ]
                     }
                 },
@@ -1184,28 +1836,18 @@
                         title: 'Vestuario & Control de Pista',
                         panel1Title: 'EXPLOSIVIDAD VERTICAL, TIRO & DISPONIBILIDAD',
                         readiness: 'LISTO PARA PISTA (93%)',
-                        kpi1: { val: '93%', lbl: 'ENERGÍA & SALTO' },
-                        kpi2: { val: '66.4%', lbl: 'TRUE SHOOTING %' },
-                        kpi3: { val: 'BAJO', lbl: 'CARGA ROTULIANA' },
-                        bar1Title: 'Frescura de Tren Inferior & Reactividad de Tobillos',
-                        bar2Title: 'Carga de Minutos y Saltos de la Semana',
                         advice: '"Tu estabilidad de tren inferior está al 93%. Aprovecha la sesión de tiro de hoy para trabajar el Catch & Shoot tras bote a máxima velocidad de pies."',
                         sessions: [
-                            { time: '10:30', title: 'Shooting Lab: 250 Triples tras Bote & Mecánica de Tiro', done: true },
+                            { time: '10:30', title: 'Shooting Lab: Triples tras Bote & Mecánica de Tiro', done: true },
                             { time: '18:00', title: 'Entrenamiento 5v5: Sistemas Ofensivos y Transición', done: false }
                         ]
                     },
                     staff: {
                         tagText: 'PIZARRA DEL COACH • GESTIÓN DE ROTACIONES Y CARGAS',
                         title: 'Pizarra & Control de Roster',
-                        panel1Title: 'DISPONIBILIDAD DEL ROSTER & EFICIENCIA OFENSIVA',
+                        panel1Title: 'DISPONIBILIDAD DEL ROSTER & CARGAS',
                         readiness: 'ROSTER AL 92%',
-                        kpi1: { val: '92%', lbl: 'ROSTER DISPONIBLE' },
-                        kpi2: { val: '11 / 12', lbl: 'APTOS PARA PISTA' },
-                        kpi3: { val: '114.2', lbl: 'ORTG (EFIC. OFENSIVA)' },
-                        bar1Title: 'Ritmo de Posesiones (Pace) & Defensa en Ayudas',
-                        bar2Title: 'Carga Articular Media del Equipo',
-                        advice: '"El quinteto titular acumula alta carga de saltos esta semana. Se recomienda limitar a 20 minutos el 5v5 con contacto hoy y priorizar ajuste de bloqueos directos (Pick & Roll)."',
+                        advice: '"El quinteto titular acumula alta carga de saltos esta semana. Se recomienda limitar a 20 minutos el 5v5 con contacto hoy y priorizar ajuste de bloqueos (Pick & Roll)."',
                         sessions: [
                             { time: '10:00', title: 'Scouting Vídeo: Defensa de Pick & Roll y Espacios', done: true },
                             { time: '17:30', title: 'Sesión de Pista: Sistemas de Final de Posesión (Clutch)', done: false }
@@ -1214,17 +1856,12 @@
                     scout: {
                         tagText: 'DIRECCIÓN DEPORTIVA HOOPS • RADAR DE PROSPECTOS',
                         title: 'Central de Scouting Baloncesto',
-                        panel1Title: 'CARTERA DE JUGADORES, ENVERGADURA & ADVANCED STATS',
-                        readiness: 'RADAR FIBA/NCAA ACTIVO (94%)',
-                        kpi1: { val: '15', lbl: 'PROSPECTOS EN CARTERA' },
-                        kpi2: { val: '4 HOY', lbl: 'PARTIDOS EN VIVO' },
-                        kpi3: { val: '94%', lbl: 'PRECISIÓN DE FILTROS' },
-                        bar1Title: 'Cobertura de Ligas FEB, ACB & NCAA',
-                        bar2Title: 'Presupuesto de Plantilla Utilizado',
-                        advice: '"El Radar detecta a 2 bases Sub-20 con un True Shooting superior al 64% jugando esta tarde. El Analista IA registrará su ratio asistencias/pérdidas en vivo."',
+                        panel1Title: 'CARTERA DE JUGADORES & MÉTRICAS',
+                        readiness: 'RADAR ACTIVO (94%)',
+                        advice: '"El Radar detecta a 2 bases Sub-20 jugando esta tarde. El Analista IA registrará su ratio asistencias/pérdidas en vivo."',
                         sessions: [
-                            { time: '12:00', title: 'Auditoría de Advanced Stats (PER, TS%, USG%)', done: true },
-                            { time: '19:30', title: 'Seguimiento en Vivo: Devin Marcos (Hoops Telemetry Sync)', done: false }
+                            { time: '12:00', title: 'Auditoría de Estadísticas de Tiro y Rebote', done: true },
+                            { time: '19:30', title: 'Seguimiento de Partido en Vivo', done: false }
                         ]
                     }
                 },
@@ -1241,47 +1878,32 @@
                         title: 'Vestuario & Control en Pista',
                         panel1Title: 'REACTIVIDAD SPLIT-STEP, HOMBRO & DISPONIBILIDAD',
                         readiness: 'LISTO PARA TORNEO (94%)',
-                        kpi1: { val: '94%', lbl: 'ENERGÍA & SPLIT-STEP' },
-                        kpi2: { val: '91%', lbl: 'EFICACIA EN RED' },
-                        kpi3: { val: 'BAJO', lbl: 'CARGA HOMBRO / CODO' },
-                        bar1Title: 'Velocidad de Reacción & Frescura de Tren Superior',
-                        bar2Title: 'Carga de Partidos y Bandejas de la Semana',
                         advice: '"Tu articulación glenohumeral y codo están sin sobrecarga (94%). Excelente día para entrenar la transición defensa-ataque tras bajada de pared y el remate por tres (X3)."',
                         sessions: [
-                            { time: '10:00', title: 'Físico Específico: Desplazamientos Laterales & Manguito Rotador', done: true },
+                            { time: '10:00', title: 'Físico Específico: Desplazamientos Laterales & Hombro', done: true },
                             { time: '18:00', title: 'Pista: Cesto de Bandejas, Víbora y Partido Condicionado', done: false }
                         ]
                     },
                     staff: {
                         tagText: 'ACADEMIA DE PÁDEL / TENIS • CONTROL DE JUGADORES',
                         title: 'Pizarra & Control de Parejas',
-                        panel1Title: 'ESTADO DE JUGADORES, COMPENETRACIÓN & CARGAS',
+                        panel1Title: 'ESTADO DE JUGADORES & COMPENETRACIÓN',
                         readiness: 'ACADEMIA AL 93%',
-                        kpi1: { val: '93%', lbl: 'JUGADORES APTOS' },
-                        kpi2: { val: '8 PAREJAS', lbl: 'LISTAS PARA CUADRO' },
-                        kpi3: { val: '0 BAJAS', lbl: 'SALUD ARTICULAR OK' },
-                        bar1Title: 'Volumen de Golpeo & Precisión en Red del Grupo',
-                        bar2Title: 'Fatiga Acumulada de Torneo',
-                        advice: '"Las parejas principales mantienen un 88% de puntos ganados con primer servicio. Hoy conviene trabajar la defensa de dobles paredes y comunicación en el globo."',
+                        advice: '"Las parejas principales mantienen alta eficacia con primer servicio. Hoy conviene trabajar la defensa de dobles paredes y comunicación en el globo."',
                         sessions: [
-                            { time: '09:30', title: 'Vídeo-Análisis de Posicionamiento en Red yCobertura de Globo', done: true },
+                            { time: '09:30', title: 'Vídeo-Análisis de Posicionamiento en Red y Globo', done: true },
                             { time: '17:00', title: 'Entrenamiento Táctico de Parejas: Punto de Oro y Tie-Break', done: false }
                         ]
                     },
                     scout: {
                         tagText: 'DIRECCIÓN DEPORTIVA RACKET • SEGUIMIENTO DE CIRCUITOS',
                         title: 'Central de Scouting Pádel & Tenis',
-                        panel1Title: 'CARTERA DE TALENTOS, RANKING FIP/ATP & MÉTRICAS',
+                        panel1Title: 'CARTERA DE TALENTOS & RANKING FIP/ATP',
                         readiness: 'RADAR CIRCUITO ACTIVO (95%)',
-                        kpi1: { val: '12', lbl: 'JUGADORES EN CARTERA' },
-                        kpi2: { val: '3 HOY', lbl: 'PARTIDOS DE CUADRO' },
-                        kpi3: { val: '95%', lbl: 'PRECISIÓN DE FILTROS' },
-                        bar1Title: 'Cobertura de Torneos FIP, Premier & Circuito Nacional',
-                        bar2Title: 'Presupuesto de Patrocinios Utilizado',
-                        advice: '"El Radar detecta que 2 de tus jugadores Sub-21 disputan hoy octavos de final. El Analista IA registrará su ratio de winners / errores no forzados en tiempo real."',
+                        advice: '"El Radar detecta que 2 de tus jugadores Sub-21 disputan hoy octavos de final. El Analista IA registrará su ratio de winners / errores no forzados."',
                         sessions: [
-                            { time: '11:30', title: 'Auditoría de Estadísticas de Winners en Red y Resto', done: true },
-                            { time: '18:30', title: 'Seguimiento en Vivo: Lucía Navarro (Court Vision Sync)', done: false }
+                            { time: '11:30', title: 'Auditoría de Estadísticas en Red y Resto', done: true },
+                            { time: '18:30', title: 'Seguimiento de Cuadro Principal', done: false }
                         ]
                     }
                 }
@@ -1341,17 +1963,16 @@
             document.getElementById('topbar-sport-tag').textContent = `● ${sportChosen.toUpperCase()}`;
             document.getElementById('topbar-role-title').textContent = cfg.roleLabel;
 
-            // Sincronizar TODOS los enlaces de navegación manteniendo rol y deporte
             const queryParams = `?role=${activeRoleKey}&sport=${encodeURIComponent(sportChosen)}`;
             const navMap = {
                 'brand-logo-desktop': 'app.html', 'brand-logo-mobile': 'app.html',
                 'nav-vestuario': 'app.html', 'drawer-vestuario': 'app.html', 'mob-vestuario': 'app.html',
                 'nav-cuerpo-tecnico': 'cuerpo-tecnico.html', 'nav-cuerpo-footer': 'cuerpo-tecnico.html', 'drawer-cuerpo-tecnico': 'cuerpo-tecnico.html', 'mob-cuerpo-tecnico': 'cuerpo-tecnico.html',
-                'nav-ficha-pro': 'ficha-pro.html', 'drawer-ficha-pro': 'ficha-pro.html', 'mob-ficha-pro': 'ficha-pro.html', 'btn-vestuario-card': 'ficha-pro.html',
+                'nav-ficha-pro': 'ficha-pro.html', 'drawer-ficha-pro': 'ficha-pro.html', 'mob-ficha-pro': 'ficha-pro.html',
                 'nav-ojeador-live': 'ojeador-live.html', 'drawer-ojeador-live': 'ojeador-live.html', 'mob-ojeador-live': 'ojeador-live.html',
                 'nav-comunidad': 'comunidad.html', 'drawer-comunidad': 'comunidad.html',
                 'nav-media-studio': 'media-studio.html', 'drawer-media-studio': 'media-studio.html',
-                'nav-perfil': 'perfil.html', 'drawer-perfil': 'perfil.html', 'btn-vestuario-profile': 'perfil.html',
+                'nav-perfil': 'perfil.html', 'drawer-perfil': 'perfil.html',
                 'nav-despacho': 'despacho.html', 'drawer-despacho': 'despacho.html'
             };
             Object.keys(navMap).forEach(id => {
@@ -1371,7 +1992,6 @@
                 if (el) el.href = socialSetupUrl;
             });
 
-            // 1. OCULTAR AUTOMÁTICAMENTE "Config. Red Social" SI YA FUE CONFIGURADA (IGUAL QUE EN KINET CARD)
             if (localStorage.getItem('kinet_social_configured') === 'true') {
                 const navSoc = document.getElementById('nav-config-social');
                 const drwSoc = document.getElementById('drawer-config-social');
@@ -1379,7 +1999,6 @@
                 if (drwSoc) drwSoc.style.display = 'none';
             }
 
-            // 2. OCULTAR POR COMPLETO EL BOTÓN DE LICENCIA PRO SI EL USUARIO YA ES PRO O CLUB (IGUAL QUE EN KINET CARD)
             if (isPaidAccount()) {
                 const navUp = document.getElementById('nav-upgrade-pro');
                 const drwUp = document.getElementById('drawer-upgrade-pro');
@@ -1387,24 +2006,25 @@
                 if (drwUp) drwUp.style.setProperty('display', 'none', 'important');
             }
 
-            // Poblar toda la interfaz del Vestuario personalizada por Deporte + Rol
+            // Si el usuario completó el Onboarding con IA, usar su directiva personalizada
+            let customPlan = null;
+            try {
+                customPlan = JSON.parse(localStorage.getItem('kinet_ai_personalization_plan') || 'null');
+            } catch (e) {}
+
             document.getElementById('header-tag-text').textContent = `${cfg.tagText} • ${sportChosen.toUpperCase()}`;
             document.getElementById('header-title').textContent = cfg.title;
             document.getElementById('countdown-badge').textContent = cfg.countdown;
             document.getElementById('bio-panel-title').textContent = cfg.panel1Title;
             document.getElementById('readiness-pill').textContent = cfg.readiness;
-            document.getElementById('kpi-1-val').textContent = cfg.kpi1.val;
-            document.getElementById('kpi-1-lbl').textContent = cfg.kpi1.lbl;
-            document.getElementById('kpi-2-val').textContent = cfg.kpi2.val;
-            document.getElementById('kpi-2-lbl').textContent = cfg.kpi2.lbl;
-            document.getElementById('kpi-3-val').textContent = cfg.kpi3.val;
-            document.getElementById('kpi-3-lbl').textContent = cfg.kpi3.lbl;
-            document.getElementById('bar-1-title').textContent = cfg.bar1Title;
-            document.getElementById('bar-2-title').textContent = cfg.bar2Title;
-            document.getElementById('daily-ai-advice').textContent = cfg.advice;
+            document.getElementById('daily-ai-advice').textContent = (customPlan && customPlan.coachDirective) ? `"${customPlan.coachDirective}"` : cfg.advice;
             document.getElementById('quick-doubt-input').placeholder = cfg.placeholder;
 
-            // Renderizar píldoras rápidas del deporte activo
+            const savedXp = localStorage.getItem('kinet_user_xp') || '450';
+            document.getElementById('xp-score-badge').textContent = `⚡ ${savedXp} XP`;
+
+            renderSelectedKpisAndBars();
+
             const tagsBox = document.getElementById('sport-quick-tags');
             if (tagsBox && cfg.quickTags) {
                 tagsBox.innerHTML = cfg.quickTags.map(t =>
@@ -1412,9 +2032,9 @@
                 ).join('');
             }
 
-            sessionsState = JSON.parse(JSON.stringify(cfg.sessions));
-            renderWeekStrip();
-            renderSessions();
+            const today = new Date();
+            const currentDayIndex = (today.getDay() + 6) % 7;
+            selectWeekStripDay(currentDayIndex, today.getDate());
             updateSidebarAiTip('high', sportChosen);
 
             document.querySelectorAll('.kinet-panel, .side-link').forEach(el => {
@@ -1443,25 +2063,6 @@
             }
         }
 
-        function renderWeekStrip() {
-            const days = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
-            const today = new Date();
-            const currentDayIndex = (today.getDay() + 6) % 7;
-            const strip = document.getElementById('week-strip');
-
-            strip.innerHTML = days.map((d, idx) => {
-                const dateObj = new Date(today);
-                dateObj.setDate(today.getDate() - currentDayIndex + idx);
-                const isToday = idx === currentDayIndex;
-                return `
-                    <div class="day-pill ${isToday ? 'active' : ''}">
-                        <span class="day-name">${d}</span>
-                        <span class="day-num">${dateObj.getDate()}</span>
-                    </div>
-                `;
-            }).join('');
-        }
-
         function renderSessions() {
             const list = document.getElementById('daily-sessions-list');
             const doneCount = sessionsState.filter(s => s.done).length;
@@ -1470,7 +2071,7 @@
             list.innerHTML = sessionsState.map((s, i) => `
                 <div class="session-item ${s.done ? 'done' : ''}">
                     <div>
-                        <span class="session-time">🕒 ${s.time} H</span>
+                        <span class="session-time">🕒 ${s.time} ${s.time.includes('DESCANSO') ? '' : 'H'}</span>
                         <div class="session-title">${s.title}</div>
                     </div>
                     <button class="check-btn" onclick="toggleSessionDone(${i})">
@@ -1617,10 +2218,8 @@
                 const roleHexMap = { athlete: '#00FF88', staff: '#F59E0B', scout: '#3B82F6' };
                 const defaultRoleHex = roleHexMap[activeRole] || '#00FF88';
 
-                let savedAccent = localStorage.getItem('kinet_custom_accent_override');
+                let savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
                 if (activeRole !== 'athlete' && savedAccent && savedAccent.toUpperCase() === '#00FF88') {
-                    localStorage.removeItem('kinet_custom_accent_override');
-                    localStorage.removeItem('kinet_accent_color');
                     savedAccent = null;
                 }
 
@@ -1641,7 +2240,7 @@
                         requestAnimationFrame(stepRainbow);
                     }
                     requestAnimationFrame(stepRainbow);
-                } else if (savedAccent) {
+                } else if (savedAccent && savedAccent.startsWith('#')) {
                     const clean = savedAccent.replace('#', '');
                     const num = parseInt(clean, 16);
                     const r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
