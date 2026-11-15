@@ -1297,3 +1297,65 @@
     };
   }
 })();
+// =========================================================================
+// CONTROL DE NAVEGACIÓN LIMPIA EN INDEX.HTML, FASE1.HTML Y MODO INVITADO
+// =========================================================================
+window.addEventListener('DOMContentLoaded', () => {
+  const path = (window.location.pathname || '').toLowerCase();
+
+  // 1. Si estamos en index.html, asegurar que "INICIAR SESIÓN EN KINET" vaya a login.html y "ENTRAR COMO INVITADO" limpie la sesión antes de ir a fase1.html
+  if (path.endsWith('index.html') || path === '/' || path === '') {
+    document.querySelectorAll('a, button').forEach((btn) => {
+      const txt = (btn.textContent || '').toUpperCase();
+      if (txt.includes('ENTRAR COMO INVITADO') || txt.includes('MODO INVITADO')) {
+        btn.onclick = async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (window.KinetBackend && typeof window.KinetBackend.resetAndStartCleanGuestSession === 'function') {
+            await window.KinetBackend.resetAndStartCleanGuestSession();
+          }
+          window.location.href = 'fase1.html?guest=true';
+        };
+      } else if (txt.includes('INICIAR SESIÓN') || txt.includes('INICIAR SESION')) {
+        btn.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          window.location.href = 'login.html';
+        };
+      }
+    });
+  }
+
+  // 2. Si estamos en fase1.html (Selección de Perfil Operativo), que los botones "← Volver" y "Salir" devuelvan SIEMPRE a index.html / login.html y NUNCA a app.html si entraste como Invitado
+  if (path.includes('fase1')) {
+    const isGuestUrl = new URLSearchParams(window.location.search).get('guest') === 'true';
+    if (isGuestUrl && window.KinetBackend && localStorage.getItem('kinet_is_guest') !== 'true') {
+      window.KinetBackend.resetAndStartCleanGuestSession();
+    }
+
+    document.querySelectorAll('a, button').forEach((btn) => {
+      const txt = (btn.textContent || '').trim().toLowerCase();
+      if (txt.includes('volver')) {
+        btn.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          // Si es invitado o no ha iniciado sesión, volver siempre a la portada index.html (nunca a app.html)
+          if (localStorage.getItem('kinet_is_guest') === 'true' || localStorage.getItem('kinet_logged_in') !== 'true') {
+            window.location.href = 'index.html';
+          } else {
+            window.location.href = 'despacho.html';
+          }
+        };
+      } else if (txt.includes('salir')) {
+        btn.onclick = async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (window.KinetBackend && typeof window.KinetBackend.logoutUser === 'function') {
+            await window.KinetBackend.logoutUser();
+          }
+          window.location.href = 'index.html';
+        };
+      }
+    });
+  }
+});
