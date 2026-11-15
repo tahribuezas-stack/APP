@@ -2177,10 +2177,573 @@
             }
         };
 
+      // =========================================================================
+        // UPGRADE DEFINITIVO PERFIL.HTML: ALTURA Y PESO SEPARADOS + DESPLEGABLES SIN SOLAPAMIENTO + RESCATE ONBOARDING Y ANTI-INCÓGNITO
         // =========================================================================
-        // SOBRESCRITURA DE CARGA Y GUARDADO CON ALTURA Y PESO SEPARADOS + DESPLEGABLES
-        // =========================================================================
+        const SPORT_SPECIFIC_POSITIONS_CATALOG = {
+            'Fútbol': {
+                posLabel: '⚽ DEMARCACIÓN ESPECÍFICA',
+                positions: [
+                    'Portero (POR)',
+                    'Defensa Central Derecho (DFC)',
+                    'Defensa Central Izquierdo (DFC)',
+                    'Lateral Derecho / Carrilero (LD)',
+                    'Lateral Izquierdo / Carrilero (LI)',
+                    'Mediocentro Defensivo / Pivote (MCD)',
+                    'Mediocentro Organizador / Box-to-Box (MC)',
+                    'Mediapunta / Interior Ofensivo (MCO)',
+                    'Extremo Derecho (ED)',
+                    'Extremo Izquierdo (EI)',
+                    'Segundo Delantero / Media Punta (SD)',
+                    'Delantero Centro / Nueve (DC)'
+                ],
+                latLabel: '🦶 PIERNA HÁBIL',
+                lateralities: ['Diestro', 'Zurdo', 'Ambidiestro (2 Piernas)', 'Diestro (Maneja Zurda)', 'Zurdo (Maneja Diestra)']
+            },
+            'Baloncesto': {
+                posLabel: '🏀 POSICIÓN ESPECÍFICA EN PISTA',
+                positions: [
+                    'Base Director / Playmaker (PG)',
+                    'Escolta Tirador / Combo Guard (SG)',
+                    'Alero Versátil / 3&D (SF)',
+                    'Ala-Pívot Abierto / Stretch 4 (PF)',
+                    'Pívot Interior / Protector de Aro (C)',
+                    'Especialista 3x3 Polivalente'
+                ],
+                latLabel: '✋ MANO DE TIRO / DOMINANTE',
+                lateralities: ['Diestro', 'Zurdo', 'Ambidiestro en Finalización']
+            },
+            'Pádel / Tenis': {
+                posLabel: '🎾 LADO DE PISTA / ESPECIALIDAD',
+                positions: [
+                    'Pádel: Jugador de Revés (Definición y Potencia)',
+                    'Pádel: Jugador de Drive (Construcción y Defensa)',
+                    'Pádel: Polivalente Ambos Lados (Drive / Revés)',
+                    'Tenis: Jugador Agresivo de Fondo de Pista',
+                    'Tenis: Jugador de Toda la Pista (All-Court)',
+                    'Tenis: Especialista en Saque y Red',
+                    'Tenis: Contraatacante Defensivo'
+                ],
+                latLabel: '✋ MANO Y REVÉS',
+                lateralities: ['Diestro (Revés a 2 Manos)', 'Diestro (Revés a 1 Mano)', 'Zurdo (Bandera / Sombra)', 'Zurdo (Revés a 2 Manos)', 'Ambidiestro']
+            },
+            'Boxeo / MMA': {
+                posLabel: '🥊 ESTILO DE COMBATE / ROL',
+                positions: [
+                    'Boxeo: Estilista de Larga Distancia (Out-Boxer)',
+                    'Boxeo: Fajador de Presión (Swarmer)',
+                    'Boxeo: Pegador Técnico (Boxer-Puncher)',
+                    'Boxeo: Contraatacante (Counter-Puncher)',
+                    'MMA: Striker / Kickboxer / Muay Thai',
+                    'MMA: Wrestler / Grappler de Presión',
+                    'MMA: Especialista BJJ / Sumisión',
+                    'MMA: Peleador Completo (Well-Rounded)'
+                ],
+                latLabel: '🛡️ GUARDIA DE COMBATE',
+                lateralities: ['Guardia Ortodoxa (Diestro)', 'Guardia Zurda (Southpaw)', 'Ambidiestro (Switch-Hitter)']
+            },
+            'Running': {
+                posLabel: '🏃 DISTANCIA / PRUEBA PRINCIPAL',
+                positions: [
+                    'Velocista Pista (100m / 200m / 400m)',
+                    'Medio Fondo en Pista (800m / 1500m)',
+                    'Fondo en Ruta (5K / 10K Homologado)',
+                    'Especialista en Media Maratón (21K)',
+                    'Maratoniano Oficial (42.195m)',
+                    'Trail Running / Carreras por Montaña',
+                    'Opositor / Pruebas Físicas (CNPn / Bomberos)'
+                ],
+                latLabel: '👟 TIPO DE PISADA / APOYO',
+                lateralities: ['Pisada Neutra (Mediopié)', 'Pisada Neutra (Antepié)', 'Ligero Pronador', 'Supinador']
+            },
+            'STAFF': {
+                posLabel: '🧠 CARGO EN CUERPO TÉCNICO',
+                positions: [
+                    'Primer Entrenador / Head Coach',
+                    'Segundo Entrenador / Asistente Táctico',
+                    'Analista Táctico y de Vídeo',
+                    'Preparador Físico / Readaptador',
+                    'Entrenador de Porteros / Especialistas',
+                    'Fisioterapeuta / Médico Deportivo',
+                    'Nutricionista / Psicólogo Deportivo'
+                ],
+                latLabel: '📐 LICENCIA / METODOLOGÍA',
+                lateralities: ['UEFA Pro / Nivel 3 Nacional', 'UEFA A / Nivel 2', 'UEFA B / Nivel 1', 'CAFYD / Ciencias del Deporte', 'Especialista Certificado']
+            },
+            'SCOUT': {
+                posLabel: '📡 CARGO EN DIRECCIÓN DEPORTIVA',
+                positions: [
+                    'Director Deportivo General',
+                    'Secretario Técnico / Responsable de Área',
+                    'Chief Scout Internacional',
+                    'Scout de Fútbol Base y Cantera',
+                    'Analista de Datos y Big Data Scouting',
+                    'Agente FIFA / Representante Oficial'
+                ],
+                latLabel: '🌍 MERCADO PRINCIPAL',
+                lateralities: ['Nacional + Internacional', 'Fútbol Profesional (1ª/2ª/RFEF)', 'Cantera y Juvenil DH', 'Sudamérica y Europa', 'Multideporte B2B']
+            }
+        };
+
+        (function upgradePerfilLayoutAndCustomSelects() {
+            const customCss = document.createElement('style');
+            customCss.textContent = `
+                /* 1. Jerarquía de capas (z-index) para que los desplegables NUNCA queden tapados por los botones inferiores */
+                .kinet-panel {
+                    overflow: visible !important;
+                }
+                .kinet-panel > div:first-child {
+                    position: relative !important;
+                    z-index: 60 !important;
+                }
+                .kinet-panel > div:last-child {
+                    position: relative !important;
+                    z-index: 1 !important;
+                }
+
+                .form-grid-2,
+                .form-grid-3,
+                .form-grid-4-bio {
+                    align-items: end !important;
+                }
+                .form-grid-4-bio {
+                    display: grid;
+                    grid-template-columns: 1.45fr 0.72fr 0.72fr 1.15fr;
+                    gap: 8px;
+                    margin-bottom: 9px;
+                    position: relative;
+                    z-index: 80;
+                }
+                @media (max-width: 720px) {
+                    .form-grid-4-bio {
+                        grid-template-columns: 1fr 1fr;
+                    }
+                }
+                .field-label {
+                    white-space: nowrap !important;
+                    overflow: hidden !important;
+                    text-overflow: ellipsis !important;
+                    min-height: 16px !important;
+                    line-height: 1.2 !important;
+                }
+
+                /* 2. Desplegables KINET con apertura hacia arriba (drop-up) y alineación limpia sin salirse del borde */
+                .kinet-custom-select-wrap {
+                    position: relative;
+                    display: block;
+                    width: 100%;
+                    user-select: none;
+                    z-index: 90;
+                }
+                .kinet-custom-select-wrap.open {
+                    z-index: 9999 !important;
+                }
+
+                .kinet-custom-select-trigger {
+                    width: 100%;
+                    background: rgba(4, 6, 10, 0.92);
+                    border: 1px solid rgba(var(--role-rgb), 0.45);
+                    border-radius: 10px;
+                    padding: 8px 11px;
+                    color: #F8FAFC;
+                    font-family: 'Inter', sans-serif;
+                    font-size: 0.76rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 6px;
+                    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                .kinet-custom-select-trigger span:first-child {
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+                .kinet-custom-select-trigger:hover,
+                .kinet-custom-select-wrap.open .kinet-custom-select-trigger {
+                    border-color: var(--role-color);
+                    box-shadow: 0 0 14px rgba(var(--role-rgb), 0.25);
+                    background: rgba(var(--role-rgb), 0.1);
+                }
+                .kinet-custom-select-arrow {
+                    font-size: 0.6rem;
+                    color: var(--role-color);
+                    flex-shrink: 0;
+                    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                .kinet-custom-select-wrap.open .kinet-custom-select-arrow {
+                    transform: rotate(180deg);
+                }
+
+                @keyframes kinetProfileDdUpIn {
+                    0% { opacity: 0; transform: translateY(8px) scale(0.96); }
+                    100% { opacity: 1; transform: translateY(0) scale(1); }
+                }
+                @keyframes kinetProfileDdUpOut {
+                    0% { opacity: 1; transform: translateY(0) scale(1); }
+                    100% { opacity: 0; transform: translateY(8px) scale(0.95); }
+                }
+
+                .kinet-custom-select-menu {
+                    position: absolute;
+                    bottom: calc(100% + 7px);
+                    top: auto;
+                    left: 0;
+                    min-width: 100%;
+                    width: max-content;
+                    max-width: 310px;
+                    max-height: 230px;
+                    overflow-y: auto;
+                    background: #080C15 !important;
+                    border: 1.5px solid var(--role-color);
+                    border-radius: 13px;
+                    padding: 6px;
+                    box-shadow: 0 -16px 45px rgba(0, 0, 0, 0.96), 0 0 28px rgba(var(--role-rgb), 0.28);
+                    display: none;
+                    z-index: 99999 !important;
+                    transform-origin: bottom center;
+                }
+                /* El desplegable de la derecha (Pierna Hábil) se ancla a la derecha para no salirse nunca del borde del panel */
+                #wrap-select-lat .kinet-custom-select-menu {
+                    left: auto !important;
+                    right: 0 !important;
+                    max-width: 245px;
+                }
+
+                .kinet-custom-select-wrap.open .kinet-custom-select-menu {
+                    display: block;
+                    animation: kinetProfileDdUpIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                }
+                .kinet-custom-select-wrap.closing .kinet-custom-select-menu {
+                    display: block;
+                    pointer-events: none;
+                    animation: kinetProfileDdUpOut 0.18s cubic-bezier(0.4, 0, 1, 1) forwards;
+                }
+                .kinet-custom-option {
+                    padding: 8px 11px;
+                    border-radius: 9px;
+                    font-family: 'Inter', sans-serif;
+                    font-size: 0.74rem;
+                    font-weight: 600;
+                    color: #E2E8F0;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 8px;
+                    transition: all 0.16s ease;
+                    margin-bottom: 2px;
+                }
+                .kinet-custom-option:last-child { margin-bottom: 0; }
+                .kinet-custom-option:hover {
+                    background: rgba(var(--role-rgb), 0.18);
+                    color: #FFFFFF;
+                    transform: translateX(3px);
+                }
+                .kinet-custom-option.selected {
+                    background: var(--role-gradient);
+                    color: #04060A;
+                    font-weight: 800;
+                }
+            `;
+            document.head.appendChild(customCss);
+        })();
+
+        function closeProfileCustomSelect(wrapEl) {
+            if (!wrapEl || !wrapEl.classList.contains('open')) return;
+            wrapEl.classList.remove('open');
+            wrapEl.classList.add('closing');
+            setTimeout(() => wrapEl.classList.remove('closing'), 180);
+        }
+
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.kinet-custom-select-wrap.open').forEach(w => closeProfileCustomSelect(w));
+        });
+
+        function buildProfilePositionAndSeparateHeightWeightRow() {
+            const posInput = document.getElementById('prof-input-pos');
+            if (!posInput) return;
+            const rowContainer = posInput.closest('.form-grid-3') || posInput.closest('.form-grid-4-bio');
+            if (!rowContainer) return;
+
+            const catalogKey = activeRoleKey === 'staff'
+                ? 'STAFF'
+                : (activeRoleKey === 'scout' ? 'SCOUT' : (SPORT_SPECIFIC_POSITIONS_CATALOG[activeSportName] ? activeSportName : 'Fútbol'));
+            const catalog = SPORT_SPECIFIC_POSITIONS_CATALOG[catalogKey] || SPORT_SPECIFIC_POSITIONS_CATALOG['Fútbol'];
+
+            rowContainer.className = 'form-grid-4-bio';
+            rowContainer.innerHTML = `
+                <div>
+                    <label class="field-label" id="lbl-dynamic-pos">${catalog.posLabel}</label>
+                    <input type="hidden" id="prof-input-pos" value="">
+                    <div class="kinet-custom-select-wrap" id="wrap-select-pos">
+                        <button type="button" class="kinet-custom-select-trigger" onclick="toggleProfileDropdown('wrap-select-pos', event)">
+                            <span id="trigger-txt-pos">Seleccionar...</span>
+                            <span class="kinet-custom-select-arrow">▾</span>
+                        </button>
+                        <div class="kinet-custom-select-menu" id="menu-select-pos"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="field-label">📏 ALTURA (CM)</label>
+                    <input type="text" id="prof-input-height" class="kinet-input" placeholder="Ej: 178 cm">
+                </div>
+
+                <div>
+                    <label class="field-label">⚖️ PESO (KG)</label>
+                    <input type="text" id="prof-input-weight" class="kinet-input" placeholder="Ej: 72.5 kg">
+                </div>
+
+                <div>
+                    <label class="field-label" id="lbl-dynamic-laterality">${catalog.latLabel}</label>
+                    <input type="hidden" id="prof-input-laterality" value="">
+                    <div class="kinet-custom-select-wrap" id="wrap-select-lat">
+                        <button type="button" class="kinet-custom-select-trigger" onclick="toggleProfileDropdown('wrap-select-lat', event)">
+                            <span id="trigger-txt-lat">Seleccionar...</span>
+                            <span class="kinet-custom-select-arrow">▾</span>
+                        </button>
+                        <div class="kinet-custom-select-menu" id="menu-select-lat"></div>
+                    </div>
+                </div>
+            `;
+
+            populateProfileCustomDropdown('pos', catalog.positions, 'prof-input-pos', 'trigger-txt-pos', 'menu-select-pos', 'wrap-select-pos');
+            populateProfileCustomDropdown('lat', catalog.lateralities, 'prof-input-laterality', 'trigger-txt-lat', 'menu-select-lat', 'wrap-select-lat');
+        }
+
+        function toggleProfileDropdown(wrapId, ev) {
+            if (ev) ev.stopPropagation();
+            const wrap = document.getElementById(wrapId);
+            if (!wrap) return;
+            const isOpen = wrap.classList.contains('open');
+            document.querySelectorAll('.kinet-custom-select-wrap.open').forEach(w => {
+                if (w !== wrap) closeProfileCustomSelect(w);
+            });
+            if (isOpen) closeProfileCustomSelect(wrap);
+            else {
+                wrap.classList.remove('closing');
+                wrap.classList.add('open');
+            }
+        }
+
+        function populateProfileCustomDropdown(typeKey, optionsList, hiddenInputId, triggerTxtId, menuId, wrapId) {
+            const menuEl = document.getElementById(menuId);
+            if (!menuEl) return;
+
+            menuEl.innerHTML = optionsList.map(opt => `
+                <div class="kinet-custom-option" data-val="${opt}" onclick="selectProfileDropdownValue('${hiddenInputId}', '${triggerTxtId}', '${menuId}', '${wrapId}', '${opt.replace(/'/g, "\\'")}', event)">
+                    <span>${opt}</span>
+                </div>
+            `).join('');
+        }
+
+        function selectProfileDropdownValue(hiddenInputId, triggerTxtId, menuId, wrapId, val, ev) {
+            if (ev) ev.stopPropagation();
+            const hiddenIn = document.getElementById(hiddenInputId);
+            const triggerTxt = document.getElementById(triggerTxtId);
+            const menuEl = document.getElementById(menuId);
+            const wrapEl = document.getElementById(wrapId);
+
+            if (hiddenIn) hiddenIn.value = val;
+            if (triggerTxt) triggerTxt.textContent = val;
+            if (menuEl) {
+                menuEl.querySelectorAll('.kinet-custom-option').forEach(optEl => {
+                    const isSel = optEl.getAttribute('data-val') === val;
+                    optEl.classList.toggle('selected', isSel);
+                });
+            }
+            if (wrapEl) closeProfileCustomSelect(wrapEl);
+        }
+
+        function cleanAndMatchCatalogPosition(rawPos) {
+            const catalogKey = activeRoleKey === 'staff'
+                ? 'STAFF'
+                : (activeRoleKey === 'scout' ? 'SCOUT' : (SPORT_SPECIFIC_POSITIONS_CATALOG[activeSportName] ? activeSportName : 'Fútbol'));
+            const catalog = SPORT_SPECIFIC_POSITIONS_CATALOG[catalogKey] || SPORT_SPECIFIC_POSITIONS_CATALOG['Fútbol'];
+            const list = catalog.positions;
+            const r = String(rawPos || '').trim();
+            if (!r || r === 'PRO') return list[0];
+
+            const exact = list.find(item => item.toLowerCase() === r.toLowerCase());
+            if (exact) return exact;
+
+            const rl = r.toLowerCase();
+            if (activeSportName === 'Fútbol' && activeRoleKey === 'athlete') {
+                if (rl.includes('portero') || /\bpor\b/.test(rl)) return 'Portero (POR)';
+                if (rl.includes('delantero centro') || /\bdc\b/.test(rl) || rl.includes('nueve')) return 'Delantero Centro / Nueve (DC)';
+                if (rl.includes('segundo delantero') || /\bsd\b/.test(rl)) return 'Segundo Delantero / Media Punta (SD)';
+                if (rl.includes('extremo izq') || /\bei\b/.test(rl)) return 'Extremo Izquierdo (EI)';
+                if (rl.includes('extremo der') || /\bed\b/.test(rl)) return 'Extremo Derecho (ED)';
+                if (rl.includes('mediapunta') || /\bmco\b/.test(rl)) return 'Mediapunta / Interior Ofensivo (MCO)';
+                if (rl.includes('pivote') || rl.includes('defensivo') || /\bmcd\b/.test(rl)) return 'Mediocentro Defensivo / Pivote (MCD)';
+                if (rl.includes('mediocentro') || /\bmc\b/.test(rl)) return 'Mediocentro Organizador / Box-to-Box (MC)';
+                if (rl.includes('lateral izq') || /\bli\b/.test(rl)) return 'Lateral Izquierdo / Carrilero (LI)';
+                if (rl.includes('lateral der') || /\bld\b/.test(rl)) return 'Lateral Derecho / Carrilero (LD)';
+                if (rl.includes('central') || rl.includes('defensa') || /\bdfc\b/.test(rl)) return 'Defensa Central Derecho (DFC)';
+            }
+
+            const partial = list.find(item => item.toLowerCase().includes(rl) || rl.includes(item.split('(')[0].trim().toLowerCase()));
+            return partial || list[0];
+        }
+
+        function hydrateProfileFromOnboardingKeys() {
+            const allJsonSources = [];
+            ['kinet_onboarding_data', 'kinet_athlete_data', 'kinet_user_data', 'kinet_calibration_data', 'onboarding_state', 'athlete_profile'].forEach(k => {
+                try {
+                    const parsed = JSON.parse(localStorage.getItem(k) || 'null');
+                    if (parsed && typeof parsed === 'object') allJsonSources.push(parsed);
+                } catch (e) {}
+            });
+
+            try {
+                const allDb = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
+                if (allDb[activeRoleKey]) allJsonSources.push(allDb[activeRoleKey]);
+                if (allDb['athlete']) allJsonSources.push(allDb['athlete']);
+            } catch (e) {}
+
+            const findAnyKey = (possibleKeys) => {
+                for (const k of possibleKeys) {
+                    const directVal = localStorage.getItem(k);
+                    if (directVal !== null && directVal !== undefined && String(directVal).trim() !== '' && directVal !== 'null' && directVal !== 'undefined') {
+                        return String(directVal).trim();
+                    }
+                    for (const src of allJsonSources) {
+                        if (src[k] !== undefined && src[k] !== null && String(src[k]).trim() !== '') {
+                            return String(src[k]).trim();
+                        }
+                    }
+                }
+                return '';
+            };
+
+            const rawH = findAnyKey(['kinet_height', 'kinet_altura', 'user_height', 'athlete_height', 'height', 'altura', 'estatura', 'stat_height']);
+            const rawW = findAnyKey(['kinet_weight', 'kinet_peso', 'user_weight', 'athlete_weight', 'weight', 'peso', 'stat_weight']);
+            if (rawH && !localStorage.getItem('kinet_height')) localStorage.setItem('kinet_height', rawH.replace(/cm/gi, '').trim() + ' cm');
+            if (rawW && !localStorage.getItem('kinet_weight')) localStorage.setItem('kinet_weight', rawW.replace(/kg/gi, '').trim() + ' kg');
+
+            const currentBirth = localStorage.getItem('kinet_user_birthdate') || '';
+            const rawAge = findAnyKey(['kinet_age', 'kinet_edad', 'user_age', 'athlete_age', 'age', 'edad']);
+            if (!currentBirth) {
+                const rawDob = findAnyKey(['kinet_birthdate', 'kinet_dob', 'birthdate', 'dob', 'fecha_nacimiento']);
+                if (rawDob && /^\d{4}-\d{2}-\d{2}$/.test(rawDob)) {
+                    localStorage.setItem('kinet_user_birthdate', rawDob);
+                } else if (rawAge) {
+                    const numAge = parseInt(rawAge, 10);
+                    if (numAge >= 6 && numAge <= 90) {
+                        localStorage.setItem('kinet_age_years_direct', String(numAge));
+                    }
+                }
+            }
+
+            if (!localStorage.getItem('kinet_user_laterality')) {
+                const lat = findAnyKey(['kinet_laterality', 'kinet_foot', 'kinet_dominant_hand', 'kinet_stance', 'foot', 'laterality', 'stance', 'pie', 'mano', 'guardia', 'dominantFoot', 'dominantHand']);
+                if (lat) localStorage.setItem('kinet_user_laterality', lat);
+            }
+            if (!localStorage.getItem('kinet_user_category')) {
+                const cat = findAnyKey(['kinet_category', 'kinet_division', 'kinet_level', 'kinet_league', 'category', 'division', 'level', 'categoria', 'nivel']);
+                if (cat) localStorage.setItem('kinet_user_category', cat);
+            }
+            if (!localStorage.getItem('kinet_user_city')) {
+                const city = findAnyKey(['kinet_city', 'kinet_location', 'city', 'ciudad', 'location']);
+                if (city) localStorage.setItem('kinet_user_city', city);
+            }
+            if (!localStorage.getItem('kinet_user_club')) {
+                const club = findAnyKey(['kinet_club', 'club', 'team', 'equipo']);
+                if (club) localStorage.setItem('kinet_user_club', club);
+            }
+        }
+
+        const _origUpdateAge = window.updateCalculatedAgeUI;
+        window.updateCalculatedAgeUI = function () {
+            const ageFromDate = _origUpdateAge();
+            if (ageFromDate === null) {
+                const directAge = parseInt(localStorage.getItem('kinet_age_years_direct') || localStorage.getItem('kinet_age') || '0', 10);
+                if (directAge >= 6 && directAge <= 90) {
+                    const badgeEl = document.getElementById('display-age-badge');
+                    const inlineEl = document.getElementById('calc-age-inline');
+                    if (badgeEl) badgeEl.textContent = `${directAge} AÑOS`;
+                    if (inlineEl) inlineEl.textContent = `(${directAge} años)`;
+                    return directAge;
+                }
+            }
+            return ageFromDate;
+        };
+
+        window.KinetOnboardingAIBridge = {
+            saveExtractedOnboardingChatData: function (aiPayloadOrText) {
+                if (!aiPayloadOrText) return;
+                if (typeof aiPayloadOrText === 'object') {
+                    if (aiPayloadOrText.city) localStorage.setItem('kinet_user_city', aiPayloadOrText.city);
+                    if (aiPayloadOrText.hometown) localStorage.setItem('kinet_user_hometown', aiPayloadOrText.hometown);
+                    if (aiPayloadOrText.club) localStorage.setItem('kinet_user_club', aiPayloadOrText.club);
+                    if (aiPayloadOrText.category) localStorage.setItem('kinet_user_category', aiPayloadOrText.category);
+                    if (aiPayloadOrText.position) localStorage.setItem('kinet_position', aiPayloadOrText.position);
+                    if (aiPayloadOrText.laterality || aiPayloadOrText.foot) localStorage.setItem('kinet_user_laterality', aiPayloadOrText.laterality || aiPayloadOrText.foot);
+                    if (aiPayloadOrText.height) localStorage.setItem('kinet_height', String(aiPayloadOrText.height));
+                    if (aiPayloadOrText.weight) localStorage.setItem('kinet_weight', String(aiPayloadOrText.weight));
+                    if (aiPayloadOrText.birthdate) localStorage.setItem('kinet_user_birthdate', aiPayloadOrText.birthdate);
+                    if (aiPayloadOrText.bio || aiPayloadOrText.traits) localStorage.setItem('kinet_social_bio', aiPayloadOrText.bio || aiPayloadOrText.traits);
+                    if (aiPayloadOrText.transfermarktUrl) localStorage.setItem('kinet_user_transfermarkt', aiPayloadOrText.transfermarktUrl);
+                    if (aiPayloadOrText.videoUrl) localStorage.setItem('kinet_user_videolink', aiPayloadOrText.videoUrl);
+                    return;
+                }
+
+                const txt = String(aiPayloadOrText);
+                if (!localStorage.getItem('kinet_user_laterality')) {
+                    if (/\bambidiestro\b/i.test(txt)) localStorage.setItem('kinet_user_laterality', 'Ambidiestro (2 Piernas)');
+                    else if (/\bzurdo\b|\bsouthpaw\b|\bizquierda\b/i.test(txt)) localStorage.setItem('kinet_user_laterality', 'Zurdo');
+                    else if (/\bdiestro\b|\bortodoxa\b|\bderecha\b/i.test(txt)) localStorage.setItem('kinet_user_laterality', 'Diestro');
+                }
+                const hMatch = txt.match(/\b(1[4-9]\d|2[0-2]\d)\s*cm\b/i);
+                if (hMatch && !localStorage.getItem('kinet_height')) localStorage.setItem('kinet_height', `${hMatch[1]} cm`);
+                const wMatch = txt.match(/\b([4-9]\d(?:[.,]\d)?|1[0-3]\d(?:[.,]\d)?)\s*kg\b/i);
+                if (wMatch && !localStorage.getItem('kinet_weight')) localStorage.setItem('kinet_weight', `${wMatch[1].replace(',', '.')} kg`);
+                const catMatch = txt.match(/\b(divisi[oó]n de honor|[123]ª\s*rfef|preferente|auton[oó]mica|juvenil|cadete|senior|profesional|amateur|1ª\s*categor[ií]a)\b/i);
+                if (catMatch && !localStorage.getItem('kinet_user_category')) localStorage.setItem('kinet_user_category', catMatch[1]);
+            },
+
+            scanExistingOnboardingChatHistory: function () {
+                ['kinet_onboarding_chat_log', 'kinet_onboarding_ai_notes', 'kinet_step5_chat', 'kinet_ai_interview_answers', 'kinet_onboarding_data'].forEach(k => {
+                    const raw = localStorage.getItem(k);
+                    if (!raw) return;
+                    try {
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed)) {
+                            const userTexts = parsed.map(m => typeof m === 'string' ? m : (m.text || m.content || '')).join('. ');
+                            this.saveExtractedOnboardingChatData(userTexts);
+                        } else if (typeof parsed === 'object') {
+                            this.saveExtractedOnboardingChatData(parsed);
+                        }
+                    } catch (e) {
+                        this.saveExtractedOnboardingChatData(raw);
+                    }
+                });
+            }
+        };
+
         window.loadProfileFields = function () {
+            // Protección anti-incógnito si se había colado el placeholder "NAIM T"
+            const curName = localStorage.getItem('kinet_user_name');
+            const curHandle = localStorage.getItem('kinet_social_handle');
+            if (curName === 'NAIM T' || curHandle === '@naimt_pro') {
+                localStorage.setItem('kinet_user_name', 'Naim Tahri Buezas');
+                localStorage.setItem('kinet_social_handle', '@naimtahri');
+                localStorage.setItem('kinet_username', '@naimtahri');
+                if (!localStorage.getItem('kinet_user_city')) localStorage.setItem('kinet_user_city', 'Melilla');
+                if (!localStorage.getItem('kinet_user_club')) localStorage.setItem('kinet_user_club', 'KINET Performance');
+                if (!localStorage.getItem('kinet_user_category')) localStorage.setItem('kinet_user_category', 'Senior');
+                if (!localStorage.getItem('kinet_height')) localStorage.setItem('kinet_height', '178 cm');
+                if (!localStorage.getItem('kinet_weight')) localStorage.setItem('kinet_weight', '72.5 kg');
+                if (!localStorage.getItem('kinet_age_years_direct')) localStorage.setItem('kinet_age_years_direct', '22');
+                if (!localStorage.getItem('kinet_custom_card_stats')) {
+                    localStorage.setItem('kinet_custom_card_stats', JSON.stringify([99, 99, 81, 88, 99, 87]));
+                }
+                localStorage.setItem('kinet_logged_in', 'true');
+            }
+
             buildProfilePositionAndSeparateHeightWeightRow();
             hydrateProfileFromOnboardingKeys();
             window.KinetOnboardingAIBridge.scanExistingOnboardingChatHistory();
@@ -2191,20 +2754,18 @@
                 scout: 'DIRECTOR DEPORTIVO / SCOUT'
             };
 
-            const userName = localStorage.getItem('kinet_user_name') || 'Usuario KINET';
-            const handle = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || `@${userName.toLowerCase().replace(/[^a-z0-9]/g, '')}_pro`;
+            const userName = localStorage.getItem('kinet_user_name') || 'Naim Tahri Buezas';
+            const handle = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '@naimtahri';
             const birthdate = localStorage.getItem('kinet_user_birthdate') || '';
             const city = localStorage.getItem('kinet_user_city') || '';
             const hometown = localStorage.getItem('kinet_user_hometown') || '';
             const club = localStorage.getItem('kinet_user_club') || '';
             const category = localStorage.getItem('kinet_user_category') || '';
 
-            // Posición limpia y sincronizada con el desplegable KINET del deporte activo
             const rawSavedPos = localStorage.getItem('kinet_position') || '';
             const cleanPos = cleanAndMatchCatalogPosition(rawSavedPos);
             localStorage.setItem('kinet_position', cleanPos);
 
-            // Separar Altura (cm) y Peso (kg) aunque vinieran juntos en kinet_user_anthropometry ("178 cm • 72.5 kg")
             let savedHeight = localStorage.getItem('kinet_height') || '';
             let savedWeight = localStorage.getItem('kinet_weight') || '';
             const combinedAnthro = localStorage.getItem('kinet_user_anthropometry') || '';
@@ -2217,7 +2778,6 @@
             if (savedHeight && !/cm/i.test(savedHeight)) savedHeight = `${savedHeight} cm`;
             if (savedWeight && !/kg/i.test(savedWeight)) savedWeight = `${savedWeight} kg`;
 
-            // Lateralidad / Pierna / Guardia (si el usuario se saltó la pregunta en el chat, queda en "Seleccionar..." o su valor guardado)
             const catalogKey = activeRoleKey === 'staff'
                 ? 'STAFF'
                 : (activeRoleKey === 'scout' ? 'SCOUT' : (SPORT_SPECIFIC_POSITIONS_CATALOG[activeSportName] ? activeSportName : 'Fútbol'));
@@ -2238,16 +2798,13 @@
             document.getElementById('prof-input-club').value = club;
             document.getElementById('prof-input-category').value = category;
 
-            // Sincronizar desplegable de Posición
             selectProfileDropdownValue('prof-input-pos', 'trigger-txt-pos', 'menu-select-pos', 'wrap-select-pos', cleanPos, null);
 
-            // Sincronizar Altura y Peso en sus 2 casillas separadas
             const hIn = document.getElementById('prof-input-height');
             const wIn = document.getElementById('prof-input-weight');
             if (hIn) hIn.value = savedHeight;
             if (wIn) wIn.value = savedWeight;
 
-            // Sincronizar desplegable de Lateralidad (si está vacío porque se saltó el chat, muestra "Seleccionar..." para que lo elija cuando quiera)
             if (matchedLat) {
                 selectProfileDropdownValue('prof-input-laterality', 'trigger-txt-lat', 'menu-select-lat', 'wrap-select-lat', matchedLat, null);
             } else {
@@ -2310,6 +2867,9 @@
         };
 
         window.saveProfileChanges = async function () {
+            localStorage.setItem('kinet_logged_in', 'true');
+            localStorage.removeItem('kinet_is_guest');
+
             const nameVal = document.getElementById('prof-input-name')?.value.trim() || '';
             const handleVal = document.getElementById('prof-input-handle')?.value.trim() || '';
             const birthVal = document.getElementById('prof-input-birthdate')?.value.trim() || '';
