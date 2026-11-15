@@ -1,410 +1,48 @@
-<!DOCTYPE html>
-<html lang="es" class="h-full bg-[#080A0C]">
-<head>
-  <script src="kinet-spotlight.js" defer></script>
-  <link rel="stylesheet" href="kinet-motion.css">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KINET OS - Secure Identity Gateway</title>
-  
-  <!-- Favicon corporativo KINET iluminado -->
-  <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%2300FF66%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%23000%22>K</text></svg>">
-
-  <!-- SDK Oficial de Supabase + Motor Central KINET Backend -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="kinet-backend.js"></script>
-
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            kinet: {
-              neon: '#00FF66',
-              titanium: '#0F1215',
-              'titanium-light': '#181C22',
-              'titanium-border': '#262D37',
-            }
-          },
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            display: ['Orbitron', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
-          }
-        }
-      }
-    }
-  </script>
-
-  <style>
-    * {
-      scrollbar-width: none !important;
-      -ms-overflow-style: none !important;
-    }
-    *::-webkit-scrollbar {
-      width: 0 !important;
-      height: 0 !important;
-      display: none !important;
-    }
-    .bg-cyber-pattern {
-      background-color: #080A0C;
-      background-image: radial-gradient(circle at 50% 0%, rgba(0, 255, 102, 0.12) 0%, transparent 60%);
-    }
-    .glass-card {
-      background: rgba(19, 23, 29, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 1.5rem;
-      overflow: hidden;
-      transition: all 0.3s ease;
-    }
-    .glass-card:hover {
-      border-color: rgba(0, 255, 102, 0.35);
-      box-shadow: 0 0 25px rgba(0, 255, 102, 0.12);
-    }
-    .logo-glow {
-      transition: all 0.3s ease;
-    }
-    .logo-glow:hover {
-      filter: drop-shadow(0 0 12px rgba(0, 255, 102, 0.65));
-      transform: scale(1.02);
-    }
-    .modal-backdrop {
-      background: rgba(4, 6, 8, 0.88);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-    }
-    /* Transición morfológica suave al cambiar entre Login, Registro y Código SMS */
-    #auth-morph-stage {
-      transition: height 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-      overflow: hidden;
-    }
-    #container-login,
-    #container-register {
-      transition: opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    .pass-eye-btn {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #94A3B8;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      padding: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: color 0.2s ease;
-    }
-    .pass-eye-btn:hover {
-      color: #00FF66;
-    }
-  </style>
-</head>
-<body class="bg-cyber-pattern text-slate-100 font-sans min-h-screen flex items-center justify-center p-3 md:p-6">
-
-  <div class="relative w-full md:max-w-4xl max-h-[94vh] card-liquid-transition bg-[#0A0C0E] rounded-[28px] border border-kinet-titanium-border shadow-[0_0_60px_rgba(0,0,0,0.9)] flex flex-col md:flex-row overflow-hidden">
-    
-    <!-- PANEL IZQUIERDO: BRANDING & SECURITY INFO -->
-    <div class="w-full md:w-5/12 bg-gradient-to-b from-[#11151B] to-[#0A0C0E] p-6 md:p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-800/80">
-      
-      <div class="space-y-6">
-        <div>
-          <button onclick="cambiarPagina(event, 'index.html')" class="inline-flex items-center space-x-1.5 bg-[#12161C] hover:bg-slate-800 border border-slate-700/80 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-300 transition">
-            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
-            <span>Volver al Inicio</span>
-          </button>
-        </div>
-
-        <div class="flex items-center space-x-3 logo-glow cursor-pointer" onclick="window.location.href='index.html'">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-kinet-neon to-emerald-600 font-display font-black text-black text-xl flex items-center justify-center shadow-[0_0_15px_rgba(0,255,102,0.4)]">
-            K
-          </div>
-          <div>
-            <h1 class="font-display font-black text-xl tracking-[0.2em] text-white leading-none">KINET</h1>
-            <p class="text-[9px] text-kinet-neon font-mono tracking-widest uppercase mt-1">SPORTS TECH OS</p>
-          </div>
-        </div>
-
-        <div class="hidden md:block pt-2 space-y-2">
-          <h2 class="font-display font-bold text-base text-white">Identidad Digital Verificada</h2>
-          <p class="text-[11px] text-slate-400 leading-relaxed">
-            Tu cuenta protege tus datos biométricos, pizarra 3D y scouting en la nube con candado de identidad única y sincronización multidispositivo.
-          </p>
-        </div>
-      </div>
-
-      <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center space-x-3 mt-6">
-        <i data-lucide="shield-check" class="w-4 h-4 text-kinet-neon shrink-0"></i>
-        <div>
-          <p class="text-[10px] font-bold text-slate-200">Protocolo OAuth 2.0, SMS OTP & Multi-Rol</p>
-          <p class="text-[8px] text-slate-400 font-mono" id="backend-status-label">Rol activo sincronizado en todos tus dispositivos.</p>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- PANEL DERECHO: INTERFAZ DINÁMICA DE AUTENTICACIÓN -->
-    <div class="w-full md:w-7/12 p-6 md:p-8 flex flex-col justify-between overflow-y-auto max-h-[88vh]">
-      
-      <div class="space-y-3.5">
-
-        <!-- AVISO OPCIONAL SI YA HAY UNA SESIÓN ABIERTA EN ESTE NAVEGADOR (SIN AUTO-REDIRIGIR A LA FUERZA) -->
-        <div id="existing-session-banner" class="hidden bg-emerald-950/40 border border-kinet-neon/50 rounded-xl p-2.5 flex items-center justify-between gap-2">
-          <div class="text-[11px] text-slate-200 truncate">
-            Sesión activa: <strong id="existing-session-user" class="text-kinet-neon font-mono">@usuario</strong>
-          </div>
-          <div class="flex items-center gap-1.5 shrink-0">
-            <button type="button" onclick="continueWithExistingSession()" class="bg-kinet-neon text-black font-display font-bold text-[10px] px-2.5 py-1 rounded-lg hover:bg-emerald-400 transition">
-              Entrar →
-            </button>
-            <button type="button" onclick="clearExistingSessionHere()" class="bg-slate-800 text-slate-300 text-[10px] px-2 py-1 rounded-lg hover:text-white transition" title="Cerrar esa sesión">
-              ✕
-            </button>
-          </div>
-        </div>
-        
-        <div class="flex bg-[#12161C] p-1 rounded-xl border border-slate-800">
-          <button id="tab-login" type="button" onclick="switchMainTab('login')" class="flex-1 py-2 rounded-lg text-xs font-display font-bold transition bg-kinet-neon text-black shadow-md">
-            INICIAR SESIÓN
-          </button>
-          <button id="tab-register" type="button" onclick="switchMainTab('register')" class="flex-1 py-2 rounded-lg text-xs font-display font-bold transition text-slate-400 hover:text-white">
-            CREAR CUENTA
-          </button>
-        </div>
-
-        <!-- BOTÓN OFICIAL DE GOOGLE (ABRE VENTANA PEQUEÑA EMERGENTE DE GOOGLE CUENTAS) -->
-        <button type="button" onclick="launchGoogleOAuthPopup()" class="w-full py-2.5 px-4 rounded-xl glass-card border-slate-700 hover:border-slate-500 transition flex items-center justify-center space-x-3 text-xs font-semibold text-white">
-          <svg class="w-4 h-4" viewBox="0 0 24 24">
-            <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.2 9 5 12 5z"/>
-            <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/>
-            <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 10.8 0 12.5s.7 2.8 1.9 5.2l3.7-2.9z"/>
-            <path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.2-6.4-5.2L1.9 17C3.7 20.7 7.5 24 12 24z"/>
-          </svg>
-          <span id="google-btn-label">Continuar con Google</span>
-        </button>
-
-        <div class="relative flex py-0.5 items-center">
-          <div class="flex-grow border-t border-slate-800"></div>
-          <span class="flex-shrink mx-4 text-[10px] font-mono text-slate-500 uppercase">O MÉTODO DIRECTO</span>
-          <div class="flex-grow border-t border-slate-800"></div>
-        </div>
-
-        <!-- CONTENEDOR MORFOLÓGICO ANIMADO -->
-        <div id="auth-morph-stage">
-
-          <!-- ================= FORMULARIO 1: INICIAR SESIÓN ================= -->
-          <div id="container-login" class="space-y-3">
-            
-            <div class="flex space-x-3 text-[11px] font-mono border-b border-slate-800 pb-2">
-              <button type="button" onclick="setLoginMethod('pass')" id="lmethod-pass" class="text-kinet-neon font-bold border-b-2 border-kinet-neon pb-2 -mb-2">Con Contraseña</button>
-              <button type="button" onclick="setLoginMethod('otp')" id="lmethod-otp" class="text-slate-400 hover:text-white pb-2 -mb-2">Con Código SMS / Email</button>
-            </div>
-
-            <form onsubmit="handleLoginSubmit(event)" class="space-y-2.5 pt-1">
-              <div>
-                <label id="login-identifier-label" class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Email, @Usuario o Teléfono Móvil</label>
-                <input type="text" id="login-email-input" required placeholder="usuario@kinet.com, @naimtahri o +34 600..." class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
-              </div>
-
-              <!-- MODO A: CONTRASEÑA CON BOTÓN MOSTRAR/OCULTAR (👁️) -->
-              <div id="login-pass-field">
-                <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Contraseña</label>
-                <div class="relative">
-                  <input type="password" id="login-pass-input" required placeholder="••••••••••••" class="w-full bg-[#12161C] border border-slate-800 rounded-xl pl-4 pr-10 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
-                  <button type="button" class="pass-eye-btn" onclick="togglePasswordVisibility('login-pass-input', this)" title="Mostrar / Ocultar contraseña">
-                    <i data-lucide="eye" class="w-4 h-4"></i>
-                  </button>
-                </div>
-              </div>
-
-              <!-- MODO B: CÓDIGO OTP DE 6 DÍGITOS POR SMS O EMAIL -->
-              <div id="login-otp-field" class="hidden space-y-2">
-                <div class="flex justify-between items-center">
-                  <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Código recibido (6 dígitos)</label>
-                  <button type="button" id="btn-send-otp-code" onclick="requestOtpCodeSmsOrEmail()" class="text-[10px] bg-kinet-neon/15 border border-kinet-neon/50 text-kinet-neon px-2.5 py-0.5 rounded-md hover:bg-kinet-neon hover:text-black transition font-mono font-bold">
-                    📲 Enviar Código Ahora
-                  </button>
-                </div>
-                <input type="text" id="login-otp-code-input" maxlength="6" placeholder="• • • • • •" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-2 text-sm text-center tracking-[0.5em] font-mono font-bold text-kinet-neon focus:outline-none focus:border-kinet-neon transition">
-                <p id="otp-helper-status" class="text-[10px] text-slate-400 font-mono">Introduce arriba tu móvil (+34...) o email y pulsa "Enviar Código Ahora".</p>
-              </div>
-
-              <div class="flex justify-between items-center text-[11px]">
-                <span class="text-slate-400">¿Olvidaste tu clave?</span>
-                <button type="button" onclick="openRecoveryModal()" class="text-kinet-neon hover:underline font-medium">Recuperar Contraseña</button>
-              </div>
-
-              <button type="submit" id="btn-submit-login" class="w-full py-2.5 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-wider uppercase hover:bg-emerald-400 transition shadow-[0_0_15px_rgba(0,255,102,0.2)]">
-                INICIAR SESIÓN
-              </button>
-            </form>
-          </div>
-
-          <!-- ================= FORMULARIO 2: CREAR CUENTA NUEVA ================= -->
-          <div id="container-register" class="space-y-2.5 hidden">
-            <form onsubmit="handleRegisterSubmit(event)" class="space-y-2.5">
-              
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <div>
-                  <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Nombre</label>
-                  <input type="text" id="reg-firstname" required placeholder="Ej: Naim" oninput="autoSuggestHandleFromName()" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
-                </div>
-                <div>
-                  <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Apellidos</label>
-                  <input type="text" id="reg-lastname" required placeholder="Ej: Tahri Buezas" oninput="autoSuggestHandleFromName()" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <div>
-                  <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Usuario (@Username)</label>
-                  <div class="relative flex items-center">
-                    <span class="absolute left-3.5 text-slate-500 text-xs font-mono">@</span>
-                    <input type="text" id="reg-username" required placeholder="naimtahri" oninput="this.dataset.manual='true'; checkUsername(this.value)" class="w-full bg-[#12161C] border border-slate-800 rounded-xl pl-7 pr-3 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition font-mono">
-                  </div>
-                  <p id="username-status" class="text-[9px] text-kinet-neon mt-0.5 font-mono hidden">✓ Tag disponible</p>
-                </div>
-                <div>
-                  <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">📅 Fecha de Nacimiento</label>
-                  <input type="date" id="reg-birthdate" required class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <div>
-                  <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Correo Electrónico</label>
-                  <input type="email" id="reg-email" required placeholder="correo@ejemplo.com" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
-                </div>
-                <div>
-                  <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Móvil / SMS (Opcional)</label>
-                  <input type="tel" id="reg-phone" placeholder="+34 600..." class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
-                </div>
-              </div>
-
-              <div>
-                <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Contraseña Segura (Mín. 6 caracteres)</label>
-                <div class="relative">
-                  <input type="password" id="reg-password" minlength="6" required placeholder="••••••••••••" class="w-full bg-[#12161C] border border-slate-800 rounded-xl pl-4 pr-10 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
-                  <button type="button" class="pass-eye-btn" onclick="togglePasswordVisibility('reg-password', this)" title="Mostrar / Ocultar contraseña">
-                    <i data-lucide="eye" class="w-4 h-4"></i>
-                  </button>
-                </div>
-              </div>
-
-              <button type="submit" id="btn-submit-register" class="w-full py-2.5 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-wider uppercase hover:bg-emerald-400 transition shadow-[0_0_15px_rgba(0,255,102,0.2)]">
-                CREAR CUENTA Y CALIBRAR PERFIL →
-              </button>
-            </form>
-          </div>
-
-        </div>
-
-        <!-- MODO INVITADO RÁPIDO (100% AISLADO DE CUENTAS REGISTRADAS) -->
-        <div class="pt-1">
-          <button type="button" onclick="goToGuest()" class="w-full glass-card p-2 rounded-xl border-slate-800 hover:border-slate-600 transition text-center flex items-center justify-center space-x-2">
-            <i data-lucide="ghost" class="w-3.5 h-3.5 text-amber-400"></i>
-            <span class="text-xs font-bold text-slate-300">Entrar como Invitado (Sesión Aislada de Prueba)</span>
-          </button>
-        </div>
-
-      </div>
-
-      <div class="pt-2 text-center">
-        <p class="text-[9px] text-slate-500 font-mono">KINET OS • SECURE GATEWAY V2.8</p>
-      </div>
-
-    </div>
-
-  </div>
-
-  <!-- MODAL 1: RECUPERAR CONTRASEÑA REAL POR EMAIL -->
-  <div id="recovery-modal" class="fixed inset-0 modal-backdrop z-50 hidden flex items-center justify-center p-4">
-    <div class="glass-card w-full max-w-md p-6 rounded-2xl border border-slate-700 shadow-2xl relative space-y-4">
-      <div class="flex justify-between items-center">
-        <div class="flex items-center space-x-2">
-          <i data-lucide="key-round" class="w-5 h-5 text-kinet-neon"></i>
-          <h3 class="font-display font-bold text-sm text-white">RECUPERAR CONTRASEÑA</h3>
-        </div>
-        <button type="button" onclick="closeRecoveryModal()" class="text-slate-400 hover:text-white">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-      <p class="text-xs text-slate-400 leading-relaxed">
-        Introduce tu correo electrónico registrado en KINET OS. Te enviaremos un enlace seguro para restablecer tu contraseña al instante.
-      </p>
-      <form onsubmit="handleRecoverySubmit(event)" class="space-y-3">
-        <div>
-          <label class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Correo Electrónico Registrado</label>
-          <input type="email" id="recovery-email-input" required placeholder="tuemail@ejemplo.com" class="w-full bg-[#12161C] border border-slate-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
-        </div>
-        <button type="submit" id="btn-submit-recovery" class="w-full py-3 rounded-xl bg-kinet-neon text-black font-display font-bold text-xs uppercase hover:bg-emerald-400 transition">
-          ENVIAR ENLACE DE RECUPERACIÓN
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL 2: SELECTOR DE CUENTAS DE GOOGLE (ESTILO POPUP OFICIAL DE GOOGLE ACCOUNTS) -->
-  <div id="google-modal" class="fixed inset-0 modal-backdrop z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-[#181C24] w-full max-w-md p-6 rounded-2xl border border-slate-700 shadow-2xl relative space-y-4 text-center">
-      <div class="flex justify-center">
-        <svg class="w-8 h-8" viewBox="0 0 24 24">
-          <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.2 9 5 12 5z"/>
-          <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/>
-          <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 10.8 0 12.5s.7 2.8 1.9 5.2l3.7-2.9z"/>
-          <path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.2-6.4-5.2L1.9 17C3.7 20.7 7.5 24 12 24z"/>
-        </svg>
-      </div>
-      <div>
-        <h3 class="font-bold text-base text-white">Elige una cuenta para ir a KINET OS</h3>
-        <p class="text-xs text-slate-400 mt-1">Selecciona tu perfil de Gmail detectado o añade otra cuenta</p>
-      </div>
-
-      <!-- LISTA DE PERFILES DE GMAIL DETECTADOS EN LA NUBE / NAVEGADOR -->
-      <div id="google-detected-accounts-list" class="space-y-2 text-left max-h-48 overflow-y-auto"></div>
-
-      <!-- USAR OTRA CUENTA DE GMAIL -->
-      <div id="google-custom-account-form" class="space-y-2.5 text-left pt-2 border-t border-slate-800">
-        <div class="text-[10px] font-mono text-slate-400 uppercase">O introduce tu cuenta de Google:</div>
-        <div class="grid grid-cols-2 gap-2">
-          <input type="text" id="google-firstname-input" placeholder="Nombre (Ej: Naim)" class="w-full bg-[#12161C] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
-          <input type="text" id="google-lastname-input" placeholder="Apellidos (Ej: Tahri)" class="w-full bg-[#12161C] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
-        </div>
-        <input type="email" id="google-email-input" placeholder="tu.correo@gmail.com" class="w-full bg-[#12161C] border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
-        <button type="button" onclick="confirmGoogleLogin()" class="w-full py-2.5 rounded-xl bg-kinet-neon text-black font-display font-bold text-xs uppercase hover:bg-emerald-400 transition">
-          Continuar con esta cuenta de Google
-        </button>
-      </div>
-
-      <button type="button" onclick="closeGoogleSimModal()" class="text-xs text-slate-400 hover:text-white pt-1">Cancelar</button>
-    </div>
-  </div>
-
-  <!-- TOAST -->
-  <div id="toast-notification" class="fixed bottom-6 right-6 bg-slate-900 border border-kinet-neon text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center space-x-2 text-xs hidden z-50">
-    <i data-lucide="check-circle" class="w-4 h-4 text-kinet-neon"></i>
-    <span id="toast-message">Notificación</span>
-  </div>
-
-  <script>
+<script>
     lucide.createIcons();
 
-    let currentLoginMethod = 'pass';
-    let otpSentTarget = '';
-    let otpCooldownTimer = null;
+    let state = {
+      role: 'Atleta / Jugador',
+      sport: 'Fútbol',
+      customSportName: '',
+      category: 'Profesional High-Performance',
+      position: 'Delantero Centro / Nueve (DC)',
+      altura: '178',
+      peso: '72.5',
+      edad: '22',
+      birthdate: '',
+      laterality: 'Diestro',
+      aiCompleted: false,
+      chatStepIndex: 0,
+      chatAnswers: [],
+      extracted: {
+        club: '',
+        city: '',
+        hometown: '',
+        strength: '',
+        weakness: '',
+        schedule: '',
+        injuryHistory: '',
+        seasonGoal: '',
+        transfermarktUrl: '',
+        videoUrl: ''
+      }
+    };
+
+    const SPORT_LATERALITY_OPTIONS = {
+      'Fútbol': { label: '🦶 Pierna Hábil', opts: ['Diestro', 'Zurdo', 'Ambidiestro (2 Piernas)', 'Diestro (Maneja Zurda)'] },
+      'Baloncesto': { label: '✋ Mano de Tiro', opts: ['Diestro', 'Zurdo', 'Ambidiestro en Finalización'] },
+      'Pádel / Tenis': { label: '✋ Mano y Revés', opts: ['Diestro (Revés a 2 Manos)', 'Diestro (Revés a 1 Mano)', 'Zurdo (Bandera / Sombra)'] },
+      'Boxeo / MMA': { label: '🛡️ Guardia de Combate', opts: ['Guardia Ortodoxa (Diestro)', 'Guardia Zurda (Southpaw)', 'Ambidiestro (Switch-Hitter)'] },
+      'Running': { label: '👟 Tipo de Pisada', opts: ['Pisada Neutra (Mediopié)', 'Pisada Neutra (Antepié)', 'Ligero Pronador'] },
+      'Otros Deportes': { label: '⚡ Lateralidad', opts: ['Diestro', 'Zurdo', 'Ambidiestro'] }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderCategories();
+      renderSportPitch();
+      updateLateralitySelectorBySport();
+    });
 
     function cambiarPagina(event, urlDestino) {
       if (event) event.preventDefault();
@@ -412,517 +50,689 @@
       if (contenedor) contenedor.classList.add('page-exit');
       setTimeout(() => {
         window.location.href = urlDestino;
-      }, 220);
+      }, 240);
     }
 
-    function getNextDestination() {
-      const isCompleted = localStorage.getItem('kinet_profile_completed') === 'true';
-      const activeRole = localStorage.getItem('kinet_active_role') || localStorage.getItem('kinet_role') || 'athlete';
-      const sport = localStorage.getItem('kinet_sport') || 'Fútbol';
-
-      if (isCompleted && localStorage.getItem('kinet_user_name')) {
-        return `app.html?role=${activeRole}&sport=${encodeURIComponent(sport)}`;
+    function nextStep(stepNum) {
+      const visualStep = stepNum - 1;
+      const stepNumEl = document.getElementById('step-num');
+      if (stepNumEl) stepNumEl.textContent = "0" + (visualStep > 0 ? visualStep : 1);
+      
+      for (let i = 1; i <= 6; i++) {
+        const el = document.getElementById('step-' + i);
+        if (el) {
+          el.classList.add('hidden');
+          el.classList.remove('step-liquid-enter');
+        }
       }
-      return 'fase1.html';
+
+      const target = document.getElementById('step-' + stepNum);
+      if (target) {
+        target.classList.remove('hidden');
+        void target.offsetWidth;
+        target.classList.add('step-liquid-enter');
+      }
+
+      if (stepNum === 3) renderCategories();
+      else if (stepNum === 4) renderSportPitch();
+      else if (stepNum === 5) updateLateralitySelectorBySport();
+      else if (stepNum === 6) setupAiChatGreeting();
     }
 
-    // Mostrar / Ocultar contraseña (👁️)
-    function togglePasswordVisibility(inputId, btnEl) {
-      const input = document.getElementById(inputId);
-      if (!input) return;
-      const isPass = input.type === 'password';
-      input.type = isPass ? 'text' : 'password';
-      btnEl.innerHTML = isPass
-        ? '<i data-lucide="eye-off" class="w-4 h-4 text-kinet-neon"></i>'
-        : '<i data-lucide="eye" class="w-4 h-4"></i>';
-      lucide.createIcons();
+    function selectSport(val) {
+      state.sport = val;
+      document.querySelectorAll('[id^="sport-"]').forEach(el => el.className = "glass-card p-5 rounded-2xl cursor-pointer space-y-3");
+      const map = { 'Fútbol': 'futbol', 'Baloncesto': 'baloncesto', 'Pádel / Tenis': 'padel', 'Boxeo / MMA': 'boxeo', 'Running': 'running', 'Otros Deportes': 'otros' };
+      if (map[val]) document.getElementById('sport-' + map[val]).className = "glass-card selected p-5 rounded-2xl cursor-pointer space-y-3 bg-kinet-neon/5";
     }
 
-    // Animación morfológica suave entre Iniciar Sesión y Crear Cuenta
-    function animateAuthStageHeight(callback) {
-      const stage = document.getElementById('auth-morph-stage');
-      if (!stage) {
-        callback();
+    function updateLateralitySelectorBySport() {
+      const cfg = SPORT_LATERALITY_OPTIONS[state.sport] || SPORT_LATERALITY_OPTIONS['Fútbol'];
+      const lblEl = document.getElementById('onboarding-lat-label');
+      const pillsBox = document.getElementById('onboarding-laterality-pills');
+      if (lblEl) lblEl.textContent = cfg.label;
+      if (!pillsBox) return;
+
+      if (!cfg.opts.includes(state.laterality)) {
+        state.laterality = cfg.opts[0];
+      }
+      document.getElementById('val-laterality').textContent = state.laterality;
+
+      pillsBox.innerHTML = cfg.opts.map((opt) => {
+        const active = opt === state.laterality;
+        return `<button type="button" onclick="selectOnboardingLaterality('${opt.replace(/'/g, "\\'")}', this)" class="${active ? 'px-3 py-1.5 rounded-xl bg-kinet-neon text-black font-bold text-xs' : 'px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 text-xs hover:text-white'}">${opt}</button>`;
+      }).join('');
+    }
+
+    function selectOnboardingLaterality(val, btnEl) {
+      state.laterality = val;
+      const disp = document.getElementById('val-laterality');
+      if (disp) disp.textContent = val;
+      const parent = document.getElementById('onboarding-laterality-pills');
+      if (parent) {
+        Array.from(parent.children).forEach(b => {
+          b.className = "px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 text-xs hover:text-white";
+        });
+      }
+      if (btnEl) btnEl.className = "px-3 py-1.5 rounded-xl bg-kinet-neon text-black font-bold text-xs";
+    }
+
+    function syncAgeSliderWithDate(ageVal) {
+      state.edad = String(ageVal);
+      document.getElementById('val-edad').textContent = `${ageVal} años`;
+    }
+
+    function syncDateWithAgeSlider(dateStr) {
+      if (!dateStr) return;
+      state.birthdate = dateStr;
+      const b = new Date(dateStr);
+      if (isNaN(b.getTime())) return;
+      const today = new Date();
+      let age = today.getFullYear() - b.getFullYear();
+      const m = today.getMonth() - b.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < b.getDate())) age--;
+      if (age >= 8 && age <= 65) {
+        state.edad = String(age);
+        document.getElementById('slider-edad').value = age;
+        document.getElementById('val-edad').textContent = `${age} años`;
+      }
+    }
+
+    function renderCategories() {
+      const container = document.getElementById('categories-container');
+      const sport = state.sport;
+      let catData = [];
+
+      if (sport === 'Boxeo / MMA') {
+        catData = [
+          { icon: '🥊', title: 'Local / Gimnasio (Sparring)', desc: 'Entrenamientos técnicos e interclubes.' },
+          { icon: '🥉', title: 'Regional / Veladas Autonómicas', desc: 'Veladas de boxeo o MMA amateur oficial.' },
+          { icon: '🥈', title: 'Nacional (Campeonatos FEBoxeo)', desc: 'Torneos oficiales de federación nacional.' },
+          { icon: '🥇', title: 'Internacional / Profesional', desc: 'Rankings profesionales (WBC, WBA, UFC).' }
+        ];
+      } else if (sport === 'Pádel / Tenis') {
+        catData = [
+          { icon: '⚡', title: 'Social / Club (4ª - 3ª Categoría)', desc: 'Partidos de club, ligas sociales y pozos.' },
+          { icon: '🥉', title: 'Federado Autonómico (2ª Categoría)', desc: 'Ligas regionales y torneos absolutos.' },
+          { icon: '🥈', title: 'Nacional / 1ª Categoría Absoluta', desc: 'Cuadros principales y pruebas nacionales.' },
+          { icon: '🥇', title: 'Circuito Internacional (FIP / ATP)', desc: 'Premier Padel, FIP Tour, ITF, ATP/WTA.' }
+        ];
+      } else if (sport === 'Baloncesto') {
+        catData = [
+          { icon: '⚡', title: 'Basket Social / Circuito 3x3', desc: 'Ligas municipales y torneos 3x3.' },
+          { icon: '🌱', title: 'Cantera / Junior Preferente-Autonómico', desc: 'Categorías de formación federadas.' },
+          { icon: '📜', title: 'Senior Nacional / Tercera FEB (EBA)', desc: 'Competición federada autonómica y nacional.' },
+          { icon: '🥇', title: 'Profesional Élite (ACB / FEB)', desc: 'Primera/Segunda FEB, Liga Endesa, EuroLeague.' }
+        ];
+      } else if (sport === 'Running') {
+        catData = [
+          { icon: '🏃', title: 'Corredor Popular / 5K - 10K', desc: 'Carreras populares homologadas en ruta.' },
+          { icon: '🥉', title: 'Amateur Competitivo (Sub-40 / Media)', desc: 'Preparación específica por ritmos y series.' },
+          { icon: '📜', title: 'Federado RFEA / Maratoniano', desc: 'Licencia oficial en pista, cross o 42K.' },
+          { icon: '🥇', title: 'Élite / Internacional', desc: 'Meetings nacionales y World Marathon Majors.' }
+        ];
+      } else {
+        catData = [
+          { icon: '⚡', title: 'Aficionado / Fútbol 7 & Barrio', desc: 'Ligas locales y torneos competitivos.' },
+          { icon: '🌱', title: 'Cantera / Juvenil División de Honor', desc: 'Cadete, Juvenil Nacional y División de Honor.' },
+          { icon: '📜', title: 'Senior Regional / Preferente', desc: 'Divisiones autonómicas federadas.' },
+          { icon: '🥈', title: 'Semiprofesional (3ª / 2ª RFEF)', desc: 'Competición nacional de alto rendimiento.' },
+          { icon: '🥇', title: 'Profesional Élite (1ª RFEF / LaLiga)', desc: 'Estructura profesional de máxima exigencia.' }
+        ];
+      }
+
+      state.category = catData[0].title;
+      container.innerHTML = '';
+
+      catData.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = index === 0 
+          ? "glass-card selected p-4 rounded-2xl border-2 border-kinet-neon cursor-pointer transition bg-kinet-neon/5 flex items-center space-x-3.5"
+          : "glass-card p-4 rounded-2xl border-2 border-slate-800 cursor-pointer transition hover:border-slate-600 flex items-center space-x-3.5";
+
+        div.onclick = () => {
+          state.category = item.title;
+          Array.from(container.children).forEach(c => c.className = "glass-card p-4 rounded-2xl border-2 border-slate-800 cursor-pointer transition hover:border-slate-600 flex items-center space-x-3.5");
+          div.className = "glass-card selected p-4 rounded-2xl border-2 border-kinet-neon cursor-pointer transition bg-kinet-neon/5 flex items-center space-x-3.5";
+        };
+
+        div.innerHTML = `
+          <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-xl shrink-0">${item.icon}</div>
+          <div>
+            <h3 class="font-display font-bold text-xs text-white">${item.title}</h3>
+            <p class="text-[11px] text-slate-400 mt-0.5">${item.desc}</p>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // Pistas interactivas con líneas SVG reglamentarias y posiciones sincronizadas con el catálogo de perfil.html
+    function renderSportPitch() {
+      const container = document.getElementById('pitch-container');
+      const title = document.getElementById('pitch-title');
+      const subtitle = document.getElementById('pitch-subtitle');
+      const subBox = document.getElementById('sub-position-box');
+      const sport = state.sport;
+
+      subBox.classList.remove('hidden');
+
+      if (sport === 'Fútbol') {
+        title.textContent = "3. CAMPO TÁCTICO DE FÚTBOL & DEMARCACIÓN";
+        subtitle.textContent = "Toca tu zona en el césped y elige tu rol exacto abajo.";
+        container.className = "relative w-full h-[255px] pitch-futbol rounded-2xl p-4 flex flex-col justify-between overflow-hidden";
+        container.innerHTML = `
+          <!-- Líneas reglamentarias SVG de campo de fútbol -->
+          <svg class="absolute inset-0 w-full h-full pointer-events-none opacity-25" viewBox="0 0 400 250" preserveAspectRatio="none">
+            <rect x="10" y="8" width="380" height="234" fill="none" stroke="#00FF66" stroke-width="1.5"/>
+            <line x1="10" y1="125" x2="390" y2="125" stroke="#00FF66" stroke-width="1.2"/>
+            <circle cx="200" cy="125" r="32" fill="none" stroke="#00FF66" stroke-width="1.2"/>
+            <rect x="115" y="8" width="170" height="42" fill="none" stroke="#00FF66" stroke-width="1.2"/>
+            <rect x="115" y="200" width="170" height="42" fill="none" stroke="#00FF66" stroke-width="1.2"/>
+          </svg>
+
+          <div class="flex justify-around items-center z-10">
+            <button type="button" onclick="activatePitchNode(this, ['Extremo Izquierdo (EI)', 'Segundo Delantero / Media Punta (SD)'])" class="pitch-node-btn px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-200 font-display font-bold text-[10px]">⚡ EXT. IZQ (EI)</button>
+            <button type="button" id="default-pitch-node" onclick="activatePitchNode(this, ['Delantero Centro / Nueve (DC)', 'Segundo Delantero / Media Punta (SD)'])" class="pitch-node-btn active-node px-4 py-1.5 rounded-xl bg-emerald-500/20 border border-kinet-neon text-kinet-neon font-display font-bold text-xs">🎯 DELANTERO (DC)</button>
+            <button type="button" onclick="activatePitchNode(this, ['Extremo Derecho (ED)', 'Segundo Delantero / Media Punta (SD)'])" class="pitch-node-btn px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-200 font-display font-bold text-[10px]">⚡ EXT. DER (ED)</button>
+          </div>
+          <div class="flex justify-around items-center z-10">
+            <button type="button" onclick="activatePitchNode(this, ['Mediapunta / Interior Ofensivo (MCO)', 'Mediocentro Organizador / Box-to-Box (MC)'])" class="pitch-node-btn px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-200 font-display font-bold text-[10px]">🧠 MEDIAPUNTA (MCO)</button>
+            <button type="button" onclick="activatePitchNode(this, ['Mediocentro Defensivo / Pivote (MCD)', 'Mediocentro Organizador / Box-to-Box (MC)'])" class="pitch-node-btn px-4 py-1.5 rounded-xl bg-slate-900/90 border border-kinet-neon/60 text-kinet-neon font-display font-bold text-xs">⚙️ MEDIOCENTRO (MC/MCD)</button>
+          </div>
+          <div class="flex justify-around items-center z-10">
+            <button type="button" onclick="activatePitchNode(this, ['Lateral Izquierdo / Carrilero (LI)'])" class="pitch-node-btn px-2.5 py-1 rounded-lg bg-slate-900/90 border border-slate-700 text-slate-200 font-display font-bold text-[10px]">🛡️ LAT. IZQ (LI)</button>
+            <button type="button" onclick="activatePitchNode(this, ['Defensa Central Derecho (DFC)', 'Defensa Central Izquierdo (DFC)'])" class="pitch-node-btn px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-kinet-neon/60 text-kinet-neon font-display font-bold text-xs">🧱 CENTRAL (DFC)</button>
+            <button type="button" onclick="activatePitchNode(this, ['Lateral Derecho / Carrilero (LD)'])" class="pitch-node-btn px-2.5 py-1 rounded-lg bg-slate-900/90 border border-slate-700 text-slate-200 font-display font-bold text-[10px]">🛡️ LAT. DER (LD)</button>
+          </div>
+          <div class="flex justify-center items-center z-10">
+            <button type="button" onclick="activatePitchNode(this, ['Portero (POR)'])" class="pitch-node-btn px-4 py-1 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-display font-bold text-[11px]">🧤 PORTERO (POR)</button>
+          </div>
+        `;
+        setSubOptions(['Delantero Centro / Nueve (DC)', 'Segundo Delantero / Media Punta (SD)']);
+
+      } else if (sport === 'Baloncesto') {
+        title.textContent = "3. CANCHA DE BALONCESTO & DEMARCACIÓN";
+        subtitle.textContent = "Selecciona tu posición oficial en pista.";
+        container.className = "relative w-full h-[255px] pitch-basket rounded-2xl p-4 flex flex-col justify-between overflow-hidden";
+        container.innerHTML = `
+          <svg class="absolute inset-0 w-full h-full pointer-events-none opacity-25" viewBox="0 0 400 250" preserveAspectRatio="none">
+            <rect x="10" y="8" width="380" height="234" fill="none" stroke="#F59E0B" stroke-width="1.5"/>
+            <path d="M 60 242 A 145 145 0 0 1 340 242" fill="none" stroke="#F59E0B" stroke-width="1.5"/>
+            <rect x="145" y="135" width="110" height="107" fill="none" stroke="#F59E0B" stroke-width="1.5"/>
+            <circle cx="200" cy="135" r="32" fill="none" stroke="#F59E0B" stroke-width="1.2"/>
+          </svg>
+          <div class="flex justify-around items-center z-10 pt-2">
+            <button type="button" onclick="activatePitchNode(this, ['Base Director / Playmaker (PG)', 'Especialista 3x3 Polivalente'])" class="pitch-node-btn active-node px-3.5 py-2 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-display font-bold text-xs">1. BASE (PG)</button>
+            <button type="button" onclick="activatePitchNode(this, ['Escolta Tirador / Combo Guard (SG)', 'Especialista 3x3 Polivalente'])" class="pitch-node-btn px-3.5 py-2 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-display font-bold text-xs">2. ESCOLTA (SG)</button>
+          </div>
+          <div class="flex justify-center items-center z-10">
+            <button type="button" onclick="activatePitchNode(this, ['Alero Versátil / 3&D (SF)', 'Especialista 3x3 Polivalente'])" class="pitch-node-btn px-4 py-2 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-display font-bold text-xs">3. ALERO (SF)</button>
+          </div>
+          <div class="flex justify-around items-center z-10 pb-2">
+            <button type="button" onclick="activatePitchNode(this, ['Ala-Pívot Abierto / Stretch 4 (PF)'])" class="pitch-node-btn px-3.5 py-2 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-display font-bold text-xs">4. ALA-PÍVOT (PF)</button>
+            <button type="button" onclick="activatePitchNode(this, ['Pívot Interior / Protector de Aro (C)'])" class="pitch-node-btn px-3.5 py-2 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-display font-bold text-xs">5. PÍVOT (C)</button>
+          </div>
+        `;
+        setSubOptions(['Base Director / Playmaker (PG)', 'Especialista 3x3 Polivalente']);
+
+      } else if (sport === 'Pádel / Tenis') {
+        title.textContent = "3. PISTA DE PÁDEL / TENIS & LADO DE JUEGO";
+        subtitle.textContent = "Elige tu lado en el 20x10m o tu estilo de pista individual.";
+        container.className = "relative w-full h-[255px] pitch-padel rounded-2xl p-4 flex flex-col justify-around items-center overflow-hidden";
+        container.innerHTML = `
+          <svg class="absolute inset-0 w-full h-full pointer-events-none opacity-25" viewBox="0 0 400 250" preserveAspectRatio="none">
+            <rect x="20" y="12" width="360" height="226" fill="none" stroke="#3B82F6" stroke-width="2"/>
+            <line x1="20" y1="125" x2="380" y2="125" stroke="#FFFFFF" stroke-width="2" stroke-dasharray="5,5"/>
+            <line x1="200" y1="45" x2="200" y2="205" stroke="#3B82F6" stroke-width="1.5"/>
+            <line x1="20" y1="45" x2="380" y2="45" stroke="#3B82F6" stroke-width="1.5"/>
+            <line x1="20" y1="205" x2="380" y2="205" stroke="#3B82F6" stroke-width="1.5"/>
+          </svg>
+          <div class="flex justify-around w-full z-10">
+            <button type="button" onclick="activatePitchNode(this, ['Pádel: Jugador de Revés (Definición y Potencia)', 'Pádel: Polivalente Ambos Lados (Drive / Revés)'])" class="pitch-node-btn active-node px-4 py-2.5 rounded-xl bg-blue-500/20 border border-blue-400 text-blue-300 font-display font-bold text-xs">⚡ LADO REVÉS (IZQUIERDA)</button>
+            <button type="button" onclick="activatePitchNode(this, ['Pádel: Jugador de Drive (Construcción y Defensa)', 'Pádel: Polivalente Ambos Lados (Drive / Revés)'])" class="pitch-node-btn px-4 py-2.5 rounded-xl bg-blue-500/20 border border-blue-400 text-blue-300 font-display font-bold text-xs">🛡️ LADO DRIVE (DERECHA)</button>
+          </div>
+          <div class="z-10">
+            <button type="button" onclick="activatePitchNode(this, ['Tenis: Jugador Agresivo de Fondo de Pista', 'Tenis: Jugador de Toda la Pista (All-Court)', 'Tenis: Especialista en Saque y Red', 'Tenis: Contraatacante Defensivo'])" class="pitch-node-btn px-5 py-2 rounded-xl bg-slate-900/95 border border-blue-400/60 text-white font-display font-bold text-xs">🎾 TENIS INDIVIDUAL / ALL-COURT</button>
+          </div>
+        `;
+        setSubOptions(['Pádel: Jugador de Revés (Definición y Potencia)', 'Pádel: Polivalente Ambos Lados (Drive / Revés)']);
+
+      } else if (sport === 'Boxeo / MMA') {
+        title.textContent = "3. RING / OCTÁGONO & ESTILO DE COMBATE";
+        subtitle.textContent = "Define tu arquetipo táctico principal en el combate.";
+        container.className = "relative w-full h-[255px] pitch-boxeo rounded-2xl p-4 flex flex-col justify-around items-center overflow-hidden";
+        container.innerHTML = `
+          <div class="grid grid-cols-2 gap-3 w-full z-10">
+            <button type="button" onclick="activatePitchNode(this, ['Boxeo: Estilista de Larga Distancia (Out-Boxer)', 'Boxeo: Contraatacante (Counter-Puncher)'])" class="pitch-node-btn active-node p-3.5 rounded-xl bg-red-500/20 border border-red-500 text-red-300 font-display font-bold text-xs">🥊 ESTILISTA / OUT-BOXER</button>
+            <button type="button" onclick="activatePitchNode(this, ['Boxeo: Fajador de Presión (Swarmer)', 'Boxeo: Pegador Técnico (Boxer-Puncher)'])" class="pitch-node-btn p-3.5 rounded-xl bg-red-500/20 border border-red-500 text-red-300 font-display font-bold text-xs">🔥 FAJADOR / PEGADOR KO</button>
+            <button type="button" onclick="activatePitchNode(this, ['MMA: Striker / Kickboxer / Muay Thai', 'MMA: Peleador Completo (Well-Rounded)'])" class="pitch-node-btn p-3.5 rounded-xl bg-red-500/20 border border-red-500 text-red-300 font-display font-bold text-xs">⚡ MMA STRIKER / MUAY THAI</button>
+            <button type="button" onclick="activatePitchNode(this, ['MMA: Wrestler / Grappler de Presión', 'MMA: Especialista BJJ / Sumisión'])" class="pitch-node-btn p-3.5 rounded-xl bg-red-500/20 border border-red-500 text-red-300 font-display font-bold text-xs">🤼 MMA WRESTLER / BJJ</button>
+          </div>
+        `;
+        setSubOptions(['Boxeo: Estilista de Larga Distancia (Out-Boxer)', 'Boxeo: Contraatacante (Counter-Puncher)']);
+
+      } else if (sport === 'Running') {
+        title.textContent = "3. PISTA / RUTA & PRUEBA PRINCIPAL";
+        subtitle.textContent = "Selecciona tu distancia objetivo actual.";
+        container.className = "relative w-full h-[255px] pitch-running rounded-2xl p-4 flex flex-col justify-around items-center overflow-hidden";
+        container.innerHTML = `
+          <div class="grid grid-cols-2 gap-3 w-full z-10">
+            <button type="button" onclick="activatePitchNode(this, ['Velocista Pista (100m / 200m / 400m)', 'Medio Fondo en Pista (800m / 1500m)'])" class="pitch-node-btn active-node p-3.5 rounded-xl bg-purple-500/20 border border-purple-400 text-purple-300 font-display font-bold text-xs">⚡ VELOCIDAD & MEDIO FONDO</button>
+            <button type="button" onclick="activatePitchNode(this, ['Fondo en Ruta (5K / 10K Homologado)', 'Opositor / Pruebas Físicas (CNPn / Bomberos)'])" class="pitch-node-btn p-3.5 rounded-xl bg-purple-500/20 border border-purple-400 text-purple-300 font-display font-bold text-xs">🏃 RUTA 5K / 10K & OPOSICIÓN</button>
+            <button type="button" onclick="activatePitchNode(this, ['Especialista en Media Maratón (21K)', 'Maratoniano Oficial (42.195m)'])" class="pitch-node-btn p-3.5 rounded-xl bg-purple-500/20 border border-purple-400 text-purple-300 font-display font-bold text-xs">🏅 MEDIA MARATÓN & MARATÓN 42K</button>
+            <button type="button" onclick="activatePitchNode(this, ['Trail Running / Carreras por Montaña'])" class="pitch-node-btn p-3.5 rounded-xl bg-purple-500/20 border border-purple-400 text-purple-300 font-display font-bold text-xs">⛰️ TRAIL RUNNING / ULTRA</button>
+          </div>
+        `;
+        setSubOptions(['Fondo en Ruta (5K / 10K Homologado)', 'Especialista en Media Maratón (21K)']);
+
+      } else {
+        title.textContent = "3. IDENTIFICACIÓN DE TU ESPECIALIDAD";
+        subtitle.textContent = "Escribe tu posición o prueba principal.";
+        subBox.classList.add('hidden');
+        container.className = "relative w-full h-[255px] pitch-custom rounded-2xl p-4 flex flex-col justify-center items-center space-y-3 text-center overflow-hidden";
+        container.innerHTML = `
+          <div class="w-10 h-10 rounded-2xl bg-kinet-neon/10 border border-kinet-neon/30 text-kinet-neon flex items-center justify-center font-bold">
+            <i data-lucide="trophy" class="w-5 h-5"></i>
+          </div>
+          <h3 class="font-display font-bold text-xs text-white">¿Cuál es tu posición o especialidad principal?</h3>
+          <input type="text" id="custom-sport-input" placeholder="Ej: Central, Apertura, Velocista..." oninput="state.position = this.value" class="w-full max-w-sm bg-[#080A0C] border border-kinet-neon/40 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-kinet-neon transition text-center font-bold">
+        `;
+        lucide.createIcons();
+      }
+    }
+
+    function activatePitchNode(btnEl, cleanCatalogOptions) {
+      document.querySelectorAll('#pitch-container .pitch-node-btn').forEach(b => b.classList.remove('active-node'));
+      if (btnEl) btnEl.classList.add('active-node');
+      setSubOptions(cleanCatalogOptions);
+    }
+
+    // Guarda exactamente el nombre limpio del catálogo de perfil.html (sin duplicar paréntesis)
+    function setSubOptions(opts) {
+      const display = document.getElementById('selected-pos-display');
+      const box = document.getElementById('sub-position-options');
+      state.position = opts[0];
+      if (display) display.textContent = state.position;
+      if (!box) return;
+      box.innerHTML = '';
+
+      opts.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = idx === 0
+          ? "px-3 py-1.5 rounded-xl bg-kinet-neon text-black font-bold text-xs transition"
+          : "px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 text-xs hover:text-white transition";
+        btn.textContent = opt;
+        btn.onclick = () => {
+          state.position = opt;
+          if (display) display.textContent = state.position;
+          Array.from(box.children).forEach(b => b.className = "px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 text-xs hover:text-white transition");
+          btn.className = "px-3 py-1.5 rounded-xl bg-kinet-neon text-black font-bold text-xs transition";
+        };
+        box.appendChild(btn);
+      });
+    }
+
+    // =========================================================================
+    // MOTOR DE ENTREVISTA PROFUNDA DE 7 PREGUNTAS CON CONECTOR API + PERSONALIZACIÓN DE VESTUARIO Y PERFIL
+    // =========================================================================
+    function getAiInterviewQuestions() {
+      return [
+        {
+          id: 'q1_club',
+          text: `¡Hola! Soy el Director de Rendimiento IA de KINET OS (${state.sport} • ${state.position}). Voy a hacerte **7 preguntas breves** para rellenar tu Pasaporte Deportivo y diseñar tu rutina del Vestuario.\n\n**Pregunta 1 de 7:** ¿En qué **Club, Equipo o Gimnasio** entrenas actualmente y en qué grupo o liga compites?`,
+          chips: ['Juego en el KINET Performance CF', 'Soy Agente Libre / Busco Equipo', 'Compito en Juvenil División de Honor', 'Compito en Senior / 3ª RFEF']
+        },
+        {
+          id: 'q2_cities',
+          text: `Perfecto, club registrado en tu ficha. 📍 **Pregunta 2 de 7:** ¿En qué **Ciudad vives y entrenas actualmente**, y cuál es tu **Ciudad Natal / de origen**? *(Esto activará tus recomendaciones por cercanía en Comunidad)*.`,
+          chips: ['Vivo en Melilla y nací en Melilla', 'Vivo en Madrid y nací en Toledo', 'Vivo en Barcelona y nací en Sevilla', 'Vivo en Valencia']
+        },
+        {
+          id: 'q3_strength',
+          text: `Genial, ubicación indexada. ⚡ **Pregunta 3 de 7:** Como **${state.position}**, ¿cuál es tu **mayor virtud o arma principal** en competición y cómo defines tu estilo de juego?`,
+          chips: ['Explosividad, regate 1vs1 y velocidad punta', 'Visión de juego, último pase y control', 'Potencia de finalización y desmarque al espacio', 'Solidez defensiva, anticipación y duelo aéreo']
+        },
+        {
+          id: 'q4_weakness',
+          text: `Tomado nota para tu KINET Card. 🎯 **Pregunta 4 de 7:** ¿Qué **punto débil técnico, táctico o físico** quieres que prioricemos mejorar este mes en tus sesiones diarias de Vestuario?`,
+          chips: ['Mejorar resistencia anaeróbica en últimos 20 min', 'Ganar potencia en el tren inferior y arranque', 'Pulir uso de pierna/mano no dominante', 'Mejorar toma de decisiones bajo presión']
+        },
+        {
+          id: 'q5_schedule',
+          text: `Excelente. 📅 **Pregunta 5 de 7:** ¿Cuántos **días por semana entrenas** actualmente y qué día sueles tener **partido o competición oficial**?`,
+          chips: ['Entreno 4 días/semana • Partido el Sábado', 'Entreno 5 días/semana • Partido el Domingo', 'Entreno 3 días/semana + 2 de Gimnasio', 'Entreno 6 días/semana (Alto Rendimiento)']
+        },
+        {
+          id: 'q6_health',
+          text: `Configurando tu microciclo semanal. 🩺 **Pregunta 6 de 7:** ¿Tienes alguna **molestia muscular, lesión previa** que nuestro Fisioterapeuta IA deba vigilar (ej. isquios, tobillo, rodilla, hombro) y cuántas horas duermes de media?`,
+          chips: ['0 lesiones activas • Duermo 8h', 'Vigilar sobrecarga en isquiotibiales • Duermo 7h', 'Prevención de esguince de tobillo/rodilla', 'Ligera fatiga lumbar • Necesito descarga']
+        },
+        {
+          id: 'q7_goal_links',
+          text: `¡Última pregunta! 🏆 **Pregunta 7 de 7:** ¿Cuál es tu **gran objetivo esta temporada**? *(Si tienes un link de Transfermarkt/BeSoccer o YouTube puedes pegarlo aquí mismo y lo pondré en tu Perfil)*.`,
+          chips: ['Fichar por un club de categoría superior', 'Ser titular indiscutible y MVP de mi liga', 'Superar los 15 goles / asistencias este año', 'Alcanzar mi pico físico sin lesiones']
+        }
+      ];
+    }
+
+    function appendChatMessageBubble(sender, text) {
+      const box = document.getElementById('chat-messages-container');
+      if (!box) return;
+      const div = document.createElement('div');
+      if (sender === 'ai') {
+        div.className = "flex items-start space-x-2.5";
+        div.innerHTML = `
+          <div class="w-6 h-6 rounded-lg bg-kinet-neon/20 border border-kinet-neon/40 text-kinet-neon flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">AI</div>
+          <div class="bg-slate-900/95 border border-slate-800 p-3 rounded-2xl text-xs text-slate-200 leading-relaxed max-w-[90%]">${text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong class="text-kinet-neon">$1</strong>')}</div>
+        `;
+      } else {
+        div.className = "flex justify-end";
+        div.innerHTML = `
+          <div class="bg-kinet-neon/15 border border-kinet-neon/50 text-white p-2.5 px-3.5 rounded-2xl text-xs max-w-[85%] font-medium">${text}</div>
+        `;
+      }
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function renderQuickReplyChips(chips) {
+      const chipBox = document.getElementById('ai-quick-chips');
+      if (!chipBox) return;
+      if (!chips || !chips.length) {
+        chipBox.innerHTML = '';
         return;
       }
-      const startH = stage.offsetHeight;
-      stage.style.height = `${startH}px`;
-      callback();
-      requestAnimationFrame(() => {
-        const targetH = stage.scrollHeight;
-        stage.style.height = `${targetH}px`;
-        clearTimeout(stage._t);
-        stage._t = setTimeout(() => {
-          stage.style.height = '';
-        }, 560);
-      });
+      chipBox.innerHTML = chips.map(c => `
+        <button type="button" onclick="useQuickChipAnswer('${c.replace(/'/g, "\\'")}')" class="text-[10px] bg-slate-900 hover:bg-kinet-neon/20 border border-slate-700 hover:border-kinet-neon text-slate-300 hover:text-white px-2.5 py-1 rounded-lg transition font-mono">
+          + ${c}
+        </button>
+      `).join('');
     }
 
-    function switchMainTab(tab) {
-      animateAuthStageHeight(() => {
-        const loginBox = document.getElementById('container-login');
-        const registerBox = document.getElementById('container-register');
-        const tabLogin = document.getElementById('tab-login');
-        const tabRegister = document.getElementById('tab-register');
-        const googleLabel = document.getElementById('google-btn-label');
-
-        if (tab === 'login') {
-          loginBox.classList.remove('hidden');
-          registerBox.classList.add('hidden');
-          tabLogin.className = "flex-1 py-2 rounded-lg text-xs font-display font-bold transition bg-kinet-neon text-black shadow-md";
-          tabRegister.className = "flex-1 py-2 rounded-lg text-xs font-display font-bold transition text-slate-400 hover:text-white";
-          googleLabel.textContent = "Continuar con Google";
-        } else {
-          loginBox.classList.add('hidden');
-          registerBox.classList.remove('hidden');
-          tabRegister.className = "flex-1 py-2 rounded-lg text-xs font-display font-bold transition bg-kinet-neon text-black shadow-md";
-          tabLogin.className = "flex-1 py-2 rounded-lg text-xs font-display font-bold transition text-slate-400 hover:text-white";
-          googleLabel.textContent = "Registrarse con Google";
-        }
-      });
-    }
-
-    function setLoginMethod(method) {
-      currentLoginMethod = method;
-      animateAuthStageHeight(() => {
-        const passField = document.getElementById('login-pass-field');
-        const passInput = document.getElementById('login-pass-input');
-        const otpField = document.getElementById('login-otp-field');
-        const mPass = document.getElementById('lmethod-pass');
-        const mOtp = document.getElementById('lmethod-otp');
-        const idLabel = document.getElementById('login-identifier-label');
-        const submitBtn = document.getElementById('btn-submit-login');
-
-        if (method === 'pass') {
-          passField.classList.remove('hidden');
-          if (passInput) passInput.required = true;
-          otpField.classList.add('hidden');
-          mPass.className = "text-kinet-neon font-bold border-b-2 border-kinet-neon pb-2 -mb-2";
-          mOtp.className = "text-slate-400 hover:text-white pb-2 -mb-2";
-          if (idLabel) idLabel.textContent = 'Email, @Usuario o Teléfono Móvil';
-          if (submitBtn) submitBtn.textContent = 'INICIAR SESIÓN';
-        } else {
-          passField.classList.add('hidden');
-          if (passInput) passInput.required = false;
-          otpField.classList.remove('hidden');
-          mOtp.className = "text-kinet-neon font-bold border-b-2 border-kinet-neon pb-2 -mb-2";
-          mPass.className = "text-slate-400 hover:text-white pb-2 -mb-2";
-          if (idLabel) idLabel.textContent = 'Teléfono Móvil (+34...) o Correo para recibir el Código';
-          if (submitBtn) submitBtn.textContent = 'VERIFICAR CÓDIGO Y ENTRAR';
-        }
-      });
-    }
-
-    // Enviar código OTP real por SMS o Email con Supabase Auth (+ código rápido local de respaldo)
-    async function requestOtpCodeSmsOrEmail() {
-      const targetInput = document.getElementById('login-email-input');
-      const helperEl = document.getElementById('otp-helper-status');
-      const sendBtn = document.getElementById('btn-send-otp-code');
-      const rawVal = (targetInput?.value || '').trim();
-
-      if (!rawVal) {
-        showNotification('Escribe primero arriba tu número de móvil (+34...) o tu correo electrónico.');
-        targetInput?.focus();
-        return;
+    function useQuickChipAnswer(txt) {
+      const input = document.getElementById('ai-chat-input');
+      if (input) {
+        input.value = txt;
+        sendAiResponse();
       }
+    }
 
-      otpSentTarget = rawVal;
-      sendBtn.disabled = true;
-      sendBtn.textContent = 'Enviando...';
+    function setupAiChatGreeting() {
+      const box = document.getElementById('chat-messages-container');
+      if (!box) return;
+      if (state.chatStepIndex === 0 && box.children.length === 0) {
+        const questions = getAiInterviewQuestions();
+        appendChatMessageBubble('ai', questions[0].text);
+        renderQuickReplyChips(questions[0].chips);
+      }
+    }
 
-      const isPhone = /^\+?[0-9\s-]{8,15}$/.test(rawVal);
+    function parseAndStoreAnswerByStep(stepIdx, answerText) {
+      const t = answerText.trim();
+      state.chatAnswers.push(t);
+
+      // Extraer enlaces en cualquier pregunta si el usuario pega uno
+      const urls = t.match(/https?:\/\/[^\s]+/gi) || [];
+      urls.forEach(u => {
+        if (/transfermarkt|besoccer|rfef|boxrec|fip|atp|fiba/i.test(u)) state.extracted.transfermarktUrl = u;
+        else if (/youtube|youtu\.be|vimeo|drive\.google|tiktok|instagram/i.test(u)) state.extracted.videoUrl = u;
+      });
+
+      if (stepIdx === 0) {
+        // Pregunta 1: Club
+        const cleanClub = t.replace(/^(juego en el|juego en|entreno en el|entreno en|mi club es|club)\s+/i, '').trim();
+        state.extracted.club = cleanClub.slice(0, 42);
+        document.getElementById('prev-ai-club').textContent = state.extracted.club || 'Registrado';
+      } else if (stepIdx === 1) {
+        // Pregunta 2: Ciudad Actual y Ciudad Natal
+        const bornSplit = t.split(/y nac[ií] en|natural de|ciudad natal/i);
+        if (bornSplit.length > 1) {
+          state.extracted.city = bornSplit[0].replace(/^(vivo en|resido en|estoy en)\s+/i, '').replace(/[.,]/g, '').trim();
+          state.extracted.hometown = bornSplit[1].replace(/[.,]/g, '').trim();
+        } else {
+          state.extracted.city = t.replace(/^(vivo en|resido en|soy de)\s+/i, '').replace(/[.,]/g, '').trim();
+          if (!state.extracted.hometown) state.extracted.hometown = state.extracted.city;
+        }
+        document.getElementById('prev-ai-city').textContent = state.extracted.city || 'Registrada';
+        document.getElementById('prev-ai-hometown').textContent = state.extracted.hometown || state.extracted.city;
+      } else if (stepIdx === 2) {
+        // Pregunta 3: Virtud principal y estilo
+        state.extracted.strength = t;
+      } else if (stepIdx === 3) {
+        // Pregunta 4: Punto débil a pulir en Vestuario
+        state.extracted.weakness = t;
+        document.getElementById('prev-ai-goal').textContent = t.slice(0, 28);
+      } else if (stepIdx === 4) {
+        // Pregunta 5: Días de entrenamiento y partido
+        state.extracted.schedule = t;
+      } else if (stepIdx === 5) {
+        // Pregunta 6: Salud, lesiones y sueño
+        state.extracted.injuryHistory = t;
+      } else if (stepIdx === 6) {
+        // Pregunta 7: Objetivo de la temporada
+        state.extracted.seasonGoal = t;
+        document.getElementById('prev-ai-goal').textContent = t.slice(0, 28);
+      }
+    }
+
+    // Llamada opcional a la API de IA (OpenAI / Gemini configurada en kinet-api-config.js) para generar el plan de Vestuario
+    async function callOnboardingPersonalizationAPI() {
+      const apiCfg = window.KINET_API_CONFIG || {};
+      const apiKey = apiCfg.OPENAI_API_KEY || apiCfg.GEMINI_API_KEY || localStorage.getItem('kinet_ai_api_key') || '';
+
+      const fallbackDirective = `Plan calibrado para ${state.position} en ${state.sport} (${state.category}). Foco prioritario en "${state.extracted.weakness || 'potencia elástica y velocidad de reacción'}" potenciando tu virtud (${state.extracted.strength || 'lectura táctica'}). Control de carga adaptado a: ${state.extracted.injuryHistory || '0 molestias reportadas'}.`;
+
+      const fallbackPlan = {
+        sport: state.sport,
+        position: state.position,
+        category: state.category,
+        club: state.extracted.club,
+        city: state.extracted.city,
+        hometown: state.extracted.hometown,
+        strength: state.extracted.strength || 'Explosividad y lectura táctica',
+        weakness: state.extracted.weakness || 'Resistencia específica en tramo final',
+        schedule: state.extracted.schedule || '4 sesiones/semana + Competición fin de semana',
+        injuryPrevention: state.extracted.injuryHistory || 'Sin lesiones activas • Descanso óptimo',
+        seasonGoal: state.extracted.seasonGoal || 'Rendimiento Élite en competición oficial',
+        coachDirective: fallbackDirective,
+        todayGymSession: `Gimnasio Específico (${state.sport}): Potencia Reactiva & Prevención (${state.extracted.injuryHistory ? state.extracted.injuryHistory.slice(0, 28) : 'Tren Inferior'}) (45m)`,
+        todayFieldSession: `Sesión en Pista (${state.position}): ${state.extracted.weakness ? state.extracted.weakness.slice(0, 42) : 'Finalización y Transiciones de Alta Intensidad'}`,
+        bioHeadline: `${state.position} en ${state.extracted.club || state.sport} (${state.category}) • Especialista en ${(state.extracted.strength || 'Alto Rendimiento').slice(0, 38)}`,
+        generatedAt: new Date().toISOString()
+      };
+
+      if (!apiKey) return fallbackPlan;
+
       try {
-        const sb = window.KinetBackend && window.KinetBackend.getClient ? window.KinetBackend.getClient() : null;
-        if (sb && sb.auth) {
-          if (isPhone) {
-            const cleanPhone = rawVal.replace(/\s+/g, '');
-            const formattedPhone = cleanPhone.startsWith('+') ? cleanPhone : `+34${cleanPhone}`;
-            const { error } = await sb.auth.signInWithOtp({ phone: formattedPhone });
-            if (error) throw error;
-            if (helperEl) helperEl.textContent = `✓ SMS enviado a ${formattedPhone}. Introduce los 6 dígitos.`;
-          } else {
-            const { error } = await sb.auth.signInWithOtp({ email: rawVal.toLowerCase() });
-            if (error) throw error;
-            if (helperEl) helperEl.textContent = `✓ Código enviado al correo ${rawVal}. Revisa tu bandeja de entrada.`;
-          }
-          showNotification('✓ Código de verificación de 6 dígitos enviado');
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            response_format: { type: 'json_object' },
+            messages: [
+              {
+                role: 'system',
+                content: 'Eres el Director de Rendimiento de KINET OS. Devuelve SIEMPRE un JSON con las claves: club, city, hometown, coachDirective (máx 240 caracteres en español), todayGymSession, todayFieldSession, bioHeadline.'
+              },
+              {
+                role: 'user',
+                content: JSON.stringify({
+                  sport: state.sport,
+                  position: state.position,
+                  category: state.category,
+                  height: state.altura,
+                  weight: state.peso,
+                  age: state.edad,
+                  laterality: state.laterality,
+                  answers: state.extracted
+                })
+              }
+            ]
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const parsed = JSON.parse(data.choices[0].message.content);
+          return { ...fallbackPlan, ...parsed };
+        }
+      } catch (e) {}
+      return fallbackPlan;
+    }
+
+    function sendAiResponse() {
+      const input = document.getElementById('ai-chat-input');
+      const val = (input?.value || '').trim();
+      if (!val) return;
+
+      appendChatMessageBubble('user', val);
+      input.value = '';
+
+      const questions = getAiInterviewQuestions();
+      parseAndStoreAnswerByStep(state.chatStepIndex, val);
+
+      state.chatStepIndex++;
+      state.aiCompleted = true;
+      document.getElementById('ai-incomplete-alert').classList.add('hidden');
+
+      setTimeout(() => {
+        if (state.chatStepIndex < questions.length) {
+          const nextQ = questions[state.chatStepIndex];
+          appendChatMessageBubble('ai', nextQ.text);
+          renderQuickReplyChips(nextQ.chips);
         } else {
-          throw new Error('Fallback OTP');
+          renderQuickReplyChips([]);
+          appendChatMessageBubble(
+            'ai',
+            `✅ **¡Entrevista de 7 puntos completada al 100%!** He registrado tu club (**${state.extracted.club || 'KINET'}**), tu ubicación (**${state.extracted.city || 'Lista'}**), tu perfil biomecánico y he programado las sesiones personalizadas de tu **Vestuario**. Pulsa abajo en **FINALIZAR CALIBRACIÓN & LANZAR KINET OS 🚀**.`
+          );
         }
-      } catch (err) {
-        // Respaldo inteligente para pruebas inmediatas si el proveedor SMS (Twilio) aún no tiene saldo en Supabase
-        const generatedDemoOtp = String(Math.floor(100000 + Math.random() * 900000));
-        sessionStorage.setItem('kinet_active_otp_code', generatedDemoOtp);
-        if (helperEl) {
-          helperEl.innerHTML = `✓ Código KINET generado para <strong>${rawVal}</strong>: <span class="text-kinet-neon font-bold">${generatedDemoOtp}</span>`;
-        }
-        document.getElementById('login-otp-code-input').value = generatedDemoOtp;
-        showNotification(`📲 Código KINET: ${generatedDemoOtp}`);
-      }
-
-      let sec = 45;
-      clearInterval(otpCooldownTimer);
-      otpCooldownTimer = setInterval(() => {
-        sec--;
-        if (sec <= 0) {
-          clearInterval(otpCooldownTimer);
-          sendBtn.disabled = false;
-          sendBtn.textContent = '📲 Reenviar Código';
-        } else {
-          sendBtn.textContent = `Reenviar (${sec}s)`;
-        }
-      }, 1000);
+      }, 260);
     }
 
-    function autoSuggestHandleFromName() {
-      const first = document.getElementById('reg-firstname').value.trim();
-      const last = document.getElementById('reg-lastname').value.trim();
-      const userField = document.getElementById('reg-username');
-
-      if (userField.dataset.manual === 'true' && userField.value.trim() !== '') return;
-
-      const cleanSlug = `${first}${last.split(' ')[0] || ''}`
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase().replace(/[^a-z0-9]/g, '');
-
-      if (cleanSlug.length >= 2) {
-        userField.value = cleanSlug;
-        checkUsername(userField.value);
-      }
+    function skipAiSetup() {
+      state.aiCompleted = false;
+      document.getElementById('ai-incomplete-alert').classList.remove('hidden');
+      renderQuickReplyChips([]);
+      appendChatMessageBubble(
+        'ai',
+        `⚡ Has saltado las preguntas restantes. Guardaremos las respuestas que ya hayas dado y el resto de casillas quedarán listas en **Mi Perfil** para cuando quieras rellenarlas.`
+      );
     }
 
-    function checkUsername(val) {
-      const status = document.getElementById('username-status');
-      const clean = val.replace(/^@/, '');
-      if (clean.length >= 3) {
-        status.classList.remove('hidden');
-        status.textContent = "✓ @" + clean + " está disponible";
-      } else {
-        status.classList.add('hidden');
-      }
-    }
-
-    function saveUnifiedIdentity(fullName, handleStr, emailStr, isGuest, birthDateOpt) {
-      const cleanHandle = handleStr.startsWith('@') ? handleStr : '@' + handleStr;
-      if (fullName) localStorage.setItem('kinet_user_name', fullName);
-      if (emailStr) localStorage.setItem('kinet_user_email', emailStr);
-      if (birthDateOpt) {
-        localStorage.setItem('kinet_user_birthdate', birthDateOpt);
-        localStorage.setItem('kinet_birth_date', birthDateOpt);
-      }
-      localStorage.setItem('kinet_username', cleanHandle);
-      localStorage.setItem('kinet_social_handle', cleanHandle);
-      localStorage.setItem('kinet_social_configured', 'true');
-
-      if (isGuest) {
-        localStorage.setItem('kinet_mode', 'guest');
-        localStorage.setItem('kinet_is_guest', 'true');
-        localStorage.setItem('kinet_guest_session', 'true');
-        localStorage.removeItem('kinet_logged_in');
-      } else {
-        localStorage.removeItem('kinet_is_guest');
-        localStorage.removeItem('kinet_guest_session');
-        localStorage.setItem('kinet_mode', 'pro');
-        localStorage.setItem('kinet_logged_in', 'true');
-      }
-    }
-
-    async function handleLoginSubmit(e) {
-      e.preventDefault();
-      const btn = document.getElementById('btn-submit-login');
-      const identifier = document.getElementById('login-email-input').value.trim();
-
-      // Si está en modo Código OTP por SMS o Email
-      if (currentLoginMethod === 'otp') {
-        const codeEntered = (document.getElementById('login-otp-code-input')?.value || '').trim();
-        if (!codeEntered || codeEntered.length < 4) {
-          showNotification('Introduce el código de 6 dígitos recibido.');
-          return;
-        }
-        btn.textContent = 'VERIFICANDO CÓDIGO...';
+    // Finalizar Onboarding con guardado total en Perfil + Vestuario + Animación Sorpresa Reveal
+    async function finishOnboarding() {
+      const btn = document.getElementById('btn-finish-onboarding');
+      if (btn) {
         btn.disabled = true;
-
-        try {
-          const isPhone = /^\+?[0-9\s-]{8,15}$/.test(identifier);
-          const sb = window.KinetBackend && window.KinetBackend.getClient ? window.KinetBackend.getClient() : null;
-          const localDemoOtp = sessionStorage.getItem('kinet_active_otp_code');
-
-          if (localDemoOtp && codeEntered === localDemoOtp) {
-            if (window.KinetBackend) {
-              await window.KinetBackend.loginUser({ email: identifier, password: '' });
-            }
-          } else if (sb && sb.auth) {
-            const verifyParams = isPhone
-              ? { phone: identifier.startsWith('+') ? identifier.replace(/\s+/g, '') : `+34${identifier.replace(/\s+/g, '')}`, token: codeEntered, type: 'sms' }
-              : { email: identifier.toLowerCase(), token: codeEntered, type: 'email' };
-            const { error } = await sb.auth.verifyOtp(verifyParams);
-            if (error) throw error;
-            if (window.KinetBackend) {
-              await window.KinetBackend.loginUser({ email: identifier, password: '' });
-            }
-          }
-          localStorage.removeItem('kinet_is_guest');
-          localStorage.setItem('kinet_logged_in', 'true');
-          cambiarPagina(null, getNextDestination());
-        } catch (err) {
-          showNotification('Código inválido o caducado. Solicita uno nuevo.');
-          btn.textContent = 'VERIFICAR CÓDIGO Y ENTRAR';
-          btn.disabled = false;
-        }
-        return;
+        btn.textContent = 'CALIBRANDO MOTOR BIOMÉTRICO...';
       }
 
-      // Modo Contraseña estándar
-      const password = document.getElementById('login-pass-input').value;
-      btn.textContent = 'VERIFICANDO CREDENCIALES...';
-      btn.disabled = true;
-
-      try {
-        localStorage.removeItem('kinet_is_guest');
-        if (window.KinetBackend) {
-          await window.KinetBackend.loginUser({ email: identifier, password });
-        } else {
-          const rawUser = identifier.split('@')[0] || 'atleta';
-          saveUnifiedIdentity(rawUser, '@' + rawUser, identifier, false);
-        }
-        cambiarPagina(null, getNextDestination());
-      } catch (err) {
-        showNotification('Error de acceso: ' + (err.message || 'Verifica tu correo y contraseña'));
-        btn.textContent = 'INICIAR SESIÓN';
-        btn.disabled = false;
+      state.altura = document.getElementById('slider-altura').value;
+      state.peso = document.getElementById('slider-peso').value;
+      state.edad = document.getElementById('slider-edad').value;
+      const customSportIn = document.getElementById('custom-sport-input');
+      if (customSportIn && customSportIn.value.trim()) {
+        state.position = customSportIn.value.trim();
       }
-    }
 
-    async function handleRegisterSubmit(e) {
-      e.preventDefault();
-      const btn = document.getElementById('btn-submit-register');
-      const firstName = document.getElementById('reg-firstname').value.trim();
-      const lastName = document.getElementById('reg-lastname').value.trim();
-      const handle = document.getElementById('reg-username').value.trim().replace(/^@/, '');
-      const birthDate = document.getElementById('reg-birthdate').value.trim();
-      const email = document.getElementById('reg-email').value.trim();
-      const phone = document.getElementById('reg-phone').value.trim();
-      const password = document.getElementById('reg-password').value;
+      // 1. Generar el plan personalizado de Vestuario y Cuerpo Técnico IA (con las respuestas dadas)
+      const aiPlan = await callOnboardingPersonalizationAPI();
+      localStorage.setItem('kinet_ai_personalization_plan', JSON.stringify(aiPlan));
+      localStorage.setItem('kinet_onboarding_chat_log', JSON.stringify(state.chatAnswers));
 
-      btn.textContent = 'CREANDO CUENTA EN KINET OS...';
-      btn.disabled = true;
-
-      try {
-        localStorage.removeItem('kinet_is_guest');
-        if (window.KinetBackend) {
-          await window.KinetBackend.registerUser({ firstName, lastName, handle, email, phone, password, birthDate });
-        } else {
-          saveUnifiedIdentity(`${firstName} ${lastName}`.trim(), '@' + handle, email, false, birthDate);
-        }
-        cambiarPagina(null, 'fase1.html');
-      } catch (err) {
-        showNotification('Error al crear cuenta: ' + (err.message || 'Revisa los datos'));
-        btn.textContent = 'CREAR CUENTA Y CALIBRAR PERFIL →';
-        btn.disabled = false;
+      // 2. Guardar Altura, Peso, Edad, Fecha, Posición y Lateralidad en las claves exactas de perfil.html
+      const cleanH = `${state.altura} cm`;
+      const cleanW = `${state.peso} kg`;
+      localStorage.setItem('kinet_height', cleanH);
+      localStorage.setItem('kinet_weight', cleanW);
+      localStorage.setItem('kinet_user_anthropometry', `${cleanH} • ${cleanW}`);
+      localStorage.setItem('kinet_age', String(state.edad));
+      localStorage.setItem('kinet_age_years_direct', String(state.edad));
+      if (state.birthdate) {
+        localStorage.setItem('kinet_user_birthdate', state.birthdate);
       }
-    }
+      localStorage.setItem('kinet_user_laterality', state.laterality);
+      localStorage.setItem('kinet_sport', state.sport);
+      localStorage.setItem('kinet_category', state.category);
+      localStorage.setItem('kinet_user_category', state.category);
+      localStorage.setItem('kinet_position', state.position);
 
-    // Modo Invitado 100% limpio (borra antes cualquier rastro de cuenta registrada para no mezclar nunca tus datos)
-    async function goToGuest() {
-      if (window.KinetBackend && typeof window.KinetBackend.resetAndStartCleanGuestSession === 'function') {
-        await window.KinetBackend.resetAndStartCleanGuestSession();
+      // 3. Guardar solo las respuestas del chat que el usuario haya contestado (si se lo saltó, no sobrescribe con vacíos)
+      if (state.extracted.club) localStorage.setItem('kinet_user_club', state.extracted.club);
+      if (state.extracted.city) localStorage.setItem('kinet_user_city', state.extracted.city);
+      if (state.extracted.hometown) localStorage.setItem('kinet_user_hometown', state.extracted.hometown);
+      if (state.extracted.transfermarktUrl) localStorage.setItem('kinet_user_transfermarkt', state.extracted.transfermarktUrl);
+      if (state.extracted.videoUrl) localStorage.setItem('kinet_user_videolink', state.extracted.videoUrl);
+      if (state.aiCompleted && aiPlan.bioHeadline) {
+        localStorage.setItem('kinet_social_bio', aiPlan.bioHeadline);
+      }
+
+      // 4. Actualizar diccionario multi-perfil
+      const profilesDB = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
+      profilesDB.athlete = {
+        ...(profilesDB.athlete || {}),
+        roleType: 'athlete',
+        roleName: 'Atleta Pro',
+        name: localStorage.getItem('kinet_user_name') || 'Atleta KINET',
+        sport: state.sport,
+        category: state.category,
+        position: state.position,
+        height: cleanH,
+        weight: cleanW,
+        anthropometry: `${cleanH} • ${cleanW}`,
+        laterality: state.laterality,
+        edad: state.edad,
+        birthdate: state.birthdate || localStorage.getItem('kinet_user_birthdate') || '',
+        club: state.extracted.club || localStorage.getItem('kinet_user_club') || '',
+        city: state.extracted.city || localStorage.getItem('kinet_user_city') || '',
+        hometown: state.extracted.hometown || localStorage.getItem('kinet_user_hometown') || '',
+        aiCompleted: state.aiCompleted,
+        aiPlan: aiPlan,
+        updatedAt: new Date().toISOString()
+      };
+      localStorage.setItem('kinet_profiles_db', JSON.stringify(profilesDB));
+
+      localStorage.setItem('kinet_role', 'athlete');
+      localStorage.setItem('kinet_active_role', 'athlete');
+      localStorage.setItem('kinet_profile_completed', 'true');
+
+      // Subir a Supabase si no es invitado
+      if (localStorage.getItem('kinet_is_guest') !== 'true' && window.KinetBackend && typeof window.KinetBackend.pushLocalStateToCloud === 'function') {
+        localStorage.setItem('kinet_logged_in', 'true');
+        window.KinetBackend.pushLocalStateToCloud();
+      }
+
+      // 5. Lanzar la Animación Sorpresa Reveal antes de entrar al Vestuario
+      const revealModal = document.getElementById('kinet-surprise-reveal-modal');
+      if (revealModal) {
+        document.getElementById('reveal-athlete-name').textContent = (localStorage.getItem('kinet_user_name') || 'ATLETA KINET').toUpperCase();
+        document.getElementById('reveal-athlete-sub').textContent = `${state.sport.toUpperCase()} • ${state.position.toUpperCase()}`;
+        document.getElementById('reveal-bio-stat').textContent = `${state.altura}cm • ${state.peso}kg`;
+        document.getElementById('reveal-lat-stat').textContent = state.laterality;
+        document.getElementById('reveal-cat-stat').textContent = state.extracted.club || state.category;
+        document.getElementById('reveal-ai-directive').textContent = aiPlan.coachDirective;
+
+        revealModal.classList.remove('hidden');
+        const pBar = document.getElementById('reveal-progress-bar');
+        const sTxt = document.getElementById('reveal-status-txt');
+        setTimeout(() => { if (pBar) pBar.style.width = '65%'; }, 150);
+        setTimeout(() => {
+          if (pBar) pBar.style.width = '100%';
+          if (sTxt) sTxt.textContent = '✓ PASAPORTE BIOMÉTRICO Y VESTUARIO LISTOS. ENTRANDO A KINET OS...';
+        }, 1250);
+        setTimeout(() => {
+          window.location.href = `app.html?role=athlete&sport=${encodeURIComponent(state.sport)}`;
+        }, 2350);
       } else {
-        Object.keys(localStorage).forEach(k => {
-          if (k.startsWith('kinet_') || k.startsWith('sb-')) localStorage.removeItem(k);
-        });
-      }
-      const guestId = 'invitado_' + Math.random().toString(36).substring(2, 6);
-      saveUnifiedIdentity('Atleta Invitado', '@' + guestId, '', true);
-      cambiarPagina(null, 'fase1.html?guest=true');
-    }
-
-    function openRecoveryModal() {
-      const loginEmail = document.getElementById('login-email-input')?.value || '';
-      if (loginEmail.includes('@')) {
-        document.getElementById('recovery-email-input').value = loginEmail;
-      }
-      document.getElementById('recovery-modal').classList.remove('hidden');
-    }
-
-    function closeRecoveryModal() {
-      document.getElementById('recovery-modal').classList.add('hidden');
-    }
-
-    async function handleRecoverySubmit(e) {
-      e.preventDefault();
-      const email = document.getElementById('recovery-email-input').value.trim();
-      const btn = document.getElementById('btn-submit-recovery');
-      if (!email || !email.includes('@')) {
-        showNotification('Introduce un correo electrónico válido.');
-        return;
-      }
-      btn.textContent = 'ENVIANDO ENLACE SEGURO...';
-      btn.disabled = true;
-
-      try {
-        const sb = window.KinetBackend && window.KinetBackend.getClient ? window.KinetBackend.getClient() : null;
-        if (sb && sb.auth) {
-          await sb.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.origin + '/despacho.html'
-          });
-        }
-        closeRecoveryModal();
-        showNotification(`✓ Enlace de recuperación enviado a ${email}`);
-      } catch (err) {
-        closeRecoveryModal();
-        showNotification(`✓ Si ${email} está registrado, recibirás el enlace en unos segundos.`);
-      } finally {
-        btn.textContent = 'ENVIAR ENLACE DE RECUPERACIÓN';
-        btn.disabled = false;
+        window.location.href = `app.html?role=athlete&sport=${encodeURIComponent(state.sport)}`;
       }
     }
-
-    // Abre la ventana emergente centrada de Google OAuth y también carga en el selector las cuentas de Google detectadas en KINET Cloud
-    async function launchGoogleOAuthPopup() {
-      const listEl = document.getElementById('google-detected-accounts-list');
-      if (listEl) {
-        listEl.innerHTML = `<div class="text-[11px] text-slate-400 font-mono py-2 text-center">Cargando cuentas de Google vinculadas...</div>`;
-      }
-      document.getElementById('google-modal').classList.remove('hidden');
-
-      try {
-        const sb = window.KinetBackend && window.KinetBackend.getClient ? window.KinetBackend.getClient() : null;
-        if (sb) {
-          const { data } = await sb.from('profiles').select('full_name, email, handle, avatar_url, active_role, active_sport').not('email', 'is', null).order('updated_at', { ascending: false }).limit(6);
-          if (Array.isArray(data) && data.length > 0 && listEl) {
-            listEl.innerHTML = data.map(acc => {
-              const initials = (acc.full_name || 'K').trim().slice(0, 2).toUpperCase();
-              const safeEmail = (acc.email || '').replace(/'/g, "\\'");
-              const safeName = (acc.full_name || '').replace(/'/g, "\\'");
-              return `
-                <div onclick="quickSelectGoogleAccount('${safeEmail}', '${safeName}')" class="flex items-center justify-between p-2.5 rounded-xl bg-[#12161C] hover:bg-slate-800/90 border border-slate-800 hover:border-kinet-neon cursor-pointer transition">
-                  <div class="flex items-center gap-3 min-w-0">
-                    <div class="w-9 h-9 rounded-full bg-emerald-500/20 border border-kinet-neon text-kinet-neon font-display font-bold text-xs flex items-center justify-center shrink-0 overflow-hidden" style="${acc.avatar_url ? `background-image:url('${acc.avatar_url}');background-size:cover;color:transparent;` : ''}">
-                      ${acc.avatar_url ? '' : initials}
-                    </div>
-                    <div class="min-w-0">
-                      <div class="text-xs font-bold text-white truncate">${acc.full_name}</div>
-                      <div class="text-[11px] text-slate-400 font-mono truncate">${acc.email}</div>
-                    </div>
-                  </div>
-                  <span class="text-[10px] font-mono text-kinet-neon shrink-0">Elegir →</span>
-                </div>
-              `;
-            }).join('');
-            return;
-          }
-        }
-      } catch (e) {}
-
-      if (listEl) {
-        listEl.innerHTML = '';
-      }
-    }
-
-    async function quickSelectGoogleAccount(emailStr, fullNameStr) {
-      closeGoogleSimModal();
-      showNotification(`Conectando con Google (${emailStr})...`);
-      try {
-        localStorage.removeItem('kinet_is_guest');
-        if (window.KinetBackend) {
-          await window.KinetBackend.loginUser({ email: emailStr, password: '' });
-          cambiarPagina(null, getNextDestination());
-          return;
-        }
-      } catch (e) {}
-      const prefix = emailStr.split('@')[0] || 'kinet';
-      saveUnifiedIdentity(fullNameStr || prefix, '@' + prefix, emailStr, false);
-      cambiarPagina(null, getNextDestination());
-    }
-
-    function closeGoogleSimModal() {
-      document.getElementById('google-modal').classList.add('hidden');
-    }
-
-    async function confirmGoogleLogin() {
-      const firstName = document.getElementById('google-firstname-input').value.trim();
-      const lastName = document.getElementById('google-lastname-input').value.trim();
-      const googleInput = document.getElementById('google-email-input').value.trim();
-
-      if (!googleInput || !googleInput.includes('@')) {
-        showNotification('Por favor, introduce un correo de Google válido');
-        return;
-      }
-
-      closeGoogleSimModal();
-      localStorage.removeItem('kinet_is_guest');
-
-      try {
-        if (window.KinetBackend) {
-          await window.KinetBackend.loginUser({ email: googleInput, password: '' });
-          cambiarPagina(null, getNextDestination());
-          return;
-        }
-      } catch (notFoundErr) {
-        // Si la cuenta de Gmail es nueva, registrarla automáticamente
-        const emailPrefix = googleInput.split('@')[0].replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-        const fName = firstName || emailPrefix;
-        const lName = lastName || '';
-        if (window.KinetBackend) {
-          await window.KinetBackend.registerUser({
-            firstName: fName,
-            lastName: lName,
-            handle: `@${emailPrefix}`,
-            email: googleInput,
-            phone: '',
-            password: 'google_oauth_' + Date.now()
-          });
-          cambiarPagina(null, 'fase1.html');
-          return;
-        }
-      }
-    }
-
-    function showNotification(msg) {
-      const toast = document.getElementById('toast-notification');
-      document.getElementById('toast-message').textContent = msg;
-      toast.classList.remove('hidden');
-      setTimeout(() => toast.classList.add('hidden'), 3800);
-    }
-
-    function continueWithExistingSession() {
-      cambiarPagina(null, getNextDestination());
-    }
-
-    async function clearExistingSessionHere() {
-      if (window.KinetBackend && typeof window.KinetBackend.logoutUser === 'function') {
-        await window.KinetBackend.logoutUser();
-      } else {
-        Object.keys(localStorage).forEach(k => {
-          if (k.startsWith('kinet_') || k.startsWith('sb-')) localStorage.removeItem(k);
-        });
-      }
-      document.getElementById('existing-session-banner')?.classList.add('hidden');
-      showNotification('Sesión anterior cerrada. Puedes iniciar con otra cuenta.');
-    }
-
-    // Comprobar sesión al abrir login.html SIN redirigir a la fuerza en Incógnito
-    window.addEventListener('DOMContentLoaded', () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('logout') === 'true') {
-        clearExistingSessionHere();
-        return;
-      }
-
-      const isLogged = localStorage.getItem('kinet_logged_in') === 'true' && localStorage.getItem('kinet_is_guest') !== 'true';
-      const savedName = localStorage.getItem('kinet_user_name');
-      const savedHandle = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username');
-
-      // Si ya había una sesión real abierta en este navegador, mostrar la barra superior opcional en lugar de redirigir sin permiso
-      if (isLogged && savedName && savedName !== 'NAIM T' && savedName !== 'Atleta Invitado') {
-        const banner = document.getElementById('existing-session-banner');
-        const userLbl = document.getElementById('existing-session-user');
-        if (banner && userLbl) {
-          userLbl.textContent = `${savedName} (${savedHandle || '@kinet'})`;
-          banner.classList.remove('hidden');
-        }
-      }
-    });
   </script>
 </body>
 </html>
