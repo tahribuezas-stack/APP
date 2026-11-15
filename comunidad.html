@@ -5910,30 +5910,98 @@
                 }
             }, 180);
         };
+     // =========================================================================
+        // VISOR DE PERFIL ESTILO X / TWITTER (LISTA VERTICAL HACIA ABAJO) + DOSSIER CV PROFESIONAL POR ROL + BOTÓN ⓘ
         // =========================================================================
-        // VISOR DE PERFIL DE PANTALLA COMPLETA ESTILO INSTAGRAM WEB EN COMUNIDAD.HTML
-        // =========================================================================
-        (function upgradeProfileInspectorToInstagramFullView() {
-            const igProfStyle = document.createElement('style');
-            igProfStyle.textContent = `
-                /* Ampliar el visor de perfil a una ventana panorámica tipo Instagram Web (1040px x 88vh) */
+        (function upgradeProfileInspectorToXTimelineAndProCV() {
+            const xProfStyle = document.createElement('style');
+            xProfStyle.textContent = `
                 #user-profile-inspector-modal .kinet-modal-box {
-                    max-width: 1020px !important;
+                    max-width: 960px !important;
                     width: 95vw !important;
                     max-height: 90vh !important;
-                    padding: 26px 28px !important;
+                    padding: 24px 26px !important;
                     border-radius: 26px !important;
                     background: linear-gradient(160deg, rgba(13, 18, 29, 0.99) 0%, rgba(6, 9, 16, 0.99) 100%) !important;
                     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.95), 0 0 45px rgba(var(--role-rgb), 0.22) !important;
                 }
                 #insp-tab-content-box {
-                    max-height: 52vh !important;
+                    max-height: 54vh !important;
                     min-height: 260px !important;
                     padding-right: 6px !important;
                 }
+                /* MURO VERTICAL HACIA ABAJO ESTILO X / TWITTER (COMO LAS CAPTURAS DE CARLOS ALCARAZ) */
+                .x-timeline-vertical-feed {
+                    display: flex !important;
+                    flex-direction: column !important;
+                    gap: 14px !important;
+                    max-width: 680px !important;
+                    margin: 0 auto !important;
+                    width: 100% !important;
+                }
+                .x-post-card {
+                    background: rgba(11, 15, 24, 0.94);
+                    border: 1px solid rgba(255, 255, 255, 0.09);
+                    border-radius: 18px;
+                    padding: 16px 18px;
+                    transition: border-color 0.22s ease, box-shadow 0.22s ease;
+                }
+                .x-post-card:hover {
+                    border-color: rgba(var(--role-rgb), 0.45);
+                    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+                }
+                .x-post-media-frame {
+                    margin-top: 10px;
+                    border-radius: 16px;
+                    overflow: hidden;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    background: #04060A;
+                }
+                .x-post-media-frame img {
+                    width: 100%;
+                    max-height: 440px;
+                    object-fit: cover;
+                    display: block;
+                }
+                .x-post-metrics-bar {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-top: 12px;
+                    padding-top: 10px;
+                    border-top: 1px solid rgba(255, 255, 255, 0.06);
+                    color: #94A3B8;
+                    font-family: 'Inter', sans-serif;
+                    font-size: 0.72rem;
+                }
+                .x-metric-item {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 5px;
+                    cursor: pointer;
+                    padding: 4px 8px;
+                    border-radius: 99px;
+                    transition: all 0.18s ease;
+                }
+                .x-metric-item:hover {
+                    color: var(--role-color);
+                    background: rgba(var(--role-rgb), 0.1);
+                }
+
+                /* ANIMACIÓN AL SUBIR NUEVA PUBLICACIÓN O VÍDEO */
+                @keyframes kinetNewPostGlowEnter {
+                    0% { opacity: 0; transform: translateY(-18px) scale(0.97); box-shadow: 0 0 35px var(--role-color); }
+                    60% { opacity: 1; transform: translateY(2px) scale(1.005); box-shadow: 0 0 25px var(--role-glow); }
+                    100% { opacity: 1; transform: translateY(0) scale(1); box-shadow: none; }
+                }
+                .social-post-card:first-child {
+                    animation: kinetNewPostGlowEnter 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+
+                /* DOSSIER DEPORTIVO & CV SINCRONIZADO CON PERFIL.HTML */
                 .ig-passport-badges-grid {
                     display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+                    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
                     gap: 10px;
                     margin-bottom: 12px;
                 }
@@ -5959,11 +6027,6 @@
                     color: #FFFFFF;
                     display: block;
                 }
-                .ig-posts-grid-2col {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-                    gap: 12px;
-                }
                 .ig-ext-link-pill {
                     display: inline-flex;
                     align-items: center;
@@ -5984,13 +6047,121 @@
                     color: #04060A;
                     transform: translateY(-1px);
                 }
+                .kinet-cv-exclaim-dot {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 16px;
+                    height: 16px;
+                    border-radius: 50%;
+                    background: var(--role-gradient);
+                    color: #04060A;
+                    font-weight: 900;
+                    font-size: 0.62rem;
+                    margin-left: 4px;
+                    box-shadow: 0 0 10px var(--role-glow);
+                }
+                .kinet-section-info-btn {
+                    width: 28px;
+                    height: 28px;
+                    border-radius: 50%;
+                    background: rgba(255, 255, 255, 0.04);
+                    border: 1px solid rgba(var(--role-rgb), 0.38);
+                    color: var(--role-color);
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.76rem;
+                    font-weight: 800;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    transition: all 0.22s ease;
+                }
+                .kinet-section-info-btn:hover {
+                    background: var(--role-gradient);
+                    color: #04060A;
+                    box-shadow: 0 0 14px var(--role-glow);
+                }
             `;
-            document.head.appendChild(igProfStyle);
+            document.head.appendChild(xProfStyle);
         })();
 
-        // Calcular edad desde fecha YYYY-MM-DD para mostrarla en el perfil de Comunidad
+        // Corregir el doble "+ +" en los botones de Explorar y añadir el botón discreto "i" en la barra superior
+        window.addEventListener('DOMContentLoaded', () => {
+            const exploreWordClean = isScoutOrStaffRole() ? '📡 Ojear Red' : 'Explorar';
+            ['side-discover-lbl', 'modal-discover-lbl', 'inline-discover-lbl'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = exploreWordClean;
+            });
+            const topExp = document.getElementById('topbar-explore-btn-lbl');
+            if (topExp) topExp.textContent = isScoutOrStaffRole() ? '📡 Ojear Red' : '+ Explorar';
+
+            // Inyectar botón discreto "i" en la barra superior de Comunidad
+            const topActions = document.querySelector('.topbar-actions');
+            if (topActions && !document.getElementById('comunidad-info-btn')) {
+                const infoBtn = document.createElement('button');
+                infoBtn.id = 'comunidad-info-btn';
+                infoBtn.type = 'button';
+                infoBtn.className = 'kinet-section-info-btn';
+                infoBtn.title = 'Guía de Comunidad & KINET Network™';
+                infoBtn.textContent = 'i';
+                infoBtn.onclick = openCommunityGuideModal;
+                topActions.insertBefore(infoBtn, topActions.firstChild);
+            }
+
+            // Marcar con "!" la pestaña de Información & CV si el CV está configurado
+            const cvTabBtn = document.getElementById('insp-tab-info');
+            const hasCvConfigured = Boolean(localStorage.getItem('kinet_user_club') || localStorage.getItem('kinet_user_transfermarkt') || localStorage.getItem('kinet_profile_completed') === 'true');
+            if (cvTabBtn && hasCvConfigured && !cvTabBtn.querySelector('.kinet-cv-exclaim-dot')) {
+                cvTabBtn.innerHTML = `🎴 Información & CV <span class="kinet-cv-exclaim-dot" title="Dossier & CV Verificado Activo">!</span>`;
+            }
+        });
+
+        function openCommunityGuideModal() {
+            let modal = document.getElementById('comunidad-guide-modal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'comunidad-guide-modal';
+                modal.className = 'kinet-modal-overlay';
+                modal.onclick = (e) => { if (e.target === modal) modal.classList.remove('open'); };
+                modal.innerHTML = `
+                    <div class="kinet-modal-box" style="max-width:560px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:10px;">
+                            <div>
+                                <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);">ⓘ GUÍA INTERACTIVA DE SECCIÓN // KINET OS</span>
+                                <h3 style="font-family:'Orbitron';font-size:1rem;font-weight:900;color:white;margin-top:2px;">¿Cómo funciona Comunidad & KINET Network™?</h3>
+                            </div>
+                            <button type="button" onclick="document.getElementById('comunidad-guide-modal').classList.remove('open')" style="background:none;border:none;color:white;font-size:1.2rem;cursor:pointer;">✕</button>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:10px;font-size:0.78rem;color:#CBD5E1;line-height:1.45;">
+                            <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
+                                <strong style="color:white;display:block;margin-bottom:2px;">⚡ 1. KINET Pulse (Muro de Rendimiento)</strong>
+                                Comparte tus sesiones, fotos, récords biométricos y alineaciones 3D. Puedes enviar cualquier publicación directamente al <em>Laboratorio de Vídeo</em> o a tu <em>Pizarra 3D</em>.
+                            </div>
+                            <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
+                                <strong style="color:white;display:block;margin-bottom:2px;">🎬 2. KINET Shorts 9:16 (Highlights 30 FPS)</strong>
+                                Escaparate vertical de vídeo con telemetría verificada y música sincronizada para que Scouts y clubes vean tus mejores acciones en acción.
+                            </div>
+                            <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
+                                <strong style="color:white;display:block;margin-bottom:2px;">💼 3. KINET Radar B2B & Dossier CV</strong>
+                                Al activar <em>"Abierto a Ofertas / Pruebas"</em>, tu Dossier CV (con links a Transfermarkt, BeSoccer y YouTube) queda visible para clubes y directores deportivos.
+                            </div>
+                        </div>
+                        <div style="display:flex;justify-content:flex-end;">
+                            <button type="button" class="btn-primary" onclick="document.getElementById('comunidad-guide-modal').classList.remove('open')">Entendido</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+            modal.classList.add('open');
+        }
+
         function computeInspectorAge(bdateStr) {
-            if (!bdateStr) return null;
+            if (!bdateStr) {
+                const directAge = localStorage.getItem('kinet_age') || localStorage.getItem('kinet_age_years_direct');
+                return directAge ? parseInt(directAge, 10) : null;
+            }
             const b = new Date(bdateStr);
             if (isNaN(b.getTime())) return null;
             const now = new Date();
@@ -6000,7 +6171,71 @@
             return (age >= 5 && age <= 99) ? age : null;
         }
 
-        // Enriquecer openUserProfileInspector para que cargue TODOS los datos de perfil.html (propios y de otros usuarios en Supabase)
+        // Exportar el CV / Dossier Deportivo en PDF oficial directamente desde el modal de Comunidad
+        window.downloadInspectorCvPdf = function () {
+            const p = currentInspectedPerson;
+            if (!p) return;
+            const ageVal = computeInspectorAge(p.birthdate);
+            const w = window.open('', '_blank', 'width=880,height=960');
+            if (!w) return;
+            w.document.write(`
+                <!DOCTYPE html>
+                <html lang="es">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>CV Deportivo Oficial KINET OS - ${p.shortName || p.name}</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Orbitron:wght@700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+                    <style>
+                        body { background:#06080E; color:#F8FAFC; font-family:'Inter',sans-serif; padding:36px; margin:0; }
+                        .sheet { max-width:780px; margin:0 auto; background:#0B0F19; border:2px solid #00FF88; border-radius:24px; padding:32px; }
+                        .head { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.12); padding-bottom:18px; margin-bottom:22px; }
+                        .logo { display:flex; align-items:center; gap:12px; }
+                        .logo-k { width:42px; height:42px; border-radius:12px; background:#00FF88; color:#04060A; font-family:'Orbitron'; font-weight:900; font-size:1.3rem; display:flex; align-items:center; justify-content:center; }
+                        .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px; }
+                        .cell { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-left:3px solid #00FF88; border-radius:12px; padding:12px; }
+                        .cell span { font-family:'JetBrains Mono'; font-size:0.62rem; color:#94A3B8; display:block; margin-bottom:4px; text-transform:uppercase; }
+                        .cell strong { font-size:0.88rem; color:#FFF; }
+                        @media print { body { background:#06080E; -webkit-print-color-adjust:exact; print-color-adjust:exact; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="sheet">
+                        <div class="head">
+                            <div class="logo">
+                                <div class="logo-k">K</div>
+                                <div>
+                                    <div style="font-family:'Orbitron';font-weight:900;font-size:1.1rem;letter-spacing:0.15em;">KINET OS</div>
+                                    <div style="font-family:'JetBrains Mono';font-size:0.65rem;color:#00FF88;">OFFICIAL VERIFIED SPORTS PASSPORT & CV</div>
+                                </div>
+                            </div>
+                            <div style="text-align:right;font-family:'JetBrains Mono';font-size:0.7rem;color:#94A3B8;">
+                                ID: ${p.handle}<br>${new Date().toLocaleDateString('es-ES')}
+                            </div>
+                        </div>
+                        <h1 style="font-family:'Orbitron';font-size:1.6rem;margin:0 0 4px 0;">${p.shortName || p.name}</h1>
+                        <div style="color:#00FF88;font-family:'JetBrains Mono';font-size:0.8rem;margin-bottom:10px;">${(p.sport || 'Fútbol').toUpperCase()} • ${p.position || 'PRO'} • ${p.club || 'KINET Performance'}</div>
+                        <p style="font-size:0.86rem;color:#CBD5E1;line-height:1.5;">${p.headline || 'Perfil Deportivo Verificado en KINET OS.'}</p>
+                        <div class="grid">
+                            <div class="cell"><span>DEMARCACIÓN / CARGO</span><strong>${p.position || 'PRO'}</strong></div>
+                            <div class="cell"><span>CLUB / ENTIDAD</span><strong>${p.club || 'KINET Performance'}</strong></div>
+                            <div class="cell"><span>CATEGORÍA / NIVEL</span><strong>${p.category || p.sport || 'Senior'}</strong></div>
+                            <div class="cell"><span>CIUDAD ACTUAL</span><strong>${p.city || 'Registrada'}</strong></div>
+                            <div class="cell"><span>CIUDAD NATAL</span><strong>${p.hometown || p.city || 'Registrada'}</strong></div>
+                            <div class="cell"><span>EDAD</span><strong>${ageVal ? ageVal + ' años' : 'Senior'}</strong></div>
+                            <div class="cell"><span>BIOMETRÍA</span><strong>${p.anthropometry || 'Calibrada'}</strong></div>
+                            <div class="cell"><span>DOMINANCIA / ÁREA</span><strong>${p.laterality || 'Diestro'}</strong></div>
+                            <div class="cell"><span>ESTADO DE MERCADO</span><strong>${p.marketOpen !== false ? 'Abierto a Ofertas' : 'Contrato Cerrado'}</strong></div>
+                        </div>
+                        ${p.transfermarktUrl ? `<div style="margin-top:16px;font-family:'JetBrains Mono';font-size:0.74rem;color:#00FF88;">🔗 Ficha Oficial (Transfermarkt/BeSoccer): ${p.transfermarktUrl}</div>` : ''}
+                        ${p.videoUrl ? `<div style="margin-top:6px;font-family:'JetBrains Mono';font-size:0.74rem;color:#38BDF8;">🎬 Highlight Vídeo Oficial: ${p.videoUrl}</div>` : ''}
+                    </div>
+                    <script>setTimeout(() => window.print(), 400);<\/script>
+                </body>
+                </html>
+            `);
+            w.document.close();
+        };
+
         const _baseOpenInspector = window.openUserProfileInspector;
         window.openUserProfileInspector = function (handle, fallbackName, fallbackInitials) {
             _baseOpenInspector(handle, fallbackName, fallbackInitials);
@@ -6008,21 +6243,24 @@
 
             const isMe = isMyOwnPostOrHandle(currentInspectedPerson.handle, currentInspectedPerson.shortName);
             if (isMe) {
-                currentInspectedPerson.birthdate = localStorage.getItem('kinet_user_birthdate') || '';
+                const hCm = localStorage.getItem('kinet_height') || '';
+                const wKg = localStorage.getItem('kinet_weight') || '';
+                const combinedBio = (hCm && wKg) ? `${hCm} • ${wKg}` : (localStorage.getItem('kinet_user_anthropometry') || '');
+
+                currentInspectedPerson.birthdate = localStorage.getItem('kinet_user_birthdate') || localStorage.getItem('kinet_birth_date') || '';
                 currentInspectedPerson.city = localStorage.getItem('kinet_user_city') || localStorage.getItem('kinet_city') || '';
                 currentInspectedPerson.hometown = localStorage.getItem('kinet_user_hometown') || '';
                 currentInspectedPerson.club = localStorage.getItem('kinet_user_club') || 'KINET Performance';
                 currentInspectedPerson.category = localStorage.getItem('kinet_user_category') || localStorage.getItem('kinet_category') || '';
                 currentInspectedPerson.position = localStorage.getItem('kinet_position') || 'PRO';
-                currentInspectedPerson.anthropometry = localStorage.getItem('kinet_user_anthropometry') || '';
-                currentInspectedPerson.laterality = localStorage.getItem('kinet_user_laterality') || '';
+                currentInspectedPerson.anthropometry = combinedBio;
+                currentInspectedPerson.laterality = localStorage.getItem('kinet_user_laterality') || 'Diestro';
                 currentInspectedPerson.transfermarktUrl = localStorage.getItem('kinet_user_transfermarkt') || '';
                 currentInspectedPerson.videoUrl = localStorage.getItem('kinet_user_videolink') || '';
             }
             renderUserProfileInspectorContent();
         };
 
-        // Sobrescribir el contenido de las pestañas del Visor de Perfil para mostrar el Pasaporte Deportivo Completo estilo Instagram
         const _prevRenderInspContent = window.renderUserProfileInspectorContent;
         window.renderUserProfileInspectorContent = function () {
             _prevRenderInspContent();
@@ -6032,8 +6270,11 @@
             const isMe = isMyOwnPostOrHandle(p.handle, p.shortName);
             const following = isFollowingHandle(p.handle);
             const ageVal = computeInspectorAge(p.birthdate);
+            const avatarUrl = getAvatarForHandle(p.handle, p.avatarUrl, p.shortName);
+            const borderCol = p.role === 'staff' ? '#F59E0B' : (p.role === 'scout' ? '#38BDF8' : 'var(--role-color)');
+            const avStyle = buildAvatarStyle(avatarUrl, borderCol);
 
-            // Añadir píldoras rápidas debajo de la bio en la cabecera del modal (Ciudad, Club, Categoría, Edad y Enlaces Oficiales)
+            // Cabecera con píldoras limpias y botones de enlaces oficiales (Transfermarkt / YouTube)
             const bioEl = document.getElementById('insp-bio');
             if (bioEl) {
                 const quickTags = [];
@@ -6051,10 +6292,7 @@
                 }
                 if (p.videoUrl) {
                     const safeVid = /^https?:\/\//i.test(p.videoUrl) ? p.videoUrl : `https://${p.videoUrl}`;
-                    linksRow.push(`<a href="${safeVid}" target="_blank" rel="noopener" class="ig-ext-link-pill" style="border-color:#38BDF8;color:#38BDF8;">🎬 Ver Highlight Reel ▶</a>`);
-                }
-                if (isMe) {
-                    linksRow.push(`<a href="perfil.html" class="ig-ext-link-pill">✏️ Editar Mi Pasaporte Completo</a>`);
+                    linksRow.push(`<a href="${safeVid}" target="_blank" rel="noopener" class="ig-ext-link-pill" style="border-color:#38BDF8;color:#38BDF8;">🎬 Highlight Vídeo (YouTube) ▶</a>`);
                 }
 
                 bioEl.innerHTML = `
@@ -6069,56 +6307,148 @@
             const contentBox = document.getElementById('insp-tab-content-box');
             if (!contentBox || (p.isPrivate && !following && !isMe)) return;
 
-            // En la pestaña "🎴 Información & CV", mostrar los 9 bloques completos del Pasaporte Deportivo recogidos en Onboarding / Perfil
-            if (activeInspectorTab === 'info') {
+            const deletedMap = getDeletedPostIdsMap();
+            const userPosts = allSocialPosts.filter(post => {
+                if (deletedMap[post.id]) return false;
+                if (isMe) return isMyOwnPostOrHandle(post);
+                return cleanHandleNormalized(post.handle) === cleanHandleNormalized(p.handle);
+            });
+
+            // 1. PESTAÑA PUBLICACIONES: MURO VERTICAL HACIA ABAJO ESTILO X / TWITTER (COMO LAS CAPTURAS DE CARLOS ALCARAZ)
+            if (activeInspectorTab === 'posts') {
+                contentBox.className = 'x-timeline-vertical-feed';
+                if (userPosts.length === 0) {
+                    contentBox.innerHTML = `<div style="text-align:center;padding:28px;color:var(--text-secondary);font-size:0.78rem;">Aún no hay publicaciones en el timeline de este perfil.</div>`;
+                } else {
+                    contentBox.innerHTML = userPosts.map(up => {
+                        const att = extractPostMediaAttachment(up);
+                        const imgHtml = (att && att.type === 'image')
+                            ? `<div class="x-post-media-frame"><img src="${att.url}" alt="Post media"></div>`
+                            : '';
+                        const viewsNum = Math.max(120, (up.likes || 1) * 48 + 140);
+                        return `
+                            <article class="x-post-card">
+                                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px;">
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <div class="post-avatar" style="width:40px;height:40px;border-radius:50%;${avStyle}">
+                                            ${getAvatarInnerText(avatarUrl, p.initials, p.shortName)}
+                                        </div>
+                                        <div>
+                                            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                                                <strong style="font-size:0.86rem;color:#FFF;">${p.shortName || p.name}</strong>
+                                                <span class="kinet-verified-check">✓</span>
+                                                <span style="font-family:'JetBrains Mono';font-size:0.66rem;color:#94A3B8;">${p.handle} · ${up.time || 'Hoy'}</span>
+                                            </div>
+                                            <div style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);margin-top:1px;">
+                                                ${up.badge || 'KINET PULSE'} • ${up.sport || p.sport || 'Fútbol'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    ${isMe ? `
+                                        <div style="display:flex;gap:5px;">
+                                            <button type="button" class="social-action-btn" style="padding:3px 8px;font-size:0.58rem;" onclick="closeUserProfileInspector(); openEditOwnPostModal('${up.id}', event)">✏️ Editar</button>
+                                            <button type="button" class="social-action-btn" style="padding:3px 8px;font-size:0.58rem;color:#FCA5A5;border-color:#EF4444;" onclick="deleteOwnPost('${up.id}', event)">🗑️</button>
+                                        </div>
+                                    ` : ''}
+                                </div>
+
+                                <div style="font-size:0.84rem;color:#F1F5F9;line-height:1.52;white-space:pre-line;">${up.text}</div>
+                                ${imgHtml}
+
+                                <div class="x-post-metrics-bar">
+                                    <span class="x-metric-item" onclick="openDmFromInspector()">💬 Responder</span>
+                                    <span class="x-metric-item" onclick="toggleLikePost('${up.id}', null); renderUserProfileInspectorContent();">🔥 ${up.likes || 0} Respetos</span>
+                                    <span class="x-metric-item">📊 ${viewsNum} Alcance</span>
+                                    <span class="x-metric-item" onclick="sendCommunityAthleteToVisionLab('${(p.shortName || p.name).replace(/'/g, "\\'")}', '${p.handle}', '${p.sport || 'Fútbol'}', '${(up.text || '').slice(0,50).replace(/'/g, "\\'")}', event)">🔬 Auditar Clip</span>
+                                </div>
+                            </article>
+                        `;
+                    }).join('');
+                }
+            } else if (activeInspectorTab === 'info') {
+                // 2. PESTAÑA INFORMACIÓN & CV: PERSONALIZADA SEGÚN ROL (ATLETA / ENTRENADOR-FISIO / SCOUT) + ENLACES + DESCARGA PDF + CONFIGURAR EN MI PERFIL
+                contentBox.className = '';
+                const roleType = (p.role || 'athlete').toLowerCase();
+                const profilesDB = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
+                const staffData = profilesDB.staff || {};
+                const scoutData = profilesDB.scout || {};
+
+                let roleSpecificCellsHtml = '';
+                if (roleType === 'staff') {
+                    roleSpecificCellsHtml = `
+                        <div class="ig-passport-cell"><span>🧠 CARGO EN CUERPO TÉCNICO</span><strong style="color:var(--role-color);">${p.position || staffData.roleName || 'Entrenador / Staff'}</strong></div>
+                        <div class="ig-passport-cell"><span>🏟️ CLUB / EQUIPO ACTUAL</span><strong>${p.club || 'KINET Performance'}</strong></div>
+                        <div class="ig-passport-cell"><span>🏆 CATEGORÍA QUE DIRIGE</span><strong>${p.category || staffData.category || 'Senior'}</strong></div>
+                        <div class="ig-passport-cell"><span>👥 TAMAÑO DE PLANTILLA</span><strong>${(staffData.squadSize || 22) + ' Deportistas'}</strong></div>
+                        <div class="ig-passport-cell"><span>📐 ENFOQUE / ESPECIALIDAD</span><strong>${staffData.style || 'Metodología de Alto Rendimiento'}</strong></div>
+                        <div class="ig-passport-cell"><span>📍 CIUDAD OPERATIVA</span><strong>${p.city || 'Confirmada en Perfil'}</strong></div>
+                    `;
+                } else if (roleType === 'scout') {
+                    roleSpecificCellsHtml = `
+                        <div class="ig-passport-cell"><span>📡 CARGO EN SCOUTING B2B</span><strong style="color:var(--role-color);">${p.position || scoutData.roleName || 'Director Deportivo / Scout'}</strong></div>
+                        <div class="ig-passport-cell"><span>🏟️ ENTIDAD / AGENCIA</span><strong>${p.club || 'KINET Scouting Network'}</strong></div>
+                        <div class="ig-passport-cell"><span>🏆 MERCADO QUE MONITORIZA</span><strong>${p.category || scoutData.category || 'Nacional & Internacional'}</strong></div>
+                        <div class="ig-passport-cell"><span>📊 CORTE MÍNIMO GRL</span><strong>${scoutData.minGrl || '78.0 GRL'}</strong></div>
+                        <div class="ig-passport-cell"><span>💰 LÍMITE OPERATIVO</span><strong>${scoutData.budget || '50 k €'}</strong></div>
+                        <div class="ig-passport-cell"><span>📍 SEDE OPERATIVA</span><strong>${p.city || 'Confirmada en Perfil'}</strong></div>
+                    `;
+                } else {
+                    roleSpecificCellsHtml = `
+                        <div class="ig-passport-cell"><span>🎯 DEMARCACIÓN / ESPECIALIDAD</span><strong style="color:var(--role-color);">${p.position || 'Delantero Centro (DC)'}</strong></div>
+                        <div class="ig-passport-cell"><span>🏟️ CLUB / EQUIPO ACTUAL</span><strong>${p.club || 'KINET Performance'}</strong></div>
+                        <div class="ig-passport-cell"><span>🏆 CATEGORÍA / DIVISIÓN</span><strong>${p.category || p.sport || 'Senior'}</strong></div>
+                        <div class="ig-passport-cell"><span>📍 CIUDAD DE RESIDENCIA</span><strong>${p.city || 'Confirmar en Mi Perfil'}</strong></div>
+                        <div class="ig-passport-cell"><span>🏠 CIUDAD NATAL / ORIGEN</span><strong>${p.hometown || p.city || 'Confirmar en Mi Perfil'}</strong></div>
+                        <div class="ig-passport-cell"><span>📅 EDAD / NACIMIENTO</span><strong>${ageVal ? ageVal + ' años' : 'Confirmar en Mi Perfil'}</strong></div>
+                        <div class="ig-passport-cell"><span>📏 ALTURA (CM) & PESO (KG)</span><strong>${p.anthropometry || 'Calibrar en Mi Perfil'}</strong></div>
+                        <div class="ig-passport-cell"><span>⚡ DOMINANCIA (DIESTRO / ZURDO)</span><strong>${p.laterality || 'Diestro'}</strong></div>
+                        <div class="ig-passport-cell"><span>📡 ESTADO EN RADAR SCOUT B2B</span><strong style="color:#00FF88;">${p.marketOpen !== false ? '🟢 Abierto a Ofertas / Pruebas' : '🔒 Contrato Cerrado'}</strong></div>
+                    `;
+                }
+
                 contentBox.innerHTML = `
+                    <!-- BARRA SUPERIOR EJECUTIVA DEL DOSSIER CV -->
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;background:rgba(var(--role-rgb),0.08);border:1px solid rgba(var(--role-rgb),0.35);border-radius:14px;padding:12px 14px;margin-bottom:12px;">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <span class="kinet-cv-exclaim-dot">!</span>
+                            <div>
+                                <div style="font-family:'Orbitron';font-size:0.76rem;font-weight:900;color:#FFF;">PASAPORTE DEPORTIVO & DOSSIER CV VERIFICADO</div>
+                                <div style="font-size:0.68rem;color:#CBD5E1;">Sincronizado en tiempo real con Mi Perfil y el Radar de Clubes B2B.</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            ${isMe ? `<a href="perfil.html" class="btn-secondary" style="padding:7px 12px;font-size:0.66rem;border-color:var(--role-color);color:var(--role-color);">⚙️ Configurar / Completar CV en Mi Perfil</a>` : ''}
+                            <button type="button" class="btn-primary" style="padding:7px 14px;font-size:0.66rem;" onclick="downloadInspectorCvPdf()">📄 Descargar CV Oficial PDF</button>
+                        </div>
+                    </div>
+
                     <div class="ig-passport-badges-grid">
-                        <div class="ig-passport-cell">
-                            <span>🎯 DEMARCACIÓN / ESPECIALIDAD</span>
-                            <strong style="color:var(--role-color);">${p.position || 'PRO'}</strong>
+                        ${roleSpecificCellsHtml}
+                    </div>
+
+                    <!-- ENLACES OFICIALES (TRANSFERMARKT / BESOCCER & YOUTUBE HIGHLIGHT REEL) -->
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;">
+                        <div style="background:rgba(255,255,255,0.025);border:1px solid var(--border-subtle);border-radius:12px;padding:11px 13px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+                            <div style="min-width:0;">
+                                <span style="font-family:'JetBrains Mono';font-size:0.56rem;color:var(--text-secondary);display:block;">🔗 PERFIL OFICIAL TRANSFERMARKT / BESOCCER / FED.</span>
+                                <strong style="font-size:0.76rem;color:#FFF;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.transfermarktUrl || 'No vinculado todavía'}</strong>
+                            </div>
+                            ${p.transfermarktUrl
+                                ? `<a href="${/^https?:\/\//i.test(p.transfermarktUrl) ? p.transfermarktUrl : 'https://' + p.transfermarktUrl}" target="_blank" class="btn-secondary" style="padding:5px 10px;font-size:0.62rem;">Abrir ↗</a>`
+                                : (isMe ? `<a href="perfil.html" class="btn-secondary" style="padding:5px 10px;font-size:0.62rem;">+ Añadir</a>` : '')}
                         </div>
-                        <div class="ig-passport-cell">
-                            <span>🏟️ CLUB / EQUIPO ACTUAL</span>
-                            <strong>${p.club || 'KINET Performance'}</strong>
-                        </div>
-                        <div class="ig-passport-cell">
-                            <span>🏆 CATEGORÍA / DIVISIÓN / GRUPO</span>
-                            <strong>${p.category || p.sport || 'Élite'}</strong>
-                        </div>
-                        <div class="ig-passport-cell">
-                            <span>📍 CIUDAD DE RESIDENCIA</span>
-                            <strong>${p.city || 'No especificada'}</strong>
-                        </div>
-                        <div class="ig-passport-cell">
-                            <span>🏠 CIUDAD NATAL / ORIGEN</span>
-                            <strong>${p.hometown || 'No especificada'}</strong>
-                        </div>
-                        <div class="ig-passport-cell">
-                            <span>📅 EDAD / FECHA NACIMIENTO</span>
-                            <strong>${ageVal ? ageVal + ' años (' + p.birthdate + ')' : (p.birthdate || 'No especificada')}</strong>
-                        </div>
-                        <div class="ig-passport-cell">
-                            <span>📏 ALTURA & PESO</span>
-                            <strong>${p.anthropometry || 'No especificado'}</strong>
-                        </div>
-                        <div class="ig-passport-cell">
-                            <span>⚡ PIERNA HÁBIL / MANO / GUARDIA</span>
-                            <strong>${p.laterality || 'No especificado'}</strong>
-                        </div>
-                        <div class="ig-passport-cell">
-                            <span>📡 ESTADO EN RADAR SCOUT B2B</span>
-                            <strong style="color:#00FF88;">${p.marketOpen !== false ? '🟢 Abierto a Ofertas / Pruebas' : '🔒 Contrato Cerrado'}</strong>
+
+                        <div style="background:rgba(255,255,255,0.025);border:1px solid var(--border-subtle);border-radius:12px;padding:11px 13px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+                            <div style="min-width:0;">
+                                <span style="font-family:'JetBrains Mono';font-size:0.56rem;color:var(--text-secondary);display:block;">🎬 LINK HIGHLIGHT VÍDEO (YOUTUBE / DRIVE / REEL)</span>
+                                <strong style="font-size:0.76rem;color:#FFF;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.videoUrl || 'No vinculado todavía'}</strong>
+                            </div>
+                            ${p.videoUrl
+                                ? `<a href="${/^https?:\/\//i.test(p.videoUrl) ? p.videoUrl : 'https://' + p.videoUrl}" target="_blank" class="btn-secondary" style="padding:5px 10px;font-size:0.62rem;">Ver Vídeo ▶</a>`
+                                : (isMe ? `<a href="perfil.html" class="btn-secondary" style="padding:5px 10px;font-size:0.62rem;">+ Añadir</a>` : '')}
                         </div>
                     </div>
                 `;
-            } else if (activeInspectorTab === 'posts') {
-                // Organizar las publicaciones en cuadrícula panorámica de 2 columnas para aprovechar la ventana grande
-                const childrenCount = contentBox.children.length;
-                if (childrenCount > 1) {
-                    contentBox.className = 'ig-posts-grid-2col';
-                } else {
-                    contentBox.className = '';
-                }
             } else {
                 contentBox.className = '';
             }
