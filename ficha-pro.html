@@ -9,9 +9,9 @@
     <!-- Favicon Corporativo Dinámico por JavaScript -->
     <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
 
-    <!-- PRE-CARGA SÍNCRONA DEL COLOR ELEGIDO EN DESPACHO (0ms, EVITA MICRO-PESTAÑEO AL CAMBIAR DE SECCIÓN) -->
+    <!-- BLOQUEO SÍNCRONO 0ms CONTRA EL MICRO-PESTAÑEO DE COLOR (SOBRESCRIBE INCLUSO body[data-role]) -->
     <script>
-        (function applyZeroFlashAccentBeforePaint() {
+        (function applyZeroFlashStyleRule() {
             try {
                 var savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
                 var rainbowOn = localStorage.getItem('kinet_rainbow_mode') === 'true';
@@ -20,11 +20,15 @@
                     var num = parseInt(clean, 16);
                     if (!isNaN(num)) {
                         var r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
-                        var root = document.documentElement;
-                        root.style.setProperty('--role-color', savedAccent);
-                        root.style.setProperty('--role-rgb', r + ', ' + g + ', ' + b);
-                        root.style.setProperty('--role-glow', 'rgba(' + r + ', ' + g + ', ' + b + ', 0.42)');
-                        root.style.setProperty('--role-gradient', 'linear-gradient(135deg, ' + savedAccent + ' 0%, rgba(' + r + ',' + g + ',' + b + ',0.75) 100%)');
+                        var st = document.createElement('style');
+                        st.id = 'kinet-zero-flash-override';
+                        st.textContent = ':root, html, body, body[data-role="athlete"], body[data-role="staff"], body[data-role="scout"] {' +
+                            '--role-color: ' + savedAccent + ' !important;' +
+                            '--role-rgb: ' + r + ', ' + g + ', ' + b + ' !important;' +
+                            '--role-glow: rgba(' + r + ', ' + g + ', ' + b + ', 0.42) !important;' +
+                            '--role-gradient: linear-gradient(135deg, ' + savedAccent + ' 0%, rgba(' + r + ',' + g + ',' + b + ',0.75) 100%) !important;' +
+                        '}';
+                        document.head.appendChild(st);
                     }
                 }
             } catch (e) {}
@@ -494,7 +498,7 @@
         .bar-fill { height: 100%; background: var(--role-gradient); border-radius: 99px; box-shadow: 0 0 12px var(--role-glow); transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
 
         /* =====================================================================
-           KINET CARD 3D + GIRO 360° ANIMADO + CADENAS TRANSLÚCIDAS Y CANDADO CENTRAL
+           KINET CARD 3D + GIRO 360° ANIMADO + CADENAS DE ESLABONES REALES Y CANDADO TRANSLÚCIDO SIN RECUADRO
            ===================================================================== */
         .card-3d-stage {
             perspective: 1300px;
@@ -514,7 +518,6 @@
             animation: kinetCard3DFlipMorph 0.68s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
         }
 
-        /* Redimensión suave de la caja de aviso IA al cambiar entre Modo IA y Modo Custom */
         #ai-locked-notice-box {
             overflow: hidden;
             transition: max-height 0.42s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.32s ease, margin-bottom 0.38s ease, padding 0.38s ease;
@@ -550,7 +553,7 @@
             overflow: hidden;
         }
 
-        /* CAPA DE CADENAS TRANSLÚCIDAS DE ESQUINA A ESQUINA + CANDADO CENTRAL QUE SE ILUMINA Y AGRANDA */
+        /* CAPA DE CADENAS DE ESLABONES REALES TRANSLÚCIDAS + CANDADO CENTRAL PURO (SIN RECUADRO) */
         .kinet-card-chains-overlay {
             position: absolute;
             inset: 0;
@@ -561,50 +564,50 @@
             justify-content: center;
             opacity: 0;
             transition: opacity 0.32s ease;
-            background: radial-gradient(circle at 50% 50%, rgba(4, 6, 12, 0.32) 0%, rgba(4, 6, 12, 0.08) 75%);
         }
         .kinet-athlete-card.chains-locked .kinet-card-chains-overlay {
             opacity: 1;
         }
         .kinet-chains-svg {
             position: absolute;
-            inset: -6%;
-            width: 112%;
-            height: 112%;
-            opacity: 0.42;
-            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.85));
+            inset: -8%;
+            width: 116%;
+            height: 116%;
+            opacity: 0.38;
+            filter: drop-shadow(0 3px 8px rgba(0,0,0,0.8));
             transition: opacity 0.28s ease, filter 0.28s ease;
         }
+
+        /* CANDADO PURO TRANSLÚCIDO EN EL CENTRO (SIN CAJA NI BORDE EXTERIOR) */
         .kinet-center-padlock-btn {
             pointer-events: auto;
             position: relative;
             z-index: 30;
-            width: 64px;
-            height: 64px;
-            border-radius: 20px;
-            background: rgba(8, 12, 20, 0.62);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 2px solid rgba(var(--role-rgb), 0.72);
-            color: var(--role-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 2px;
+            background: transparent !important;
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+            padding: 8px;
             cursor: pointer;
-            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.75), 0 0 20px rgba(var(--role-rgb), 0.32), inset 0 0 14px rgba(var(--role-rgb), 0.18);
-            transition: transform 0.26s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.26s ease, background 0.26s ease, border-color 0.26s ease;
+            color: var(--role-color);
+            opacity: 0.68;
+            filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 14px rgba(var(--role-rgb), 0.45));
+            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.26s ease, filter 0.28s ease;
+        }
+        .kinet-center-padlock-btn svg {
+            width: 56px;
+            height: 56px;
+            display: block;
+            overflow: visible;
         }
         .kinet-center-padlock-btn:hover {
-            transform: scale(1.22) translateY(-2px);
-            background: rgba(var(--role-rgb), 0.26);
-            border-color: #FFFFFF;
-            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.9), 0 0 38px var(--role-color), inset 0 0 22px rgba(var(--role-rgb), 0.45);
+            transform: scale(1.26);
+            opacity: 0.98;
+            filter: drop-shadow(0 0 22px var(--role-color)) drop-shadow(0 0 36px rgba(var(--role-rgb), 0.85));
         }
         .kinet-center-padlock-btn:hover ~ .kinet-chains-svg {
-            opacity: 0.68;
-            filter: drop-shadow(0 0 10px var(--role-color));
+            opacity: 0.62;
+            filter: drop-shadow(0 0 12px var(--role-color));
         }
 
         .kinet-athlete-card.mystery-locked {
@@ -1200,27 +1203,44 @@
                             </div>
 
                             <div class="card-3d-stage">
-                                <!-- TARJETA GAMIFICADA CON CADENAS TRANSLÚCIDAS Y CANDADO CENTRAL -->
-                                <div class="kinet-athlete-card mystery-locked chains-locked" id="kinet-3d-card" data-rarity="holo">
+                                <!-- TARJETA GAMIFICADA -->
+                                <div class="kinet-athlete-card mystery-locked" id="kinet-3d-card" data-rarity="holo">
                                     
-                                    <!-- OVERLAY TRANSLÚCIDO DE CADENAS DE ESQUINA A ESQUINA + CANDADO CENTRAL INTERACTIVO -->
+                                    <!-- OVERLAY TRANSLÚCIDO CON CADENAS DE ESLABONES REALES (ESTILO IMAGEN 2) + CANDADO PURO SIN RECUADRO -->
                                     <div class="kinet-card-chains-overlay" id="card-chains-overlay">
-                                        <button type="button" class="kinet-center-padlock-btn" onclick="handleCenterPadlockClick(event)" title="Desbloquear KINET Card Verificada / Edición Oro 24K">
-                                            <span style="font-size:1.35rem;line-height:1;">🔒</span>
-                                            <span style="font-family:'Orbitron';font-size:0.46rem;font-weight:900;letter-spacing:0.08em;">PRO IA</span>
+                                        <button type="button" class="kinet-center-padlock-btn" onclick="handleCenterPadlockClick(event)" title="Desbloquear con KINET PRO">
+                                            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <!-- Arco superior del candado -->
+                                                <path d="M20 28V19C20 12.3726 25.3726 7 32 7C38.6274 7 44 12.3726 44 19V28" stroke="currentColor" stroke-width="5.2" stroke-linecap="round"/>
+                                                <!-- Cuerpo del candado translúcido sin caja exterior -->
+                                                <rect x="13" y="28" width="38" height="29" rx="8" fill="currentColor" fill-opacity="0.22" stroke="currentColor" stroke-width="4.2"/>
+                                                <!-- Ojo de la cerradura -->
+                                                <circle cx="32" cy="40" r="3.6" fill="#FFFFFF"/>
+                                                <path d="M32 43.5V49.5" stroke="#FFFFFF" stroke-width="3.4" stroke-linecap="round"/>
+                                            </svg>
                                         </button>
-                                        <svg class="kinet-chains-svg" viewBox="0 0 320 460" preserveAspectRatio="none">
+
+                                        <svg class="kinet-chains-svg" viewBox="0 0 400 520" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
                                             <defs>
-                                                <pattern id="kinetChainLink" width="22" height="12" patternUnits="userSpaceOnUse">
-                                                    <rect x="1" y="2" width="14" height="8" rx="4" fill="none" stroke="currentColor" stroke-width="2.4"/>
-                                                    <line x1="12" y1="6" x2="22" y2="6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+                                                <!-- Eslabón ovalado de frente + barra conectora de perfil (idéntico al vector de referencia) -->
+                                                <pattern id="realChainPattern" width="68" height="36" patternUnits="userSpaceOnUse">
+                                                    <!-- Sombra interior y anillo del eslabón abierto -->
+                                                    <rect x="4" y="5" width="40" height="26" rx="13" fill="none" stroke="rgba(255,255,255,0.68)" stroke-width="6.5"/>
+                                                    <rect x="4" y="5" width="40" height="26" rx="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-opacity="0.85"/>
+                                                    <!-- Eslabón de perfil que une un anillo con el siguiente -->
+                                                    <rect x="34" y="13.5" width="38" height="9" rx="4.5" fill="rgba(226,232,240,0.82)" stroke="rgba(15,23,42,0.85)" stroke-width="2"/>
+                                                    <line x1="38" y1="16.5" x2="68" y2="16.5" stroke="currentColor" stroke-width="1.8" stroke-opacity="0.9" stroke-linecap="round"/>
                                                 </pattern>
                                             </defs>
                                             <g style="color: var(--role-color);">
-                                                <line x1="-20" y1="-20" x2="340" y2="480" stroke="url(#kinetChainLink)" stroke-width="14" stroke-dasharray="16 6" />
-                                                <line x1="-20" y1="-20" x2="340" y2="480" stroke="currentColor" stroke-width="3" stroke-dasharray="10 8" opacity="0.75" />
-                                                <line x1="340" y1="-20" x2="-20" y2="480" stroke="url(#kinetChainLink)" stroke-width="14" stroke-dasharray="16 6" />
-                                                <line x1="340" y1="-20" x2="-20" y2="480" stroke="currentColor" stroke-width="3" stroke-dasharray="10 8" opacity="0.75" />
+                                                <!-- Cadena diagonal 1 (Arriba-Izquierda a Abajo-Derecha) -->
+                                                <g transform="translate(200, 260) rotate(52.4)">
+                                                    <rect x="-360" y="-18" width="720" height="36" fill="url(#realChainPattern)"/>
+                                                </g>
+                                                <!-- Cadena diagonal 2 (Arriba-Derecha a Abajo-Izquierda) -->
+                                                <g transform="translate(200, 260) rotate(-52.4)">
+                                                    <rect x="-360" y="-18" width="720" height="36" fill="url(#realChainPattern)"/>
+                                                </g>
                                             </g>
                                         </svg>
                                     </div>
@@ -1502,7 +1522,7 @@
     </div>
 
     <!-- =========================================================================
-         MODAL KINET 2: AVISO PRO CON BOTÓN "USAR MODO CUSTOM MANUAL" 100% FUNCIONAL Y PRECIOS ACTUALIZADOS
+         MODAL KINET 2: AVISO PRO CON BOTÓN "USAR MODO CUSTOM MANUAL" 100% FUNCIONAL
          ========================================================================= -->
     <div id="pro-card-modal" class="kinet-modal-overlay" onclick="if(event.target===this)closeProCardModal()">
         <div class="kinet-modal-box">
@@ -1535,7 +1555,7 @@
             <div style="display:flex;flex-direction:column;gap:10px;font-size:0.78rem;color:#CBD5E1;line-height:1.45;">
                 <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
                     <strong style="color:white;display:block;margin-bottom:2px;">🔒 1. Modo KINET AI Verified (Oro 24K & Holo Élite)</strong>
-                    Tus 6 estadísticas permanecen ocultas (<strong>??</strong>) y protegidas con cadenas hasta que subes los 3 micro-clips de tu posición (~1.5 min). Así los Scouts saben que tu media es 100% real.
+                    Tus 6 estadísticas permanecen ocultas (<strong>??</strong>) hasta que subes los 3 micro-clips de tu posición (~1.5 min). Así los Scouts saben que tu media es 100% real.
                 </div>
                 <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
                     <strong style="color:white;display:block;margin-bottom:2px;">⚙️ 2. Modo Custom Manual (Bronce y Plata Gratis)</strong>
@@ -1840,11 +1860,7 @@
 
         function handleCenterPadlockClick(event) {
             if (event) event.stopPropagation();
-            if (isAiVerifiedMode && !isCardDiscovered) {
-                openDiscoveryModal();
-            } else {
-                document.getElementById('pro-card-modal').classList.add('open');
-            }
+            document.getElementById('pro-card-modal').classList.add('open');
         }
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -2011,6 +2027,8 @@
             const revealedBox = document.getElementById('tendency-revealed-box');
             const reportStatusTag = document.getElementById('report-status-tag');
 
+            const isProUser = isStrictProOrClub() || isPaidOrBonusAccount();
+
             if (isAiVerifiedMode) {
                 previewingLockedRarityInCustom = false;
                 for (let i = 1; i <= 6; i++) {
@@ -2022,10 +2040,15 @@
 
                 if (!isCardDiscovered) {
                     cardEl.classList.add('mystery-locked');
-                    cardEl.classList.add('chains-locked');
                     rarityBar.classList.add('locked-in-ai-mode');
 
-                    // En modo IA sin descubrir, bloquear en Holo Élite con las cadenas translúcidas
+                    // EN CUENTA PRO NUNCA SALEN LAS CADENAS NI EL CANDADO (SOLO EN PLAN GRATUITO)
+                    if (isProUser) {
+                        cardEl.classList.remove('chains-locked');
+                    } else {
+                        cardEl.classList.add('chains-locked');
+                    }
+
                     cardEl.setAttribute('data-rarity', 'holo');
                     document.querySelectorAll('.rarity-pill').forEach(b => b.classList.remove('active'));
                     document.getElementById('btn-rarity-holo')?.classList.add('active');
@@ -2055,7 +2078,7 @@
                     document.getElementById('radar-status-lbl').textContent = 'PENDIENTE DE AUDITORÍA IA';
 
                     noticeHead.textContent = '🔍 TU KINET CARD VERIFICADA ESTÁ OCULTA (??)';
-                    noticeSub.innerHTML = 'En el modo <strong>KINET AI Verified</strong> nadie puede modificar su nota ni su color manualmente. Pulsa en el <strong>candado central</strong> o en <strong>"Descubrir Ahora"</strong> para subir tus micro-clips (~1.5 min) o pasa a <strong>Modo Custom Manual</strong>.';
+                    noticeSub.innerHTML = 'En el modo <strong>KINET AI Verified</strong> nadie puede modificar su nota ni su color manualmente. Pulsa en <strong>"Descubrir Ahora"</strong> para subir tus micro-clips (~1.5 min) o pasa a <strong>Modo Custom Manual</strong>.';
                     btnDiscoverMain.innerHTML = '🔍 Descubrir tu KINET Card (Auditoría IA ~1.5 min)';
                     btnDiscoverInline.innerHTML = '🔍 Descubrir Ahora';
 
@@ -2131,9 +2154,8 @@
                 cardEl.classList.remove('mystery-locked');
                 rarityBar.classList.remove('locked-in-ai-mode');
 
-                // Si no es cuenta Pro y tenía puesto Holo u Oro, pasar por defecto a Plata (libre en Plan Gratuito) sin cadenas
                 const curRarity = cardEl.getAttribute('data-rarity');
-                if (!isStrictProOrClub() && !previewingLockedRarityInCustom && (curRarity === 'holo' || curRarity === 'gold')) {
+                if (!isProUser && !previewingLockedRarityInCustom && (curRarity === 'holo' || curRarity === 'gold')) {
                     cardEl.setAttribute('data-rarity', 'silver');
                     document.getElementById('card-cat-display').textContent = '★ NACIONAL / PLATA CROMO • S2026 ★';
                     document.getElementById('card-tier-pill').textContent = '🏆 CATEGORÍA: NACIONAL / PLATA CROMO';
@@ -2141,7 +2163,7 @@
                     document.getElementById('btn-rarity-silver')?.classList.add('active');
                 }
 
-                if (!previewingLockedRarityInCustom) {
+                if (isProUser || !previewingLockedRarityInCustom) {
                     cardEl.classList.remove('chains-locked');
                 }
 
@@ -2274,13 +2296,12 @@
             }, 280);
         }
 
-        // CONTROL DE RAREZA: BLOQUEADO EN MODO IA VERIFIED + CADENAS TRANSLÚCIDAS Y CANDADO EN ORO 24K / HOLO
         function setCardRarity(rarityKey, labelTxt, btn) {
             const card = document.getElementById('kinet-3d-card');
+            const isProUser = isStrictProOrClub() || isPaidOrBonusAccount();
 
-            // 1. En modo IA Verified sin descubrir (??), no se permite cambiar el color de la carta
+            // 1. En modo IA Verified sin descubrir (??), no deja cambiar el color de la carta
             if (isAiVerifiedMode && !isCardDiscovered) {
-                triggerCard3DFlipAnimation();
                 openDiscoveryModal();
                 return;
             }
@@ -2292,8 +2313,8 @@
             document.querySelectorAll('.rarity-pill').forEach(b => b.classList.remove('active'));
             if (btn) btn.classList.add('active');
 
-            // 2. En Modo Custom Manual: Bronce y Plata están libres, pero Oro 24K y Holo muestran las cadenas translúcidas con el candado central si no eres Pro
-            if (!isStrictProOrClub() && (rarityKey === 'gold' || rarityKey === 'holo')) {
+            // 2. Si NO es cuenta Pro y toca Oro 24K o Holo en modo Custom, muestra las cadenas translúcidas con el candado puro
+            if (!isProUser && (rarityKey === 'gold' || rarityKey === 'holo')) {
                 previewingLockedRarityInCustom = true;
                 card.classList.add('chains-locked');
             } else {
@@ -2356,7 +2377,6 @@
             document.getElementById('pro-card-modal').classList.remove('open');
         }
 
-        // Al pulsar "Usar Modo Custom Manual" dentro del modal Pro, cierra el modal y activa el Modo Custom con animación 3D
         function switchToCustomModeFromModal() {
             closeProCardModal();
             isAiVerifiedMode = false;
@@ -2373,7 +2393,6 @@
 
             try {
                 const cardEl = document.getElementById('kinet-3d-card');
-                const chainsEl = document.getElementById('card-chains-overlay');
                 const prevTransform = cardEl.style.transform;
                 const wasChainsVisible = cardEl.classList.contains('chains-locked');
                 cardEl.style.transform = 'none';
@@ -2447,7 +2466,6 @@
                 pdf.setFillColor(13, 17, 26);
                 pdf.roundedRect(12, 12, 186, 26, 4, 4, 'F');
 
-                // LOGO KINET OS ARRIBA A LA IZQUIERDA EN EL ENCABEZADO DEL DOSSIER PDF
                 pdf.setFillColor(0, 255, 136);
                 pdf.roundedRect(16, 16, 12, 12, 3, 3, 'F');
                 pdf.setTextColor(4, 6, 10);
@@ -2597,10 +2615,6 @@
                 const defaultRoleHex = roleHexMap[activeRole] || '#00FF88';
 
                 let savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
-                if (activeRole !== 'athlete' && savedAccent && savedAccent.toUpperCase() === '#00FF88') {
-                    savedAccent = null;
-                }
-
                 const rainbowOn = localStorage.getItem('kinet_rainbow_mode') === 'true';
 
                 if (rainbowOn) {
