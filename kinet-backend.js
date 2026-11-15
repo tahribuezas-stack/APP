@@ -1359,3 +1359,138 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+// =========================================================================
+// MOTOR GLOBAL v5.9: ZERO-FLASH COLOR + MEMORIA DE PESTAÑA/SCROLL + CANDADO INVITADO EN COMUNIDAD + RESET PASSWORD
+// =========================================================================
+(function initKinetGlobalFixesV59() {
+  // 1. APLICACIÓN SÍNCRONA INSTANTÁNEA DEL COLOR DE DESPACHO (0ms, SIN MICRO-PESTAÑEO)
+  function applyInstantZeroFlashTheme() {
+    try {
+      const savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
+      const rainbowOn = localStorage.getItem('kinet_rainbow_mode') === 'true';
+      if (savedAccent && savedAccent.startsWith('#') && !rainbowOn) {
+        const clean = savedAccent.replace('#', '');
+        const num = parseInt(clean, 16);
+        if (!isNaN(num)) {
+          const r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
+          const root = document.documentElement;
+          root.style.setProperty('--role-color', savedAccent, 'important');
+          root.style.setProperty('--role-rgb', `${r}, ${g}, ${b}`, 'important');
+          root.style.setProperty('--role-glow', `rgba(${r}, ${g}, ${b}, 0.42)`, 'important');
+          root.style.setProperty('--role-gradient', `linear-gradient(135deg, ${savedAccent} 0%, rgba(${r},${g},${b},0.75) 100%)`, 'important');
+          if (document.body) {
+            document.body.style.setProperty('--role-color', savedAccent);
+            document.body.style.setProperty('--role-rgb', `${r}, ${g}, ${b}`);
+            document.body.style.setProperty('--role-glow', `rgba(${r}, ${g}, ${b}, 0.42)`);
+            document.body.style.setProperty('--role-gradient', `linear-gradient(135deg, ${savedAccent} 0%, rgba(${r},${g},${b},0.75) 100%)`);
+          }
+        }
+      }
+    } catch (e) {}
+  }
+  applyInstantZeroFlashTheme();
+  document.addEventListener('DOMContentLoaded', applyInstantZeroFlashTheme);
+
+  // 2. EVITAR SALTOS DE SCROLL AL RECARGAR Y RECORDAR LA SUB-PESTAÑA ACTIVA (EJ: SUSCRIPCIONES EN DESPACHO)
+  if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+  }
+
+  const pageKey = (window.location.pathname || 'index').toLowerCase();
+
+  window.addEventListener('beforeunload', () => {
+    const ws = document.querySelector('.os-workspace');
+    const scrollY = ws ? ws.scrollTop : window.scrollY;
+    sessionStorage.setItem(`kinet_scroll_${pageKey}`, String(scrollY));
+  });
+
+  window.addEventListener('DOMContentLoaded', () => {
+    // Restaurar sub-pestaña de Despacho si se recargó la página
+    if (pageKey.includes('despacho')) {
+      const savedTab = new URLSearchParams(window.location.search).get('tab') || sessionStorage.getItem('kinet_despacho_active_tab');
+      if (savedTab && typeof window.switchDespachoTab === 'function') {
+        setTimeout(() => window.switchDespachoTab(savedTab), 40);
+      }
+      document.querySelectorAll('[onclick*="switchDespachoTab"], [data-tab]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const m = (btn.getAttribute('onclick') || '').match(/['"]([^'"]+)['"]/);
+          const tabId = (m && m[1]) || btn.getAttribute('data-tab');
+          if (tabId) {
+            sessionStorage.setItem('kinet_despacho_active_tab', tabId);
+            const u = new URL(window.location.href);
+            u.searchParams.set('tab', tabId);
+            history.replaceState(null, '', u.toString());
+          }
+        });
+      });
+    }
+
+    // Restaurar posición limpia de scroll
+    const savedScroll = parseInt(sessionStorage.getItem(`kinet_scroll_${pageKey}`) || '0', 10);
+    if (savedScroll > 0) {
+      setTimeout(() => {
+        const ws = document.querySelector('.os-workspace');
+        if (ws) ws.scrollTop = savedScroll;
+        else window.scrollTo(0, savedScroll);
+      }, 60);
+    }
+
+    // 3. BLOQUEO ESTRICTO DE COMUNIDAD / RED SOCIAL PARA MODO INVITADO (SIN CUENTA NI CORREO)
+    const isGuest = localStorage.getItem('kinet_is_guest') === 'true' || localStorage.getItem('kinet_guest_session') === 'true';
+    if (isGuest && pageKey.includes('comunidad')) {
+      const overlay = document.createElement('div');
+      overlay.id = 'kinet-guest-social-lock';
+      overlay.style.cssText = `
+        position: fixed; inset: 0; z-index: 2147483646;
+        background: rgba(5, 7, 12, 0.92); backdrop-filter: blur(22px);
+        display: flex; align-items: center; justify-content: center; padding: 20px;
+      `;
+      overlay.innerHTML = `
+        <div style="max-width:440px;width:100%;background:#0B0F17;border:1.5px solid var(--role-color,#00FF88);border-radius:24px;padding:28px 24px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,0.95),0 0 35px rgba(var(--role-rgb,0,255,136),0.22);">
+          <div style="width:54px;height:54px;border-radius:16px;background:rgba(var(--role-rgb,0,255,136),0.14);border:1px solid var(--role-color,#00FF88);display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin:0 auto 14px auto;">🔒</div>
+          <h2 style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.1rem;color:#FFF;margin-bottom:8px;">RED SOCIAL EXCLUSIVA PARA CUENTAS REGISTRADAS</h2>
+          <p style="font-family:'Inter',sans-serif;font-size:0.8rem;color:#94A3B8;line-height:1.5;margin-bottom:20px;">
+            Estás navegando en <strong>Modo Invitado</strong> (sin correo electrónico). Para tener perfil público en KINET Network™, publicar en Pulse, subir Shorts o enviar Mensajes Directos, inicia sesión o crea tu cuenta gratuita.
+          </p>
+          <div style="display:flex;gap:10px;justify-content:center;">
+            <a href="app.html" style="flex:1;padding:11px 14px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);color:#FFF;font-family:'Orbitron',sans-serif;font-size:0.7rem;font-weight:700;text-decoration:none;">← Volver a Vestuario</a>
+            <a href="login.html" style="flex:1.2;padding:11px 14px;border-radius:12px;background:var(--role-gradient,linear-gradient(135deg,#00FF88,#00B359));color:#04060A;font-family:'Orbitron',sans-serif;font-size:0.7rem;font-weight:900;text-decoration:none;">Crear Cuenta / Login →</a>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+    }
+
+    // 4. MODAL AUTOMÁTICO DE "ESTABLECER NUEVA CONTRASEÑA" CUANDO VUELVES DEL LINK DEL CORREO DE SUPABASE
+    const hash = window.location.hash || '';
+    if (hash.includes('type=recovery') || new URLSearchParams(window.location.search).get('reset_password') === 'true') {
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:rgba(4,6,10,0.92);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center;padding:16px;';
+      modal.innerHTML = `
+        <div style="max-width:410px;width:100%;background:#0B0F17;border:1.5px solid #00FF88;border-radius:22px;padding:24px;color:#FFF;font-family:'Inter',sans-serif;">
+          <h3 style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:0.95rem;color:#00FF88;margin-bottom:6px;">🔑 ESTABLECER NUEVA CONTRASEÑA</h3>
+          <p style="font-size:0.76rem;color:#94A3B8;margin-bottom:14px;">Escribe tu nueva contraseña segura para actualizar tu cuenta de KINET OS:</p>
+          <input type="password" id="kinet-new-pass-in" placeholder="Nueva contraseña (mín. 6 caracteres)" style="width:100%;padding:10px 12px;border-radius:10px;background:#12161C;border:1px solid #262D37;color:#FFF;font-size:0.8rem;margin-bottom:12px;outline:none;">
+          <button id="kinet-save-new-pass-btn" style="width:100%;padding:11px;border-radius:11px;background:#00FF88;color:#04060A;font-family:'Orbitron',sans-serif;font-weight:900;font-size:0.74rem;border:none;cursor:pointer;">GUARDAR NUEVA CONTRASEÑA</button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      document.getElementById('kinet-save-new-pass-btn').onclick = async () => {
+        const newPass = document.getElementById('kinet-new-pass-in').value;
+        if (!newPass || newPass.length < 6) {
+          alert('La contraseña debe tener al menos 6 caracteres.');
+          return;
+        }
+        try {
+          const sb = window.KinetBackend && window.KinetBackend.getClient ? window.KinetBackend.getClient() : null;
+          if (sb && sb.auth) await sb.auth.updateUser({ password: newPass });
+          modal.remove();
+          history.replaceState(null, '', window.location.pathname);
+          alert('✓ Contraseña actualizada correctamente.');
+        } catch (e) {
+          modal.remove();
+        }
+      };
+    }
+  });
+})();
