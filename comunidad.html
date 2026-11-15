@@ -6453,6 +6453,153 @@
                 contentBox.className = '';
             }
         };
+        // =========================================================================
+        // 1. PURGA AUTOMÁTICA DE "ATLETA INVITADO" (LOCAL + SUPABASE) Y BLOQUEO DE SUBIDAS A INVITADOS
+        // =========================================================================
+        function isGuestPostOrIdentity(authorName, handleStr) {
+            const a = String(authorName || '').toLowerCase();
+            const h = String(handleStr || '').toLowerCase();
+            return a.includes('invitado') || a.includes('guest') || h.includes('invitado') || h.includes('guest');
+        }
+
+        async function purgeAllGuestPostsAndProfilesEverywhere() {
+            // A. Limpiar del array en vivo del muro
+            allSocialPosts = allSocialPosts.filter(p => !isGuestPostOrIdentity(p.author, p.handle));
+
+            // B. Limpiar del directorio de usuarios en memoria
+            for (let i = NETWORK_DIRECTORY.length - 1; i >= 0; i--) {
+                if (isGuestPostOrIdentity(NETWORK_DIRECTORY[i].name, NETWORK_DIRECTORY[i].handle)) {
+                    NETWORK_DIRECTORY.splice(i, 1);
+                }
+            }
+
+            // C. Limpiar de la caché local (kinet_saved_posts)
+            try {
+                const saved = JSON.parse(localStorage.getItem('kinet_saved_posts') || '[]');
+                const cleanSaved = saved.filter(p => !isGuestPostOrIdentity(p.author, p.handle));
+                localStorage.setItem('kinet_saved_posts', JSON.stringify(cleanSaved));
+            } catch (e) {}
+
+            // D. Borrar de raíz en las tablas "posts" y "profiles" de Supabase para que no vuelva a descargarse nunca
+            try {
+                const sb = window.KinetBackend && typeof window.KinetBackend.getClient === 'function'
+                    ? window.KinetBackend.getClient()
+                    : null;
+                if (sb) {
+                    await sb.from('posts').delete().ilike('author_handle', '%invitado%');
+                    await sb.from('posts').delete().ilike('author_name', '%Invitado%');
+                    await sb.from('profiles').delete().ilike('handle', '%invitado%');
+                    await sb.from('profiles').delete().ilike('full_name', '%Invitado%');
+                }
+            } catch (e) {}
+
+            filterSocialFeed(true);
+            rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+        }
+
+        // Ejecutar la limpieza nada más abrir Comunidad y cada vez que sincronice con la nube
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(purgeAllGuestPostsAndProfilesEverywhere, 150);
+            setTimeout(purgeAllGuestPostsAndProfilesEverywhere, 1200);
+        });
+
+        // Bloquear que un invitado pueda publicar en Comunidad o subir a Supabase
+        const _origPublishSocialPost = window.publishSocialPost;
+        window.publishSocialPost = function () {
+            const myName = localStorage.getItem('kinet_user_name') || '';
+            const myHandle = localStorage.getItem('kinet_social_handle') || '';
+            if (localStorage.getItem('kinet_is_guest') === 'true' || isGuestPostOrIdentity(myName, myHandle)) {
+                alert('🔒 En Modo Invitado no está permitido subir publicaciones a la nube. Inicia sesión con tu cuenta para publicar.');
+                return;
+            }
+            return _origPublishSocialPost.apply(this, arguments);
+        };
+
+        // =========================================================================
+        // 2. ANIMACIÓN FLUIDA DE REDIMENSIÓN AL PASAR ENTRE PUBLICACIONES <-> SHORTS <-> CV
+        // =========================================================================
+        (function enableProfileModalTabMorphAnimation() {
+            const morphCss = document.createElement('style');
+            morphCss.textContent = `
+                #insp-tab-morph-wrapper {
+                    position: relative;
+                    transition: height 0.46s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s ease !important;
+                    overflow: hidden !important;
+                    will-change: height;
+                }
+                #insp-tab-content-box {
+                    transition: opacity 0.26s cubic-bezier(0.22, 1, 0.36, 1), transform 0.32s cubic-bezier(0.22, 1, 0.36, 1) !important;
+                }
+                #insp-tab-content-box.tab-switching-out {
+                    opacity: 0 !important;
+                    transform: translateY(8px) scale(0.985) !important;
+                }
+                #insp-tab-content-box.tab-switching-in {
+                    opacity: 1 !important;
+                    transform: translateY(0) scale(1) !important;
+                }
+            `;
+            document.head.appendChild(morphCss);
+
+            // Envolver insp-tab-content-box para animar el cambio de tamaño de la tarjeta
+            window.addEventListener('DOMContentLoaded', () => {
+                const contentBox = document.getElementById('insp-tab-content-box');
+                if (contentBox && !document.getElementById('insp-tab-morph-wrapper')) {
+                    const wrapper = document.createElement('div');
+                    wrapper.id = 'insp-tab-morph-wrapper';
+                    contentBox.parentNode.insertBefore(wrapper, contentBox);
+                    wrapper.appendChild(contentBox);
+                }
+            });
+
+            window.switchInspectorTab = function (tabKey) {
+                if (activeInspectorTab === tabKey) return;
+
+                const wrapper = document.getElementById('insp-tab-morph-wrapper');
+                const contentBox = document.getElementById('insp-tab-content-box');
+
+                const startHeight = wrapper ? wrapper.offsetHeight : (contentBox ? contentBox.offsetHeight : 0);
+                if (wrapper && startHeight > 0) {
+                    wrapper.style.height = `${startHeight}px`;
+                }
+
+                if (contentBox) {
+                    contentBox.classList.remove('tab-switching-in');
+                    contentBox.classList.add('tab-switching-out');
+                }
+
+                ['posts', 'videos', 'info'].forEach(t => {
+                    document.getElementById(`insp-tab-${t}`)?.classList.toggle('active', t === tabKey);
+                });
+
+                setTimeout(() => {
+                    activeInspectorTab = tabKey;
+                    renderUserProfileInspectorContent();
+
+                    if (contentBox) {
+                        // Medir la nueva altura natural del contenido recién renderizado y animar hacia ella
+                        requestAnimationFrame(() => {
+                            const rawScrollH = contentBox.scrollHeight;
+                            const maxAllowedH = Math.round(window.innerHeight * 0.54);
+                            const targetHeight = Math.max(220, Math.min(rawScrollH + 8, maxAllowedH));
+
+                            if (wrapper) {
+                                wrapper.style.height = `${targetHeight}px`;
+                            }
+                            contentBox.classList.remove('tab-switching-out');
+                            contentBox.classList.add('tab-switching-in');
+                        });
+                    }
+
+                    if (wrapper) {
+                        clearTimeout(wrapper._morphTimeout);
+                        wrapper._morphTimeout = setTimeout(() => {
+                            wrapper.style.height = '';
+                        }, 480);
+                    }
+                }, 150);
+            };
+        })();
     </script>
 </body>
 </html>
