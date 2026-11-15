@@ -1435,9 +1435,29 @@ window.addEventListener('DOMContentLoaded', () => {
       }, 60);
     }
 
-    // 3. BLOQUEO ESTRICTO DE COMUNIDAD / RED SOCIAL PARA MODO INVITADO (SIN CUENTA NI CORREO)
-    const isGuest = localStorage.getItem('kinet_is_guest') === 'true' || localStorage.getItem('kinet_guest_session') === 'true';
-    if (isGuest && pageKey.includes('comunidad')) {
+  // 3. DETECTOR INTELIGENTE DE SESIÓN REAL VS INVITADO (NUNCA BLOQUEA TU CUENTA REAL NI CUENTAS PRO/CON EMAIL)
+    const userEmail = (localStorage.getItem('kinet_user_email') || '').trim();
+    const userName = (localStorage.getItem('kinet_user_name') || '').trim();
+    const userHandle = (localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '').trim();
+    const accountTier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
+
+    const hasRealIdentity =
+      (userEmail && userEmail.includes('@')) ||
+      accountTier === 'pro' ||
+      accountTier === 'club' ||
+      localStorage.getItem('kinet_is_pro') === 'true' ||
+      (userName && userName !== 'Atleta Invitado' && userName !== 'Usuario KINET' && userName !== 'NAIM T') ||
+      (userHandle && !userHandle.includes('invitado') && !userHandle.includes('guest'));
+
+    if (hasRealIdentity) {
+      // Si tienes cuenta real o de pago, limpiar cualquier bandera vieja de invitado que se hubiera quedado atascada
+      localStorage.removeItem('kinet_is_guest');
+      localStorage.removeItem('kinet_guest_session');
+      localStorage.setItem('kinet_logged_in', 'true');
+      const oldLock = document.getElementById('kinet-guest-social-lock');
+      if (oldLock) oldLock.remove();
+    } else if (pageKey.includes('comunidad')) {
+      // Solo mostrar el aviso si de verdad es un Invitado puro sin cuenta ni nombre real
       const overlay = document.createElement('div');
       overlay.id = 'kinet-guest-social-lock';
       overlay.style.cssText = `
@@ -1450,7 +1470,7 @@ window.addEventListener('DOMContentLoaded', () => {
           <div style="width:54px;height:54px;border-radius:16px;background:rgba(var(--role-rgb,0,255,136),0.14);border:1px solid var(--role-color,#00FF88);display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin:0 auto 14px auto;">🔒</div>
           <h2 style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.1rem;color:#FFF;margin-bottom:8px;">RED SOCIAL EXCLUSIVA PARA CUENTAS REGISTRADAS</h2>
           <p style="font-family:'Inter',sans-serif;font-size:0.8rem;color:#94A3B8;line-height:1.5;margin-bottom:20px;">
-            Estás navegando en <strong>Modo Invitado</strong> (sin correo electrónico). Para tener perfil público en KINET Network™, publicar en Pulse, subir Shorts o enviar Mensajes Directos, inicia sesión o crea tu cuenta gratuita.
+            Estás navegando en <strong>Modo Invitado</strong>. Para publicar en KINET Pulse, subir Shorts o enviar Mensajes Directos, inicia sesión o crea tu cuenta gratuita.
           </p>
           <div style="display:flex;gap:10px;justify-content:center;">
             <a href="app.html" style="flex:1;padding:11px 14px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);color:#FFF;font-family:'Orbitron',sans-serif;font-size:0.7rem;font-weight:700;text-decoration:none;">← Volver a Vestuario</a>
