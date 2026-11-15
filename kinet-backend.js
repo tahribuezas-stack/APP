@@ -4,7 +4,34 @@
  */
 (function (window) {
   'use strict';
-
+// ZERO-FLASH GLOBAL: Sobrescribe body[data-role] antes de que el navegador pinte el <body>
+  (function injectZeroFlashStyleImmediately() {
+    try {
+      const savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
+      const rainbowOn = localStorage.getItem('kinet_rainbow_mode') === 'true';
+      if (savedAccent && savedAccent.startsWith('#') && !rainbowOn) {
+        const clean = savedAccent.replace('#', '');
+        const num = parseInt(clean, 16);
+        if (!isNaN(num)) {
+          const r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
+          let st = document.getElementById('kinet-zero-flash-override');
+          if (!st) {
+            st = document.createElement('style');
+            st.id = 'kinet-zero-flash-override';
+            (document.head || document.documentElement).appendChild(st);
+          }
+          st.textContent = `
+            :root, html, body, body[data-role="athlete"], body[data-role="staff"], body[data-role="scout"] {
+              --role-color: ${savedAccent} !important;
+              --role-rgb: ${r}, ${g}, ${b} !important;
+              --role-glow: rgba(${r}, ${g}, ${b}, 0.42) !important;
+              --role-gradient: linear-gradient(135deg, ${savedAccent} 0%, rgba(${r},${g},${b},0.75) 100%) !important;
+            }
+          `;
+        }
+      }
+    } catch (e) {}
+  })();
   const SUPABASE_URL = 'https://bhqgsbtkwdxdxlvlcaes.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_GrgL4iukPUJJyh91BdgfIQ_P0NQd6Nj';
 
