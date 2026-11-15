@@ -2210,6 +2210,94 @@
                 refreshVideoQuotaUI();
             });
         })();
+        // =========================================================================
+        // ADAPTACIÓN MULTIDEPORTE REAL DE LAS 3 TARJETAS SUPERIORES Y EJEMPLOS DEL WIZARD
+        // =========================================================================
+        const SPORT_TOP_CARDS_META = {
+            'fútbol': {
+                matchDesc: 'Bloques tácticos de 3 a 5 min en partido oficial o amistoso.',
+                trainDesc: 'Rondos, finalización, circuito físico o portería (1-3 min).',
+                actionDesc: 'Jugada puntual de 15-45s (Regate, tiro, tackle, parada...).',
+                subHeader: '2. SELECCIONA UNO DE LOS 4 BLOQUES TÁCTICOS (INCLUYE PORTERO):',
+                ctxPlaceholder: 'Ej: Partido contra el 2º de liga • MVP de la jornada • Minuto 85',
+                notesPlaceholder: 'Ej: Mira esta estirada al palo largo / Mira este disparo desde fuera del área / Mira este desborde 1vs1...'
+            },
+            'pádel': {
+                matchDesc: 'Juegos o sets en competición (3-5 min) evaluando red y fondo.',
+                trainDesc: 'Carro de bolas, voleas, defensa de cristales o saque (1-3 min).',
+                actionDesc: 'Punto o golpe de 15-45s (Remate X3, víbora, bajada, dejada...).',
+                subHeader: '2. SELECCIONA UNO DE LOS 4 BLOQUES DE PISTA (RED, FONDO O SAQUE):',
+                ctxPlaceholder: 'Ej: Final del Torneo 1ª Categoría • Tie-Break 3er Set • Punto de Oro',
+                notesPlaceholder: 'Ej: Mira el punto de impacto en este remate X3 / Mira mi lectura de doble pared / Mira la volea de revés...'
+            },
+            'baloncesto': {
+                matchDesc: 'Cuartos o tramos reales de 5vs5 / 3x3 (3-5 min) en pista.',
+                trainDesc: 'Rueda de tiro Catch&Shoot, bote 1vs1, poste o mates (1-3 min).',
+                actionDesc: 'Acción puntual de 15-45s (Triple Step-Back, mate, tapón, asistencia...).',
+                subHeader: '2. SELECCIONA UNO DE LOS 4 BLOQUES DE PISTA (PERÍMETRO Y PINTURA):',
+                ctxPlaceholder: 'Ej: Partido contra líder de conferencia • 4º Cuarto • Últimos 2 minutos',
+                notesPlaceholder: 'Ej: Mira la mecánica de liberación en este triple / Mira el Euro-Step en tráfico / Mira el cierre del rebote...'
+            },
+            'boxeo': {
+                matchDesc: 'Asaltos completos de combate oficial (3-5 min) auditando volumen y guardia.',
+                trainDesc: 'Sparring técnico, manoplas, saco pesado, sombra o lucha (1-3 min).',
+                actionDesc: 'Secuencia de 15-45s (Gancho al hígado, Pull-Counter, KO shot, derribo...).',
+                subHeader: '2. SELECCIONA UNO DE LOS 4 BLOQUES DE COMBATE (STRIKING Y CLINCH):',
+                ctxPlaceholder: 'Ej: Combate Peso Welter • 3er Asalto • Sparring principal de campamento',
+                notesPlaceholder: 'Ej: Mira este esquive + contragolpe al mentón / Mira la rotación de cadera en el gancho al hígado...'
+            },
+            'running': {
+                matchDesc: 'Tramos en carrera oficial 5K/10K/Media/Maratón (3 min) a ritmo objetivo.',
+                trainDesc: 'Series en pista de tartán, técnica de carrera, umbral o pliometría (1-3 min).',
+                actionDesc: 'Secuencia de 15-45s (Salida de tacos, sprint final, cámara lenta de pisada...).',
+                subHeader: '2. SELECCIONA UNO DE LOS 4 BLOQUES BIOMECÁNICOS DE CARRERA:',
+                ctxPlaceholder: 'Ej: 10K Homologado • Paso por el Km 8 a 3:35/km • Serie de 400m en pista',
+                notesPlaceholder: 'Ej: Mira el apoyo de mediopié y la cadencia / Mira si oscila la cadera en fatiga / Mira la salida de tacos...'
+            }
+        };
+
+        function syncWizardTopCardsBySport() {
+            const s = (activeSportName || 'fútbol').toLowerCase();
+            let key = 'fútbol';
+            if (s.includes('pádel') || s.includes('padel') || s.includes('tenis')) key = 'pádel';
+            else if (s.includes('baloncesto') || s.includes('basket')) key = 'baloncesto';
+            else if (s.includes('boxeo') || s.includes('mma') || s.includes('combate')) key = 'boxeo';
+            else if (s.includes('running') || s.includes('atletismo') || s.includes('carrera')) key = 'running';
+
+            const meta = SPORT_TOP_CARDS_META[key];
+
+            const matchCard = document.querySelector('#wcat-match div:last-child');
+            const trainCard = document.querySelector('#wcat-training div:last-child');
+            const actionCard = document.querySelector('#wcat-action div:last-child');
+            if (matchCard) matchCard.textContent = meta.matchDesc;
+            if (trainCard) trainCard.textContent = meta.trainDesc;
+            if (actionCard) actionCard.textContent = meta.actionDesc;
+
+            const subHeaderEl = document.getElementById('wizard-suboptions-label');
+            if (subHeaderEl) subHeaderEl.textContent = meta.subHeader;
+
+            const ctxInput = document.getElementById('wizard-match-context');
+            if (ctxInput) ctxInput.placeholder = meta.ctxPlaceholder;
+
+            const notesInput = document.getElementById('wizard-action-notes');
+            if (notesInput) notesInput.placeholder = meta.notesPlaceholder;
+
+            // Actualizar también la descripción central del monitor grande
+            const statusDesc = document.getElementById('vision-status-desc');
+            if (statusDesc && !currentActiveSession) {
+                statusDesc.textContent = `Pulsa abajo en "🎥 Subir Vídeo a Vision IA" para abrir los 4 bloques tácticos de ${currentSportSchema.sportTitle} y detallar el contexto que evaluará la IA.`;
+            }
+        }
+
+        const _baseOpenWizard = window.openUploadWizardModal;
+        window.openUploadWizardModal = function () {
+            syncWizardTopCardsBySport();
+            _baseOpenWizard();
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(syncWizardTopCardsBySport, 80);
+        });
     </script>
 </body>
 </html>
