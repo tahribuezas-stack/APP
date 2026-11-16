@@ -9,12 +9,38 @@
     <!-- Favicon Corporativo Dinámico por JavaScript -->
     <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
 
+    <!-- BLOQUEO SÍNCRONO 0ms CONTRA EL MICRO-PESTAÑEO DE COLOR -->
+    <script>
+        (function applyZeroFlashStyleRule() {
+            try {
+                var savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
+                var rainbowOn = localStorage.getItem('kinet_rainbow_mode') === 'true';
+                if (savedAccent && savedAccent.charAt(0) === '#' && !rainbowOn) {
+                    var clean = savedAccent.replace('#', '');
+                    var num = parseInt(clean, 16);
+                    if (!isNaN(num)) {
+                        var r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
+                        var st = document.createElement('style');
+                        st.id = 'kinet-zero-flash-override';
+                        st.textContent = ':root, html, body, body[data-role="athlete"], body[data-role="staff"], body[data-role="scout"] {' +
+                            '--role-color: ' + savedAccent + ' !important;' +
+                            '--role-rgb: ' + r + ', ' + g + ', ' + b + ' !important;' +
+                            '--role-glow: rgba(' + r + ', ' + g + ', ' + b + ', 0.42) !important;' +
+                            '--role-gradient: linear-gradient(135deg, ' + savedAccent + ' 0%, rgba(' + r + ',' + g + ',' + b + ',0.75) 100%) !important;' +
+                        '}';
+                        document.head.appendChild(st);
+                    }
+                }
+            } catch (e) {}
+        })();
+    </script>
+
     <!-- Tipografías Oficiales -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     
-    <!-- Librerías Oficiales para Descarga Real en PDF / Alta Resolución + Supabase + KINET Backend + APIs -->
+    <!-- Librerías Oficiales para Descarga Real en PDF / PNG + Supabase + KINET Backend + APIs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -104,7 +130,7 @@
             .os-workspace { overflow: visible !important; height: auto !important; padding: 14px 14px 40px 14px !important; justify-content: flex-start !important; }
         }
 
-        /* SIDEBAR FIJO CON NAVEGACIÓN CENTRADA Y BOTONES DE 44PX IDÉNTICOS */
+        /* SIDEBAR FIJO */
         .os-sidebar {
             background: rgba(8, 11, 18, 0.95);
             backdrop-filter: blur(24px);
@@ -253,7 +279,13 @@
             border-radius: 12px;
             padding: 9px 12px;
             margin-bottom: 2px;
-            position: relative;
+            height: 86px;
+            min-height: 86px;
+            max-height: 86px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
             box-shadow: 0 4px 14px rgba(0,0,0,0.3);
         }
 
@@ -270,7 +302,7 @@
             font-weight: 700;
         }
 
-        .sidebar-ai-tip-text { font-size: 0.72rem; color: #CBD5E1; line-height: 1.35; }
+        .sidebar-ai-tip-text { font-size: 0.68rem; color: #CBD5E1; line-height: 1.28; }
 
         /* ZONA PRINCIPAL */
         .os-main { display: flex; flex-direction: column; min-width: 0; height: 100vh; overflow: hidden; }
@@ -290,6 +322,29 @@
         @media (max-width: 960px) { .mobile-brand { display: flex; } .os-topbar { padding: 12px 16px; } }
 
         .topbar-actions { display: flex; align-items: center; gap: 10px; }
+
+        .kinet-section-info-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(var(--role-rgb), 0.35);
+            color: var(--role-color);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.22s ease;
+        }
+        .kinet-section-info-btn:hover {
+            background: var(--role-gradient);
+            color: #04060A;
+            box-shadow: 0 0 14px var(--role-glow);
+            transform: scale(1.08);
+        }
 
         .active-role-indicator {
             display: flex;
@@ -492,27 +547,44 @@
             box-shadow: 0 16px 36px rgba(0,0,0,0.6), 0 0 22px rgba(var(--role-rgb), 0.14);
         }
 
-        .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px; flex-wrap: wrap; }
+        .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; flex-wrap: wrap; }
         .panel-label { font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; color: var(--text-secondary); letter-spacing: 0.14em; text-transform: uppercase; }
 
-        .dropzone-box {
-            background: rgba(255, 255, 255, 0.018);
-            border: 1px dashed rgba(var(--role-rgb), 0.42);
+        /* ESTÉTICA DE CHAT GENERADOR DE IMÁGENES (ESTILO CHATGPT / GEMINI IMAGES) */
+        .ai-image-chat-feed {
+            background: rgba(4, 6, 10, 0.78);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 14px;
-            padding: 14px 16px;
+            padding: 10px 12px;
+            max-height: 118px;
+            overflow-y: auto;
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 10px;
         }
-        .dropzone-box:hover {
-            border-color: var(--role-color);
-            background: rgba(var(--role-rgb), 0.06);
-            box-shadow: inset 0 0 20px rgba(var(--role-rgb), 0.08);
+        .studio-chat-msg {
+            max-width: 88%;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 0.76rem;
+            line-height: 1.4;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .studio-chat-msg.incoming {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-subtle);
+            color: #E2E8F0;
+            border-top-left-radius: 4px;
+        }
+        .studio-chat-msg.outgoing {
+            align-self: flex-end;
+            background: rgba(var(--role-rgb), 0.16);
+            border: 1px solid rgba(var(--role-rgb), 0.45);
+            color: white;
+            border-top-right-radius: 4px;
         }
 
         .preview-simulation-panel {
@@ -557,7 +629,7 @@
             justify-content: center;
             position: relative;
             border: 1px solid rgba(var(--role-rgb), 0.28);
-            padding: 20px 16px 46px 16px;
+            padding: 24px 16px 46px 16px;
             background-size: cover;
             background-position: center;
             overflow: hidden;
@@ -570,9 +642,10 @@
             right: 12px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.58rem;
-            color: rgba(255, 255, 255, 0.6);
+            color: rgba(255, 255, 255, 0.78);
             pointer-events: none;
             z-index: 2;
         }
@@ -601,19 +674,20 @@
         }
 
         .floating-command-bar {
-            background: rgba(4, 6, 10, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 12px;
+            background: rgba(4, 6, 10, 0.92);
+            border: 1px solid rgba(var(--role-rgb), 0.42);
+            border-radius: 14px;
             padding: 7px 10px;
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-top: 12px;
+            margin-top: 10px;
             flex-wrap: wrap;
-            transition: border-color 0.2s ease;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
         .floating-command-bar:focus-within {
             border-color: var(--role-color);
+            box-shadow: 0 0 16px rgba(var(--role-rgb), 0.18);
         }
         .floating-command-bar input {
             flex: 1;
@@ -621,8 +695,8 @@
             background: transparent;
             border: none;
             color: white;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.74rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
             outline: none;
         }
         .floating-command-bar input::placeholder { color: var(--text-secondary); }
@@ -737,12 +811,12 @@
 </head>
 <body data-role="athlete">
 
-    <!-- INPUT OCULTO PARA SUBIDA REAL DE VÍDEO O IMAGEN -->
+    <!-- INPUT OCULTO PARA SUBIDA REAL DE VÍDEO O IMAGEN CON COMPRESIÓN -->
     <input type="file" id="hidden-media-file-input" style="display:none;" accept="image/*,video/*" onchange="handleStudioFileSelected(this)">
 
     <div class="os-layout">
         
-        <!-- SIDEBAR FIJO CON OPCIONES CENTRADAS A 44PX + ANALIZADOR 3D -->
+        <!-- SIDEBAR FIJO -->
         <aside class="os-sidebar">
             <div class="sidebar-top-section">
                 <a href="app.html" id="brand-logo-desktop" class="brand-box">
@@ -792,7 +866,7 @@
                         <span>💡</span> <span id="tip-title">Broadcast Suite // 30 FPS</span>
                     </div>
                     <div class="sidebar-ai-tip-text" id="tip-content">
-                        Selecciona Modo Vídeo (30 FPS) o Imagen y aplica overlays de telemetría con sincronización Spotify.
+                        Chatea con KINET Image AI o sube tu foto para aplicar telemetría oficial y Spotify Sync.
                     </div>
                 </div>
 
@@ -826,11 +900,12 @@
                 </a>
 
                 <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-secondary);display:flex;align-items:center;gap:10px;">
-                    <span>KINET MEDIA STUDIO™ // BROADCAST SUITE (24-30 FPS)</span>
+                    <span>KINET MEDIA STUDIO™ // AI IMAGE CHAT & SPOTIFY SYNC</span>
                     <span style="color:var(--role-color);font-weight:700;" id="topbar-sport-tag">● FÚTBOL</span>
                 </div>
 
                 <div class="topbar-actions">
+                    <button type="button" class="kinet-section-info-btn" onclick="openSectionInfoModal()" title="Guía de KINET Media Studio™">i</button>
                     <div class="active-role-indicator">
                         <span class="dot"></span>
                         <span class="active-role-text" id="topbar-role-title">ATLETA PRO</span>
@@ -846,7 +921,7 @@
                     <div>
                         <span class="context-tag">
                             <span>🎵</span> 
-                            <span id="header-tag-text">PRODUCCIÓN AUDIOVISUAL, TELEMETRÍA HUD & MARCA PERSONAL • FÚTBOL</span>
+                            <span id="header-tag-text">ESTUDIO GENERATIVO DE IMÁGENES IA, TELEMETRÍA HUD & SPOTIFY SYNC • FÚTBOL</span>
                         </span>
                         <h1 class="context-title">KINET Media Studio™ & Spotify Sync</h1>
                     </div>
@@ -864,7 +939,7 @@
                                 <span>🎬</span> <span id="lbl-mode-video">Modo Vídeo (30 FPS)</span>
                             </button>
                             <button class="media-mode-btn active" id="btn-mode-image" onclick="selectStudioFormatMode('image')">
-                                <span>🖼️</span> <span>Modo Imagen (Póster)</span>
+                                <span>🖼️</span> <span>Modo Imagen (Póster IA)</span>
                             </button>
                         </div>
 
@@ -887,28 +962,27 @@
                 <!-- BENTO GRID CENTRALIZADO -->
                 <div class="bento-grid">
                     
-                    <!-- ZONA IZQUIERDA (8 COL): MONITOR DE PRODUCCIÓN & TELEMETRÍA KINET -->
+                    <!-- ZONA IZQUIERDA (8 COL): CHAT CREADOR DE IMÁGENES IA + LIENZO EN VIVO -->
                     <div class="col-8">
                         <div class="kinet-panel" style="height:100%; display:flex; flex-direction:column; justify-content:space-between;">
                             <div>
                                 <div class="panel-head">
-                                    <span class="panel-label">MONITOR DE MASTERIZACIÓN & TELEMETRÍA EN VIVO</span>
-                                    <span class="verified-badge" id="studio-mode-pill">MODO IMAGEN + BEATS</span>
-                                </div>
-
-                                <!-- CARGADOR COMPACTO DE ARCHIVOS MULTIMEDIA -->
-                                <div class="dropzone-box" id="dropzone-area" onclick="triggerFileSelect()">
-                                    <div style="display:flex;align-items:center;gap:12px;">
-                                        <div style="width:40px;height:40px;border-radius:11px;background:rgba(var(--role-rgb),0.12);border:1px solid rgba(var(--role-rgb),0.4);display:flex;align-items:center;justify-content:center;font-size:1.25rem;" id="dropzone-icon">🖼️</div>
-                                        <div style="text-align:left;">
-                                            <h4 style="font-family:'Orbitron'; font-size:0.8rem; color:white;" id="dropzone-title">Cargar Archivo Multimedia en el Lienzo</h4>
-                                            <p style="font-size:0.7rem; color:#94A3B8; margin-top:2px;" id="dropzone-subtitle">Soporta PNG, JPG, WEBP con superposición de datos KINET</p>
-                                        </div>
+                                    <span class="panel-label">💬 ASISTENTE CREADOR DE IMÁGENES IA & MONITOR EN VIVO</span>
+                                    <div style="display:flex;align-items:center;gap:8px;">
+                                        <button type="button" class="btn-secondary" style="padding:5px 10px;font-size:0.62rem;" onclick="triggerFileSelect()">🖼️ Subir Foto / Vídeo</button>
+                                        <span class="verified-badge" id="studio-mode-pill">MODO IMAGEN + BEATS</span>
                                     </div>
-                                    <span class="btn-secondary" style="padding:6px 12px;font-size:0.64rem;">📂 Examinar Archivo</span>
                                 </div>
 
-                                <!-- LIENZO DE PRODUCCIÓN KINET -->
+                                <!-- HILO DE CHAT DE EDICIÓN DE IMÁGENES (ESTILO CHATGPT / GEMINI IMAGES) -->
+                                <div class="ai-image-chat-feed" id="studio-ai-chat-feed">
+                                    <div class="studio-chat-msg incoming">
+                                        <strong style="color:var(--role-color);font-size:0.68rem;display:block;margin-bottom:2px;">🎨 KINET Image Creator AI</strong>
+                                        Sube tu foto con el botón <strong>🖼️ Subir Foto / Vídeo</strong> o escríbeme abajo qué diseño quieres generar (si vienes desde el <em>Agente de Marketing IA</em>, tu prompt se aplica automáticamente).
+                                    </div>
+                                </div>
+
+                                <!-- LIENZO DE PRODUCCIÓN KINET EXPORTABLE CON LOGO K ARRIBA A LA IZQUIERDA -->
                                 <div class="preview-simulation-panel" id="studio-exportable-canvas">
                                     <div class="spotify-player-bar">
                                         <div style="display:flex; align-items:center; gap:8px;">
@@ -922,7 +996,10 @@
 
                                     <div class="studio-canvas-viewport" id="canvas-preview-box">
                                         <div class="hud-corner-metrics">
-                                            <span id="hud-top-left-tag">KINET BROADCAST // 30 FPS HUD</span>
+                                            <span id="hud-top-left-tag" style="display:inline-flex;align-items:center;gap:6px;">
+                                                <strong style="background:var(--role-gradient);color:#04060A;padding:2px 6px;border-radius:5px;font-family:'Orbitron';font-weight:900;">K</strong>
+                                                <span>KINET BROADCAST // 30 FPS HUD</span>
+                                            </span>
                                             <span id="hud-top-right-tag">SYNC: LOCKED</span>
                                         </div>
 
@@ -941,11 +1018,11 @@
                                 </div>
                             </div>
 
-                            <!-- BARRA TÉCNICA DE PARÁMETROS HUD -->
+                            <!-- BARRA DE CHAT GENERATIVO PARA EDITAR EL PÓSTER O APLICAR HUD -->
                             <div class="floating-command-bar">
-                                <span style="color:var(--role-color); font-family:'JetBrains Mono'; font-size:0.68rem; font-weight:700;">HUD //</span>
-                                <input type="text" id="ai-prompt-input" placeholder="Añadir etiqueta de telemetría o ajuste visual (ej: PICO 34.2 KM/H • CONTRASTE ALTO)..." onkeydown="if(event.key==='Enter') generateAiEdit()">
-                                <button class="btn-primary" onclick="generateAiEdit()" style="padding:7px 14px;font-size:0.66rem;">Aplicar Ajuste</button>
+                                <button type="button" onclick="triggerFileSelect()" style="background:rgba(var(--role-rgb),0.14);border:1px solid rgba(var(--role-rgb),0.4);color:var(--role-color);border-radius:9px;padding:6px 10px;cursor:pointer;font-size:0.8rem;" title="Subir foto al lienzo">🖼️</button>
+                                <input type="text" id="ai-prompt-input" placeholder="Describe el ajuste o póster para la IA (ej: Póster Match Day con iluminación de estadio y pico 34.2 KM/H)..." onkeydown="if(event.key==='Enter') generateAiEdit()">
+                                <button class="btn-primary" onclick="generateAiEdit()" style="padding:8px 14px;font-size:0.66rem;">✨ Generar con IA</button>
                             </div>
                         </div>
                     </div>
@@ -992,7 +1069,10 @@
 
                             <div style="display:flex; flex-direction:column; gap:8px;">
                                 <button class="btn-primary" style="width:100%;" onclick="exportAndShareCreation()">🚀 Publicar en KINET Network™ (1 Clic)</button>
-                                <button class="btn-secondary" id="btn-download-studio-pdf" style="width:100%;" onclick="downloadStudioCreationPDF()">📥 Descargar Póster / Informe en PDF</button>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                                    <button class="btn-secondary" onclick="downloadStudioCreationPNG()">🖼️ Descargar PNG</button>
+                                    <button class="btn-secondary" id="btn-download-studio-pdf" onclick="downloadStudioCreationPDF()">📥 Descargar PDF</button>
+                                </div>
                                 <button class="btn-secondary" id="btn-unlock-video-pro" style="width:100%; border-color:rgba(var(--role-rgb),0.45); color:var(--role-color); display:none;" onclick="checkTierUpgradePrompt()">⚡ Desbloquear Modo Vídeo (PRO)</button>
                             </div>
                         </div>
@@ -1004,51 +1084,44 @@
         </div>
     </div>
 
-    <!-- MODAL 1: UPGRADE PRO PARA MODO VÍDEO -->
-    <div id="upgrade-tier-modal" class="kinet-modal-overlay">
+    <!-- MODAL 1: UPGRADE PRO PARA MODO VÍDEO (PRECIO UNIFICADO 8,99€/MES Y BOTÓN ÚNICO VER PLANES) -->
+    <div id="upgrade-tier-modal" class="kinet-modal-overlay" onclick="if(event.target===this)this.classList.remove('open')">
         <div class="kinet-modal-box">
             <div class="kinet-modal-header" style="color: var(--role-color);">
                 <span>🎬</span> <span>DESBLOQUEAR MODO VÍDEO 30 FPS (PRO)</span>
             </div>
             <div class="kinet-modal-body">
-                Tu cuenta actual está en el <strong>Plan Gratuito</strong> (con Modo Imagen y Spotify Sync habilitados).<br><br>
-                Para activar el <strong>Modo Vídeo (KINET Shorts 9:16 a 24-30 FPS, cortes al ritmo de la música y telemetría sin marca de agua)</strong>, pásate a <strong>KINET PRO (8,99€/mes)</strong> o adquiere un <strong>Bono de Minutos de Vídeo (*Pay-As-You-Go*)</strong>.
+                Tu cuenta actual está en el <strong>Plan Gratuito</strong> (con Modo Imagen IA y Spotify Sync habilitados).<br><br>
+                Para activar el <strong>Modo Vídeo (KINET Shorts 9:16 a 24-30 FPS, cortes al ritmo de la música y telemetría sin marca de agua)</strong>, pásate a <strong>Pro Player (8,99€/mes)</strong> o adquiere un <strong>Bono de Minutos (*Pay-As-You-Go* desde 1,99€)</strong>.
             </div>
             <div class="kinet-modal-footer">
                 <button class="btn-secondary" onclick="document.getElementById('upgrade-tier-modal').classList.remove('open')">Seguir en Modo Imagen</button>
-                <button class="btn-secondary" onclick="document.getElementById('upgrade-tier-modal').classList.remove('open'); openPayAsYouGoModal();">➕ Comprar Bono Vídeo</button>
-                <a href="despacho.html?tab=subscription" id="modal-sub-link" class="btn-primary">⚡ Pásate a KINET PRO →</a>
+                <a href="despacho.html?tab=subscription" id="modal-sub-link" class="btn-primary">⚡ Ver Planes →</a>
             </div>
         </div>
     </div>
 
-    <!-- MODAL 2: BONOS DE PAGO FLEXIBLES (PAY-AS-YOU-GO) -->
-    <div id="payg-bonus-modal" class="kinet-modal-overlay">
-        <div class="kinet-modal-box">
-            <div class="kinet-modal-header" style="color: var(--role-color);">
-                <span>⚡</span> <span>BONOS EXTRA DE VÍDEO (24-30 FPS)</span>
+    <!-- MODAL 2: GUÍA INTERACTIVA DE LA SECCIÓN (BOTÓN ⓘ) -->
+    <div id="section-info-modal" class="kinet-modal-overlay" onclick="if(event.target===this)closeSectionInfoModal()">
+        <div class="kinet-modal-box" style="max-width:540px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:10px;">
+                <div class="kinet-modal-header" style="color:var(--role-color);">
+                    <span>ⓘ</span> <span>¿Cómo funciona KINET Media Studio™?</span>
+                </div>
+                <button type="button" onclick="closeSectionInfoModal()" style="background:none;border:none;color:white;font-size:1.15rem;cursor:pointer;">✕</button>
             </div>
-            <div class="kinet-modal-body">
-                Añade minutos adicionales de renderizado de vídeo y análisis biomecánico sin cambiar de plan mensual:
-                <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle);border-radius:12px;padding:10px 12px;">
-                        <div>
-                            <div style="font-weight:800;color:white;font-size:0.82rem;">🎬 Bono Partido: +45 Minutos de Vídeo (30 FPS)</div>
-                            <div style="font-size:0.68rem;color:var(--text-secondary);">Habilita Modo Vídeo HD + KINET Shorts</div>
-                        </div>
-                        <button class="btn-primary" style="padding:7px 12px;font-size:0.68rem;" onclick="purchaseVideoBonus(45)">4,99 €</button>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(var(--role-rgb),0.08);border:1px solid var(--role-color);border-radius:12px;padding:10px 12px;">
-                        <div>
-                            <div style="font-weight:800;color:white;font-size:0.82rem;">🚀 Pack Temporada: +150 Minutos Vídeo + 40 Análisis</div>
-                            <div style="font-size:0.68rem;color:#CBD5E1;">El más rentable • No caduca a fin de mes</div>
-                        </div>
-                        <button class="btn-primary" style="padding:7px 12px;font-size:0.68rem;" onclick="purchaseVideoBonus(150)">9,99 €</button>
-                    </div>
+            <div class="kinet-modal-body" style="display:flex;flex-direction:column;gap:10px;">
+                <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
+                    <strong style="color:white;display:block;margin-bottom:2px;">💬 1. Chat Creador de Imágenes IA + Puente desde Cuerpo Técnico</strong>
+                    Escribe abajo cómo quieres tu póster o pídele un edit al <em>Agente de Carrera & Marketing IA</em> en Cuerpo Técnico: al pulsar su botón, el prompt se carga aquí automáticamente para que solo tengas que subir tu foto.
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
+                    <strong style="color:white;display:block;margin-bottom:2px;">🎵 2. Spotify Sync & Telemetría Verificada</strong>
+                    Combina tus fotos o vídeos a 30 FPS con pistas musicales deportivas y el sello de tus métricas reales de KINET Card.
                 </div>
             </div>
             <div class="kinet-modal-footer">
-                <button class="btn-secondary" onclick="document.getElementById('payg-bonus-modal').classList.remove('open')">Cerrar</button>
+                <button class="btn-primary" onclick="closeSectionInfoModal()">Entendido</button>
             </div>
         </div>
     </div>
@@ -1103,6 +1176,7 @@
 
     <script>
         let currentStudioFormat = 'image';
+        let currentCompressedMediaUrl = null;
 
         function toggleMobileDrawer() {
             const drawer = document.getElementById('mobile-menu-drawer');
@@ -1111,6 +1185,13 @@
             } else {
                 drawer.style.transform = 'translateY(0px)';
             }
+        }
+
+        function openSectionInfoModal() {
+            document.getElementById('section-info-modal').classList.add('open');
+        }
+        function closeSectionInfoModal() {
+            document.getElementById('section-info-modal').classList.remove('open');
         }
 
         function normalizeRole(val) {
@@ -1124,13 +1205,27 @@
 
         function isPaidOrBonusAccount() {
             const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
-            const bonusMins = parseInt(localStorage.getItem('kinet_bonus_video_mins') || '0', 10);
+            const bonusMins = parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0');
             return tier === 'pro' || tier === 'club' || localStorage.getItem('kinet_is_pro') === 'true' || bonusMins > 0;
         }
 
         function isStrictProOrClub() {
             const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
             return tier === 'pro' || tier === 'club' || localStorage.getItem('kinet_is_pro') === 'true';
+        }
+
+        function pushStudioChatBubble(text, isIncoming = true) {
+            const feed = document.getElementById('studio-ai-chat-feed');
+            if (!feed) return;
+            const msg = document.createElement('div');
+            msg.className = `studio-chat-msg ${isIncoming ? 'incoming' : 'outgoing'}`;
+            if (isIncoming) {
+                msg.innerHTML = `<strong style="color:var(--role-color);font-size:0.68rem;display:block;margin-bottom:2px;">🎨 KINET Image Creator AI</strong>${text}`;
+            } else {
+                msg.textContent = text;
+            }
+            feed.appendChild(msg);
+            feed.scrollTop = feed.scrollHeight;
         }
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -1159,7 +1254,7 @@
             const sportChosen = localStorage.getItem('kinet_sport') || localStorage.getItem('sport') || 'Fútbol';
             document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${sportChosen.toUpperCase()}`;
             document.getElementById('topbar-sport-tag').textContent = `● ${sportChosen.toUpperCase()}`;
-            document.getElementById('header-tag-text').textContent = `PRODUCCIÓN AUDIOVISUAL, TELEMETRÍA HUD & MARCA PERSONAL • ${sportChosen.toUpperCase()}`;
+            document.getElementById('header-tag-text').textContent = `ESTUDIO GENERATIVO DE IMÁGENES IA, TELEMETRÍA HUD & SPOTIFY SYNC • ${sportChosen.toUpperCase()}`;
             document.getElementById('watermark-right-sport').textContent = `${sportChosen.toUpperCase()} • 92 GRL`;
 
             const queryParams = `?role=${activeRoleKey}&sport=${encodeURIComponent(sportChosen)}`;
@@ -1208,6 +1303,18 @@
 
             syncStudioAccountPermissions();
 
+            // RECEPCIÓN AUTOMÁTICA DEL PROMPT AJUSTADO ENVIADO POR EL AGENTE DE MARKETING IA
+            const autoPrompt = localStorage.getItem('kinet_media_studio_auto_prompt');
+            if (autoPrompt) {
+                localStorage.removeItem('kinet_media_studio_auto_prompt');
+                const promptIn = document.getElementById('ai-prompt-input');
+                if (promptIn) promptIn.value = autoPrompt;
+                document.getElementById('canvas-main-headline').textContent = `MATCH DAY PRO // ${sportChosen.toUpperCase()}`;
+                document.getElementById('canvas-sub-status').textContent = `[ Prompt IA Aplicado: ${autoPrompt} ]`;
+                pushStudioChatBubble(autoPrompt, false);
+                pushStudioChatBubble(`✓ He recibido y aplicado automáticamente el prompt diseñado por tu **Agente de Carrera & Marketing IA**. Ahora solo tienes que pulsar **🖼️ Subir Foto / Vídeo** para cargar tu imagen y publicarla con 1 clic.`, true);
+            }
+
             document.querySelectorAll('.kinet-panel, .side-link').forEach(el => {
                 el.addEventListener('mousemove', (e) => {
                     const rect = el.getBoundingClientRect();
@@ -1219,7 +1326,7 @@
 
         function syncStudioAccountPermissions() {
             const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
-            const bonusMins = parseInt(localStorage.getItem('kinet_bonus_video_mins') || '0', 10);
+            const bonusMins = parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0');
             const usedMins = parseFloat(localStorage.getItem('kinet_video_mins_used') || '0');
             const badgeLabel = document.getElementById('tier-indicator-badge');
             const unlockBtn = document.getElementById('btn-unlock-video-pro');
@@ -1265,9 +1372,6 @@
             currentStudioFormat = mode;
             const btnVideo = document.getElementById('btn-mode-video');
             const btnImage = document.getElementById('btn-mode-image');
-            const dropIcon = document.getElementById('dropzone-icon');
-            const dropTitle = document.getElementById('dropzone-title');
-            const dropSub = document.getElementById('dropzone-subtitle');
             const studioPill = document.getElementById('studio-mode-pill');
             const subStatus = document.getElementById('canvas-sub-status');
             const fileInput = document.getElementById('hidden-media-file-input');
@@ -1275,18 +1379,12 @@
             if (mode === 'video') {
                 btnVideo.classList.add('active');
                 btnImage.classList.remove('active');
-                dropIcon.textContent = '🎬';
-                dropTitle.textContent = 'Cargar Archivo de Vídeo (MP4, MOV, WEBM)';
-                dropSub.textContent = 'Sincronización de cortes al ritmo de Spotify y telemetría KINET a 24-30 FPS';
                 studioPill.textContent = '🎬 MODO VÍDEO 30 FPS + BEATS';
                 subStatus.textContent = '[ Señal de Vídeo Activa: Renderizado 24-30 FPS con telemetría dinámica y Spotify Sync ]';
                 if (fileInput) fileInput.setAttribute('accept', 'video/*,image/*');
             } else {
                 btnImage.classList.add('active');
                 btnVideo.classList.remove('active');
-                dropIcon.textContent = '🖼️';
-                dropTitle.textContent = 'Cargar Archivo de Imagen (PNG, JPG, WEBP)';
-                dropSub.textContent = 'Creación de Pósters Match Day, KINET Cards e infografías con música';
                 studioPill.textContent = '🖼️ MODO IMAGEN + BEATS';
                 subStatus.textContent = '[ Señal de Imagen Activa: Póster de alto contraste con sello biométrico y Spotify Sync ]';
                 if (fileInput) fileInput.setAttribute('accept', 'image/*');
@@ -1310,18 +1408,36 @@
             }
 
             document.getElementById('canvas-main-headline').textContent =
-                `${isVideoFile ? '🎬 VÍDEO 30 FPS:' : '🖼️ IMAGEN:'} ${file.name.toUpperCase()}`;
+                `${isVideoFile ? '🎬 VÍDEO 30 FPS:' : '🖼️ PÓSTER IA:'} ${file.name.toUpperCase()}`;
             document.getElementById('canvas-sub-status').textContent =
-                `✓ Archivo "${file.name}" cargado en el monitor y sincronizado con telemetría KINET.`;
+                `✓ Archivo "${file.name}" masterizado con compresión ligera KINET Cloud y sincronizado con Spotify.`;
 
             if (file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const box = document.getElementById('canvas-preview-box');
-                    box.style.backgroundImage = `linear-gradient(rgba(6,8,14,0.65), rgba(6,8,14,0.85)), url(${e.target.result})`;
+                    const img = new Image();
+                    img.onload = function() {
+                        let w = img.width || 800, h = img.height || 800;
+                        const maxD = 960;
+                        if (w > h && w > maxD) { h = Math.round((h * maxD) / w); w = maxD; }
+                        else if (h >= w && h > maxD) { w = Math.round((w * maxD) / h); h = maxD; }
+                        const c = document.createElement('canvas');
+                        c.width = w; c.height = h;
+                        c.getContext('2d').drawImage(img, 0, 0, w, h);
+                        let compressed = c.toDataURL('image/webp', 0.76);
+                        if (!compressed.startsWith('data:image/webp')) compressed = c.toDataURL('image/jpeg', 0.76);
+                        currentCompressedMediaUrl = compressed;
+                        const box = document.getElementById('canvas-preview-box');
+                        box.style.backgroundImage = `linear-gradient(rgba(6,8,14,0.52), rgba(6,8,14,0.82)), url(${compressed})`;
+                        pushStudioChatBubble(`✓ Tu imagen **"${file.name}"** se ha cargado y optimizado en el lienzo con el HUD deportivo activo. Puedes pedir más retoques por chat o publicarla en Comunidad.`, true);
+                    };
+                    img.src = e.target.result;
                 };
                 reader.readAsDataURL(file);
+            } else {
+                pushStudioChatBubble(`✓ Clip de vídeo **"${file.name}"** sincronizado a 30 FPS con la pista activa de Spotify.`, true);
             }
+            input.value = '';
         }
 
         function applyTemplate(name, headlineText, btnEl) {
@@ -1331,6 +1447,7 @@
             document.getElementById('canvas-main-headline').textContent = headlineText;
             document.getElementById('canvas-sub-status').textContent =
                 `[ Preset "${name}" activo en modo ${currentStudioFormat === 'video' ? 'Vídeo 30 FPS' : 'Imagen Pro'} ]`;
+            pushStudioChatBubble(`✓ Aplicado el preset visual **${name}** (${headlineText}).`, true);
         }
 
         function updateCanvasFromControls() {
@@ -1341,11 +1458,19 @@
         }
 
         function generateAiEdit() {
-            const prompt = document.getElementById('ai-prompt-input').value.trim();
+            const inputEl = document.getElementById('ai-prompt-input');
+            const prompt = inputEl.value.trim();
             if (!prompt) return;
+
+            pushStudioChatBubble(prompt, false);
+            document.getElementById('canvas-main-headline').textContent = prompt.slice(0, 42).toUpperCase();
             document.getElementById('canvas-sub-status').textContent =
-                `[ Parámetro HUD Aplicado (${currentStudioFormat.toUpperCase()}): "${prompt.toUpperCase()}" ]`;
-            document.getElementById('ai-prompt-input').value = '';
+                `[ Estilo IA & HUD Aplicado (${currentStudioFormat.toUpperCase()}): "${prompt}" ]`;
+            inputEl.value = '';
+
+            setTimeout(() => {
+                pushStudioChatBubble(`✨ ¡Listo! He actualizado el lienzo con tu instrucción: **"${prompt}"**. Puedes descargarlo en PNG/PDF con el logo KINET o publicarlo con 1 clic.`, true);
+            }, 380);
         }
 
         function checkTierUpgradePrompt() {
@@ -1357,16 +1482,9 @@
         }
 
         function openPayAsYouGoModal() {
-            document.getElementById('payg-bonus-modal').classList.add('open');
-        }
-
-        function purchaseVideoBonus(minutes) {
-            const currentBonus = parseInt(localStorage.getItem('kinet_bonus_video_mins') || '0', 10);
-            const updatedBonus = currentBonus + minutes;
-            localStorage.setItem('kinet_bonus_video_mins', String(updatedBonus));
-            if (window.KinetBackend) window.KinetBackend.pushLocalStateToCloud();
-            document.getElementById('payg-bonus-modal').classList.remove('open');
-            syncStudioAccountPermissions();
+            const roleNow = localStorage.getItem('kinet_active_role') || document.body.getAttribute('data-role') || 'athlete';
+            const sportNow = localStorage.getItem('kinet_sport') || 'Fútbol';
+            window.location.href = `despacho.html?role=${roleNow}&sport=${encodeURIComponent(sportNow)}&tab=subscription#payg-bonuses-section`;
         }
 
         async function exportAndShareCreation() {
@@ -1383,6 +1501,7 @@
                     id: 'studio_' + Date.now(),
                     mode: isReel ? 'reels' : 'post',
                     text: `🎵 [${headline}] Creado desde KINET Media Studio™ • Pista: ${track} • ${wm}`,
+                    imageUrl: currentCompressedMediaUrl || null,
                     badge: isReel ? 'KINET SHORT 30 FPS' : 'MEDIA STUDIO',
                     reelData: isReel ? {
                         title: headline,
@@ -1392,12 +1511,30 @@
                     likes: 0
                 });
             }
+            pushStudioChatBubble(`🚀 Publicado en el muro de **KINET Network™** con éxito.`, true);
+        }
+
+        async function downloadStudioCreationPNG() {
+            try {
+                const target = document.getElementById('studio-exportable-canvas');
+                const canvas = await html2canvas(target, { scale: 2.5, backgroundColor: '#06080E', useCORS: true, logging: false });
+                canvas.toBlob((blob) => {
+                    if (!blob) return;
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `KINET_Poster_IA_${Date.now()}.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1200);
+                }, 'image/png');
+            } catch (e) {}
         }
 
         async function downloadStudioCreationPDF() {
             const btn = document.getElementById('btn-download-studio-pdf');
             const prevTxt = btn.innerHTML;
-            btn.innerHTML = '⏳ Generando PDF...';
+            btn.innerHTML = '⏳ PDF...';
             btn.disabled = true;
 
             try {
@@ -1416,18 +1553,25 @@
                 pdf.setFillColor(6, 8, 14);
                 pdf.rect(0, 0, 297, 210, 'F');
 
-                pdf.setTextColor(0, 255, 136);
+                // LOGO OFICIAL KINET OS ARRIBA A LA IZQUIERDA
+                pdf.setFillColor(0, 255, 136);
+                pdf.roundedRect(14, 10, 12, 12, 3, 3, 'F');
+                pdf.setTextColor(4, 6, 10);
                 pdf.setFont('helvetica', 'bold');
-                pdf.setFontSize(14);
-                pdf.text('KINET MEDIA STUDIO™ // EXPORTACION OFICIAL DE MARCA PERSONAL', 14, 18);
+                pdf.setFontSize(11);
+                pdf.text('K', 18.3, 18.2);
+
+                pdf.setTextColor(0, 255, 136);
+                pdf.setFontSize(13.5);
+                pdf.text('KINET MEDIA STUDIO™ // EXPORTACION OFICIAL DE MARCA PERSONAL', 30, 16);
 
                 const sportChosen = (localStorage.getItem('kinet_sport') || 'Fútbol').toUpperCase();
                 const userName = (localStorage.getItem('kinet_user_name') || 'ATLETA KINET').toUpperCase();
                 pdf.setTextColor(203, 213, 225);
-                pdf.setFontSize(9.5);
-                pdf.text(`TITULAR: ${userName}   |   DEPORTE: ${sportChosen}   |   MODO: ${currentStudioFormat.toUpperCase()}`, 14, 26);
+                pdf.setFontSize(9.2);
+                pdf.text(`TITULAR: ${userName}   |   DEPORTE: ${sportChosen}   |   MODO: ${currentStudioFormat.toUpperCase()}`, 30, 23);
 
-                pdf.addImage(imgData, 'PNG', 14, 34, 269, 152);
+                pdf.addImage(imgData, 'PNG', 14, 30, 269, 156);
 
                 pdf.setTextColor(148, 163, 184);
                 pdf.setFontSize(8);
@@ -1513,13 +1657,7 @@
                 const roleHexMap = { athlete: '#00FF88', staff: '#F59E0B', scout: '#3B82F6' };
                 const defaultRoleHex = roleHexMap[activeRole] || '#00FF88';
 
-                let savedAccent = localStorage.getItem('kinet_custom_accent_override');
-                if (activeRole !== 'athlete' && savedAccent && savedAccent.toUpperCase() === '#00FF88') {
-                    localStorage.removeItem('kinet_custom_accent_override');
-                    localStorage.removeItem('kinet_accent_color');
-                    savedAccent = null;
-                }
-
+                let savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
                 const rainbowOn = localStorage.getItem('kinet_rainbow_mode') === 'true';
 
                 if (rainbowOn) {
@@ -1537,7 +1675,7 @@
                         requestAnimationFrame(stepRainbow);
                     }
                     requestAnimationFrame(stepRainbow);
-                } else if (savedAccent) {
+                } else if (savedAccent && savedAccent.startsWith('#')) {
                     const clean = savedAccent.replace('#', '');
                     const num = parseInt(clean, 16);
                     const r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
