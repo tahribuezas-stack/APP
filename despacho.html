@@ -9,6 +9,32 @@
     <!-- Favicon Corporativo Dinámico por JavaScript -->
     <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
 
+    <!-- BLOQUEO SÍNCRONO 0ms CONTRA EL MICRO-PESTAÑEO DE COLOR -->
+    <script>
+        (function applyZeroFlashStyleRule() {
+            try {
+                var savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
+                var rainbowOn = localStorage.getItem('kinet_rainbow_mode') === 'true';
+                if (savedAccent && savedAccent.charAt(0) === '#' && !rainbowOn) {
+                    var clean = savedAccent.replace('#', '');
+                    var num = parseInt(clean, 16);
+                    if (!isNaN(num)) {
+                        var r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
+                        var st = document.createElement('style');
+                        st.id = 'kinet-zero-flash-override';
+                        st.textContent = ':root, html, body, body[data-role="athlete"], body[data-role="staff"], body[data-role="scout"] {' +
+                            '--role-color: ' + savedAccent + ' !important;' +
+                            '--role-rgb: ' + r + ', ' + g + ', ' + b + ' !important;' +
+                            '--role-glow: rgba(' + r + ', ' + g + ', ' + b + ', 0.42) !important;' +
+                            '--role-gradient: linear-gradient(135deg, ' + savedAccent + ' 0%, rgba(' + r + ',' + g + ',' + b + ',0.75) 100%) !important;' +
+                        '}';
+                        document.head.appendChild(st);
+                    }
+                }
+            } catch (e) {}
+        })();
+    </script>
+
     <!-- Tipografías Oficiales -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -152,9 +178,22 @@
         .side-link:hover { color: var(--text-primary); border-color: rgba(var(--role-rgb), 0.45); transform: translateX(3px); }
         .side-link.active { background: rgba(var(--role-rgb), 0.14); border-color: var(--role-color); color: var(--role-color); box-shadow: 0 0 18px rgba(var(--role-rgb), 0.18); }
 
-        .sidebar-ai-tip-box { background: rgba(var(--role-rgb), 0.05); border: 1px solid rgba(var(--role-rgb), 0.24); border-radius: 12px; padding: 9px 12px; margin-bottom: 2px; }
+        .sidebar-ai-tip-box {
+            background: rgba(var(--role-rgb), 0.05);
+            border: 1px solid rgba(var(--role-rgb), 0.24);
+            border-radius: 12px;
+            padding: 9px 12px;
+            margin-bottom: 2px;
+            height: 86px;
+            min-height: 86px;
+            max-height: 86px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
         .sidebar-ai-tip-header { display: flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--role-color); text-transform: uppercase; margin-bottom: 3px; font-weight: 700; }
-        .sidebar-ai-tip-text { font-size: 0.72rem; color: #CBD5E1; line-height: 1.35; }
+        .sidebar-ai-tip-text { font-size: 0.68rem; color: #CBD5E1; line-height: 1.28; }
 
         /* ZONA PRINCIPAL */
         .os-main { display: flex; flex-direction: column; min-width: 0; height: 100vh; overflow: hidden; }
@@ -165,7 +204,31 @@
         .mobile-brand { display: none; align-items: center; gap: 10px; text-decoration: none; color: white; }
         @media (max-width: 960px) { .mobile-brand { display: flex; } .os-topbar { padding: 12px 16px; } }
 
-        .topbar-actions { display: flex; align-items: center; gap: 12px; }
+        .topbar-actions { display: flex; align-items: center; gap: 10px; }
+
+        .kinet-section-info-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(var(--role-rgb), 0.35);
+            color: var(--role-color);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.22s ease;
+        }
+        .kinet-section-info-btn:hover {
+            background: var(--role-gradient);
+            color: #04060A;
+            box-shadow: 0 0 14px var(--role-glow);
+            transform: scale(1.08);
+        }
+
         .active-role-indicator {
             display: flex; align-items: center; background: rgba(13, 17, 26, 0.95); border: 1px solid rgba(var(--role-rgb), 0.45);
             border-radius: 999px; padding: 6px 14px; gap: 8px;
@@ -499,9 +562,9 @@
             </div>
 
             <div class="sidebar-bottom-section">
-                <div class="sidebar-ai-tip-box">
+                <div class="sidebar-ai-tip-box" id="sidebar-dynamic-tip">
                     <div class="sidebar-ai-tip-header"><span>⚙️</span> <span id="sidebar-role-tag">Despacho Ejecutivo</span></div>
-                    <div class="sidebar-ai-tip-text">Centro de control, privacidad, suscripciones, bonos de vídeo 30 FPS y contrato PDF.</div>
+                    <div class="sidebar-ai-tip-text" id="tip-content">Centro de control, privacidad, suscripciones, bonos de vídeo 30 FPS y contrato PDF.</div>
                 </div>
 
                 <a href="perfil.html" id="nav-perfil" class="side-link">
@@ -539,6 +602,7 @@
                 </div>
 
                 <div class="topbar-actions">
+                    <button type="button" class="kinet-section-info-btn" onclick="openSectionInfoModal()" title="Guía del Despacho Ejecutivo">i</button>
                     <div class="active-role-indicator">
                         <span class="dot"></span>
                         <span class="active-role-text" id="topbar-role-title">ATLETA</span>
@@ -899,8 +963,8 @@
                         </div>
                     </div>
 
-                    <!-- BLOQUE DE BONOS DE PAGO FLEXIBLES (OPTIMIZADOS A 24-30 FPS) -->
-                    <div class="kinet-panel" style="margin-top:24px; margin-bottom:40px;">
+                    <!-- BLOQUE DE BONOS DE PAGO FLEXIBLES (OPTIMIZADOS A 24-30 FPS) CON ID DE ANCLA -->
+                    <div class="kinet-panel" id="payg-bonuses-section" style="margin-top:24px; margin-bottom:40px;">
                         <div class="panel-head">
                             <span class="panel-label">➕ BONOS ECONÓMICOS PAY-AS-YOU-GO (VÍDEO 24-30 FPS & CRÉDITOS IA)</span>
                             <span style="font-family:'JetBrains Mono';font-size:0.68rem;color:var(--role-color);font-weight:700;" id="sub-tab-bonus-badge">SALDO EXTRA: 0 MIN VÍDEO • 0 CRÉDITOS IA</span>
@@ -1092,6 +1156,29 @@
         </div>
     </div>
 
+    <!-- MODAL GUÍA DE SECCIÓN (BOTÓN ⓘ) -->
+    <div id="section-info-modal" class="kinet-modal-overlay" onclick="if(event.target===this)closeSectionInfoModal()">
+        <div class="kinet-modal-box" style="max-width:540px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:10px;">
+                <span style="font-family:'Orbitron';font-size:0.95rem;font-weight:900;color:var(--role-color);">ⓘ Guía del Despacho Ejecutivo</span>
+                <button type="button" onclick="closeSectionInfoModal()" style="background:none;border:none;color:white;font-size:1.15rem;cursor:pointer;">✕</button>
+            </div>
+            <div style="font-size:0.82rem;color:#CBD5E1;line-height:1.5;display:flex;flex-direction:column;gap:10px;">
+                <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
+                    <strong style="color:white;display:block;margin-bottom:2px;">⚡ 1. Planes Pro Player (8,99€) & Bonos Pay-As-You-Go</strong>
+                    En la pestaña <em>KINET PRO, Planes & Bonos</em> puedes desbloquear tu licencia mensual o recargar paquetes de minutos de vídeo a 30 FPS que no caducan a fin de mes.
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
+                    <strong style="color:white;display:block;margin-bottom:2px;">🎨 2. Personalización Visual en 0ms & Multi-Perfil</strong>
+                    Cambia el color de acento entre 16 tonos neón o activa el modo Rainbow sin parpadeos al navegar, y gestiona hasta 3 perfiles (Atleta, Staff y Scout).
+                </div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;">
+                <button type="button" class="btn-primary" onclick="closeSectionInfoModal()">Entendido</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MENÚ DESPLEGABLE MÓVIL (DRAWER COMPLETO) -->
     <div id="mobile-menu-drawer" style="position:fixed;inset:0;background:rgba(6,8,14,0.97);backdrop-filter:blur(28px);z-index:200;display:flex;flex-direction:column;padding:20px 16px;justify-content:space-between;transform:translateY(-100%);transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);border-bottom:1px solid rgba(var(--role-rgb),0.2);">
         <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:12px;margin-bottom:12px;">
@@ -1266,6 +1353,13 @@
         let rainbowAnimId = null;
         let rainbowHue = 0;
 
+        function openSectionInfoModal() {
+            document.getElementById('section-info-modal').classList.add('open');
+        }
+        function closeSectionInfoModal() {
+            document.getElementById('section-info-modal').classList.remove('open');
+        }
+
         let draftSettings = {
             userName: 'Atleta KINET',
             userEmail: 'usuario@kinetos.es',
@@ -1387,7 +1481,7 @@
             if (minorProtEl) minorProtEl.checked = localStorage.getItem('kinet_minor_protection') === 'true';
 
             const besoccerEl = document.getElementById('setting-besoccer-url');
-            if (besoccerEl) besoccerEl.value = localStorage.getItem('kinet_besoccer_url') || '';
+            if (besoccerEl) besoccerEl.value = localStorage.getItem('kinet_besoccer_url') || localStorage.getItem('kinet_user_transfermarkt') || '';
 
             const socExtEl = document.getElementById('setting-social-ext');
             if (socExtEl) socExtEl.value = localStorage.getItem('kinet_external_social') || '';
@@ -1419,8 +1513,14 @@
                 if (drwSoc) drwSoc.style.display = 'none';
             }
 
-            if (tabParam === 'subscription' || window.location.hash === '#subscription') {
+            if (tabParam === 'subscription' || window.location.hash === '#subscription' || window.location.hash === '#payg-bonuses-section') {
                 switchTab('subscription', document.getElementById('tab-btn-sub'));
+                if (window.location.hash === '#payg-bonuses-section') {
+                    setTimeout(() => {
+                        const bonusEl = document.getElementById('payg-bonuses-section');
+                        if (bonusEl) bonusEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 180);
+                }
             } else if (tabParam === 'theme') {
                 switchTab('theme', document.getElementById('tab-btn-theme'));
             } else if (tabParam === 'privacy') {
@@ -1450,6 +1550,7 @@
                 localStorage.setItem('kinet_privacy_read_receipts', String(isChecked));
             } else if (typeKey === 'market_open') {
                 localStorage.setItem('kinet_market_open', String(isChecked));
+                localStorage.setItem('kinet_open_to_offers', String(isChecked));
             } else if (typeKey === 'minor_mode') {
                 localStorage.setItem('kinet_minor_protection', String(isChecked));
                 if (isChecked) {
@@ -1564,6 +1665,9 @@
             localStorage.removeItem('kinet_accent_color');
             localStorage.setItem('kinet_rainbow_mode', 'false');
 
+            const zf = document.getElementById('kinet-zero-flash-override');
+            if (zf) zf.remove();
+
             const activeRoleKey = localStorage.getItem('kinet_active_role') || 'athlete';
             const defaultHex = getRoleDefaultHex(activeRoleKey);
 
@@ -1621,7 +1725,11 @@
             localStorage.setItem('kinet_ai_freq', draftSettings.aiFreq);
 
             const besoccerEl = document.getElementById('setting-besoccer-url');
-            if (besoccerEl) localStorage.setItem('kinet_besoccer_url', besoccerEl.value.trim());
+            if (besoccerEl) {
+                const bsVal = besoccerEl.value.trim();
+                localStorage.setItem('kinet_besoccer_url', bsVal);
+                if (bsVal) localStorage.setItem('kinet_user_transfermarkt', bsVal);
+            }
 
             const socExtEl = document.getElementById('setting-social-ext');
             if (socExtEl) localStorage.setItem('kinet_external_social', socExtEl.value.trim());
@@ -1677,6 +1785,8 @@
 
             stopRainbowLoop();
             if (draftSettings.rainbow) {
+                const zf = document.getElementById('kinet-zero-flash-override');
+                if (zf) zf.remove();
                 document.body.classList.add('rainbow-mode');
                 startRainbowLoop();
             } else {
@@ -1790,6 +1900,9 @@
         }
 
         function applyAccentColorToDOM(hexColor) {
+            const zf = document.getElementById('kinet-zero-flash-override');
+            if (zf) zf.remove();
+
             const clean = hexColor.replace('#', '');
             const num = parseInt(clean, 16);
             const r = (num >> 16) & 255;
@@ -1809,7 +1922,6 @@
             const domRole = normalizeRole(document.body.getAttribute('data-role'));
             const activeRoleKey = urlRole || domRole || normalizeRole(localStorage.getItem('kinet_active_role')) || 'athlete';
 
-            // Sincronizar inmediatamente localStorage y la base de perfiles con el rol que estás viendo en pantalla
             localStorage.setItem('kinet_active_role', activeRoleKey);
             localStorage.setItem('kinet_role', activeRoleKey);
             document.body.setAttribute('data-role', activeRoleKey);
@@ -1913,7 +2025,7 @@
             window.location.href = 'fase1.html';
         }
 
-      async function switchActiveProProfile(roleKey) {
+        async function switchActiveProProfile(roleKey) {
             const db = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
             const prof = db[roleKey];
             localStorage.setItem('kinet_active_role', roleKey);
@@ -1921,7 +2033,6 @@
             document.body.setAttribute('data-role', roleKey);
             if (prof && prof.sport) localStorage.setItem('kinet_sport', prof.sport);
 
-            // Empujar inmediatamente el nuevo rol activo a Supabase Cloud antes de recargar
             if (window.KinetBackend && typeof window.KinetBackend.pushLocalStateToCloud === 'function') {
                 await window.KinetBackend.pushLocalStateToCloud();
             }
@@ -1994,6 +2105,7 @@
             closeKinetModal('checkout-upgrade-modal');
             const newTier = pendingCheckoutTier || 'pro';
             localStorage.setItem('kinet_account_tier', newTier);
+            localStorage.setItem('kinet_is_pro', 'true');
             if (!localStorage.getItem('kinet_video_mins_used')) {
                 localStorage.setItem('kinet_video_mins_used', '0');
             }
@@ -2167,15 +2279,24 @@
 
             pdf.setFillColor(8, 11, 18);
             pdf.rect(12, 12, 186, 28, 'F');
+
+            // LOGO OFICIAL KINET OS ARRIBA A LA IZQUIERDA
+            pdf.setFillColor(0, 255, 136);
+            pdf.roundedRect(16, 16, 12, 12, 2.5, 2.5, 'F');
+            pdf.setTextColor(4, 6, 10);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(11);
+            pdf.text('K', 20.3, 24.2);
+
             pdf.setTextColor(0, 255, 136);
             pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(13.5);
-            pdf.text('KINET OS // CONTRATO DE SUSCRIPCION, LICENCIA Y DATOS', 18, 23);
+            pdf.setFontSize(12.5);
+            pdf.text('KINET OS // CONTRATO DE SUSCRIPCION, LICENCIA Y DATOS', 32, 22);
 
             pdf.setTextColor(226, 232, 240);
-            pdf.setFontSize(8.5);
-            pdf.text(`EXPEDIENTE CONTRACTUAL N.º: ${contractId}   |   FECHA DE EMISION: ${dateStr.toUpperCase()}`, 18, 31);
-            pdf.text('REGISTRO MERCANTIL & CUMPLIMIENTO NORMATIVO UE (RGPD 2016/679 • LOPDGDD 3/2018 • LSSI-CE)', 18, 36.5);
+            pdf.setFontSize(8.2);
+            pdf.text(`EXPEDIENTE CONTRACTUAL N.º: ${contractId}   |   FECHA DE EMISION: ${dateStr.toUpperCase()}`, 32, 29.5);
+            pdf.text('REGISTRO MERCANTIL & CUMPLIMIENTO NORMATIVO UE (RGPD 2016/679 • LOPDGDD 3/2018 • LSSI-CE)', 32, 35.5);
 
             let y = 49;
             pdf.setFillColor(226, 232, 240);
@@ -2256,6 +2377,7 @@
         function executeCancelPlan() {
             closeKinetModal('cancel-plan-modal');
             localStorage.setItem('kinet_account_tier', 'free');
+            localStorage.setItem('kinet_is_pro', 'false');
             if (window.KinetBackend) window.KinetBackend.pushLocalStateToCloud();
             updateTierUI('free');
             openInfoModal('✓ SUSCRIPCIÓN CANCELADA', 'Tu cuenta ha vuelto al <strong>Plan Gratuito</strong>.');
