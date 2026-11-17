@@ -961,10 +961,10 @@
                                     <span class="verified-badge" id="vision-active-subject">SUJETO: PENDIENTE DE SUBIR VÍDEO</span>
                                 </div>
 
-                               <!-- BARRA DE CUOTA LIMPIA EN 1 SOLA LÍNEA (CLICABLE PARA VER DESGLOSE) -->
-                                <div class="quota-bar-box" onclick="openQuotaBreakdownModal()" style="cursor:pointer;" title="Pulsa para ver el desglose de tus minutos">
+                                <!-- BARRA DE CUOTA LIMPIA EN 1 SOLA LÍNEA (PULSA PARA VER DESGLOSE) -->
+                                <div class="quota-bar-box" onclick="openQuotaBreakdownModal()" style="cursor:pointer;" title="Pulsa para ver de dónde vienen tus minutos y cuándo se renuevan">
                                     <div class="quota-meta" style="flex-wrap:nowrap; gap:10px;">
-                                        <span style="color:#E2E8F0; white-space:nowrap;">CUOTA DE VÍDEO IA</span>
+                                        <span style="color:#E2E8F0; white-space:nowrap;">MINUTOS DE VÍDEO DISPONIBLES</span>
                                         <span id="quota-meta-right" style="color:var(--role-color); font-weight:700; white-space:nowrap;">0 MIN DISPONIBLES ⓘ</span>
                                     </div>
                                     <div class="quota-track">
@@ -1205,6 +1205,25 @@
             <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:6px;flex-wrap:wrap;">
                 <button class="btn-secondary" onclick="document.getElementById('vision-upgrade-modal').classList.remove('open')">Cerrar</button>
                 <a href="despacho.html?tab=subscription" id="modal-sub-link" class="btn-primary">⚡ Ver Planes →</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================================
+         MODAL DESGLOSE DE MINUTOS DE VÍDEO (SUSCRIPCIÓN + BONOS + RENOVACIÓN)
+         ========================================================================= -->
+    <div id="quota-breakdown-modal" class="kinet-modal-overlay" onclick="if(event.target===this)this.classList.remove('open')">
+        <div class="kinet-modal-box" style="max-width:480px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:10px;">
+                <div style="font-family:'Orbitron';font-size:0.92rem;font-weight:900;color:var(--role-color);display:flex;align-items:center;gap:8px;">
+                    <span>📊</span> <span>DESGLOSE DE MINUTOS // VISION LAB™</span>
+                </div>
+                <button type="button" onclick="document.getElementById('quota-breakdown-modal').classList.remove('open')" style="background:none;border:none;color:white;font-size:1.15rem;cursor:pointer;">✕</button>
+            </div>
+            <div id="quota-breakdown-modal-body" style="font-size:0.82rem;color:#CBD5E1;line-height:1.6;"></div>
+            <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:6px;">
+                <button type="button" class="btn-secondary" onclick="document.getElementById('quota-breakdown-modal').classList.remove('open')">Cerrar</button>
+                <button type="button" class="btn-primary" onclick="openBonusPackModal()">➕ Recargar Bonos / Planes →</button>
             </div>
         </div>
     </div>
@@ -1553,19 +1572,16 @@
             return null;
         }
 
-      function checkAndApplyMonthlyPlanRenewal() {
+        function checkAndApplyMonthlyPlanRenewal() {
             const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
             if (tier !== 'pro' && tier !== 'club') return;
-
             const now = Date.now();
             const monthMs = 30 * 24 * 60 * 60 * 1000;
             let cycleStart = parseInt(localStorage.getItem('kinet_plan_cycle_start') || '0', 10);
-
             if (!cycleStart || isNaN(cycleStart)) {
                 localStorage.setItem('kinet_plan_cycle_start', String(now));
                 return;
             }
-            // Si ya ha pasado 1 mes desde el inicio del ciclo, reinicia el consumo mensual devolviendo los +90 min (Pro) o +300 min (Club)
             if (now - cycleStart >= monthMs) {
                 localStorage.setItem('kinet_video_mins_used', '0');
                 localStorage.setItem('kinet_plan_cycle_start', String(now));
@@ -1591,47 +1607,8 @@
             const totalCapacity = +(basePlanMax + bonusMins).toFixed(1);
 
             const cycleStart = parseInt(localStorage.getItem('kinet_plan_cycle_start') || String(Date.now()), 10);
-            const nextRenewalDate = new Date(cycleStart + (30 * 24 * 60 * 60 * 1000)).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-
+            const nextRenewalDate = new Date(cycleStart + (30 * 24 * 60 * 60 * 1000)).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
             return { tier, isProOrClub, basePlanMax, usedPlanMins, remainingPlanMins, bonusMins, totalAvailable, totalCapacity, nextRenewalDate };
-        }
-
-        function refreshVideoQuotaUI() {
-            const st = getAvailableVideoMinutesState();
-            const quotaPill = document.getElementById('video-quota-pill');
-            const quotaRight = document.getElementById('quota-meta-right');
-            const quotaBar = document.getElementById('quota-fill-bar');
-
-            if (st.totalAvailable > 0) {
-                const denom = st.totalCapacity > 0 ? st.totalCapacity : st.totalAvailable;
-                const pct = Math.min(100, Math.round((st.totalAvailable / denom) * 100));
-                quotaPill.textContent = `🎥 ${st.totalAvailable} MIN DISPONIBLES`;
-                quotaPill.style.cursor = 'pointer';
-                quotaPill.onclick = openQuotaBreakdownModal;
-                quotaRight.textContent = `${st.totalAvailable} MIN DISPONIBLES ⓘ`;
-                quotaBar.style.width = `${pct}%`;
-            } else {
-                quotaPill.textContent = '🔒 0 MIN DISPONIBLES';
-                quotaRight.textContent = '0 MIN DISPONIBLES ⓘ';
-                quotaBar.style.width = '0%';
-            }
-        }
-
-        function openQuotaBreakdownModal() {
-            const st = getAvailableVideoMinutesState();
-            const planLabel = st.tier === 'club' ? 'Club & Scout (+300 min/mes)' : (st.tier === 'pro' ? 'Pro Player (+90 min/mes)' : 'Plan Gratuito (0 min/mes)');
-            const renewalHtml = st.isProOrClub
-                ? `<div style="margin-top:8px;padding:8px 10px;border-radius:9px;background:rgba(var(--role-rgb),0.08);border:1px solid rgba(var(--role-rgb),0.3);font-size:0.74rem;color:var(--role-color);">🔄 <strong>Próxima renovación mensual (+${st.basePlanMax} min):</strong> ${st.nextRenewalDate}</div>`
-                : `<div style="margin-top:8px;font-size:0.72rem;color:#94A3B8;">Pásate a Pro Player para recibir +90 min automáticos cada mes y un 50% de descuento en bonos.</div>`;
-
-            alert(
-                `📊 DESGLOSE DE TUS MINUTOS DE VÍDEO IA\n\n` +
-                `• TOTAL DISPONIBLE AHORA: ${st.totalAvailable} min\n` +
-                `──────────────────────────────\n` +
-                `• Minutos de Suscripción (${planLabel}): ${st.remainingPlanMins} / ${st.basePlanMax} min\n` +
-                `• Minutos de Bonos (Reserva sin caducidad): ${st.bonusMins} / 595 min máx.\n` +
-                (st.isProOrClub ? `• Renovación automática (+${st.basePlanMax} min): ${st.nextRenewalDate}` : '')
-            );
         }
 
         function consumeVideoMinutes(durationMins) {
@@ -1811,6 +1788,53 @@
             `).join('');
         }
 
+        function refreshVideoQuotaUI() {
+            const st = getAvailableVideoMinutesState();
+            const quotaPill = document.getElementById('video-quota-pill');
+            const quotaRight = document.getElementById('quota-meta-right');
+            const quotaBar = document.getElementById('quota-fill-bar');
+
+            if (quotaPill) {
+                quotaPill.style.cursor = 'pointer';
+                quotaPill.title = 'Pulsa para ver el desglose de tus minutos';
+                quotaPill.onclick = openQuotaBreakdownModal;
+            }
+
+            if (st.totalAvailable > 0) {
+                const denom = st.totalCapacity > 0 ? st.totalCapacity : st.totalAvailable;
+                const pct = Math.min(100, Math.round((st.totalAvailable / denom) * 100));
+                quotaPill.textContent = `🎥 ${st.totalAvailable} MIN DISPONIBLES ⓘ`;
+                quotaRight.textContent = `${st.totalAvailable} MIN DISPONIBLES ⓘ`;
+                quotaBar.style.width = `${pct}%`;
+            } else {
+                quotaPill.textContent = '🔒 0 MIN DISPONIBLES ⓘ';
+                quotaRight.textContent = '0 MIN DISPONIBLES ⓘ';
+                quotaBar.style.width = '0%';
+            }
+        }
+
+        function openQuotaBreakdownModal() {
+            const st = getAvailableVideoMinutesState();
+            const planName = st.tier === 'club' ? 'Club & Scout (300 min/mes)' : (st.tier === 'pro' ? 'Pro Player (90 min/mes)' : 'Plan Gratuito (0 min/mes)');
+            const bodyEl = document.getElementById('quota-breakdown-modal-body');
+            if (bodyEl) {
+                bodyEl.innerHTML = `
+                    <div style="background:rgba(var(--role-rgb),0.1);border:1px solid rgba(var(--role-rgb),0.4);border-radius:12px;padding:12px 14px;margin-bottom:12px;">
+                        <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);display:block;">TOTAL SUMADO DISPONIBLE AHORA</span>
+                        <strong style="font-family:'Orbitron';font-size:1.35rem;color:white;">${st.totalAvailable} MINUTOS</strong>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:8px;">
+                        <div>• <strong>Minutos de tu Suscripción (${planName}):</strong> <span style="color:white;font-weight:700;">${st.remainingPlanMins} min</span> (de ${st.basePlanMax} min mensuales)</div>
+                        <div>• <strong>Minutos de Bonos (Reserva sin caducidad):</strong> <span style="color:white;font-weight:700;">${st.bonusMins} min</span> (tope máx. monedero: 595 min)</div>
+                        ${st.isProOrClub
+                            ? `<div style="margin-top:6px;padding:9px 11px;border-radius:10px;background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);font-size:0.76rem;">🔄 <strong>Renovación mensual (+${st.basePlanMax} min):</strong> El <strong>${st.nextRenewalDate}</strong> se renovarán tus +${st.basePlanMax} min del mes automáticamente.</div>`
+                            : `<div style="margin-top:6px;padding:9px 11px;border-radius:10px;background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);font-size:0.76rem;">⚡ Con <strong>Pro Player (8,99€/mes)</strong> recibes <strong>+90 min cada mes</strong> y tus bonos cuestan la mitad (-50%).</div>`
+                        }
+                    </div>
+                `;
+            }
+            document.getElementById('quota-breakdown-modal').classList.add('open');
+        }
 
         function openUploadWizardModal() {
             if (!isPaidOrBonusAccount()) {
