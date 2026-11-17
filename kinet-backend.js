@@ -4,10 +4,11 @@
  */
 (function (window) {
   'use strict';
-// ZERO-FLASH GLOBAL: Sobrescribe body[data-role] antes de que el navegador pinte el <body>
+  // ZERO-FLASH GLOBAL: Sobrescribe body[data-role] antes de que el navegador pinte el <body>
   (function injectZeroFlashStyleImmediately() {
     try {
-      const savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
+      const isReset = localStorage.getItem('kinet_theme_color_reset') === 'true';
+      const savedAccent = isReset ? null : (localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color'));
       const rainbowOn = localStorage.getItem('kinet_rainbow_mode') === 'true';
       if (savedAccent && savedAccent.startsWith('#') && !rainbowOn) {
         const clean = savedAccent.replace('#', '');
@@ -32,6 +33,7 @@
       }
     } catch (e) {}
   })();
+
   const SUPABASE_URL = 'https://bhqgsbtkwdxdxlvlcaes.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_GrgL4iukPUJJyh91BdgfIQ_P0NQd6Nj';
 
@@ -44,12 +46,12 @@
   let lastUnreadCount = 0;
 
   const originalSetItem = localStorage.setItem;
+  const originalRemoveItem = localStorage.removeItem;
 
-// =========================================================================
+  // =========================================================================
   // 1. VALIDADOR INTELIGENTE DE SESIÓN REAL / PRO VS INVITADO (NUNCA BLOQUEA CUENTAS PRO)
   // =========================================================================
   function isStrictlyAuthenticatedUser() {
-    // Si la URL actual pide explícitamente entrar como invitado (?guest=true), es invitado
     try {
       if (new URLSearchParams(window.location.search).get('guest') === 'true') {
         return false;
@@ -72,7 +74,6 @@
       (uid && uid.length > 15) ||
       (loggedInFlag && name && !name.toLowerCase().includes('invitado') && !handle.toLowerCase().includes('invitado'));
 
-    // Si es cuenta Pro/Club o tiene sesión real iniciada, limpiar cualquier basura residual de modo invitado y autogenerar el token si faltaba
     if (hasRealUserData) {
       if (localStorage.getItem('kinet_is_guest') === 'true' || localStorage.getItem('kinet_guest_session') === 'true' || localStorage.getItem('kinet_mode') === 'guest') {
         localStorage.removeItem('kinet_is_guest');
@@ -94,7 +95,7 @@
   function isGuestSessionActive() {
     return !isStrictlyAuthenticatedUser();
   }
-  // Si entra con ?guest=true en la URL, destruir inmediatamente cualquier rastro de cuenta anterior
+
   try {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('guest') === 'true') {
@@ -223,10 +224,13 @@
   localStorage.setItem = function (key, value) {
     if (key === 'kinet_logged_in' && value === 'true') {
       if (localStorage.getItem('kinet_is_guest') === 'true' || !localStorage.getItem('kinet_auth_session_token')) {
-        return; // Bloquea que un onboarding convierta a un invitado en usuario logueado
+        return;
       }
     }
     originalSetItem.apply(this, arguments);
+    if ((key === 'kinet_custom_accent_override' || key === 'kinet_accent_color') && value && String(value).startsWith('#')) {
+      originalRemoveItem.call(localStorage, 'kinet_theme_color_reset');
+    }
     if (key === 'kinet_user_avatar' && value) {
       originalSetItem.call(localStorage, 'kinet_avatar_updated_at', String(Date.now()));
       refreshDOMAvatarsAndProfileUI();
@@ -234,6 +238,13 @@
     if (key === 'kinet_unread_dm_count' || key === 'kinet_official_welcome_read') {
       updateGlobalCommunityExclamationBadge();
     }
+    if (!isHydratingFromCloud && initialCloudPullFinished && key && key.startsWith('kinet_') && isStrictlyAuthenticatedUser()) {
+      scheduleCloudSync();
+    }
+  };
+
+  localStorage.removeItem = function (key) {
+    originalRemoveItem.apply(this, arguments);
     if (!isHydratingFromCloud && initialCloudPullFinished && key && key.startsWith('kinet_') && isStrictlyAuthenticatedUser()) {
       scheduleCloudSync();
     }
@@ -247,7 +258,6 @@
     }, 500);
   }
 
-  // Limpia cualquier texto estático "NAIM T" que venga escrito en el HTML cuando entra un invitado o usuario nuevo
   function scrubHardcodedHtmlPlaceholdersForGuest() {
     if (isStrictlyAuthenticatedUser()) return;
     const guestName = localStorage.getItem('kinet_user_name') || 'Atleta Invitado';
@@ -336,7 +346,26 @@
       originalSetItem.call(localStorage, 'kinet_auth_session_token', 'auth_' + profileRow.id + '_' + Date.now());
 
       const cloudState = profileRow.user_state || {};
+      if (cloudState.kinet_theme_color_reset === 'true' || (!cloudState.kinet_custom_accent_override && !cloudState.kinet_accent_color)) {
+        originalRemoveItem.call(localStorage, 'kinet_custom_accent_override');
+        originalRemoveItem.call(localStorage, 'kinet_accent_color');
+        originalSetItem.call(localStorage, 'kinet_theme_color_reset', 'true');
+        const zf = document.getElementById('kinet-zero-flash-override');
+        if (zf) zf.remove();
+        if (localStorage.getItem('kinet_rainbow_mode') !== 'true') {
+          [document.documentElement, document.body].forEach(el => {
+            if (!el) return;
+            el.style.removeProperty('--role-color');
+            el.style.removeProperty('--role-rgb');
+            el.style.removeProperty('--role-glow');
+            el.style.removeProperty('--role-gradient');
+          });
+        }
+      }
       Object.keys(cloudState).forEach((k) => {
+        if (k === 'kinet_custom_accent_override' || k === 'kinet_accent_color') {
+          if (cloudState.kinet_theme_color_reset === 'true') return;
+        }
         if (k !== 'kinet_is_guest' && k !== 'kinet_guest_session' && cloudState[k] !== null && cloudState[k] !== undefined && String(cloudState[k]).trim() !== '') {
           if (k === 'kinet_user_name' && (cloudState[k] === 'Usuario KINET' || cloudState[k] === 'Atleta Invitado')) {
             return;
@@ -373,7 +402,6 @@
       originalSetItem.call(localStorage, 'kinet_account_tier', resolvedTier);
       originalSetItem.call(localStorage, 'kinet_is_pro', (resolvedTier === 'pro' || resolvedTier === 'club') ? 'true' : 'false');
 
-      // Sincronizar minutos de vídeo desde las columnas de Supabase (permite que el administrador edite minutos en vivo desde Supabase)
       if (typeof profileRow.bonus_video_mins === 'number' && !isNaN(profileRow.bonus_video_mins)) {
         const cappedBonus = Math.min(595, Math.max(0, profileRow.bonus_video_mins));
         originalSetItem.call(localStorage, 'kinet_bonus_video_mins', String(cappedBonus));
@@ -382,7 +410,6 @@
         originalSetItem.call(localStorage, 'kinet_video_mins_used', String(Math.max(0, profileRow.video_mins_used)));
       }
 
-      // Leer rango interno de empleado/jefe desde Supabase (staff_role / admin_role) — 100% invisible para usuarios normales
       const rawStaffRole = String(
         profileRow.staff_role ||
         profileRow.admin_role ||
@@ -686,13 +713,12 @@
     hasStaffPermission(requiredScope = 'any') {
       const role = this.getStaffAdminRole();
       if (!role) return false;
-      if (role === 'superadmin' || role === 'admin') return true; // El Jefe controla todo
-      if (role === 'subadmin') return requiredScope !== 'owner_only'; // Subjefes controlan todo salvo borrar superadmin
+      if (role === 'superadmin' || role === 'admin') return true;
+      if (role === 'subadmin') return requiredScope !== 'owner_only';
       if (requiredScope === 'any') return true;
       return role === requiredScope;
     },
 
-    // Funciones remotas para que el Jefe (superadmin) o Subjefes (subadmin) otorguen PRO, ajusten minutos o asignen puestos desde admin.html / consola
     async adminUpdateUserAccount({ targetEmailOrHandle, accountTier, bonusVideoMins, staffRole }) {
       if (!this.hasStaffPermission('subadmin')) {
         throw new Error('Acceso denegado: Se requiere rango de Jefe (superadmin) o Subjefe (subadmin) en Supabase.');
@@ -736,7 +762,6 @@
       return { ok: true, updated: Array.isArray(updated) ? updated[0] : updated };
     },
 
-    // MODERACIÓN EN VIVO (SuperAdmin, Subadmin, Moderator, Scout Verifier)
     async adminFetchAllProfiles(limit = 100) {
       if (!this.hasStaffPermission('any')) throw new Error('Se requiere rango de Staff en Supabase.');
       const rows = await supabaseRestRequest(`profiles?select=*&order=updated_at.desc&limit=${limit}`, 'GET');
@@ -983,6 +1008,15 @@
             safeMergedState[k] = val;
           }
         });
+
+        // Si el usuario restauró el color original de su rol, eliminarlo también de Supabase user_state para que no reaparezca al cambiar de página
+        if (localStorage.getItem('kinet_theme_color_reset') === 'true' || (!localStorage.getItem('kinet_custom_accent_override') && !localStorage.getItem('kinet_accent_color'))) {
+          delete safeMergedState.kinet_custom_accent_override;
+          delete safeMergedState.kinet_accent_color;
+          safeMergedState.kinet_theme_color_reset = 'true';
+        } else {
+          delete safeMergedState.kinet_theme_color_reset;
+        }
 
         const payload = {
           id: userId,
@@ -1252,7 +1286,6 @@
 // INTERCEPTOR GLOBAL DE BOTONES "ENTRAR COMO INVITADO" EN INDEX.HTML, LOGIN.HTML Y FASE1.HTML
 // =========================================================================
 window.addEventListener('DOMContentLoaded', () => {
-  // Cualquier botón en cualquier página que diga "Entrar como Invitado" o "Modo Invitado" limpia toda sesión previa antes de entrar
   document.querySelectorAll('a, button').forEach((btn) => {
     const txt = (btn.textContent || '').toUpperCase();
     if (txt.includes('ENTRAR COMO INVITADO') || txt.includes('MODO INVITADO')) {
