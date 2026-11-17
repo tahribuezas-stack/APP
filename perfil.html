@@ -1084,14 +1084,14 @@
                                         <div>
                                             <label class="field-label" id="lbl-dynamic-tm" style="color:var(--role-color);">🔗 PERFIL TRANSFERMARKT / BESOCCER / FED.</label>
                                             <div class="external-link-input-wrap">
-                                                <input type="url" id="prof-input-transfermarkt" class="kinet-input" placeholder="https://www.transfermarkt.es/...">
+                                                <input type="url" id="prof-input-transfermarkt" class="kinet-input" placeholder="https://www.transfermarkt.es/..." oninput="autoSaveExternalLinksInline()" onchange="saveProfileChanges()">
                                                 <button type="button" class="external-open-btn" onclick="openExternalProfileLink('prof-input-transfermarkt')" title="Abrir enlace oficial">↗</button>
                                             </div>
                                         </div>
                                         <div>
                                             <label class="field-label" style="color:#38BDF8;">🎬 LINK HIGHLIGHT VÍDEO (YOUTUBE / DRIVE)</label>
                                             <div class="external-link-input-wrap">
-                                                <input type="url" id="prof-input-videolink" class="kinet-input" placeholder="https://youtu.be/... o link de Reel">
+                                                <input type="url" id="prof-input-videolink" class="kinet-input" placeholder="https://youtu.be/... o link de Reel" oninput="autoSaveExternalLinksInline()" onchange="saveProfileChanges()">
                                                 <button type="button" class="external-open-btn" onclick="openExternalProfileLink('prof-input-videolink')" title="Ver vídeo externo">▶</button>
                                             </div>
                                         </div>
@@ -1442,7 +1442,15 @@
             const finalUrl = /^https?:\/\//i.test(val) ? val : `https://${val}`;
             window.open(finalUrl, '_blank', 'noopener');
         }
-
+        function autoSaveExternalLinksInline() {
+            const tmVal = document.getElementById('prof-input-transfermarkt')?.value.trim() || '';
+            const vidVal = document.getElementById('prof-input-videolink')?.value.trim() || '';
+            localStorage.setItem('kinet_user_transfermarkt', tmVal);
+            localStorage.setItem('kinet_besoccer_url', tmVal);
+            localStorage.setItem('kinet_user_videolink', vidVal);
+            localStorage.setItem('kinet_video_url', vidVal);
+        }
+    
         function closeProfileCustomSelect(wrapEl) {
             if (!wrapEl || !wrapEl.classList.contains('open')) return;
             wrapEl.classList.remove('open');
@@ -1593,9 +1601,17 @@
                 const city = findAnyKey(['kinet_city', 'kinet_location', 'city', 'ciudad', 'location']);
                 if (city) localStorage.setItem('kinet_user_city', city);
             }
-            if (!localStorage.getItem('kinet_user_club')) {
+          if (!localStorage.getItem('kinet_user_club')) {
                 const club = findAnyKey(['kinet_club', 'club', 'team', 'equipo']);
                 if (club) localStorage.setItem('kinet_user_club', club);
+            }
+            if (!localStorage.getItem('kinet_user_transfermarkt')) {
+                const tm = findAnyKey(['kinet_user_transfermarkt', 'kinet_besoccer_url', 'transfermarktUrl', 'transfermarkt', 'besoccer']);
+                if (tm) localStorage.setItem('kinet_user_transfermarkt', tm);
+            }
+            if (!localStorage.getItem('kinet_user_videolink')) {
+                const vid = findAnyKey(['kinet_user_videolink', 'kinet_video_url', 'videoUrl', 'videolink', 'highlightUrl']);
+                if (vid) localStorage.setItem('kinet_user_videolink', vid);
             }
         }
 
@@ -1751,8 +1767,26 @@
             const matchedLat = catalog.lateralities.find(l => l.toLowerCase().includes(savedLat.toLowerCase()) && savedLat.length > 2) || savedLat || '';
 
             const bio = localStorage.getItem('kinet_social_bio') || localStorage.getItem('kinet_user_bio') || `Perfil Verificado KINET OS`;
-            const tmLink = localStorage.getItem('kinet_user_transfermarkt') || '';
-            const videoLink = localStorage.getItem('kinet_user_videolink') || '';
+            let bundleBackup = {};
+            try { bundleBackup = JSON.parse(localStorage.getItem('kinet_passport_cv_bundle') || '{}') || {}; } catch (e) {}
+            let dbBackup = {};
+            try {
+                const allDb = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}') || {};
+                dbBackup = allDb[activeRoleKey] || allDb['athlete'] || {};
+            } catch (e) {}
+
+            const tmLink = localStorage.getItem('kinet_user_transfermarkt')
+                || localStorage.getItem('kinet_besoccer_url')
+                || bundleBackup.transfermarkt
+                || dbBackup.transfermarktUrl
+                || '';
+            const videoLink = localStorage.getItem('kinet_user_videolink')
+                || localStorage.getItem('kinet_video_url')
+                || bundleBackup.videolink
+                || dbBackup.videoUrl
+                || '';
+            if (tmLink) localStorage.setItem('kinet_user_transfermarkt', tmLink);
+            if (videoLink) localStorage.setItem('kinet_user_videolink', videoLink);
             const avatar = localStorage.getItem('kinet_user_avatar');
 
             document.getElementById('prof-input-name').value = userName;
