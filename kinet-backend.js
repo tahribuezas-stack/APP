@@ -207,7 +207,8 @@
         k !== 'kinet_saved_posts' &&
         k !== 'kinet_is_guest' &&
         k !== 'kinet_guest_session' &&
-        k !== 'kinet_auth_session_token'
+        k !== 'kinet_auth_session_token' &&
+        k !== 'kinet_staff_admin_role'
       ) {
         const val = localStorage.getItem(k);
         if (val && val.length < 180000) {
@@ -368,7 +369,33 @@
       if (profileRow.position && profileRow.position !== 'Por asignar') originalSetItem.call(localStorage, 'kinet_position', profileRow.position);
       if (profileRow.category) originalSetItem.call(localStorage, 'kinet_category', profileRow.category);
       if (profileRow.club) originalSetItem.call(localStorage, 'kinet_user_club', profileRow.club);
-      if (profileRow.account_tier) originalSetItem.call(localStorage, 'kinet_account_tier', profileRow.account_tier);
+      const resolvedTier = String(profileRow.account_tier || cloudState.kinet_account_tier || 'free').toLowerCase().trim();
+      originalSetItem.call(localStorage, 'kinet_account_tier', resolvedTier);
+      originalSetItem.call(localStorage, 'kinet_is_pro', (resolvedTier === 'pro' || resolvedTier === 'club') ? 'true' : 'false');
+
+      // Sincronizar minutos de vídeo desde las columnas de Supabase (permite que el administrador edite minutos en vivo desde Supabase)
+      if (typeof profileRow.bonus_video_mins === 'number' && !isNaN(profileRow.bonus_video_mins)) {
+        const cappedBonus = Math.min(595, Math.max(0, profileRow.bonus_video_mins));
+        originalSetItem.call(localStorage, 'kinet_bonus_video_mins', String(cappedBonus));
+      }
+      if (typeof profileRow.video_mins_used === 'number' && !isNaN(profileRow.video_mins_used)) {
+        originalSetItem.call(localStorage, 'kinet_video_mins_used', String(Math.max(0, profileRow.video_mins_used)));
+      }
+
+      // Leer rango interno de empleado/jefe desde Supabase (staff_role / admin_role) — 100% invisible para usuarios normales
+      const rawStaffRole = String(
+        profileRow.staff_role ||
+        profileRow.admin_role ||
+        profileRow.employee_role ||
+        cloudState.supabase_staff_role ||
+        ''
+      ).toLowerCase().trim();
+      const validStaffRoles = ['superadmin', 'subadmin', 'moderator', 'scout_verifier', 'marketing', 'admin'];
+      if (validStaffRoles.includes(rawStaffRole)) {
+        originalSetItem.call(localStorage, 'kinet_staff_admin_role', rawStaffRole);
+      } else {
+        localStorage.removeItem('kinet_staff_admin_role');
+      }
 
       originalSetItem.call(localStorage, 'kinet_logged_in', 'true');
       originalSetItem.call(localStorage, 'kinet_social_configured', 'true');
@@ -624,9 +651,13 @@
       });
 
       const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
-      const isProOrClub = isStrictlyAuthenticatedUser() && (tier === 'pro' || tier === 'club' || localStorage.getItem('kinet_is_pro') === 'true');
+      const isProOrClub = isStrictlyAuthenticatedUser() && (tier === 'pro' || tier === 'club');
       document.querySelectorAll('[data-pro-upsell], #sidebar-pro-btn, #nav-upgrade-pro, #drawer-upgrade-pro').forEach((el) => {
-        if (isProOrClub) el.style.setProperty('display', 'none', 'important');
+        if (isProOrClub) {
+          el.style.setProperty('display', 'none', 'important');
+        } else {
+          el.style.removeProperty('display');
+        }
       });
     } catch (e) {}
   }
@@ -641,7 +672,68 @@
     canUploadVideo() {
       if (!isStrictlyAuthenticatedUser()) return false;
       const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
-      return tier === 'pro' || tier === 'club' || localStorage.getItem('kinet_is_pro') === 'true';
+      const bonusMins = parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0');
+      return tier === 'pro' || tier === 'club' || bonusMins > 0;
+    },
+
+    getStaffAdminRole() {
+      if (!isStrictlyAuthenticatedUser()) return null;
+      const r = (localStorage.getItem('kinet_staff_admin_role') || '').toLowerCase().trim();
+      const valid = ['superadmin', 'subadmin', 'moderator', 'scout_verifier', 'marketing', 'admin'];
+      return valid.includes(r) ? r : null;
+    },
+
+    hasStaffPermission(requiredScope = 'any') {
+      const role = this.getStaffAdminRole();
+      if (!role) return false;
+      if (role === 'superadmin' || role === 'admin') return true; // El Jefe controla todo
+      if (role === 'subadmin') return requiredScope !== 'owner_only'; // Subjefes controlan todo salvo borrar superadmin
+      if (requiredScope === 'any') return true;
+      return role === requiredScope;
+    },
+
+    // Funciones remotas para que el Jefe (superadmin) o Subjefes (subadmin) otorguen PRO, ajusten minutos o asignen puestos desde admin.html / consola
+    async adminUpdateUserAccount({ targetEmailOrHandle, accountTier, bonusVideoMins, staffRole }) {
+      if (!this.hasStaffPermission('subadmin')) {
+        throw new Error('Acceso denegado: Se requiere rango de Jefe (superadmin) o Subjefe (subadmin) en Supabase.');
+      }
+      const q = String(targetEmailOrHandle || '').trim();
+      if (!q) throw new Error('Indica el correo o @handle del usuario.');
+      const filter = q.includes('@') && !q.startsWith('@')
+        ? `email=ilike.${encodeURIComponent(q)}`
+        : `handle=ilike.${encodeURIComponent(q.startsWith('@') ? q : '@' + q)}`;
+
+      const rows = await supabaseRestRequest(`profiles?${filter}&select=*&limit=1`, 'GET');
+      if (!Array.isArray(rows) || !rows[0]) {
+        throw new Error(`No se encontró ningún usuario con "${q}" en Supabase.`);
+      }
+      const targetRow = rows[0];
+      const nextState = { ...(targetRow.user_state || {}) };
+      const patchPayload = { updated_at: new Date().toISOString() };
+
+      if (accountTier !== undefined && accountTier !== null) {
+        const cleanTier = String(accountTier).toLowerCase().trim();
+        patchPayload.account_tier = cleanTier;
+        nextState.kinet_account_tier = cleanTier;
+        nextState.kinet_is_pro = (cleanTier === 'pro' || cleanTier === 'club') ? 'true' : 'false';
+      }
+      if (bonusVideoMins !== undefined && bonusVideoMins !== null && !isNaN(parseFloat(bonusVideoMins))) {
+        const capped = Math.min(595, Math.max(0, parseFloat(bonusVideoMins)));
+        patchPayload.bonus_video_mins = capped;
+        nextState.kinet_bonus_video_mins = String(capped);
+      }
+      if (staffRole !== undefined) {
+        if (!this.hasStaffPermission('owner_only') && staffRole === 'superadmin') {
+          throw new Error('Solo el Jefe (superadmin) puede otorgar el rango de superadmin.');
+        }
+        const cleanStaff = String(staffRole || '').toLowerCase().trim();
+        nextState.supabase_staff_role = cleanStaff;
+        patchPayload.staff_role = cleanStaff || null;
+      }
+
+      patchPayload.user_state = nextState;
+      const updated = await supabaseRestRequest(`profiles?id=eq.${targetRow.id}`, 'PATCH', patchPayload, false);
+      return { ok: true, updated: Array.isArray(updated) ? updated[0] : updated };
     },
 
     getVideoCompressionConfig() {
@@ -897,7 +989,7 @@
         return {
           ok: false,
           proRequired: true,
-          error: new Error('La subida de vídeos y KINET Shorts (24-30 FPS) es exclusiva para miembros KINET PRO / Club.')
+          error: new Error('La subida de vídeos y KINET Shorts en alta definición es exclusiva para miembros KINET PRO / Club o con Bono de Vídeo activo.')
         };
       }
 
