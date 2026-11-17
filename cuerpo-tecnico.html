@@ -1080,9 +1080,7 @@
 
                 <div class="topbar-actions">
                     <button type="button" class="kinet-section-info-btn" onclick="openSectionInfoModal()" title="Guía del Cuerpo Técnico IA">i</button>
-                    <div class="ai-quota-pill" id="ai-quota-badge" onclick="openAiCreditsBreakdownModal()" style="cursor:pointer;" title="Pulsa para ver el desglose de tus créditos diarios renovables y de bonos">
-                        <span>⚡ CRÉDITOS IA:</span> <span id="ai-quota-count">15 DISP. ⓘ</span>
-                    </div>
+
                     <div class="active-role-indicator">
                         <span class="dot"></span>
                         <span class="active-role-text" id="topbar-role-title">ATLETA</span>
@@ -1156,7 +1154,6 @@
                                 </div>
                             </div>
                             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                                <button type="button" class="btn-pdf-chat" id="chat-header-credits-btn" onclick="openAiCreditsBreakdownModal()" title="Pulsa para ver cuántos créditos diarios y de bono tienes">⚡ Créditos Hoy: 15 disp. ⓘ</button>
                                 <a href="ojeador-live.html" id="header-lab-shortcut" class="btn-pdf-chat" style="text-decoration:none;display:none;">🎬 Subir Clip Vision Lab</a>
                                 <button type="button" class="btn-pdf-chat" onclick="openRoutineTemplateModal()">📋 Generar Rutina / Plantilla</button>
                                 <button type="button" class="btn-pdf-chat" onclick="downloadChatReportPDF()">📄 Exportar Informe PDF</button>
@@ -1232,20 +1229,30 @@
     </div>
 
     <!-- =========================================================================
-         MODAL DESGLOSE DE CRÉDITOS DEL CUERPO TÉCNICO IA (DIARIOS RENOVABLES + BONOS)
+         MODAL CON CONTADOR EN VIVO HASTA LAS 00:00H CUANDO SE ALCANZA EL TOPE DIARIO
          ========================================================================= -->
-    <div id="ai-credits-breakdown-modal" class="kinet-modal-overlay" onclick="if(event.target===this)this.classList.remove('open')">
-        <div class="kinet-modal-box" style="max-width:490px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:10px;">
-                <div style="font-family:'Orbitron';font-size:0.92rem;font-weight:900;color:var(--role-color);display:flex;align-items:center;gap:8px;">
-                    <span>🧠</span> <span>CRÉDITOS // CUERPO TÉCNICO IA</span>
-                </div>
-                <button type="button" onclick="document.getElementById('ai-credits-breakdown-modal').classList.remove('open')" style="background:none;border:none;color:white;font-size:1.15rem;cursor:pointer;">✕</button>
+    <div id="locker-room-cooldown-modal" class="kinet-modal-overlay" onclick="if(event.target===this)closeLockerRoomCooldownModal()">
+        <div class="kinet-modal-box" style="max-width:500px; text-align:center; align-items:center;">
+            <div style="width:62px;height:62px;border-radius:18px;background:rgba(var(--role-rgb),0.14);border:1.5px solid var(--role-color);display:flex;align-items:center;justify-content:center;font-size:1.9rem;box-shadow:0 0 24px var(--role-glow);">
+                🏟️
             </div>
-            <div id="ai-credits-breakdown-body" style="font-size:0.82rem;color:#CBD5E1;line-height:1.6;"></div>
-            <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:6px;">
-                <button type="button" class="btn-pdf-chat" onclick="document.getElementById('ai-credits-breakdown-modal').classList.remove('open')">Cerrar</button>
-                <a href="despacho.html?tab=subscription#payg-bonuses-section" id="credits-modal-upgrade-link" class="btn-pdf-chat" style="background:var(--role-gradient);color:#04060A;text-decoration:none;padding:8px 14px;">➕ Ampliar Plan / Bonos →</a>
+            <div style="font-family:'Orbitron';font-size:1rem;font-weight:900;color:white;letter-spacing:0.04em;">
+                EL CUERPO TÉCNICO SE HA RETIRADO AL VESTUARIO
+            </div>
+            <p id="cooldown-funny-copy" style="font-size:0.82rem;color:#CBD5E1;line-height:1.55;max-width:430px;">
+                ¡Vaya sesión maratoniana de pizarra! Los 4 especialistas se están tomando un batido de proteínas y pasando por el baño de hielo para recuperar neuronas.
+            </p>
+            <div style="width:100%;background:rgba(4,6,10,0.92);border:1px solid rgba(var(--role-rgb),0.45);border-radius:16px;padding:14px 16px;box-shadow:inset 0 0 24px rgba(0,0,0,0.8);">
+                <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--text-secondary);letter-spacing:0.12em;display:block;margin-bottom:6px;">
+                    ⏳ PITIDO INICIAL DE LA NUEVA JORNADA (00:00H) EN:
+                </span>
+                <div id="midnight-live-countdown" style="font-family:'Orbitron';font-size:1.85rem;font-weight:900;color:var(--role-color);letter-spacing:0.1em;text-shadow:0 0 18px var(--role-glow);">
+                    00 : 00 : 00
+                </div>
+            </div>
+            <div style="display:flex;justify-content:center;gap:10px;width:100%;margin-top:4px;flex-wrap:wrap;">
+                <button type="button" class="btn-pdf-chat" style="padding:9px 15px;" onclick="closeLockerRoomCooldownModal()">Esperar al pitido (00:00h)</button>
+                <a href="despacho.html?tab=subscription" id="cooldown-modal-upgrade-link" class="btn-pdf-chat" style="background:var(--role-gradient);color:#04060A;text-decoration:none;padding:9px 16px;">⚡ Pasarse a KINET PRO →</a>
             </div>
         </div>
     </div>
@@ -1935,86 +1942,103 @@
             return tier === 'pro' || tier === 'club';
         }
 
-        function getStaffAiCreditsState() {
+        let midnightCountdownInterval = null;
+
+        // Límites diarios invisibles (Free: 15/día, Pro: 250/día, Club: 600/día). Solo avisa cuando quedan <=3 mensajes y muestra el contador hasta las 00:00h al agotarse.
+        function getHiddenDailyChatState() {
             const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
             const isProOrClub = (tier === 'pro' || tier === 'club');
-            const dailyLimit = tier === 'club' ? 250 : (tier === 'pro' ? 100 : 15);
+            const dailyLimit = tier === 'club' ? 600 : (tier === 'pro' ? 250 : 15);
 
-            // Renovación diaria automática a las 00:00h para los 3 planes (Free, Pro y Club/Scout)
-            const todayKey = new Date().toISOString().slice(0, 10);
+            const now = new Date();
+            const localDayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
             const savedDate = localStorage.getItem('kinet_ai_daily_date') || '';
-            if (savedDate !== todayKey) {
-                localStorage.setItem('kinet_ai_daily_date', todayKey);
+            if (savedDate !== localDayKey) {
+                localStorage.setItem('kinet_ai_daily_date', localDayKey);
                 localStorage.setItem('kinet_ai_daily_used', '0');
             }
 
             const dailyUsed = Math.max(0, parseInt(localStorage.getItem('kinet_ai_daily_used') || '0', 10));
             const dailyRemaining = Math.max(0, dailyLimit - dailyUsed);
-            const bonusCredits = Math.max(0, parseInt(localStorage.getItem('kinet_bonus_ai_credits') || '0', 10));
-            const totalAvailable = dailyRemaining + bonusCredits;
-
-            return { tier, isProOrClub, dailyLimit, dailyUsed, dailyRemaining, bonusCredits, totalAvailable };
+            return { tier, isProOrClub, dailyLimit, dailyUsed, dailyRemaining };
         }
 
-        function consumeOneStaffAiCredit() {
-            const st = getStaffAiCreditsState();
-            if (st.totalAvailable <= 0) return false;
+        function formatTimeUntilMidnight() {
+            const now = new Date();
+            const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
+            const diffSec = Math.max(0, Math.floor((midnight.getTime() - now.getTime()) / 1000));
+            const hh = String(Math.floor(diffSec / 3600)).padStart(2, '0');
+            const mm = String(Math.floor((diffSec % 3600) / 60)).padStart(2, '0');
+            const ss = String(diffSec % 60).padStart(2, '0');
+            return { formatted: `${hh} : ${mm} : ${ss}`, diffSec };
+        }
 
-            if (st.dailyRemaining > 0) {
-                localStorage.setItem('kinet_ai_daily_used', String(st.dailyUsed + 1));
-            } else if (st.bonusCredits > 0) {
-                localStorage.setItem('kinet_bonus_ai_credits', String(st.bonusCredits - 1));
+        function openLockerRoomCooldownModal() {
+            const st = getHiddenDailyChatState();
+            const upBtn = document.getElementById('cooldown-modal-upgrade-link');
+            const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
+            if (upBtn) {
+                if (st.tier === 'club') {
+                    upBtn.style.display = 'none';
+                } else {
+                    upBtn.style.display = 'inline-flex';
+                    upBtn.href = `despacho.html?role=${activeRoleKey}&sport=${encodeURIComponent(sportChosen)}&tab=subscription`;
+                }
             }
-            if (window.KinetBackend && typeof window.KinetBackend.pushLocalStateToCloud === 'function') {
-                window.KinetBackend.pushLocalStateToCloud();
-            }
-            updateQuotaHeaderUI();
-            return true;
+
+            const updateClock = () => {
+                const t = formatTimeUntilMidnight();
+                const clockEl = document.getElementById('midnight-live-countdown');
+                const inlineClockEl = document.querySelector('.inline-midnight-countdown-clock');
+                if (clockEl) clockEl.textContent = t.formatted;
+                if (inlineClockEl) inlineClockEl.textContent = t.formatted;
+                if (t.diffSec <= 0) {
+                    localStorage.setItem('kinet_ai_daily_used', '0');
+                    closeLockerRoomCooldownModal();
+                }
+            };
+            updateClock();
+            if (midnightCountdownInterval) clearInterval(midnightCountdownInterval);
+            midnightCountdownInterval = setInterval(updateClock, 1000);
+            document.getElementById('locker-room-cooldown-modal').classList.add('open');
+        }
+
+        function closeLockerRoomCooldownModal() {
+            document.getElementById('locker-room-cooldown-modal').classList.remove('open');
         }
 
         function updateQuotaHeaderUI() {
-            const st = getStaffAiCreditsState();
-            const countEl = document.getElementById('ai-quota-count');
-            const chatBtnEl = document.getElementById('chat-header-credits-btn');
-
-            if (countEl) {
-                countEl.textContent = st.bonusCredits > 0
-                    ? `${st.totalAvailable} DISP. (${st.dailyRemaining}/${st.dailyLimit} HOY + ${st.bonusCredits} BONO) ⓘ`
-                    : `${st.dailyRemaining}/${st.dailyLimit} HOY ⓘ`;
-            }
-            if (chatBtnEl) {
-                chatBtnEl.textContent = st.bonusCredits > 0
-                    ? `⚡ Créditos IA: ${st.totalAvailable} disp. (${st.dailyRemaining} hoy + ${st.bonusCredits} bono) ⓘ`
-                    : `⚡ Créditos Hoy: ${st.dailyRemaining}/${st.dailyLimit} disp. ⓘ`;
-            }
+            // Ya no mostramos ningún contador fijo en la interfaz para mantenerla 100% limpia
         }
 
-        function openAiCreditsBreakdownModal() {
-            const st = getStaffAiCreditsState();
-            const planLabel = st.tier === 'club' ? 'Club & Scout (250 créditos/día)' : (st.tier === 'pro' ? 'Pro Player (100 créditos/día)' : 'Plan Gratuito (15 créditos/día)');
-            const bodyEl = document.getElementById('ai-credits-breakdown-body');
-            const upLink = document.getElementById('credits-modal-upgrade-link');
-            const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
-            if (upLink) {
-                upLink.href = `despacho.html?role=${activeRoleKey}&sport=${encodeURIComponent(sportChosen)}&tab=subscription#payg-bonuses-section`;
-            }
+        function buildEliteTrainedSystemPrompt(senderName, sportChosen, userPos) {
+            const userName = localStorage.getItem('kinet_user_name') || 'Atleta KINET';
+            const userClub = localStorage.getItem('kinet_user_club') || 'Club Competitivo';
+            const userCategory = localStorage.getItem('kinet_user_category') || 'Senior';
+            const anthro = localStorage.getItem('kinet_user_anthropometry') || '178 cm • 72.5 kg';
+            const laterality = localStorage.getItem('kinet_user_laterality') || 'Diestro';
+            const cardStats = localStorage.getItem('kinet_custom_card_stats') || '[90,88,85,89,82,86]';
 
-            if (bodyEl) {
-                bodyEl.innerHTML = `
-                    <div style="background:rgba(var(--role-rgb),0.1);border:1px solid rgba(var(--role-rgb),0.4);border-radius:12px;padding:12px 14px;margin-bottom:12px;">
-                        <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);display:block;">TOTAL DE CRÉDITOS IA DISPONIBLES HOY</span>
-                        <strong style="font-family:'Orbitron';font-size:1.35rem;color:white;">${st.totalAvailable} CRÉDITOS</strong>
-                    </div>
-                    <div style="display:flex;flex-direction:column;gap:8px;">
-                        <div>• <strong>Créditos Diarios de tu Plan (${planLabel}):</strong> <span style="color:white;font-weight:700;">${st.dailyRemaining} / ${st.dailyLimit} disp. hoy</span></div>
-                        <div>• <strong>Créditos Extra de Bonos (No caducan nunca):</strong> <span style="color:white;font-weight:700;">+${st.bonusCredits} créditos en reserva</span></div>
-                        <div style="margin-top:6px;padding:9px 11px;border-radius:10px;background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);font-size:0.75rem;">
-                            🔄 <strong>Renovación Diaria Automática (00:00h):</strong> Todos los días se restablecen tus <strong>${st.dailyLimit} créditos diarios</strong>. Tus créditos extra de bono solo se gastan si algún día superas tus ${st.dailyLimit} consultas diarias.
-                        </div>
-                    </div>
-                `;
-            }
-            document.getElementById('ai-credits-breakdown-modal').classList.add('open');
+            let lastVisionClipSummary = 'Sin clips recientes';
+            try {
+                const clips = JSON.parse(localStorage.getItem(`kinet_vision_clean_sessions_${sportChosen.toLowerCase()}`) || '[]');
+                if (Array.isArray(clips) && clips.length > 0) {
+                    lastVisionClipSummary = `${clips[0].optionLabel} (${clips[0].matchContext}): ${clips[0].metrics.join(', ')}`;
+                }
+            } catch (e) {}
+
+            return `Eres ${senderName}, especialista de élite del Cuerpo Técnico de KINET OS.
+PERFIL REAL DEL USUARIO EN PLATAFORMA:
+- Nombre: ${userName} | Rol: ${activeRoleKey.toUpperCase()} | Deporte: ${sportChosen}
+- Demarcación/Especialidad: ${userPos} | Lateralidad/Guardia: ${laterality}
+- Club: ${userClub} | Categoría: ${userCategory} | Antropometría: ${anthro}
+- Atributos KINET Card (50-99): ${cardStats} | Última auditoría Vision Lab: ${lastVisionClipSummary}
+
+REGLAS ESTRICTAS DE RESPUESTA PROFESIONAL KINET OS:
+1. Habla como un especialista de primer nivel mundial en ${sportChosen} (terminología real de vestuario, fisiología, biomecánica y pizarra táctica). Jamás des respuestas vagas o genéricas.
+2. Personaliza SIEMPRE la respuesta mencionando su posición (${userPos}), su antropometría (${anthro}) o sus métricas reales.
+3. Estructura tus pautas con viñetas claras, cargas exactas (series, repeticiones, tiempos, RIR, gramos/kg o zonas tácticas) listas para llevar a pista.
+4. Si el usuario pide un diseño, póster o edit para redes, proporciónale el concepto visual exacto para KINET Media Studio™.`;
         }
 
         function saveChatHistoryToLocal() {
@@ -2480,20 +2504,24 @@
             const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
             const userPos = localStorage.getItem('kinet_position') || 'PRO';
 
-            // Verificar y descontar 1 crédito de Cuerpo Técnico IA (Diario primero, luego Bono extra)
-            if (!consumeOneStaffAiCredit()) {
-                const stNow = getStaffAiCreditsState();
+            const stBefore = getHiddenDailyChatState();
+            if (stBefore.dailyRemaining <= 0) {
+                const tLeft = formatTimeUntilMidnight();
                 activeChatsState[currentChatKey].messages.push({
-                    sender: "Sistema de Créditos KINET IA",
-                    text: `🔒 Has agotado tus **${stNow.dailyLimit} créditos diarios** y tienes **0 créditos extra de bono**. Tus créditos diarios se renovarán automáticamente a las 00:00h, o puedes activar **KINET PRO (100/día)** / recargar un **Bono con Créditos IA** en el Despacho para seguir consultando ahora mismo.`,
+                    sender: "🏟️ Vestuario KINET OS // Descanso Táctico",
+                    text: `¡Pizarra al rojo vivo! Has alcanzado el tope de consultas de hoy (**${stBefore.dailyLimit} mensajes diarios**). El Cuerpo Técnico está en el túnel de vestuarios tomando hielo y revisando vídeo. ⏳ **Volvemos a saltar al césped a las 00:00h (faltan ${tLeft.formatted})**.`,
                     time: timeStr,
                     incoming: true
                 });
                 saveChatHistoryToLocal();
                 renderCurrentChat();
-                openAiCreditsBreakdownModal();
+                openLockerRoomCooldownModal();
                 return;
             }
+
+            // Descontar 1 mensaje del límite diario silencioso
+            localStorage.setItem('kinet_ai_daily_used', String(stBefore.dailyUsed + 1));
+            const remainingAfter = stBefore.dailyRemaining - 1;
 
             showThinkingEtaIndicator();
 
@@ -2502,8 +2530,7 @@
                 ? `Sala de Juntas IA (${sportChosen})`
                 : activeChatsState[currentChatKey].title;
 
-            // Intentar primero con la API externa si hay clave configurada, o usar el motor experto contextual
-            const sysPrompt = `Eres ${senderName} de KINET OS para un deportista/técnico de ${sportChosen} (${userPos}). Sé directo, profesional y estructurado en puntos claros.`;
+            const sysPrompt = buildEliteTrainedSystemPrompt(senderName, sportChosen, userPos);
             let externalReply = null;
             if (!handoffObj) {
                 externalReply = await window.KINET_STAFF_AI_ENGINE.callExternalLLM(sysPrompt, userText, attachedImageUrl);
@@ -2513,9 +2540,13 @@
 
             setTimeout(() => {
                 removeThinkingEtaIndicator();
+                let finalReplyText = externalReply || localReplyObj.text;
+                if (remainingAfter > 0 && remainingAfter <= 3) {
+                    finalReplyText += `\n\n⚡ *[Aviso de Vestuario: Te quedan **${remainingAfter} consulta(s)** antes del descanso nocturno de las 00:00h${stBefore.isProOrClub ? '' : ' • Pásate a KINET PRO para ampliar tu sesión'}]*`;
+                }
                 activeChatsState[currentChatKey].messages.push({
                     sender: senderName,
-                    text: externalReply || localReplyObj.text,
+                    text: finalReplyText,
                     mediaStudioPrompt: localReplyObj.mediaStudioPrompt,
                     time: timeStr,
                     incoming: true,
