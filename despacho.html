@@ -2381,11 +2381,20 @@
             );
         }
 
-        function refreshPayAsYouGoUI() {
+         function refreshPayAsYouGoUI() {
             const currentTier = normalizeTier(localStorage.getItem('kinet_account_tier'));
             const isProMember = (currentTier === 'pro' || currentTier === 'club');
-            const bonusMins = parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0');
-            const bonusCreds = parseInt(localStorage.getItem('kinet_bonus_ai_credits') || '0', 10);
+            let bonusMins = parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0');
+            let bonusCreds = parseInt(localStorage.getItem('kinet_bonus_ai_credits') || '0', 10);
+
+            // Auto-ajuste si había más de 595 min guardados de pruebas anteriores
+            if (bonusMins > MAX_BONUS_WALLET_MINS) {
+                const extraOverflow = bonusMins - MAX_BONUS_WALLET_MINS;
+                bonusMins = MAX_BONUS_WALLET_MINS;
+                bonusCreds += Math.ceil(extraOverflow / 3);
+                localStorage.setItem('kinet_bonus_video_mins', String(bonusMins));
+                localStorage.setItem('kinet_bonus_ai_credits', String(bonusCreds));
+            }
             const remainingSpace = Math.max(0, +(MAX_BONUS_WALLET_MINS - bonusMins).toFixed(1));
 
             const genLbl = document.getElementById('general-bonus-balance-lbl');
