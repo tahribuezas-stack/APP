@@ -736,6 +736,61 @@
       return { ok: true, updated: Array.isArray(updated) ? updated[0] : updated };
     },
 
+    // MODERACIÓN EN VIVO (SuperAdmin, Subadmin, Moderator, Scout Verifier)
+    async adminFetchAllProfiles(limit = 100) {
+      if (!this.hasStaffPermission('any')) throw new Error('Se requiere rango de Staff en Supabase.');
+      const rows = await supabaseRestRequest(`profiles?select=*&order=updated_at.desc&limit=${limit}`, 'GET');
+      return Array.isArray(rows) ? rows : [];
+    },
+
+    async adminDeleteCloudPost(postId) {
+      if (!this.hasStaffPermission('any')) throw new Error('Se requiere permiso de Moderación o Admin.');
+      const cleanId = String(postId || '').replace(/^sb_/, '');
+      if (cleanId && !cleanId.startsWith('u_')) {
+        await supabaseRestRequest(`posts?id=eq.${encodeURIComponent(cleanId)}`, 'DELETE');
+      }
+      try {
+        const localSaved = JSON.parse(localStorage.getItem('kinet_saved_posts') || '[]');
+        const filtered = localSaved.filter(p => String(p.id) !== String(postId) && String(p.id) !== cleanId);
+        originalSetItem.call(localStorage, 'kinet_saved_posts', JSON.stringify(filtered));
+      } catch (e) {}
+      return { ok: true };
+    },
+
+    async adminToggleBanUser(targetEmailOrHandle, isBanned = true, reason = 'Incumplimiento de normas de KINET Network') {
+      if (!this.hasStaffPermission('any')) throw new Error('Se requiere permiso de Moderación o Admin.');
+      const q = String(targetEmailOrHandle || '').trim();
+      const filter = q.includes('@') && !q.startsWith('@')
+        ? `email=ilike.${encodeURIComponent(q)}`
+        : `handle=ilike.${encodeURIComponent(q.startsWith('@') ? q : '@' + q)}`;
+      const rows = await supabaseRestRequest(`profiles?${filter}&select=*&limit=1`, 'GET');
+      if (!Array.isArray(rows) || !rows[0]) throw new Error(`Usuario "${q}" no encontrado.`);
+      const row = rows[0];
+      const nextState = { ...(row.user_state || {}), kinet_account_banned: isBanned ? 'true' : 'false', kinet_ban_reason: reason };
+      await supabaseRestRequest(`profiles?id=eq.${row.id}`, 'PATCH', {
+        user_state: nextState,
+        updated_at: new Date().toISOString()
+      }, false);
+      return { ok: true, banned: isBanned, user: row.handle || row.email };
+    },
+
+    async adminVerifyScoutOrClub(targetEmailOrHandle, isVerified = true) {
+      if (!this.hasStaffPermission('any')) throw new Error('Se requiere permiso de Verificador o Admin.');
+      const q = String(targetEmailOrHandle || '').trim();
+      const filter = q.includes('@') && !q.startsWith('@')
+        ? `email=ilike.${encodeURIComponent(q)}`
+        : `handle=ilike.${encodeURIComponent(q.startsWith('@') ? q : '@' + q)}`;
+      const rows = await supabaseRestRequest(`profiles?${filter}&select=*&limit=1`, 'GET');
+      if (!Array.isArray(rows) || !rows[0]) throw new Error(`Usuario "${q}" no encontrado.`);
+      const row = rows[0];
+      const nextState = { ...(row.user_state || {}), kinet_b2b_verified_seal: isVerified ? 'true' : 'false' };
+      await supabaseRestRequest(`profiles?id=eq.${row.id}`, 'PATCH', {
+        user_state: nextState,
+        updated_at: new Date().toISOString()
+      }, false);
+      return { ok: true, verified: isVerified, user: row.handle || row.email };
+    },
+
     getVideoCompressionConfig() {
       return {
         targetFps: 30,
