@@ -773,10 +773,13 @@
                                 </div>
                                 <div class="setting-row">
                                     <div class="setting-info">
-                                        <label>Saldo de Bonos Extra (Minutos de Vídeo & Análisis IA)</label>
-                                        <span id="general-bonus-balance-lbl" style="color:#CBD5E1;">Minutos extra acumulados: 0 min • Análisis IA extra: 0</span>
+                                        <label>Saldo Total Disponible (Vídeo IA & Créditos Cuerpo Técnico)</label>
+                                        <span id="general-bonus-balance-lbl" style="color:var(--role-color);font-weight:700;">Vídeo Total: 0 min • Créditos Cuerpo Técnico Hoy: 15 disp.</span>
                                     </div>
-                                    <button class="btn-secondary" onclick="switchTab('subscription', document.getElementById('tab-btn-sub'))">➕ Ver Planes & Bonos</button>
+                                    <div style="display:flex;gap:6px;margin-left:auto;flex-shrink:0;">
+                                        <button type="button" class="btn-secondary" style="margin-left:0;" onclick="openMinutesBreakdownModal()">📊 Desglose</button>
+                                        <button type="button" class="btn-secondary" style="margin-left:0;" onclick="switchTab('subscription', document.getElementById('tab-btn-sub'))">➕ Bonos</button>
+                                    </div>
                                 </div>
                                 <div class="setting-row">
                                     <div class="setting-info">
@@ -975,7 +978,7 @@
                                 <p class="plan-desc">Acceso base para gestionar el vestuario, compartir contenido en la red social y usar la Pizarra Táctica 3D.</p>
                                 <div class="plan-price">0€<span>/ siempre</span></div>
                                 <ul class="plan-features">
-                                    <li>Cuerpo Técnico IA (15 msg / día)</li>
+                                    <li>Cuerpo Técnico IA (<strong>15 créditos / día</strong> renovables)</li>
                                     <li>KINET Pulse (Publicación de Fotos y Texto)</li>
                                     <li>Analizador & Pizarra 3D + Duelo 1vs1</li>
                                     <li>KINET Card Custom (Bronce y Plata)</li>
@@ -998,7 +1001,7 @@
                                     <li>90 min/mes incluidos en Vision Lab™</li>
                                     <li>KINET Card ✓ AI Verified (Oro 24K & Holo)</li>
                                     <li><strong>50% de descuento</strong> en todos los Bonos Extra</li>
-                                    <li>Cuerpo Técnico IA (100 msg/día) + 0 Anuncios</li>
+                                    <li>Cuerpo Técnico IA (<strong>100 créditos / día</strong> renovables)</li>
                                 </ul>
                             </div>
                             <button class="btn-pricing btn-select-pro" id="btn-tier-pro" onclick="requestPlanUpgrade('pro')">CAMBIAR A PRO PLAYER (8,99€)</button>
@@ -1014,10 +1017,10 @@
                                 <div class="plan-price">29,99€<span>/ mes</span></div>
                                 <ul class="plan-features">
                                     <li>300 min/mes de Auditoría de Vídeo Táctico</li>
+                                    <li>Cuerpo Técnico IA (<strong>250 créditos / día</strong> renovables)</li>
                                     <li>Acceso Total a KINET Radar B2B y Plantillas</li>
                                     <li><strong>Tarifa Pro bonificada (-50%)</strong> en Bonos Extra</li>
-                                    <li>Gestión Multiequipo + Informes PDF Oficiales</li>
-                                    <li>Soporte Prioritario + 3 Perfiles Simultáneos</li>
+                                    <li>Gestión Multiequipo + 3 Perfiles Simultáneos</li>
                                 </ul>
                             </div>
                             <button class="btn-pricing btn-select-club" id="btn-tier-club" onclick="requestPlanUpgrade('club')">CAMBIAR A CLUB & SCOUT (29,99€)</button>
@@ -2381,13 +2384,31 @@
             );
         }
 
-         function refreshPayAsYouGoUI() {
+        function getDespachoFullQuotaBreakdown() {
             const currentTier = normalizeTier(localStorage.getItem('kinet_account_tier'));
             const isProMember = (currentTier === 'pro' || currentTier === 'club');
-            let bonusMins = parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0');
-            let bonusCreds = parseInt(localStorage.getItem('kinet_bonus_ai_credits') || '0', 10);
+            const basePlanMax = currentTier === 'club' ? 300 : (currentTier === 'pro' ? 90 : 0);
 
-            // Auto-ajuste si había más de 595 min guardados de pruebas anteriores
+            // 1. Renovación mensual automática de los minutos de vídeo del plan (cada 30 días: +90 en Pro / +300 en Club)
+            const now = Date.now();
+            const monthMs = 30 * 24 * 60 * 60 * 1000;
+            let cycleStart = parseInt(localStorage.getItem('kinet_plan_cycle_start') || '0', 10);
+            if (isProMember) {
+                if (!cycleStart || isNaN(cycleStart)) {
+                    cycleStart = now;
+                    localStorage.setItem('kinet_plan_cycle_start', String(now));
+                } else if (now - cycleStart >= monthMs) {
+                    localStorage.setItem('kinet_video_mins_used', '0');
+                    cycleStart = now;
+                    localStorage.setItem('kinet_plan_cycle_start', String(now));
+                }
+            }
+
+            const usedPlanMins = isProMember ? parseFloat(localStorage.getItem('kinet_video_mins_used') || '0') : 0;
+            const remainingPlanMins = Math.max(0, +(basePlanMax - usedPlanMins).toFixed(1));
+
+            let bonusMins = Math.max(0, parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0'));
+            let bonusCreds = parseInt(localStorage.getItem('kinet_bonus_ai_credits') || '0', 10);
             if (bonusMins > MAX_BONUS_WALLET_MINS) {
                 const extraOverflow = bonusMins - MAX_BONUS_WALLET_MINS;
                 bonusMins = MAX_BONUS_WALLET_MINS;
@@ -2395,14 +2416,77 @@
                 localStorage.setItem('kinet_bonus_video_mins', String(bonusMins));
                 localStorage.setItem('kinet_bonus_ai_credits', String(bonusCreds));
             }
+
+            const totalVideoAvailable = +(remainingPlanMins + bonusMins).toFixed(1);
+            const nextRenewalStr = new Date((cycleStart || now) + monthMs).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+
+            // 2. Renovación diaria automática de Créditos de Cuerpo Técnico IA (15/día en Free, 100/día en Pro, 250/día en Club/Scout)
+            const todayKey = new Date().toISOString().slice(0, 10);
+            const savedDay = localStorage.getItem('kinet_ai_daily_date') || '';
+            if (savedDay !== todayKey) {
+                localStorage.setItem('kinet_ai_daily_date', todayKey);
+                localStorage.setItem('kinet_ai_daily_used', '0');
+            }
+            const dailyMaxCredits = currentTier === 'club' ? 250 : (currentTier === 'pro' ? 100 : 15);
+            const dailyUsedCredits = parseInt(localStorage.getItem('kinet_ai_daily_used') || '0', 10);
+            const remainingDailyCredits = Math.max(0, dailyMaxCredits - dailyUsedCredits);
+            const totalAiCreditsAvailable = remainingDailyCredits + bonusCreds;
+
+            return {
+                currentTier, isProMember, basePlanMax, remainingPlanMins, bonusMins, totalVideoAvailable, nextRenewalStr,
+                dailyMaxCredits, remainingDailyCredits, bonusCreds, totalAiCreditsAvailable
+            };
+        }
+
+        function openMinutesBreakdownModal() {
+            const st = getDespachoFullQuotaBreakdown();
+            const planName = st.currentTier === 'club' ? 'Club & Scout' : (st.currentTier === 'pro' ? 'Pro Player' : 'Plan Gratuito');
+            const renewalLine = st.isProMember
+                ? `<div style="margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(var(--role-rgb),0.08);border:1px solid rgba(var(--role-rgb),0.35);font-size:0.77rem;color:var(--role-color);">🔄 <strong>Renovación mensual de Vídeo (+${st.basePlanMax} min):</strong> El <strong>${st.nextRenewalStr}</strong> se recargarán tus +${st.basePlanMax} min del mes automáticamente.<br>🔄 <strong>Renovación diaria Cuerpo Técnico IA (+${st.dailyMaxCredits} créditos):</strong> Todos los días a las 00:00h se renuevan tus ${st.dailyMaxCredits} créditos diarios.</div>`
+                : `<div style="margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle);font-size:0.76rem;color:#94A3B8;">🔄 <strong>Renovación diaria Cuerpo Técnico IA:</strong> Tus 15 créditos diarios gratuitos se renuevan cada día a las 00:00h. Pásate a <strong>Pro Player (100/día)</strong> o <strong>Club & Scout (250/día)</strong> para ampliar tu cuota.</div>`;
+
+            openInfoModal(
+                '📊 DESGLOSE DE MINUTOS DE VÍDEO Y CRÉDITOS IA',
+                `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">` +
+                    `<div style="background:rgba(var(--role-rgb),0.08);border:1px solid rgba(var(--role-rgb),0.35);border-radius:12px;padding:10px 12px;">` +
+                        `<span style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);display:block;">VÍDEO TOTAL DISPONIBLE</span>` +
+                        `<strong style="font-family:'Orbitron';font-size:1.2rem;color:white;">${st.totalVideoAvailable} MIN</strong>` +
+                    `</div>` +
+                    `<div style="background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle);border-radius:12px;padding:10px 12px;">` +
+                        `<span style="font-family:'JetBrains Mono';font-size:0.58rem;color:#38BDF8;display:block;">CRÉDITOS CUERPO TÉCNICO HOY</span>` +
+                        `<strong style="font-family:'Orbitron';font-size:1.2rem;color:white;">${st.totalAiCreditsAvailable} DISP.</strong>` +
+                    `</div>` +
+                `</div>` +
+                `<strong>🎬 1. De dónde vienen tus ${st.totalVideoAvailable} min de Vídeo:</strong><br>` +
+                `• Cuota Mensual (${planName}): <strong>${st.remainingPlanMins} min</strong> (de ${st.basePlanMax} min/mes)<br>` +
+                `• Monedero de Bonos (Sin caducidad): <strong>${st.bonusMins} min</strong> (tope máx. 595 min)<br><br>` +
+                `<strong>🧠 2. De dónde vienen tus ${st.totalAiCreditsAvailable} Créditos de Cuerpo Técnico IA:</strong><br>` +
+                `• Cuota Diaria (${planName} — se renueva cada 24h): <strong>${st.remainingDailyCredits} / ${st.dailyMaxCredits} créditos hoy</strong><br>` +
+                `• Créditos Extra de Bono (No caducan nunca): <strong>+${st.bonusCreds} créditos</strong>` +
+                renewalLine
+            );
+        }
+
+        function refreshPayAsYouGoUI() {
+            const st = getDespachoFullQuotaBreakdown();
+            const isProMember = st.isProMember;
+            const bonusMins = st.bonusMins;
+            const bonusCreds = st.bonusCreds;
             const remainingSpace = Math.max(0, +(MAX_BONUS_WALLET_MINS - bonusMins).toFixed(1));
 
             const genLbl = document.getElementById('general-bonus-balance-lbl');
             const subBadge = document.getElementById('sub-tab-bonus-badge');
             const warnBanner = document.getElementById('payg-cap-warning-banner');
 
-            if (genLbl) genLbl.textContent = `Minutos en reserva: ${bonusMins} / ${MAX_BONUS_WALLET_MINS} min máx. • Análisis IA: ${bonusCreds}`;
-            if (subBadge) subBadge.textContent = `SALDO EXTRA: ${bonusMins} / ${MAX_BONUS_WALLET_MINS} MIN MÁX. • ${bonusCreds} CRÉDITOS IA`;
+            if (genLbl) {
+                genLbl.innerHTML = `Vídeo Total: <strong>${st.totalVideoAvailable} min</strong> • Cuerpo Técnico Hoy: <strong>${st.totalAiCreditsAvailable} créditos disp.</strong>`;
+            }
+            if (subBadge) {
+                subBadge.style.cursor = 'pointer';
+                subBadge.title = 'Pulsa para abrir el desglose detallado de minutos y créditos';
+                subBadge.onclick = openMinutesBreakdownModal;
+                subBadge.textContent = `VÍDEO TOTAL: ${st.totalVideoAvailable} MIN DISP. • CRÉDITOS IA HOY: ${st.totalAiCreditsAvailable} DISP. (VER DESGLOSE ⓘ)`;
+            }
 
             const p1 = document.getElementById('price-lbl-pack-1');
             const p2 = document.getElementById('price-lbl-pack-2');
