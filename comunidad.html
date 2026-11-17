@@ -5033,7 +5033,7 @@
             }
         });
 
-        (function initGlobalKinetPersonalization() {
+       (function initGlobalKinetPersonalization() {
             const styleTag = document.createElement('style');
             styleTag.innerHTML = `
                 @keyframes kinetRainbowFlowBg {
@@ -5090,7 +5090,7 @@
                 document.head.appendChild(newFav);
             }
 
-            window.addEventListener('DOMContentLoaded', () => {
+            function applyDespachoThemeSettings() {
                 const scanlinesOn = localStorage.getItem('kinet_scanlines') === 'true';
                 document.body.classList.toggle('scanlines-active', scanlinesOn);
 
@@ -5099,7 +5099,8 @@
                 const roleHexMap = { athlete: '#00FF88', staff: '#F59E0B', scout: '#3B82F6' };
                 const defaultRoleHex = roleHexMap[activeRole] || '#00FF88';
 
-                let savedAccent = localStorage.getItem('kinet_custom_accent_override');
+                let isReset = localStorage.getItem('kinet_theme_color_reset') === 'true';
+                let savedAccent = isReset ? null : (localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color'));
                 if (activeRole !== 'athlete' && savedAccent && savedAccent.toUpperCase() === '#00FF88') {
                     savedAccent = null;
                 }
@@ -5110,6 +5111,7 @@
                     document.body.classList.add('rainbow-mode');
                     let hue = 0, lastFav = 0;
                     function stepRainbow(ts) {
+                        if (localStorage.getItem('kinet_rainbow_mode') !== 'true') return;
                         hue = (hue + 1.4) % 360;
                         const c1 = hslToHexRgb(hue, 100, 54);
                         const c2 = hslToHexRgb((hue + 60) % 360, 100, 48);
@@ -5121,7 +5123,8 @@
                         requestAnimationFrame(stepRainbow);
                     }
                     requestAnimationFrame(stepRainbow);
-                } else if (savedAccent) {
+                } else if (savedAccent && savedAccent.startsWith('#')) {
+                    document.body.classList.remove('rainbow-mode');
                     const clean = savedAccent.replace('#', '');
                     const num = parseInt(clean, 16);
                     const r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
@@ -5131,10 +5134,16 @@
                     document.body.style.setProperty('--role-gradient', `linear-gradient(135deg, ${savedAccent} 0%, rgba(${r},${g},${b},0.75) 100%)`);
                     forceUpdateTabFavicon(savedAccent);
                 } else {
-                    document.body.style.removeProperty('--role-color');
-                    document.body.style.removeProperty('--role-rgb');
-                    document.body.style.removeProperty('--role-glow');
-                    document.body.style.removeProperty('--role-gradient');
+                    document.body.classList.remove('rainbow-mode');
+                    const zf = document.getElementById('kinet-zero-flash-override');
+                    if (zf) zf.remove();
+                    [document.documentElement, document.body].forEach(el => {
+                        if (!el) return;
+                        el.style.removeProperty('--role-color');
+                        el.style.removeProperty('--role-rgb');
+                        el.style.removeProperty('--role-glow');
+                        el.style.removeProperty('--role-gradient');
+                    });
                     forceUpdateTabFavicon(defaultRoleHex);
                 }
 
@@ -5155,7 +5164,10 @@
                 if (savedRadius) {
                     document.querySelectorAll('.kinet-panel').forEach(p => p.style.borderRadius = savedRadius);
                 }
-            });
+            }
+
+            window.addEventListener('DOMContentLoaded', applyDespachoThemeSettings);
+            window.addEventListener('kinet:cloud-synced', applyDespachoThemeSettings);
         })();
         // =========================================================================
         // UPGRADE PRODUCCIÓN COMUNIDAD: AVATARES FIX + DM CERRADO POR DEFECTO + COMPRESOR MEDIA + PUENTE LAB/ANALIZADOR + API SOPORTE
