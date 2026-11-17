@@ -797,6 +797,83 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- PANEL MAESTRO OCULTO DE PRUEBAS Y MODERACIÓN (SOLO VISIBLE CON staff_role EN SUPABASE) -->
+                        <div class="col-12" id="staff-master-sandbox-panel" style="display:none;">
+                            <div class="kinet-panel" style="border: 1.5px solid var(--role-color); background: linear-gradient(145deg, rgba(var(--role-rgb), 0.10) 0%, rgba(10, 14, 24, 0.96) 100%);">
+                                <div class="panel-head">
+                                    <span class="panel-label" style="color:var(--role-color);">🛡️ MODO DIOS // SANDBOX DE PRUEBAS SIN PASARELA & CONSOLA DE MODERACIÓN SUPABASE</span>
+                                    <span style="font-family:'JetBrains Mono';font-size:0.65rem;color:#04060A;background:var(--role-color);padding:4px 10px;border-radius:8px;font-weight:900;" id="sandbox-staff-badge">RANGO: SUPERADMIN</span>
+                                </div>
+                                <p style="font-size:0.78rem;color:#CBD5E1;margin-bottom:14px;line-height:1.45;">
+                                    Esta consola es <strong>100% invisible para los usuarios normales</strong> y se ha desbloqueado gracias a tu columna <code>staff_role</code> en Supabase. Como tu cuenta tiene privilegios internos, <strong>todas las pasarelas de pago están desactivadas para ti</strong>: puedes alternar de plan, rol, minutos y moderar usuarios al instante.
+                                </p>
+
+                                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;">
+                                    <!-- CAJA 1: CAMBIO INSTANTÁNEO DE PLAN Y ROL (0€ / SIN PASARELA) -->
+                                    <div style="background:rgba(4,6,10,0.82);border:1px solid var(--border-subtle);border-radius:14px;padding:14px;">
+                                        <span style="font-family:'Orbitron';font-size:0.72rem;font-weight:800;color:white;display:block;margin-bottom:8px;">⚡ 1. CAMBIAR MI PLAN Y ROL AL INSTANTE (SIN PASARELA)</span>
+                                        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+                                            <button type="button" class="btn-secondary" style="margin:0;flex:1;padding:8px;font-size:0.64rem;" onclick="staffInstantSwitchTier('free')">Plan Free</button>
+                                            <button type="button" class="btn-primary" style="margin:0;flex:1;padding:8px;font-size:0.64rem;" onclick="staffInstantSwitchTier('pro')">Plan PRO</button>
+                                            <button type="button" class="btn-secondary" style="margin:0;flex:1;padding:8px;font-size:0.64rem;border-color:#F59E0B;color:#F59E0B;" onclick="staffInstantSwitchTier('club')">Plan Club</button>
+                                        </div>
+                                        <span style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--text-secondary);display:block;margin-bottom:6px;">SALTAR DE ROL EN 1 CLIC (MANTIENE TUS DATOS):</span>
+                                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                            <button type="button" class="btn-secondary" style="margin:0;flex:1;padding:7px;font-size:0.62rem;border-color:#00FF88;color:#00FF88;" onclick="staffInstantSwitchRole('athlete')">⚡ Atleta</button>
+                                            <button type="button" class="btn-secondary" style="margin:0;flex:1;padding:7px;font-size:0.62rem;border-color:#F59E0B;color:#F59E0B;" onclick="staffInstantSwitchRole('staff')">🧠 Staff</button>
+                                            <button type="button" class="btn-secondary" style="margin:0;flex:1;padding:7px;font-size:0.62rem;border-color:#3B82F6;color:#3B82F6;" onclick="staffInstantSwitchRole('scout')">📡 Scout</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- CAJA 2: INYECTAR MINUTOS DE VÍDEO Y RESETEAR LÍMITES EN MI CUENTA -->
+                                    <div style="background:rgba(4,6,10,0.82);border:1px solid var(--border-subtle);border-radius:14px;padding:14px;">
+                                        <span style="font-family:'Orbitron';font-size:0.72rem;font-weight:800;color:white;display:block;margin-bottom:8px;">🎬 2. CONTROL RÁPIDO DE MINUTOS Y CARTA EN MI CUENTA</span>
+                                        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+                                            <button type="button" class="btn-secondary" style="margin:0;padding:7px 10px;font-size:0.62rem;" onclick="staffInstantSetBonusMins(0)">0 min</button>
+                                            <button type="button" class="btn-secondary" style="margin:0;padding:7px 10px;font-size:0.62rem;" onclick="staffInstantSetBonusMins(45)">45 min</button>
+                                            <button type="button" class="btn-secondary" style="margin:0;padding:7px 10px;font-size:0.62rem;" onclick="staffInstantSetBonusMins(150)">150 min</button>
+                                            <button type="button" class="btn-primary" style="margin:0;padding:7px 10px;font-size:0.62rem;" onclick="staffInstantSetBonusMins(595)">Máx 595m</button>
+                                        </div>
+                                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                            <button type="button" class="btn-secondary" style="margin:0;flex:1;padding:7px;font-size:0.61rem;" onclick="staffInstantUnlockCardAndResetChat()">🔓 Desbloquear Carta IA + Resetear Chat 00:00h</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- CAJA 3: GESTIÓN REMOTA DE OTROS USUARIOS Y MODERACIÓN (SUPABASE) -->
+                                    <div style="background:rgba(4,6,10,0.82);border:1px solid var(--border-subtle);border-radius:14px;padding:14px;">
+                                        <span style="font-family:'Orbitron';font-size:0.72rem;font-weight:800;color:white;display:block;margin-bottom:8px;">👮 3. MODERAR O DAR PRO A OTRO USUARIO (SUPABASE)</span>
+                                        <input type="text" id="mod-target-user-input" class="setting-input" style="width:100%;margin:0 0 8px 0;font-size:0.74rem;" placeholder="Correo o @usuario (ej: @naimtahri)">
+                                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+                                            <select id="mod-target-tier-select" class="setting-select" style="width:100%;margin:0;font-size:0.72rem;padding:6px 8px;">
+                                                <option value="">-- Plan --</option>
+                                                <option value="free">Pasar a Free</option>
+                                                <option value="pro">Regalar PRO</option>
+                                                <option value="club">Regalar Club</option>
+                                            </select>
+                                            <input type="number" id="mod-target-mins-input" class="setting-input" style="width:100%;margin:0;font-size:0.72rem;padding:6px 8px;" placeholder="Bonos (0-595m)" min="0" max="595">
+                                        </div>
+                                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+                                            <select id="mod-target-staff-select" class="setting-select" style="width:100%;margin:0;font-size:0.72rem;padding:6px 8px;">
+                                                <option value="">-- Rango Staff --</option>
+                                                <option value="none">Quitar Staff (Usuario normal)</option>
+                                                <option value="moderator">Moderador</option>
+                                                <option value="scout_verifier">Verificador Scout</option>
+                                                <option value="marketing">Marketing</option>
+                                                <option value="subadmin">Subjefe (Subadmin)</option>
+                                                <option value="superadmin">Jefe (Superadmin)</option>
+                                            </select>
+                                            <button type="button" class="btn-primary" style="margin:0;padding:7px;font-size:0.62rem;" onclick="executeRemoteStaffUserUpdate()">✓ Aplicar en Nube</button>
+                                        </div>
+                                        <div style="display:flex;gap:6px;">
+                                            <button type="button" class="btn-secondary" style="margin:0;flex:1;padding:6px;font-size:0.6rem;border-color:#00E5FF;color:#00E5FF;" onclick="executeRemoteVerifyScout()">✓ Verificar Scout/Club</button>
+                                            <button type="button" class="btn-danger" style="margin:0;flex:1;padding:6px;font-size:0.6rem;" onclick="executeRemoteBanUser(true)">🚫 Banear</button>
+                                            <button type="button" class="btn-secondary" style="margin:0;padding:6px 8px;font-size:0.6rem;" onclick="executeRemoteBanUser(false)">Desbanear</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -2008,7 +2085,7 @@
             const bodyEl = document.getElementById('role-manager-body');
             const footerEl = document.getElementById('role-manager-footer');
 
-            if (currentTier === 'free') {
+            if (currentTier === 'free' && !isStaffSandboxAccount()) {
                 titleEl.textContent = 'ATENCIÓN: CAMBIO DE ROL (PLAN GRATUITO)';
                 bodyEl.innerHTML = `
                     Te encuentras operando en el <strong>Plan Gratuito</strong>.<br><br>
@@ -2144,19 +2221,112 @@
         let pendingCheckoutMode = 'plan'; // 'plan' | 'bonus'
         let pendingBonusPackKey = null;
 
+        function isStaffSandboxAccount() {
+            const staffRole = (localStorage.getItem('kinet_staff_admin_role') || '').toLowerCase().trim();
+            const allowedStaffRoles = ['superadmin', 'subadmin', 'moderator', 'scout_verifier', 'marketing', 'admin'];
+            return allowedStaffRoles.includes(staffRole);
+        }
+
         // Comprobación silenciosa de rol de empleado/admin otorgado desde Supabase (oculto para usuarios normales)
         function syncHiddenSupabaseStaffRoleUI() {
             const staffRole = (localStorage.getItem('kinet_staff_admin_role') || '').toLowerCase().trim();
-            const allowedStaffRoles = ['superadmin', 'subadmin', 'moderator', 'scout_verifier', 'marketing', 'admin'];
+            const isStaff = isStaffSandboxAccount();
             const adminRow = document.getElementById('hidden-staff-admin-row');
             const badgeEl = document.getElementById('hidden-staff-role-badge');
+            const sandboxPanel = document.getElementById('staff-master-sandbox-panel');
+            const sandboxBadge = document.getElementById('sandbox-staff-badge');
+
             if (adminRow) {
-                if (allowedStaffRoles.includes(staffRole)) {
-                    adminRow.style.display = 'flex';
-                    if (badgeEl) badgeEl.textContent = `Rango verificado en Supabase: ${staffRole.toUpperCase()}`;
-                } else {
-                    adminRow.style.display = 'none';
-                }
+                adminRow.style.display = isStaff ? 'flex' : 'none';
+                if (isStaff && badgeEl) badgeEl.textContent = `Rango verificado en Supabase: ${staffRole.toUpperCase()} (Pasarelas desactivadas)`;
+            }
+            if (sandboxPanel) {
+                sandboxPanel.style.display = isStaff ? 'block' : 'none';
+                if (isStaff && sandboxBadge) sandboxBadge.textContent = `RANGO SUPABASE: ${staffRole.toUpperCase()}`;
+            }
+        }
+
+        async function staffInstantSwitchTier(targetTier) {
+            const cleanTier = normalizeTier(targetTier);
+            localStorage.setItem('kinet_account_tier', cleanTier);
+            localStorage.setItem('kinet_is_pro', (cleanTier === 'pro' || cleanTier === 'club') ? 'true' : 'false');
+            localStorage.setItem('kinet_plan_cycle_start', String(Date.now()));
+            localStorage.setItem('kinet_video_mins_used', '0');
+            if (cleanTier === 'free') {
+                localStorage.setItem('kinet_card_mode', 'custom');
+                localStorage.removeItem('kinet_ai_verified_active');
+            }
+            if (window.KinetBackend) await window.KinetBackend.pushLocalStateToCloud();
+            updateTierUI(cleanTier);
+            refreshPayAsYouGoUI();
+            openInfoModal('⚡ CAMBIO INSTANTÁNEO DE CUENTA (MODO STAFF)', `Tu cuenta ha cambiado directamente a <strong>${cleanTier.toUpperCase()}</strong> sin pasarela de pago para que puedas probar todas las funciones de este plan.`);
+        }
+
+        async function staffInstantSwitchRole(roleKey) {
+            ensureActiveProfileInDB('athlete');
+            ensureActiveProfileInDB('staff');
+            ensureActiveProfileInDB('scout');
+            await switchActiveProProfile(roleKey);
+        }
+
+        async function staffInstantSetBonusMins(mins) {
+            const capped = Math.min(MAX_BONUS_WALLET_MINS, Math.max(0, parseFloat(mins || 0)));
+            localStorage.setItem('kinet_bonus_video_mins', String(capped));
+            localStorage.setItem('kinet_video_mins_used', '0');
+            if (window.KinetBackend) await window.KinetBackend.pushLocalStateToCloud();
+            refreshPayAsYouGoUI();
+            openInfoModal('🎬 MINUTOS ACTUALIZADOS (MODO STAFF)', `Tu monedero de bonos se ha fijado en <strong>${capped} min</strong> y el consumo mensual se ha puesto a 0.`);
+        }
+
+        function staffInstantUnlockCardAndResetChat() {
+            const sportChosen = (localStorage.getItem('kinet_sport') || 'Fútbol').toLowerCase();
+            localStorage.setItem(`kinet_card_discovered_${sportChosen}`, 'true');
+            localStorage.setItem('kinet_ai_daily_used', '0');
+            openInfoModal('🔓 CARTA IA Y CHAT RESETEADOS', 'Se ha marcado tu KINET Card como descubierta por IA y se ha reiniciado a 0 el contador diario del Cuerpo Técnico IA.');
+        }
+
+        async function executeRemoteStaffUserUpdate() {
+            const target = (document.getElementById('mod-target-user-input')?.value || '').trim();
+            const tierVal = document.getElementById('mod-target-tier-select')?.value || '';
+            const minsRaw = document.getElementById('mod-target-mins-input')?.value;
+            const staffVal = document.getElementById('mod-target-staff-select')?.value || '';
+
+            if (!target) {
+                alert('Escribe primero el correo o @handle del usuario que quieres modificar.');
+                return;
+            }
+            try {
+                const payload = { targetEmailOrHandle: target };
+                if (tierVal) payload.accountTier = tierVal;
+                if (minsRaw !== '' && minsRaw !== undefined) payload.bonusVideoMins = parseFloat(minsRaw);
+                if (staffVal) payload.staffRole = (staffVal === 'none' ? '' : staffVal);
+
+                const res = await window.KinetBackend.adminUpdateUserAccount(payload);
+                openInfoModal('✓ USUARIO ACTUALIZADO EN SUPABASE', `Se han aplicado los cambios remotos sobre <strong>${target}</strong> en Supabase Cloud.`);
+            } catch (err) {
+                openInfoModal('⚠️ ERROR EN MODERACIÓN REMOTA', err.message || 'No se pudo actualizar el usuario.');
+            }
+        }
+
+        async function executeRemoteVerifyScout() {
+            const target = (document.getElementById('mod-target-user-input')?.value || '').trim();
+            if (!target) { alert('Indica el correo o @handle del Scout/Club a verificar.'); return; }
+            try {
+                await window.KinetBackend.adminVerifyScoutOrClub(target, true);
+                openInfoModal('✓ SCOUT / CLUB VERIFICADO', `Se ha otorgado el sello oficial B2B en Supabase a <strong>${target}</strong>.`);
+            } catch (err) {
+                openInfoModal('⚠️ ERROR', err.message);
+            }
+        }
+
+        async function executeRemoteBanUser(banState) {
+            const target = (document.getElementById('mod-target-user-input')?.value || '').trim();
+            if (!target) { alert('Indica el correo o @handle del usuario.'); return; }
+            try {
+                await window.KinetBackend.adminToggleBanUser(target, banState);
+                openInfoModal(banState ? '🚫 USUARIO SUSPENDIDO' : '✓ USUARIO REHABILITADO', `El estado de moderación de <strong>${target}</strong> ha sido actualizado en Supabase.`);
+            } catch (err) {
+                openInfoModal('⚠️ ERROR', err.message);
             }
         }
         window.addEventListener('DOMContentLoaded', syncHiddenSupabaseStaffRoleUI);
@@ -2209,6 +2379,11 @@
         }
 
         function requestPlanUpgrade(targetTier) {
+            // Si la cuenta tiene staff_role en Supabase, cambia de plan al instante SIN pasarela de pago
+            if (isStaffSandboxAccount()) {
+                staffInstantSwitchTier(targetTier);
+                return;
+            }
             pendingCheckoutMode = 'plan';
             pendingCheckoutTier = targetTier;
             pendingBonusPackKey = null;
@@ -2246,6 +2421,16 @@
         function requestBonusCheckout(packKey) {
             const pack = KINET_BONUS_CATALOG[packKey];
             if (!pack) return;
+            // Si la cuenta tiene staff_role en Supabase, recarga el bono gratis al instante SIN pasarela de pago
+            if (isStaffSandboxAccount()) {
+                const prev = Math.min(MAX_BONUS_WALLET_MINS, Math.max(0, parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0')));
+                const next = Math.min(MAX_BONUS_WALLET_MINS, +(prev + pack.mins).toFixed(1));
+                localStorage.setItem('kinet_bonus_video_mins', String(next));
+                if (window.KinetBackend) window.KinetBackend.pushLocalStateToCloud();
+                refreshPayAsYouGoUI();
+                openInfoModal('⚡ BONO INYECTADO SIN PASARELA (MODO STAFF)', `Se han sumado <strong>+${pack.mins} min</strong> directamente a tu cuenta de pruebas (Reserva actual: <strong>${next} / 595 min</strong>).`);
+                return;
+            }
 
             const prevMins = Math.min(MAX_BONUS_WALLET_MINS, Math.max(0, parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0')));
             const maxAllowedBeforeThisPack = MAX_BONUS_WALLET_MINS - pack.mins;
@@ -2767,6 +2952,10 @@
         }
 
        function promptCancelPlan(planName) {
+            if (isStaffSandboxAccount()) {
+                staffInstantSwitchTier('free');
+                return;
+            }
             const prevBonus = parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0');
             const isExemptUnder50 = prevBonus < 50;
             // Si tiene >= 50 min, se reduce al 50% pero nunca baja de 50 min para no perjudicar a quien tenía ej. 70 min
