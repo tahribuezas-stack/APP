@@ -1796,51 +1796,59 @@
             markPendingChanges();
         }
 
-        function stageCustomNeon(hexColor) {
-            if (!hexColor || hexColor === 'custom') return;
-            const upperHex = hexColor.toUpperCase();
-            draftSettings.accentColor = upperHex;
-            draftSettings.rainbow = false;
-            const rainbowCheck = document.getElementById('setting-rainbow');
-            if (rainbowCheck) rainbowCheck.checked = false;
+      function stageCustomNeon(hexColor) {
+    if (!hexColor || hexColor === 'custom') return;
+    const upperHex = hexColor.toUpperCase();
+    draftSettings.accentColor = upperHex;
+    localStorage.removeItem('kinet_theme_color_reset');
+    draftSettings.rainbow = false;
+    const rainbowCheck = document.getElementById('setting-rainbow');
+    if (rainbowCheck) rainbowCheck.checked = false;
 
-            syncColorControlsUI(upperHex);
-            applyAccentColorToDOM(upperHex);
-            markPendingChanges();
-        }
+    syncColorControlsUI(upperHex);
+    applyAccentColorToDOM(upperHex);
+    markPendingChanges();
+}
 
-        function stageResetRoleColor() {
-            draftSettings.accentColor = null;
-            draftSettings.rainbow = false;
-            const rainbowCheck = document.getElementById('setting-rainbow');
-            if (rainbowCheck) rainbowCheck.checked = false;
+function stageResetRoleColor() {
+    draftSettings.accentColor = null;
+    draftSettings.rainbow = false;
+    const rainbowCheck = document.getElementById('setting-rainbow');
+    if (rainbowCheck) rainbowCheck.checked = false;
 
-            localStorage.removeItem('kinet_custom_accent_override');
-            localStorage.removeItem('kinet_accent_color');
-            localStorage.setItem('kinet_rainbow_mode', 'false');
+    localStorage.removeItem('kinet_custom_accent_override');
+    localStorage.removeItem('kinet_accent_color');
+    localStorage.setItem('kinet_theme_color_reset', 'true');
+    localStorage.setItem('kinet_rainbow_mode', 'false');
+    if (window.KinetBackend && typeof window.KinetBackend.pushLocalStateToCloud === 'function') {
+        window.KinetBackend.pushLocalStateToCloud();
+    }
 
-            const zf = document.getElementById('kinet-zero-flash-override');
-            if (zf) zf.remove();
+    const zf = document.getElementById('kinet-zero-flash-override');
+    if (zf) zf.remove();
 
-            const activeRoleKey = localStorage.getItem('kinet_active_role') || 'athlete';
-            const defaultHex = getRoleDefaultHex(activeRoleKey);
+    const activeRoleKey = localStorage.getItem('kinet_active_role') || 'athlete';
+    const defaultHex = getRoleDefaultHex(activeRoleKey);
 
-            stopRainbowLoop();
-            document.body.classList.remove('rainbow-mode');
-            document.body.style.removeProperty('--role-color');
-            document.body.style.removeProperty('--role-rgb');
-            document.body.style.removeProperty('--role-glow');
-            document.body.style.removeProperty('--role-gradient');
+    stopRainbowLoop();
+    document.body.classList.remove('rainbow-mode');
+    [document.documentElement, document.body].forEach(el => {
+        if (!el) return;
+        el.style.removeProperty('--role-color');
+        el.style.removeProperty('--role-rgb');
+        el.style.removeProperty('--role-glow');
+        el.style.removeProperty('--role-gradient');
+    });
 
-            syncColorControlsUI(defaultHex);
-            updateDynamicFavicon(defaultHex);
+    syncColorControlsUI(defaultHex);
+    updateDynamicFavicon(defaultHex);
 
-            const roleNameMap = { athlete: 'Atleta (Verde #00FF88)', staff: 'Staff (Ámbar #F59E0B)', scout: 'Scout (Azul #3B82F6)' };
-            const noteEl = document.getElementById('role-color-status-note');
-            if (noteEl) noteEl.textContent = `✓ Restaurado al color oficial de tu rol activo: ${roleNameMap[activeRoleKey]}`;
+    const roleNameMap = { athlete: 'Atleta (Verde #00FF88)', staff: 'Staff (Ámbar #F59E0B)', scout: 'Scout (Azul #3B82F6)' };
+    const noteEl = document.getElementById('role-color-status-note');
+    if (noteEl) noteEl.textContent = `✓ Restaurado al color oficial de tu rol activo: ${roleNameMap[activeRoleKey]}`;
 
-            markPendingChanges();
-        }
+    markPendingChanges();
+}
 
         function stageAdvancedUI(key, val) {
             draftSettings[key] = val;
