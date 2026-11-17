@@ -1553,13 +1553,19 @@
             return null;
         }
 
-        function getAvailableVideoMinutesState() {
+       function getAvailableVideoMinutesState() {
             const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
             const isProOrClub = (tier === 'pro' || tier === 'club');
             const basePlanMax = tier === 'club' ? 300 : (tier === 'pro' ? 90 : 0);
             const usedPlanMins = isProOrClub ? parseFloat(localStorage.getItem('kinet_video_mins_used') || '0') : 0;
             const remainingPlanMins = Math.max(0, +(basePlanMax - usedPlanMins).toFixed(1));
-            const bonusMins = Math.max(0, parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0'));
+
+            let rawBonus = Math.max(0, parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0'));
+            if (rawBonus > 595) {
+                rawBonus = 595;
+                localStorage.setItem('kinet_bonus_video_mins', '595');
+            }
+            const bonusMins = rawBonus;
             const totalAvailable = +(remainingPlanMins + bonusMins).toFixed(1);
             const totalCapacity = +(basePlanMax + bonusMins).toFixed(1);
             return { tier, isProOrClub, basePlanMax, usedPlanMins, remainingPlanMins, bonusMins, totalAvailable, totalCapacity };
@@ -1742,7 +1748,7 @@
             `).join('');
         }
 
-        function refreshVideoQuotaUI() {
+       function refreshVideoQuotaUI() {
             const st = getAvailableVideoMinutesState();
             const quotaPill = document.getElementById('video-quota-pill');
             const quotaRight = document.getElementById('quota-meta-right');
@@ -1752,14 +1758,14 @@
                 const denom = st.totalCapacity > 0 ? st.totalCapacity : st.totalAvailable;
                 const pct = Math.min(100, Math.round((st.totalAvailable / denom) * 100));
                 const breakdown = st.isProOrClub
-                    ? `(${st.remainingPlanMins} min Plan + ${st.bonusMins} min Bono)`
-                    : `(Reserva Bono: ${st.bonusMins} / 595 min máx.)`;
+                    ? `(${st.remainingPlanMins}m Plan + ${st.bonusMins}m Bono)`
+                    : `(Bono: ${st.bonusMins}/595m)`;
                 quotaPill.textContent = `🎥 CUOTA VÍDEO IA: ${st.totalAvailable} MIN DISP.`;
-                quotaRight.textContent = `${st.totalAvailable} MIN DISPONIBLES ${breakdown}`;
+                quotaRight.textContent = `${st.totalAvailable} MIN DISP. ${breakdown}`;
                 quotaBar.style.width = `${pct}%`;
             } else {
                 quotaPill.textContent = st.isProOrClub ? '⚠️ CUOTA AGOTADA (0 MIN DISP.)' : '🔒 CUOTA VÍDEO IA: 0 MIN (PLAN FREE)';
-                quotaRight.textContent = st.isProOrClub ? 'RECARGA UN BONO AL -50% EN DESPACHO' : 'REQUIERE PLAN PRO O BONO DE MINUTOS';
+                quotaRight.textContent = st.isProOrClub ? 'RECARGA BONO (-50%) EN DESPACHO' : 'REQUIERE PLAN PRO O BONO';
                 quotaBar.style.width = '0%';
             }
         }
