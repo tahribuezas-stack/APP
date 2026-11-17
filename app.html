@@ -11,24 +11,25 @@
 
     <!-- PRE-CARGA SÍNCRONA DEL COLOR ELEGIDO EN DESPACHO (0ms, EVITA MICRO-PESTAÑEO AL CAMBIAR DE SECCIÓN) -->
     <script>
-        (function applyZeroFlashAccentBeforePaint() {
-            try {
-                var savedAccent = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
-                var rainbowOn = localStorage.getItem('kinet_rainbow_mode') === 'true';
-                if (savedAccent && savedAccent.charAt(0) === '#' && !rainbowOn) {
-                    var clean = savedAccent.replace('#', '');
-                    var num = parseInt(clean, 16);
-                    if (!isNaN(num)) {
-                        var r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
-                        var root = document.documentElement;
-                        root.style.setProperty('--role-color', savedAccent);
-                        root.style.setProperty('--role-rgb', r + ', ' + g + ', ' + b);
-                        root.style.setProperty('--role-glow', 'rgba(' + r + ', ' + g + ', ' + b + ', 0.42)');
-                        root.style.setProperty('--role-gradient', 'linear-gradient(135deg, ' + savedAccent + ' 0%, rgba(' + r + ',' + g + ',' + b + ',0.75) 100%)');
-                    }
-                }
-            } catch (e) {}
-        })();
+      (function applyZeroFlashAccentBeforePaint() {
+    try {
+        var isReset = localStorage.getItem('kinet_theme_color_reset') === 'true';
+        var savedAccent = isReset ? null : (localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color'));
+        var rainbowOn = localStorage.getItem('kinet_rainbow_mode') === 'true';
+        if (savedAccent && savedAccent.charAt(0) === '#' && !rainbowOn) {
+            var clean = savedAccent.replace('#', '');
+            var num = parseInt(clean, 16);
+            if (!isNaN(num)) {
+                var r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
+                var root = document.documentElement;
+                root.style.setProperty('--role-color', savedAccent);
+                root.style.setProperty('--role-rgb', r + ', ' + g + ', ' + b);
+                root.style.setProperty('--role-glow', 'rgba(' + r + ', ' + g + ', ' + b + ', 0.42)');
+                root.style.setProperty('--role-gradient', 'linear-gradient(135deg, ' + savedAccent + ' 0%, rgba(' + r + ',' + g + ',' + b + ',0.75) 100%)');
+            }
+        }
+    } catch (e) {}
+})();
     </script>
 
     <!-- Tipografías Oficiales -->
