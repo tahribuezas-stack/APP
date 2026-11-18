@@ -5439,26 +5439,25 @@
                 }
             }
         };
-      // =========================================================================
-        // MOTOR TÁCTICO INTEGRAL V13 (SUSTITUYE AL BLOQUE V12 ANTES DE 
-        // 1. FIX TOTAL AL VOLVER A PLANTILLA (RECONSTRUCCIÓN LIMPIA DE CARTAS Y COORDENADAS)
-        // 2. GIRO 3D PURO 100% ILUMINADO (SIN APAGARSE NI PERDER OPACIDAD EN LA VUELTA)
-        // 3. BOTÓN DESHACER (↩️ UNDO INFINITO) SIN LÍMITE DE RETROCESO EN PIZARRA MANUAL
-        // 4. POSICIONAMIENTO AUTOMÁTICO SEGÚN FORMACIÓN + MOMENTO (SALIDA, ATAQUE, CONTRA,
-        //    CÓRNER IZQ/DER, FALTA CERCANA/LATERAL/LEJANA) EN LOS 5 DEPORTES
+    // =========================================================================
+        // MOTOR TÁCTICO INTEGRAL V14 (CERO ERRORES DE SINTAXIS + GIRO 3D ILUMINADO):
+        // 1. ELIMINADO EL ERROR DE SINTAXIS Y CORREGIDO renderBoardTokensAndMetrics
+        // 2. FIX TOTAL AL VOLVER A PLANTILLA (RECONSTRUCCIÓN LIMPIA DE CARTAS Y COORDENADAS)
+        // 3. GIRO 3D PURO 100% ILUMINADO + DESHACER INFINITO (↩️ UNDO)
+        // 4. POSICIONAMIENTO AUTOMÁTICO SEGÚN FORMACIÓN Y MOMENTO TÁCTICO
         // =========================================================================
-        (function applyKinetTacticalEngineV13() {
-            if (window._kinetV13Loaded) return;
-            window._kinetV13Loaded = true;
+        (function applyKinetTacticalEngineV14() {
+            if (window._kinetV14Loaded) return;
+            window._kinetV14Loaded = true;
 
-            const _nativeRenderBoard = window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63;
+            const _nativeRenderBoard = window.renderBoardTokensAndMetrics;
             const _nativeRenderDuel = window.renderDuel1v1View;
             const _nativeRenderMirror = window.renderMirrorSelfView;
             const _nativeUpdateSliders = window.updateBuilderSlidersForPosition;
             const _nativeGetSlotArr = window.getSlotArrayByGroup;
             const _nativeUpdatePlayStyle = window.updatePlayStyleSynergy;
 
-            // 1. Separar DFC y POR en coordenadas verticales de todos los presets de Fútbol
+            // 1. Separar DFC y POR en coordenadas verticales de Fútbol
             const fbPresets = SPORT_ARENA_CONFIGS['Fútbol']?.presets;
             if (fbPresets) {
                 Object.keys(fbPresets).forEach(k => {
@@ -5515,9 +5514,9 @@
                 return cfg.statLabels;
             };
 
-            // 3. CSS de Giro 3D 100% Iluminado (Cero apagón en medio de la vuelta) + Micro-Fichas
-            const v13Style = document.createElement('style');
-            v13Style.textContent = `
+            // 3. CSS de Giro 3D 100% Iluminado + Micro-Fichas
+            const v14Style = document.createElement('style');
+            v14Style.textContent = `
                 @keyframes kinetSelectedSlotPulse {
                     0%, 100% { box-shadow: 0 0 18px var(--role-color), 0 0 32px rgba(var(--role-rgb), 0.45), inset 0 0 12px rgba(var(--role-rgb), 0.35); transform: translate(-50%, -56%) scale(1.14); }
                     50% { box-shadow: 0 0 28px #FFFFFF, 0 0 42px var(--role-color), inset 0 0 18px rgba(var(--role-rgb), 0.55); transform: translate(-50%, -58%) scale(1.18); }
@@ -5536,7 +5535,6 @@
                     transform: translateY(-3px) scale(1.06) !important;
                 }
 
-                /* Giro 3D Puro con 100% de brillo (opacity: 1 siempre, nunca se apaga) */
                 .bento-grid { perspective: 2000px; }
                 #view-arena-3d, .col-4 > .kinet-panel {
                     backface-visibility: hidden;
@@ -5664,7 +5662,7 @@
                     display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-top: 6px;
                 }
             `;
-            document.head.appendChild(v13Style);
+            document.head.appendChild(v14Style);
 
             // 4. SVGs Horizontales para los 5 Deportes
             function buildHorizontalStrategySVG(sportKey) {
@@ -5723,7 +5721,6 @@
                 return buildProfessionalSportSVG(sportKey);
             }
 
-            // Obtiene siempre las coordenadas verticales limpias del preset de formación actual
             function getCleanVerticalFormationCoords() {
                 const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
                 const presetArr = cfg.presets[currentPresetName] || Object.values(cfg.presets)[0];
@@ -5744,24 +5741,23 @@
                 return `${parts[0][0]}.${parts[1][0]}`.toUpperCase();
             }
 
-            // 5. Estado de Estrategias + Pila de Deshacer Infinita (manualUndoStack) + Momentos Tácticos
+            // 5. Estado de Estrategias + Pila de Deshacer Infinita
             let isStrategyViewActive = false;
-            let activeStrategyCategory = 'train'; // 'train' | 'rival' | 'abp'
+            let activeStrategyCategory = 'train';
             let activeMomentKey = 'build_up';
             let rivalClashOn = true;
             let manualMoveMode = false;
-            let manualMoveSubType = 'offball'; // 'offball' | 'onball'
+            let manualMoveSubType = 'offball';
             let hasUnsavedManualTactic = false;
             let pendingDiscardCallback = null;
             let manualSelectedTokenIdx = 0;
             let customManualVectors = [];
-            let manualUndoStack = []; // Pila sin límite de retroceso para deshacer paso a paso
+            let manualUndoStack = [];
             let savedTacticsLibrary = [];
             let currentBallCoords = { x: 45, y: 50 };
             let builderEntityType = 'athlete';
             window.staffSlots = [];
 
-            // Guarda una instantánea completa antes de cada movimiento para poder deshacer sin límite
             function pushUndoSnapshot() {
                 manualUndoStack.push({
                     slotsCoords: currentBoardSlots.map(s => ({ x: s.x, y: s.y })),
@@ -5770,7 +5766,6 @@
                 });
             }
 
-            // Deshacer Último Movimiento (sin límite de retroceso)
             window.undoLastManualMovement = function () {
                 if (manualUndoStack.length === 0) return;
                 const prev = manualUndoStack.pop();
@@ -5786,14 +5781,13 @@
                     hasUnsavedManualTactic = false;
                 }
                 updateSportBallPosition(currentBallCoords.x, currentBallCoords.y);
-                window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+                window.renderBoardTokensAndMetrics(false);
                 paintCurrentMomentVectorsAndRivals();
                 renderRightStrategyPanelContent();
                 renderTacticsBottomDeck();
             };
 
-            // 6. MOTOR DE POSICIONAMIENTO DINÁMICO SEGÚN TU FORMACIÓN Y EL MOMENTO DEL JUEGO (TODOS LOS DEPORTES)
-            //    Adapta cualquier formación (4-3-3, 3-4-3, 5-3-2, Basket, Pádel, Boxeo, Running) al momento elegido
+            // 6. Catálogo de Momentos Tácticos
             const TACTICAL_MOMENTS_CATALOG = {
                 train: [
                     { key: 'build_up', label: '1. Salida de Balón', desc: 'Centrales abiertos, laterales bajos y mediocentro en apoyo para superar primera línea.' },
@@ -5817,12 +5811,10 @@
                 ]
             };
 
-            // Calcula dónde se coloca cada jugador de TU FORMACIÓN según el momento táctico y el Estilo (Equilibrado, Directo, Posesión, Presión, Contra)
             function computeFormationMomentCoordinates(momentKey) {
                 const baseVert = getCleanVerticalFormationCoords();
                 const baseHoriz = baseVert.map(s => verticalToHorizontalCoords(s.x, s.y));
 
-                // Modificador sutil según el desplegable superior de "⚙️ Estilo"
                 const styleShiftX = currentPlayStyle === 'highpress' ? 6 : (currentPlayStyle === 'counter' ? -6 : (currentPlayStyle === 'direct' ? 4 : 0));
                 const styleSpreadY = currentPlayStyle === 'possession' ? 1.12 : (currentPlayStyle === 'counter' ? 0.85 : 1.0);
 
@@ -5839,7 +5831,6 @@
                     let ny = Math.min(92, Math.max(8, Math.round(50 + (h.y - 50) * styleSpreadY)));
 
                     if (momentKey === 'build_up') {
-                        // Salida de balón desde atrás respetando tu dibujo
                         if (isGK) { nx = 8; ny = 50; }
                         else if (h.x < 38) { nx = Math.max(16, h.x - 6); ny = ny < 50 ? Math.max(12, ny - 6) : Math.min(88, ny + 6); }
                         else if (h.x < 65) { nx = h.x - 5; }
@@ -5859,7 +5850,6 @@
                             { pos: 'ED', init: 'R.7', x0: 44, y0: 78, x1: 38, y1: 74 }
                         ];
                     } else if (momentKey === 'positional_attack') {
-                        // Ataque posicional en campo rival respetando tu formación
                         if (isGK) { nx = 22; ny = 50; }
                         else { nx = Math.min(90, Math.round(h.x + 16 + styleShiftX)); }
                         ballStart = { x: 58, y: 48 };
@@ -5878,7 +5868,6 @@
                             { pos: 'MCD', init: 'R.6', x0: 72, y0: 50, x1: 76, y1: 42 }
                         ];
                     } else if (momentKey === 'counter_attack') {
-                        // Contraataque: defensas recogidos y delanteros lanzados al espacio
                         if (isGK) { nx = 10; ny = 50; }
                         else if (h.x < 60) { nx = Math.max(18, Math.round(h.x * 0.72)); }
                         else { nx = Math.min(89, h.x + 14); }
@@ -5896,7 +5885,6 @@
                             { pos: 'DFC', init: 'R.5', x0: 64, y0: 62, x1: 78, y1: 58 }
                         ];
                     } else if (momentKey === 'high_press' || momentKey === 'gegenpress') {
-                        // Presión alta sobre salida rival
                         if (isGK) { nx = 28; ny = 50; }
                         else { nx = Math.min(88, Math.round(h.x + 20)); }
                         ballStart = { x: 84, y: 48 };
@@ -5912,7 +5900,6 @@
                             { pos: 'MCD', init: 'R.6', x0: 78, y0: 48, x1: 78, y1: 42 }
                         ];
                     } else if (momentKey === 'mid_block' || momentKey === 'wing_trap') {
-                        // Bloque medio compacto respetando tu formación
                         const shiftY = momentKey === 'wing_trap' ? -12 : 0;
                         if (isGK) { nx = 10; ny = 50; }
                         else {
@@ -5932,7 +5919,6 @@
                             { pos: 'ED', init: 'R.7', x0: 62, y0: 78, x1: 52, y1: 74 }
                         ];
                     } else if (momentKey === 'low_block') {
-                        // Repliegue intensivo bloque bajo cerca de tu área
                         if (isGK) { nx = 7; ny = 50; }
                         else {
                             nx = Math.max(15, Math.min(44, Math.round(14 + (h.x * 0.36))));
@@ -5952,11 +5938,10 @@
                             { pos: 'ED', init: 'R.7', x0: 42, y0: 78, x1: 32, y1: 74 }
                         ];
                     } else if (momentKey === 'corner_left' || momentKey === 'corner_right') {
-                        // Córner desde esquina izquierda (arriba) o derecha (abajo)
                         const isLeft = momentKey === 'corner_left';
                         if (isGK) { nx = 12; ny = 50; }
                         else if (idx === 1) { nx = 95; ny = isLeft ? 6 : 94; } // Lanzador
-                        else if (idx === 2) { nx = 84; ny = isLeft ? 18 : 82; } Apoyo corto
+                        else if (idx === 2) { nx = 84; ny = isLeft ? 18 : 82; } // Apoyo corto
                         else if (idx <= 7) { nx = 84 + (idx % 3) * 3; ny = 36 + (idx - 3) * 7; } // Rematadores área
                         else { nx = 64; ny = 30 + (idx - 8) * 18; } // Vigilancias rechace
 
@@ -5974,10 +5959,9 @@
                             { pos: 'DFC', init: 'M.2', x0: 88, y0: 56, x1: 88, y1: 56 }
                         ];
                     } else if (momentKey === 'fk_close') {
-                        // Falta cercana frontal
                         if (isGK) { nx = 12; ny = 50; }
-                        else if (idx === 1) { nx = 75; ny = 46; } // Lanzador 1
-                        else if (idx === 2) { nx = 74; ny = 54; } // Lanzador 2
+                        else if (idx === 1) { nx = 75; ny = 46; }
+                        else if (idx === 2) { nx = 74; ny = 54; }
                         else if (idx <= 7) { nx = 84; ny = 28 + (idx - 3) * 11; }
                         else { nx = 60; ny = 32 + (idx - 8) * 18; }
 
@@ -5994,7 +5978,6 @@
                             { pos: 'BAR', init: 'B.2', x0: 84, y0: 50, x1: 84, y1: 50 }
                         ];
                     } else if (momentKey === 'fk_side' || momentKey === 'fk_far') {
-                        // Falta lateral o Falta lejana
                         const isSide = momentKey === 'fk_side';
                         if (isGK) { nx = 12; ny = 50; }
                         else if (idx === 1) { nx = isSide ? 76 : 62; ny = isSide ? 16 : 48; }
@@ -6015,10 +5998,9 @@
                             { pos: 'DFC', init: 'M.2', x0: 86, y0: 56, x1: 87, y1: 56 }
                         ];
                     } else if (momentKey === 'def_corner') {
-                        // Córner defensivo + salida a la contra
                         if (isGK) { nx = 6; ny = 50; }
                         else if (idx <= 8) { nx = 11 + (idx % 3) * 3; ny = 34 + (idx - 1) * 4; }
-                        else { nx = 44; ny = idx === 9 ? 32 : 68; } // 2 puntas arriba para contra
+                        else { nx = 44; ny = idx === 9 ? 32 : 68; }
 
                         ballStart = { x: 5, y: 6 };
                         ballEnd = { x: 46, y: 32 };
@@ -6040,7 +6022,6 @@
                 return { baseHoriz, targetCoords: transformed, ballStart, ballEnd, zone, arrows, rivals };
             }
 
-            // Cuando el usuario cambia el desplegable superior de "⚙️ Estilo" estando en Estrategias, recoloca la plantilla en vivo
             window.updatePlayStyleSynergy = function (styleVal) {
                 if (typeof _nativeUpdatePlayStyle === 'function') _nativeUpdatePlayStyle(styleVal);
                 if (isStrategyViewActive && !manualMoveMode) {
@@ -6121,7 +6102,6 @@
                 const leftPanel = document.getElementById('view-arena-3d');
                 const rightPanel = document.querySelector('.col-4 > .kinet-panel');
 
-                // Fase 1: Giro de 0° a 88° con 100% de brillo (sin apagar opacidad)
                 if (leftPanel) leftPanel.classList.add('kinet-flip-stage-1');
                 if (rightPanel) rightPanel.classList.add('kinet-flip-stage-1');
 
@@ -6142,7 +6122,6 @@
                             formSelWrap.style.pointerEvents = isStrategyViewActive ? 'none' : 'auto';
                         }
 
-                        // Vaciar SIEMPRE el contenedor de fichas para que al cambiar de modo se reconstruyan desde cero sin arrastrar clases rotas
                         const tokensLayer = document.getElementById('arena-tokens-layer');
                         if (tokensLayer) tokensLayer.innerHTML = '';
 
@@ -6167,7 +6146,6 @@
                             renderRightStrategyPanelContent();
                             renderTacticsBottomDeck();
                         } else {
-                            // VOLVER A PLANTILLA: Restaurar coordenadas verticales limpias de la formación actual
                             manualMoveMode = false;
                             hasUnsavedManualTactic = false;
                             customManualVectors = [];
@@ -6195,12 +6173,11 @@
                             if (rightStrategyBox) rightStrategyBox.style.display = 'none';
                             if (rightRosterBox) rightRosterBox.style.display = 'block';
 
-                            window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(true);
+                            window.renderBoardTokensAndMetrics(true);
                         }
                     } catch (err) {
                         console.error('Error en cambio de vista:', err);
                     } finally {
-                        // Fase 2 y 3: Colocar a -88° y desplegar a 0° con 100% de brillo
                         [leftPanel, rightPanel].forEach(panel => {
                             if (!panel) return;
                             panel.classList.remove('kinet-flip-stage-1');
@@ -6219,7 +6196,7 @@
                 }, 240);
             }
 
-            // 9. Aplicar Momento Táctico (Salida, Ataque, Contra, Córner Izq/Der, Falta Cercana/Lejana...)
+            // 9. Aplicar Momento Táctico
             let currentComputedMomentData = null;
 
             window.requestTacticalMoment = function (momentKey) {
@@ -6238,7 +6215,6 @@
                 const mData = computeFormationMomentCoordinates(momentKey);
                 currentComputedMomentData = mData;
 
-                // Colocar en base horizontal de la formación y deslizar a la posición del momento táctico
                 currentBoardSlots.forEach((s, i) => {
                     if (mData.baseHoriz[i]) {
                         s.x = mData.baseHoriz[i].x;
@@ -6246,7 +6222,7 @@
                     }
                 });
                 currentBallCoords = { ...mData.ballStart };
-                window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+                window.renderBoardTokensAndMetrics(false);
                 updateSportBallPosition(currentBallCoords.x, currentBallCoords.y);
 
                 setTimeout(() => {
@@ -6258,7 +6234,7 @@
                     });
                     currentBallCoords = { ...mData.ballEnd };
                     updateSportBallPosition(currentBallCoords.x, currentBallCoords.y);
-                    window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+                    window.renderBoardTokensAndMetrics(false);
                     paintCurrentMomentVectorsAndRivals();
                 }, 85);
 
@@ -6317,7 +6293,7 @@
                 }
             }
 
-            // 10. Panel Derecho con las 3 Interfaces Personalizadas (Entrenar / Vs Rival / Balón Parado) + Botón Deshacer (∞)
+            // 10. Panel Derecho con las 3 Interfaces Personalizadas + Botón Deshacer (∞)
             function renderRightStrategyPanelContent() {
                 const box = document.getElementById('right-strategy-command-panel');
                 if (!box) return;
@@ -6399,7 +6375,6 @@
                     ${momentsCardHtml}
                     ${manualCreatorCardHtml}
 
-                    <!-- Nombre directo de la jugada + Guardar y Compartir -->
                     <div style="background:rgba(4,6,10,0.82);border:1px solid var(--border-subtle);border-radius:12px;padding:8px 10px;margin-bottom:8px;">
                         <input type="text" id="custom-tactic-title-input" class="kinet-input" style="margin-bottom:6px;padding:6px 9px;font-size:0.7rem;" placeholder="Escribe nombre para tu jugada (ej: Córner al 2º Palo)...">
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
@@ -6443,7 +6418,7 @@
                             <button type="button" class="tactics-deck-pill ${rivalClashOn ? 'clash-on' : ''}" onclick="window.toggleRivalClashOnBoard()">
                                 ⚔️ Rival: ${rivalClashOn ? 'ON' : 'OFF'}
                             </button>
-                            <button type="button" class="tactics-deck-pill" onclick="window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63()">
+                            <button type="button" class="tactics-deck-pill" onclick="window.requestResetBoardPositions()">
                                 ↺ Base
                             </button>
                         </div>
@@ -6483,7 +6458,7 @@
                 });
             };
 
-            window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63 = function () {
+            window.requestResetBoardPositions = function () {
                 window.guardUnsavedManualTactic(() => {
                     window.resetTacticalBoardPositions();
                 });
@@ -6518,13 +6493,13 @@
                 }
                 renderRightStrategyPanelContent();
                 renderTacticsBottomDeck();
-                window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+                window.renderBoardTokensAndMetrics(false);
             };
 
             function bindSurfaceManualClick() {
                 const surface = document.getElementById('arena-3d-surface');
-                if (!surface || surface._manualClickBoundV13) return;
-                surface._manualClickBoundV13 = true;
+                if (!surface || surface._manualClickBoundV14) return;
+                surface._manualClickBoundV14 = true;
 
                 surface.addEventListener('click', (e) => {
                     if (!isStrategyViewActive || !manualMoveMode) return;
@@ -6538,7 +6513,6 @@
                     const targetX = Math.min(94, Math.max(6, Math.round(((e.clientX - rect.left) / rect.width) * 100)));
                     const targetY = Math.min(92, Math.max(8, Math.round(((e.clientY - rect.top) / rect.height) * 100)));
 
-                    // Guardar estado previo en la pila de Deshacer Infinito antes de mover
                     pushUndoSnapshot();
                     hasUnsavedManualTactic = true;
                     const pName = slot.player ? slot.player.name : slot.pos;
@@ -6571,7 +6545,7 @@
                         localStorage.setItem('kinet_last_manual_tactical_move', msg);
                     }
 
-                    window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+                    window.renderBoardTokensAndMetrics(false);
                     paintCurrentMomentVectorsAndRivals();
                     renderRightStrategyPanelContent();
                     renderTacticsBottomDeck();
@@ -6619,7 +6593,7 @@
 
                 renderRightStrategyPanelContent();
                 renderTacticsBottomDeck();
-                window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+                window.renderBoardTokensAndMetrics(false);
                 paintCurrentMomentVectorsAndRivals();
             };
 
@@ -6669,7 +6643,7 @@
                             currentBallCoords = { ...item.ballCoords };
                             updateSportBallPosition(currentBallCoords.x, currentBallCoords.y);
                         }
-                        window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+                        window.renderBoardTokensAndMetrics(false);
                         paintCurrentMomentVectorsAndRivals();
                     } else if (item.momentKey) {
                         window.applyTacticalMomentPositioning(item.momentKey);
@@ -6876,8 +6850,7 @@
             };
 
             // 12. Renderizado Unificado (Micro-Fichas en Estrategias vs Cartas Completas en Plantilla)
-            window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63 = function (shouldPersist = true) {
-                // IMPORTANTE: No guardar en localStorage las coordenadas horizontales temporales de Estrategias como si fueran la Plantilla
+            window.renderBoardTokensAndMetrics = function (shouldPersist = true) {
                 const allowPersist = shouldPersist && !isStrategyViewActive;
                 if (typeof _nativeRenderBoard === 'function') _nativeRenderBoard(allowPersist);
 
@@ -6938,13 +6911,13 @@
                                 paintCurrentMomentVectorsAndRivals();
                                 renderRightStrategyPanelContent();
                                 renderTacticsBottomDeck();
-                                window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+                                window.renderBoardTokensAndMetrics(false);
                                 return;
                             }
                             manualSelectedTokenIdx = idx;
                             activeSelection = { group: 'board', index: idx };
                             renderRightStrategyPanelContent();
-                            window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+                            window.renderBoardTokensAndMetrics(false);
                         };
                     });
                     return;
@@ -7059,7 +7032,7 @@
                 if (svgL) svgL.innerHTML = '';
                 const rivL = document.getElementById('arena-rivals-tokens-layer');
                 if (rivL) rivL.innerHTML = '';
-                window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+                window.renderBoardTokensAndMetrics(false);
                 renderRightStrategyPanelContent();
                 renderTacticsBottomDeck();
             };
@@ -7151,7 +7124,6 @@
                 ensureSportBallMounted();
                 bindSurfaceManualClick();
 
-                // Si la formación guardada en localStorage tenía coordenadas horizontales por error, restaurar las verticales limpias
                 const cleanVert = getCleanVerticalFormationCoords();
                 if (Array.isArray(currentBoardSlots) && currentBoardSlots.length === cleanVert.length) {
                     const porSlot = currentBoardSlots[0];
@@ -7166,7 +7138,7 @@
                         if (s.pos === 'DFC' && s.y > 68) s.y = 67;
                     });
                 }
-                window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(true);
+                window.renderBoardTokensAndMetrics(true);
             }
 
             if (document.readyState === 'loading') {
