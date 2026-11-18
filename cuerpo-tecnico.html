@@ -10,7 +10,7 @@
     <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
 
     <!-- BLOQUEO SÍNCRONO 0ms CONTRA EL MICRO-PESTAÑEO DE COLOR -->
-  <script>
+    <script>
         (function applyZeroFlashStyleRule() {
             try {
                 var isReset = localStorage.getItem('kinet_theme_color_reset') === 'true';
@@ -667,7 +667,7 @@
             100% { opacity: 1; transform: translateX(0) scale(1); }
         }
 
-     .msg-bubble {
+        .msg-bubble {
             max-width: 82%;
             padding: 12px 16px;
             border-radius: 16px;
@@ -677,7 +677,6 @@
             word-wrap: break-word;
             overflow-wrap: break-word;
             word-break: break-word;
-            /* Se elimina overflow: hidden y se usa clip-path para redondear sin cortar texto largo */
             clip-path: inset(0 round 16px);
             transition: border-color 0.25s ease, box-shadow 0.25s ease;
         }
@@ -940,6 +939,19 @@
             box-shadow: 0 16px 40px rgba(0,0,0,0.85);
         }
 
+        .kinet-input {
+            width: 100%;
+            background: rgba(4, 6, 10, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 11px;
+            padding: 10px 13px;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.78rem;
+            outline: none;
+        }
+        .kinet-input:focus { border-color: var(--role-color); }
+
         /* NAVEGACIÓN MÓVIL */
         .mobile-bottom-nav {
             display: none;
@@ -1098,7 +1110,7 @@
                     <div class="chat-sidebar">
                         <div class="chat-sidebar-header">
                             <span>💬 CUERPO TÉCNICO IA</span>
-                            <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);">ONLINE</span>
+                            <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);" id="ai-engine-live-pill">ONLINE</span>
                         </div>
                         
                         <div class="contact-item active" data-agent="group" onclick="switchChat('group', this)">
@@ -1155,6 +1167,9 @@
                                 </div>
                             </div>
                             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                <button type="button" class="btn-pdf-chat" id="btn-open-ai-key-modal" onclick="openAiEngineConfigModal()" title="Conectar API Key de Gemini / Groq / OpenAI">
+                                    🔑 Motor IA
+                                </button>
                                 <a href="ojeador-live.html" id="header-lab-shortcut" class="btn-pdf-chat" style="text-decoration:none;display:none;">🎬 Subir Clip Vision Lab</a>
                                 <button type="button" class="btn-pdf-chat" onclick="openRoutineTemplateModal()">📋 Generar Rutina / Plantilla</button>
                                 <button type="button" class="btn-pdf-chat" onclick="downloadChatReportPDF()">📄 Exportar Informe PDF</button>
@@ -1191,6 +1206,48 @@
                 </div>
 
             </main>
+        </div>
+    </div>
+
+    <!-- =========================================================================
+         MODAL 0: CONFIGURAR MOTOR IA EN VIVO (GEMINI 2.5 FLASH / GROQ / OPENAI)
+         ========================================================================= -->
+    <div id="ai-engine-config-modal" class="kinet-modal-overlay" onclick="if(event.target===this)closeAiEngineConfigModal()">
+        <div class="kinet-modal-box" style="max-width:520px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:10px;">
+                <div>
+                    <span style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);">🔑 CONEXIÓN LLM & ENTRENAMIENTO // KINET OS</span>
+                    <h3 style="font-family:'Orbitron';font-size:0.96rem;font-weight:900;color:white;margin-top:2px;">Motor de Inteligencia Artificial del Cuerpo Técnico</h3>
+                </div>
+                <button type="button" onclick="closeAiEngineConfigModal()" style="background:none;border:none;color:white;font-size:1.15rem;cursor:pointer;">✕</button>
+            </div>
+
+            <div style="font-size:0.75rem;color:#CBD5E1;line-height:1.48;background:rgba(var(--role-rgb),0.07);border:1px solid rgba(var(--role-rgb),0.3);border-radius:12px;padding:10px 12px;">
+                Los 4 especialistas ya están <strong>entrenados con los datos de tu perfil, tu KINET Card y tu Pizarra 3D</strong>. Para activar respuestas generativas infinitas con visión multimodal, pega aquí tu API Key de <strong>Google Gemini</strong>, <strong>Groq</strong> u <strong>OpenAI</strong>:
+            </div>
+
+            <div>
+                <label style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);font-weight:700;display:block;margin-bottom:4px;">1. GOOGLE GEMINI API KEY (GEMINI 2.5 FLASH + VISIÓN MULTIMODAL)</label>
+                <input type="password" id="cfg-gemini-key-input" class="kinet-input" placeholder="AIzaSy...">
+            </div>
+
+            <div>
+                <label style="font-family:'JetBrains Mono';font-size:0.58rem;color:#38BDF8;font-weight:700;display:block;margin-bottom:4px;">2. GROQ API KEY (LLAMA 3.3 70B ULTRARRÁPIDO)</label>
+                <input type="password" id="cfg-groq-key-input" class="kinet-input" placeholder="gsk_...">
+            </div>
+
+            <div>
+                <label style="font-family:'JetBrains Mono';font-size:0.58rem;color:#F59E0B;font-weight:700;display:block;margin-bottom:4px;">3. OPENAI API KEY (GPT-4O-MINI / GPT-4O)</label>
+                <input type="password" id="cfg-openai-key-input" class="kinet-input" placeholder="sk-...">
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid var(--border-subtle);padding-top:12px;">
+                <button type="button" class="btn-pdf-chat" style="border-color:rgba(239,68,68,0.4);color:#FCA5A5;" onclick="clearSavedAiKeys()">🗑️ Borrar Claves</button>
+                <div style="display:flex;gap:8px;">
+                    <button type="button" class="btn-pdf-chat" onclick="closeAiEngineConfigModal()">Cerrar</button>
+                    <button type="button" class="btn-pdf-chat" style="background:var(--role-gradient);color:#04060A;" onclick="saveAiEngineConfigKeys()">✓ Guardar y Conectar IA</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1355,6 +1412,68 @@
             document.getElementById('section-info-modal').classList.remove('open');
         }
 
+        // =========================================================================
+        // MODAL DE CONFIGURACIÓN DE MOTOR IA (GEMINI / GROQ / OPENAI)
+        // =========================================================================
+        function hasLiveApiKeyConfigured() {
+            const cfg = window.KINET_API_CONFIG || {};
+            const g = cfg.GEMINI_API_KEY || localStorage.getItem('kinet_gemini_api_key') || '';
+            const q = cfg.GROQ_API_KEY || localStorage.getItem('kinet_groq_api_key') || '';
+            const o = cfg.OPENAI_API_KEY || localStorage.getItem('kinet_ai_api_key') || '';
+            return Boolean(g.trim() || q.trim() || o.trim());
+        }
+
+        function syncAiEngineStatusBadge() {
+            const pill = document.getElementById('ai-engine-live-pill');
+            const btn = document.getElementById('btn-open-ai-key-modal');
+            const hasKey = hasLiveApiKeyConfigured();
+            if (pill) {
+                pill.textContent = hasKey ? '● LLM LIVE ON' : '● IA ENTRENADA';
+            }
+            if (btn) {
+                btn.innerHTML = hasKey ? '🟢 IA Live: ON' : '🔑 Motor IA';
+            }
+        }
+
+        function openAiEngineConfigModal() {
+            document.getElementById('cfg-gemini-key-input').value = localStorage.getItem('kinet_gemini_api_key') || '';
+            document.getElementById('cfg-groq-key-input').value = localStorage.getItem('kinet_groq_api_key') || '';
+            document.getElementById('cfg-openai-key-input').value = localStorage.getItem('kinet_ai_api_key') || '';
+            document.getElementById('ai-engine-config-modal').classList.add('open');
+        }
+
+        function closeAiEngineConfigModal() {
+            document.getElementById('ai-engine-config-modal').classList.remove('open');
+        }
+
+        function saveAiEngineConfigKeys() {
+            const gVal = (document.getElementById('cfg-gemini-key-input').value || '').trim();
+            const qVal = (document.getElementById('cfg-groq-key-input').value || '').trim();
+            const oVal = (document.getElementById('cfg-openai-key-input').value || '').trim();
+
+            if (gVal) localStorage.setItem('kinet_gemini_api_key', gVal);
+            else localStorage.removeItem('kinet_gemini_api_key');
+
+            if (qVal) localStorage.setItem('kinet_groq_api_key', qVal);
+            else localStorage.removeItem('kinet_groq_api_key');
+
+            if (oVal) localStorage.setItem('kinet_ai_api_key', oVal);
+            else localStorage.removeItem('kinet_ai_api_key');
+
+            syncAiEngineStatusBadge();
+            closeAiEngineConfigModal();
+        }
+
+        function clearSavedAiKeys() {
+            localStorage.removeItem('kinet_gemini_api_key');
+            localStorage.removeItem('kinet_groq_api_key');
+            localStorage.removeItem('kinet_ai_api_key');
+            document.getElementById('cfg-gemini-key-input').value = '';
+            document.getElementById('cfg-groq-key-input').value = '';
+            document.getElementById('cfg-openai-key-input').value = '';
+            syncAiEngineStatusBadge();
+        }
+
         const LEGACY_AGENT_MAP = {
             physical: 'fisico_nutri',
             physio: 'fisico_nutri',
@@ -1452,75 +1571,26 @@
         }
 
         // =========================================================================
-        // 3. CONECTOR LISTO PARA TUS APIS DE IA (GEMINI 2.0 FLASH / GROQ / OPENAI)
+        // 3. CONECTOR CON KINET-API-CONFIG.JS (MANTIENE MEMORIA DE HISTORIAL Y ENTRENAMIENTO)
         // =========================================================================
-        window.KINET_STAFF_AI_ENGINE = {
-            callExternalLLM: async function (systemPrompt, userMessage, imageDataUrl) {
-                const cfg = window.KINET_API_CONFIG || {};
-                const geminiKey = cfg.GEMINI_API_KEY || localStorage.getItem('kinet_gemini_api_key') || '';
-                const groqKey = cfg.GROQ_API_KEY || localStorage.getItem('kinet_groq_api_key') || '';
-                const openaiKey = cfg.OPENAI_API_KEY || localStorage.getItem('kinet_ai_api_key') || '';
-
-                try {
-                    if (geminiKey) {
-                        const parts = [{ text: `${systemPrompt}\n\nConsulta del usuario: ${userMessage}` }];
-                        if (imageDataUrl && imageDataUrl.includes(',')) {
-                            const mime = imageDataUrl.substring(imageDataUrl.indexOf(':') + 1, imageDataUrl.indexOf(';'));
-                            const b64 = imageDataUrl.split(',')[1];
-                            parts.push({ inline_data: { mime_type: mime, data: b64 } });
-                        }
-                        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                contents: [{ parts }],
-                                generationConfig: { temperature: 0.65, maxOutputTokens: 360 }
-                            })
+        if (!window.KINET_STAFF_AI_ENGINE) {
+            window.KINET_STAFF_AI_ENGINE = {
+                callExternalLLM: async function (systemPrompt, userMessage, imageDataUrl, historyArr) {
+                    if (window.KinetAPIs && typeof window.KinetAPIs.askSpecialistAI === 'function') {
+                        const res = await window.KinetAPIs.askSpecialistAI({
+                            agentId: currentChatKey,
+                            systemPrompt,
+                            userMessage,
+                            imageDataUrl,
+                            chatHistory: historyArr || [],
+                            consumeQuota: false
                         });
-                        if (res.ok) {
-                            const d = await res.json();
-                            const txt = d?.candidates?.[0]?.content?.parts?.[0]?.text;
-                            if (txt) return txt.trim();
-                        }
-                    } else if (groqKey) {
-                        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
-                            body: JSON.stringify({
-                                model: 'llama-3.3-70b-versatile',
-                                messages: [
-                                    { role: 'system', content: systemPrompt },
-                                    { role: 'user', content: userMessage }
-                                ],
-                                max_tokens: 340
-                            })
-                        });
-                        if (res.ok) {
-                            const d = await res.json();
-                            if (d?.choices?.[0]?.message?.content) return d.choices[0].message.content.trim();
-                        }
-                    } else if (openaiKey) {
-                        const res = await fetch('https://api.openai.com/v1/chat/completions', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaiKey}` },
-                            body: JSON.stringify({
-                                model: 'gpt-4o-mini',
-                                messages: [
-                                    { role: 'system', content: systemPrompt },
-                                    { role: 'user', content: userMessage }
-                                ],
-                                max_tokens: 340
-                            })
-                        });
-                        if (res.ok) {
-                            const d = await res.json();
-                            if (d?.choices?.[0]?.message?.content) return d.choices[0].message.content.trim();
-                        }
+                        if (res && res.reply) return res.reply;
                     }
-                } catch (e) {}
-                return null;
-            }
-        };
+                    return null;
+                }
+            };
+        }
 
         // Construcción dinámica de los 4 Especialistas leyendo también los datos guardados en el Onboarding
         function buildSportAwareChats(roleKey, sportName) {
@@ -1945,7 +2015,6 @@
 
         let midnightCountdownInterval = null;
 
-        // Límites diarios invisibles (Free: 15/día, Pro: 250/día, Club: 600/día). Solo avisa cuando quedan <=3 mensajes y muestra el contador hasta las 00:00h al agotarse.
         function getHiddenDailyChatState() {
             const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
             const isProOrClub = (tier === 'pro' || tier === 'club');
@@ -2009,10 +2078,13 @@
         }
 
         function updateQuotaHeaderUI() {
-            // Ya no mostramos ningún contador fijo en la interfaz para mantenerla 100% limpia
+            syncAiEngineStatusBadge();
         }
 
         function buildEliteTrainedSystemPrompt(senderName, sportChosen, userPos) {
+            if (window.KinetAPIs && typeof window.KinetAPIs.buildMasterTrainedSystemPrompt === 'function') {
+                return window.KinetAPIs.buildMasterTrainedSystemPrompt(currentChatKey);
+            }
             const userName = localStorage.getItem('kinet_user_name') || 'Atleta KINET';
             const userClub = localStorage.getItem('kinet_user_club') || 'Club Competitivo';
             const userCategory = localStorage.getItem('kinet_user_category') || 'Senior';
@@ -2020,26 +2092,13 @@
             const laterality = localStorage.getItem('kinet_user_laterality') || 'Diestro';
             const cardStats = localStorage.getItem('kinet_custom_card_stats') || '[90,88,85,89,82,86]';
 
-            let lastVisionClipSummary = 'Sin clips recientes';
-            try {
-                const clips = JSON.parse(localStorage.getItem(`kinet_vision_clean_sessions_${sportChosen.toLowerCase()}`) || '[]');
-                if (Array.isArray(clips) && clips.length > 0) {
-                    lastVisionClipSummary = `${clips[0].optionLabel} (${clips[0].matchContext}): ${clips[0].metrics.join(', ')}`;
-                }
-            } catch (e) {}
-
             return `Eres ${senderName}, especialista de élite del Cuerpo Técnico de KINET OS.
 PERFIL REAL DEL USUARIO EN PLATAFORMA:
 - Nombre: ${userName} | Rol: ${activeRoleKey.toUpperCase()} | Deporte: ${sportChosen}
 - Demarcación/Especialidad: ${userPos} | Lateralidad/Guardia: ${laterality}
 - Club: ${userClub} | Categoría: ${userCategory} | Antropometría: ${anthro}
-- Atributos KINET Card (50-99): ${cardStats} | Última auditoría Vision Lab: ${lastVisionClipSummary}
-
-REGLAS ESTRICTAS DE RESPUESTA PROFESIONAL KINET OS:
-1. Habla como un especialista de primer nivel mundial en ${sportChosen} (terminología real de vestuario, fisiología, biomecánica y pizarra táctica). Jamás des respuestas vagas o genéricas.
-2. Personaliza SIEMPRE la respuesta mencionando su posición (${userPos}), su antropometría (${anthro}) o sus métricas reales.
-3. Estructura tus pautas con viñetas claras, cargas exactas (series, repeticiones, tiempos, RIR, gramos/kg o zonas tácticas) listas para llevar a pista.
-4. Si el usuario pide un diseño, póster o edit para redes, proporciónale el concepto visual exacto para KINET Media Studio™.`;
+- Atributos KINET Card (50-99): ${cardStats}
+Responde siempre en español con naturalidad y precisión técnica.`;
         }
 
         function saveChatHistoryToLocal() {
@@ -2263,7 +2322,6 @@ REGLAS ESTRICTAS DE RESPUESTA PROFESIONAL KINET OS:
                     `;
                 }
 
-                // Si el mensaje viene del Agente de Marketing con un Prompt para Media Studio, mostrar botón directo
                 let mediaStudioBridgeHtml = '';
                 if (m.mediaStudioPrompt) {
                     const safePrompt = m.mediaStudioPrompt.replace(/'/g, "\\'");
@@ -2278,7 +2336,6 @@ REGLAS ESTRICTAS DE RESPUESTA PROFESIONAL KINET OS:
                     `;
                 }
 
-                // En los mensajes entrantes del Cuerpo Técnico IA, añadir píldora para convertir la pauta en Plantilla Visual / PDF
                 let inlineToolsHtml = '';
                 if (m.incoming) {
                     const tplType = currentChatKey === 'fisico_nutri' ? 'workout' : (currentChatKey === 'tecnico_video' ? 'tactical' : 'workout');
@@ -2309,6 +2366,11 @@ REGLAS ESTRICTAS DE RESPUESTA PROFESIONAL KINET OS:
         function detectCrossSpecialistHandoff(userText, currentAgent) {
             if (currentAgent === 'group') return null;
             const q = (userText || '').toLowerCase();
+
+            // Si es un saludo o charla corta ("que tal estas", "hola"), NO derivar a otro especialista
+            if (q.length < 30 && /\b(hola|buenas|que tal|que tak|como estas|como va|gracias|ok|vale)\b/.test(q)) {
+                return null;
+            }
 
             const isFisicoNutriTopic = /lesi[oó]n|dolor|molestia|isquio|gemelo|rodilla|tobillo|sobrecarga|fatiga|cansad|dieta|comer|comida|hidrat|suplement|prote[ií]na|carbohidrat|calor[ií]a|peso|fisio|aguja|contractura/.test(q);
             const isPsicoTopic = /nervio|ansiedad|presi[oó]n|miedo|confianza|concentraci[oó]n|mental|bloqueo|frustraci[oó]n|foco|motivaci[oó]n|cabeza|estr[eé]s/.test(q);
@@ -2347,8 +2409,13 @@ REGLAS ESTRICTAS DE RESPUESTA PROFESIONAL KINET OS:
         }
 
         function buildContextualSpecialistResponse(userText, agentKey, sportChosen, handoffObj, hasAttachedImage) {
-            const q = (userText || '').toLowerCase();
-            const userPos = localStorage.getItem('kinet_position') || 'PRO';
+            const raw = String(userText || '').trim();
+            const q = raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            const userName = localStorage.getItem('kinet_user_name') || 'Crack';
+            const firstName = userName.trim().split(/\s+/)[0] || 'Crack';
+            const userPos = localStorage.getItem('kinet_position') || 'Delantero Centro / Nueve (DC)';
+            const userClub = localStorage.getItem('kinet_user_club') || 'KINET Performance';
+            const anthro = localStorage.getItem('kinet_user_anthropometry') || '178 cm • 72.5 kg';
             const schema = (window.KinetAPIs && window.KinetAPIs.getSportSchema)
                 ? window.KinetAPIs.getSportSchema(sportChosen)
                 : { cardStats: ['PAC','SHO','PAS','DRI','DEF','PHY'], videoBlocks: ['Fase Ofensiva','Fase Defensiva','Involucración'] };
@@ -2361,10 +2428,43 @@ REGLAS ESTRICTAS DE RESPUESTA PROFESIONAL KINET OS:
                 };
             }
 
+            // 1. Respuesta conversacional natural a saludos ("que tal estas", "que tak estas", "hola", "buenas")
+            const isSmallTalk = /^(hola|buenas|hey|que tal|como estas|que tak|como va|todo bien|buenos dias|buenas tardes|buenas noches|saludos|ey)\b/.test(q) ||
+                                (q.length < 28 && /(que tal|que tak|como estas|como andas|estas ahi|hola)/.test(q));
+            if (isSmallTalk) {
+                if (agentKey === 'tecnico_video') {
+                    return {
+                        text: `¡Todo al 100% en la pizarra, **${firstName}**! Estaba revisando tu ficha como **${userPos}** en **${userClub}**. Tengo lista tanto tu **Pizarra Táctica 3D** como el analizador de clips.\n\n¿Qué te apetece que trabajemos hoy? Podemos pulir movimientos específicos de tu posición, diseñar una jugada de ataque o revisar qué grabar en tu próximo partido.`,
+                        mediaStudioPrompt: null
+                    };
+                }
+                if (agentKey === 'fisico_nutri') {
+                    return {
+                        text: `¡A tope de energía, **${firstName}**! Tengo tu expediente biométrico abierto (**${anthro}** • **${userPos}**). Antes de ajustar la carga de hoy: **¿cómo te notas las piernas del 1 al 10 y qué tal has descansado esta noche?**`,
+                        mediaStudioPrompt: null
+                    };
+                }
+                if (agentKey === 'psicologia') {
+                    return {
+                        text: `¡Muy bien, **${firstName}**, encantado de hablar contigo! Como **${userPos}**, tener la mente fría marca la diferencia. **¿Cómo te encuentras hoy de confianza y energía mental para afrontar la semana?**`,
+                        mediaStudioPrompt: null
+                    };
+                }
+                if (agentKey === 'agente_marketing') {
+                    return {
+                        text: `¡Siempre moviendo hilos en el mercado para ti, **${firstName}**! Tu perfil de **${userPos}** en **${userClub}** está activo en **KINET Radar**. ¿Quieres que preparemos hoy un póster Matchday en Media Studio o revisamos tu estrategia de visibilidad ante Scouts?`,
+                        mediaStudioPrompt: null
+                    };
+                }
+                return {
+                    text: `¡Bienvenido a la Sala de Juntas, **${firstName}**! Los 4 especialistas tenemos sincronizada tu ficha de **${sportChosen}** (**${userPos}** • **${anthro}** en **${userClub}**). Cuéntanos, ¿qué quieres trabajar o consultar hoy?`,
+                    mediaStudioPrompt: null
+                };
+            }
+
             const imgPrefix = hasAttachedImage ? `🖼️ **[Imagen analizada con filtro ligero KINET Vision]** • ` : '';
 
-            // Si pregunta por una foto, edit o póster al Agente de Marketing (o en Sala de Juntas), generar el Prompt auto-ajustado para Media Studio
-            if ((agentKey === 'agente_marketing' || agentKey === 'group') && /foto|edit|imagen|p[oó]ster|subir|instagram|redes|media studio|cartel|dise[ñn]o/.test(q)) {
+            if ((agentKey === 'agente_marketing' || agentKey === 'group') && /foto|edit|imagen|poster|subir|instagram|redes|media studio|cartel|diseno/.test(q)) {
                 const customGeneratedPrompt = `Póster editorial de alto contraste para ${sportChosen} (${userPos}) • Iluminación dramática de estadio nocturno, partículas neón sutiles, capa de telemetría oficial KINET Broadcast (VERIFIED ATHLETE • 92 GRL) y estética limpia lista para KINET Pulse e Instagram.`;
                 return {
                     text: `${imgPrefix}💼 **[Agente de Carrera & Marketing • ${sportChosen}]**: He diseñado el concepto visual perfecto para que tu foto destaque ante Scouts y patrocinadores. Ya te he dejado el **prompt ajustado abajo**: solo tienes que pulsar el botón para ir a **KINET Media Studio™**, subir tu imagen y publicarla con 1 clic:`,
@@ -2375,32 +2475,32 @@ REGLAS ESTRICTAS DE RESPUESTA PROFESIONAL KINET OS:
             if (agentKey === 'fisico_nutri') {
                 if (/comer|dieta|hidrat|pre|post|nutri/.test(q)) {
                     return {
-                        text: `${imgPrefix}🥗 **[Pauta Nutricional • ${sportChosen}]**: 3 horas antes de competir prioriza carbohidratos complejos de índice glucémico medio (arroz/pasta/avena, ~1.5g/kg) + proteína magra. Durante el calentamiento mantén hidratación isotónica con sodio (500-700ml/h), y en los primeros 30 min al terminar combina proteína rápida (28g) con carbohidrato para recargar glucógeno. *(Pulsa abajo en "Convertir en Plantilla Imagen / PDF" para descargar esta pauta).*`,
+                        text: `${imgPrefix}🥗 **[Pauta Nutricional para ${firstName} • ${sportChosen}]**: 3 horas antes de competir prioriza carbohidratos complejos de índice glucémico medio (arroz/pasta/avena, ~1.5g/kg para tus **${anthro}**) + proteína magra. Durante el calentamiento mantén hidratación isotónica con sodio (500-700ml/h), y en los primeros 30 min al terminar combina proteína rápida (28g) con carbohidrato para recargar glucógeno.`,
                         mediaStudioPrompt: null
                     };
                 }
-                if (/lesi[oó]n|dolor|molestia|sobrecarga|isquio|gemelo|rodilla/.test(q)) {
+                if (/lesion|dolor|molestia|sobrecarga|isquio|gemelo|rodilla/.test(q)) {
                     return {
-                        text: `${imgPrefix}🩹 **[Protocolo Fisio & Readaptación • ${sportChosen}]**: Ante sobrecarga muscular, reducimos hoy un **25% el volumen de impactos y deceleraciones bruscas**. Aplica 12 min de liberación miofascial suave, movilidad activa sin dolor (escala EVA menor de 3/10) e isométricos submáximos (4 series x 30 seg).`,
+                        text: `${imgPrefix}🩹 **[Protocolo Fisio & Readaptación para ${firstName} • ${sportChosen}]**: Ante sobrecarga muscular, reducimos hoy un **25% el volumen de impactos y deceleraciones bruscas**. Aplica 12 min de liberación miofascial suave, movilidad activa sin dolor (escala EVA menor de 3/10) e isométricos submáximos (4 series x 30 seg).`,
                         mediaStudioPrompt: null
                     };
                 }
                 return {
-                    text: `${imgPrefix}⚡ **[Preparación Física • ${sportChosen}]**: Para potenciar tus siglas clave de KINET Card (${schema.cardStats.slice(0,3).join(' • ')}) como **${userPos}**, estructuramos la rutina de hoy en:\n1. **Activación & Movilidad (12m):** Core anti-rotacional + pliometría baja.\n2. **Bloque de Potencia Específica (25m):** 4x6 repeticiones explosivas con descanso completo (1:5).\n3. **Prevención Excéntrica (10m):** Isquiotibiales y estabilidad de tobillo/rodilla.`,
+                    text: `${imgPrefix}⚡ **[Preparación Física para ${firstName} • ${sportChosen}]**: Para potenciar tus siglas clave de KINET Card (${schema.cardStats.slice(0,3).join(' • ')}) como **${userPos}**, estructuramos la sesión sobre tu consulta (*"${raw}"*) en:\n1. **Activación & Movilidad (12m):** Core anti-rotacional + pliometría reactiva baja.\n2. **Bloque de Potencia Específica (25m):** 4x6 repeticiones explosivas con descanso completo (1:5).\n3. **Prevención Excéntrica (10m):** Isquiotibiales y estabilidad de tobillo/rodilla.`,
                     mediaStudioPrompt: null
                 };
             }
 
             if (agentKey === 'psicologia') {
                 return {
-                    text: `${imgPrefix}🧠 **[Psicología & Mind Coach • ${sportChosen}]**: Para blindar tu foco competitivo como **${userPos}**: aplica antes de salir la **Respiración Táctica 4-4-4-4** (inhala 4s, mantén 4s, exhala 4s, pausa 4s durante 3 ciclos) para bajar pulsaciones y activar la corteza prefrontal. Define una **palabra ancla de reinicio** (ej. *"Siguiente"*) para cortar cualquier pensamiento tras un fallo en menos de 3 segundos.`,
+                    text: `${imgPrefix}🧠 **[Psicología & Mind Coach para ${firstName} • ${sportChosen}]**: Sobre lo que me planteas (*"${raw}"*) como **${userPos}**: aplica antes de salir la **Respiración Táctica 4-4-4-4** (inhala 4s, mantén 4s, exhala 4s, pausa 4s durante 3 ciclos) para bajar pulsaciones y activar la corteza prefrontal. Define una **palabra ancla de reinicio** (ej. *"Siguiente"*) para cortar cualquier pensamiento tras un fallo en menos de 3 segundos.`,
                     mediaStudioPrompt: null
                 };
             }
 
             if (agentKey === 'tecnico_video') {
                 return {
-                    text: `${imgPrefix}🎬 **[Entrenador Técnico & Vision Lab • ${sportChosen}]**: Para auditar tu rendimiento en **${userPos}** con máxima precisión, enfoca tu sesión en:\n• **1. Lectura previa (Scanning):** Perfilar el cuerpo antes de recibir para ganar 0.4s de ventaja.\n• **2. Ejecución en zona clave:** Finalización o pase progresivo en máximo 2 toques.\n• **3. Transición:** Reacción inmediata tras pérdida en los primeros 4 segundos.`,
+                    text: `${imgPrefix}🎬 **[Entrenador Técnico & Vision Lab para ${firstName} • ${sportChosen}]**: Analizando tu consulta (*"${raw}"*) para tu puesto de **${userPos}**:\n• **1. Lectura previa (Scanning):** Perfilar el cuerpo a 45° antes de recibir para ganar 0.4s de ventaja sobre tu par.\n• **2. Ejecución en zona clave:** Finalización o pase progresivo en máximo 2 toques atacando el intervalo ciego.\n• **3. Transición:** Reacción inmediata tras pérdida en los primeros 4 segundos.`,
                     mediaStudioPrompt: null
                 };
             }
@@ -2408,13 +2508,13 @@ REGLAS ESTRICTAS DE RESPUESTA PROFESIONAL KINET OS:
             if (agentKey === 'agente_marketing') {
                 const autoPrompt = `Póster Match Day Pro de ${sportChosen} (${userPos}) con telemetría verificada KINET OS, iluminación neón elegante y sello AI Verified.`;
                 return {
-                    text: `${imgPrefix}💼 **[Agente de Carrera & Marketing • ${sportChosen}]**: Para maximizar tu visibilidad ante Scouts y marcas:\n1. Mantén activo el interruptor **🟢 Abierto a Ofertas / Pruebas** en Comunidad.\n2. Actualiza tu Dossier CV con tus links de Transfermarkt/BeSoccer y YouTube.\n3. Sube un póster semanal desde Media Studio™ usando el prompt que te he dejado preparado abajo:`,
+                    text: `${imgPrefix}💼 **[Agente de Carrera & Marketing para ${firstName} • ${sportChosen}]**: Respecto a *"${raw}"*, para maximizar tu visibilidad ante Scouts y marcas:\n1. Mantén activo el interruptor **🟢 Abierto a Ofertas / Pruebas** en Comunidad.\n2. Actualiza tu Dossier CV con tus links de Transfermarkt/BeSoccer y YouTube.\n3. Sube un póster semanal desde Media Studio™ usando el prompt que te he dejado preparado abajo:`,
                     mediaStudioPrompt: autoPrompt
                 };
             }
 
             return {
-                text: `${imgPrefix}👥 **[Dictamen Conjunto — Sala de Juntas (${sportChosen})]**\n• **⚡ Físico/Nutri:** Carga óptima ajustada y protocolo preventivo activo.\n• **🧠 Mind Coach:** Foco competitivo activado con protocolo pre-partido.\n• **🎬 Técnico/Vídeo:** Tarea táctica sincronizada para tu demarcación de **${userPos}**.\n• **💼 Agente/Marketing:** Perfil listo para destacar en KINET Radar.`,
+                text: `${imgPrefix}👥 **[Dictamen Conjunto para ${firstName} — Sala de Juntas (${sportChosen})]**\nSobre tu consulta (*"${raw}"*):\n• **⚡ Físico/Nutri:** Carga óptima ajustada a tus **${anthro}** y protocolo preventivo activo.\n• **🧠 Mind Coach:** Foco competitivo activado con protocolo pre-partido.\n• **🎬 Técnico/Vídeo:** Tarea táctica sincronizada para tu demarcación de **${userPos}**.\n• **💼 Agente/Marketing:** Perfil listo para destacar en KINET Radar.`,
                 mediaStudioPrompt: null
             };
         }
@@ -2456,13 +2556,12 @@ REGLAS ESTRICTAS DE RESPUESTA PROFESIONAL KINET OS:
             }, 600);
         }
 
-        // Muestra el indicador de carga con Tiempo Estimado (~10-15s) para que el usuario sepa que no se ha quedado bloqueado
         function showThinkingEtaIndicator() {
             const box = document.getElementById('chat-messages-box');
             if (!box) return;
             removeThinkingEtaIndicator();
 
-            let remainingSec = 12;
+            let remainingSec = 10;
             const etaEl = document.createElement('div');
             etaEl.id = 'kinet-ai-eta-indicator';
             etaEl.className = 'ai-thinking-eta-card';
@@ -2472,7 +2571,7 @@ REGLAS ESTRICTAS DE RESPUESTA PROFESIONAL KINET OS:
                         <span class="eta-dot"></span>
                         <span>PROCESANDO RESPUESTA DEL ESPECIALISTA IA...</span>
                     </div>
-                    <span id="eta-countdown-lbl" style="font-family:'JetBrains Mono';font-size:0.62rem;color:#CBD5E1;">Tiempo est: ~12s</span>
+                    <span id="eta-countdown-lbl" style="font-family:'JetBrains Mono';font-size:0.62rem;color:#CBD5E1;">Tiempo est: ~10s</span>
                 </div>
                 <div style="height:4px;background:rgba(255,255,255,0.08);border-radius:99px;overflow:hidden;">
                     <div id="eta-progress-fill" style="width:18%;height:100%;background:var(--role-gradient);transition:width 0.4s ease;"></div>
@@ -2486,8 +2585,8 @@ REGLAS ESTRICTAS DE RESPUESTA PROFESIONAL KINET OS:
                 const lbl = document.getElementById('eta-countdown-lbl');
                 const fill = document.getElementById('eta-progress-fill');
                 if (lbl) lbl.textContent = `Tiempo est: ~${remainingSec}s`;
-                if (fill) fill.style.width = `${Math.min(95, Math.round(((12 - remainingSec) / 12) * 100) + 18)}%`;
-            }, 950);
+                if (fill) fill.style.width = `${Math.min(95, Math.round(((10 - remainingSec) / 10) * 100) + 18)}%`;
+            }, 900);
         }
 
         function removeThinkingEtaIndicator() {
@@ -2520,8 +2619,9 @@ REGLAS ESTRICTAS DE RESPUESTA PROFESIONAL KINET OS:
                 return;
             }
 
-            // Descontar 1 mensaje del límite diario silencioso
+            // Descontar 1 mensaje del límite diario
             localStorage.setItem('kinet_ai_daily_used', String(stBefore.dailyUsed + 1));
+            localStorage.setItem('kinet_ai_chat_count', String(stBefore.dailyUsed + 1));
             const remainingAfter = stBefore.dailyRemaining - 1;
 
             showThinkingEtaIndicator();
@@ -2532,9 +2632,26 @@ REGLAS ESTRICTAS DE RESPUESTA PROFESIONAL KINET OS:
                 : activeChatsState[currentChatKey].title;
 
             const sysPrompt = buildEliteTrainedSystemPrompt(senderName, sportChosen, userPos);
+            const recentHistory = (activeChatsState[currentChatKey].messages || []).slice(-8).map(m => ({
+                role: m.incoming ? 'assistant' : 'user',
+                content: String(m.text || '').slice(0, 380)
+            }));
+
             let externalReply = null;
             if (!handoffObj) {
-                externalReply = await window.KINET_STAFF_AI_ENGINE.callExternalLLM(sysPrompt, userText, attachedImageUrl);
+                if (window.KinetAPIs && typeof window.KinetAPIs.askSpecialistAI === 'function') {
+                    const apiRes = await window.KinetAPIs.askSpecialistAI({
+                        agentId: currentChatKey,
+                        systemPrompt: sysPrompt,
+                        userMessage: userText,
+                        imageDataUrl: attachedImageUrl,
+                        chatHistory: recentHistory,
+                        consumeQuota: false
+                    });
+                    if (apiRes && apiRes.reply) externalReply = apiRes.reply;
+                } else if (window.KINET_STAFF_AI_ENGINE && typeof window.KINET_STAFF_AI_ENGINE.callExternalLLM === 'function') {
+                    externalReply = await window.KINET_STAFF_AI_ENGINE.callExternalLLM(sysPrompt, userText, attachedImageUrl, recentHistory);
+                }
             }
 
             const localReplyObj = buildContextualSpecialistResponse(userText, currentChatKey, sportChosen, handoffObj, Boolean(attachedImageUrl));
@@ -2556,7 +2673,7 @@ REGLAS ESTRICTAS DE RESPUESTA PROFESIONAL KINET OS:
 
                 saveChatHistoryToLocal();
                 renderCurrentChat();
-            }, 850);
+            }, 520);
         }
 
         function sendUserMessage() {
@@ -2797,7 +2914,7 @@ REGLAS ESTRICTAS DE RESPUESTA PROFESIONAL KINET OS:
             pdf.save(`Informe_Cuerpo_Tecnico_KINET_${sportChosen}.pdf`);
         }
 
-       (function initGlobalKinetPersonalization() {
+        (function initGlobalKinetPersonalization() {
             const styleTag = document.createElement('style');
             styleTag.innerHTML = `
                 @keyframes kinetRainbowFlowBg {
