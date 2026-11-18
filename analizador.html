@@ -5567,6 +5567,32 @@
                 return tier === 'club';
             };
 
+          function triggerFunnyTacticalCurtain(titleTxt, subTxt, targetUrl) {
+                let curtain = document.getElementById('kinet-funny-curtain');
+                if (!curtain) {
+                    curtain = document.createElement('div');
+                    curtain.id = 'kinet-funny-curtain';
+                    curtain.style.cssText = 'position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 50% 50%, #0A1912 0%, #04060A 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;opacity:0;pointer-events:none;transition:opacity 0.22s ease;';
+                    curtain.innerHTML = `
+                        <style>
+                            @keyframes kinetSpinBall { 0% { transform: scale(0.5) rotate(0deg); } 60% { transform: scale(1.18) rotate(220deg); } 100% { transform: scale(1) rotate(360deg); } }
+                            @keyframes kinetWhistleBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+                        </style>
+                        <div style="font-size:3.6rem;animation:kinetSpinBall 0.45s cubic-bezier(0.16,1,0.3,1) forwards;filter:drop-shadow(0 0 25px var(--role-color));" id="curtain-icon">📋</div>
+                        <div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:#FFFFFF;letter-spacing:0.08em;text-align:center;animation:kinetWhistleBounce 0.6s infinite;" id="curtain-title"></div>
+                        <div style="font-family:'JetBrains Mono',monospace;font-size:0.74rem;color:var(--role-color);background:rgba(0,255,136,0.1);border:1px solid var(--role-color);padding:6px 14px;border-radius:99px;" id="curtain-sub"></div>
+                    `;
+                    document.body.appendChild(curtain);
+                }
+                document.getElementById('curtain-title').textContent = titleTxt;
+                document.getElementById('curtain-sub').textContent = subTxt;
+                curtain.style.pointerEvents = 'all';
+                requestAnimationFrame(() => { curtain.style.opacity = '1'; });
+                if (targetUrl) {
+                    setTimeout(() => { window.location.href = targetUrl; }, 340);
+                }
+            }
+
             window.goToStrategiesPage = function () {
                 if (!window.isStrictClubScoutTier()) {
                     let modal = document.getElementById('kinet-club-lock-modal');
@@ -5590,6 +5616,15 @@
                     modal.classList.add('open');
                     return;
                 }
+                saveCustomAndShortlistData();
+                saveStaffSlotsToStorage();
+                sessionStorage.setItem('kinet_flip_transition', 'to_strategies');
+                triggerFunnyTacticalCurtain(
+                    '📣 ¡EL MÍSTER SACA EL ROTULADOR!',
+                    'Girando el estadio en horizontal y colocando los conos...',
+                    `analizador2.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`
+                );
+            };
                 saveCustomAndShortlistData();
                 saveStaffSlotsToStorage();
                 sessionStorage.setItem('kinet_flip_transition', 'to_strategies');
