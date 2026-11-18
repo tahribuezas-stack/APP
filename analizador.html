@@ -5440,12 +5440,27 @@
             }
         };
         // =========================================================================
-        // MOTOR TÁCTICO INTEGRAL V11 (SUSTITUYE AL BLOQUE V10 ANTES DE 
-        // 1. DESPLAZAMIENTO SIN BALÓN (SOLO JUGADOR) VS ACCIÓN CON BALÓN (PASE/CONDUCCIÓN)
-        // 2. 3 INTERFACES PERSONALIZADAS Y MINIMALISTAS (ENTRENAR / VS RIVAL / BALÓN PARADO)
-        // 3. SEPARACIÓN CLARA MODO IA VS MODO MANUAL + MODAL KINET DE CAMBIOS SIN GUARDAR
+        // MOTOR TÁCTICO INTEGRAL V12 (ANTI-FREEZE + GIRO 3D LIMPIO + SIN BALÓN / CON BALÓN):
+        // 1. ANULA EL BLOQUEO DE TRANSFORM DE applyFinalAnalyzerFixes Y USA TRY/FINALLY
+        //    PARA QUE JAMÁS SE QUEDE OSCURO NI CONGELADO A MITAD DE LA ANIMACIÓN
+        // 2. DESPLAZAMIENTO SIN BALÓN (SOLO JUGADOR) VS ACCIÓN CON BALÓN (PASE/TIRO)
+        // 3. 3 INTERFACES PERSONALIZADAS Y MINIMALISTAS (ENTRENAR / VS RIVAL / BALÓN PARADO)
+        // 4. TERCERA BARRA DE CUERPO TÉCNICO (6) + 7 PROFESIONES EN CREAR/EDITAR + PORTEROS FIX
         // =========================================================================
-        (function applyKinetTacticalEngineV11() {
+        (function applyKinetTacticalEngineV12() {
+            if (window._kinetV12Loaded) return;
+            window._kinetV12Loaded = true;
+
+            // Guardar referencia limpia a las funciones nativas UNA SOLA VEZ (evita bucles infinitos)
+            const _nativeRenderBoard = window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63;
+            const _nativeRenderDuel = window.renderDuel1v1View;
+            const _nativeRenderMirror = window.renderMirrorSelfView;
+            const _nativeOpenFullStats = window.openFullSquadStatsModal;
+            const _nativeUpdateSliders = window.updateBuilderSlidersForPosition;
+            const _nativeLoadBuilder = window.loadProfileIntoBuilder;
+            const _nativeSaveCustom = window.saveCustomPlayerToTarget;
+            const _nativeAssignPlayer = window.assignOrComparePlayer;
+            const _nativeGetSlotArr = window.getSlotArrayByGroup;
 
             // 1. Separar DFC y POR en coordenadas verticales del 11
             const fbPresets = SPORT_ARENA_CONFIGS['Fútbol']?.presets;
@@ -5459,8 +5474,8 @@
                 });
             }
 
-            // 2. Profesiones del Cuerpo Técnico y Siglas de Portero (DIV, HAN, KIC, REF, SPD, POS)
-            const STAFF_ROLES_CONFIG = {
+            // 2. Profesiones del Cuerpo Técnico por Deporte y Siglas de Portero (DIV, HAN, KIC, REF, SPD, POS)
+            const STAFF_ROLES_BY_SPORT = {
                 'Fútbol': {
                     slots: ['MÍSTER / TOTAL', '2º ENTRENADOR', 'PREP. FÍSICO', 'FISIOTERAPEUTA', 'COACH MENTAL', 'ANALISTA / NUTRI'],
                     skills: {
@@ -5469,13 +5484,14 @@
                         'PREP. FÍSICO': ['Fuerza & Explosividad (FUE)', 'Resistencia 90 Min (RES)', 'Velocidad & Sprints (VEL)', 'Control Cargas GPS (CAR)', 'Pico de Forma (PIC)', 'Prevención Muscular (PRE)'],
                         'FISIOTERAPEUTA': ['Diagnóstico Lesional (DIA)', 'Terapia Manual (MAN)', 'Readaptación Campo (REA)', 'Prevención Isquios (PRE)', 'Recuperación Post-90m (REC)', 'Biomecánica Articular (BIO)'],
                         'COACH MENTAL': ['Foco & Concentración (FOC)', 'Gestión Presión/Penaltis (CLU)', 'Confianza & Resiliencia (CON)', 'Cohesión Vestuario (COH)', 'Rutinas Pre-Partido (RUT)', 'Control Emocional (EMO)'],
-                        'ANALISTA / NUTRI': ['Scouting & Vídeo IA (SCO)', 'Mapa de Calor & Datos (DAT)', 'Carga de Glucógeno (GLU)', 'Hidratación & Sales (HID)', 'Informes Pre-Partido (INF)', 'Recuperación Metabólica (REC)']
+                        'NUTRICIONISTA': ['Carga de Glucógeno (GLU)', 'Hidratación & Sales (HID)', 'Composición Corporal (COM)', 'Suplementación Pro (SUP)', 'Recuperación Post-90m (REC)', 'Planificación Semanal (PLA)'],
+                        'ANALISTA / SCOUT': ['Scouting de Rivales (SCO)', 'Telemetría & Vídeo IA (VID)', 'Detección de Patrones (PAT)', 'Mapa de Calor & Datos (DAT)', 'Informes Pre-Partido (INF)', 'Radar de Fichajes (MER)']
                     }
                 }
             };
 
             function getStaffCfg(sport) {
-                return STAFF_ROLES_CONFIG[sport] || STAFF_ROLES_CONFIG['Fútbol'];
+                return STAFF_ROLES_BY_SPORT[sport] || STAFF_ROLES_BY_SPORT['Fútbol'];
             }
 
             Object.keys(SPORT_ARENA_CONFIGS).forEach(sp => {
@@ -5483,6 +5499,16 @@
                 cfg.positions = cfg.positions.filter(p => p !== 'ENT / STAFF' && !p.includes('STAFF'));
                 if (cfg.posSkills && cfg.posSkills['ENT / STAFF']) delete cfg.posSkills['ENT / STAFF'];
             });
+
+            window.isStaffPositionCode = function (posCode) {
+                if (!posCode) return false;
+                const clean = String(posCode).trim().toUpperCase();
+                const stCfg = getStaffCfg(activeArenaSport);
+                return Object.keys(stCfg.skills).some(k => k.toUpperCase() === clean) ||
+                       clean.includes('MÍSTER') || clean.includes('COACH') || clean.includes('ENTRENADOR') ||
+                       clean.includes('FÍSICO') || clean.includes('FISIO') || clean.includes('MENTAL') ||
+                       clean.includes('NUTRI') || clean.includes('ANALISTA');
+            };
 
             window.getPositionSpecificShortLabels = function (sportKey, posCode) {
                 const cfg = SPORT_ARENA_CONFIGS[sportKey] || SPORT_ARENA_CONFIGS['Fútbol'];
@@ -5503,9 +5529,9 @@
                 return cfg.statLabels;
             };
 
-            // 3. Estilos CSS Limpios para V11
-            const v11Style = document.createElement('style');
-            v11Style.textContent = `
+            // 3. CSS Anti-Freeze (sobrescribe el transform:none !important de applyFinalAnalyzerFixes)
+            const v12Style = document.createElement('style');
+            v12Style.textContent = `
                 @keyframes kinetSelectedSlotPulse {
                     0%, 100% { box-shadow: 0 0 18px var(--role-color), 0 0 32px rgba(var(--role-rgb), 0.45), inset 0 0 12px rgba(var(--role-rgb), 0.35); transform: translate(-50%, -56%) scale(1.14); }
                     50% { box-shadow: 0 0 28px #FFFFFF, 0 0 42px var(--role-color), inset 0 0 18px rgba(var(--role-rgb), 0.55); transform: translate(-50%, -58%) scale(1.18); }
@@ -5523,13 +5549,15 @@
                     box-shadow: 0 0 18px var(--role-color) !important;
                     transform: translateY(-3px) scale(1.06) !important;
                 }
+
+                /* Giro 3D Suave que sobrescribe applyFinalAnalyzerFixes sin quedarse nunca en opacity 0.15 */
                 .bento-grid { perspective: 1800px; }
-                #view-arena-3d, .col-4 > .kinet-panel {
-                    transform-style: preserve-3d;
-                    transition: transform 0.62s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.42s ease !important;
+                #view-arena-3d.kinet-flip-anim,
+                .col-4 > .kinet-panel.kinet-flip-anim {
+                    transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s ease !important;
+                    transform: perspective(1400px) rotateY(82deg) scale(0.96) !important;
+                    opacity: 0.25 !important;
                 }
-                .kinet-flipping-out { transform: rotateY(90deg) scale(0.96) !important; opacity: 0.15 !important; }
-                .kinet-flipping-in { transform: rotateY(0deg) scale(1) !important; opacity: 1 !important; }
 
                 .minimal-mode-switch {
                     display: inline-flex; background: rgba(4, 6, 10, 0.95);
@@ -5557,7 +5585,7 @@
                     height: 44px !important; border-radius: 50% !important; padding: 0 !important;
                     display: flex !important; flex-direction: column !important;
                     align-items: center !important; justify-content: center !important;
-                    transition: left 1.05s cubic-bezier(0.22, 1, 0.36, 1), top 1.05s cubic-bezier(0.22, 1, 0.36, 1), transform 0.25s ease, box-shadow 0.25s ease !important;
+                    transition: left 0.95s cubic-bezier(0.22, 1, 0.36, 1), top 0.95s cubic-bezier(0.22, 1, 0.36, 1), transform 0.25s ease, box-shadow 0.25s ease !important;
                     background: radial-gradient(circle at 30% 30%, rgba(var(--role-rgb), 0.38), rgba(6, 10, 18, 0.96)) !important;
                     border: 2px solid var(--role-color) !important;
                     box-shadow: 0 6px 16px rgba(0,0,0,0.85), 0 0 12px rgba(var(--role-rgb), 0.35) !important;
@@ -5567,6 +5595,7 @@
                     border: 2.5px solid #FFFFFF !important;
                     box-shadow: 0 0 22px #FFFFFF, 0 0 32px var(--role-color) !important;
                     transform: translate(-50%, -50%) scale(1.22) !important;
+                    animation: none !important;
                 }
                 .micro-token-initials {
                     font-family: 'Orbitron', sans-serif; font-size: 0.65rem; font-weight: 900;
@@ -5583,7 +5612,7 @@
                     border: 2px solid #EF4444; box-shadow: 0 6px 14px rgba(0,0,0,0.85), 0 0 12px rgba(239, 68, 68, 0.4);
                     display: flex; flex-direction: column; align-items: center; justify-content: center;
                     z-index: 27; pointer-events: none;
-                    transition: left 1.05s cubic-bezier(0.22, 1, 0.36, 1), top 1.05s cubic-bezier(0.22, 1, 0.36, 1);
+                    transition: left 0.95s cubic-bezier(0.22, 1, 0.36, 1), top 0.95s cubic-bezier(0.22, 1, 0.36, 1);
                 }
                 #kinet-sport-ball-token {
                     position: absolute; transform: translate(-50%, -50%); width: 26px; height: 26px;
@@ -5591,7 +5620,7 @@
                     border: 2px solid #04060A; box-shadow: 0 6px 14px rgba(0,0,0,0.9), 0 0 18px #FFFFFF;
                     display: none; align-items: center; justify-content: center; font-size: 0.88rem;
                     z-index: 75; pointer-events: none;
-                    transition: left 1.05s cubic-bezier(0.22, 1, 0.36, 1), top 1.05s cubic-bezier(0.22, 1, 0.36, 1);
+                    transition: left 0.95s cubic-bezier(0.22, 1, 0.36, 1), top 0.95s cubic-bezier(0.22, 1, 0.36, 1);
                 }
                 #view-arena-3d.strategy-horizontal-mode #kinet-sport-ball-token { display: flex; }
 
@@ -5630,9 +5659,9 @@
                     border: 1px solid #F59E0B; box-shadow: 0 0 10px rgba(245,158,11,0.25);
                 }
             `;
-            document.head.appendChild(v11Style);
+            document.head.appendChild(v12Style);
 
-            // 4. SVGs Horizontales para el Modo Estrategias
+            // 4. SVGs Horizontales para Estrategias
             function buildHorizontalStrategySVG(sportKey) {
                 if (sportKey === 'Fútbol') {
                     return `
@@ -5703,13 +5732,13 @@
                 return `${parts[0][0]}.${parts[1][0]}`.toUpperCase();
             }
 
-            // 5. Variables de Estado de Estrategia, Modo Manual (Sin Balón vs Con Balón) y Guardia de Cambios Sin Guardar
+            // 5. Variables de Estado de Estrategias, Modo Manual (Sin Balón vs Con Balón) y Guardia de Cambios Sin Guardar
             let isStrategyViewActive = false;
-            let activeStrategyCategory = 'train'; // 'train' | 'rival' | 'abp'
+            let activeStrategyCategory = 'train';
             let activePlayIdx = 0;
             let rivalClashOn = true;
             let manualMoveMode = false;
-            let manualMoveSubType = 'offball'; // 'offball' (Desmarque sin balón) | 'onball' (Pase o Conducción con balón)
+            let manualMoveSubType = 'offball'; // 'offball' | 'onball'
             let hasUnsavedManualTactic = false;
             let pendingDiscardCallback = null;
             let manualSelectedTokenIdx = 0;
@@ -5717,8 +5746,9 @@
             let savedTacticsLibrary = [];
             let savedRosterCoordsBackup = null;
             let currentBallCoords = { x: 45, y: 50 };
+            let builderEntityType = 'athlete';
+            window.staffSlots = [];
 
-            // Modal KINET de Advertencia: "Si no has guardado la táctica manual se borrará (Continuar / Cancelar)"
             window.guardUnsavedManualTactic = function (onConfirmCallback) {
                 if (!hasUnsavedManualTactic || customManualVectors.length === 0) {
                     onConfirmCallback();
@@ -5773,7 +5803,6 @@
                 }
             }
 
-            // Catálogo de Jugadas Horizontales por Categoría
             const HORIZONTAL_PLAYS_BY_SPORT = {
                 'Fútbol': {
                     train: [
@@ -5916,7 +5945,7 @@
                 return spObj[activeStrategyCategory] || spObj.train || HORIZONTAL_PLAYS_BY_SPORT['Fútbol'].train;
             }
 
-            // 6. Volteo 3D al entrar/salir de Jugadas & Estrategias IA
+            // 6. Volteo 3D ANTI-FREEZE (Con try/finally para que siempre recupere el 100% de opacidad)
             window.switchArenaSubMode = function (subMode) {
                 if (subMode === 'tactics' && !window.isStrictClubScoutTier()) {
                     window.showClubScoutExclusiveLockModal('Suite de Estrategias Animadas IA & Pizarra Manual');
@@ -5933,92 +5962,97 @@
                 const leftPanel = document.getElementById('view-arena-3d');
                 const rightPanel = document.querySelector('.col-4 > .kinet-panel');
 
-                if (leftPanel) leftPanel.classList.add('kinet-flipping-out');
-                if (rightPanel) rightPanel.classList.add('kinet-flipping-out');
+                if (leftPanel) leftPanel.classList.add('kinet-flip-anim');
+                if (rightPanel) rightPanel.classList.add('kinet-flip-anim');
 
                 setTimeout(() => {
-                    isStrategyViewActive = (subMode === 'tactics');
-                    document.getElementById('min-btn-roster')?.classList.toggle('active', !isStrategyViewActive);
-                    document.getElementById('min-btn-tactics')?.classList.toggle('active', isStrategyViewActive);
+                    try {
+                        isStrategyViewActive = (subMode === 'tactics');
+                        document.getElementById('min-btn-roster')?.classList.toggle('active', !isStrategyViewActive);
+                        document.getElementById('min-btn-tactics')?.classList.toggle('active', isStrategyViewActive);
 
-                    const benchMaster = document.querySelector('.bench-reserve-master-box:not(#tactics-replace-deck)');
-                    const tacDeck = document.getElementById('tactics-replace-deck');
-                    const rightRosterBox = rightPanel ? rightPanel.firstElementChild : null;
-                    let rightStrategyBox = document.getElementById('right-strategy-command-panel');
+                        const benchMaster = document.querySelector('.bench-reserve-master-box:not(#tactics-replace-deck)');
+                        const tacDeck = document.getElementById('tactics-replace-deck');
+                        const rightRosterBox = rightPanel ? rightPanel.querySelector(':scope > div:not(#right-strategy-command-panel)') : null;
+                        let rightStrategyBox = document.getElementById('right-strategy-command-panel');
 
-                    const formSelWrap = document.getElementById('tactical-formation-selector')?.closest('.kinet-custom-select-wrap');
-                    if (formSelWrap) {
-                        formSelWrap.style.opacity = isStrategyViewActive ? '0.45' : '1';
-                        formSelWrap.style.pointerEvents = isStrategyViewActive ? 'none' : 'auto';
-                    }
-
-                    if (isStrategyViewActive) {
-                        savedRosterCoordsBackup = currentBoardSlots.map(s => ({ x: s.x, y: s.y }));
-                        currentBoardSlots.forEach(s => {
-                            const h = verticalToHorizontalCoords(s.x, s.y);
-                            s.x = h.x;
-                            s.y = h.y;
-                        });
-
-                        leftPanel?.classList.add('strategy-horizontal-mode');
-                        document.getElementById('arena-svg-mount').innerHTML = buildHorizontalStrategySVG(activeArenaSport);
-
-                        if (benchMaster) benchMaster.style.display = 'none';
-                        if (tacDeck) {
-                            tacDeck.style.display = 'block';
-                            renderTacticsBottomDeck();
+                        const formSelWrap = document.getElementById('tactical-formation-selector')?.closest('.kinet-custom-select-wrap');
+                        if (formSelWrap) {
+                            formSelWrap.style.opacity = isStrategyViewActive ? '0.45' : '1';
+                            formSelWrap.style.pointerEvents = isStrategyViewActive ? 'none' : 'auto';
                         }
 
-                        if (rightRosterBox) rightRosterBox.style.display = 'none';
-                        if (!rightStrategyBox && rightPanel) {
-                            rightStrategyBox = document.createElement('div');
-                            rightStrategyBox.id = 'right-strategy-command-panel';
-                            rightPanel.insertBefore(rightStrategyBox, rightPanel.firstElementChild);
-                        }
-                        if (rightStrategyBox) {
-                            rightStrategyBox.style.display = 'block';
-                            renderRightStrategyPanelContent();
-                        }
-
-                        window.playAnimatedTactic(0, true);
-                    } else {
-                        manualMoveMode = false;
-                        hasUnsavedManualTactic = false;
-                        customManualVectors = [];
-                        if (savedRosterCoordsBackup && savedRosterCoordsBackup.length === currentBoardSlots.length) {
-                            currentBoardSlots.forEach((s, i) => {
-                                s.x = savedRosterCoordsBackup[i].x;
-                                s.y = savedRosterCoordsBackup[i].y;
+                        if (isStrategyViewActive) {
+                            savedRosterCoordsBackup = currentBoardSlots.map(s => ({ x: s.x, y: s.y }));
+                            currentBoardSlots.forEach(s => {
+                                const h = verticalToHorizontalCoords(s.x, s.y);
+                                s.x = h.x;
+                                s.y = h.y;
                             });
+
+                            leftPanel?.classList.add('strategy-horizontal-mode');
+                            document.getElementById('arena-svg-mount').innerHTML = buildHorizontalStrategySVG(activeArenaSport);
+
+                            if (benchMaster) benchMaster.style.display = 'none';
+                            if (tacDeck) {
+                                tacDeck.style.display = 'block';
+                                renderTacticsBottomDeck();
+                            }
+
+                            if (rightRosterBox) rightRosterBox.style.display = 'none';
+                            if (!rightStrategyBox && rightPanel) {
+                                rightStrategyBox = document.createElement('div');
+                                rightStrategyBox.id = 'right-strategy-command-panel';
+                                rightPanel.insertBefore(rightStrategyBox, rightPanel.firstElementChild);
+                            }
+                            if (rightStrategyBox) {
+                                rightStrategyBox.style.display = 'block';
+                                renderRightStrategyPanelContent();
+                            }
+
+                            window.playAnimatedTactic(0, true);
+                        } else {
+                            manualMoveMode = false;
+                            hasUnsavedManualTactic = false;
+                            customManualVectors = [];
+                            if (savedRosterCoordsBackup && savedRosterCoordsBackup.length === currentBoardSlots.length) {
+                                currentBoardSlots.forEach((s, i) => {
+                                    s.x = savedRosterCoordsBackup[i].x;
+                                    s.y = savedRosterCoordsBackup[i].y;
+                                });
+                            }
+                            leftPanel?.classList.remove('strategy-horizontal-mode');
+                            document.getElementById('arena-svg-mount').innerHTML = buildProfessionalSportSVG(activeArenaSport);
+
+                            const svgL = document.getElementById('arena-vectors-svg-layer');
+                            if (svgL) svgL.innerHTML = '';
+                            const rivL = document.getElementById('arena-rivals-tokens-layer');
+                            if (rivL) rivL.innerHTML = '';
+
+                            if (tacDeck) tacDeck.style.display = 'none';
+                            if (benchMaster) benchMaster.style.display = 'block';
+                            if (rightStrategyBox) rightStrategyBox.style.display = 'none';
+                            if (rightRosterBox) rightRosterBox.style.display = 'block';
+
+                            window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
                         }
-                        leftPanel?.classList.remove('strategy-horizontal-mode');
-                        document.getElementById('arena-svg-mount').innerHTML = buildProfessionalSportSVG(activeArenaSport);
-
-                        const svgL = document.getElementById('arena-vectors-svg-layer');
-                        if (svgL) svgL.innerHTML = '';
-                        const rivL = document.getElementById('arena-rivals-tokens-layer');
-                        if (rivL) rivL.innerHTML = '';
-
-                        if (tacDeck) tacDeck.style.display = 'none';
-                        if (benchMaster) benchMaster.style.display = 'block';
-                        if (rightStrategyBox) rightStrategyBox.style.display = 'none';
-                        if (rightRosterBox) rightRosterBox.style.display = 'block';
-
-                        window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+                    } catch (err) {
+                        console.error('Error en cambio de vista táctica:', err);
+                    } finally {
+                        // Garantizar SIEMPRE que los paneles vuelvan a opacidad 1 y posición normal
+                        if (leftPanel) {
+                            leftPanel.classList.remove('kinet-flip-anim', 'kinet-flipping-out');
+                            leftPanel.style.opacity = '1';
+                        }
+                        if (rightPanel) {
+                            rightPanel.classList.remove('kinet-flip-anim', 'kinet-flipping-out');
+                            rightPanel.style.opacity = '1';
+                        }
                     }
-
-                    if (leftPanel) {
-                        leftPanel.classList.remove('kinet-flipping-out');
-                        leftPanel.classList.add('kinet-flipping-in');
-                    }
-                    if (rightPanel) {
-                        rightPanel.classList.remove('kinet-flipping-out');
-                        rightPanel.classList.add('kinet-flipping-in');
-                    }
-                }, 300);
+                }, 260);
             }
 
-            // 7. Panel Derecho con 3 Interfaces Distintas y Limpias según la pestaña (Entrenar / Vs Rival / Balón Parado)
+            // 7. Panel Derecho con 3 Interfaces Distintas y Limpias (Entrenar / Vs Rival / Balón Parado)
             function renderRightStrategyPanelContent() {
                 const box = document.getElementById('right-strategy-command-panel');
                 if (!box) return;
@@ -6027,7 +6061,6 @@
                 const activeSlot = currentBoardSlots[manualSelectedTokenIdx] || currentBoardSlots[0];
                 const activePlayerName = activeSlot && activeSlot.player ? activeSlot.player.name : (activeSlot ? activeSlot.pos : 'Jugador');
 
-                // Sub-interfaz personalizada según cuál de las 3 pestañas esté activa
                 let categoryCustomCardHtml = '';
                 if (activeStrategyCategory === 'train') {
                     const savedFocus = localStorage.getItem('kinet_train_focus') || 'Automatismos de salida y desmarques sin balón';
@@ -6059,7 +6092,6 @@
                     `;
                 }
 
-                // Bloque de Creador Manual Limpio (separa claramente Mover Jugador Sin Balón vs Acción Con Balón)
                 const manualCreatorCardHtml = `
                     <div style="background:rgba(4,6,10,0.86);border:1px solid ${manualMoveMode ? '#F59E0B' : 'var(--border-subtle)'};border-radius:13px;padding:10px 12px;margin-bottom:10px;">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
@@ -6071,7 +6103,6 @@
                             </button>
                         </div>
 
-                        <!-- Conmutador Claro: Desplazamiento Sin Balón vs Acción Con Balón -->
                         <div class="manual-action-toggle">
                             <button type="button" class="manual-act-btn ${manualMoveSubType === 'offball' ? 'active-run' : ''}" onclick="window.setManualMoveSubType('offball')">
                                 🏃 Mover Jugador (Sin Balón)
@@ -6202,8 +6233,7 @@
                 });
             };
 
-            // 8. Ejecución de Jugadas Animadas y Clic Manual en el Campo (Diferenciando Sin Balón vs Con Balón)
-            window.playAnimatedTactic = function (idx, skipGuard) {
+            window.playAnimatedTactic = function (idx) {
                 const plays = getPlaysForCurrentSportAndCategory();
                 const play = plays[idx] || plays[0];
                 if (!play) return;
@@ -6239,7 +6269,7 @@
                     }
                     window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
                     paintHorizontalVectorsAndRivals(play);
-                }, 105);
+                }, 95);
 
                 const slotInd = document.getElementById('selected-slot-indicator');
                 if (slotInd) slotInd.innerHTML = `🎬 <strong>${play.name}:</strong> ${play.note}`;
@@ -6322,8 +6352,8 @@
 
             function bindSurfaceManualClick() {
                 const surface = document.getElementById('arena-3d-surface');
-                if (!surface || surface._manualClickBoundV11) return;
-                surface._manualClickBoundV11 = true;
+                if (!surface || surface._manualClickBoundV12) return;
+                surface._manualClickBoundV12 = true;
 
                 surface.addEventListener('click', (e) => {
                     if (!isStrategyViewActive || !manualMoveMode) return;
@@ -6341,7 +6371,6 @@
                     const pName = slot.player ? slot.player.name : slot.pos;
 
                     if (manualMoveSubType === 'offball') {
-                        // DESPLAZAMIENTO SIN BALÓN: se mueve SOLO el jugador con flecha verde, el balón se queda quieto
                         customManualVectors.push({
                             x1: Math.round((slot.x / 100) * 600),
                             y1: Math.round((slot.y / 100) * 420),
@@ -6355,7 +6384,6 @@
                         document.getElementById('ai-board-diagnosis').innerHTML = `🧠 <strong>IA Táctica:</strong> ${msg}`;
                         localStorage.setItem('kinet_last_manual_tactical_move', msg);
                     } else {
-                        // ACCIÓN CON BALÓN: pase o disparo del balón con flecha ámbar hacia el punto elegido
                         customManualVectors.push({
                             x1: Math.round((currentBallCoords.x / 100) * 600),
                             y1: Math.round((currentBallCoords.y / 100) * 420),
@@ -6463,7 +6491,7 @@
                         const plays = getPlaysForCurrentSportAndCategory();
                         paintHorizontalVectorsAndRivals(plays[activePlayIdx] || plays[0]);
                     } else {
-                        window.playAnimatedTactic(0, true);
+                        window.playAnimatedTactic(0);
                     }
                     const slotInd = document.getElementById('selected-slot-indicator');
                     if (slotInd) slotInd.innerHTML = `🎬 <strong>Táctica Cargada:</strong> ${item.title} — ${item.notes}`;
@@ -6494,13 +6522,209 @@
                 alert('✓ Jugada táctica compartida en Comunidad KINET.');
             };
 
-            // 9. Renderizado de Fichas (Micro-fichas en Estrategias vs Cartas con Portero arreglado en Plantilla)
-            const _baseRenderBoard = window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63;
+            // 8. Tercera Barra de Cuerpo Técnico (6) y Conmutador Atleta/Staff en Crear/Editar
+            function initStaffSlotsForSport() {
+                const stCfg = getStaffCfg(activeArenaSport);
+                const spKey = activeArenaSport.toLowerCase();
+                try {
+                    const saved = JSON.parse(localStorage.getItem(`kinet_staff_bench_slots_${spKey}`) || 'null');
+                    if (Array.isArray(saved) && saved.length === stCfg.slots.length) {
+                        window.staffSlots = saved;
+                        return;
+                    }
+                } catch (e) {}
+                window.staffSlots = stCfg.slots.map(roleName => ({ pos: roleName, player: null }));
+            }
+
+            function saveStaffSlotsToStorage() {
+                const spKey = activeArenaSport.toLowerCase();
+                try {
+                    localStorage.setItem(`kinet_staff_bench_slots_${spKey}`, JSON.stringify(window.staffSlots));
+                } catch (e) {}
+            }
+
+            function mountThirdStaffBenchBarAndBuilderToggle() {
+                initStaffSlotsForSport();
+
+                const pillsBox = document.querySelector('.deck-mode-pills');
+                if (pillsBox && !document.getElementById('pill-show-staff')) {
+                    const staffBtn = document.createElement('button');
+                    staffBtn.type = 'button';
+                    staffBtn.className = 'deck-mode-pill';
+                    staffBtn.id = 'pill-show-staff';
+                    staffBtn.onclick = () => window.switchBenchReserveView('staff');
+                    staffBtn.innerHTML = `👔 Cuerpo Técnico (<span id="staff-count-num">${window.staffSlots.length}</span>)`;
+                    pillsBox.appendChild(staffBtn);
+                }
+
+                const track = document.getElementById('bench-reserve-slider-track');
+                if (track && !document.getElementById('staff-slots-slide-page')) {
+                    track.style.width = '300%';
+                    Array.from(track.children).forEach(ch => { ch.style.width = '33.3333%'; });
+
+                    const reservePage = track.children[1];
+                    if (reservePage && !reservePage.querySelector('.to-staff-arrow')) {
+                        const toStaffBtn = document.createElement('button');
+                        toStaffBtn.type = 'button';
+                        toStaffBtn.className = 'cassette-arrow-btn to-staff-arrow';
+                        toStaffBtn.style.cssText = 'border-color:rgba(245,158,11,0.5);color:#F59E0B;';
+                        toStaffBtn.title = 'Deslizar a Cuerpo Técnico';
+                        toStaffBtn.textContent = '▶';
+                        toStaffBtn.onclick = () => window.switchBenchReserveView('staff');
+                        reservePage.appendChild(toStaffBtn);
+                    }
+
+                    const staffPage = document.createElement('div');
+                    staffPage.className = 'bench-reserve-slide-page';
+                    staffPage.id = 'staff-slots-slide-page';
+                    staffPage.style.width = '33.3333%';
+                    staffPage.innerHTML = `
+                        <button type="button" class="cassette-arrow-btn" style="border-color:rgba(245,158,11,0.5);color:#F59E0B;" onclick="switchBenchReserveView('reserve')" title="Volver a Reserva">◀</button>
+                        <div class="cassette-slots-grid" id="staff-slots-container"></div>
+                    `;
+                    track.appendChild(staffPage);
+                }
+
+                const builderView = document.getElementById('rview-builder');
+                const bannerEl = document.getElementById('builder-mode-banner');
+                if (builderView && bannerEl && !document.getElementById('builder-entity-toggle')) {
+                    const toggleRow = document.createElement('div');
+                    toggleRow.id = 'builder-entity-toggle';
+                    toggleRow.className = 'source-subtoggle';
+                    toggleRow.style.marginBottom = '8px';
+                    toggleRow.innerHTML = `
+                        <button type="button" class="source-subbtn active" id="btn-build-athlete" onclick="window.setBuilderEntityMode('athlete')">
+                            🏃 Atleta / Jugador
+                        </button>
+                        <button type="button" class="source-subbtn" id="btn-build-staff" onclick="window.setBuilderEntityMode('staff')">
+                            👔 Cuerpo Técnico / Staff
+                        </button>
+                    `;
+                    bannerEl.parentElement.insertAdjacentElement('beforebegin', toggleRow);
+                }
+            }
+
+            window.switchBenchReserveView = function (targetDeck) {
+                const track = document.getElementById('bench-reserve-slider-track');
+                const pillBench = document.getElementById('pill-show-bench');
+                const pillRes = document.getElementById('pill-show-reserve');
+                const pillStaff = document.getElementById('pill-show-staff');
+                const hint = document.getElementById('deck-slide-hint');
+                if (!track) return;
+
+                track.classList.remove('show-reserve');
+                pillBench?.classList.remove('active-bench');
+                pillRes?.classList.remove('active-reserve');
+                if (pillStaff) {
+                    pillStaff.style.background = 'transparent';
+                    pillStaff.style.color = 'var(--text-secondary)';
+                    pillStaff.style.boxShadow = 'none';
+                }
+
+                if (targetDeck === 'reserve') {
+                    track.style.transform = 'translateX(-33.3333%)';
+                    pillRes?.classList.add('active-reserve');
+                    if (hint) hint.textContent = 'Pulsa ◀ Banquillo o ▶ Cuerpo Técnico';
+                } else if (targetDeck === 'staff') {
+                    track.style.transform = 'translateX(-66.6666%)';
+                    if (pillStaff) {
+                        pillStaff.style.background = 'linear-gradient(135deg, #F59E0B, #D97706)';
+                        pillStaff.style.color = '#04060A';
+                        pillStaff.style.boxShadow = '0 0 12px rgba(245, 158, 11, 0.4)';
+                    }
+                    if (hint) hint.textContent = '👔 Selecciona un puesto técnico para asignar especialista';
+                } else {
+                    track.style.transform = 'translateX(0%)';
+                    pillBench?.classList.add('active-bench');
+                    if (hint) hint.textContent = 'Pulsa ▶ para deslizar a Reserva o Cuerpo Técnico';
+                }
+            };
+
+            window.getSlotArrayByGroup = function (groupKey) {
+                if (groupKey === 'staff') return window.staffSlots;
+                return typeof _nativeGetSlotArr === 'function' ? _nativeGetSlotArr(groupKey) : currentBoardSlots;
+            };
+
+            window.setBuilderEntityMode = function (mode) {
+                builderEntityType = mode === 'staff' ? 'staff' : 'athlete';
+                document.getElementById('btn-build-athlete')?.classList.toggle('active', builderEntityType === 'athlete');
+                document.getElementById('btn-build-staff')?.classList.toggle('active', builderEntityType === 'staff');
+
+                const nameInp = document.getElementById('custom-p-name');
+                const posSel = document.getElementById('custom-p-pos');
+                const bannerEl = document.getElementById('builder-mode-banner');
+                const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
+                const stCfg = getStaffCfg(activeArenaSport);
+
+                if (builderEntityType === 'staff') {
+                    if (bannerEl) bannerEl.textContent = '👔 CREAR O CALIBRAR CUERPO TÉCNICO (50-99)';
+                    if (nameInp) nameInp.placeholder = 'Nombre del entrenador, fisio, prep. físico...';
+                    const staffProfessions = Object.keys(stCfg.skills);
+                    if (posSel) {
+                        posSel.innerHTML = staffProfessions.map(prof => `<option value="${prof}">${prof}</option>`).join('');
+                        window.updateBuilderSlidersForPosition(staffProfessions[0]);
+                    }
+                } else {
+                    if (bannerEl) bannerEl.textContent = '🏃 CREAR O CALIBRAR ATLETA / JUGADOR (50-99)';
+                    if (nameInp) nameInp.placeholder = 'Nombre del jugador...';
+                    if (posSel) {
+                        posSel.innerHTML = cfg.positions.map(p => `<option value="${p}">${p}</option>`).join('');
+                        window.updateBuilderSlidersForPosition(cfg.positions[0]);
+                    }
+                }
+                refreshAllCustomKinetSelects();
+            };
+
+            window.updateBuilderSlidersForPosition = function (posName) {
+                const stCfg = getStaffCfg(activeArenaSport);
+                if (builderEntityType === 'staff' && stCfg.skills[posName]) {
+                    const skillLabels = stCfg.skills[posName];
+                    const box = document.getElementById('builder-sliders-box');
+                    if (box) {
+                        box.innerHTML = skillLabels.map((lbl, idx) => {
+                            const val = builderSliderValues[idx] || 82;
+                            return `
+                                <div class="custom-slider-row">
+                                    <div class="custom-slider-head">
+                                        <span>${lbl}</span>
+                                        <strong style="color:#F59E0B;" id="bslider-val-${idx}">${val}</strong>
+                                    </div>
+                                    <input type="range" min="50" max="99" value="${val}" class="kinet-range-slider" oninput="onBuilderSliderMove(${idx}, this.value)">
+                                </div>
+                            `;
+                        }).join('');
+                        recalcBuilderLiveGrl();
+                        refreshAllCustomKinetSelects();
+                    }
+                    return;
+                }
+                if (typeof _nativeUpdateSliders === 'function') _nativeUpdateSliders(posName);
+            };
+
+            // 9. Renderizado Unificado (Micro-fichas en Estrategias + Porteros DIV/HAN/KIC + 3ª Barra Staff)
             window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63 = function (shouldPersist = true) {
-                if (typeof _baseRenderBoard === 'function') _baseRenderBoard(shouldPersist);
+                if (typeof _nativeRenderBoard === 'function') _nativeRenderBoard(shouldPersist);
 
                 const layer = document.getElementById('arena-tokens-layer');
                 if (!layer) return;
+
+                // Renderizar casillas de la 3ª barra (👔 Cuerpo Técnico)
+                const staffBox = document.getElementById('staff-slots-container');
+                if (staffBox && Array.isArray(window.staffSlots)) {
+                    staffBox.innerHTML = window.staffSlots.map((slot, idx) => {
+                        const isSel = activeSelection.group === 'staff' && activeSelection.index === idx;
+                        const p = slot.player;
+                        return `
+                            <div class="bench-slot-pill ${p ? 'filled' : ''} ${isSel ? 'selected-slot' : ''}" style="${p ? 'border-color:rgba(245,158,11,0.65);background:linear-gradient(160deg,rgba(245,158,11,0.16),rgba(8,12,20,0.95));' : ''}" onclick="selectAnySlot('staff', ${idx}, event)">
+                                ${p ? `<button type="button" onclick="quickRemoveSlotPlayer('staff', ${idx}, event)" style="position:absolute;top:2px;right:3px;background:none;border:none;color:#EF4444;font-size:0.55rem;font-weight:900;cursor:pointer;">✕</button>` : ''}
+                                <div style="font-family:'JetBrains Mono';font-size:0.49rem;color:#F59E0B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${slot.pos} ${p ? '• <strong>' + (p.grl || '??') + '</strong>' : ''}</div>
+                                <div style="font-size:0.61rem;font-weight:800;color:${p ? 'white' : '#F59E0B'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">
+                                    ${p ? p.name.split(' ')[0] : '+ Asignar'}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
 
                 if (isStrategyViewActive) {
                     currentBoardSlots.forEach((slot, idx) => {
@@ -6523,7 +6747,6 @@
                         `;
                         tokenEl.onclick = (ev) => {
                             ev.stopPropagation();
-                            // Si estamos en modo "Pase / Balón" y tocas a otro compañero, el balón viaja directo hacia ese compañero
                             if (manualMoveMode && manualMoveSubType === 'onball' && manualSelectedTokenIdx !== idx) {
                                 hasUnsavedManualTactic = true;
                                 customManualVectors.push({
@@ -6584,7 +6807,25 @@
                 });
             };
 
-            // 10. Inicialización y Licencia
+            window.renderDuel1v1View = function () {
+                const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
+                const pA = duelFighterA || getMyUserPlayerObject();
+                const origLabels = [...cfg.statLabels];
+                cfg.statLabels = window.getPositionSpecificShortLabels(activeArenaSport, pA.pos);
+                if (typeof _nativeRenderDuel === 'function') _nativeRenderDuel();
+                cfg.statLabels = origLabels;
+            };
+
+            window.renderMirrorSelfView = function () {
+                const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
+                const me = getMyUserPlayerObject();
+                const origLabels = [...cfg.statLabels];
+                cfg.statLabels = window.getPositionSpecificShortLabels(activeArenaSport, me.pos);
+                if (typeof _nativeRenderMirror === 'function') _nativeRenderMirror();
+                cfg.statLabels = origLabels;
+            };
+
+            // 10. Licencia y Montaje Inicial
             window.isStrictClubScoutTier = function () {
                 const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase().trim();
                 return tier === 'club';
@@ -6702,6 +6943,7 @@
                     benchMaster.insertAdjacentElement('afterend', tacDeck);
                 }
 
+                mountThirdStaffBenchBarAndBuilderToggle();
                 ensureSportBallMounted();
                 bindSurfaceManualClick();
 
@@ -6714,9 +6956,11 @@
                 window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
             }
 
-            window.addEventListener('DOMContentLoaded', () => {
-                setTimeout(mountMinimalHeaderAndLayers, 130);
-            });
+            if (document.readyState === 'loading') {
+                window.addEventListener('DOMContentLoaded', () => setTimeout(mountMinimalHeaderAndLayers, 130));
+            } else {
+                setTimeout(mountMinimalHeaderAndLayers, 50);
+            }
         })();
     </script>
 </body>
