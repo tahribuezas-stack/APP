@@ -5439,58 +5439,680 @@
                 }
             }
         };
+       // =========================================================================
+        // PARCHE MINIMALISTA V9 (SUSTITUYE AL V8 SIN TOCAR NADA DEL ARCHIVO BASE):
+        // 1. TERCERA BARRA EN BANDEJA INFERIOR: [🪑 Banquillo] [📋 Reserva] [👔 Cuerpo Técnico (6)]
+        // 2. CONMUTADOR EN CREAR/EDITAR: [🏃 Atleta / Jugador] | [👔 Cuerpo Técnico / Staff]
+        // 3. 7 PROFESIONES DE STAFF PERSONALIZADAS POR DEPORTE (TOTALITARIO + 6 ESPECIALISTAS)
+        // 4. CÁLCULO DE ENCAJE IA DEL ENTRENADOR/STAFF CON TU CLUB Y PLANTILLA
+        // 5. FIX DE SIGLAS DE PORTERO (DIV/HAN/KIC/REF/SPD/POS) Y BLOQUEO A FREE/PRO 8,99€
         // =========================================================================
-        // PARCHE MINIMALISTA V8:
-        // 1. FIX DE ESTADÍSTICAS POR POSICIÓN (PORTERO: DIV/HAN/KIC/REF/SPD/POS + TODOS LOS DEPORTES)
-        // 2. PERFIL DE ENTRENADOR INTEGRADO EN "CREAR / EDITAR" CON ESTILO DE JUEGO
-        // 3. DOS BOTONES JUNTOS MINIMALISTAS: [👥 Plantilla] | [🎬 Jugadas IA] (CERO ALTURA EXTRA)
-        // 4. BLOQUEO ESTRICTO DE TÁCTICAS Y PUBLICACIONES GRUPALES A CUENTAS FREE Y PRO PLAYER (8,99€)
-        // =========================================================================
-        (function applyMinimalistTacticalAndGoalkeeperPatchV8() {
+        (function applyMinimalistTacticalAndStaffPatchV9() {
 
             // ---------------------------------------------------------------------
-            // 1. INTEGRAR PERFIL DE ENTRENADOR (ENT / STAFF) EN TODOS LOS DEPORTES
-            //    Y MAPEAR SIGLAS CORTAS POR POSICIÓN (CORRIGE PORTERO PAC/SHO -> DIV/HAN)
+            // 1. DEFINICIÓN DE LAS 7 PROFESIONES DE CUERPO TÉCNICO POR DEPORTE
+            //    (Entrenador Totalitario + 2º Entrenador + Prep. Físico + Fisio + Mental + Nutri + Analista)
+            // ---------------------------------------------------------------------
+            const STAFF_PROFESSIONS_BY_SPORT = {
+                'Fútbol': {
+                    slots: ['MÍSTER / TOTAL', '2º ENTRENADOR', 'PREP. FÍSICO', 'FISIOTERAPEUTA', 'COACH MENTAL', 'ANALISTA / NUTRI'],
+                    skills: {
+                        'MÍSTER / TOTAL': ['Pizarra & Táctica Global (TAC)', 'Dirección de Partido (DIR)', 'Gestión de Vestuario (GES)', 'Metodología Física (FIS)', 'Prevención & Salud (SAL)', 'Psicología & Cantera (PSI)'],
+                        '2º ENTRENADOR': ['Estrategia Balón Parado (ABP)', 'Corrección Táctica en Vivo (COR)', 'Transiciones Ataque/Def. (TRA)', 'Análisis de Rival (RIV)', 'Trabajo por Líneas (LIN)', 'Conexión Jugadores (CON)'],
+                        'PREP. FÍSICO': ['Fuerza & Explosividad (FUE)', 'Resistencia 90 Min (RES)', 'Velocidad & Sprints (VEL)', 'Control de Cargas GPS (CAR)', 'Pico de Forma (PIC)', 'Prevención Muscular (PRE)'],
+                        'FISIOTERAPEUTA': ['Diagnóstico Lesional (DIA)', 'Terapia Manual & Descarga (MAN)', 'Readaptación al Césped (REA)', 'Prevención Isquios/Rodilla (PRE)', 'Recuperación Post-Partido (REC)', 'Biomecánica Articular (BIO)'],
+                        'COACH MENTAL': ['Foco & Concentración (FOC)', 'Gestión de Presión / Penaltis (CLU)', 'Confianza & Resiliencia (CON)', 'Cohesión de Vestuario (COH)', 'Rutinas Pre-Partido (RUT)', 'Control Emocional (EMO)'],
+                        'NUTRICIONISTA': ['Carga de Glucógeno (GLU)', 'Hidratación & Sales (HID)', 'Composición Corporal (COM)', 'Suplementación Pro (SUP)', 'Recuperación Post-90m (REC)', 'Planificación Semanal (PLA)'],
+                        'ANALISTA / SCOUT': ['Scouting de Rivales (SCO)', 'Telemetría & Vídeo IA (VID)', 'Detección de Patrones (PAT)', 'Mapa de Calor & Datos (DAT)', 'Informes Pre-Partido (INF)', 'Radar de Fichajes (MER)']
+                    }
+                },
+                'Baloncesto': {
+                    slots: ['HEAD COACH', 'ASIST. TÁCTICO', 'PREP. FÍSICO', 'FISIOTERAPEUTA', 'COACH MENTAL', 'ANALISTA / NUTRI'],
+                    skills: {
+                        'HEAD COACH': ['Sistemas & Pizarra Global (TAC)', 'Rotaciones & Tiempos Muertos (DIR)', 'Gestión de Estrellas (GES)', 'Físico & Ritmo Pista (FIS)', 'Salud & Cargas (SAL)', 'Mentalidad Clutch (PSI)'],
+                        'ASIST. TÁCTICO': ['Pizarras ATO / Clutch (ATO)', 'Ajustes Pick & Roll (PKR)', 'Sistemas Defensivos/Zona (DEF)', 'Scouting de Tiradores (SCO)', 'Desarrollo Individual (IND)', 'Espaciado 5-Out (SPA)'],
+                        'PREP. FÍSICO': ['Salto Vertical & Potencia (SAL)', 'Agilidad Lateral en Pista (AGI)', 'Resistencia 4 Cuartos (RES)', 'Fuerza de Contacto Poste (FUE)', 'Control de Carga Back2Back (CAR)', 'Prevención Tobillo/Rodilla (PRE)'],
+                        'FISIOTERAPEUTA': ['Diagnóstico Articular (DIA)', 'Descarga Tren Inferior (MAN)', 'Readaptación a Parquet (REA)', 'Protección Tendón/Tobillo (PRE)', 'Crioterapia & Recuperación (REC)', 'Biomecánica de Aterrizaje (BIO)'],
+                        'COACH MENTAL': ['Foco en Tiros Libres (FOC)', 'Sangre Fría en Clutch (CLU)', 'Resiliencia tras Racha (CON)', 'Química de Quinteto (COH)', 'Visualización de Tiro (RUT)', 'Control de Faltas/Árbitro (EMO)'],
+                        'NUTRICIONISTA': ['Energía Explosiva (GLU)', 'Hidratación en Pabellón (HID)', 'Ratio Potencia/Peso (COM)', 'Ergogenia & Recuperación (SUP)', 'Recarga entre Partidos (REC)', 'Dieta de Temporada (PLA)'],
+                        'ANALISTA / SCOUT': ['Shot Charts & Eficiencia (SCO)', 'Vídeo & Posesiones IA (VID)', 'Tendencias de Rival (PAT)', 'Métricas Avanzadas PPP (DAT)', 'Dossier Pre-Partido (INF)', 'Scouting Draft / Mercado (MER)']
+                    }
+                },
+                'Pádel / Tenis': {
+                    slots: ['COACH PRINCIPAL', '2º ENT. TÁCTICO', 'PREP. FÍSICO', 'FISIOTERAPEUTA', 'COACH MENTAL', 'NUTRICIONISTA'],
+                    skills: {
+                        'COACH PRINCIPAL': ['Táctica de Pista Global (TAC)', 'Lectura de Partido / Coaching (DIR)', 'Compaginación de Pareja (GES)', 'Físico & Desplazamiento (FIS)', 'Prevención Articular (SAL)', 'Firmeza en Punto de Oro (PSI)'],
+                        '2º ENT. TÁCTICO': ['Técnica de Volea & Bandeja (VOL)', 'Defensa de Doble Pared (PAR)', 'Estrategia de Saque/Resto (SRV)', 'Análisis de Pareja Rival (RIV)', 'Cobertura de Red (RED)', 'Transición Fondo-Red (TRA)'],
+                        'PREP. FÍSICO': ['Arrancada & Primer Paso (VEL)', 'Coordinación & Split-Step (AGI)', 'Potencia de Remate/Saque (FUE)', 'Resistencia a 3 Sets (RES)', 'Control de Carga Torneo (CAR)', 'Estabilidad Core/Hombro (PRE)'],
+                        'FISIOTERAPEUTA': ['Tratamiento Codo/Hombro (DIA)', 'Descarga Gemelo/Tendón (MAN)', 'Readaptación a Pista (REA)', 'Prevención Epicondilitis (PRE)', 'Recuperación entre Rondas (REC)', 'Biomecánica de Golpeo (BIO)'],
+                        'COACH MENTAL': ['Gestión de Tie-Break / Oro (CLU)', 'Concentración Punto a Punto (FOC)', 'Química con el Compañero (COH)', 'Superación de Errores (CON)', 'Ritual entre Puntos (RUT)', 'Templanza en Momentos Clave (EMO)'],
+                        'NUTRICIONISTA': ['Energía en Partidos Largos (GLU)', 'Electrolitos & Calor (HID)', 'Agilidad & Peso Óptimo (COM)', 'Suplementación Intra-Set (SUP)', 'Recuperación Torneo (REC)', 'Planificación Viajes (PLA)'],
+                        'ANALISTA / SCOUT': ['Mapa de Golpes Rival (SCO)', 'Estadística Errores No Forz. (DAT)', 'Vídeo de Posicionamiento (VID)', 'Zonas Vulnerables Rival (PAT)', 'Plan de Partido (INF)', 'Ranking & Circuito (MER)']
+                    }
+                },
+                'Boxeo / MMA': {
+                    slots: ['HEAD COACH / ESQUINA', 'COACH STRIKING/LONA', 'PREP. FÍSICO', 'FISIO / CUTMAN', 'COACH MENTAL', 'NUTRI / CORTE PESO'],
+                    skills: {
+                        'HEAD COACH / ESQUINA': ['Gameplan Totalitario (TAC)', 'Dirección en Esquina 1 Min (DIR)', 'Gestión de Campamento (GES)', 'Condicionamiento 5/12 Rds (FIS)', 'Protección & Salud (SAL)', 'Mentalidad de Campeón (PSI)'],
+                        'COACH STRIKING/LONA': ['Manoplas & Combinaciones (STR)', 'Defensa & Corte de Ring (DEF)', 'Wrestling / Jiu-Jitsu (GRP)', 'Simulación de Rival (RIV)', 'Timing de Contragolpe (TIM)', 'Salidas de Jaula/Cuerdas (ESC)'],
+                        'PREP. FÍSICO': ['Potencia de KO Explosiva (FUE)', 'Cardio Anaeróbico Asaltos (RES)', 'Velocidad de Reacción (VEL)', 'Fuerza Isométrica Clinch (ISO)', 'Pico de Campamento (PIC)', 'Cuello & Core Anti-Impacto (PRE)'],
+                        'FISIO / CUTMAN': ['Control de Cortes en Esquina (CUT)', 'Recuperación Manos/Hombro (DIA)', 'Descarga en Fight Camp (MAN)', 'Readaptación de Impacto (REA)', 'Prevención Articular (PRE)', 'Movilidad de Cadera (BIO)'],
+                        'COACH MENTAL': ['Frialdad Bajo Fuego (CLU)', 'Foco en el Gameplan (FOC)', 'Control de Adrenalina (EMO)', 'Confianza en el Peso/Ring (CON)', 'Visualización de Combate (RUT)', 'Disciplina de Campamento (COH)'],
+                        'NUTRI / CORTE PESO': ['Corte de Peso Seguro (COR)', 'Rehidratación Post-Báscula (HID)', 'Recarga de Glucógeno 24h (GLU)', 'Mantenimiento de Fuerza (FUE)', 'Suplementación Fight Camp (SUP)', 'Composición Corporal (COM)'],
+                        'ANALISTA / SCOUT': ['Estudio de Guardia Rival (SCO)', 'Patrones yFintas en Vídeo (VID)', 'Frecuencia de Golpeo IA (DAT)', 'Huecos Defensivos Rival (PAT)', 'Informe de Asaltos (INF)', 'Matchmaking & Récord (MER)']
+                    }
+                },
+                'Running': {
+                    slots: ['ENTRENADOR JEFE', 'COACH BIOMECÁNICO', 'PREP. FUERZA', 'FISIOTERAPEUTA', 'COACH MENTAL', 'NUTRICIONISTA'],
+                    skills: {
+                        'ENTRENADOR JEFE': ['Periodización Totalitaria (TAC)', 'Estrategia de Carrera/Ritmo (DIR)', 'Gestión de Grupo/Liebres (GES)', 'Fisiología VO2 & Umbral (FIS)', 'Prevención Sobreentreno (SAL)', 'Mentalidad de Competición (PSI)'],
+                        'COACH BIOMECÁNICO': ['Economía de Zancada (ECO)', 'Reactividad & Cadencia SPM (CAD)', 'Técnica de Curva/Desnivel (TEC)', 'Análisis de Pisada (PIS)', 'Táctica de Drafting/Liebre (DRA)', 'Sprint & Kick Final (KIC)'],
+                        'PREP. FUERZA': ['Pliometría & Reactividad (PLI)', 'Fuerza Máxima sin Hipertrofia (FUE)', 'Estabilidad de Cadera/Core (COR)', 'Potencia en Cuestas (CUE)', 'Control de Volumen/Km (CAR)', 'Tendón de Aquiles & Sóleo (PRE)'],
+                        'FISIOTERAPEUTA': ['Prevención Periostitis/Fascia (PRE)', 'Descarga Muscular Profunda (MAN)', 'Diagnóstico de Sobrecarga (DIA)', 'Readaptación de Impacto (REA)', 'Recuperación Post-Maratón (REC)', 'Alineación Pélvica (BIO)'],
+                        'COACH MENTAL': ['Tolerancia al Muro / Fatiga (CLU)', 'Foco en Ritmo Objetivo (FOC)', 'Gestión de Nervios Salida (EMO)', 'Confianza en el Tapering (CON)', 'Disociación & Ritmo (RUT)', 'Constancia de Temporada (COH)'],
+                        'NUTRICIONISTA': [' Estrategia de Geles/HC Hora (GLU)', 'Hidratación & Sodio (HID)', 'Carga de Hidratos Pre-Carrera (CAR)', 'Ratio Peso/Potencia Saludable (COM)', 'Hierro & Ferritina (SUP)', 'Recuperación Muscular (REC)'],
+                        'ANALISTA / SCOUT': ['Telemetría VAM & Lactato (DAT)', 'Análisis de Parciales/Splits (SCO)', 'Biomecánica en Vídeo IA (VID)', 'Predicción de Marca (PAT)', 'Perfil Altimétrico Ruta (INF)', 'Calendario &Rivales (MER)']
+                    }
+                }
+            };
+
+            // ---------------------------------------------------------------------
+            // 2. CORREGIR POSICIONES DE JUGADOR (ELIMINAR CUALQUIER OPCIÓN DE STAFF
+            //    DENTRO DE JUGADOR) Y SEPARAR ATLETA VS STAFF
             // ---------------------------------------------------------------------
             Object.keys(SPORT_ARENA_CONFIGS).forEach(sp => {
                 const cfg = SPORT_ARENA_CONFIGS[sp];
-                if (!cfg.positions.includes('ENT / STAFF')) {
-                    cfg.positions.push('ENT / STAFF');
-                }
-                if (!cfg.posSkills['ENT / STAFF']) {
-                    cfg.posSkills['ENT / STAFF'] = [
-                        'Pizarra & Táctica (TAC)',
-                        'Dirección Partido (DIR)',
-                        'Balón Parado / ABP (ABP)',
-                        'Gestión Vestuario (GES)',
-                        'Metodología Física (FIS)',
-                        'Scouting & Cantera (SCO)'
-                    ];
+                cfg.positions = cfg.positions.filter(p => p !== 'ENT / STAFF' && !p.includes('STAFF'));
+                if (cfg.posSkills && cfg.posSkills['ENT / STAFF']) {
+                    delete cfg.posSkills['ENT / STAFF'];
                 }
             });
 
-            // Extrae las 6 siglas cortas reales de cualquier puesto (ej: POR -> ['DIV','HAN','KIC','REF','SPD','POS'])
+            let builderEntityType = 'athlete'; // 'athlete' | 'staff'
+            window.staffSlots = [];
+
+            function getSportStaffConfig(sportKey) {
+                return STAFF_PROFESSIONS_BY_SPORT[sportKey] || STAFF_PROFESSIONS_BY_SPORT['Fútbol'];
+            }
+
+            window.isStaffPositionCode = function (posCode) {
+                if (!posCode) return false;
+                const clean = String(posCode).trim().toUpperCase();
+                const stCfg = getSportStaffConfig(activeArenaSport);
+                return Object.keys(stCfg.skills).some(k => k.toUpperCase() === clean) ||
+                       clean.includes('MÍSTER') || clean.includes('COACH') || clean.includes('ENTRENADOR') ||
+                       clean.includes('FÍSICO') || clean.includes('FISIO') || clean.includes('MENTAL') ||
+                       clean.includes('NUTRI') || clean.includes('ANALISTA') || clean.includes('CUTMAN');
+            };
+
+            // Devuelve las 6 siglas cortas exactas tanto para Portero/Jugadores como para cualquiera de las 7 profesiones de Staff
             window.getPositionSpecificShortLabels = function (sportKey, posCode) {
                 const cfg = SPORT_ARENA_CONFIGS[sportKey] || SPORT_ARENA_CONFIGS['Fútbol'];
-                if (!posCode || !cfg.posSkills) return cfg.statLabels;
+                const stCfg = getSportStaffConfig(sportKey);
+                if (!posCode) return cfg.statLabels;
 
                 const cleanPos = String(posCode).trim().toUpperCase();
-                const matchedKey = Object.keys(cfg.posSkills).find(k =>
-                    k.toUpperCase() === cleanPos ||
-                    cleanPos.includes(k.toUpperCase()) ||
-                    k.toUpperCase().includes(cleanPos)
-                );
 
-                if (!matchedKey) return cfg.statLabels;
-                return cfg.posSkills[matchedKey].map((fullLabel, idx) => {
-                    const m = fullLabel.match(/\(([A-Z0-9]+)\)/);
-                    return m ? m[1] : (cfg.statLabels[idx] || 'STA');
+                // 1. Buscar primero en las profesiones de Staff del deporte
+                const staffMatch = Object.keys(stCfg.skills).find(k =>
+                    k.toUpperCase() === cleanPos || cleanPos.includes(k.toUpperCase()) || k.toUpperCase().includes(cleanPos)
+                );
+                if (staffMatch) {
+                    return stCfg.skills[staffMatch].map((fullLbl, idx) => {
+                        const m = fullLbl.match(/\(([A-Z0-9]+)\)/);
+                        return m ? m[1] : 'STF';
+                    });
+                }
+
+                // 2. Buscar en las posiciones de Atleta (ej: POR -> DIV, HAN, KIC, REF, SPD, POS)
+                if (cfg.posSkills) {
+                    const playerMatch = Object.keys(cfg.posSkills).find(k =>
+                        k.toUpperCase() === cleanPos || cleanPos.includes(k.toUpperCase()) || k.toUpperCase().includes(cleanPos)
+                    );
+                    if (playerMatch) {
+                        return cfg.posSkills[playerMatch].map((fullLbl, idx) => {
+                            const m = fullLbl.match(/\(([A-Z0-9]+)\)/);
+                            return m ? m[1] : (cfg.statLabels[idx] || 'STA');
+                        });
+                    }
+                }
+
+                return cfg.statLabels;
+            };
+
+            // ---------------------------------------------------------------------
+            // 3. CÁLCULO DE ENCAJE IA PERSONALIZADO PARA CADA PROFESIÓN DEL STAFF
+            //    CON TU CLUB, TU ESTILO DE JUEGO Y LOS RASGOS DE TU PLANTILLA
+            // ---------------------------------------------------------------------
+            const _baseCalcCandidateFit = window.calculateCandidateFitWithSquad;
+            window.calculateCandidateFitWithSquad = function (candidate) {
+                if (!candidate || !candidate.grl) {
+                    return { fitScore: null, reason: 'Perfil sin calibrar (Pulsa ✏️ para asignar sus niveles 50-99).' };
+                }
+
+                if (candidate.isStaffMember || window.isStaffPositionCode(candidate.pos)) {
+                    const styleMap = {
+                        balanced: 'Equilibrado',
+                        direct: 'Juego Directo / Transición',
+                        possession: 'Posesión & Asociación',
+                        highpress: 'Presión Alta',
+                        counter: 'Bloque Bajo & Contra'
+                    };
+                    const clubStyleName = styleMap[currentPlayStyle] || 'Equilibrado';
+                    const staffStyle = candidate.preferredStyle || 'balanced';
+                    const filledStarters = currentBoardSlots.filter(s => s.player);
+                    const avgSquadGrl = filledStarters.length > 0
+                        ? Math.round(filledStarters.reduce((a, s) => a + (s.player.grl || 80), 0) / filledStarters.length)
+                        : 82;
+
+                    let fitScore = Math.min(96, Math.max(75, Math.round((candidate.grl * 0.7) + (avgSquadGrl * 0.3))));
+                    let styleVerdict = '';
+
+                    if (staffStyle === currentPlayStyle || staffStyle === 'adaptable') {
+                        fitScore = Math.min(99, fitScore + 6);
+                        styleVerdict = `Filosofía 100% alineada con el estilo "${clubStyleName}" de tu club (+6% Sinergia).`;
+                    } else {
+                        styleVerdict = `Especialista en ${candidate.pos} (${candidate.grl} GRL). Aporta variantes tácticas a tu bloque "${clubStyleName}".`;
+                    }
+
+                    if (candidate.traitNotes && candidate.traitNotes.length > 3) {
+                        styleVerdict += ` Metodología: "${candidate.traitNotes}".`;
+                    }
+                    return { fitScore, reason: styleVerdict };
+                }
+
+                return typeof _baseCalcCandidateFit === 'function'
+                    ? _baseCalcCandidateFit(candidate)
+                    : { fitScore: candidate.grl, reason: `Media ${candidate.grl} GRL` };
+            };
+
+            // ---------------------------------------------------------------------
+            // 4. TERCERA BARRA EN LA BANDEJA INFERIOR: [👔 Cuerpo Técnico (6)]
+            //    Y DESLIZAMIENTO EN 3 PÁGINAS (BANQUILLO <-> RESERVA <-> CUERPO TÉCNICO)
+            // ---------------------------------------------------------------------
+            function initStaffSlotsForSport() {
+                const stCfg = getSportStaffConfig(activeArenaSport);
+                const spKey = activeArenaSport.toLowerCase();
+                try {
+                    const saved = JSON.parse(localStorage.getItem(`kinet_staff_bench_slots_${spKey}`) || 'null');
+                    if (Array.isArray(saved) && saved.length === stCfg.slots.length) {
+                        window.staffSlots = saved;
+                        return;
+                    }
+                } catch (e) {}
+                window.staffSlots = stCfg.slots.map(roleName => ({ pos: roleName, player: null }));
+            }
+
+            function saveStaffSlotsToStorage() {
+                const spKey = activeArenaSport.toLowerCase();
+                try {
+                    localStorage.setItem(`kinet_staff_bench_slots_${spKey}`, JSON.stringify(window.staffSlots));
+                } catch (e) {}
+            }
+
+            function mountThirdStaffBenchBar() {
+                initStaffSlotsForSport();
+
+                const pillsBox = document.querySelector('.deck-mode-pills');
+                if (pillsBox && !document.getElementById('pill-show-staff')) {
+                    const staffBtn = document.createElement('button');
+                    staffBtn.type = 'button';
+                    staffBtn.className = 'deck-mode-pill';
+                    staffBtn.id = 'pill-show-staff';
+                    staffBtn.onclick = () => window.switchBenchReserveView('staff');
+                    staffBtn.innerHTML = `👔 Cuerpo Técnico (<span id="staff-count-num">${window.staffSlots.length}</span>)`;
+                    pillsBox.appendChild(staffBtn);
+                }
+
+                const track = document.getElementById('bench-reserve-slider-track');
+                if (track && !document.getElementById('staff-slots-slide-page')) {
+                    track.style.width = '300%';
+                    Array.from(track.children).forEach(ch => { ch.style.width = '33.3333%'; });
+
+                    // Añadir botón ▶ en la página 2 (Reserva) para pasar a la página 3 (Cuerpo Técnico)
+                    const reservePage = track.children[1];
+                    if (reservePage && !reservePage.querySelector('.to-staff-arrow')) {
+                        const toStaffBtn = document.createElement('button');
+                        toStaffBtn.type = 'button';
+                        toStaffBtn.className = 'cassette-arrow-btn to-staff-arrow';
+                        toStaffBtn.style.cssText = 'border-color:rgba(245,158,11,0.5);color:#F59E0B;';
+                        toStaffBtn.title = 'Deslizar a Cuerpo Técnico';
+                        toStaffBtn.textContent = '▶';
+                        toStaffBtn.onclick = () => window.switchBenchReserveView('staff');
+                        reservePage.appendChild(toStaffBtn);
+                    }
+
+                    const staffPage = document.createElement('div');
+                    staffPage.className = 'bench-reserve-slide-page';
+                    staffPage.id = 'staff-slots-slide-page';
+                    staffPage.style.width = '33.3333%';
+                    staffPage.innerHTML = `
+                        <button type="button" class="cassette-arrow-btn" style="border-color:rgba(245,158,11,0.5);color:#F59E0B;" onclick="switchBenchReserveView('reserve')" title="Volver a Reserva">◀</button>
+                        <div class="cassette-slots-grid" id="staff-slots-container"></div>
+                    `;
+                    track.appendChild(staffPage);
+                }
+            }
+
+            window.switchBenchReserveView = function (targetDeck) {
+                const track = document.getElementById('bench-reserve-slider-track');
+                const pillBench = document.getElementById('pill-show-bench');
+                const pillRes = document.getElementById('pill-show-reserve');
+                const pillStaff = document.getElementById('pill-show-staff');
+                const hint = document.getElementById('deck-slide-hint');
+                if (!track) return;
+
+                track.classList.remove('show-reserve');
+                pillBench?.classList.remove('active-bench');
+                pillRes?.classList.remove('active-reserve');
+                if (pillStaff) {
+                    pillStaff.style.background = 'transparent';
+                    pillStaff.style.color = 'var(--text-secondary)';
+                    pillStaff.style.boxShadow = 'none';
+                }
+
+                if (targetDeck === 'reserve') {
+                    track.style.transform = 'translateX(-33.3333%)';
+                    pillRes?.classList.add('active-reserve');
+                    if (hint) hint.textContent = 'Pulsa ◀ Banquillo o ▶ Cuerpo Técnico';
+                } else if (targetDeck === 'staff') {
+                    track.style.transform = 'translateX(-66.6666%)';
+                    if (pillStaff) {
+                        pillStaff.style.background = 'linear-gradient(135deg, #F59E0B, #D97706)';
+                        pillStaff.style.color = '#04060A';
+                        pillStaff.style.boxShadow = '0 0 12px rgba(245, 158, 11, 0.4)';
+                    }
+                    if (hint) hint.textContent = '👔 Selecciona un puesto técnico para asignar especialista';
+                } else {
+                    track.style.transform = 'translateX(0%)';
+                    pillBench?.classList.add('active-bench');
+                    if (hint) hint.textContent = 'Pulsa ▶ para deslizar a Reserva o Cuerpo Técnico';
+                }
+            };
+
+            const _origGetSlotArr = window.getSlotArrayByGroup;
+            window.getSlotArrayByGroup = function (groupKey) {
+                if (groupKey === 'staff') return window.staffSlots;
+                return typeof _origGetSlotArr === 'function' ? _origGetSlotArr(groupKey) : currentBoardSlots;
+            };
+
+            const _origSelectAnySlot = window.selectAnySlot;
+            window.selectAnySlot = function (group, index, event) {
+                if (event) event.stopPropagation();
+                activeSelection = { group, index };
+                if (group === 'bench') window.switchBenchReserveView('bench');
+                else if (group === 'reserve') window.switchBenchReserveView('reserve');
+                else if (group === 'staff') window.switchBenchReserveView('staff');
+                window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+            };
+
+            const _origQuickRemove = window.quickRemoveSlotPlayer;
+            window.quickRemoveSlotPlayer = function (group, index, event) {
+                if (group === 'staff') {
+                    if (event) event.stopPropagation();
+                    if (window.staffSlots[index]) {
+                        window.staffSlots[index].player = null;
+                        activeSelection = { group: 'staff', index };
+                        saveStaffSlotsToStorage();
+                        window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(true);
+                    }
+                    return;
+                }
+                if (typeof _origQuickRemove === 'function') _origQuickRemove(group, index, event);
+            };
+
+            // ---------------------------------------------------------------------
+            // 5. CONMUTADOR EN "🛠️ CREAR / EDITAR": [🏃 Atleta / Jugador] | [👔 Cuerpo Técnico / Staff]
+            // ---------------------------------------------------------------------
+            function mountBuilderAthleteStaffToggle() {
+                const builderView = document.getElementById('rview-builder');
+                const bannerEl = document.getElementById('builder-mode-banner');
+                if (!builderView || !bannerEl || document.getElementById('builder-entity-toggle')) return;
+
+                const toggleRow = document.createElement('div');
+                toggleRow.id = 'builder-entity-toggle';
+                toggleRow.className = 'source-subtoggle';
+                toggleRow.style.marginBottom = '8px';
+                toggleRow.innerHTML = `
+                    <button type="button" class="source-subbtn active" id="btn-build-athlete" onclick="window.setBuilderEntityMode('athlete')">
+                        🏃 Atleta / Jugador
+                    </button>
+                    <button type="button" class="source-subbtn" id="btn-build-staff" onclick="window.setBuilderEntityMode('staff')">
+                        👔 Cuerpo Técnico / Staff
+                    </button>
+                `;
+                bannerEl.parentElement.insertAdjacentElement('beforebegin', toggleRow);
+
+                // Añadir selector de Estilo / Filosofía exclusivo para Cuerpo Técnico
+                const traitsInput = document.getElementById('custom-p-traits');
+                if (traitsInput && !document.getElementById('staff-philosophy-wrap')) {
+                    const philWrap = document.createElement('div');
+                    philWrap.id = 'staff-philosophy-wrap';
+                    philWrap.style.cssText = 'display:none;margin-bottom:7px;';
+                    philWrap.innerHTML = `
+                        <label style="font-family:'JetBrains Mono';font-size:0.56rem;color:#F59E0B;display:block;margin-bottom:3px;">FILOSOFÍA / ESTILO PREFERIDO DEL TÉCNICO (PARA ENCAJE CON EL CLUB)</label>
+                        <select id="custom-staff-style" class="kinet-select" style="width:100%;">
+                            <option value="possession">🎯 Posesión, Asociación & Control</option>
+                            <option value="direct">⚡ Juego Directo, Transición & Verticalidad</option>
+                            <option value="highpress">🔥 Presión Alta & Ritmo Intenso</option>
+                            <option value="counter">🛡️ Bloque Sólido, Orden & Contragolpe</option>
+                            <option value="balanced">⚙️ Metodología Equilibrada / Adaptable al Club</option>
+                        </select>
+                    `;
+                    traitsInput.parentElement.insertAdjacentElement('beforebegin', philWrap);
+                }
+            }
+
+            window.setBuilderEntityMode = function (mode) {
+                builderEntityType = mode === 'staff' ? 'staff' : 'athlete';
+                document.getElementById('btn-build-athlete')?.classList.toggle('active', builderEntityType === 'athlete');
+                document.getElementById('btn-build-staff')?.classList.toggle('active', builderEntityType === 'staff');
+
+                const nameInp = document.getElementById('custom-p-name');
+                const posSel = document.getElementById('custom-p-pos');
+                const bannerEl = document.getElementById('builder-mode-banner');
+                const philWrap = document.getElementById('staff-philosophy-wrap');
+                const saveBoardBtn = document.querySelector('#rview-builder button[onclick*="saveCustomPlayerToTarget(\'board\')"]');
+
+                const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
+                const stCfg = getSportStaffConfig(activeArenaSport);
+
+                if (builderEntityType === 'staff') {
+                    if (bannerEl) bannerEl.textContent = '👔 CREAR O CALIBRAR PROFESIONAL DEL CUERPO TÉCNICO (50-99)';
+                    if (nameInp) nameInp.placeholder = 'Nombre del entrenador, fisio, prep. físico...';
+                    if (philWrap) philWrap.style.display = 'block';
+                    if (saveBoardBtn) saveBoardBtn.innerHTML = '✓ Guardar y Poner en Cuerpo Técnico';
+
+                    const staffProfessions = Object.keys(stCfg.skills);
+                    if (posSel) {
+                        posSel.innerHTML = staffProfessions.map(prof => `<option value="${prof}">${prof}</option>`).join('');
+                        window.updateBuilderSlidersForPosition(staffProfessions[0]);
+                    }
+                } else {
+                    if (bannerEl) bannerEl.textContent = '🏃 CREAR O CALIBRAR ATLETA / JUGADOR (50-99)';
+                    if (nameInp) nameInp.placeholder = 'Nombre del jugador...';
+                    if (philWrap) philWrap.style.display = 'none';
+                    if (saveBoardBtn) saveBoardBtn.innerHTML = '✓ Guardar y Poner en Plantilla';
+
+                    if (posSel) {
+                        posSel.innerHTML = cfg.positions.map(p => `<option value="${p}">${p}</option>`).join('');
+                        window.updateBuilderSlidersForPosition(cfg.positions[0]);
+                    }
+                }
+                refreshAllCustomKinetSelects();
+            };
+
+            const _origUpdateSliders = window.updateBuilderSlidersForPosition;
+            window.updateBuilderSlidersForPosition = function (posName) {
+                const stCfg = getSportStaffConfig(activeArenaSport);
+                if (builderEntityType === 'staff' && stCfg.skills[posName]) {
+                    const skillLabels = stCfg.skills[posName];
+                    const box = document.getElementById('builder-sliders-box');
+                    if (box) {
+                        box.innerHTML = skillLabels.map((lbl, idx) => {
+                            const val = builderSliderValues[idx] || 82;
+                            return `
+                                <div class="custom-slider-row">
+                                    <div class="custom-slider-head">
+                                        <span>${lbl}</span>
+                                        <strong style="color:#F59E0B;" id="bslider-val-${idx}">${val}</strong>
+                                    </div>
+                                    <input type="range" min="50" max="99" value="${val}" class="kinet-range-slider" oninput="onBuilderSliderMove(${idx}, this.value)">
+                                </div>
+                            `;
+                        }).join('');
+                        recalcBuilderLiveGrl();
+                        refreshAllCustomKinetSelects();
+                    }
+                    return;
+                }
+                if (typeof _origUpdateSliders === 'function') _origUpdateSliders(posName);
+            };
+
+            const _origLoadBuilder = window.loadProfileIntoBuilder;
+            window.loadProfileIntoBuilder = function (playerObj, event) {
+                if (event) event.stopPropagation();
+                if (!playerObj) return;
+                const isStaff = Boolean(playerObj.isStaffMember || window.isStaffPositionCode(playerObj.pos));
+                window.setBuilderEntityMode(isStaff ? 'staff' : 'athlete');
+
+                if (isStaff) {
+                    switchRightPanelTab('builder');
+                    document.getElementById('custom-editing-id').value = playerObj.id || '';
+                    document.getElementById('custom-p-name').value = playerObj.name || '';
+                    document.getElementById('custom-p-traits').value = playerObj.traitNotes || '';
+                    const stSel = document.getElementById('custom-staff-style');
+                    if (stSel && playerObj.preferredStyle) stSel.value = playerObj.preferredStyle;
+                    const posSel = document.getElementById('custom-p-pos');
+                    const stCfg = getSportStaffConfig(activeArenaSport);
+                    const matchedProf = Object.keys(stCfg.skills).find(k => k.toUpperCase() === (playerObj.pos || '').toUpperCase()) || Object.keys(stCfg.skills)[0];
+                    if (posSel) posSel.value = matchedProf;
+                    builderSliderValues = Array.isArray(playerObj.stats) && playerObj.stats.length === 6 ? [...playerObj.stats] : [82, 82, 82, 82, 82, 82];
+                    window.updateBuilderSlidersForPosition(matchedProf);
+                    return;
+                }
+                if (typeof _origLoadBuilder === 'function') _origLoadBuilder(playerObj, event);
+            };
+
+            const _origSaveCustom = window.saveCustomPlayerToTarget;
+            window.saveCustomPlayerToTarget = function (targetMode) {
+                if (builderEntityType === 'staff') {
+                    const editId = document.getElementById('custom-editing-id')?.value || '';
+                    const nameInput = document.getElementById('custom-p-name');
+                    const posSelect = document.getElementById('custom-p-pos');
+                    const traitsInput = document.getElementById('custom-p-traits');
+                    const styleSelect = document.getElementById('custom-staff-style');
+
+                    const nameVal = (nameInput?.value || '').trim();
+                    if (!nameVal) {
+                        alert('Escribe el nombre del profesional del Cuerpo Técnico.');
+                        nameInput?.focus();
+                        return;
+                    }
+                    const profVal = posSelect?.value || 'MÍSTER / TOTAL';
+                    const prefStyle = styleSelect?.value || 'balanced';
+                    const styleTextMap = {
+                        possession: 'Posesión & Asociación',
+                        direct: 'Juego Directo / Vertical',
+                        highpress: 'Presión Alta',
+                        counter: 'Bloque Sólido & Contra',
+                        balanced: 'Metodología Equilibrada'
+                    };
+                    const rawTraits = (traitsInput?.value || '').trim();
+                    const fullTraits = rawTraits ? `${styleTextMap[prefStyle]} • ${rawTraits}` : `Estilo: ${styleTextMap[prefStyle]}`;
+                    const grlVal = recalcBuilderLiveGrl();
+
+                    const staffObj = {
+                        id: editId || ('staff_' + Date.now()),
+                        name: nameVal,
+                        pos: profVal,
+                        grl: grlVal,
+                        sub: fullTraits.slice(0, 28),
+                        traitNotes: fullTraits,
+                        preferredStyle: prefStyle,
+                        stats: [...builderSliderValues],
+                        isCalibrated: true,
+                        isExternalCustom: true,
+                        isStaffMember: true
+                    };
+
+                    const cIdx = customCreatedPlayers.findIndex(c => c.id === staffObj.id || c.name.toLowerCase() === staffObj.name.toLowerCase());
+                    if (cIdx !== -1) customCreatedPlayers[cIdx] = staffObj;
+                    else customCreatedPlayers.unshift(staffObj);
+
+                    if (targetMode === 'shortlist') {
+                        const sIdx = shortlistPlayers.findIndex(s => s.id === staffObj.id || s.name.toLowerCase() === staffObj.name.toLowerCase());
+                        if (sIdx !== -1) shortlistPlayers[sIdx] = staffObj;
+                        else shortlistPlayers.unshift(staffObj);
+                        saveCustomAndShortlistData();
+                        resetBuilderForm();
+                        switchRightPanelTab('shortlist');
+                        return;
+                    }
+
+                    // Asignar directamente al puesto correspondiente de la 3ª barra (Cuerpo Técnico)
+                    let targetSlotIdx = activeSelection.group === 'staff' ? activeSelection.index : -1;
+                    if (targetSlotIdx === -1) {
+                        targetSlotIdx = window.staffSlots.findIndex(s => s.pos.toUpperCase() === profVal.toUpperCase() || profVal.toUpperCase().includes(s.pos.split(' ')[0].toUpperCase()));
+                    }
+                    if (targetSlotIdx === -1) {
+                        targetSlotIdx = window.staffSlots.findIndex(s => !s.player);
+                    }
+                    if (targetSlotIdx === -1) targetSlotIdx = 0;
+
+                    window.staffSlots[targetSlotIdx].player = { ...staffObj };
+                    activeSelection = { group: 'staff', index: targetSlotIdx };
+                    saveStaffSlotsToStorage();
+                    saveCustomAndShortlistData();
+                    resetBuilderForm();
+                    window.switchBenchReserveView('staff');
+                    window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(true);
+                    switchRightPanelTab('kinet');
+                    switchRosterSourceFilter('created');
+                    return;
+                }
+                if (typeof _origSaveCustom === 'function') _origSaveCustom(targetMode);
+            };
+
+            const _origAssignPlayer = window.assignOrComparePlayer;
+            window.assignOrComparePlayer = function (playerObj) {
+                if (!playerObj) return;
+                const isStaff = Boolean(playerObj.isStaffMember || window.isStaffPositionCode(playerObj.pos));
+
+                // Si estamos en modo Plantilla y se toca un miembro de Staff, asignarlo a la barra de Cuerpo Técnico (no al césped de jugadores)
+                if (currentAnalyzerMode !== 'duel' && isStaff && activeSelection.group !== 'staff') {
+                    let sIdx = window.staffSlots.findIndex(s => s.pos.toUpperCase() === (playerObj.pos || '').toUpperCase());
+                    if (sIdx === -1) sIdx = window.staffSlots.findIndex(s => !s.player);
+                    if (sIdx === -1) sIdx = 0;
+                    activeSelection = { group: 'staff', index: sIdx };
+                    window.switchBenchReserveView('staff');
+                }
+
+                if (activeSelection.group === 'staff' && currentAnalyzerMode !== 'duel') {
+                    if (!playerObj.grl || !Array.isArray(playerObj.stats)) {
+                        window.loadProfileIntoBuilder(playerObj);
+                        return;
+                    }
+                    window.staffSlots[activeSelection.index].player = { ...playerObj };
+                    saveStaffSlotsToStorage();
+                    window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(true);
+                    renderRightRosterList();
+                    return;
+                }
+
+                if (typeof _origAssignPlayer === 'function') _origAssignPlayer(playerObj);
+            };
+
+            // ---------------------------------------------------------------------
+            // 6. REPARACIÓN DE rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63 (PORTEROS + 3ª BARRA STAFF)
+            // ---------------------------------------------------------------------
+            const _baseRenderBoardTokens = window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63;
+            window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63 = function (shouldPersist = true) {
+                if (typeof _baseRenderBoardTokens === 'function') _baseRenderBoardTokens(shouldPersist);
+
+                // 6.1 Actualizar las 6 siglas de cada Mini KINET Card en el campo según su posición real (POR -> DIV, HAN, KIC, REF, SPD, POS)
+                const layer = document.getElementById('arena-tokens-layer');
+                if (layer && tokenVisualMode === 'cards') {
+                    currentBoardSlots.forEach((slot, idx) => {
+                        const p = slot.player;
+                        const tokenEl = layer.children[idx];
+                        if (!p || !tokenEl) return;
+                        const lb = window.getPositionSpecificShortLabels(activeArenaSport, slot.pos || p.pos);
+                        const st = Array.isArray(p.stats) && p.stats.length === 6 ? p.stats : ['--', '--', '--', '--', '--', '--'];
+                        const gridEl = tokenEl.querySelector('.mini-fifa-stats-grid');
+                        if (gridEl) {
+                            gridEl.innerHTML = `
+                                <div class="mini-fifa-stat-pair"><span>${lb[0]}</span><strong>${st[0]}</strong></div>
+                                <div class="mini-fifa-stat-pair"><span>${lb[3]}</span><strong>${st[3]}</strong></div>
+                                <div class="mini-fifa-stat-pair"><span>${lb[1]}</span><strong>${st[1]}</strong></div>
+                                <div class="mini-fifa-stat-pair"><span>${lb[4]}</span><strong>${st[4]}</strong></div>
+                                <div class="mini-fifa-stat-pair"><span>${lb[2]}</span><strong>${st[2]}</strong></div>
+                                <div class="mini-fifa-stat-pair"><span>${lb[5]}</span><strong>${st[5]}</strong></div>
+                            `;
+                        }
+                    });
+                }
+
+                // 6.2 Renderizar las casillas de la 3ª barra (👔 Cuerpo Técnico) personalizadas para el deporte
+                const staffBox = document.getElementById('staff-slots-container');
+                if (staffBox && Array.isArray(window.staffSlots)) {
+                    staffBox.innerHTML = window.staffSlots.map((slot, idx) => {
+                        const isSel = activeSelection.group === 'staff' && activeSelection.index === idx;
+                        const p = slot.player;
+                        return `
+                            <div class="bench-slot-pill ${p ? 'filled' : ''} ${isSel ? 'selected-slot' : ''}" style="${p ? 'border-color:rgba(245,158,11,0.65);background:linear-gradient(160deg,rgba(245,158,11,0.16),rgba(8,12,20,0.95));' : ''}" onclick="selectAnySlot('staff', ${idx}, event)">
+                                ${p ? `<button type="button" onclick="quickRemoveSlotPlayer('staff', ${idx}, event)" style="position:absolute;top:2px;right:3px;background:none;border:none;color:#EF4444;font-size:0.55rem;font-weight:900;cursor:pointer;">✕</button>` : ''}
+                                <div style="font-family:'JetBrains Mono';font-size:0.49rem;color:#F59E0B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${slot.pos} ${p ? '• <strong>' + (p.grl || '??') + '</strong>' : ''}</div>
+                                <div style="font-size:0.61rem;font-weight:800;color:${p ? 'white' : '#F59E0B'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">
+                                    ${p ? p.name.split(' ')[0] : '+ Asignar'}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // 6.3 Si hay un puesto de Cuerpo Técnico seleccionado, mostrar su indicador y su impacto en la Sinergia del Club
+                if (activeSelection.group === 'staff') {
+                    const activeSlot = window.staffSlots[activeSelection.index];
+                    const indEl = document.getElementById('selected-slot-indicator');
+                    const unassignTopBtn = document.getElementById('btn-unassign-top');
+                    if (activeSlot && indEl) {
+                        if (activeSlot.player) {
+                            const fit = window.calculateCandidateFitWithSquad(activeSlot.player);
+                            indEl.innerHTML = `Cuerpo Técnico Activo: <strong>[${activeSlot.pos}] ${activeSlot.player.name} (${activeSlot.player.grl} GRL • Encaje Club: ${fit.fitScore || '--'}%)</strong>`;
+                            if (unassignTopBtn) unassignTopBtn.classList.add('visible');
+                        } else {
+                            indEl.innerHTML = `Puesto Técnico Activo: <strong>[${activeSlot.pos}] Vacío</strong> — Ve a "🛠️ Crear / Editar → 👔 Cuerpo Técnico" o elige un perfil a la derecha.`;
+                            if (unassignTopBtn) unassignTopBtn.classList.remove('visible');
+                        }
+                    }
+                }
+            };
+
+            const _origRenderDuel = window.renderDuel1v1View;
+            window.renderDuel1v1View = function () {
+                const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
+                const pA = duelFighterA || getMyUserPlayerObject();
+                const origLabels = [...cfg.statLabels];
+                cfg.statLabels = window.getPositionSpecificShortLabels(activeArenaSport, pA.pos);
+                if (typeof _origRenderDuel === 'function') _origRenderDuel();
+                cfg.statLabels = origLabels;
+            };
+
+            const _origRenderMirror = window.renderMirrorSelfView;
+            window.renderMirrorSelfView = function () {
+                const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
+                const me = getMyUserPlayerObject();
+                const origLabels = [...cfg.statLabels];
+                cfg.statLabels = window.getPositionSpecificShortLabels(activeArenaSport, me.pos);
+                if (typeof _origRenderMirror === 'function') _origRenderMirror();
+                cfg.statLabels = origLabels;
+            };
+
+            const _origOpenFullStats = window.openFullSquadStatsModal;
+            window.openFullSquadStatsModal = function () {
+                if (typeof _origOpenFullStats === 'function') _origOpenFullStats();
+                const body = document.getElementById('full-squad-stats-body');
+                if (!body) return;
+                const allAssigned = [
+                    ...currentBoardSlots.filter(s => s.player).map(s => ({ pos: s.pos, p: s.player })),
+                    ...benchSlots.filter(s => s.player).map(s => ({ pos: s.pos, p: s.player })),
+                    ...reserveSlots.filter(s => s.player).map(s => ({ pos: s.pos, p: s.player }))
+                ];
+                const rows = body.querySelectorAll('.squad-stats-fixed-row');
+                rows.forEach((rowEl, idx) => {
+                    const item = allAssigned[idx];
+                    if (!item) return;
+                    const lb = window.getPositionSpecificShortLabels(activeArenaSport, item.p.pos || item.pos);
+                    const statSpans = rowEl.querySelectorAll('div[style*="grid-template-columns:repeat(6"] span');
+                    statSpans.forEach((sp, i) => {
+                        if (lb[i]) sp.textContent = lb[i];
+                    });
                 });
             };
 
             // ---------------------------------------------------------------------
-            // 2. VALIDADOR ESTRICTO DE LICENCIA CLUB & SCOUT (29,99€)
-            //    (Prohíbe tácticas grupales animadas y publicaciones grupales a Free y Pro 8,99€)
+            // 7. BLOQUEO DE JUGADAS IA Y PUBLICACIONES GRUPALES A FREE Y PRO (8,99€)
             // ---------------------------------------------------------------------
             window.isStrictClubScoutTier = function () {
                 const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase().trim();
@@ -5519,15 +6141,12 @@
                 document.getElementById('club-lock-modal-title').textContent = `🔒 ${featureTitle.toUpperCase()}`;
                 document.getElementById('club-lock-modal-desc').innerHTML = `
                     Esta herramienta está reservada exclusivamente para la licencia <strong>Club & Scout Pro (29,99€/mes)</strong>.<br><br>
-                    Las cuentas <strong>Gratuitas</strong> y <strong>Pro Player (8,99€)</strong> solo tienen acceso a gestión de 1 plantilla individual, asesoramiento de su propia posición y publicación de carta individual.
+                    Las cuentas <strong>Gratuitas</strong> y <strong>Pro Player (8,99€)</strong> solo tienen acceso a 1 plantilla individual, asesoramiento de su propia posición y publicación de carta individual.
                 `;
                 modal.classList.add('open');
             };
 
-            // ---------------------------------------------------------------------
-            // 3. CSS MINIMALISTA: 2 BOTONES JUNTOS EN EL PANEL E INTERCAMBIO LIMPIO
-            //    DE LA BANDEJA INFERIOR (SIN AÑADIR ALTURA NI DESBORDAR LA PANTALLA)
-            // ---------------------------------------------------------------------
+            // Reutilizar el sistema minimalista de 2 botones [👥 Gestionar Plantilla] | [🎬 Jugadas & Estrategias IA]
             const minStyle = document.createElement('style');
             minStyle.textContent = `
                 .minimal-mode-switch {
@@ -5561,157 +6180,30 @@
                     font-weight: 900;
                     box-shadow: 0 0 12px var(--role-glow);
                 }
-
-                @keyframes kinetLaserDash {
-                    to { stroke-dashoffset: -44; }
-                }
-                .kinet-laser-arrow {
-                    stroke-dasharray: 8 6;
-                    animation: kinetLaserDash 0.95s linear infinite;
-                    filter: drop-shadow(0 0 5px currentColor);
-                }
-                @keyframes kinetZonePulse {
-                    0%, 100% { opacity: 0.15; transform: scale(0.95); }
-                    50% { opacity: 0.35; transform: scale(1.05); }
-                }
-                .kinet-zone-circle {
-                    transform-origin: center;
-                    animation: kinetZonePulse 1.8s ease-in-out infinite;
-                }
-                #arena-vectors-svg-layer {
-                    position: absolute;
-                    inset: 0;
-                    width: 100%;
-                    height: 100%;
-                    pointer-events: none;
-                    z-index: 26;
-                }
+                @keyframes kinetLaserDash { to { stroke-dashoffset: -44; } }
+                .kinet-laser-arrow { stroke-dasharray: 8 6; animation: kinetLaserDash 0.95s linear infinite; filter: drop-shadow(0 0 5px currentColor); }
+                @keyframes kinetZonePulse { 0%, 100% { opacity: 0.15; transform: scale(0.95); } 50% { opacity: 0.35; transform: scale(1.05); } }
+                .kinet-zone-circle { transform-origin: center; animation: kinetZonePulse 1.8s ease-in-out infinite; }
+                #arena-vectors-svg-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 26; }
                 .kinet-rival-mini-token {
-                    position: absolute;
-                    transform: translate(-50%, -50%);
-                    width: 62px;
-                    background: rgba(30, 8, 12, 0.95);
-                    border: 1.5px solid #EF4444;
-                    border-radius: 9px;
-                    padding: 3px 5px;
-                    text-align: center;
-                    z-index: 27;
-                    pointer-events: none;
+                    position: absolute; transform: translate(-50%, -50%); width: 62px;
+                    background: rgba(30, 8, 12, 0.95); border: 1.5px solid #EF4444; border-radius: 9px;
+                    padding: 3px 5px; text-align: center; z-index: 27; pointer-events: none;
                     box-shadow: 0 6px 16px rgba(0,0,0,0.85), 0 0 12px rgba(239,68,68,0.4);
                     transition: left 0.85s cubic-bezier(0.22, 1, 0.36, 1), top 0.85s cubic-bezier(0.22, 1, 0.36, 1);
                 }
                 .tactics-deck-pill {
-                    background: rgba(255,255,255,0.03);
-                    border: 1px solid rgba(255,255,255,0.12);
-                    color: #E2E8F0;
-                    font-family: 'Orbitron', sans-serif;
-                    font-size: 0.6rem;
-                    font-weight: 800;
-                    padding: 7px 11px;
-                    border-radius: 9px;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    white-space: nowrap;
+                    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); color: #E2E8F0;
+                    font-family: 'Orbitron', sans-serif; font-size: 0.6rem; font-weight: 800; padding: 7px 11px;
+                    border-radius: 9px; cursor: pointer; transition: all 0.2s ease; white-space: nowrap;
                 }
-                .tactics-deck-pill:hover {
-                    border-color: var(--role-color);
-                    color: #FFFFFF;
-                }
-                .tactics-deck-pill.active {
-                    background: var(--role-gradient);
-                    color: #04060A;
-                    border-color: transparent;
-                    box-shadow: 0 0 12px var(--role-glow);
-                }
-                .tactics-deck-pill.clash-on {
-                    background: linear-gradient(135deg, #EF4444, #B91C1C);
-                    color: #FFFFFF;
-                    border-color: #FCA5A5;
-                }
+                .tactics-deck-pill:hover { border-color: var(--role-color); color: #FFFFFF; }
+                .tactics-deck-pill.active { background: var(--role-gradient); color: #04060A; border-color: transparent; box-shadow: 0 0 12px var(--role-glow); }
+                .tactics-deck-pill.clash-on { background: linear-gradient(135deg, #EF4444, #B91C1C); color: #FFFFFF; border-color: #FCA5A5; }
             `;
             document.head.appendChild(minStyle);
 
-            // ---------------------------------------------------------------------
-            // 4. SOBRESCRIBIR RENDERIZADO DE CARTAS Y COMPARADOR 1VS1 PARA QUE
-            //    PORTEROS Y CADA PUESTO MUESTREN SUS SIGLAS REALES (DIV, HAN, KIC...)
-            // ---------------------------------------------------------------------
-            const _origRenderBoard = window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63;
-            window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63 = function (shouldPersist = true) {
-                if (typeof _origRenderBoard === 'function') _origRenderBoard(shouldPersist);
-
-                // Corregir las 6 siglas de cada Mini KINET Card en el campo según su puesto (ej: POR -> DIV, HAN, KIC, REF, SPD, POS)
-                const layer = document.getElementById('arena-tokens-layer');
-                if (layer && tokenVisualMode === 'cards') {
-                    currentBoardSlots.forEach((slot, idx) => {
-                        const p = slot.player;
-                        const tokenEl = layer.children[idx];
-                        if (!p || !tokenEl) return;
-                        const lb = window.getPositionSpecificShortLabels(activeArenaSport, slot.pos || p.pos);
-                        const st = Array.isArray(p.stats) && p.stats.length === 6 ? p.stats : ['--', '--', '--', '--', '--', '--'];
-                        const gridEl = tokenEl.querySelector('.mini-fifa-stats-grid');
-                        if (gridEl) {
-                            gridEl.innerHTML = `
-                                <div class="mini-fifa-stat-pair"><span>${lb[0]}</span><strong>${st[0]}</strong></div>
-                                <div class="mini-fifa-stat-pair"><span>${lb[3]}</span><strong>${st[3]}</strong></div>
-                                <div class="mini-fifa-stat-pair"><span>${lb[1]}</span><strong>${st[1]}</strong></div>
-                                <div class="mini-fifa-stat-pair"><span>${lb[4]}</span><strong>${st[4]}</strong></div>
-                                <div class="mini-fifa-stat-pair"><span>${lb[2]}</span><strong>${st[2]}</strong></div>
-                                <div class="mini-fifa-stat-pair"><span>${lb[5]}</span><strong>${st[5]}</strong></div>
-                            `;
-                        }
-                    });
-                }
-            };
-
-            const _origRenderDuel = window.renderDuel1v1View;
-            window.renderDuel1v1View = function () {
-                const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
-                const pA = duelFighterA || getMyUserPlayerObject();
-                const origLabels = [...cfg.statLabels];
-                // Si el jugador A es portero o entrenador, usar sus etiquetas reales en el radar y barras 1vs1
-                cfg.statLabels = window.getPositionSpecificShortLabels(activeArenaSport, pA.pos);
-                if (typeof _origRenderDuel === 'function') _origRenderDuel();
-                cfg.statLabels = origLabels;
-            };
-
-            const _origRenderMirror = window.renderMirrorSelfView;
-            window.renderMirrorSelfView = function () {
-                const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
-                const me = getMyUserPlayerObject();
-                const origLabels = [...cfg.statLabels];
-                cfg.statLabels = window.getPositionSpecificShortLabels(activeArenaSport, me.pos);
-                if (typeof _origRenderMirror === 'function') _origRenderMirror();
-                cfg.statLabels = origLabels;
-            };
-
-            // En "Ver Stats Plantilla", mostrar las etiquetas específicas de cada jugador (POR con DIV/HAN/KIC, jugador de campo con PAC/SHO/PAS)
-            const _origOpenFullStats = window.openFullSquadStatsModal;
-            window.openFullSquadStatsModal = function () {
-                if (typeof _origOpenFullStats === 'function') _origOpenFullStats();
-                const body = document.getElementById('full-squad-stats-body');
-                if (!body) return;
-                const allAssigned = [
-                    ...currentBoardSlots.filter(s => s.player).map(s => ({ pos: s.pos, p: s.player })),
-                    ...benchSlots.filter(s => s.player).map(s => ({ pos: s.pos, p: s.player })),
-                    ...reserveSlots.filter(s => s.player).map(s => ({ pos: s.pos, p: s.player }))
-                ];
-                const rows = body.querySelectorAll('.squad-stats-fixed-row');
-                rows.forEach((rowEl, idx) => {
-                    const item = allAssigned[idx];
-                    if (!item) return;
-                    const lb = window.getPositionSpecificShortLabels(activeArenaSport, item.p.pos || item.pos);
-                    const statSpans = rowEl.querySelectorAll('div[style*="grid-template-columns:repeat(6"] span');
-                    statSpans.forEach((sp, i) => {
-                        if (lb[i]) sp.textContent = lb[i];
-                    });
-                });
-            };
-
-            // ---------------------------------------------------------------------
-            // 5. MONTAR LOS 2 BOTONES MINIMALISTAS JUNTOS: [👥 Plantilla] | [🎬 Jugadas IA]
-            //    Y LA CONSOLA DE JUGADAS EN EL MISMO ESPACIO DEL BANQUILLO (0 PX EXTRA)
-            // ---------------------------------------------------------------------
-            let currentSubTab = 'roster'; // 'roster' | 'tactics'
+            let currentSubTab = 'roster';
             let activePlayIdx = -1;
             let rivalClashOn = false;
             let baseCoordsSnapshot = null;
@@ -5887,7 +6379,7 @@
                                 👥 Gestionar Plantilla
                             </button>
                             <button type="button" class="minimal-mode-btn" id="min-btn-tactics" onclick="window.switchArenaSubMode('tactics')">
-                                🎬 Jugadas & Estrategias IA <span id="tactics-lock-icon" style="font-size:0.55rem;"></span>
+                                🎬 Jugadas & Estrategias IA <span id="tactics-lock-icon" style="font-size:0.55rem;">${window.isStrictClubScoutTier() ? '✓' : '🔒'}</span>
                             </button>
                         </div>
                     `;
@@ -5895,7 +6387,6 @@
                     subtitleEl.style.display = 'none';
                 }
 
-                // Capas SVG de vectores y rivales dentro del campo 3D
                 const surface = document.getElementById('arena-3d-surface');
                 if (surface && !document.getElementById('arena-vectors-svg-layer')) {
                     const svgL = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -5910,7 +6401,6 @@
                     surface.appendChild(rivL);
                 }
 
-                // Crear la bandeja minimalista de Jugadas IA (que ocupa el mismo lugar que el banquillo cuando pulsas "Jugadas & Estrategias IA", sin añadir altura)
                 const benchMaster = document.querySelector('.bench-reserve-master-box');
                 if (benchMaster && !document.getElementById('tactics-replace-deck')) {
                     const tacDeck = document.createElement('div');
@@ -5918,15 +6408,6 @@
                     tacDeck.className = 'bench-reserve-master-box';
                     tacDeck.style.display = 'none';
                     benchMaster.insertAdjacentElement('afterend', tacDeck);
-                }
-
-                updateLockIconState();
-            }
-
-            function updateLockIconState() {
-                const lockIc = document.getElementById('tactics-lock-icon');
-                if (lockIc) {
-                    lockIc.textContent = window.isStrictClubScoutTier() ? '✓' : '🔒';
                 }
             }
 
@@ -5954,7 +6435,7 @@
                     window.resetTacticalBoardPositions();
                     if (tacDeck) tacDeck.style.display = 'none';
                     if (benchMaster) benchMaster.style.display = 'block';
-                    rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+                    window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
                 }
             };
 
@@ -6003,7 +6484,7 @@
                     s.x = baseCoordsSnapshot[i].x;
                     s.y = baseCoordsSnapshot[i].y;
                 });
-                rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+                window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
 
                 setTimeout(() => {
                     currentBoardSlots.forEach((s, i) => {
@@ -6012,7 +6493,7 @@
                         s.x = next.x;
                         s.y = next.y;
                     });
-                    rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+                    window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
                     paintVectorsAndRivals(play);
                 }, 90);
 
@@ -6032,9 +6513,7 @@
                         <marker id="mB" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#38BDF8"/></marker>
                     </defs>
                 `;
-                const zSvg = play && play.zone ? `
-                    <circle cx="${play.zone.cx}" cy="${play.zone.cy}" r="${play.zone.r}" fill="${play.zone.color}" class="kinet-zone-circle"/>
-                ` : '';
+                const zSvg = play && play.zone ? `<circle cx="${play.zone.cx}" cy="${play.zone.cy}" r="${play.zone.r}" fill="${play.zone.color}" class="kinet-zone-circle"/>` : '';
                 const aSvg = (play && play.arrows ? play.arrows : []).map(a => {
                     const m = a.color === '#F59E0B' ? 'mA' : (a.color === '#38BDF8' ? 'mB' : 'mG');
                     return `<line x1="${a.x1}" y1="${a.y1}" x2="${a.x2}" y2="${a.y2}" stroke="${a.color}" stroke-width="2.8" class="kinet-laser-arrow" marker-end="url(#${m})"/>`;
@@ -6080,7 +6559,7 @@
                 const rivL = document.getElementById('arena-rivals-tokens-layer');
                 if (rivL) rivL.innerHTML = '';
                 if (currentSubTab === 'tactics') renderTacticsDeckContent();
-                rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+                window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
             };
 
             window.runAiTacticalPrompt = function () {
@@ -6107,9 +6586,6 @@
                 baseCoordsSnapshot = currentBoardSlots.map(s => ({ x: s.x, y: s.y }));
             };
 
-            // ---------------------------------------------------------------------
-            // 6. BLOQUEAR PUBLICACIONES GRUPALES EN MATCHDAY SUITE A FREE Y PRO (8,99€)
-            // ---------------------------------------------------------------------
             const _origOpenMatchday = window.openMatchdayBroadcasterModal;
             window.openMatchdayBroadcasterModal = function (formatMode) {
                 if (!window.isStrictClubScoutTier() && (formatMode === 'poster' || formatMode === 'pitch')) {
@@ -6131,17 +6607,10 @@
             window.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => {
                     mountMinimalTwoButtonSwitcher();
-                    // Actualizar selector de posiciones en Crear/Editar para que incluya ENT / STAFF
-                    const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
-                    const posSel = document.getElementById('custom-p-pos');
-                    if (posSel && !Array.from(posSel.options).some(o => o.value === 'ENT / STAFF')) {
-                        const opt = document.createElement('option');
-                        opt.value = 'ENT / STAFF';
-                        opt.textContent = '👔 ENT / STAFF (Entrenador)';
-                        posSel.appendChild(opt);
-                        refreshAllCustomKinetSelects();
-                    }
-                    rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+                    mountThirdStaffBenchBar();
+                    mountBuilderAthleteStaffToggle();
+                    window.setBuilderEntityMode('athlete');
+                    window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
                 }, 120);
             });
         })();
