@@ -352,7 +352,7 @@
         }
         .arena-svg-canvas { width: 100%; height: 100%; display: block; border-radius: 14px; pointer-events: none; }
 
-        /* FIX CRÍTICO: CONTENEDORES CON POINTER-EVENTS NONE Y FICHAS CON POINTER-EVENTS AUTO PARA PODER SELECCIONAR SIEMPRE A LOS ROJOS */
+        /* CAPAS TRANSPARENTES A CLICS Y FICHAS ACTIVAS */
         #arena-rivals-layer, #arena-tokens-layer {
             position: absolute; inset: 0; pointer-events: none !important;
         }
@@ -426,7 +426,7 @@
         @keyframes kinetZonePulse { 0%, 100% { opacity: 0.14; transform: scale(0.95); } 50% { opacity: 0.32; transform: scale(1.05); } }
         .kinet-zone-circle { transform-origin: center; animation: kinetZonePulse 1.8s ease-in-out infinite; }
 
-        /* CONSOLA INFERIOR Y ESTUDIO EJECUTIVO */
+        /* CONSOLA INFERIOR Y ESTUDIO EJECUTIVO CON ANIMACIÓN POWER-UP NEÓN */
         .bench-reserve-master-box {
             margin-top: 10px; background: rgba(4, 6, 10, 0.88);
             border: 1px solid var(--border-subtle); border-radius: 15px; padding: 9px 11px;
@@ -445,7 +445,7 @@
         .tool-pill-btn {
             background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); color: #E2E8F0;
             font-family: 'Orbitron', sans-serif; font-size: 0.56rem; font-weight: 800; padding: 6px 9px;
-            border-radius: 8px; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 5px; white-space: nowrap;
+            border-radius: 8px; cursor: pointer; transition: all 0.22s ease; display: inline-flex; align-items: center; justify-content: center; gap: 5px; white-space: nowrap;
         }
         .tool-pill-btn:hover { border-color: var(--role-color); color: #FFF; }
         .tool-pill-btn.active-green { background: rgba(0,255,136,0.18); color: #00FF88; border-color: #00FF88; box-shadow: 0 0 12px rgba(0,255,136,0.22); }
@@ -454,6 +454,12 @@
         .tool-pill-btn.active-red { background: rgba(239,68,68,0.22); color: #FCA5A5; border-color: #EF4444; box-shadow: 0 0 12px rgba(239,68,68,0.25); }
         .tool-pill-btn.active-purple { background: rgba(168,85,247,0.22); color: #D8B4FE; border-color: #A855F7; box-shadow: 0 0 12px rgba(168,85,247,0.3); }
 
+        @keyframes studioPowerUpGlow {
+            0% { box-shadow: 0 0 0 rgba(var(--role-rgb), 0); }
+            50% { box-shadow: 0 0 28px rgba(var(--role-rgb), 0.48), inset 0 0 18px rgba(var(--role-rgb), 0.22); }
+            100% { box-shadow: 0 0 16px rgba(var(--role-rgb), 0.24), inset 0 0 10px rgba(var(--role-rgb), 0.08); }
+        }
+
         .exec-studio-section {
             background: rgba(5, 8, 15, 0.9);
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -461,12 +467,36 @@
             border-radius: 12px;
             padding: 10px 12px;
             margin-bottom: 9px;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
+        /* Cuando el modo "Empezar a Crear" está ENCENDIDO, todo el bloque se ilumina con energía neón */
+        .exec-studio-section.creation-powered-on {
+            border-color: rgba(var(--role-rgb), 0.65);
+            border-left: 3.5px solid var(--role-color);
+            background: linear-gradient(160deg, rgba(var(--role-rgb), 0.09), rgba(5, 8, 15, 0.95));
+            animation: studioPowerUpGlow 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        /* Contenedor de herramientas de trazo: Apagado (Standby) vs Encendido (Iluminado) */
+        .creation-tools-deck {
+            transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), filter 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .creation-tools-deck.deck-standby-off {
+            opacity: 0.34;
+            filter: grayscale(0.85) brightness(0.75);
+            pointer-events: none;
+            user-select: none;
+        }
+        .creation-tools-deck.deck-powered-on {
+            opacity: 1;
+            filter: grayscale(0) brightness(1.06) drop-shadow(0 0 8px rgba(var(--role-rgb), 0.16));
+            pointer-events: auto;
+        }
+
         .exec-studio-header {
             display: flex; justify-content: space-between; align-items: center;
             font-family: 'JetBrains Mono', monospace; font-size: 0.56rem;
-            color: var(--text-secondary); letter-spacing: 0.08em; text-transform: uppercase;
-            margin-bottom: 7px; font-weight: 700;
+            color: var(--text-secondary); letter-spacing: 0.06em; text-transform: uppercase;
+            margin-bottom: 7px; font-weight: 700; gap: 6px;
         }
         .exec-segmented-bar {
             display: grid; grid-template-columns: repeat(2, 1fr);
@@ -478,16 +508,28 @@
             background: transparent; border: 1px solid transparent; color: #94A3B8;
             font-family: 'Inter', sans-serif; font-size: 0.65rem; font-weight: 700;
             padding: 6px 8px; border-radius: 6px; cursor: pointer;
-            display: flex; align-items: center; gap: 6px; transition: all 0.18s ease;
+            display: flex; align-items: center; gap: 6px; transition: all 0.22s ease;
         }
         .exec-seg-option:hover { color: #FFFFFF; background: rgba(255,255,255,0.03); }
         .exec-seg-option.active-tool {
-            background: rgba(var(--role-rgb), 0.15);
-            border-color: rgba(var(--role-rgb), 0.5);
+            background: rgba(var(--role-rgb), 0.18);
+            border-color: var(--role-color);
             color: #FFFFFF;
-            box-shadow: inset 0 0 10px rgba(var(--role-rgb), 0.15);
+            box-shadow: 0 0 12px rgba(var(--role-rgb), 0.25), inset 0 0 10px rgba(var(--role-rgb), 0.15);
         }
         .exec-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+        @keyframes startBtnPulse {
+            0%, 100% { box-shadow: 0 0 12px rgba(var(--role-rgb), 0.35); transform: scale(1); }
+            50% { box-shadow: 0 0 22px rgba(var(--role-rgb), 0.75); transform: scale(1.03); }
+        }
+        .btn-start-creation {
+            background: var(--role-gradient) !important;
+            color: #04060A !important;
+            border: none !important;
+            font-weight: 900 !important;
+            animation: startBtnPulse 1.8s infinite ease-in-out;
+        }
 
         @keyframes recPulse { 0%, 100% { box-shadow: 0 0 10px rgba(239,68,68,0.4); } 50% { box-shadow: 0 0 22px rgba(239,68,68,0.85); } }
         .btn-recording-active {
@@ -572,8 +614,8 @@
             </div>
             <div class="sidebar-bottom-section">
                 <div class="sidebar-ai-tip-box">
-                    <div class="sidebar-ai-tip-header"><span>💡</span> <span>Seguir Marca 1vs1</span></div>
-                    <div class="sidebar-ai-tip-text">Usa "🔒 Seguir Marca" para que tu defensor persiga automáticamente al rival rojo cuando este se mueva.</div>
+                    <div class="sidebar-ai-tip-header"><span>💡</span> <span>Modo Libre vs Crear</span></div>
+                    <div class="sidebar-ai-tip-text">Mueve fichas libremente sin líneas. Pulsa "⚡ Empezar a Crear" para encender las herramientas y trazar tu jugada.</div>
                 </div>
                 <a href="perfil.html" id="nav-perfil" class="side-link"><span class="side-link-left"><span>👤</span> <span>Mi Perfil</span></span><span>→</span></a>
                 <a href="despacho.html" id="nav-despacho" class="side-link"><span class="side-link-left"><span>⚙️</span> <span>Despacho & Ajustes</span></span><span>→</span></a>
@@ -651,7 +693,7 @@
                                         </button>
                                     </div>
                                     <div id="live-tactical-teleprompter">
-                                        Toca cualquier jugador tuyo (verde) o del rival (rojo) para seleccionarlo y trazar sus movimientos.
+                                        Modo Colocación Libre: Mueve cualquier ficha a tu gusto sin dejar líneas, o pulsa "⚡ Empezar a Crear".
                                     </div>
                                 </div>
                                 <div class="panel-head-right">
@@ -717,7 +759,7 @@
                             <div style="margin-top:8px;background:rgba(var(--role-rgb),0.06);border:1px solid rgba(var(--role-rgb),0.32);border-radius:13px;padding:9px 11px;">
                                 <div style="font-family:'JetBrains Mono';font-size:0.56rem;color:var(--role-color);font-weight:700;margin-bottom:2px;">🧠 LECTURA TÁCTICA EN TIEMPO REAL</div>
                                 <p style="font-size:0.68rem;color:#E2E8F0;line-height:1.34;margin-bottom:7px;" id="ai-board-diagnosis">
-                                    Selecciona cualquier jugador tuyo (verde) o del rival (rojo) y haz clic en el campo o arrástralo para crear sus movimientos.
+                                    Mueve fichas libremente para ajustar posiciones, o pulsa "⚡ Empezar a Crear" para encender las herramientas y grabar líneas.
                                 </p>
                                 <button type="button" class="btn-primary" style="width:100%;padding:7px 11px;font-size:0.62rem;" onclick="sendTacticToCoachChat()">
                                     ⚡ Analizar esta Pizarra con el Cuerpo Técnico IA →
@@ -731,7 +773,7 @@
     </div>
 
     <!-- =========================================================================
-         MODAL 1: GUARDAR JUGADA AL TERMINAR DE GRABAR (ESTÉTICA KINET OS)
+         MODAL 1: GUARDAR JUGADA AL TERMINAR DE CREAR (ESTÉTICA KINET OS)
          ========================================================================= -->
     <div id="save-recording-modal" class="kinet-modal-overlay">
         <div class="kinet-modal-box" style="max-width:460px;">
@@ -739,7 +781,7 @@
                 <div style="display:flex;align-items:center;gap:9px;">
                     <span style="width:32px;height:32px;border-radius:10px;background:rgba(var(--role-rgb),0.16);border:1px solid var(--role-color);display:flex;align-items:center;justify-content:center;font-size:1rem;">💾</span>
                     <div>
-                        <div style="font-family:'Orbitron';font-size:0.88rem;font-weight:900;color:#FFFFFF;">GUARDAR GRABACIÓN TÁCTICA</div>
+                        <div style="font-family:'Orbitron';font-size:0.88rem;font-weight:900;color:#FFFFFF;">GUARDAR JUGADA CREADA</div>
                         <div style="font-family:'JetBrains Mono';font-size:0.56rem;color:var(--role-color);" id="rec-modal-summary">3 FASES CAPTURADAS • CLOUD SYNC</div>
                     </div>
                 </div>
@@ -747,7 +789,7 @@
             </div>
 
             <div style="font-size:0.74rem;color:#CBD5E1;line-height:1.45;">
-                Ponle un nombre a la jugada que acabas de grabar para almacenarla con todos sus movimientos en tu Biblioteca y en la nube:
+                Ponle un nombre a la jugada que acabas de crear para almacenarla con todos sus movimientos en tu Biblioteca y en la nube:
             </div>
 
             <div>
@@ -761,7 +803,7 @@
             </div>
 
             <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:8px;margin-top:4px;">
-                <button type="button" class="btn-secondary" onclick="closeSaveRecordingModal()">Seguir Editando</button>
+                <button type="button" class="btn-secondary" onclick="closeSaveRecordingModal()">Cerrar sin Guardar</button>
                 <button type="button" class="btn-primary" onclick="confirmSaveRecordedPlay()">💾 Guardar Jugada en Nube</button>
             </div>
         </div>
@@ -824,9 +866,9 @@
                 <button type="button" onclick="document.getElementById('tactical-help-modal').classList.remove('open')" style="background:none;border:none;color:white;font-size:1.15rem;cursor:pointer;">✕</button>
             </div>
             <div style="font-size:0.76rem;color:#CBD5E1;line-height:1.55;display:flex;flex-direction:column;gap:8px;">
-                <div><strong style="color:#A855F7;">1. 🔒 Seguir Marca (Marcaje Individual 1vs1):</strong> Selecciona primero a tu defensor (ficha verde), pulsa <strong>"🔒 Seguir Marca"</strong> y haz clic sobre el jugador rojo del rival al que quieres marcar. Cuando ese rival rojo se mueva o trace una carrera en cualquier fase, tu defensor lo perseguirá automáticamente manteniendo la distancia de marcaje.</div>
-                <div><strong style="color:#00FF88;">2. 🔴 Seleccionar y Mover Jugadores Rojos (Rival):</strong> Toca cualquier ficha roja para seleccionarla (`⚔️ RIVAL`) y haz clic en el campo o arrástrala para crear sus desmarques y pases.</div>
-                <div><strong style="color:#38BDF8;">3. ↩️ Deshacer Inteligente:</strong> El botón Deshacer compara el estado real de la pizarra y nunca suma pasos si pulsas varias veces el mismo botón sin cambios.</div>
+                <div><strong style="color:#00FF88;">1. ⚡ Modo Colocación Libre vs Modo Crear Jugada:</strong> Mientras no pulses <strong>"⚡ Empezar a Crear"</strong>, puedes mover libremente a todos los jugadores por el campo sin que salgan líneas. Al pulsar <strong>"⚡ Empezar a Crear"</strong>, se iluminan las herramientas de creación y se registran las flechas y fases. Al pulsar <strong>"⏹ Terminar"</strong>, las herramientas se apagan y se abre la ventana para guardar.</div>
+                <div><strong style="color:#A855F7;">2. 🔒 Seguir Marca (Marcaje Individual 1vs1):</strong> Con el modo crear encendido, selecciona a tu defensor (verde), pulsa <strong>"🔒 Seguir Marca 1vs1"</strong> y toca al rival rojo que quieres que persiga automáticamente.</div>
+                <div><strong style="color:#38BDF8;">3. ⚙️ Personalizar Efectivos:</strong> Añade o quita jugadores de cualquier posición en ambos equipos.</div>
             </div>
             <div style="display:flex;justify-content:flex-end;margin-top:4px;">
                 <button type="button" class="btn-primary" onclick="document.getElementById('tactical-help-modal').classList.remove('open')">Entendido ⚡</button>
@@ -851,10 +893,9 @@
 
     <script>
         // =========================================================================
-        // MOTOR PROFESIONAL ANALIZADOR2.HTML V7:
-        // 1. DESHACER CON DEDUPLICACIÓN REAL (PULSAR 20 VECES EL MISMO BOTÓN NO AUMENTA DESHACER)
-        // 2. FICHAS ROJAS (RIVAL) 100% SELECCIONABLES Y ARRASTRABLES (POINTER-EVENTS CORREGIDO)
-        // 3. FUNCIÓN DEFENSIVA "🔒 SEGUIR MARCA (1VS1)" QUE PERSIGUE AUTOMÁTICAMENTE AL RIVAL ROJO
+        // MOTOR PROFESIONAL ANALIZADOR2.HTML V8:
+        // - MODO LIBRE POR DEFECTO: MUEVE FICHAS A TU ANTOJO SIN QUE SALGAN LÍNEAS DETRÁS
+        // - BOTÓN "⚡ EMPEZAR A CREAR" / "⏹ TERMINAR": ENCIENDE E ILUMINA LAS HERRAMIENTAS DE CREACIÓN Y AL TERMINAR LAS APAGA Y GUARDA
         // =========================================================================
         const SPORT_POSITIONS_LIST = {
             'Fútbol': ['POR', 'DFC', 'LI', 'LD', 'MCD', 'MC', 'MCO', 'EI', 'ED', 'DC'],
@@ -961,15 +1002,13 @@
         let showPhotoTokens = false;
         let currentZoomMode = 'full';
         let showRivals = false;
-        let isRecordingPlay = false;
+        let isRecordingPlay = false; // SOLO CUANDO ESTÁ EN TRUE SE REGISTRAN LÍNEAS Y SE ENCIENDEN LAS OPCIONES DE CREAR
         let editingPlayId = null;
 
         let baseVerticalSlots = [];
         let boardHorizontalSlots = [];
         let rivalTokens = [];
         let ballCoords = { x: 50, y: 50 };
-
-        // Vínculos de Marcaje Individual (Seguir Marca): { ownIdx: rivalIdx }
         let manMarkingLinks = {};
 
         let currentPhaseIdx = 0;
@@ -1001,7 +1040,6 @@
             if (undoHistoryStack.length > 0) {
                 const topSnap = undoHistoryStack[undoHistoryStack.length - 1];
                 if (topSnap._sig === currentSig) {
-                    // Si el estado es idéntico al último guardado, NO se añade al historial (evita que suba al pulsar 20 veces el mismo botón)
                     return false;
                 }
             }
@@ -1024,7 +1062,6 @@
             if (undoHistoryStack.length === 0) return;
             const currentSig = buildStateSignature(boardHorizontalSlots, rivalTokens, ballCoords, phasesData, manMarkingLinks);
             let prev = undoHistoryStack.pop();
-            // Si el tope de la pila coincide con el estado actual en pantalla, extraer el inmediatamente anterior
             while (prev && prev._sig === currentSig && undoHistoryStack.length > 0) {
                 prev = undoHistoryStack.pop();
             }
@@ -1047,7 +1084,6 @@
         // =========================================================================
         // 2. MOTOR DE SEGUIMIENTO AUTOMÁTICO DE MARCA DEFENSIVA (1VS1)
         // =========================================================================
-        // Cuando un rival rojo se desplaza de (oldX, oldY) a (newX, newY), cualquier defensor tuyo que lo esté marcando lo sigue automáticamente
         function triggerFollowersForRivalMove(rivalIdx, oldRx, oldRy, newRx, newRy) {
             Object.keys(manMarkingLinks).forEach(ownIdxStr => {
                 const linkedRivalIdx = manMarkingLinks[ownIdxStr];
@@ -1059,14 +1095,15 @@
                 const startDx = defender.x;
                 const startDy = defender.y;
 
-                // Mantener un pequeño margen defensivo hacia nuestra propia portería (izquierda: -3% en X)
                 const offsetX = Math.max(-5, Math.min(5, startDx - oldRx));
                 const offsetY = Math.max(-5, Math.min(5, startDy - oldRy));
                 const finalDx = Math.min(94, Math.max(6, Math.round(newRx + (offsetX !== 0 ? offsetX : -3))));
                 const finalDy = Math.min(92, Math.max(8, Math.round(newRy + offsetY)));
 
                 if (Math.hypot(finalDx - startDx, finalDy - startDy) >= 2) {
-                    phasesData[currentPhaseIdx].vectors.push(toSvgVec(startDx, startDy, finalDx, finalDy, '#A855F7'));
+                    if (isRecordingPlay) {
+                        phasesData[currentPhaseIdx].vectors.push(toSvgVec(startDx, startDy, finalDx, finalDy, '#A855F7'));
+                    }
                     defender.x = finalDx;
                     defender.y = finalDy;
                 }
@@ -1074,6 +1111,7 @@
         }
 
         function clearAllManMarks() {
+            if (!isRecordingPlay) return;
             if (Object.keys(manMarkingLinks).length === 0) return;
             pushUndoState();
             manMarkingLinks = {};
@@ -1138,7 +1176,7 @@
         }
 
         // =========================================================================
-        // 4. LAS 3 SUB-PESTAÑAS DEL PANEL DERECHO (🛠️ CREAR | 🧠 JUGADAS IA | 💾 GUARDADOS)
+        // 4. LAS 3 SUB-PESTAÑAS DEL PANEL DERECHO CON INTERRUPTOR "⚡ EMPEZAR A CREAR" / "⏹ TERMINAR"
         // =========================================================================
         function getActiveActorSlotObject() {
             if (!selectedActor) return null;
@@ -1148,8 +1186,8 @@
 
         function getActorLabelString() {
             const actObj = getActiveActorSlotObject();
-            if (!actObj) return '✋ ACTIVO: TOCA UN JUGADOR (VERDE O ROJO)';
-            if (selectedActor.isRival) return `⚔️ RIVAL ROJO: [${actObj.pos}] ${actObj.init}`;
+            if (!actObj) return '✋ TOCA UN JUGADOR (VERDE/ROJO)';
+            if (selectedActor.isRival) return `⚔️ RIVAL: [${actObj.pos}] ${actObj.init}`;
             const pName = actObj.player ? actObj.player.name.split(' ')[0] : actObj.pos;
             const markRivIdx = manMarkingLinks[selectedActor.index];
             const markSuffix = (markRivIdx !== undefined && rivalTokens[markRivIdx]) ? ` 🔒→${rivalTokens[markRivIdx].init}` : '';
@@ -1172,52 +1210,54 @@
 
             if (activeRightSubTab === 'create') {
                 box.innerHTML = `
-                    <!-- BLOQUE 1: CONSOLA DE GRABACIÓN, TRAZADO Y SEGUIR MARCA 1VS1 -->
-                    <div class="exec-studio-section">
+                    <!-- BLOQUE 1: CONSOLA CON BOTÓN "⚡ EMPEZAR A CREAR" QUE ILUMINA Y DESBLOQUEA LAS OPCIONES -->
+                    <div class="exec-studio-section ${isRecordingPlay ? 'creation-powered-on' : ''}">
                         <div class="exec-studio-header">
-                            <span id="active-actor-label">${getActorLabelString()}</span>
-                            <button type="button" class="tool-pill-btn ${isRecordingPlay ? 'btn-recording-active' : 'active-green'}" style="padding:4px 9px;" onclick="togglePlayRecording()">
-                                ${isRecordingPlay ? '⏹ Terminar REC' : '🔴 Grabar Fase'}
+                            <span id="active-actor-label" style="color:${isRecordingPlay ? '#FFFFFF' : 'var(--text-secondary)'};">${getActorLabelString()}</span>
+                            <button type="button" class="tool-pill-btn ${isRecordingPlay ? 'btn-recording-active' : 'btn-start-creation'}" style="padding:5px 10px;" onclick="togglePlayRecording()">
+                                ${isRecordingPlay ? '⏹ Terminar' : '⚡ Empezar a Crear'}
                             </button>
                         </div>
 
-                        <div class="exec-segmented-bar" style="margin-bottom:6px;">
-                            <button type="button" class="exec-seg-option ${activeDrawingTool === 'offball' ? 'active-tool' : ''}" onclick="setDrawingTool('offball')">
-                                <span class="exec-dot" style="background:#00FF88;box-shadow:0 0 6px #00FF88;"></span>
-                                <span>Desmarque</span>
-                            </button>
-                            <button type="button" class="exec-seg-option ${activeDrawingTool === 'pass' ? 'active-tool' : ''}" onclick="setDrawingTool('pass')">
-                                <span class="exec-dot" style="background:#F59E0B;box-shadow:0 0 6px #F59E0B;"></span>
-                                <span>Pase / Tiro</span>
-                            </button>
-                            <button type="button" class="exec-seg-option ${activeDrawingTool === 'dribble' ? 'active-tool' : ''}" onclick="setDrawingTool('dribble')">
-                                <span class="exec-dot" style="background:#38BDF8;box-shadow:0 0 6px #38BDF8;"></span>
-                                <span>Conducción</span>
-                            </button>
-                            <button type="button" class="exec-seg-option ${activeDrawingTool === 'screen' ? 'active-tool' : ''}" onclick="setDrawingTool('screen')">
-                                <span class="exec-dot" style="background:#EF4444;box-shadow:0 0 6px #EF4444;"></span>
-                                <span>Presión / Bloq.</span>
-                            </button>
-                        </div>
+                        <!-- DECK DE HERRAMIENTAS: APAGADO EN STANDBY HASTA PULSAR "EMPEZAR A CREAR", SE ILUMINA AL ACTIVAR -->
+                        <div class="creation-tools-deck ${isRecordingPlay ? 'deck-powered-on' : 'deck-standby-off'}">
+                            <div class="exec-segmented-bar" style="margin-bottom:6px;">
+                                <button type="button" class="exec-seg-option ${activeDrawingTool === 'offball' ? 'active-tool' : ''}" onclick="setDrawingTool('offball')">
+                                    <span class="exec-dot" style="background:#00FF88;box-shadow:0 0 6px #00FF88;"></span>
+                                    <span>Desmarque</span>
+                                </button>
+                                <button type="button" class="exec-seg-option ${activeDrawingTool === 'pass' ? 'active-tool' : ''}" onclick="setDrawingTool('pass')">
+                                    <span class="exec-dot" style="background:#F59E0B;box-shadow:0 0 6px #F59E0B;"></span>
+                                    <span>Pase / Tiro</span>
+                                </button>
+                                <button type="button" class="exec-seg-option ${activeDrawingTool === 'dribble' ? 'active-tool' : ''}" onclick="setDrawingTool('dribble')">
+                                    <span class="exec-dot" style="background:#38BDF8;box-shadow:0 0 6px #38BDF8;"></span>
+                                    <span>Conducción</span>
+                                </button>
+                                <button type="button" class="exec-seg-option ${activeDrawingTool === 'screen' ? 'active-tool' : ''}" onclick="setDrawingTool('screen')">
+                                    <span class="exec-dot" style="background:#EF4444;box-shadow:0 0 6px #EF4444;"></span>
+                                    <span>Presión / Bloq.</span>
+                                </button>
+                            </div>
 
-                        <!-- BOTÓN DEFENSIVO "SEGUIR MARCA 1VS1" -->
-                        <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:5px;margin-bottom:6px;">
-                            <button type="button" class="tool-pill-btn ${activeDrawingTool === 'manmark' ? 'active-purple' : ''}" style="padding:6px 8px;" onclick="setDrawingTool('manmark')">
-                                🔒 Seguir Marca 1vs1 (${activeMarksCount})
-                            </button>
-                            <button type="button" class="btn-secondary" style="padding:5px 6px;font-size:0.54rem;" onclick="clearAllManMarks()">
-                                🔓 Soltar Marcas
-                            </button>
-                        </div>
+                            <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:5px;margin-bottom:6px;">
+                                <button type="button" class="tool-pill-btn ${activeDrawingTool === 'manmark' ? 'active-purple' : ''}" style="padding:6px 8px;" onclick="setDrawingTool('manmark')">
+                                    🔒 Seguir Marca 1vs1 (${activeMarksCount})
+                                </button>
+                                <button type="button" class="btn-secondary" style="padding:5px 6px;font-size:0.54rem;" onclick="clearAllManMarks()">
+                                    🔓 Soltar Marcas
+                                </button>
+                            </div>
 
-                        <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:4px;">
-                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="applyPresetAction('ruptura')">↗️ Ruptura</button>
-                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="applyPresetAction('apoyo')">↙️ Apoyo</button>
-                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;color:#FCA5A5;" onclick="clearAllVectorsOnBoard()">🗑️ Borrar Fase</button>
+                            <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:4px;">
+                                <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="applyPresetAction('ruptura')">↗️ Ruptura</button>
+                                <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="applyPresetAction('apoyo')">↙️ Apoyo</button>
+                                <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;color:#FCA5A5;" onclick="clearAllVectorsOnBoard()">🗑️ Borrar Fase</button>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- BLOQUE 2: ZONA DE INICIO TÁCTICO RÁPIDO -->
+                    <!-- BLOQUE 2: ZONA DE INICIO TÁCTICO RÁPIDO (SIEMPRE DISPONIBLE PARA COLOCAR ANTES DE CREAR) -->
                     <div class="exec-studio-section" style="border-left-color:#38BDF8;">
                         <div class="exec-studio-header">
                             <span>📍 ZONA DE PARTIDA EN CAMPO</span>
@@ -1279,7 +1319,7 @@
             if (savedPlaysLibrary.length === 0) {
                 box.innerHTML = `
                     <div style="text-align:center;padding:24px 12px;border:1px dashed var(--border-subtle);border-radius:14px;font-size:0.71rem;color:var(--text-secondary);">
-                        No tienes jugadas guardadas aún. Crea una en <strong>"🛠️ Crear"</strong> o personaliza una de <strong>"🧠 Jugadas IA"</strong>.
+                        No tienes jugadas guardadas aún. Pulsa <strong>"⚡ Empezar a Crear"</strong> en la pestaña Crear o personaliza una de <strong>"🧠 Jugadas IA"</strong>.
                     </div>
                 `;
                 return;
@@ -1375,7 +1415,6 @@
 
         function addCustomPositionToken(side) {
             pushUndoState();
-            hasUnsavedChanges = true;
             if (side === 'own') {
                 const posVal = document.getElementById('cust-add-own-pos')?.value || 'MC';
                 const coords = getSmartDefaultCoordsForPos(posVal, false);
@@ -1394,7 +1433,6 @@
 
         function removeSpecificToken(side, idx) {
             pushUndoState();
-            hasUnsavedChanges = true;
             if (side === 'own') {
                 if (boardHorizontalSlots.length <= 1) return;
                 boardHorizontalSlots.splice(idx, 1);
@@ -1411,18 +1449,22 @@
         }
 
         // =========================================================================
-        // 6. MODAL DE FIN DE GRABACIÓN Y GUARDADO AUTOMÁTICO EN NUBE
+        // 6. INTERRUPTOR MAESTRO "⚡ EMPEZAR A CREAR" / "⏹ TERMINAR" Y GUARDADO EN NUBE
         // =========================================================================
         function togglePlayRecording() {
             if (!isRecordingPlay) {
+                // ENCENDER E ILUMINAR LAS OPCIONES DE CREACIÓN
                 isRecordingPlay = true;
                 syncPhaseSnapshot();
                 renderRightSubTab();
-                document.getElementById('live-tactical-teleprompter').innerHTML = `🔴 <strong>GRABANDO FASE ${currentPhaseIdx + 1}:</strong> Selecciona o arrastra jugadores verdes o rojos para registrar sus movimientos.`;
+                document.getElementById('live-tactical-teleprompter').innerHTML = `⚡ <strong>MODO CREAR ACTIVO (Fase ${currentPhaseIdx + 1}):</strong> Herramientas encendidas. Ahora cada movimiento o clic dibuja las líneas de tu jugada.`;
+                document.getElementById('ai-board-diagnosis').innerHTML = `🔴 <strong>Grabando Jugada:</strong> Arrastra jugadores o haz clic en el campo con la herramienta elegida. Pulsa "⏹ Terminar" cuando acabes.`;
             } else {
+                // APAGAR LAS OPCIONES DE CREACIÓN Y ABRIR MODAL KINET DE GUARDADO
                 isRecordingPlay = false;
                 syncPhaseSnapshot();
                 renderRightSubTab();
+                document.getElementById('live-tactical-teleprompter').innerHTML = `✓ <strong>Creación Finalizada:</strong> Herramientas en reposo. Ponle nombre a tu jugada o mueve fichas libremente.`;
                 openSaveRecordingModal();
             }
         }
@@ -1438,7 +1480,7 @@
             const existingTitle = (document.getElementById('play-title-input')?.value || '').trim();
             const modalTitleInp = document.getElementById('rec-modal-title-input');
             const modalNotesInp = document.getElementById('rec-modal-notes-input');
-            if (modalTitleInp) modalTitleInp.value = existingTitle || `${currentPresetName} • Jugada Grabada`;
+            if (modalTitleInp) modalTitleInp.value = existingTitle || `${currentPresetName} • Jugada Creada`;
             if (modalNotesInp) modalNotesInp.value = `${activePhasesCount} fases (${totalVecs} desplazamientos/pases)`;
 
             document.getElementById('save-recording-modal')?.classList.add('open');
@@ -1718,10 +1760,9 @@
         }
 
         // =========================================================================
-        // 9. FORMACIÓN EN SAQUE INICIAL DE CENTRO DEL CAMPO Y JUGADAS IA (SIN SUBIR DESHACER SI YA ESTÁ ACTIVO)
+        // 9. FORMACIÓN EN SAQUE INICIAL DE CENTRO DEL CAMPO Y JUGADAS IA
         // =========================================================================
         function applyKickoffFormation(skipUndo) {
-            // Si ya estamos exactamente en Saque de Centro sin trazos nuevos, no inflar el botón Deshacer
             const hasAnyVec = phasesData.some(p => p.vectors && p.vectors.length > 0);
             if (!skipUndo && activeMomentKey === 'kickoff_center' && !hasAnyVec) {
                 return;
@@ -1782,6 +1823,7 @@
 
         function resetBoardToCleanBase(skipUndo) {
             selectedActor = null;
+            isRecordingPlay = false;
             activeMomentKey = 'base_formation';
             manMarkingLinks = {};
             setTacticalZoom('full');
@@ -1811,7 +1853,7 @@
             updatePhaseButtonsUI();
             renderHorizontalArena();
             renderRightSubTab();
-            document.getElementById('live-tactical-teleprompter').innerHTML = `📐 <strong>Formación Base (${currentPresetName}):</strong> Plantilla limpia. Toca cualquier jugador verde o rojo.`;
+            document.getElementById('live-tactical-teleprompter').innerHTML = `📐 <strong>Modo Colocación Libre (${currentPresetName}):</strong> Mueve cualquier ficha sin dejar líneas o pulsa "⚡ Empezar a Crear".`;
         }
 
         function findRoleIndex(slotsArr, type) {
@@ -2190,7 +2232,7 @@
         }
 
         // =========================================================================
-        // 10. CONTROL DE FASES (1, 2, 3), RENDERIZADO Y MARCAJE 1VS1
+        // 10. CONTROL DE FASES, RENDERIZADO Y ARRASTRE LIBRE (SIN LÍNEAS HASTA PULSAR EMPEZAR A CREAR)
         // =========================================================================
         function selectTacticalPhase(targetPhaseIdx) {
             if (phasesData[currentPhaseIdx]) {
@@ -2338,7 +2380,6 @@
                 const curZone = phasesData[currentPhaseIdx]?.zone;
                 const zSvg = curZone ? `<circle cx="${curZone.cx}" cy="${curZone.cy}" r="${curZone.r}" fill="${curZone.color}" class="kinet-zone-circle"/>` : '';
 
-                // Líneas de vínculo de Marcaje Individual (Seguir Marca 1vs1)
                 let markLines = '';
                 if (showRivals) {
                     Object.keys(manMarkingLinks).forEach(ownIdxStr => {
@@ -2370,6 +2411,7 @@
             phasesData[currentPhaseIdx].ballCoords = { ...ballCoords };
         }
 
+        // ARRASTRE DE FICHAS: SI isRecordingPlay ES FALSE, MUEVE AL JUGADOR LIBREMENTE SIN DEJAR LÍNEAS DETRÁS
         function bindTokenDragAndClick(el, slotObj, idx, isRival) {
             const surface = document.getElementById('arena-3d-surface');
             if (!surface) return;
@@ -2410,18 +2452,21 @@
                     el.classList.remove('dragging');
 
                     if (maxDelta >= 2) {
-                        undoHistoryStack.push(preDragState);
-                        updateUndoCounterUI();
-                        hasUnsavedChanges = true;
                         selectedActor = { isRival, index: idx };
 
-                        const col = isRival
-                            ? '#EF4444'
-                            : (activeDrawingTool === 'dribble' ? '#38BDF8' : (activeDrawingTool === 'screen' ? '#EF4444' : '#00FF88'));
-                        phasesData[currentPhaseIdx].vectors.push(toSvgVec(startX, startY, slotObj.x, slotObj.y, col));
-                        if (!isRival && activeDrawingTool === 'dribble') ballCoords = { x: slotObj.x, y: slotObj.y };
+                        // SOLO SI HAS DADO A "⚡ EMPEZAR A CREAR" (isRecordingPlay === true) SE REGISTRA LA LÍNEA DETRÁS
+                        if (isRecordingPlay) {
+                            undoHistoryStack.push(preDragState);
+                            updateUndoCounterUI();
+                            hasUnsavedChanges = true;
 
-                        // Si se ha movido un jugador ROJO (Rival) y tiene un defensor tuyo asignado en "Seguir Marca", el defensor lo persigue automáticamente
+                            const col = isRival
+                                ? '#EF4444'
+                                : (activeDrawingTool === 'dribble' ? '#38BDF8' : (activeDrawingTool === 'screen' ? '#EF4444' : '#00FF88'));
+                            phasesData[currentPhaseIdx].vectors.push(toSvgVec(startX, startY, slotObj.x, slotObj.y, col));
+                            if (!isRival && activeDrawingTool === 'dribble') ballCoords = { x: slotObj.x, y: slotObj.y };
+                        }
+
                         if (isRival) {
                             triggerFollowersForRivalMove(idx, startX, startY, slotObj.x, slotObj.y);
                         }
@@ -2432,8 +2477,7 @@
                         slotObj.x = startX;
                         slotObj.y = startY;
 
-                        // MODO SEGUIR MARCA 1VS1: Si tenías seleccionado un defensor tuyo (verde) y haces clic sobre un rival rojo, los vincula
-                        if (activeDrawingTool === 'manmark' && isRival && selectedActor && !selectedActor.isRival) {
+                        if (isRecordingPlay && activeDrawingTool === 'manmark' && isRival && selectedActor && !selectedActor.isRival) {
                             undoHistoryStack.push(preDragState);
                             updateUndoCounterUI();
                             hasUnsavedChanges = true;
@@ -2452,7 +2496,7 @@
                             return;
                         }
 
-                        if (activeDrawingTool === 'pass' && selectedActor && (selectedActor.isRival !== isRival || selectedActor.index !== idx)) {
+                        if (isRecordingPlay && activeDrawingTool === 'pass' && selectedActor && (selectedActor.isRival !== isRival || selectedActor.index !== idx)) {
                             undoHistoryStack.push(preDragState);
                             updateUndoCounterUI();
                             hasUnsavedChanges = true;
@@ -2480,8 +2524,6 @@
                 return;
             }
 
-            pushUndoState();
-            hasUnsavedChanges = true;
             boardHorizontalSlots = baseVerticalSlots.map(s => ({
                 pos: s.pos, player: s.player, ...verticalToHorizontal(s.x, s.y)
             }));
@@ -2710,6 +2752,7 @@
         }
 
         function setDrawingTool(toolKey) {
+            if (!isRecordingPlay) return;
             activeDrawingTool = toolKey;
             if (toolKey === 'manmark') {
                 showRivals = true;
@@ -2731,12 +2774,15 @@
             if (lbl) lbl.textContent = getActorLabelString();
         }
 
+        // CLIC EN EL CÉSPED: SOLO DIBUJA LÍNEAS SI HAS DADO A "⚡ EMPEZAR A CREAR" (isRecordingPlay === true)
         function bindArenaSurfaceClick() {
             const surface = document.getElementById('arena-3d-surface');
             if (!surface) return;
 
             surface.addEventListener('click', (e) => {
                 if (e.target.closest('.micro-player-token') || e.target.closest('.micro-rival-token')) return;
+                if (!isRecordingPlay) return;
+
                 const slot = getActiveActorSlotObject();
                 if (!slot && activeDrawingTool !== 'pass') return;
 
@@ -2790,6 +2836,7 @@
         }
 
         function applyPresetAction(actType) {
+            if (!isRecordingPlay) return;
             const slot = getActiveActorSlotObject();
             if (!slot) {
                 alert('Toca primero cualquier jugador tuyo (verde) o del rival (rojo) en el campo.');
@@ -2833,7 +2880,7 @@
                 isRecordingPlay = true;
                 renderRightSubTab();
                 renderHorizontalArena();
-                document.getElementById('live-tactical-teleprompter').innerHTML = '🔴 <strong>Nueva Jugada en Grabación:</strong> Toca cualquier jugador verde o rojo para trazar Fase 1, 2 y 3.';
+                document.getElementById('live-tactical-teleprompter').innerHTML = '⚡ <strong>MODO CREAR ACTIVO:</strong> Herramientas encendidas. Toca cualquier jugador verde o rojo para trazar Fase 1, 2 y 3.';
             });
         }
 
