@@ -96,7 +96,7 @@
             .os-sidebar { display: none !important; }
         }
 
-        /* CORTINA DIVERTIDA DE TRANSICIÓN ENTRE PIZARRAS */
+        /* CORTINA DIVERTIDA DE TRANSICIÓN */
         #kinet-funny-curtain {
             position: fixed; inset: 0; z-index: 99999;
             background: radial-gradient(circle at 50% 50%, rgba(var(--role-rgb), 0.18) 0%, #04060A 85%);
@@ -197,7 +197,7 @@
 
         /* DESPLEGABLES KINET COMPACTOS Y ANIMADOS */
         .kinet-custom-select-wrap { position: relative; display: inline-block; min-width: 155px; max-width: 245px; user-select: none; z-index: 80; }
-        .kinet-custom-select-wrap.open { z-index: 160; }
+        .kinet-custom-select-wrap.open { z-index: 260; }
         .kinet-custom-select-trigger {
             width: 100%; background: rgba(6, 9, 16, 0.96); border: 1px solid rgba(var(--role-rgb), 0.45);
             border-radius: 10px; padding: 7px 10px; color: #F8FAFC; font-family: 'Inter', sans-serif;
@@ -215,7 +215,7 @@
             position: absolute; top: calc(100% + 6px); right: 0; min-width: 100%; width: max-content; max-width: 310px;
             max-height: 265px; overflow-y: auto; background: rgba(9, 13, 22, 0.98); backdrop-filter: blur(24px);
             border: 1px solid rgba(var(--role-rgb), 0.55); border-radius: 13px; padding: 5px;
-            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.94), 0 0 25px rgba(var(--role-rgb), 0.22); display: none; z-index: 250;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.94), 0 0 25px rgba(var(--role-rgb), 0.22); display: none; z-index: 350;
         }
         .kinet-custom-select-wrap.open .kinet-custom-select-menu { display: block; animation: kinetDropIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .kinet-custom-option {
@@ -271,19 +271,52 @@
         .kinet-panel:hover::before { opacity: 1; }
         .kinet-panel:hover { border-color: rgba(var(--role-rgb), 0.38); }
 
-        .panel-head { display: flex; justify-content: space-between; align-items: center; min-height: 38px; margin-bottom: 8px; gap: 8px; flex-wrap: wrap; }
+        /* CABECERA DEL CAMPO FIJA EN 1 SOLA LÍNEA */
+        .panel-head-fixed {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: nowrap !important;
+            height: 48px;
+            min-height: 48px;
+            max-height: 48px;
+            margin-bottom: 8px;
+            gap: 10px;
+            overflow: hidden;
+        }
+        .panel-head-left {
+            min-width: 0;
+            flex: 1 1 auto;
+            overflow: hidden;
+        }
+        .panel-head-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        #live-tactical-teleprompter {
+            font-size: 0.71rem;
+            color: var(--role-color);
+            font-weight: 700;
+            margin-top: 3px;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            display: block !important;
+        }
+
         .minimal-mode-switch { display: inline-flex; background: rgba(4, 6, 10, 0.95); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 11px; padding: 3px; gap: 4px; }
         .minimal-mode-btn {
             background: transparent; border: none; color: var(--text-secondary); font-family: 'Orbitron', sans-serif;
-            font-size: 0.62rem; font-weight: 800; padding: 6px 12px; border-radius: 8px; cursor: pointer;
+            font-size: 0.61rem; font-weight: 800; padding: 5px 11px; border-radius: 8px; cursor: pointer;
             display: inline-flex; align-items: center; gap: 6px; transition: all 0.22s ease;
         }
         .minimal-mode-btn:hover { color: #FFFFFF; }
         .minimal-mode-btn.active { background: var(--role-gradient); color: #04060A; font-weight: 900; box-shadow: 0 0 14px var(--role-glow); }
 
-        /* =========================================================================
-           ESCENARIO HORIZONTAL CON ZOOM VECTORIAL REAL HD (CERO PIXELADO AL HACER ZOOM)
-           ========================================================================= */
+        /* ESCENARIO HORIZONTAL CON ZOOM VECTORIAL REAL HD PANORÁMICO (380x420) */
         .arena-3d-viewport {
             width: 100%; height: 400px;
             background:
@@ -303,7 +336,7 @@
         }
         .arena-svg-canvas { width: 100%; height: 100%; display: block; border-radius: 14px; pointer-events: none; }
 
-        /* FICHAS SIEMPRE A RESOLUCIÓN NATIVA 1:1 (NUNCA SE PIXELAN EN ZOOM) */
+        /* FICHAS PROPIAS Y RIVALES 100% SELECCIONABLES */
         .micro-player-token {
             position: absolute; transform: translate(-50%, -50%);
             width: 40px; height: 40px; border-radius: 50%;
@@ -321,7 +354,7 @@
         .micro-player-token:hover, .micro-player-token.active-actor {
             border: 2.5px solid #FFFFFF;
             box-shadow: 0 0 20px #FFFFFF, 0 0 30px var(--role-color);
-            transform: translate(-50%, -50%) scale(1.16);
+            transform: translate(-50%, -50%) scale(1.18);
             z-index: 65;
         }
         .micro-rival-token {
@@ -330,10 +363,15 @@
             background: radial-gradient(circle at 30% 30%, rgba(239, 68, 68, 0.54), rgba(24, 6, 10, 0.98));
             border: 2px solid #EF4444; box-shadow: 0 6px 14px rgba(0,0,0,0.88), 0 0 12px rgba(239, 68, 68, 0.45);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 28; cursor: grab; user-select: none;
-            transition: left 0.72s cubic-bezier(0.22, 1, 0.36, 1), top 0.72s cubic-bezier(0.22, 1, 0.36, 1), transform 0.2s ease;
+            z-index: 34; cursor: grab; user-select: none;
+            transition: left 0.72s cubic-bezier(0.22, 1, 0.36, 1), top 0.72s cubic-bezier(0.22, 1, 0.36, 1), transform 0.2s ease, box-shadow 0.2s ease;
         }
-        .micro-rival-token:hover { transform: translate(-50%, -50%) scale(1.14); border-color: #FFFFFF; z-index: 60; }
+        .micro-rival-token:hover, .micro-rival-token.active-actor {
+            border: 2.5px solid #FFFFFF;
+            box-shadow: 0 0 20px #FFFFFF, 0 0 30px #EF4444;
+            transform: translate(-50%, -50%) scale(1.18);
+            z-index: 65;
+        }
         .micro-initials {
             font-family: 'Orbitron', sans-serif; font-size: 0.62rem; font-weight: 900;
             color: #FFFFFF; line-height: 1; text-shadow: 0 1px 4px rgba(0,0,0,0.95);
@@ -435,15 +473,40 @@
         }
         .saved-play-card:hover { border-color: var(--role-color); background: rgba(var(--role-rgb), 0.07); }
 
+        /* MODALES ANIMADOS CON ESTÉTICA KINET OS */
         .kinet-modal-overlay {
             position: fixed; inset: 0; background: rgba(4, 6, 10, 0.88); backdrop-filter: blur(18px); z-index: 600;
-            display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; padding: 14px;
+            display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.26s ease; padding: 14px;
         }
         .kinet-modal-overlay.open { opacity: 1; pointer-events: auto; }
         .kinet-modal-box {
-            background: rgba(13, 17, 26, 0.98); border: 1px solid rgba(var(--role-rgb), 0.55); border-radius: 22px;
-            max-width: 560px; width: 100%; padding: 22px; box-shadow: 0 25px 60px rgba(0,0,0,0.92);
-            display: flex; flex-direction: column; gap: 12px; text-align: left;
+            background: rgba(11, 15, 24, 0.98); border: 1.5px solid rgba(var(--role-rgb), 0.58); border-radius: 22px;
+            max-width: 620px; width: 100%; padding: 22px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.95), 0 0 32px rgba(var(--role-rgb), 0.22);
+            transform: scale(0.94) translateY(12px);
+            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; flex-direction: column; gap: 13px; text-align: left;
+        }
+        .kinet-modal-overlay.open .kinet-modal-box {
+            transform: scale(1) translateY(0);
+        }
+
+        .customizer-two-cols {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+        }
+        @media (max-width: 640px) { .customizer-two-cols { grid-template-columns: 1fr; } }
+        .customizer-team-card {
+            background: rgba(4, 6, 12, 0.88);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px; padding: 12px;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .customizer-player-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 6px 9px; border-radius: 9px;
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 0.71rem; color: #F8FAFC;
         }
     </style>
 </head>
@@ -479,8 +542,8 @@
             </div>
             <div class="sidebar-bottom-section">
                 <div class="sidebar-ai-tip-box">
-                    <div class="sidebar-ai-tip-header"><span>💡</span> <span>Zoom Vectorial HD</span></div>
-                    <div class="sidebar-ai-tip-text">En Balón Parado la cámara amplía el área en calidad vectorial HD reestructurando todas las marcas.</div>
+                    <div class="sidebar-ai-tip-header"><span>💡</span> <span>Grabadora & Efectivos</span></div>
+                    <div class="sidebar-ai-tip-text">Al terminar de grabar se abre el cuadro KINET para guardar la jugada, y puedes personalizar efectivos por puesto.</div>
                 </div>
                 <a href="perfil.html" id="nav-perfil" class="side-link"><span class="side-link-left"><span>👤</span> <span>Mi Perfil</span></span><span>→</span></a>
                 <a href="despacho.html" id="nav-despacho" class="side-link"><span class="side-link-left"><span>⚙️</span> <span>Despacho & Ajustes</span></span><span>→</span></a>
@@ -535,7 +598,7 @@
                         <button type="button" class="btn-secondary" id="toggle-token-display-btn" onclick="toggleMicroTokenDisplay()">
                             🎴 Ficha: Iniciales
                         </button>
-                        <button type="button" class="btn-secondary" id="toggle-zoom-btn" onclick="cycleTacticalZoom()" title="Acercar cámara en HD a la zona de acción o ver campo completo">
+                        <button type="button" class="btn-secondary" id="toggle-zoom-btn" onclick="cycleTacticalZoom()" title="Acercar cámara panorámica en HD a la zona de acción o ver campo completo">
                             🔍 Zoom: Campo Total
                         </button>
                     </div>
@@ -546,8 +609,9 @@
                     <!-- COLUMNA IZQUIERDA (8 COL) -->
                     <div class="col-8">
                         <div class="kinet-panel" id="left-strategy-panel">
-                            <div class="panel-head">
-                                <div>
+                            <!-- CABECERA BLOQUEADA EN 1 SOLA LÍNEA CON EL NUEVO BOTÓN "⚙️ PERSONALIZAR EFECTIVOS" -->
+                            <div class="panel-head-fixed">
+                                <div class="panel-head-left">
                                     <div class="minimal-mode-switch">
                                         <button type="button" class="minimal-mode-btn" onclick="returnToRosterPage()">
                                             👥 Gestionar Plantilla
@@ -556,30 +620,31 @@
                                             🎬 Jugadas & Estrategias IA ✓
                                         </button>
                                     </div>
-                                    <div style="font-size:0.72rem;color:var(--role-color);font-weight:700;margin-top:4px;" id="live-tactical-teleprompter">
-                                        Tu plantilla está colocada en tu formación base. Pulsa Fase 1, 2 o 3 en cualquier jugada IA para ver la progresión completa.
+                                    <div id="live-tactical-teleprompter">
+                                        Toca cualquier jugador tuyo o del rival para seleccionarlo y trazar sus movimientos.
                                     </div>
                                 </div>
-                                <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
-                                    <button type="button" class="tool-pill-btn" onclick="adjustTeamCount('own', 1)" title="Añadir 1 jugador a tu equipo">+1 Mío</button>
-                                    <button type="button" class="tool-pill-btn" onclick="adjustTeamCount('own', -1)" title="Quitar 1 jugador de tu equipo">-1 Mío</button>
+                                <div class="panel-head-right">
+                                    <button type="button" class="tool-pill-btn active-blue" onclick="openCustomizePlayersModal()" title="Añadir o eliminar jugadores tuyos o rivales por posición">
+                                        ⚙️ Personalizar Efectivos
+                                    </button>
                                     <button type="button" class="tool-pill-btn" id="btn-undo-top" onclick="undoLastStep()">↩️ Deshacer (0)</button>
                                     <span class="verified-badge" id="phase-indicator-badge">FASE 1 / 3</span>
                                 </div>
                             </div>
 
-                            <!-- ESCENARIO 3D HORIZONTAL CON ZOOM VECTORIAL HD -->
+                            <!-- ESCENARIO 3D HORIZONTAL CON ZOOM VECTORIAL HD PANORÁMICO -->
                             <div class="arena-3d-viewport" id="arena-viewport-box">
                                 <div class="arena-3d-surface" id="arena-3d-surface">
                                     <div id="arena-svg-mount" style="width:100%;height:100%;"></div>
                                     <svg id="arena-vectors-svg" viewBox="0 0 600 420" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:26;"></svg>
-                                    <div id="arena-rivals-layer" style="position:absolute;inset:0;z-index:28;"></div>
+                                    <div id="arena-rivals-layer" style="position:absolute;inset:0;z-index:34;"></div>
                                     <div id="arena-tokens-layer" style="position:absolute;inset:0;z-index:35;"></div>
                                     <div id="sport-ball-node" style="left:50%;top:50%;">⚽</div>
                                 </div>
                             </div>
 
-                            <!-- CONSOLA INFERIOR: REPRODUCCIÓN MULTIFASE -->
+                            <!-- CONSOLA INFERIOR LIMPIA: REPRODUCCIÓN MULTIFASE + PERSONALIZAR + RIVAL -->
                             <div class="bench-reserve-master-box">
                                 <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
                                     <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;">
@@ -592,13 +657,13 @@
                                     </div>
                                     <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;">
                                         <button type="button" class="tool-pill-btn" id="btn-rival-toggle" onclick="toggleRivalVisibility()">⚔️ Rival: OFF</button>
-                                        <button type="button" class="tool-pill-btn" onclick="adjustTeamCount('rival', 1)" title="Añadir 1 jugador rival">+1 Riv</button>
-                                        <button type="button" class="tool-pill-btn" onclick="adjustTeamCount('rival', -1)" title="Quitar 1 jugador rival">-1 Riv</button>
-                                        <button type="button" class="tool-pill-btn" onclick="resetBoardToCleanBase()">↺ Formación Base</button>
+                                        <button type="button" class="tool-pill-btn" onclick="openCustomizePlayersModal()">⚙️ Efectivos</button>
+                                        <button type="button" class="tool-pill-btn" onclick="applyKickoffFormation()">⚽ Saque Centro</button>
+                                        <button type="button" class="tool-pill-btn" onclick="resetBoardToCleanBase()">↺ Base</button>
                                     </div>
                                 </div>
                                 <div style="display:flex;gap:8px;align-items:center;">
-                                    <input type="text" id="ai-tactical-input" class="kinet-input" placeholder="Pide una jugada al Director Táctico IA (ej: salida con laterales, presión alta, córner derecho, falta cercana)..." onkeydown="if(event.key==='Enter') executeAiTacticalCommand()">
+                                    <input type="text" id="ai-tactical-input" class="kinet-input" placeholder="Pide una jugada al Director Táctico IA (ej: saque inicial, salida con laterales, córner derecho, falta cercana)..." onkeydown="if(event.key==='Enter') executeAiTacticalCommand()">
                                     <button type="button" class="btn-primary" style="padding:7px 14px;font-size:0.63rem;" onclick="executeAiTacticalCommand()">Generar IA ⚡</button>
                                 </div>
                             </div>
@@ -622,7 +687,7 @@
                             <div style="margin-top:8px;background:rgba(var(--role-rgb),0.06);border:1px solid rgba(var(--role-rgb),0.32);border-radius:13px;padding:9px 11px;">
                                 <div style="font-family:'JetBrains Mono';font-size:0.56rem;color:var(--role-color);font-weight:700;margin-bottom:2px;">🧠 LECTURA TÁCTICA EN TIEMPO REAL</div>
                                 <p style="font-size:0.68rem;color:#E2E8F0;line-height:1.34;margin-bottom:7px;" id="ai-board-diagnosis">
-                                    Pulsa "1. Fase Inicial", "2. Desarrollo" y "3. Finalización" para ver la evolución de la jugada o trázala en Crear.
+                                    Selecciona cualquier jugador tuyo (verde) o del rival (rojo) y haz clic en el campo o arrástralo para crear sus movimientos.
                                 </p>
                                 <button type="button" class="btn-primary" style="width:100%;padding:7px 11px;font-size:0.62rem;" onclick="sendTacticToCoachChat()">
                                     ⚡ Analizar esta Pizarra con el Cuerpo Técnico IA →
@@ -635,6 +700,92 @@
         </div>
     </div>
 
+    <!-- =========================================================================
+         MODAL 1 (NUEVO): GUARDAR JUGADA AL TERMINAR DE GRABAR (ESTÉTICA KINET OS)
+         ========================================================================= -->
+    <div id="save-recording-modal" class="kinet-modal-overlay">
+        <div class="kinet-modal-box" style="max-width:460px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:10px;">
+                <div style="display:flex;align-items:center;gap:9px;">
+                    <span style="width:32px;height:32px;border-radius:10px;background:rgba(var(--role-rgb),0.16);border:1px solid var(--role-color);display:flex;align-items:center;justify-content:center;font-size:1rem;">💾</span>
+                    <div>
+                        <div style="font-family:'Orbitron';font-size:0.88rem;font-weight:900;color:#FFFFFF;">GUARDAR GRABACIÓN TÁCTICA</div>
+                        <div style="font-family:'JetBrains Mono';font-size:0.56rem;color:var(--role-color);" id="rec-modal-summary">3 FASES CAPTURADAS • CLOUD SYNC</div>
+                    </div>
+                </div>
+                <button type="button" onclick="closeSaveRecordingModal()" style="background:none;border:none;color:#94A3B8;font-size:1.15rem;cursor:pointer;">✕</button>
+            </div>
+
+            <div style="font-size:0.74rem;color:#CBD5E1;line-height:1.45;">
+                Ponle un nombre a la jugada que acabas de grabar para almacenarla con todos sus movimientos en tu Biblioteca y en la nube:
+            </div>
+
+            <div>
+                <label style="font-family:'JetBrains Mono';font-size:0.56rem;color:var(--role-color);font-weight:700;display:block;margin-bottom:4px;">🎬 NOMBRE DE LA JUGADA / ESTRATEGIA</label>
+                <input type="text" id="rec-modal-title-input" class="kinet-input" placeholder="Ej: Salida Lavolpiana + Ruptura Banda..." onkeydown="if(event.key==='Enter') confirmSaveRecordedPlay()">
+            </div>
+
+            <div>
+                <label style="font-family:'JetBrains Mono';font-size:0.56rem;color:var(--text-secondary);font-weight:700;display:block;margin-bottom:4px;">📝 CONSIGNA O NOTA TÁCTICA (OPCIONAL)</label>
+                <input type="text" id="rec-modal-notes-input" class="kinet-input" placeholder="Ej: Ejecutar ante presión alta rival en Fase 2...">
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:8px;margin-top:4px;">
+                <button type="button" class="btn-secondary" onclick="closeSaveRecordingModal()">Seguir Editando</button>
+                <button type="button" class="btn-primary" onclick="confirmSaveRecordedPlay()">💾 Guardar Jugada en Nube</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================================
+         MODAL 2 (NUEVO): PERSONALIZAR EFECTIVOS POR POSICIÓN (TU EQUIPO Y RIVAL)
+         ========================================================================= -->
+    <div id="customize-players-modal" class="kinet-modal-overlay">
+        <div class="kinet-modal-box" style="max-width:660px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:10px;">
+                <div style="display:flex;align-items:center;gap:9px;">
+                    <span style="width:32px;height:32px;border-radius:10px;background:rgba(56,189,248,0.16);border:1px solid #38BDF8;display:flex;align-items:center;justify-content:center;font-size:1rem;">⚙️</span>
+                    <div>
+                        <div style="font-family:'Orbitron';font-size:0.9rem;font-weight:900;color:#FFFFFF;">PERSONALIZAR EFECTIVOS EN PISTA</div>
+                        <div style="font-family:'JetBrains Mono';font-size:0.56rem;color:#38BDF8;">AÑADE O ELIMINA JUGADORES DE CADA DEMARCACIÓN (SUPERIORIDADES / RONDOS / EXPULSIONES)</div>
+                    </div>
+                </div>
+                <button type="button" onclick="closeCustomizePlayersModal()" style="background:none;border:none;color:#94A3B8;font-size:1.15rem;cursor:pointer;">✕</button>
+            </div>
+
+            <div class="customizer-two-cols">
+                <!-- Columna 1: Tu Equipo -->
+                <div class="customizer-team-card" style="border-color:rgba(var(--role-rgb),0.4);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-family:'Orbitron';font-size:0.74rem;font-weight:800;color:var(--role-color);">🛡️ TU EQUIPO (<span id="cust-own-count">11</span>)</span>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                        <select id="cust-add-own-pos" class="kinet-input" style="padding:6px 8px;font-weight:700;cursor:pointer;"></select>
+                        <button type="button" class="btn-primary" style="padding:6px 10px;font-size:0.58rem;" onclick="addCustomPositionToken('own')">+ Añadir</button>
+                    </div>
+                    <div id="cust-own-list" style="max-height:210px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;"></div>
+                </div>
+
+                <!-- Columna 2: Equipo Rival -->
+                <div class="customizer-team-card" style="border-color:rgba(239,68,68,0.45);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-family:'Orbitron';font-size:0.74rem;font-weight:800;color:#FCA5A5;">⚔️ EQUIPO RIVAL (<span id="cust-rival-count">11</span>)</span>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                        <select id="cust-add-rival-pos" class="kinet-input" style="padding:6px 8px;font-weight:700;cursor:pointer;"></select>
+                        <button type="button" class="btn-primary" style="padding:6px 10px;font-size:0.58rem;background:linear-gradient(135deg,#EF4444,#DC2626);color:#FFF;" onclick="addCustomPositionToken('rival')">+ Añadir</button>
+                    </div>
+                    <div id="cust-rival-list" style="max-height:210px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;"></div>
+                </div>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border-subtle);padding-top:10px;">
+                <button type="button" class="btn-secondary" onclick="resetBoardToCleanBase(); renderCustomizePlayersModalContent();">↺ Restaurar 11 vs 11 Base</button>
+                <button type="button" class="btn-primary" onclick="closeCustomizePlayersModal()">✓ Aplicar en Pizarra</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL DE GUÍA TÁCTICA RÁPIDA -->
     <div id="tactical-help-modal" class="kinet-modal-overlay">
         <div class="kinet-modal-box">
@@ -643,9 +794,9 @@
                 <button type="button" onclick="document.getElementById('tactical-help-modal').classList.remove('open')" style="background:none;border:none;color:white;font-size:1.15rem;cursor:pointer;">✕</button>
             </div>
             <div style="font-size:0.76rem;color:#CBD5E1;line-height:1.55;display:flex;flex-direction:column;gap:8px;">
-                <div><strong style="color:#00FF88;">1. 🎬 Evolución en 3 Fases (Inicial → Desarrollo → Finalización):</strong> Cada jugada tiene 3 momentos encadenados: <em>1. Fase Inicial</em> (posicionamiento y activación), <em>2. Desarrollo</em> (progresión y pases intermedios) y <em>3. Finalización</em> (ataque al área y definición). Pulsa <strong>"▶ Reproducir (Fases 1→3)"</strong> para ver la secuencia animada completa.</div>
-                <div><strong style="color:#38BDF8;">2. 🔍 Zoom Vectorial HD Sin Pérdida de Calidad:</strong> En Balón Parado (Córners y Faltas), la cámara recorta el `viewBox` vectorial sobre la mitad ofensiva o defensiva del campo y reescala las coordenadas matemáticas 1:1 para que las fichas nunca se pixelen ni pierdan nitidez.</div>
-                <div><strong style="color:#F59E0B;">3. 🛠️ Consola Crear y Deshacer Inteligente:</strong> El botón <em>Deshacer</em> solo registra trazos y desplazamientos reales.</div>
+                <div><strong style="color:#00FF88;">1. 🔴 Grabación y Guardado Automático:</strong> Pulsa <strong>"🔴 Grabar Fase"</strong>, mueve jugadores o el balón por las Fases 1, 2 y 3, y al pulsar <strong>"⏹ Terminar REC"</strong> aparecerá automáticamente la ventana KINET para ponerle nombre y guardarla en la nube.</div>
+                <div><strong style="color:#38BDF8;">2. ⚙️ Personalizar Efectivos por Posición:</strong> Pulsa <strong>"⚙️ Personalizar Efectivos"</strong> para añadir o quitar jugadores de una demarcación exacta (`POR, DFC, MCD, DC...`) tanto en tu equipo como en el rival.</div>
+                <div><strong style="color:#F59E0B;">3. ⚽ Saque Inicial (Centro del Campo):</strong> El botón <strong>"⚽ Saque Centro"</strong> coloca a tu once en tu mitad de campo y al once rival en su mitad propia sin solaparse.</div>
             </div>
             <div style="display:flex;justify-content:flex-end;margin-top:4px;">
                 <button type="button" class="btn-primary" onclick="document.getElementById('tactical-help-modal').classList.remove('open')">Entendido ⚡</button>
@@ -670,37 +821,45 @@
 
     <script>
         // =========================================================================
-        // MOTOR PROFESIONAL ANALIZADOR2.HTML V3:
-        // - ZOOM VECTORIAL 100% HD (POR VIEWBOX Y REMAPEO MATEMÁTICO DE COORDENADAS, CERO PIXELADO)
-        // - REESTRUCTURACIÓN ESPECÍFICA EN CADA JUGADA DE BALÓN PARADO Y EN LOS 5 DEPORTES
-        // - CORTINA ANIMADA DIVERTIDA DEL MÍSTER AL ENTRAR Y SALIR
+        // MOTOR PROFESIONAL ANALIZADOR2.HTML V5:
+        // - AL TERMINAR DE GRABAR SE ABRE MODAL KINET DE GUARDADO AUTOMÁTICO
+        // - MODAL ANIMADO "⚙️ PERSONALIZAR EFECTIVOS" PARA AÑADIR/QUITAR POR POSICIÓN
+        // - RIVALES SELECCIONABLES + SAQUE DE CENTRO + ZOOM PANORÁMICO HD 380x420
         // =========================================================================
+        const SPORT_POSITIONS_LIST = {
+            'Fútbol': ['POR', 'DFC', 'LI', 'LD', 'MCD', 'MC', 'MCO', 'EI', 'ED', 'DC'],
+            'Baloncesto': ['PG', 'SG', 'SF', 'PF', 'C'],
+            'Pádel / Tenis': ['REVÉS', 'DRIVE', 'INDIV'],
+            'Boxeo / MMA': ['STRIKER', 'GRAPPLER', 'SPARRING'],
+            'Running': ['PACER', 'FONDO', 'SPRINT']
+        };
+
         const RIVAL_FORMATIONS_BY_SPORT = {
             'Fútbol': {
                 '⚔️ Rival: 4-4-2 Bloque Medio': [
-                    { pos: 'POR', x: 93, y: 50 },
-                    { pos: 'LD', x: 78, y: 18 }, { pos: 'DFC', x: 80, y: 38 }, { pos: 'DFC', x: 80, y: 62 }, { pos: 'LI', x: 78, y: 82 },
-                    { pos: 'MD', x: 64, y: 20 }, { pos: 'MC', x: 66, y: 40 }, { pos: 'MC', x: 66, y: 60 }, { pos: 'MI', x: 64, y: 80 },
-                    { pos: 'DC', x: 52, y: 38 }, { pos: 'DC', x: 52, y: 62 }
+                    { pos: 'POR', x: 94, y: 50 },
+                    { pos: 'LD', x: 82, y: 16 }, { pos: 'DFC', x: 84, y: 38 }, { pos: 'DFC', x: 84, y: 62 }, { pos: 'LI', x: 82, y: 84 },
+                    { pos: 'MD', x: 68, y: 18 }, { pos: 'MC', x: 70, y: 39 }, { pos: 'MC', x: 70, y: 61 }, { pos: 'MI', x: 68, y: 82 },
+                    { pos: 'DC', x: 56, y: 38 }, { pos: 'DC', x: 56, y: 62 }
                 ],
                 '⚔️ Rival: 4-3-3 Presión Alta': [
-                    { pos: 'POR', x: 92, y: 50 },
-                    { pos: 'LD', x: 74, y: 16 }, { pos: 'DFC', x: 76, y: 38 }, { pos: 'DFC', x: 76, y: 62 }, { pos: 'LI', x: 74, y: 84 },
-                    { pos: 'MCD', x: 62, y: 50 }, { pos: 'MC', x: 56, y: 32 }, { pos: 'MC', x: 56, y: 68 },
-                    { pos: 'ED', x: 42, y: 20 }, { pos: 'DC', x: 40, y: 50 }, { pos: 'EI', x: 42, y: 80 }
+                    { pos: 'POR', x: 93, y: 50 },
+                    { pos: 'LD', x: 79, y: 16 }, { pos: 'DFC', x: 81, y: 38 }, { pos: 'DFC', x: 81, y: 62 }, { pos: 'LI', x: 79, y: 84 },
+                    { pos: 'MCD', x: 68, y: 50 }, { pos: 'MC', x: 62, y: 31 }, { pos: 'MC', x: 62, y: 69 },
+                    { pos: 'ED', x: 53, y: 20 }, { pos: 'DC', x: 52, y: 50 }, { pos: 'EI', x: 53, y: 80 }
                 ],
                 '⚔️ Rival: 5-3-2 Bloque Bajo': [
-                    { pos: 'POR', x: 94, y: 50 },
-                    { pos: 'CAD', x: 82, y: 14 }, { pos: 'DFC', x: 85, y: 32 }, { pos: 'DFC', x: 86, y: 50 }, { pos: 'DFC', x: 85, y: 68 }, { pos: 'CAI', x: 82, y: 86 },
-                    { pos: 'MC', x: 72, y: 30 }, { pos: 'MCD', x: 74, y: 50 }, { pos: 'MC', x: 72, y: 70 },
-                    { pos: 'DC', x: 60, y: 40 }, { pos: 'DC', x: 60, y: 60 }
+                    { pos: 'POR', x: 95, y: 50 },
+                    { pos: 'CAD', x: 83, y: 14 }, { pos: 'DFC', x: 86, y: 32 }, { pos: 'DFC', x: 87, y: 50 }, { pos: 'DFC', x: 86, y: 68 }, { pos: 'CAI', x: 83, y: 86 },
+                    { pos: 'MC', x: 73, y: 30 }, { pos: 'MCD', x: 75, y: 50 }, { pos: 'MC', x: 73, y: 70 },
+                    { pos: 'DC', x: 61, y: 40 }, { pos: 'DC', x: 61, y: 60 }
                 ],
                 '⚔️ Rival: 4-2-3-1 Doble Pivote': [
-                    { pos: 'POR', x: 93, y: 50 },
-                    { pos: 'LD', x: 78, y: 18 }, { pos: 'DFC', x: 80, y: 38 }, { pos: 'DFC', x: 80, y: 62 }, { pos: 'LI', x: 78, y: 82 },
-                    { pos: 'MCD', x: 68, y: 38 }, { pos: 'MCD', x: 68, y: 62 },
-                    { pos: 'ED', x: 56, y: 20 }, { pos: 'MCO', x: 58, y: 50 }, { pos: 'EI', x: 56, y: 80 },
-                    { pos: 'DC', x: 46, y: 50 }
+                    { pos: 'POR', x: 94, y: 50 },
+                    { pos: 'LD', x: 81, y: 18 }, { pos: 'DFC', x: 83, y: 38 }, { pos: 'DFC', x: 83, y: 62 }, { pos: 'LI', x: 81, y: 82 },
+                    { pos: 'MCD', x: 71, y: 38 }, { pos: 'MCD', x: 71, y: 62 },
+                    { pos: 'ED', x: 60, y: 20 }, { pos: 'MCO', x: 61, y: 50 }, { pos: 'EI', x: 60, y: 80 },
+                    { pos: 'DC', x: 53, y: 50 }
                 ]
             },
             'Baloncesto': {
@@ -731,16 +890,17 @@
                 prefix: '📋 Momento:',
                 items: [
                     { key: 'base_formation', label: '0. Formación Base (Limpia)', desc: 'Tu plantilla colocada exactamente en tu formación guardada sin jugadas activas.' },
-                    { key: 'build_up', label: '1. Salida de Balón (3 Fases)', desc: 'Fase 1: Apoyo corto • Fase 2: Giro a banda • Fase 3: Ruptura profunda.' },
-                    { key: 'positional_attack', label: '2. Ataque Posicional (3 Fases)', desc: 'Fase 1: Instalación • Fase 2: Pase interior • Fase 3: Diagonal y remate.' },
-                    { key: 'counter_attack', label: '3. Contraataque Rápido (3 Fases)', desc: 'Fase 1: Robo • Fase 2: Lanzamiento al espacio • Fase 3: Definición 2vs1.' },
-                    { key: 'switch_play', label: '4. Basculación & Cambio Banda', desc: 'Fase 1: Atracción izq. • Fase 2: Giro al medio • Fase 3: Llegada carril der.' }
+                    { key: 'kickoff_center', label: '1. Saque Inicial (Centro del Campo)', desc: 'Cada equipo en su mitad propia (sin solaparse) listos para el saque de centro.' },
+                    { key: 'build_up', label: '2. Salida de Balón (3 Fases)', desc: 'Fase 1: Apoyo corto • Fase 2: Giro a banda • Fase 3: Ruptura profunda.' },
+                    { key: 'positional_attack', label: '3. Ataque Posicional (3 Fases)', desc: 'Fase 1: Instalación • Fase 2: Pase interior • Fase 3: Diagonal y remate.' },
+                    { key: 'counter_attack', label: '4. Contraataque Rápido (3 Fases)', desc: 'Fase 1: Robo • Fase 2: Lanzamiento al espacio • Fase 3: Definición 2vs1.' },
+                    { key: 'switch_play', label: '5. Basculación & Cambio Banda', desc: 'Fase 1: Atracción izq. • Fase 2: Giro al medio • Fase 3: Llegada carril der.' }
                 ]
             },
             rival: {
                 prefix: '⚔️ Situación:',
                 items: [
-                    { key: 'base_rival', label: '0. Cara a Cara Base (Once vs Once)', desc: 'Ambos equipos colocados en sus formaciones iniciales frente a frente.' },
+                    { key: 'kickoff_center', label: '0. Saque Inicial (Cada Once en su Campo)', desc: 'Tu equipo en mitad izquierda y el rival en mitad derecha listos para empezar.' },
                     { key: 'mid_block', label: '1. Bloque Medio + Robo (3 Fases)', desc: 'Fase 1: Cierre interior • Fase 2: Salto a presión • Fase 3: Salida tras robo.' },
                     { key: 'low_block', label: '2. Repliegue Bajo + Contra', desc: 'Fase 1: Embudo en área • Fase 2: Despeje orientado • Fase 3: Transición.' },
                     { key: 'gegenpress', label: '3. Presión Tras Pérdida (Gegenpress)', desc: 'Fase 1: Acoso inmediato • Fase 2: Cierre de líneas • Fase 3: Disparo rápido.' }
@@ -749,10 +909,10 @@
             abp: {
                 prefix: '🎯 Jugada ABP:',
                 items: [
-                    { key: 'corner_left', label: '1. Córner Izquierdo (Zoom HD)', desc: 'Sacador arriba, bloqueo al central y 4 rematadores entrando en abanico.' },
-                    { key: 'corner_right', label: '2. Córner Derecho (Zoom HD)', desc: 'Sacador abajo, arrastre corto en esquina y centro cerrado al 2º palo.' },
-                    { key: 'fk_close', label: '3. Falta Cercana Frontal (Zoom HD)', desc: 'Barrera de 4 rivales, doble lanzador frontal y ruptura a los costados.' },
-                    { key: 'fk_side', label: '4. Falta Lateral en Banda (Zoom HD)', desc: 'Línea del fuera de juego en la frontal y entrada lanzada en diagonal.' },
+                    { key: 'corner_left', label: '1. Córner Izquierdo (Zoom Panorámico)', desc: 'Sacador arriba, bloqueo al central y 4 rematadores entrando en abanico.' },
+                    { key: 'corner_right', label: '2. Córner Derecho (Zoom Panorámico)', desc: 'Sacador abajo, arrastre corto en esquina y centro cerrado al 2º palo.' },
+                    { key: 'fk_close', label: '3. Falta Cercana Frontal (Zoom)', desc: 'Barrera de 4 rivales, doble lanzador frontal y ruptura a los costados.' },
+                    { key: 'fk_side', label: '4. Falta Lateral en Banda (Zoom)', desc: 'Línea del fuera de juego en la frontal y entrada lanzada en diagonal.' },
                     { key: 'fk_far', label: '5. Falta Lejana (Segunda Jugada)', desc: 'Bloque adelantado buscando prolongación aérea en el segundo palo.' },
                     { key: 'def_corner', label: '6. Córner Defensivo + Contra (Zoom)', desc: 'Defensa mixta en tu propia área y 2 velocistas listos para salir.' }
                 ]
@@ -767,9 +927,9 @@
         let activeRightSubTab = 'create';
         let activeMomentKey = 'base_formation';
         let activeDrawingTool = 'offball';
-        let selectedActorIdx = 0;
+        let selectedActor = null; // { isRival: boolean, index: number } | null
         let showPhotoTokens = false;
-        let currentZoomMode = 'full'; // 'full' | 'right' | 'left'
+        let currentZoomMode = 'full';
         let showRivals = false;
         let isRecordingPlay = false;
         let editingPlayId = null;
@@ -791,48 +951,45 @@
         let savedPlaysLibrary = [];
 
         // =========================================================================
-        // 1. ZOOM VECTORIAL MATEMÁTICO 100% HD (SIN USAR CSS SCALE QUE PIXELA)
+        // 1. ZOOM VECTORIAL PANORÁMICO (380x420 NO ESTRECHO Y 100% NÍTIDO)
         // =========================================================================
         function getActiveViewBoxString() {
-            if (currentZoomMode === 'right') return '310 0 290 420'; // Mitad ofensiva derecha en HD
-            if (currentZoomMode === 'left') return '0 0 290 420';    // Mitad defensiva izquierda en HD
-            return '0 0 600 420';                                    // Campo completo
+            if (currentZoomMode === 'right') return '220 0 380 420';
+            if (currentZoomMode === 'left') return '0 0 380 420';
+            return '0 0 600 420';
         }
 
-        // Convierte una coordenada lógica del campo (0..100%) a la posición visual en pantalla según la ventana de Zoom activa
         function fieldPctToDisplayPctX(fieldX) {
             if (currentZoomMode === 'right') {
-                return ((fieldX - 51.666) / 48.333) * 100;
+                return ((fieldX - 36.666) / 63.333) * 100;
             }
             if (currentZoomMode === 'left') {
-                return (fieldX / 48.333) * 100;
+                return (fieldX / 63.333) * 100;
             }
             return fieldX;
         }
 
-        // Convierte un clic del ratón en la pantalla a la coordenada lógica real del campo (0..100%)
         function displayPctToFieldPctX(dispX) {
             if (currentZoomMode === 'right') {
-                return Math.min(98, Math.max(52, Math.round(51.666 + (dispX / 100) * 48.333)));
+                return Math.min(98, Math.max(37, Math.round(36.666 + (dispX / 100) * 63.333)));
             }
             if (currentZoomMode === 'left') {
-                return Math.min(48, Math.max(2, Math.round((dispX / 100) * 48.333)));
+                return Math.min(63, Math.max(2, Math.round((dispX / 100) * 63.333)));
             }
             return Math.min(96, Math.max(4, Math.round(dispX)));
         }
 
         function setTacticalZoom(mode) {
-            currentZoomMode = mode; // 'full' | 'right' | 'left'
+            currentZoomMode = mode;
             const btn = document.getElementById('toggle-zoom-btn');
             if (mode === 'right') {
-                if (btn) btn.textContent = '🔍 Zoom HD: Área Rival';
+                if (btn) btn.textContent = '🔍 Zoom HD: Ataque';
             } else if (mode === 'left') {
-                if (btn) btn.textContent = '🔍 Zoom HD: Área Propia';
+                if (btn) btn.textContent = '🔍 Zoom HD: Defensa';
             } else {
                 if (btn) btn.textContent = '🔍 Zoom: Campo Total';
             }
 
-            // Actualizar el viewBox vectorial tanto del césped como de las flechas (nitidez infinita SVG)
             const vb = getActiveViewBoxString();
             const pitchSvg = document.querySelector('#arena-svg-mount svg');
             if (pitchSvg) pitchSvg.setAttribute('viewBox', vb);
@@ -849,7 +1006,163 @@
         }
 
         // =========================================================================
-        // 2. DESPLEGABLES PERSONALIZADOS KINET
+        // 2. MODAL PERSONALIZAR EFECTIVOS POR POSICIÓN (TU EQUIPO Y RIVAL)
+        // =========================================================================
+        function openCustomizePlayersModal() {
+            const posList = SPORT_POSITIONS_LIST[activeArenaSport] || SPORT_POSITIONS_LIST['Fútbol'];
+            const ownSel = document.getElementById('cust-add-own-pos');
+            const rivSel = document.getElementById('cust-add-rival-pos');
+            if (ownSel) ownSel.innerHTML = posList.map(p => `<option value="${p}">Puesto: ${p}</option>`).join('');
+            if (rivSel) rivSel.innerHTML = posList.map(p => `<option value="${p}">Puesto: ${p}</option>`).join('');
+
+            renderCustomizePlayersModalContent();
+            document.getElementById('customize-players-modal')?.classList.add('open');
+        }
+
+        function closeCustomizePlayersModal() {
+            document.getElementById('customize-players-modal')?.classList.remove('open');
+        }
+
+        function renderCustomizePlayersModalContent() {
+            document.getElementById('cust-own-count').textContent = boardHorizontalSlots.length;
+            document.getElementById('cust-rival-count').textContent = rivalTokens.length;
+
+            const ownBox = document.getElementById('cust-own-list');
+            if (ownBox) {
+                ownBox.innerHTML = boardHorizontalSlots.map((s, idx) => {
+                    const pName = s.player ? s.player.name : `Efectivo #${idx + 1}`;
+                    return `
+                        <div class="customizer-player-row">
+                            <div>
+                                <span style="font-family:'JetBrains Mono';font-size:0.58rem;background:var(--role-color);color:#04060A;font-weight:900;padding:1px 5px;border-radius:4px;margin-right:6px;">${s.pos}</span>
+                                <strong>${pName}</strong>
+                            </div>
+                            <button type="button" class="tool-pill-btn" style="padding:3px 7px;font-size:0.54rem;color:#FCA5A5;border-color:rgba(239,68,68,0.4);" onclick="removeSpecificToken('own', ${idx})">🗑️ Quitar</button>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            const rivBox = document.getElementById('cust-rival-list');
+            if (rivBox) {
+                rivBox.innerHTML = rivalTokens.map((r, idx) => `
+                    <div class="customizer-player-row">
+                        <div>
+                            <span style="font-family:'JetBrains Mono';font-size:0.58rem;background:#EF4444;color:#FFFFFF;font-weight:900;padding:1px 5px;border-radius:4px;margin-right:6px;">${r.pos}</span>
+                            <strong>Rival ${r.init}</strong>
+                        </div>
+                        <button type="button" class="tool-pill-btn" style="padding:3px 7px;font-size:0.54rem;color:#FCA5A5;border-color:rgba(239,68,68,0.4);" onclick="removeSpecificToken('rival', ${idx})">🗑️ Quitar</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function getSmartDefaultCoordsForPos(posCode, isRival) {
+            const p = String(posCode || 'MC').toUpperCase();
+            let x = 40, y = 50;
+            if (p === 'POR') { x = 8; y = 50; }
+            else if (p === 'DFC') { x = 22; y = 44 + Math.round((Math.random() - 0.5) * 20); }
+            else if (p === 'LI' || p === 'CAI') { x = 26; y = 16; }
+            else if (p === 'LD' || p === 'CAD') { x = 26; y = 84; }
+            else if (p === 'MCD') { x = 34; y = 50; }
+            else if (p === 'MC') { x = 40; y = 36 + Math.round((Math.random() - 0.5) * 24); }
+            else if (p === 'MCO') { x = 44; y = 50; }
+            else if (p === 'EI' || p === 'MI') { x = 46; y = 20; }
+            else if (p === 'ED' || p === 'MD') { x = 46; y = 80; }
+            else if (p === 'DC') { x = 48; y = 50; }
+
+            if (isRival) {
+                x = 100 - x;
+            }
+            return { x, y };
+        }
+
+        function addCustomPositionToken(side) {
+            pushUndoState();
+            hasUnsavedChanges = true;
+            if (side === 'own') {
+                const posVal = document.getElementById('cust-add-own-pos')?.value || 'MC';
+                const coords = getSmartDefaultCoordsForPos(posVal, false);
+                boardHorizontalSlots.push({ pos: posVal, x: coords.x, y: coords.y, player: null });
+            } else {
+                showRivals = true;
+                syncRivalToggleButton();
+                const posVal = document.getElementById('cust-add-rival-pos')?.value || 'MC';
+                const coords = getSmartDefaultCoordsForPos(posVal, true);
+                rivalTokens.push({ pos: posVal, init: `${posVal}${rivalTokens.length + 1}`, x: coords.x, y: coords.y });
+            }
+            syncPhaseSnapshot();
+            renderHorizontalArena();
+            renderCustomizePlayersModalContent();
+        }
+
+        function removeSpecificToken(side, idx) {
+            pushUndoState();
+            hasUnsavedChanges = true;
+            if (side === 'own') {
+                if (boardHorizontalSlots.length <= 1) return;
+                boardHorizontalSlots.splice(idx, 1);
+                if (selectedActor && !selectedActor.isRival && selectedActor.index === idx) selectedActor = null;
+            } else {
+                if (rivalTokens.length <= 1) return;
+                rivalTokens.splice(idx, 1);
+                if (selectedActor && selectedActor.isRival && selectedActor.index === idx) selectedActor = null;
+            }
+            syncPhaseSnapshot();
+            renderHorizontalArena();
+            renderCustomizePlayersModalContent();
+        }
+
+        // =========================================================================
+        // 3. MODAL DE FIN DE GRABACIÓN Y GUARDADO AUTOMÁTICO EN NUBE
+        // =========================================================================
+        function togglePlayRecording() {
+            if (!isRecordingPlay) {
+                // INICIAR GRABACIÓN
+                isRecordingPlay = true;
+                syncPhaseSnapshot();
+                renderRightSubTab();
+                document.getElementById('live-tactical-teleprompter').innerHTML = `🔴 <strong>GRABANDO FASE ${currentPhaseIdx + 1}:</strong> Selecciona o arrastra jugadores tuyos o rivales para registrar sus movimientos.`;
+            } else {
+                // TERMINAR GRABACIÓN -> CONGELAR FASES Y ABRIR MODAL KINET DE GUARDADO
+                isRecordingPlay = false;
+                syncPhaseSnapshot();
+                renderRightSubTab();
+                openSaveRecordingModal();
+            }
+        }
+
+        function openSaveRecordingModal() {
+            const totalVecs = phasesData.reduce((acc, p) => acc + (p.vectors ? p.vectors.length : 0), 0);
+            const activePhasesCount = phasesData.filter((p, i) => i === 0 || (p.vectors && p.vectors.length > 0)).length;
+            const summaryEl = document.getElementById('rec-modal-summary');
+            if (summaryEl) {
+                summaryEl.textContent = `${activePhasesCount} FASE(S) ACTIVA(S) • ${totalVecs} MOVIMIENTO(S) TRAZADO(S)`;
+            }
+
+            const existingTitle = (document.getElementById('play-title-input')?.value || '').trim();
+            const modalTitleInp = document.getElementById('rec-modal-title-input');
+            const modalNotesInp = document.getElementById('rec-modal-notes-input');
+            if (modalTitleInp) modalTitleInp.value = existingTitle || `${currentPresetName} • Jugada Grabada`;
+            if (modalNotesInp) modalNotesInp.value = `${activePhasesCount} fases (${totalVecs} desplazamientos/pases)`;
+
+            document.getElementById('save-recording-modal')?.classList.add('open');
+            setTimeout(() => modalTitleInp?.focus(), 120);
+        }
+
+        function closeSaveRecordingModal() {
+            document.getElementById('save-recording-modal')?.classList.remove('open');
+        }
+
+        function confirmSaveRecordedPlay() {
+            const titleVal = (document.getElementById('rec-modal-title-input')?.value || '').trim() || `${currentPresetName} • Jugada Táctica`;
+            const notesVal = (document.getElementById('rec-modal-notes-input')?.value || '').trim();
+            closeSaveRecordingModal();
+            savePlayToLibrary(titleVal, notesVal);
+        }
+
+        // =========================================================================
+        // 4. DESPLEGABLES PERSONALIZADOS KINET
         // =========================================================================
         function closeKinetCustomSelect(wrapEl) {
             if (!wrapEl) return;
@@ -1001,7 +1314,7 @@
         }
 
         // =========================================================================
-        // 3. INICIALIZACIÓN Y CARGA DE FORMACIÓN BASE DE ANALIZADOR.HTML
+        // 5. INICIALIZACIÓN Y CARGA DE FORMACIÓN BASE DE ANALIZADOR.HTML
         // =========================================================================
         function initStrategyAnalyzer() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -1076,7 +1389,6 @@
             refreshAllCustomKinetSelects();
             bindSpotlightToElements();
 
-            // Levantar la cortina del Míster suavemente una vez todo está dibujado
             setTimeout(() => {
                 document.getElementById('kinet-funny-curtain')?.classList.add('curtain-hidden');
             }, 240);
@@ -1098,37 +1410,74 @@
             showRivals = true;
             syncRivalToggleButton();
             loadRivalFormationCoords(newRivKey);
-            renderHorizontalArena();
-        }
-
-        function adjustTeamCount(targetSide, delta) {
-            pushUndoState();
-            if (targetSide === 'own') {
-                if (delta > 0 && boardHorizontalSlots.length < 15) {
-                    boardHorizontalSlots.push({ pos: `J${boardHorizontalSlots.length + 1}`, x: 55, y: 50, player: null });
-                } else if (delta < 0 && boardHorizontalSlots.length > 2) {
-                    boardHorizontalSlots.pop();
-                    if (selectedActorIdx >= boardHorizontalSlots.length) selectedActorIdx = 0;
-                }
+            if (activeMomentKey === 'kickoff_center' || activeSection === 'rival') {
+                applyKickoffFormation(true);
             } else {
-                showRivals = true;
-                syncRivalToggleButton();
-                if (delta > 0 && rivalTokens.length < 15) {
-                    rivalTokens.push({ pos: 'RIV', init: `R.${rivalTokens.length + 1}`, x: 68, y: 50 });
-                } else if (delta < 0 && rivalTokens.length > 1) {
-                    rivalTokens.pop();
-                }
+                renderHorizontalArena();
             }
-            syncPhaseSnapshot();
-            renderHorizontalArena();
         }
 
         // =========================================================================
-        // 4. REESTRUCTURACIÓN REAL EN CADA JUGADA DE BALÓN PARADO Y EN LOS 5 DEPORTES
+        // 6. FORMACIÓN EN SAQUE INICIAL DE CENTRO DEL CAMPO Y JUGADAS IA
         // =========================================================================
+        function applyKickoffFormation(skipUndo) {
+            if (!skipUndo) pushUndoState();
+            activeMomentKey = 'kickoff_center';
+            setTacticalZoom('full');
+            showRivals = true;
+            syncRivalToggleButton();
+            populateDynamicMomentDropdown();
+            refreshAllCustomKinetSelects();
+
+            selectedActor = null;
+            const rawHoriz = baseVerticalSlots.map(s => ({
+                pos: s.pos,
+                player: s.player,
+                ...verticalToHorizontal(s.x, s.y)
+            }));
+
+            let maxXIdx = 0;
+            rawHoriz.forEach((s, i) => { if (s.x > rawHoriz[maxXIdx].x) maxXIdx = i; });
+
+            boardHorizontalSlots = rawHoriz.map((s, idx) => {
+                if (idx === 0 || s.pos === 'POR') return { ...s, x: 7, y: 50 };
+                const compressedX = Math.min(46, Math.max(17, Math.round(14 + (s.x * 0.38))));
+                return { ...s, x: compressedX, y: s.y };
+            });
+
+            if (boardHorizontalSlots[maxXIdx]) {
+                boardHorizontalSlots[maxXIdx].x = 49;
+                boardHorizontalSlots[maxXIdx].y = 50;
+            }
+
+            loadRivalFormationCoords(currentRivalPresetName);
+            rivalTokens.forEach((r, idx) => {
+                if (idx === 0 || r.pos === 'POR') { r.x = 94; r.y = 50; }
+                else if (r.x < 56) { r.x = 57; }
+            });
+
+            ballCoords = { x: 50, y: 50 };
+            currentPhaseIdx = 0;
+
+            const sClone = () => JSON.parse(JSON.stringify(boardHorizontalSlots));
+            const rClone = () => JSON.parse(JSON.stringify(rivalTokens));
+
+            phasesData = [
+                { vectors: [], slotsCoords: sClone(), rivalsCoords: rClone(), ballCoords: { x: 50, y: 50 }, zone: null, note: '1. Fase Inicial (Saque de Centro): Cada equipo en su propio campo listo para sacar.' },
+                { vectors: [], slotsCoords: null, rivalsCoords: null, ballCoords: null, zone: null, note: '2. Desarrollo: Traza hacia dónde va el balón tras el saque inicial.' },
+                { vectors: [], slotsCoords: null, rivalsCoords: null, ballCoords: null, zone: null, note: '3. Finalización: Continuación de la jugada.' }
+            ];
+
+            hasUnsavedChanges = false;
+            updatePhaseButtonsUI();
+            renderHorizontalArena();
+            document.getElementById('live-tactical-teleprompter').innerHTML = `⚽ <strong>Saque Inicial (Centro del Campo):</strong> Tu once en campo propio y el rival en el suyo sin solaparse.`;
+        }
+
         function resetBoardToCleanBase(skipUndo) {
             if (!skipUndo) pushUndoState();
-            activeMomentKey = activeSection === 'rival' ? 'base_rival' : 'base_formation';
+            selectedActor = null;
+            activeMomentKey = 'base_formation';
             setTacticalZoom('full');
             populateDynamicMomentDropdown();
             refreshAllCustomKinetSelects();
@@ -1155,7 +1504,7 @@
             updateUndoCounterUI();
             updatePhaseButtonsUI();
             renderHorizontalArena();
-            document.getElementById('live-tactical-teleprompter').innerHTML = `📐 <strong>Formación Base (${currentPresetName}):</strong> Plantilla lista. Elige una jugada o créala por fases.`;
+            document.getElementById('live-tactical-teleprompter').innerHTML = `📐 <strong>Formación Base (${currentPresetName}):</strong> Plantilla lista. Toca cualquier jugador o elige una jugada.`;
         }
 
         function findRoleIndex(slotsArr, type) {
@@ -1190,7 +1539,7 @@
                 return b;
             }
             let maxIdx = 0;
-            slotsArr.forEach((s, i) => { if (s.x > boardHorizontalSlots[maxIdx]?.x) maxIdx = i; });
+            slotsArr.forEach((s, i) => { if (s.x > slotsArr[maxIdx].x) maxIdx = i; });
             return maxIdx;
         }
 
@@ -1205,10 +1554,13 @@
         }
 
         function applyMomentPositioning(momentKey) {
-            if (momentKey === 'base_formation' || momentKey === 'base_rival') {
-                showRivals = (momentKey === 'base_rival' || activeSection === 'rival');
-                syncRivalToggleButton();
+            selectedActor = null;
+            if (momentKey === 'base_formation') {
                 resetBoardToCleanBase(true);
+                return;
+            }
+            if (momentKey === 'kickoff_center' || momentKey === 'base_rival') {
+                applyKickoffFormation(true);
                 return;
             }
 
@@ -1235,76 +1587,53 @@
             const rwIdx = findRoleIndex(baseSlots, 'rw');
             const stIdx = findRoleIndex(baseSlots, 'st');
 
-            // 1. CÓRNER IZQUIERDO (Esquina superior derecha x:96, y:6)
             if (momentKey === 'corner_left') {
                 showRivals = true; syncRivalToggleButton();
                 const taker = { x: 96, y: 6 };
                 const s1 = cloneSlots(baseSlots);
                 const r1 = cloneSlots(baseRivals);
 
-                // Disposición real de Córner Izquierdo (distinta a falta y a córner derecho)
                 const attackSpots1 = [
-                    { x: 35, y: 50 }, // 0: POR adelantado
-                    taker,            // 1: Sacador en esquina izq
-                    { x: 85, y: 15 }, // 2: Apoyo corto al vértice
-                    { x: 91, y: 38 }, // 3: Bloqueador sobre portero/central en 1er palo
-                    { x: 81, y: 34 }, // 4: Atacante al 1er palo
-                    { x: 80, y: 48 }, // 5: Atacante a penalti
-                    { x: 82, y: 64 }, // 6: Atacante curvo al 2º palo
-                    { x: 73, y: 44 }, // 7: Cazador de rechace frontal
-                    { x: 74, y: 62 }, // 8: Rechace segundo palo
-                    { x: 58, y: 36 }, // 9: Cierre defensivo 1
-                    { x: 58, y: 64 }  // 10: Cierre defensivo 2
+                    { x: 30, y: 50 }, taker, { x: 82, y: 14 }, { x: 90, y: 36 },
+                    { x: 77, y: 32 }, { x: 76, y: 47 }, { x: 77, y: 63 },
+                    { x: 67, y: 42 }, { x: 68, y: 60 }, { x: 50, y: 36 }, { x: 50, y: 64 }
                 ];
                 s1.forEach((s, i) => { if (attackSpots1[i]) { s.x = attackSpots1[i].x; s.y = attackSpots1[i].y; } });
 
                 const defSpots1 = [
-                    { x: 96, y: 49 }, // GK rival
-                    { x: 89, y: 18 }, // Sale al corto
-                    { x: 93, y: 38 }, // Poste / 1er palo
-                    { x: 87, y: 36 }, // Marca 1
-                    { x: 86, y: 48 }, // Marca 2
-                    { x: 87, y: 62 }, // Marca 3
-                    { x: 79, y: 44 }, // Frontal
-                    { x: 79, y: 58 }, // Frontal 2
-                    { x: 64, y: 50 }, // Punta rival arriba
-                    { x: 92, y: 56 },
-                    { x: 84, y: 28 }
+                    { x: 96, y: 50 }, { x: 88, y: 18 }, { x: 93, y: 40 },
+                    { x: 85, y: 35 }, { x: 85, y: 48 }, { x: 85, y: 61 },
+                    { x: 73, y: 40 }, { x: 73, y: 56 }, { x: 58, y: 50 }, { x: 92, y: 58 }, { x: 82, y: 25 }
                 ];
                 r1.forEach((r, i) => { if (defSpots1[i]) { r.x = defSpots1[i].x; r.y = defSpots1[i].y; } });
 
                 const v1 = [
-                    toSvgVec(85, 15, 81, 20, '#38BDF8'), // Amague de apoyo corto
-                    toSvgVec(91, 38, 93, 44, '#EF4444')  // Pantalla sobre central/portero
+                    toSvgVec(82, 14, 78, 20, '#38BDF8'),
+                    toSvgVec(90, 36, 93, 44, '#EF4444')
                 ];
-
-                // Fase 2: Vuelo del balón y carreras atacando 1er palo, penalti y 2º palo
                 const s2 = cloneSlots(s1);
-                if (s2[4]) { s2[4].x = 91; s2[4].y = 36; }
-                if (s2[5]) { s2[5].x = 89; s2[5].y = 49; }
-                if (s2[6]) { s2[6].x = 91; s2[6].y = 60; }
+                if (s2[4]) { s2[4].x = 90; s2[4].y = 35; }
+                if (s2[5]) { s2[5].x = 88; s2[5].y = 49; }
+                if (s2[6]) { s2[6].x = 90; s2[6].y = 61; }
                 const v2 = [
-                    toSvgVec(96, 6, 90, 58, '#F59E0B'),
-                    toSvgVec(81, 34, 91, 36, '#00FF88'),
-                    toSvgVec(80, 48, 89, 49, '#00FF88'),
-                    toSvgVec(82, 64, 91, 60, '#00FF88')
+                    toSvgVec(96, 6, 90, 61, '#F59E0B'),
+                    toSvgVec(77, 32, 90, 35, '#00FF88'),
+                    toSvgVec(76, 47, 88, 49, '#00FF88'),
+                    toSvgVec(77, 63, 90, 61, '#00FF88')
                 ];
-
-                // Fase 3: Remate en 2º palo a la red
                 const s3 = cloneSlots(s2);
-                const v3 = [toSvgVec(91, 60, 98, 51, '#F59E0B')];
+                const v3 = [toSvgVec(90, 61, 98, 51, '#F59E0B')];
 
                 phasesData = [
-                    { vectors: v1, slotsCoords: s1, rivalsCoords: r1, ballCoords: { ...taker }, zone: null, note: '1. Fase Inicial (Córner Izquierdo): Pantalla en 1er palo y amague de apoyo corto.' },
-                    { vectors: v2, slotsCoords: s2, rivalsCoords: r1, ballCoords: { x: 90, y: 58 }, zone: { cx: 540, cy: 244, r: 26, color: '#F59E0B' }, note: '2. Desarrollo (Córner Izquierdo): Vuelo pasado al 2º palo y triple ruptura al área.' },
-                    { vectors: v3, slotsCoords: s3, rivalsCoords: r1, ballCoords: { x: 97, y: 51 }, zone: { cx: 580, cy: 214, r: 22, color: '#00FF88' }, note: '3. Finalización (Córner Izquierdo): Cabezazo picado al fondo de la red.' }
+                    { vectors: v1, slotsCoords: s1, rivalsCoords: r1, ballCoords: { ...taker }, zone: null, note: '1. Fase Inicial (Córner Izquierdo): Pantalla en 1er palo y línea de rematadores en la frontal.' },
+                    { vectors: v2, slotsCoords: s2, rivalsCoords: r1, ballCoords: { x: 90, y: 61 }, zone: { cx: 540, cy: 256, r: 26, color: '#F59E0B' }, note: '2. Desarrollo (Córner Izquierdo): Vuelo pasado al 2º palo y triple ruptura al área.' },
+                    { vectors: v3, slotsCoords: s3, rivalsCoords: r1, ballCoords: { x: 97, y: 51 }, zone: { cx: 580, cy: 214, r: 22, color: '#00FF88' }, note: '3. Finalización (Córner Izquierdo): Remate cruzado a la red.' }
                 ];
                 setTacticalZoom('right');
                 selectTacticalPhase(0);
                 return;
             }
 
-            // 2. CÓRNER DERECHO (Esquina inferior derecha x:96, y:94 — Estructura simétrica inversa)
             if (momentKey === 'corner_right') {
                 showRivals = true; syncRivalToggleButton();
                 const taker = { x: 96, y: 94 };
@@ -1312,171 +1641,119 @@
                 const r1 = cloneSlots(baseRivals);
 
                 const attackSpots1 = [
-                    { x: 35, y: 50 },
-                    taker,            // 1: Sacador en esquina derecha (abajo)
-                    { x: 86, y: 84 }, // 2: Jugador para 2vs1 en corto abajo
-                    { x: 91, y: 62 }, // 3: Bloqueo en primer palo inferior
-                    { x: 82, y: 66 }, // 4: Entrada al primer palo inferior
-                    { x: 79, y: 50 }, // 5: Entrada frontal al punto de penalti
-                    { x: 81, y: 34 }, // 6: Entrada pasada al 2º palo superior
-                    { x: 72, y: 58 }, // 7: Rechace corto
-                    { x: 73, y: 38 }, // 8: Rechace largo
-                    { x: 58, y: 38 },
-                    { x: 58, y: 62 }
+                    { x: 30, y: 50 }, taker, { x: 83, y: 85 }, { x: 90, y: 63 },
+                    { x: 77, y: 67 }, { x: 76, y: 50 }, { x: 77, y: 34 },
+                    { x: 67, y: 58 }, { x: 68, y: 40 }, { x: 50, y: 38 }, { x: 50, y: 62 }
                 ];
                 s1.forEach((s, i) => { if (attackSpots1[i]) { s.x = attackSpots1[i].x; s.y = attackSpots1[i].y; } });
 
                 const defSpots1 = [
-                    { x: 96, y: 51 },
-                    { x: 89, y: 80 },
-                    { x: 93, y: 62 },
-                    { x: 87, y: 62 },
-                    { x: 86, y: 50 },
-                    { x: 87, y: 36 },
-                    { x: 78, y: 56 },
-                    { x: 78, y: 40 },
-                    { x: 64, y: 50 },
-                    { x: 92, y: 42 },
-                    { x: 84, y: 72 }
+                    { x: 96, y: 50 }, { x: 88, y: 80 }, { x: 93, y: 60 },
+                    { x: 85, y: 64 }, { x: 85, y: 50 }, { x: 85, y: 36 },
+                    { x: 73, y: 58 }, { x: 73, y: 42 }, { x: 58, y: 50 }, { x: 92, y: 42 }, { x: 82, y: 74 }
                 ];
                 r1.forEach((r, i) => { if (defSpots1[i]) { r.x = defSpots1[i].x; r.y = defSpots1[i].y; } });
 
                 const v1 = [
-                    toSvgVec(96, 94, 86, 84, '#F59E0B'), // Toque en corto 2vs1
-                    toSvgVec(91, 62, 93, 56, '#EF4444')
+                    toSvgVec(96, 94, 83, 85, '#F59E0B'),
+                    toSvgVec(90, 63, 93, 56, '#EF4444')
                 ];
                 const s2 = cloneSlots(s1);
-                if (s2[4]) { s2[4].x = 91; s2[4].y = 62; }
-                if (s2[5]) { s2[5].x = 89; s2[5].y = 48; }
-                if (s2[6]) { s2[6].x = 90; s2[6].y = 36; }
+                if (s2[4]) { s2[4].x = 90; s2[4].y = 63; }
+                if (s2[5]) { s2[5].x = 88; s2[5].y = 48; }
+                if (s2[6]) { s2[6].x = 90; s2[6].y = 35; }
                 const v2 = [
-                    toSvgVec(86, 84, 89, 48, '#F59E0B'),
-                    toSvgVec(79, 50, 89, 48, '#00FF88'),
-                    toSvgVec(81, 34, 90, 36, '#00FF88')
+                    toSvgVec(83, 85, 88, 48, '#F59E0B'),
+                    toSvgVec(76, 50, 88, 48, '#00FF88'),
+                    toSvgVec(77, 34, 90, 35, '#00FF88')
                 ];
                 const s3 = cloneSlots(s2);
-                const v3 = [toSvgVec(89, 48, 98, 49, '#F59E0B')];
+                const v3 = [toSvgVec(88, 48, 98, 49, '#F59E0B')];
 
                 phasesData = [
-                    { vectors: v1, slotsCoords: s1, rivalsCoords: r1, ballCoords: { ...taker }, zone: null, note: '1. Fase Inicial (Córner Derecho): Saque en corto 2vs1 para cambiar el ángulo de centro.' },
-                    { vectors: v2, slotsCoords: s2, rivalsCoords: r1, ballCoords: { x: 89, y: 48 }, zone: { cx: 534, cy: 202, r: 26, color: '#F59E0B' }, note: '2. Desarrollo (Córner Derecho): Centro cerrado al punto de penalti y ruptura central.' },
-                    { vectors: v3, slotsCoords: s3, rivalsCoords: r1, ballCoords: { x: 97, y: 49 }, zone: { cx: 580, cy: 206, r: 22, color: '#00FF88' }, note: '3. Finalización (Córner Derecho): Remate frontal en el corazón del área.' }
+                    { vectors: v1, slotsCoords: s1, rivalsCoords: r1, ballCoords: { ...taker }, zone: null, note: '1. Fase Inicial (Córner Derecho): Saque en corto 2vs1 para abrir ángulo de centro.' },
+                    { vectors: v2, slotsCoords: s2, rivalsCoords: r1, ballCoords: { x: 88, y: 48 }, zone: { cx: 528, cy: 202, r: 26, color: '#F59E0B' }, note: '2. Desarrollo (Córner Derecho): Centro tenso al punto de penalti.' },
+                    { vectors: v3, slotsCoords: s3, rivalsCoords: r1, ballCoords: { x: 97, y: 49 }, zone: { cx: 580, cy: 206, r: 22, color: '#00FF88' }, note: '3. Finalización (Córner Derecho): Definición al primer toque.' }
                 ];
                 setTacticalZoom('right');
                 selectTacticalPhase(0);
                 return;
             }
 
-            // 3. FALTA CERCANA FRONTAL (Tiro libre directo / jugada con barrera en x:73, y:48)
             if (momentKey === 'fk_close') {
                 showRivals = true; syncRivalToggleButton();
-                const fkSpot = { x: 73, y: 46 };
+                const fkSpot = { x: 70, y: 46 };
                 const s1 = cloneSlots(baseSlots);
                 const r1 = cloneSlots(baseRivals);
 
                 const attackSpots1 = [
-                    { x: 30, y: 50 },
-                    { x: 72, y: 43 }, // 1: Lanzador diestro
-                    { x: 72, y: 51 }, // 2: Lanzador zurdo / amague
-                    { x: 83, y: 35 }, // 3: Hombre tapando visión en barrera
-                    { x: 79, y: 20 }, // 4: Desmarque exterior izquierdo
-                    { x: 79, y: 76 }, // 5: Desmarque exterior derecho
-                    { x: 81, y: 62 }, // 6: Entrada al segundo palo
-                    { x: 66, y: 36 }, // 7: Apoyo frontal
-                    { x: 66, y: 60 }, // 8: Apoyo frontal 2
-                    { x: 56, y: 42 },
-                    { x: 56, y: 58 }
+                    { x: 26, y: 50 }, { x: 69, y: 43 }, { x: 69, y: 51 },
+                    { x: 81, y: 34 }, { x: 75, y: 18 }, { x: 75, y: 78 },
+                    { x: 77, y: 63 }, { x: 61, y: 36 }, { x: 61, y: 60 }, { x: 48, y: 40 }, { x: 48, y: 60 }
                 ];
                 s1.forEach((s, i) => { if (attackSpots1[i]) { s.x = attackSpots1[i].x; s.y = attackSpots1[i].y; } });
 
-                // Barrera rival de 4 hombres bien formada en x:83
                 const defSpots1 = [
-                    { x: 96, y: 52 }, // GK rival cubriendo palo largo
-                    { x: 83, y: 40 }, // Barrera 1
-                    { x: 83, y: 44 }, // Barrera 2
-                    { x: 83, y: 48 }, // Barrera 3
-                    { x: 83, y: 52 }, // Barrera 4
-                    { x: 84, y: 24 }, // Lateral vigilando banda
-                    { x: 84, y: 72 }, // Lateral vigilando banda der
-                    { x: 86, y: 60 }, // Central vigilando ruptura
-                    { x: 76, y: 56 },
-                    { x: 62, y: 50 },
-                    { x: 88, y: 34 }
+                    { x: 96, y: 52 }, { x: 82, y: 40 }, { x: 82, y: 45 },
+                    { x: 82, y: 50 }, { x: 82, y: 55 }, { x: 83, y: 22 },
+                    { x: 83, y: 74 }, { x: 85, y: 63 }, { x: 74, y: 58 }, { x: 56, y: 50 }, { x: 87, y: 32 }
                 ];
                 r1.forEach((r, i) => { if (defSpots1[i]) { r.x = defSpots1[i].x; r.y = defSpots1[i].y; } });
 
                 const v1 = [
-                    toSvgVec(72, 51, 86, 62, '#00FF88'), // Amague de salto por encima del balón y ruptura
-                    toSvgVec(79, 20, 89, 26, '#00FF88')
+                    toSvgVec(69, 51, 86, 63, '#00FF88'),
+                    toSvgVec(75, 18, 88, 25, '#00FF88')
                 ];
                 const s2 = cloneSlots(s1);
-                if (s2[2]) { s2[2].x = 87; s2[2].y = 62; }
-                if (s2[4]) { s2[4].x = 89; s2[4].y = 26; }
+                if (s2[2]) { s2[2].x = 86; s2[2].y = 63; }
+                if (s2[4]) { s2[4].x = 88; s2[4].y = 25; }
                 const v2 = [
-                    toSvgVec(73, 46, 89, 26, '#F59E0B'), // Pase filtrado al costado de la barrera
-                    toSvgVec(81, 62, 91, 52, '#00FF88')
+                    toSvgVec(70, 46, 88, 25, '#F59E0B'),
+                    toSvgVec(77, 63, 90, 52, '#00FF88')
                 ];
                 const s3 = cloneSlots(s2);
-                if (s3[6]) { s3[6].x = 91; s3[6].y = 52; }
+                if (s3[6]) { s3[6].x = 90; s3[6].y = 52; }
                 const v3 = [
-                    toSvgVec(89, 26, 91, 52, '#F59E0B'),
-                    toSvgVec(91, 52, 98, 49, '#F59E0B')
+                    toSvgVec(88, 25, 90, 52, '#F59E0B'),
+                    toSvgVec(90, 52, 98, 49, '#F59E0B')
                 ];
 
                 phasesData = [
-                    { vectors: v1, slotsCoords: s1, rivalsCoords: r1, ballCoords: { ...fkSpot }, zone: null, note: '1. Fase Inicial (Falta Cercana): Barrera de 4 hombres y amague del segundo lanzador.' },
-                    { vectors: v2, slotsCoords: s2, rivalsCoords: r1, ballCoords: { x: 89, y: 26 }, zone: { cx: 534, cy: 109, r: 24, color: '#38BDF8' }, note: '2. Desarrollo (Falta Cercana): Pase filtrado por fuera de la barrera al desmarque exterior.' },
-                    { vectors: v3, slotsCoords: s3, rivalsCoords: r1, ballCoords: { x: 97, y: 49 }, zone: { cx: 580, cy: 206, r: 22, color: '#00FF88' }, note: '3. Finalización (Falta Cercana): Pase de la muerte raso y gol a placer.' }
+                    { vectors: v1, slotsCoords: s1, rivalsCoords: r1, ballCoords: { ...fkSpot }, zone: null, note: '1. Fase Inicial (Falta Cercana): Barrera de 4 hombres y desmarque ciego exterior.' },
+                    { vectors: v2, slotsCoords: s2, rivalsCoords: r1, ballCoords: { x: 88, y: 25 }, zone: { cx: 528, cy: 105, r: 24, color: '#38BDF8' }, note: '2. Desarrollo (Falta Cercana): Pase filtrado raso superando la barrera por fuera.' },
+                    { vectors: v3, slotsCoords: s3, rivalsCoords: r1, ballCoords: { x: 97, y: 49 }, zone: { cx: 580, cy: 206, r: 22, color: '#00FF88' }, note: '3. Finalización (Falta Cercana): Centro raso al segundo palo y gol.' }
                 ];
                 setTacticalZoom('right');
                 selectTacticalPhase(0);
                 return;
             }
 
-            // 4. FALTA LATERAL EN BANDA (x:75, y:14) O FALTA LEJANA (x:62, y:48)
             if (momentKey === 'fk_side' || momentKey === 'fk_far') {
                 showRivals = true; syncRivalToggleButton();
                 const isSide = momentKey === 'fk_side';
-                const fkSpot = isSide ? { x: 75, y: 14 } : { x: 60, y: 48 };
+                const fkSpot = isSide ? { x: 72, y: 14 } : { x: 58, y: 48 };
                 const s1 = cloneSlots(baseSlots);
                 const r1 = cloneSlots(baseRivals);
 
                 const attackSpots1 = [
-                    { x: 28, y: 50 },
-                    fkSpot,           // 1: Lanzador
-                    { x: isSide ? 68 : 56, y: isSide ? 22 : 34 }, // 2: Apoyo corto
-                    { x: 80, y: 34 }, // 3: Línea de 4 rematadores al borde del fuera de juego
-                    { x: 80, y: 45 }, // 4
-                    { x: 80, y: 56 }, // 5
-                    { x: 80, y: 67 }, // 6
-                    { x: 70, y: 48 }, // 7: Rechace frontal
-                    { x: 70, y: 66 }, // 8: Rechace exterior
-                    { x: 54, y: 40 },
-                    { x: 54, y: 60 }
+                    { x: 26, y: 50 }, fkSpot, { x: isSide ? 64 : 52, y: isSide ? 22 : 34 },
+                    { x: 77, y: 33 }, { x: 77, y: 45 }, { x: 77, y: 57 }, { x: 77, y: 69 },
+                    { x: 66, y: 48 }, { x: 66, y: 66 }, { x: 48, y: 40 }, { x: 48, y: 60 }
                 ];
                 s1.forEach((s, i) => { if (attackSpots1[i]) { s.x = attackSpots1[i].x; s.y = attackSpots1[i].y; } });
 
-                // Línea defensiva rival tirando el fuera de juego en x:83
                 const defSpots1 = [
-                    { x: 95, y: 50 },
-                    { x: isSide ? 81 : 70, y: isSide ? 20 : 48 }, // Barrera de 2 hombres
-                    { x: isSide ? 81 : 70, y: isSide ? 24 : 52 },
-                    { x: 83, y: 35 },
-                    { x: 83, y: 44 },
-                    { x: 83, y: 53 },
-                    { x: 83, y: 62 },
-                    { x: 83, y: 70 },
-                    { x: 74, y: 48 },
-                    { x: 60, y: 50 },
-                    { x: 84, y: 28 }
+                    { x: 95, y: 50 }, { x: isSide ? 79 : 68, y: isSide ? 19 : 46 }, { x: isSide ? 79 : 68, y: isSide ? 24 : 52 },
+                    { x: 83, y: 34 }, { x: 83, y: 44 }, { x: 83, y: 54 }, { x: 83, y: 64 }, { x: 83, y: 73 },
+                    { x: 72, y: 48 }, { x: 56, y: 50 }, { x: 84, y: 26 }
                 ];
                 r1.forEach((r, i) => { if (defSpots1[i]) { r.x = defSpots1[i].x; r.y = defSpots1[i].y; } });
 
                 const v1 = [
-                    toSvgVec(80, 34, 89, 38, '#00FF88'),
-                    toSvgVec(80, 45, 89, 48, '#00FF88'),
-                    toSvgVec(80, 56, 89, 58, '#00FF88'),
-                    toSvgVec(80, 67, 89, 68, '#00FF88')
+                    toSvgVec(77, 33, 89, 38, '#00FF88'),
+                    toSvgVec(77, 45, 89, 48, '#00FF88'),
+                    toSvgVec(77, 57, 89, 58, '#00FF88'),
+                    toSvgVec(77, 69, 89, 68, '#00FF88')
                 ];
                 const s2 = cloneSlots(s1);
                 if (s2[3]) { s2[3].x = 89; s2[3].y = 38; }
@@ -1488,8 +1765,8 @@
                 const v3 = [toSvgVec(89, 58, 98, 51, '#F59E0B')];
 
                 phasesData = [
-                    { vectors: v1, slotsCoords: s1, rivalsCoords: r1, ballCoords: { ...fkSpot }, zone: null, note: `1. Fase Inicial (${isSide ? 'Falta Lateral' : 'Falta Lejana'}): Línea de 4 atacantes sincronizados al límite del fuera de juego.` },
-                    { vectors: v2, slotsCoords: s2, rivalsCoords: r1, ballCoords: { x: 89, y: 58 }, zone: { cx: 534, cy: 244, r: 28, color: '#F59E0B' }, note: '2. Desarrollo: Envío tenso a la espalda de la línea defensiva.' },
+                    { vectors: v1, slotsCoords: s1, rivalsCoords: r1, ballCoords: { ...fkSpot }, zone: null, note: `1. Fase Inicial (${isSide ? 'Falta Lateral' : 'Falta Lejana'}): Línea de 4 rematadores separados de la línea rival.` },
+                    { vectors: v2, slotsCoords: s2, rivalsCoords: r1, ballCoords: { x: 89, y: 58 }, zone: { cx: 534, cy: 244, r: 28, color: '#F59E0B' }, note: '2. Desarrollo: Envío tenso a la espalda de la defensa.' },
                     { vectors: v3, slotsCoords: s3, rivalsCoords: r1, ballCoords: { x: 97, y: 51 }, zone: { cx: 580, cy: 214, r: 22, color: '#00FF88' }, note: '3. Finalización: Remate atacando el balón en carrera.' }
                 ];
                 setTacticalZoom('right');
@@ -1497,7 +1774,6 @@
                 return;
             }
 
-            // 5. CÓRNER DEFENSIVO + CONTRA (Zoom Área Propia Izquierda)
             if (momentKey === 'def_corner') {
                 showRivals = true; syncRivalToggleButton();
                 const s1 = cloneSlots(baseSlots);
@@ -1505,37 +1781,36 @@
 
                 s1.forEach((s, i) => {
                     if (i === 0) { s.x = 4; s.y = 50; }
-                    else if (i <= 8) { s.x = 10 + (i % 3) * 4; s.y = 32 + (i - 1) * 5; }
-                    else { s.x = 42; s.y = i === 9 ? 30 : 70; }
+                    else if (i <= 8) { s.x = 10 + (i % 3) * 4; s.y = 30 + (i - 1) * 5.5; }
+                    else { s.x = 44; s.y = i === 9 ? 28 : 72; }
                 });
                 r1.forEach((r, i) => {
                     if (i === 0) { r.x = 85; r.y = 50; }
-                    else if (i === 1) { r.x = 4; y = 6; }
-                    else if (i <= 7) { r.x = 12 + (i % 2) * 5; r.y = 34 + (i - 2) * 6; }
-                    else { r.x = 34; r.y = 32 + (i - 8) * 16; }
+                    else if (i === 1) { r.x = 4; r.y = 6; }
+                    else if (i <= 7) { r.x = 16 + (i % 2) * 5; r.y = 32 + (i - 2) * 7; }
+                    else { r.x = 36; r.y = 32 + (i - 8) * 16; }
                 });
 
                 const v1 = [toSvgVec(4, 6, 12, 46, '#EF4444')];
                 const s2 = cloneSlots(s1);
-                if (s2[9]) { s2[9].x = 46; s2[9].y = 26; }
+                if (s2[9]) { s2[9].x = 52; s2[9].y = 26; }
                 const v2 = [
-                    toSvgVec(12, 46, 46, 26, '#F59E0B'),
-                    toSvgVec(42, 70, 46, 62, '#00FF88')
+                    toSvgVec(12, 46, 52, 26, '#F59E0B'),
+                    toSvgVec(44, 72, 54, 62, '#00FF88')
                 ];
                 const s3 = cloneSlots(s2);
-                const v3 = [toSvgVec(46, 26, 48, 26, '#38BDF8')];
+                const v3 = [toSvgVec(52, 26, 58, 26, '#38BDF8')];
 
                 phasesData = [
                     { vectors: v1, slotsCoords: s1, rivalsCoords: r1, ballCoords: { x: 4, y: 6 }, zone: { cx: 72, cy: 193, r: 28, color: '#38BDF8' }, note: '1. Fase Inicial (ABP Defensivo): Marcaje mixto en tu área y 2 velocistas arriba.' },
-                    { vectors: v2, slotsCoords: s2, rivalsCoords: r1, ballCoords: { x: 46, y: 26 }, zone: { cx: 276, cy: 109, r: 28, color: '#00FF88' }, note: '2. Desarrollo: Despeje orientado a banda hacia el extremo descolgado.' },
-                    { vectors: v3, slotsCoords: s3, rivalsCoords: r1, ballCoords: { x: 48, y: 26 }, zone: null, note: '3. Finalización: Conducción en superioridad hacia campo abierto.' }
+                    { vectors: v2, slotsCoords: s2, rivalsCoords: r1, ballCoords: { x: 52, y: 26 }, zone: { cx: 312, cy: 109, r: 28, color: '#00FF88' }, note: '2. Desarrollo: Despeje orientado a banda hacia el extremo descolgado.' },
+                    { vectors: v3, slotsCoords: s3, rivalsCoords: r1, ballCoords: { x: 58, y: 26 }, zone: null, note: '3. Finalización: Transición ofensiva hacia campo abierto.' }
                 ];
                 setTacticalZoom('left');
                 selectTacticalPhase(0);
                 return;
             }
 
-            // 6. JUGADAS DE CAMPO COMPLETO (Salida de Balón, Ataque Posicional, Contraataque, Basculación, Bloques Vs Rival)
             setTacticalZoom('full');
 
             if (momentKey === 'build_up') {
@@ -1573,31 +1848,33 @@
                     { vectors: v3, slotsCoords: s3, rivalsCoords: cloneSlots(baseRivals), ballCoords: { x: 86, y: 48 }, zone: { cx: 516, cy: 202, r: 38, color: '#F59E0B' }, note: '3. Finalización: Centro tenso al punto de penalti y remate a gol.' }
                 ];
             } else {
-                // Ataque Posicional / Cambio de Banda / Contraataque / Bloques Vs Rival en 3 Fases
                 if (activeSection === 'rival') { showRivals = true; syncRivalToggleButton(); }
-                const s1 = cloneSlots(baseSlots).map((s, i) => ({ ...s, x: i === 0 ? 18 : Math.min(80, s.x + (activeSection === 'rival' ? -8 : 8)) }));
+                const s1 = cloneSlots(baseSlots).map((s, i) => ({
+                    ...s,
+                    x: i === 0 ? 9 : (showRivals ? Math.min(48, Math.round(14 + s.x * 0.42)) : Math.min(80, s.x + 8))
+                }));
                 const v1 = [
                     toSvgVec(s1[cmIdx].x, s1[cmIdx].y, s1[lwIdx].x, s1[lwIdx].y, '#F59E0B'),
                     toSvgVec(s1[lbIdx].x, s1[lbIdx].y, s1[lbIdx].x + 12, s1[lbIdx].y, '#00FF88')
                 ];
                 const s2 = cloneSlots(s1);
                 s2[lbIdx].x = Math.min(82, s1[lbIdx].x + 12);
-                s2[rwIdx].x = 84; s2[rwIdx].y = 74;
+                s2[rwIdx].x = 76; s2[rwIdx].y = 74;
                 const v2 = [
                     toSvgVec(s2[lwIdx].x, s2[lwIdx].y, s2[rwIdx].x, s2[rwIdx].y, '#F59E0B'),
-                    toSvgVec(s2[stIdx].x, s2[stIdx].y, 88, 46, '#00FF88')
+                    toSvgVec(s2[stIdx].x, s2[stIdx].y, 86, 46, '#00FF88')
                 ];
                 const s3 = cloneSlots(s2);
-                s3[stIdx].x = 88; s3[stIdx].y = 46;
+                s3[stIdx].x = 86; s3[stIdx].y = 46;
                 const v3 = [
-                    toSvgVec(s3[rwIdx].x, s3[rwIdx].y, 88, 46, '#F59E0B'),
-                    toSvgVec(88, 46, 96, 46, '#F59E0B')
+                    toSvgVec(s3[rwIdx].x, s3[rwIdx].y, 86, 46, '#F59E0B'),
+                    toSvgVec(86, 46, 96, 46, '#F59E0B')
                 ];
 
                 phasesData = [
-                    { vectors: v1, slotsCoords: s1, rivalsCoords: cloneSlots(baseRivals), ballCoords: { x: s1[cmIdx].x, y: s1[cmIdx].y }, zone: null, note: '1. Fase Inicial: Posicionamiento del bloque y activación exterior.' },
-                    { vectors: v2, slotsCoords: s2, rivalsCoords: cloneSlots(baseRivals), ballCoords: { x: s2[lwIdx].x, y: s2[lwIdx].y }, zone: { cx: 504, cy: 310, r: 38, color: '#38BDF8' }, note: '2. Desarrollo: Giro de orientación al carril libre y ruptura del 9.' },
-                    { vectors: v3, slotsCoords: s3, rivalsCoords: cloneSlots(baseRivals), ballCoords: { x: 88, y: 46 }, zone: { cx: 528, cy: 193, r: 36, color: '#00FF88' }, note: '3. Finalización: Asistencia al área y definición.' }
+                    { vectors: v1, slotsCoords: s1, rivalsCoords: cloneSlots(baseRivals), ballCoords: { x: s1[cmIdx].x, y: s1[cmIdx].y }, zone: null, note: '1. Fase Inicial: Posicionamiento del bloque sin solapamientos y activación exterior.' },
+                    { vectors: v2, slotsCoords: s2, rivalsCoords: cloneSlots(baseRivals), ballCoords: { x: s2[lwIdx].x, y: s2[lwIdx].y }, zone: { cx: 456, cy: 310, r: 38, color: '#38BDF8' }, note: '2. Desarrollo: Giro de orientación al carril libre y ruptura del 9.' },
+                    { vectors: v3, slotsCoords: s3, rivalsCoords: cloneSlots(baseRivals), ballCoords: { x: 86, y: 46 }, zone: { cx: 516, cy: 193, r: 36, color: '#00FF88' }, note: '3. Finalización: Asistencia al área y definición.' }
                 ];
             }
 
@@ -1605,9 +1882,13 @@
         }
 
         // =========================================================================
-        // 5. CONTROL DE FASES (1, 2, 3) Y RENDERIZADO VECTORIAL HD
+        // 7. CONTROL DE FASES (1, 2, 3), GUARDADO EN NUBE Y EVENTOS
         // =========================================================================
         function selectTacticalPhase(targetPhaseIdx) {
+            // Antes de cambiar de fase, guardar siempre los movimientos hechos en la fase actual
+            if (phasesData[currentPhaseIdx]) {
+                syncPhaseSnapshot();
+            }
             currentPhaseIdx = targetPhaseIdx;
             updatePhaseButtonsUI();
 
@@ -1650,6 +1931,7 @@
         }
 
         function playFullMultiPhaseAnimation() {
+            syncPhaseSnapshot();
             let step = 0;
             function next() {
                 if (step > 2) return;
@@ -1683,7 +1965,7 @@
 
                 boardHorizontalSlots.forEach((slot, idx) => {
                     const el = tokensLayer.children[idx];
-                    const isAct = (idx === selectedActorIdx);
+                    const isAct = Boolean(selectedActor && !selectedActor.isRival && selectedActor.index === idx);
                     const dispX = fieldPctToDisplayPctX(slot.x);
 
                     el.className = `micro-player-token ${isAct ? 'active-actor' : ''}`;
@@ -1717,7 +1999,9 @@
                     }
                     rivalTokens.forEach((r, idx) => {
                         const el = rivalsLayer.children[idx];
+                        const isAct = Boolean(selectedActor && selectedActor.isRival && selectedActor.index === idx);
                         const dispX = fieldPctToDisplayPctX(r.x);
+                        el.className = `micro-rival-token ${isAct ? 'active-actor' : ''}`;
                         el.style.left = `${dispX}%`;
                         el.style.top = `${r.y}%`;
                         el.style.display = (dispX < -6 || dispX > 106) ? 'none' : 'flex';
@@ -1771,6 +2055,12 @@
             phasesData[currentPhaseIdx].ballCoords = { ...ballCoords };
         }
 
+        function getActiveActorSlotObject() {
+            if (!selectedActor) return null;
+            if (selectedActor.isRival) return rivalTokens[selectedActor.index] || null;
+            return boardHorizontalSlots[selectedActor.index] || null;
+        }
+
         function bindTokenDragAndClick(el, slotObj, idx, isRival) {
             const surface = document.getElementById('arena-3d-surface');
             if (!surface) return;
@@ -1811,175 +2101,36 @@
                         undoHistoryStack.push(preDragState);
                         updateUndoCounterUI();
                         hasUnsavedChanges = true;
-                        if (!isRival && isRecordingPlay) {
-                            const col = activeDrawingTool === 'dribble' ? '#38BDF8' : (activeDrawingTool === 'screen' ? '#EF4444' : '#00FF88');
-                            phasesData[currentPhaseIdx].vectors.push(toSvgVec(startX, startY, slotObj.x, slotObj.y, col));
-                            if (activeDrawingTool === 'dribble') ballCoords = { x: slotObj.x, y: slotObj.y };
-                        }
+                        selectedActor = { isRival, index: idx };
+
+                        // Al arrastrar un jugador o rival, trazar vector automáticamente
+                        const col = isRival
+                            ? '#EF4444'
+                            : (activeDrawingTool === 'dribble' ? '#38BDF8' : (activeDrawingTool === 'screen' ? '#EF4444' : '#00FF88'));
+                        phasesData[currentPhaseIdx].vectors.push(toSvgVec(startX, startY, slotObj.x, slotObj.y, col));
+                        if (!isRival && activeDrawingTool === 'dribble') ballCoords = { x: slotObj.x, y: slotObj.y };
+
                         syncPhaseSnapshot();
                         renderHorizontalArena();
                     } else {
                         slotObj.x = startX;
                         slotObj.y = startY;
-                        if (!isRival) {
-                            if (activeDrawingTool === 'pass' && selectedActorIdx !== idx && isRecordingPlay) {
-                                undoHistoryStack.push(preDragState);
-                                updateUndoCounterUI();
-                                hasUnsavedChanges = true;
-                                phasesData[currentPhaseIdx].vectors.push(toSvgVec(ballCoords.x, ballCoords.y, slotObj.x, slotObj.y, '#F59E0B'));
-                                ballCoords = { x: slotObj.x, y: slotObj.y };
-                            }
-                            selectedActorIdx = idx;
-                            syncPhaseSnapshot();
-                            renderHorizontalArena();
+                        if (activeDrawingTool === 'pass' && selectedActor && (selectedActor.isRival !== isRival || selectedActor.index !== idx)) {
+                            undoHistoryStack.push(preDragState);
+                            updateUndoCounterUI();
+                            hasUnsavedChanges = true;
+                            phasesData[currentPhaseIdx].vectors.push(toSvgVec(ballCoords.x, ballCoords.y, slotObj.x, slotObj.y, '#F59E0B'));
+                            ballCoords = { x: slotObj.x, y: slotObj.y };
                         }
+                        selectedActor = { isRival, index: idx };
+                        syncPhaseSnapshot();
+                        renderHorizontalArena();
                     }
                 };
 
                 window.addEventListener('mousemove', onMove);
                 window.addEventListener('mouseup', onUp);
             };
-        }
-
-        // =========================================================================
-        // 6. PANEL DERECHO EJECUTIVO (🛠️ CREAR | 🧠 JUGADAS IA | 💾 GUARDADOS)
-        // =========================================================================
-        function switchRightSubTab(tabKey) {
-            activeRightSubTab = tabKey;
-            ['create', 'ia', 'saved'].forEach(k => {
-                document.getElementById(`subtab-btn-${k}`)?.classList.toggle('active', k === tabKey);
-            });
-            renderRightSubTab();
-        }
-
-        function renderRightSubTab() {
-            const box = document.getElementById('right-subtab-content');
-            if (!box) return;
-
-            const activeSlot = boardHorizontalSlots[selectedActorIdx] || boardHorizontalSlots[0];
-            const actorName = activeSlot && activeSlot.player ? activeSlot.player.name.split(' ')[0] : (activeSlot ? activeSlot.pos : 'POR');
-
-            if (activeRightSubTab === 'create') {
-                box.innerHTML = `
-                    <!-- BLOQUE 1: CONSOLA DE GRABACIÓN Y TRAZADO SEGMENTADO -->
-                    <div class="exec-studio-section">
-                        <div class="exec-studio-header">
-                            <span id="active-actor-label">✋ JUGADOR: [${activeSlot ? activeSlot.pos : 'POR'}] ${actorName.toUpperCase()}</span>
-                            <button type="button" class="tool-pill-btn ${isRecordingPlay ? 'btn-recording-active' : 'active-green'}" style="padding:4px 9px;" onclick="togglePlayRecording()">
-                                ${isRecordingPlay ? '⏹ Detener REC' : '🔴 Grabar Fase'}
-                            </button>
-                        </div>
-
-                        <div class="exec-segmented-bar" style="margin-bottom:7px;">
-                            <button type="button" class="exec-seg-option ${activeDrawingTool === 'offball' ? 'active-tool' : ''}" onclick="setDrawingTool('offball')">
-                                <span class="exec-dot" style="background:#00FF88;box-shadow:0 0 6px #00FF88;"></span>
-                                <span>Desmarque</span>
-                            </button>
-                            <button type="button" class="exec-seg-option ${activeDrawingTool === 'pass' ? 'active-tool' : ''}" onclick="setDrawingTool('pass')">
-                                <span class="exec-dot" style="background:#F59E0B;box-shadow:0 0 6px #F59E0B;"></span>
-                                <span>Pase / Tiro</span>
-                            </button>
-                            <button type="button" class="exec-seg-option ${activeDrawingTool === 'dribble' ? 'active-tool' : ''}" onclick="setDrawingTool('dribble')">
-                                <span class="exec-dot" style="background:#38BDF8;box-shadow:0 0 6px #38BDF8;"></span>
-                                <span>Conducción</span>
-                            </button>
-                            <button type="button" class="exec-seg-option ${activeDrawingTool === 'screen' ? 'active-tool' : ''}" onclick="setDrawingTool('screen')">
-                                <span class="exec-dot" style="background:#EF4444;box-shadow:0 0 6px #EF4444;"></span>
-                                <span>Pantalla</span>
-                            </button>
-                        </div>
-
-                        <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:4px;">
-                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="applyPresetAction('ruptura')">↗️ Ruptura</button>
-                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="applyPresetAction('apoyo')">↙️ Apoyo</button>
-                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;color:#FCA5A5;" onclick="clearAllVectorsOnBoard()">🗑️ Borrar Fase</button>
-                        </div>
-                    </div>
-
-                    <!-- BLOQUE 2: ZONA DE INICIO TÁCTICO RÁPIDO -->
-                    <div class="exec-studio-section" style="border-left-color:#38BDF8;">
-                        <div class="exec-studio-header">
-                            <span>📍 ZONA DE PARTIDA EN CAMPO</span>
-                            <span style="color:#38BDF8;">1-CLIC</span>
-                        </div>
-                        <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:4px;">
-                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="setPlayStartingZone('own_box')">Saque Puerta</button>
-                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="setPlayStartingZone('midfield')">Creación</button>
-                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="setPlayStartingZone('final_third')">Último Tercio</button>
-                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="setPlayStartingZone('def_block')">Bloque Def.</button>
-                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="setPlayStartingZone('corner')">Córner Zoom</button>
-                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="setPlayStartingZone('free_kick')">Falta Zoom</button>
-                        </div>
-                    </div>
-
-                    <!-- BLOQUE 3: REGISTRO EN BIBLIOTECA Y NUBE SUPABASE -->
-                    <div class="exec-studio-section" style="border-left-color:#F59E0B;margin-bottom:0;">
-                        <div class="exec-studio-header">
-                            <span>💾 GUARDAR PIZARRA MULTIFASE</span>
-                            <span style="color:#F59E0B;">CLOUD SYNC</span>
-                        </div>
-                        <input type="text" id="play-title-input" class="kinet-input" style="margin-bottom:6px;" placeholder="Nombre de la jugada (ej: Salida Lavolpiana)...">
-                        <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:6px;">
-                            <button type="button" class="btn-primary" style="padding:7px;font-size:0.6rem;" onclick="savePlayToLibrary()">
-                                ${editingPlayId ? '💾 Actualizar' : '💾 Guardar Jugada'}
-                            </button>
-                            <button type="button" class="btn-secondary" style="padding:7px;font-size:0.6rem;" onclick="createNewBlankPlay()">
-                                ➕ Nueva Limpia
-                            </button>
-                        </div>
-                    </div>
-                `;
-                return;
-            }
-
-            if (activeRightSubTab === 'ia') {
-                const catObj = MOMENT_DROPDOWN_CATALOG[activeSection] || MOMENT_DROPDOWN_CATALOG.train;
-                const presets = catObj.items.filter(m => !m.key.startsWith('base_'));
-                box.innerHTML = `
-                    <div style="font-size:0.66rem;color:#CBD5E1;margin-bottom:7px;line-height:1.35;">
-                        Pizarras IA con <strong>3 fases completas (Inicial → Desarrollo → Finalización)</strong>. Pulsa <strong>"▶ Cargar 3 Fases"</strong> o edítalas:
-                    </div>
-                    <div style="max-height:285px;overflow-y:auto;padding-bottom:6px;">
-                        ${presets.map(item => `
-                            <div class="saved-play-card">
-                                <div style="font-family:'Orbitron';font-size:0.68rem;font-weight:800;color:white;margin-bottom:2px;">🎬 ${item.label}</div>
-                                <div style="font-size:0.61rem;color:#94A3B8;margin-bottom:7px;line-height:1.32;">${item.desc}</div>
-                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                                    <button type="button" class="btn-primary" style="padding:6px;font-size:0.57rem;" onclick="applyMomentPositioning('${item.key}')">▶ Cargar 3 Fases</button>
-                                    <button type="button" class="btn-secondary" style="padding:6px;font-size:0.57rem;" onclick="editPresetInCreator('${item.key}', '${item.label.replace(/'/g, '')}')">✏️ Editar en Crear</button>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-                return;
-            }
-
-            if (savedPlaysLibrary.length === 0) {
-                box.innerHTML = `
-                    <div style="text-align:center;padding:24px 12px;border:1px dashed var(--border-subtle);border-radius:14px;font-size:0.71rem;color:var(--text-secondary);">
-                        No tienes jugadas guardadas aún. Crea una en <strong>"🛠️ Crear"</strong> o personaliza una de <strong>"🧠 Jugadas IA"</strong>.
-                    </div>
-                `;
-                return;
-            }
-
-            box.innerHTML = `
-                <div style="max-height:295px;overflow-y:auto;padding-bottom:6px;">
-                    ${savedPlaysLibrary.map(p => `
-                        <div class="saved-play-card">
-                            <div style="font-family:'Orbitron';font-size:0.69rem;font-weight:800;color:white;">🎬 ${p.title}</div>
-                            <div style="font-family:'JetBrains Mono';font-size:0.55rem;color:var(--role-color);margin-top:2px;">${p.notes || currentPresetName} • ☁️ Nube</div>
-                            <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:5px;margin-top:7px;">
-                                <button type="button" class="btn-primary" style="padding:5px 6px;font-size:0.55rem;" onclick="loadPlayFromLibrary('${p.id}')">▶ Cargar</button>
-                                <button type="button" class="btn-secondary" style="padding:5px 6px;font-size:0.55rem;" onclick="editSavedPlay('${p.id}')">✏️ Editar</button>
-                                <button type="button" class="btn-secondary" style="padding:5px 6px;font-size:0.55rem;border-color:var(--role-color);color:var(--role-color);" onclick="shareSavedPlayById('${p.id}')">🌐 Publicar</button>
-                                <button type="button" class="btn-secondary" style="padding:5px 8px;font-size:0.55rem;color:#FCA5A5;border-color:rgba(239,68,68,0.4);" onclick="deletePlayFromLibrary('${p.id}', event)">🗑️</button>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
         }
 
         function setPlayStartingZone(zoneType) {
@@ -2017,17 +2168,6 @@
             renderHorizontalArena();
         }
 
-        function togglePlayRecording() {
-            isRecordingPlay = !isRecordingPlay;
-            renderRightSubTab();
-            const tele = document.getElementById('live-tactical-teleprompter');
-            if (isRecordingPlay) {
-                tele.innerHTML = `🔴 <strong>GRABANDO FASE ${currentPhaseIdx + 1}:</strong> Haz clic en el campo o arrastra jugadores para registrar sus carreras y pases.`;
-            } else {
-                tele.innerHTML = `✓ <strong>Grabación Pausada:</strong> Cambia a Fase 2 / Fase 3 o guarda tu jugada en la nube.`;
-            }
-        }
-
         function editPresetInCreator(momentKey, labelTxt) {
             applyMomentPositioning(momentKey);
             isRecordingPlay = true;
@@ -2061,23 +2201,23 @@
             }
         }
 
-        function savePlayToLibrary() {
-            const inp = document.getElementById('play-title-input');
-            let title = (inp ? inp.value : '').trim();
-            if (!title) {
-                title = prompt('Escribe un nombre para guardar esta jugada táctica:', `${currentPresetName} • Jugada Pro`) || '';
-            }
-            if (!title.trim()) return;
-
+        function savePlayToLibrary(overrideTitle, overrideNotes) {
             syncPhaseSnapshot();
-            const totalVecs = phasesData.reduce((acc, p) => acc + p.vectors.length, 0);
+            const inp = document.getElementById('play-title-input');
+            let title = overrideTitle || (inp ? inp.value : '').trim();
+            if (!title) {
+                openSaveRecordingModal();
+                return;
+            }
+
+            const totalVecs = phasesData.reduce((acc, p) => acc + (p.vectors ? p.vectors.length : 0), 0);
             const playRecord = {
                 id: editingPlayId || ('play_' + Date.now()),
                 title: title.trim(),
                 section: activeSection,
                 momentKey: activeMomentKey,
                 zoomMode: currentZoomMode,
-                notes: `${currentPresetName} • 3 Fases (${totalVecs} trazos)`,
+                notes: overrideNotes || `${currentPresetName} • 3 Fases (${totalVecs} trazos)`,
                 phasesSnapshot: JSON.parse(JSON.stringify(phasesData)),
                 slotsSnapshot: JSON.parse(JSON.stringify(boardHorizontalSlots)),
                 rivalsSnapshot: JSON.parse(JSON.stringify(rivalTokens)),
@@ -2100,6 +2240,7 @@
             undoHistoryStack = [];
             updateUndoCounterUI();
             switchRightSubTab('saved');
+            document.getElementById('live-tactical-teleprompter').innerHTML = `✓ <strong>Jugada Guardada en Nube:</strong> "${playRecord.title}" con todos sus movimientos registrados.`;
         }
 
         function loadPlayFromLibrary(playId) {
@@ -2120,7 +2261,21 @@
                 hasUnsavedChanges = false;
                 undoHistoryStack = [];
                 updateUndoCounterUI();
-                selectTacticalPhase(0);
+                currentPhaseIdx = 0;
+                updatePhaseButtonsUI();
+
+                // Cargar las coordenadas exactas guardadas en la Fase 1
+                if (phasesData[0] && phasesData[0].slotsCoords) {
+                    boardHorizontalSlots = JSON.parse(JSON.stringify(phasesData[0].slotsCoords));
+                }
+                if (phasesData[0] && phasesData[0].rivalsCoords) {
+                    rivalTokens = JSON.parse(JSON.stringify(phasesData[0].rivalsCoords));
+                }
+                if (phasesData[0] && phasesData[0].ballCoords) {
+                    ballCoords = { ...phasesData[0].ballCoords };
+                }
+
+                renderHorizontalArena();
                 document.getElementById('live-tactical-teleprompter').innerHTML = `🎬 <strong>Jugada Cargada:</strong> ${item.title} (${item.notes})`;
             });
         }
@@ -2239,12 +2394,8 @@
         }
 
         function updateActorLabel() {
-            const slot = boardHorizontalSlots[selectedActorIdx] || boardHorizontalSlots[0];
             const lbl = document.getElementById('active-actor-label');
-            if (lbl && slot) {
-                const pName = slot.player ? slot.player.name.split(' ')[0] : slot.pos;
-                lbl.textContent = `✋ JUGADOR: [${slot.pos}] ${pName.toUpperCase()}`;
-            }
+            if (lbl) lbl.textContent = getActorLabelString();
         }
 
         function bindArenaSurfaceClick() {
@@ -2253,8 +2404,8 @@
 
             surface.addEventListener('click', (e) => {
                 if (e.target.closest('.micro-player-token') || e.target.closest('.micro-rival-token')) return;
-                const slot = boardHorizontalSlots[selectedActorIdx];
-                if (!slot) return;
+                const slot = getActiveActorSlotObject();
+                if (!slot && activeDrawingTool !== 'pass') return;
 
                 const rect = surface.getBoundingClientRect();
                 const dispX = ((e.clientX - rect.left) / rect.width) * 100;
@@ -2262,20 +2413,22 @@
                 const ty = Math.min(92, Math.max(8, Math.round(((e.clientY - rect.top) / rect.height) * 100)));
 
                 if (activeDrawingTool === 'pass' && Math.hypot(tx - ballCoords.x, ty - ballCoords.y) < 2) return;
-                if (activeDrawingTool !== 'pass' && Math.hypot(tx - slot.x, ty - slot.y) < 2) return;
+                if (activeDrawingTool !== 'pass' && slot && Math.hypot(tx - slot.x, ty - slot.y) < 2) return;
 
                 pushUndoState();
                 hasUnsavedChanges = true;
-                const pName = slot.player ? slot.player.name : slot.pos;
+                const isRiv = Boolean(selectedActor && selectedActor.isRival);
+                const pName = slot ? (isRiv ? `Rival ${slot.init}` : (slot.player ? slot.player.name : slot.pos)) : 'Balón';
 
-                if (activeDrawingTool === 'offball') {
-                    phasesData[currentPhaseIdx].vectors.push(toSvgVec(slot.x, slot.y, tx, ty, '#00FF88'));
-                    slot.x = tx; slot.y = ty;
-                    document.getElementById('ai-board-diagnosis').innerHTML = `🟢 <strong>Desmarque Sin Balón (Fase ${currentPhaseIdx + 1}):</strong> [${slot.pos}] ${pName} ataca el espacio en (${tx}%, ${ty}%).`;
-                } else if (activeDrawingTool === 'pass') {
+                if (activeDrawingTool === 'pass') {
                     phasesData[currentPhaseIdx].vectors.push(toSvgVec(ballCoords.x, ballCoords.y, tx, ty, '#F59E0B'));
                     ballCoords = { x: tx, y: ty };
                     document.getElementById('ai-board-diagnosis').innerHTML = `🟠 <strong>Envío de Balón (Fase ${currentPhaseIdx + 1}):</strong> Pase/disparo hacia zona (${tx}%, ${ty}%).`;
+                } else if (activeDrawingTool === 'offball') {
+                    const vecCol = isRiv ? '#EF4444' : '#00FF88';
+                    phasesData[currentPhaseIdx].vectors.push(toSvgVec(slot.x, slot.y, tx, ty, vecCol));
+                    slot.x = tx; slot.y = ty;
+                    document.getElementById('ai-board-diagnosis').innerHTML = `${isRiv ? '🔴' : '🟢'} <strong>Movimiento Sin Balón (Fase ${currentPhaseIdx + 1}):</strong> [${slot.pos}] ${pName} se desplaza hacia (${tx}%, ${ty}%).`;
                 } else if (activeDrawingTool === 'dribble') {
                     phasesData[currentPhaseIdx].vectors.push(toSvgVec(slot.x, slot.y, tx, ty, '#38BDF8'));
                     slot.x = tx; slot.y = ty;
@@ -2284,7 +2437,7 @@
                 } else if (activeDrawingTool === 'screen') {
                     phasesData[currentPhaseIdx].vectors.push(toSvgVec(slot.x, slot.y, tx, ty, '#EF4444'));
                     slot.x = tx; slot.y = ty;
-                    document.getElementById('ai-board-diagnosis').innerHTML = `🔴 <strong>Bloqueo / Pantalla (Fase ${currentPhaseIdx + 1}):</strong> [${slot.pos}] ${pName} fija marca rival en (${tx}%, ${ty}%).`;
+                    document.getElementById('ai-board-diagnosis').innerHTML = `🔴 <strong>Presión / Pantalla (Fase ${currentPhaseIdx + 1}):</strong> [${slot.pos}] ${pName} salta a presionar/bloquear en (${tx}%, ${ty}%).`;
                 }
 
                 syncPhaseSnapshot();
@@ -2293,16 +2446,22 @@
         }
 
         function applyPresetAction(actType) {
-            const slot = boardHorizontalSlots[selectedActorIdx];
-            if (!slot) return;
+            const slot = getActiveActorSlotObject();
+            if (!slot) {
+                alert('Toca primero cualquier jugador tuyo o del rival en el campo para aplicarle el movimiento.');
+                return;
+            }
             pushUndoState();
             hasUnsavedChanges = true;
+            const isRiv = Boolean(selectedActor && selectedActor.isRival);
             const ox = slot.x, oy = slot.y;
-            let nx = ox, ny = oy, col = '#00FF88';
+            let nx = ox, ny = oy;
+            let col = isRiv ? '#EF4444' : '#00FF88';
 
-            if (actType === 'ruptura') nx = Math.min(92, ox + 16);
-            else if (actType === 'apoyo') { nx = Math.max(12, ox - 12); col = '#38BDF8'; }
-            else if (actType === 'diagonal') { nx = Math.min(92, ox + 14); ny = oy < 50 ? Math.min(86, oy + 14) : Math.max(14, oy - 14); }
+            const dir = isRiv ? -1 : 1;
+            if (actType === 'ruptura') nx = Math.min(93, Math.max(7, ox + 16 * dir));
+            else if (actType === 'apoyo') { nx = Math.min(93, Math.max(7, ox - 12 * dir)); col = '#38BDF8'; }
+            else if (actType === 'diagonal') { nx = Math.min(93, Math.max(7, ox + 14 * dir)); ny = oy < 50 ? Math.min(86, oy + 14) : Math.max(14, oy - 14); }
 
             phasesData[currentPhaseIdx].vectors.push(toSvgVec(ox, oy, nx, ny, col));
             slot.x = nx; slot.y = ny;
@@ -2315,10 +2474,17 @@
                 editingPlayId = null;
                 const inp = document.getElementById('play-title-input');
                 if (inp) inp.value = '';
-                clearAllVectorsOnBoard(true);
+                phasesData = [
+                    { vectors: [], slotsCoords: JSON.parse(JSON.stringify(boardHorizontalSlots)), rivalsCoords: JSON.parse(JSON.stringify(rivalTokens)), ballCoords: { ...ballCoords }, zone: null, note: '' },
+                    { vectors: [], slotsCoords: null, rivalsCoords: null, ballCoords: null, zone: null, note: '' },
+                    { vectors: [], slotsCoords: null, rivalsCoords: null, ballCoords: null, zone: null, note: '' }
+                ];
+                currentPhaseIdx = 0;
+                updatePhaseButtonsUI();
                 isRecordingPlay = true;
                 renderRightSubTab();
-                document.getElementById('live-tactical-teleprompter').innerHTML = '🔴 <strong>Nueva Jugada en Grabación:</strong> Elige un punto de inicio o traza Fase 1, Fase 2 y Fase 3 en el campo.';
+                renderHorizontalArena();
+                document.getElementById('live-tactical-teleprompter').innerHTML = '🔴 <strong>Nueva Jugada en Grabación:</strong> Toca cualquier jugador tuyo o rival para trazar Fase 1, 2 y 3.';
             });
         }
 
@@ -2326,6 +2492,7 @@
             if (!skipUndo && phasesData[currentPhaseIdx].vectors.length > 0) pushUndoState();
             phasesData[currentPhaseIdx].vectors = [];
             phasesData[currentPhaseIdx].zone = null;
+            syncPhaseSnapshot();
             renderHorizontalArena();
         }
 
@@ -2394,7 +2561,8 @@
             const q = (inp ? inp.value : '').toLowerCase();
             if (inp) inp.value = '';
             guardUnsavedPlay(() => {
-                if (q.includes('salida')) { switchMainSection('train'); applyMomentPositioning('build_up'); }
+                if (q.includes('saque') || q.includes('centro') || q.includes('inicial')) { applyKickoffFormation(); return; }
+                else if (q.includes('salida')) { switchMainSection('train'); applyMomentPositioning('build_up'); }
                 else if (q.includes('contra')) { switchMainSection('train'); applyMomentPositioning('counter_attack'); }
                 else if (q.includes('bajo') || q.includes('repliegue')) { switchMainSection('rival'); applyMomentPositioning('low_block'); }
                 else if (q.includes('presion') || q.includes('presión') || q.includes('perdida')) { switchMainSection('rival'); applyMomentPositioning('gegenpress'); }
