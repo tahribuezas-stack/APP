@@ -47,24 +47,24 @@
     // Modelos asignados automáticamente según el Plan de Suscripción del usuario
     modelsByTier: {
       free: {
-        gemini: 'gemini-2.5-flash',
-        geminiFallback: 'gemini-2.0-flash',
+        gemini: 'gemini-3.8-flash',
+        geminiFallback: 'gemini-3.5-flash',
         openai: 'gpt-4o-mini',
         groq: 'llama-3.3-70b-versatile',
         maxTokens: 600,
         temperature: 0.65
       },
       pro: {
-        gemini: 'gemini-2.5-flash',
-        geminiFallback: 'gemini-2.0-flash',
+        gemini: 'gemini-3.8-flash',
+        geminiFallback: 'gemini-3.5-flash',
         openai: 'gpt-4o-mini',
         groq: 'llama-3.3-70b-versatile',
         maxTokens: 850,
         temperature: 0.68
       },
       club: {
-        gemini: 'gemini-2.5-flash',
-        geminiFallback: 'gemini-2.0-flash',
+        gemini: 'gemini-3.8-flash',
+        geminiFallback: 'gemini-3.5-flash',
         openai: 'gpt-4o',
         groq: 'llama-3.3-70b-versatile',
         maxTokens: 1100,
@@ -725,7 +725,7 @@ INSTRUCCIONES DE FORMATO Y NATURALIDAD:
         genConfig.responseMimeType = 'application/json';
       }
 
-      const geminiModelsToTry = [modelCfg.gemini, modelCfg.geminiFallback || 'gemini-2.0-flash'];
+      const geminiModelsToTry = [modelCfg.gemini, modelCfg.geminiFallback || 'gemini-3.5-flash'];
       const errorsLog = [];
       const isAuthKey = geminiKey.startsWith('AQ.');
 
@@ -762,7 +762,7 @@ INSTRUCCIONES DE FORMATO Y NATURALIDAD:
       if (isAuthKey) {
         try {
           const vRes = await fetch(
-            'https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash:generateContent',
+            'https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-3.8-flash:generateContent',
             {
               method: 'POST',
               headers: gHeaders,
