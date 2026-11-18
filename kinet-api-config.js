@@ -726,43 +726,47 @@ INSTRUCCIONES DE FORMATO Y NATURALIDAD:
       }
 
       const geminiModelsToTry = [modelCfg.gemini, modelCfg.geminiFallback || 'gemini-2.0-flash'];
-      let lastGeminiError = '';
+      const errorsLog = [];
+      const isAuthKey = geminiKey.startsWith('AQ.');
+
+      // Las claves AQ. (Authentication Keys de AI Studio) se envían en la cabecera
+      // x-goog-api-key; las AIzaSy clásicas funcionan igual con cabecera o ?key=.
+      const gHeaders = { 'Content-Type': 'application/json', 'x-goog-api-key': geminiKey };
 
       for (const mName of geminiModelsToTry) {
         try {
           const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${mName}:generateContent?key=${encodeURIComponent(geminiKey)}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/${mName}:generateContent`,
             {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ contents: [{ parts }], generationConfig: genConfig })
+              headers: gHeaders,
+              body: JSON.stringify({ contents: [{ role: 'user', parts }], generationConfig: genConfig })
             }
           );
           if (res.ok) {
             const data = await res.json();
             const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
             if (text) return text.trim();
+            errorsLog.push(`[${mName}] respuesta vacía`);
           } else {
             const errData = await res.json().catch(() => ({}));
-            lastGeminiError = errData?.error?.message || `HTTP ${res.status}`;
+            const reason = errData?.error?.details?.[0]?.reason || '';
+            errorsLog.push(`[generativelanguage · ${mName}] HTTP ${res.status} ${reason} ${errData?.error?.message || ''}`.trim());
           }
         } catch (e) {
-          lastGeminiError = e.message || 'Error de red llamando a Gemini';
+          errorsLog.push(`[generativelanguage · ${mName}] ${e.message || 'Error de red'}`);
         }
       }
 
-      // Intento adicional automático en el endpoint de Vertex AI Express si la clave empieza por AQ.
-      if (geminiKey.startsWith('AQ.')) {
+      // Vertex AI Express: SOLO como último recurso para claves AQ. y sin tapar el error principal.
+      if (isAuthKey) {
         try {
           const vRes = await fetch(
-            `https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(geminiKey)}`,
+            'https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash:generateContent',
             {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{ role: 'user', parts }],
-                generationConfig: genConfig
-              })
+              headers: gHeaders,
+              body: JSON.stringify({ contents: [{ role: 'user', parts }], generationConfig: genConfig })
             }
           );
           if (vRes.ok) {
@@ -771,10 +775,14 @@ INSTRUCCIONES DE FORMATO Y NATURALIDAD:
             if (vText) return vText.trim();
           } else {
             const vErr = await vRes.json().catch(() => ({}));
-            lastGeminiError = vErr?.error?.message || lastGeminiError;
+            errorsLog.push(`[vertex] HTTP ${vRes.status} ${vErr?.error?.message || ''}`.trim());
           }
-        } catch (e) {}
+        } catch (e) {
+          errorsLog.push(`[vertex] ${e.message || 'Error de red'}`);
+        }
       }
+
+      const lastGeminiError = errorsLog.join('\n');
 
       throw new Error(lastGeminiError || 'La API de Google rechazó la clave proporcionada.');
     }
