@@ -5439,20 +5439,24 @@
                 }
             }
         };
-   // =========================================================================
-        // CONECTOR LIGERO ANALIZADOR.HTML <-> ANALIZADOR2.HTML (GIRO 3D FLUIDO)
-        // Mantiene Porteros (DIV/HAN/KIC), Separación DFC/POR, 3ª Barra Cuerpo Técnico (6)
-        // y redirige con animación 3D imperceptible a analizador2.html
+ // =========================================================================
+        // CONECTOR LIGERO V2 ANALIZADOR.HTML <-> ANALIZADOR2.HTML
+        // - Casillas "STAFF 1..6" a secas (el rol lo determina el perfil asignado)
+        // - Selección e iluminación real al pulsar cualquier casilla de Staff
+        // - Giro 3D real (@keyframes con !important) al pasar de Plantilla a Estrategias
         // =========================================================================
-        (function applyKinetAnalyzerConnector() {
-            if (window._kinetConnectorLoaded) return;
-            window._kinetConnectorLoaded = true;
+        (function applyKinetAnalyzerConnectorV2() {
+            if (window._kinetConnectorV2Loaded) return;
+            window._kinetConnectorV2Loaded = true;
 
             const _nativeRenderBoard = window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63;
             const _nativeRenderDuel = window.renderDuel1v1View;
             const _nativeRenderMirror = window.renderMirrorSelfView;
             const _nativeUpdateSliders = window.updateBuilderSlidersForPosition;
             const _nativeGetSlotArr = window.getSlotArrayByGroup;
+            const _nativeSelectAnySlot = window.selectAnySlot;
+            const _nativeQuickRemove = window.quickRemoveSlotPlayer;
+            const _nativeAssignPlayer = window.assignOrComparePlayer;
 
             // 1. Separar DFC y POR en todos los presets de Fútbol
             const fbPresets = SPORT_ARENA_CONFIGS['Fútbol']?.presets;
@@ -5466,34 +5470,33 @@
                 });
             }
 
-            // 2. Profesiones del Cuerpo Técnico y Siglas de Portero
-            const STAFF_ROLES_BY_SPORT = {
-                'Fútbol': {
-                    slots: ['MÍSTER / TOTAL', '2º ENTRENADOR', 'PREP. FÍSICO', 'FISIOTERAPEUTA', 'COACH MENTAL', 'ANALISTA / NUTRI'],
-                    skills: {
-                        'MÍSTER / TOTAL': ['Pizarra & Táctica Global (TAC)', 'Dirección de Partido (DIR)', 'Gestión de Vestuario (GES)', 'Metodología Física (FIS)', 'Prevención & Salud (SAL)', 'Psicología & Cantera (PSI)'],
-                        '2º ENTRENADOR': ['Estrategia Balón Parado (ABP)', 'Corrección en Vivo (COR)', 'Transiciones Ataque/Def. (TRA)', 'Análisis de Rival (RIV)', 'Trabajo por Líneas (LIN)', 'Conexión Jugadores (CON)'],
-                        'PREP. FÍSICO': ['Fuerza & Explosividad (FUE)', 'Resistencia 90 Min (RES)', 'Velocidad & Sprints (VEL)', 'Control Cargas GPS (CAR)', 'Pico de Forma (PIC)', 'Prevención Muscular (PRE)'],
-                        'FISIOTERAPEUTA': ['Diagnóstico Lesional (DIA)', 'Terapia Manual (MAN)', 'Readaptación Campo (REA)', 'Prevención Isquios (PRE)', 'Recuperación Post-90m (REC)', 'Biomecánica Articular (BIO)'],
-                        'COACH MENTAL': ['Foco & Concentración (FOC)', 'Gestión Presión/Penaltis (CLU)', 'Confianza & Resiliencia (CON)', 'Cohesión Vestuario (COH)', 'Rutinas Pre-Partido (RUT)', 'Control Emocional (EMO)'],
-                        'NUTRICIONISTA': ['Carga de Glucógeno (GLU)', 'Hidratación & Sales (HID)', 'Composición Corporal (COM)', 'Suplementación Pro (SUP)', 'Recuperación Post-90m (REC)', 'Planificación Semanal (PLA)'],
-                        'ANALISTA / SCOUT': ['Scouting de Rivales (SCO)', 'Telemetría & Vídeo IA (VID)', 'Detección de Patrones (PAT)', 'Mapa de Calor & Datos (DAT)', 'Informes Pre-Partido (INF)', 'Radar de Fichajes (MER)']
-                    }
-                }
+            // 2. Profesiones del Cuerpo Técnico (para Crear/Editar) y 6 huecos "STAFF" a secas en la bandeja
+            const STAFF_SKILLS_MAP = {
+                'MÍSTER / ENTRENADOR': ['Pizarra & Táctica Global (TAC)', 'Dirección de Partido (DIR)', 'Gestión de Vestuario (GES)', 'Metodología Física (FIS)', 'Prevención & Salud (SAL)', 'Psicología & Cantera (PSI)'],
+                '2º ENTRENADOR': ['Estrategia Balón Parado (ABP)', 'Corrección en Vivo (COR)', 'Transiciones Ataque/Def. (TRA)', 'Análisis de Rival (RIV)', 'Trabajo por Líneas (LIN)', 'Conexión Jugadores (CON)'],
+                'PREP. FÍSICO': ['Fuerza & Explosividad (FUE)', 'Resistencia 90 Min (RES)', 'Velocidad & Sprints (VEL)', 'Control Cargas GPS (CAR)', 'Pico de Forma (PIC)', 'Prevención Muscular (PRE)'],
+                'FISIOTERAPEUTA': ['Diagnóstico Lesional (DIA)', 'Terapia Manual (MAN)', 'Readaptación Campo (REA)', 'Prevención Isquios (PRE)', 'Recuperación Post-90m (REC)', 'Biomecánica Articular (BIO)'],
+                'COACH MENTAL': ['Foco & Concentración (FOC)', 'Gestión Presión/Penaltis (CLU)', 'Confianza & Resiliencia (CON)', 'Cohesión Vestuario (COH)', 'Rutinas Pre-Partido (RUT)', 'Control Emocional (EMO)'],
+                'NUTRICIONISTA': ['Carga de Glucógeno (GLU)', 'Hidratación & Sales (HID)', 'Composición Corporal (COM)', 'Suplementación Pro (SUP)', 'Recuperación Post-90m (REC)', 'Planificación Semanal (PLA)'],
+                'ANALISTA / SCOUT': ['Scouting de Rivales (SCO)', 'Telemetría & Vídeo IA (VID)', 'Detección de Patrones (PAT)', 'Mapa de Calor & Datos (DAT)', 'Informes Pre-Partido (INF)', 'Radar de Fichajes (MER)']
             };
 
-            function getStaffCfg(sport) {
-                return STAFF_ROLES_BY_SPORT[sport] || STAFF_ROLES_BY_SPORT['Fútbol'];
-            }
+            window.isStaffPositionCode = function (posCode) {
+                if (!posCode) return false;
+                const clean = String(posCode).trim().toUpperCase();
+                return Object.keys(STAFF_SKILLS_MAP).some(k => k.toUpperCase() === clean) ||
+                       clean.includes('STAFF') || clean.includes('MÍSTER') || clean.includes('ENTRENADOR') ||
+                       clean.includes('FÍSICO') || clean.includes('FISIO') || clean.includes('MENTAL') ||
+                       clean.includes('NUTRI') || clean.includes('ANALISTA');
+            };
 
             window.getPositionSpecificShortLabels = function (sportKey, posCode) {
                 const cfg = SPORT_ARENA_CONFIGS[sportKey] || SPORT_ARENA_CONFIGS['Fútbol'];
-                const stCfg = getStaffCfg(sportKey);
                 if (!posCode) return cfg.statLabels;
                 const clean = String(posCode).trim().toUpperCase();
 
-                const staffKey = Object.keys(stCfg.skills).find(k => k.toUpperCase() === clean || clean.includes(k.toUpperCase()));
-                if (staffKey) return stCfg.skills[staffKey].map(l => (l.match(/\(([A-Z0-9]+)\)/) || [null, 'STF'])[1]);
+                const staffKey = Object.keys(STAFF_SKILLS_MAP).find(k => k.toUpperCase() === clean || clean.includes(k.toUpperCase()));
+                if (staffKey) return STAFF_SKILLS_MAP[staffKey].map(l => (l.match(/\(([A-Z0-9]+)\)/) || [null, 'STF'])[1]);
 
                 if (cfg.posSkills) {
                     const pKey = Object.keys(cfg.posSkills).find(k => k.toUpperCase() === clean || clean.includes(k.toUpperCase()));
@@ -5502,9 +5505,10 @@
                 return cfg.statLabels;
             };
 
-            // 3. Estilos de Resaltado "+ Asignar" y Giro 3D
+            // 3. CSS de Selección y Giro 3D Real (vence al transform:none !important de applyFinalAnalyzerFixes)
             const connStyle = document.createElement('style');
             connStyle.textContent = `
+                .cassette-slots-grid { padding: 8px 4px !important; }
                 @keyframes kinetSelectedSlotPulse {
                     0%, 100% { box-shadow: 0 0 18px var(--role-color), 0 0 32px rgba(var(--role-rgb), 0.45), inset 0 0 12px rgba(var(--role-rgb), 0.35); transform: translate(-50%, -56%) scale(1.14); }
                     50% { box-shadow: 0 0 28px #FFFFFF, 0 0 42px var(--role-color), inset 0 0 18px rgba(var(--role-rgb), 0.55); transform: translate(-50%, -58%) scale(1.18); }
@@ -5516,18 +5520,28 @@
                     animation: kinetSelectedSlotPulse 1.5s infinite ease-in-out !important;
                     z-index: 80 !important;
                 }
-                .bento-grid { perspective: 2000px; }
-                #view-arena-3d, .col-4 > .kinet-panel { backface-visibility: hidden; transform-style: preserve-3d; }
-                .kinet-page-flip-out {
-                    transition: transform 0.24s cubic-bezier(0.4, 0, 0.2, 1) !important;
-                    transform: perspective(1600px) rotateY(88deg) !important;
+                .bench-slot-pill.selected-slot {
+                    border: 2px solid #FFFFFF !important;
+                    background: rgba(var(--role-rgb), 0.26) !important;
+                    box-shadow: 0 0 16px var(--role-glow) !important;
+                    transform: translateY(-2px) scale(1.04) !important;
                 }
-                @keyframes kinetFlipFromStrategies {
-                    0% { transform: perspective(1600px) rotateY(-88deg); }
-                    100% { transform: perspective(1600px) rotateY(0deg); }
+                .bento-grid { perspective: 2000px !important; }
+                @keyframes kinetFlipOutToStrategies {
+                    0% { transform: perspective(1800px) rotateY(0deg) scale(1); opacity: 1; }
+                    100% { transform: perspective(1800px) rotateY(88deg) scale(0.96); opacity: 0; }
                 }
-                .kinet-page-flip-in {
-                    animation: kinetFlipFromStrategies 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+                @keyframes kinetFlipInFromStrategies {
+                    0% { transform: perspective(1800px) rotateY(-88deg) scale(0.96); opacity: 0; }
+                    100% { transform: perspective(1800px) rotateY(0deg) scale(1); opacity: 1; }
+                }
+                #view-arena-3d.kinet-page-flip-out,
+                .col-4 > .kinet-panel.kinet-page-flip-out {
+                    animation: kinetFlipOutToStrategies 0.34s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+                }
+                #view-arena-3d.kinet-page-flip-in,
+                .col-4 > .kinet-panel.kinet-page-flip-in {
+                    animation: kinetFlipInFromStrategies 0.36s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
                 }
                 .minimal-mode-switch {
                     display: inline-flex; background: rgba(4, 6, 10, 0.95);
@@ -5553,7 +5567,7 @@
                 return tier === 'club';
             };
 
-           window.goToStrategiesPage = function () {
+            window.goToStrategiesPage = function () {
                 if (!window.isStrictClubScoutTier()) {
                     let modal = document.getElementById('kinet-club-lock-modal');
                     if (!modal) {
@@ -5577,41 +5591,86 @@
                     return;
                 }
                 saveCustomAndShortlistData();
+                saveStaffSlotsToStorage();
                 sessionStorage.setItem('kinet_flip_transition', 'to_strategies');
-                const lPanel = document.getElementById('view-arena-3d');
-                const rPanel = document.querySelector('.col-4 > .kinet-panel');
-                if (lPanel) {
-                    lPanel.style.transition = 'transform 0.36s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.34s ease';
-                    lPanel.style.transform = 'perspective(1800px) rotateY(88deg) scale(0.97)';
-                    lPanel.style.opacity = '0';
-                }
-                if (rPanel) {
-                    rPanel.style.transition = 'transform 0.36s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.34s ease';
-                    rPanel.style.transform = 'perspective(1800px) rotateY(88deg) scale(0.97)';
-                    rPanel.style.opacity = '0';
-                }
+                document.getElementById('view-arena-3d')?.classList.add('kinet-page-flip-out');
+                document.querySelector('.col-4 > .kinet-panel')?.classList.add('kinet-page-flip-out');
                 setTimeout(() => {
                     window.location.href = `analizador2.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`;
-                }, 350);
+                }, 330);
             };
 
-            // 4. Tercera Barra Cuerpo Técnico (6) y Conmutador Atleta/Staff
+            // 4. Tercera Barra Cuerpo Técnico con etiquetas "STAFF 1" a "STAFF 6"
             let builderEntityType = 'athlete';
             window.staffSlots = [];
 
             function initStaffSlots() {
-                const stCfg = getStaffCfg(activeArenaSport);
                 const spKey = activeArenaSport.toLowerCase();
                 try {
                     const saved = JSON.parse(localStorage.getItem(`kinet_staff_bench_slots_${spKey}`) || 'null');
-                    if (Array.isArray(saved) && saved.length === stCfg.slots.length) { window.staffSlots = saved; return; }
+                    if (Array.isArray(saved) && saved.length === 6) {
+                        window.staffSlots = saved.map((s, i) => ({ pos: `STAFF ${i + 1}`, player: s.player || null }));
+                        return;
+                    }
                 } catch (e) {}
-                window.staffSlots = stCfg.slots.map(r => ({ pos: r, player: null }));
+                window.staffSlots = Array.from({ length: 6 }, (_, i) => ({ pos: `STAFF ${i + 1}`, player: null }));
+            }
+
+            function saveStaffSlotsToStorage() {
+                const spKey = activeArenaSport.toLowerCase();
+                try {
+                    localStorage.setItem(`kinet_staff_bench_slots_${spKey}`, JSON.stringify(window.staffSlots));
+                } catch (e) {}
             }
 
             window.getSlotArrayByGroup = function (groupKey) {
                 if (groupKey === 'staff') return window.staffSlots;
                 return typeof _nativeGetSlotArr === 'function' ? _nativeGetSlotArr(groupKey) : currentBoardSlots;
+            };
+
+            window.selectAnySlot = function (group, index, event) {
+                if (event) event.stopPropagation();
+                activeSelection = { group, index };
+                if (group === 'bench') window.switchBenchReserveView('bench');
+                else if (group === 'reserve') window.switchBenchReserveView('reserve');
+                else if (group === 'staff') window.switchBenchReserveView('staff');
+                window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+            };
+
+            window.quickRemoveSlotPlayer = function (group, index, event) {
+                if (group === 'staff') {
+                    if (event) event.stopPropagation();
+                    if (window.staffSlots[index]) {
+                        window.staffSlots[index].player = null;
+                        activeSelection = { group: 'staff', index };
+                        saveStaffSlotsToStorage();
+                        window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(true);
+                    }
+                    return;
+                }
+                if (typeof _nativeQuickRemove === 'function') _nativeQuickRemove(group, index, event);
+            };
+
+            window.assignOrComparePlayer = function (playerObj) {
+                if (!playerObj) return;
+                const isStaff = Boolean(playerObj.isStaffMember || window.isStaffPositionCode(playerObj.pos));
+
+                if (currentAnalyzerMode !== 'duel' && (activeSelection.group === 'staff' || isStaff)) {
+                    if (!playerObj.grl || !Array.isArray(playerObj.stats)) {
+                        window.loadProfileIntoBuilder(playerObj);
+                        return;
+                    }
+                    let sIdx = activeSelection.group === 'staff' ? activeSelection.index : window.staffSlots.findIndex(s => !s.player);
+                    if (sIdx === -1) sIdx = 0;
+                    activeSelection = { group: 'staff', index: sIdx };
+                    window.staffSlots[sIdx].player = { ...playerObj };
+                    saveStaffSlotsToStorage();
+                    window.switchBenchReserveView('staff');
+                    window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(true);
+                    renderRightRosterList();
+                    return;
+                }
+                if (typeof _nativeAssignPlayer === 'function') _nativeAssignPlayer(playerObj);
             };
 
             window.switchBenchReserveView = function (targetDeck) {
@@ -5643,9 +5702,8 @@
                 document.getElementById('btn-build-staff')?.classList.toggle('active', builderEntityType === 'staff');
                 const posSel = document.getElementById('custom-p-pos');
                 const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
-                const stCfg = getStaffCfg(activeArenaSport);
                 if (builderEntityType === 'staff') {
-                    const profs = Object.keys(stCfg.skills);
+                    const profs = Object.keys(STAFF_SKILLS_MAP);
                     if (posSel) { posSel.innerHTML = profs.map(p => `<option value="${p}">${p}</option>`).join(''); window.updateBuilderSlidersForPosition(profs[0]); }
                 } else {
                     if (posSel) { posSel.innerHTML = cfg.positions.map(p => `<option value="${p}">${p}</option>`).join(''); window.updateBuilderSlidersForPosition(cfg.positions[0]); }
@@ -5654,11 +5712,10 @@
             };
 
             window.updateBuilderSlidersForPosition = function (posName) {
-                const stCfg = getStaffCfg(activeArenaSport);
-                if (builderEntityType === 'staff' && stCfg.skills[posName]) {
+                if (builderEntityType === 'staff' && STAFF_SKILLS_MAP[posName]) {
                     const box = document.getElementById('builder-sliders-box');
                     if (box) {
-                        box.innerHTML = stCfg.skills[posName].map((lbl, idx) => `
+                        box.innerHTML = STAFF_SKILLS_MAP[posName].map((lbl, idx) => `
                             <div class="custom-slider-row">
                                 <div class="custom-slider-head"><span>${lbl}</span><strong style="color:#F59E0B;" id="bslider-val-${idx}">${builderSliderValues[idx] || 82}</strong></div>
                                 <input type="range" min="50" max="99" value="${builderSliderValues[idx] || 82}" class="kinet-range-slider" oninput="onBuilderSliderMove(${idx}, this.value)">
@@ -5676,19 +5733,41 @@
                 const layer = document.getElementById('arena-tokens-layer');
                 if (!layer) return;
 
+                // Renderizar las 6 tarjetas de Cuerpo Técnico poniendo "STAFF" a secas (o el rol del perfil asignado)
                 const staffBox = document.getElementById('staff-slots-container');
                 if (staffBox && Array.isArray(window.staffSlots)) {
                     staffBox.innerHTML = window.staffSlots.map((slot, idx) => {
                         const isSel = activeSelection.group === 'staff' && activeSelection.index === idx;
                         const p = slot.player;
+                        const topTag = p && p.pos ? p.pos : 'STAFF';
                         return `
                             <div class="bench-slot-pill ${p ? 'filled' : ''} ${isSel ? 'selected-slot' : ''}" onclick="selectAnySlot('staff', ${idx}, event)">
                                 ${p ? `<button type="button" onclick="quickRemoveSlotPlayer('staff', ${idx}, event)" style="position:absolute;top:2px;right:3px;background:none;border:none;color:#EF4444;font-size:0.55rem;font-weight:900;cursor:pointer;">✕</button>` : ''}
-                                <div style="font-family:'JetBrains Mono';font-size:0.49rem;color:#F59E0B;">${slot.pos} ${p ? '• <strong>' + (p.grl || '??') + '</strong>' : ''}</div>
-                                <div style="font-size:0.61rem;font-weight:800;color:${p ? 'white' : '#F59E0B'};margin-top:2px;">${p ? p.name.split(' ')[0] : '+ Asignar'}</div>
+                                <div style="font-family:'JetBrains Mono';font-size:0.5rem;color:${isSel ? '#FFFFFF' : '#F59E0B'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                    ${topTag} ${p ? '• <strong>' + (p.grl || '??') + '</strong>' : ''}
+                                </div>
+                                <div style="font-size:0.62rem;font-weight:800;color:${p ? 'white' : (isSel ? '#FFFFFF' : '#F59E0B')};margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                    ${p ? p.name.split(' ')[0] : '+ Asignar'}
+                                </div>
                             </div>
                         `;
                     }).join('');
+                }
+
+                // Actualizar texto de puesto activo cuando se selecciona una casilla de STAFF
+                if (activeSelection.group === 'staff') {
+                    const activeSlot = window.staffSlots[activeSelection.index];
+                    const indEl = document.getElementById('selected-slot-indicator');
+                    const unassignTopBtn = document.getElementById('btn-unassign-top');
+                    if (activeSlot && indEl) {
+                        if (activeSlot.player) {
+                            indEl.innerHTML = `Puesto activo (Cuerpo Técnico): <strong>[${activeSlot.player.pos || 'STAFF'}] ${activeSlot.player.name} (${activeSlot.player.grl || '??'} GRL)</strong>`;
+                            if (unassignTopBtn) unassignTopBtn.classList.add('visible');
+                        } else {
+                            indEl.innerHTML = `Puesto activo (Cuerpo Técnico): <strong>[STAFF ${activeSelection.index + 1}] Seleccionado</strong> — Elige un perfil a la derecha o créalo en "🛠️ Crear / Editar".`;
+                            if (unassignTopBtn) unassignTopBtn.classList.remove('visible');
+                        }
+                    }
                 }
 
                 currentBoardSlots.forEach((slot, idx) => {
@@ -5778,11 +5857,21 @@
                 if (track && !document.getElementById('staff-slots-slide-page')) {
                     track.style.width = '300%';
                     Array.from(track.children).forEach(ch => { ch.style.width = '33.3333%'; });
+                    const reservePage = track.children[1];
+                    if (reservePage && !reservePage.querySelector('.to-staff-arrow')) {
+                        const toStaffBtn = document.createElement('button');
+                        toStaffBtn.type = 'button';
+                        toStaffBtn.className = 'cassette-arrow-btn to-staff-arrow';
+                        toStaffBtn.style.cssText = 'border-color:rgba(245,158,11,0.5);color:#F59E0B;';
+                        toStaffBtn.textContent = '▶';
+                        toStaffBtn.onclick = () => window.switchBenchReserveView('staff');
+                        reservePage.appendChild(toStaffBtn);
+                    }
                     const staffPage = document.createElement('div');
                     staffPage.className = 'bench-reserve-slide-page';
                     staffPage.id = 'staff-slots-slide-page';
                     staffPage.style.width = '33.3333%';
-                    staffPage.innerHTML = `<button type="button" class="cassette-arrow-btn" onclick="switchBenchReserveView('reserve')">◀</button><div class="cassette-slots-grid" id="staff-slots-container"></div>`;
+                    staffPage.innerHTML = `<button type="button" class="cassette-arrow-btn" style="border-color:rgba(245,158,11,0.5);color:#F59E0B;" onclick="switchBenchReserveView('reserve')">◀</button><div class="cassette-slots-grid" id="staff-slots-container"></div>`;
                     track.appendChild(staffPage);
                 }
 
@@ -5798,18 +5887,6 @@
                     bannerEl.parentElement.insertAdjacentElement('beforebegin', toggleRow);
                 }
 
-                // Reparar coordenadas si habían quedado horizontales
-                const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
-                const cleanVert = cfg.presets[currentPresetName] || Object.values(cfg.presets)[0];
-                if (Array.isArray(currentBoardSlots) && currentBoardSlots.length === cleanVert.length) {
-                    if (currentBoardSlots[0] && currentBoardSlots[0].pos === 'POR' && currentBoardSlots[0].y < 75) {
-                        currentBoardSlots.forEach((s, i) => { s.x = cleanVert[i].x; s.y = cleanVert[i].y; });
-                    }
-                    currentBoardSlots.forEach(s => {
-                        if (s.pos === 'POR' && s.y < 89) s.y = 90;
-                        if (s.pos === 'DFC' && s.y > 68) s.y = 67;
-                    });
-                }
                 window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(true);
             }
 
