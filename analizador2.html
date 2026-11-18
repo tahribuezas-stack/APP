@@ -96,7 +96,7 @@
             .os-sidebar { display: none !important; }
         }
 
-        /* CORTINA DIVERTIDA CON SEGURO AUTOMÁTICO CSS (JAMÁS PUEDE QUEDARSE CONGELADA) */
+        /* CORTINA DIVERTIDA CON SEGURO AUTOMÁTICO CSS */
         @keyframes kinetCurtainAutoHide {
             0%, 60% { opacity: 1; pointer-events: all; }
             100% { opacity: 0; pointer-events: none; visibility: hidden; }
@@ -352,7 +352,10 @@
         }
         .arena-svg-canvas { width: 100%; height: 100%; display: block; border-radius: 14px; pointer-events: none; }
 
-        /* FICHAS PROPIAS Y RIVALES 100% SELECCIONABLES */
+        /* FIX CRÍTICO: CONTENEDORES CON POINTER-EVENTS NONE Y FICHAS CON POINTER-EVENTS AUTO PARA PODER SELECCIONAR SIEMPRE A LOS ROJOS */
+        #arena-rivals-layer, #arena-tokens-layer {
+            position: absolute; inset: 0; pointer-events: none !important;
+        }
         .micro-player-token {
             position: absolute; transform: translate(-50%, -50%);
             width: 40px; height: 40px; border-radius: 50%;
@@ -360,33 +363,35 @@
             border: 2px solid var(--role-color);
             box-shadow: 0 6px 16px rgba(0,0,0,0.88), 0 0 12px rgba(var(--role-rgb), 0.35);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            cursor: grab; z-index: 35; user-select: none;
+            cursor: grab; z-index: 40; user-select: none;
+            pointer-events: auto !important;
             background-size: cover; background-position: center;
             transition: left 0.72s cubic-bezier(0.22, 1, 0.36, 1), top 0.72s cubic-bezier(0.22, 1, 0.36, 1), transform 0.2s ease, box-shadow 0.2s ease;
         }
         .micro-player-token.dragging, .micro-rival-token.dragging {
-            transition: none !important; cursor: grabbing !important; z-index: 90 !important;
+            transition: none !important; cursor: grabbing !important; z-index: 95 !important;
         }
         .micro-player-token:hover, .micro-player-token.active-actor {
             border: 2.5px solid #FFFFFF;
             box-shadow: 0 0 20px #FFFFFF, 0 0 30px var(--role-color);
             transform: translate(-50%, -50%) scale(1.18);
-            z-index: 65;
+            z-index: 70;
         }
         .micro-rival-token {
             position: absolute; transform: translate(-50%, -50%);
             width: 38px; height: 38px; border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, rgba(239, 68, 68, 0.54), rgba(24, 6, 10, 0.98));
-            border: 2px solid #EF4444; box-shadow: 0 6px 14px rgba(0,0,0,0.88), 0 0 12px rgba(239, 68, 68, 0.45);
+            background: radial-gradient(circle at 30% 30%, rgba(239, 68, 68, 0.58), rgba(24, 6, 10, 0.98));
+            border: 2px solid #EF4444; box-shadow: 0 6px 14px rgba(0,0,0,0.88), 0 0 12px rgba(239, 68, 68, 0.48);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 34; cursor: grab; user-select: none;
+            z-index: 42; cursor: grab; user-select: none;
+            pointer-events: auto !important;
             transition: left 0.72s cubic-bezier(0.22, 1, 0.36, 1), top 0.72s cubic-bezier(0.22, 1, 0.36, 1), transform 0.2s ease, box-shadow 0.2s ease;
         }
         .micro-rival-token:hover, .micro-rival-token.active-actor {
             border: 2.5px solid #FFFFFF;
-            box-shadow: 0 0 20px #FFFFFF, 0 0 30px #EF4444;
-            transform: translate(-50%, -50%) scale(1.18);
-            z-index: 65;
+            box-shadow: 0 0 22px #FFFFFF, 0 0 32px #EF4444;
+            transform: translate(-50%, -50%) scale(1.2);
+            z-index: 72;
         }
         .micro-initials {
             font-family: 'Orbitron', sans-serif; font-size: 0.62rem; font-weight: 900;
@@ -397,6 +402,13 @@
             position: absolute; bottom: -5px; background: var(--role-color); color: #04060A;
             font-family: 'JetBrains Mono', monospace; font-size: 0.42rem; font-weight: 900;
             padding: 1px 4px; border-radius: 4px; border: 1px solid #04060A; line-height: 1;
+        }
+        .micro-mark-badge {
+            position: absolute; top: -6px; right: -6px;
+            background: #A855F7; color: #FFFFFF;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.42rem; font-weight: 900;
+            padding: 1px 4px; border-radius: 99px; border: 1px solid #04060A;
+            box-shadow: 0 0 8px #A855F7;
         }
 
         #sport-ball-node {
@@ -410,6 +422,7 @@
 
         @keyframes kinetLaserDash { to { stroke-dashoffset: -44; } }
         .kinet-laser-arrow { stroke-dasharray: 8 6; animation: kinetLaserDash 0.9s linear infinite; filter: drop-shadow(0 0 5px currentColor); }
+        .kinet-manmark-tether { stroke-dasharray: 4 4; animation: kinetLaserDash 1.2s linear infinite; opacity: 0.88; }
         @keyframes kinetZonePulse { 0%, 100% { opacity: 0.14; transform: scale(0.95); } 50% { opacity: 0.32; transform: scale(1.05); } }
         .kinet-zone-circle { transform-origin: center; animation: kinetZonePulse 1.8s ease-in-out infinite; }
 
@@ -439,6 +452,7 @@
         .tool-pill-btn.active-amber { background: rgba(245,158,11,0.2); color: #F59E0B; border-color: #F59E0B; box-shadow: 0 0 12px rgba(245,158,11,0.25); }
         .tool-pill-btn.active-blue { background: rgba(56,189,248,0.2); color: #38BDF8; border-color: #38BDF8; box-shadow: 0 0 12px rgba(56,189,248,0.25); }
         .tool-pill-btn.active-red { background: rgba(239,68,68,0.22); color: #FCA5A5; border-color: #EF4444; box-shadow: 0 0 12px rgba(239,68,68,0.25); }
+        .tool-pill-btn.active-purple { background: rgba(168,85,247,0.22); color: #D8B4FE; border-color: #A855F7; box-shadow: 0 0 12px rgba(168,85,247,0.3); }
 
         .exec-studio-section {
             background: rgba(5, 8, 15, 0.9);
@@ -462,7 +476,7 @@
         }
         .exec-seg-option {
             background: transparent; border: 1px solid transparent; color: #94A3B8;
-            font-family: 'Inter', sans-serif; font-size: 0.66rem; font-weight: 700;
+            font-family: 'Inter', sans-serif; font-size: 0.65rem; font-weight: 700;
             padding: 6px 8px; border-radius: 6px; cursor: pointer;
             display: flex; align-items: center; gap: 6px; transition: all 0.18s ease;
         }
@@ -528,7 +542,7 @@
 </head>
 <body data-role="athlete">
 
-    <!-- CORTINA DE TRANSICIÓN CON AUTO-OCULTACIÓN CSS Y CLIC DE CIERRE INMEDIATO -->
+    <!-- CORTINA DE TRANSICIÓN CON AUTO-OCULTACIÓN CSS -->
     <div id="kinet-funny-curtain" onclick="this.classList.add('curtain-hidden')">
         <div style="font-size:3.6rem;animation:kinetSpinBall 0.45s cubic-bezier(0.16,1,0.3,1) forwards;filter:drop-shadow(0 0 25px var(--role-color));" id="curtain-icon">📋</div>
         <div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:#FFFFFF;letter-spacing:0.08em;text-align:center;animation:kinetWhistleBounce 0.6s infinite;" id="curtain-title">📣 ¡PIZARRA TÁCTICA LISTA!</div>
@@ -558,8 +572,8 @@
             </div>
             <div class="sidebar-bottom-section">
                 <div class="sidebar-ai-tip-box">
-                    <div class="sidebar-ai-tip-header"><span>💡</span> <span>Grabadora & Efectivos</span></div>
-                    <div class="sidebar-ai-tip-text">Al terminar de grabar se abre el cuadro KINET para guardar la jugada, y puedes personalizar efectivos por puesto.</div>
+                    <div class="sidebar-ai-tip-header"><span>💡</span> <span>Seguir Marca 1vs1</span></div>
+                    <div class="sidebar-ai-tip-text">Usa "🔒 Seguir Marca" para que tu defensor persiga automáticamente al rival rojo cuando este se mueva.</div>
                 </div>
                 <a href="perfil.html" id="nav-perfil" class="side-link"><span class="side-link-left"><span>👤</span> <span>Mi Perfil</span></span><span>→</span></a>
                 <a href="despacho.html" id="nav-despacho" class="side-link"><span class="side-link-left"><span>⚙️</span> <span>Despacho & Ajustes</span></span><span>→</span></a>
@@ -570,7 +584,7 @@
         <div class="os-main">
             <header class="os-topbar">
                 <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-secondary);display:flex;align-items:center;gap:10px;">
-                    <span>LABORATORIO DE ESTRATEGIAS, ZOOM VECTORIAL HD & JUGADAS MULTIFASE</span>
+                    <span>LABORATORIO DE ESTRATEGIAS, MARCAJE 1VS1 & JUGADAS MULTIFASE</span>
                     <span style="color:var(--role-color);font-weight:700;" id="topbar-sport-tag">● FÚTBOL</span>
                 </div>
                 <div class="active-role-indicator">
@@ -625,7 +639,7 @@
                     <!-- COLUMNA IZQUIERDA (8 COL) -->
                     <div class="col-8">
                         <div class="kinet-panel" id="left-strategy-panel">
-                            <!-- CABECERA BLOQUEADA EN 1 SOLA LÍNEA CON EL BOTÓN "⚙️ PERSONALIZAR EFECTIVOS" -->
+                            <!-- CABECERA BLOQUEADA EN 1 SOLA LÍNEA -->
                             <div class="panel-head-fixed">
                                 <div class="panel-head-left">
                                     <div class="minimal-mode-switch">
@@ -637,7 +651,7 @@
                                         </button>
                                     </div>
                                     <div id="live-tactical-teleprompter">
-                                        Toca cualquier jugador tuyo o del rival para seleccionarlo y trazar sus movimientos.
+                                        Toca cualquier jugador tuyo (verde) o del rival (rojo) para seleccionarlo y trazar sus movimientos.
                                     </div>
                                 </div>
                                 <div class="panel-head-right">
@@ -654,13 +668,13 @@
                                 <div class="arena-3d-surface" id="arena-3d-surface">
                                     <div id="arena-svg-mount" style="width:100%;height:100%;"></div>
                                     <svg id="arena-vectors-svg" viewBox="0 0 600 420" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:26;"></svg>
-                                    <div id="arena-rivals-layer" style="position:absolute;inset:0;z-index:34;"></div>
-                                    <div id="arena-tokens-layer" style="position:absolute;inset:0;z-index:35;"></div>
+                                    <div id="arena-rivals-layer"></div>
+                                    <div id="arena-tokens-layer"></div>
                                     <div id="sport-ball-node" style="left:50%;top:50%;">⚽</div>
                                 </div>
                             </div>
 
-                            <!-- CONSOLA INFERIOR LIMPIA: REPRODUCCIÓN MULTIFASE + PERSONALIZAR + RIVAL -->
+                            <!-- CONSOLA INFERIOR LIMPIA -->
                             <div class="bench-reserve-master-box">
                                 <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
                                     <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;">
@@ -810,9 +824,9 @@
                 <button type="button" onclick="document.getElementById('tactical-help-modal').classList.remove('open')" style="background:none;border:none;color:white;font-size:1.15rem;cursor:pointer;">✕</button>
             </div>
             <div style="font-size:0.76rem;color:#CBD5E1;line-height:1.55;display:flex;flex-direction:column;gap:8px;">
-                <div><strong style="color:#00FF88;">1. 🔴 Grabación y Guardado Automático:</strong> Pulsa <strong>"🔴 Grabar Fase"</strong>, mueve jugadores o el balón por las Fases 1, 2 y 3, y al pulsar <strong>"⏹ Terminar REC"</strong> aparecerá automáticamente la ventana KINET para ponerle nombre y guardarla en la nube.</div>
-                <div><strong style="color:#38BDF8;">2. ⚙️ Personalizar Efectivos por Posición:</strong> Pulsa <strong>"⚙️ Personalizar Efectivos"</strong> para añadir o quitar jugadores de una demarcación exacta (`POR, DFC, MCD, DC...`) tanto en tu equipo como en el rival.</div>
-                <div><strong style="color:#F59E0B;">3. ⚽ Saque Inicial (Centro del Campo):</strong> El botón <strong>"⚽ Saque Centro"</strong> coloca a tu once en tu mitad de campo y al once rival en su mitad propia sin solaparse.</div>
+                <div><strong style="color:#A855F7;">1. 🔒 Seguir Marca (Marcaje Individual 1vs1):</strong> Selecciona primero a tu defensor (ficha verde), pulsa <strong>"🔒 Seguir Marca"</strong> y haz clic sobre el jugador rojo del rival al que quieres marcar. Cuando ese rival rojo se mueva o trace una carrera en cualquier fase, tu defensor lo perseguirá automáticamente manteniendo la distancia de marcaje.</div>
+                <div><strong style="color:#00FF88;">2. 🔴 Seleccionar y Mover Jugadores Rojos (Rival):</strong> Toca cualquier ficha roja para seleccionarla (`⚔️ RIVAL`) y haz clic en el campo o arrástrala para crear sus desmarques y pases.</div>
+                <div><strong style="color:#38BDF8;">3. ↩️ Deshacer Inteligente:</strong> El botón Deshacer compara el estado real de la pizarra y nunca suma pasos si pulsas varias veces el mismo botón sin cambios.</div>
             </div>
             <div style="display:flex;justify-content:flex-end;margin-top:4px;">
                 <button type="button" class="btn-primary" onclick="document.getElementById('tactical-help-modal').classList.remove('open')">Entendido ⚡</button>
@@ -837,10 +851,10 @@
 
     <script>
         // =========================================================================
-        // MOTOR PROFESIONAL ANALIZADOR2.HTML V6 (COMPLETO Y BLINDADO):
-        // - TODAS LAS FUNCIONES DEL PANEL DERECHO INCLUIDAS (CERO ERRORES EN ARRANQUE)
-        // - MODAL KINET DE GUARDADO AUTOMÁTICO AL PULSAR "⏹ TERMINAR REC"
-        // - MODAL ANIMADO "⚙️ PERSONALIZAR EFECTIVOS" POR DEMARCACIÓN
+        // MOTOR PROFESIONAL ANALIZADOR2.HTML V7:
+        // 1. DESHACER CON DEDUPLICACIÓN REAL (PULSAR 20 VECES EL MISMO BOTÓN NO AUMENTA DESHACER)
+        // 2. FICHAS ROJAS (RIVAL) 100% SELECCIONABLES Y ARRASTRABLES (POINTER-EVENTS CORREGIDO)
+        // 3. FUNCIÓN DEFENSIVA "🔒 SEGUIR MARCA (1VS1)" QUE PERSIGUE AUTOMÁTICAMENTE AL RIVAL ROJO
         // =========================================================================
         const SPORT_POSITIONS_LIST = {
             'Fútbol': ['POR', 'DFC', 'LI', 'LD', 'MCD', 'MC', 'MCO', 'EI', 'ED', 'DC'],
@@ -942,7 +956,7 @@
         let activeSection = 'train';
         let activeRightSubTab = 'create';
         let activeMomentKey = 'base_formation';
-        let activeDrawingTool = 'offball';
+        let activeDrawingTool = 'offball'; // 'offball' | 'pass' | 'dribble' | 'screen' | 'manmark'
         let selectedActor = null; // { isRival: boolean, index: number } | null
         let showPhotoTokens = false;
         let currentZoomMode = 'full';
@@ -954,6 +968,9 @@
         let boardHorizontalSlots = [];
         let rivalTokens = [];
         let ballCoords = { x: 50, y: 50 };
+
+        // Vínculos de Marcaje Individual (Seguir Marca): { ownIdx: rivalIdx }
+        let manMarkingLinks = {};
 
         let currentPhaseIdx = 0;
         let phasesData = [
@@ -967,7 +984,106 @@
         let savedPlaysLibrary = [];
 
         // =========================================================================
-        // 1. ZOOM VECTORIAL PANORÁMICO (380x420 NO ESTRECHO Y 100% NÍTIDO)
+        // 1. DESHACER INTELIGENTE CON DEDUPLICACIÓN ESTRICTA DE ESTADO
+        // =========================================================================
+        function buildStateSignature(slots, rivals, ball, phases, markLinks) {
+            return JSON.stringify({
+                s: slots.map(u => [u.pos, u.x, u.y]),
+                r: rivals.map(u => [u.pos, u.x, u.y]),
+                b: [ball.x, ball.y],
+                v: phases.map(p => p.vectors || []),
+                m: markLinks || {}
+            });
+        }
+
+        function pushUndoState() {
+            const currentSig = buildStateSignature(boardHorizontalSlots, rivalTokens, ballCoords, phasesData, manMarkingLinks);
+            if (undoHistoryStack.length > 0) {
+                const topSnap = undoHistoryStack[undoHistoryStack.length - 1];
+                if (topSnap._sig === currentSig) {
+                    // Si el estado es idéntico al último guardado, NO se añade al historial (evita que suba al pulsar 20 veces el mismo botón)
+                    return false;
+                }
+            }
+            const snap = {
+                _sig: currentSig,
+                phaseIdx: currentPhaseIdx,
+                slots: JSON.parse(JSON.stringify(boardHorizontalSlots)),
+                rivals: JSON.parse(JSON.stringify(rivalTokens)),
+                ball: { ...ballCoords },
+                phases: JSON.parse(JSON.stringify(phasesData)),
+                marks: JSON.parse(JSON.stringify(manMarkingLinks))
+            };
+            undoHistoryStack.push(snap);
+            if (undoHistoryStack.length > 40) undoHistoryStack.shift();
+            updateUndoCounterUI();
+            return true;
+        }
+
+        function undoLastStep() {
+            if (undoHistoryStack.length === 0) return;
+            const currentSig = buildStateSignature(boardHorizontalSlots, rivalTokens, ballCoords, phasesData, manMarkingLinks);
+            let prev = undoHistoryStack.pop();
+            // Si el tope de la pila coincide con el estado actual en pantalla, extraer el inmediatamente anterior
+            while (prev && prev._sig === currentSig && undoHistoryStack.length > 0) {
+                prev = undoHistoryStack.pop();
+            }
+            if (!prev) {
+                updateUndoCounterUI();
+                return;
+            }
+            currentPhaseIdx = prev.phaseIdx;
+            boardHorizontalSlots = prev.slots;
+            rivalTokens = prev.rivals;
+            ballCoords = prev.ball;
+            phasesData = prev.phases;
+            manMarkingLinks = prev.marks || {};
+            if (undoHistoryStack.length === 0) hasUnsavedChanges = false;
+            updatePhaseButtonsUI();
+            renderHorizontalArena();
+            updateUndoCounterUI();
+        }
+
+        // =========================================================================
+        // 2. MOTOR DE SEGUIMIENTO AUTOMÁTICO DE MARCA DEFENSIVA (1VS1)
+        // =========================================================================
+        // Cuando un rival rojo se desplaza de (oldX, oldY) a (newX, newY), cualquier defensor tuyo que lo esté marcando lo sigue automáticamente
+        function triggerFollowersForRivalMove(rivalIdx, oldRx, oldRy, newRx, newRy) {
+            Object.keys(manMarkingLinks).forEach(ownIdxStr => {
+                const linkedRivalIdx = manMarkingLinks[ownIdxStr];
+                if (linkedRivalIdx !== rivalIdx) return;
+                const ownIdx = parseInt(ownIdxStr, 10);
+                const defender = boardHorizontalSlots[ownIdx];
+                if (!defender) return;
+
+                const startDx = defender.x;
+                const startDy = defender.y;
+
+                // Mantener un pequeño margen defensivo hacia nuestra propia portería (izquierda: -3% en X)
+                const offsetX = Math.max(-5, Math.min(5, startDx - oldRx));
+                const offsetY = Math.max(-5, Math.min(5, startDy - oldRy));
+                const finalDx = Math.min(94, Math.max(6, Math.round(newRx + (offsetX !== 0 ? offsetX : -3))));
+                const finalDy = Math.min(92, Math.max(8, Math.round(newRy + offsetY)));
+
+                if (Math.hypot(finalDx - startDx, finalDy - startDy) >= 2) {
+                    phasesData[currentPhaseIdx].vectors.push(toSvgVec(startDx, startDy, finalDx, finalDy, '#A855F7'));
+                    defender.x = finalDx;
+                    defender.y = finalDy;
+                }
+            });
+        }
+
+        function clearAllManMarks() {
+            if (Object.keys(manMarkingLinks).length === 0) return;
+            pushUndoState();
+            manMarkingLinks = {};
+            renderHorizontalArena();
+            renderRightSubTab();
+            document.getElementById('live-tactical-teleprompter').innerHTML = `🔓 <strong>Marcajes Individuales Liberados:</strong> Tus defensores vuelven a defensa zonal.`;
+        }
+
+        // =========================================================================
+        // 3. ZOOM VECTORIAL PANORÁMICO (380x420 NO ESTRECHO Y 100% NÍTIDO)
         // =========================================================================
         function getActiveViewBoxString() {
             if (currentZoomMode === 'right') return '220 0 380 420';
@@ -1022,7 +1138,7 @@
         }
 
         // =========================================================================
-        // 2. LAS 3 SUB-PESTAÑAS DEL PANEL DERECHO (🛠️ CREAR | 🧠 JUGADAS IA | 💾 GUARDADOS)
+        // 4. LAS 3 SUB-PESTAÑAS DEL PANEL DERECHO (🛠️ CREAR | 🧠 JUGADAS IA | 💾 GUARDADOS)
         // =========================================================================
         function getActiveActorSlotObject() {
             if (!selectedActor) return null;
@@ -1032,10 +1148,12 @@
 
         function getActorLabelString() {
             const actObj = getActiveActorSlotObject();
-            if (!actObj) return '✋ ACTIVO: TOCA UN JUGADOR';
-            if (selectedActor.isRival) return `⚔️ RIVAL: [${actObj.pos}] ${actObj.init}`;
+            if (!actObj) return '✋ ACTIVO: TOCA UN JUGADOR (VERDE O ROJO)';
+            if (selectedActor.isRival) return `⚔️ RIVAL ROJO: [${actObj.pos}] ${actObj.init}`;
             const pName = actObj.player ? actObj.player.name.split(' ')[0] : actObj.pos;
-            return `✋ MÍO: [${actObj.pos}] ${pName.toUpperCase()}`;
+            const markRivIdx = manMarkingLinks[selectedActor.index];
+            const markSuffix = (markRivIdx !== undefined && rivalTokens[markRivIdx]) ? ` 🔒→${rivalTokens[markRivIdx].init}` : '';
+            return `✋ MÍO: [${actObj.pos}] ${pName.toUpperCase()}${markSuffix}`;
         }
 
         function switchRightSubTab(tabKey) {
@@ -1050,9 +1168,11 @@
             const box = document.getElementById('right-subtab-content');
             if (!box) return;
 
+            const activeMarksCount = Object.keys(manMarkingLinks).length;
+
             if (activeRightSubTab === 'create') {
                 box.innerHTML = `
-                    <!-- BLOQUE 1: CONSOLA DE GRABACIÓN Y TRAZADO SEGMENTADO -->
+                    <!-- BLOQUE 1: CONSOLA DE GRABACIÓN, TRAZADO Y SEGUIR MARCA 1VS1 -->
                     <div class="exec-studio-section">
                         <div class="exec-studio-header">
                             <span id="active-actor-label">${getActorLabelString()}</span>
@@ -1061,7 +1181,7 @@
                             </button>
                         </div>
 
-                        <div class="exec-segmented-bar" style="margin-bottom:7px;">
+                        <div class="exec-segmented-bar" style="margin-bottom:6px;">
                             <button type="button" class="exec-seg-option ${activeDrawingTool === 'offball' ? 'active-tool' : ''}" onclick="setDrawingTool('offball')">
                                 <span class="exec-dot" style="background:#00FF88;box-shadow:0 0 6px #00FF88;"></span>
                                 <span>Desmarque</span>
@@ -1076,7 +1196,17 @@
                             </button>
                             <button type="button" class="exec-seg-option ${activeDrawingTool === 'screen' ? 'active-tool' : ''}" onclick="setDrawingTool('screen')">
                                 <span class="exec-dot" style="background:#EF4444;box-shadow:0 0 6px #EF4444;"></span>
-                                <span>Presión / Pantalla</span>
+                                <span>Presión / Bloq.</span>
+                            </button>
+                        </div>
+
+                        <!-- BOTÓN DEFENSIVO "SEGUIR MARCA 1VS1" -->
+                        <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:5px;margin-bottom:6px;">
+                            <button type="button" class="tool-pill-btn ${activeDrawingTool === 'manmark' ? 'active-purple' : ''}" style="padding:6px 8px;" onclick="setDrawingTool('manmark')">
+                                🔒 Seguir Marca 1vs1 (${activeMarksCount})
+                            </button>
+                            <button type="button" class="btn-secondary" style="padding:5px 6px;font-size:0.54rem;" onclick="clearAllManMarks()">
+                                🔓 Soltar Marcas
                             </button>
                         </div>
 
@@ -1087,7 +1217,7 @@
                         </div>
                     </div>
 
-                    <!-- BLOQUE 2: ZONA DE INICIO TÁCTICO RÁPIDO (INCLUYE SAQUE DE CENTRO) -->
+                    <!-- BLOQUE 2: ZONA DE INICIO TÁCTICO RÁPIDO -->
                     <div class="exec-studio-section" style="border-left-color:#38BDF8;">
                         <div class="exec-studio-header">
                             <span>📍 ZONA DE PARTIDA EN CAMPO</span>
@@ -1174,7 +1304,7 @@
         }
 
         // =========================================================================
-        // 3. MODAL PERSONALIZAR EFECTIVOS POR POSICIÓN (TU EQUIPO Y RIVAL)
+        // 5. MODAL PERSONALIZAR EFECTIVOS POR POSICIÓN (TU EQUIPO Y RIVAL)
         // =========================================================================
         function openCustomizePlayersModal() {
             const posList = SPORT_POSITIONS_LIST[activeArenaSport] || SPORT_POSITIONS_LIST['Fútbol'];
@@ -1268,6 +1398,7 @@
             if (side === 'own') {
                 if (boardHorizontalSlots.length <= 1) return;
                 boardHorizontalSlots.splice(idx, 1);
+                delete manMarkingLinks[idx];
                 if (selectedActor && !selectedActor.isRival && selectedActor.index === idx) selectedActor = null;
             } else {
                 if (rivalTokens.length <= 1) return;
@@ -1280,14 +1411,14 @@
         }
 
         // =========================================================================
-        // 4. MODAL DE FIN DE GRABACIÓN Y GUARDADO AUTOMÁTICO EN NUBE
+        // 6. MODAL DE FIN DE GRABACIÓN Y GUARDADO AUTOMÁTICO EN NUBE
         // =========================================================================
         function togglePlayRecording() {
             if (!isRecordingPlay) {
                 isRecordingPlay = true;
                 syncPhaseSnapshot();
                 renderRightSubTab();
-                document.getElementById('live-tactical-teleprompter').innerHTML = `🔴 <strong>GRABANDO FASE ${currentPhaseIdx + 1}:</strong> Selecciona o arrastra jugadores tuyos o rivales para registrar sus movimientos.`;
+                document.getElementById('live-tactical-teleprompter').innerHTML = `🔴 <strong>GRABANDO FASE ${currentPhaseIdx + 1}:</strong> Selecciona o arrastra jugadores verdes o rojos para registrar sus movimientos.`;
             } else {
                 isRecordingPlay = false;
                 syncPhaseSnapshot();
@@ -1326,7 +1457,7 @@
         }
 
         // =========================================================================
-        // 5. DESPLEGABLES PERSONALIZADOS KINET
+        // 7. DESPLEGABLES PERSONALIZADOS KINET
         // =========================================================================
         function closeKinetCustomSelect(wrapEl) {
             if (!wrapEl) return;
@@ -1478,7 +1609,7 @@
         }
 
         // =========================================================================
-        // 6. INICIALIZACIÓN CON BLOQUE TRY/FINALLY PARA QUE LA CORTINA SIEMPRE SE QUITE
+        // 8. INICIALIZACIÓN CON BLOQUE TRY/FINALLY
         // =========================================================================
         function initStrategyAnalyzer() {
             try {
@@ -1587,10 +1718,16 @@
         }
 
         // =========================================================================
-        // 7. FORMACIÓN EN SAQUE INICIAL DE CENTRO DEL CAMPO Y JUGADAS IA
+        // 9. FORMACIÓN EN SAQUE INICIAL DE CENTRO DEL CAMPO Y JUGADAS IA (SIN SUBIR DESHACER SI YA ESTÁ ACTIVO)
         // =========================================================================
         function applyKickoffFormation(skipUndo) {
+            // Si ya estamos exactamente en Saque de Centro sin trazos nuevos, no inflar el botón Deshacer
+            const hasAnyVec = phasesData.some(p => p.vectors && p.vectors.length > 0);
+            if (!skipUndo && activeMomentKey === 'kickoff_center' && !hasAnyVec) {
+                return;
+            }
             if (!skipUndo) pushUndoState();
+
             activeMomentKey = 'kickoff_center';
             setTacticalZoom('full');
             showRivals = true;
@@ -1644,9 +1781,9 @@
         }
 
         function resetBoardToCleanBase(skipUndo) {
-            if (!skipUndo) pushUndoState();
             selectedActor = null;
             activeMomentKey = 'base_formation';
+            manMarkingLinks = {};
             setTacticalZoom('full');
             populateDynamicMomentDropdown();
             refreshAllCustomKinetSelects();
@@ -1673,7 +1810,8 @@
             updateUndoCounterUI();
             updatePhaseButtonsUI();
             renderHorizontalArena();
-            document.getElementById('live-tactical-teleprompter').innerHTML = `📐 <strong>Formación Base (${currentPresetName}):</strong> Plantilla lista. Toca cualquier jugador o elige una jugada.`;
+            renderRightSubTab();
+            document.getElementById('live-tactical-teleprompter').innerHTML = `📐 <strong>Formación Base (${currentPresetName}):</strong> Plantilla limpia. Toca cualquier jugador verde o rojo.`;
         }
 
         function findRoleIndex(slotsArr, type) {
@@ -1737,6 +1875,7 @@
             populateDynamicMomentDropdown();
             refreshAllCustomKinetSelects();
             undoHistoryStack = [];
+            updateUndoCounterUI();
             hasUnsavedChanges = false;
 
             const baseSlots = baseVerticalSlots.map(s => ({
@@ -2051,7 +2190,7 @@
         }
 
         // =========================================================================
-        // 8. CONTROL DE FASES (1, 2, 3), GUARDADO EN NUBE Y EVENTOS
+        // 10. CONTROL DE FASES (1, 2, 3), RENDERIZADO Y MARCAJE 1VS1
         // =========================================================================
         function selectTacticalPhase(targetPhaseIdx) {
             if (phasesData[currentPhaseIdx]) {
@@ -2135,6 +2274,8 @@
                     const el = tokensLayer.children[idx];
                     const isAct = Boolean(selectedActor && !selectedActor.isRival && selectedActor.index === idx);
                     const dispX = fieldPctToDisplayPctX(slot.x);
+                    const markedRivIdx = manMarkingLinks[idx];
+                    const hasMark = (markedRivIdx !== undefined && rivalTokens[markedRivIdx]);
 
                     el.className = `micro-player-token ${isAct ? 'active-actor' : ''}`;
                     el.style.left = `${dispX}%`;
@@ -2147,6 +2288,7 @@
                     const initTxt = p ? getInitials(p.name) : slot.pos;
 
                     el.innerHTML = `
+                        ${hasMark ? `<span class="micro-mark-badge">🔒</span>` : ''}
                         ${hasPhoto ? '' : `<span class="micro-initials">${initTxt}</span>`}
                         <span class="micro-pos-tag">${slot.pos}</span>
                     `;
@@ -2190,31 +2332,36 @@
                         <marker id="mA" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#F59E0B"/></marker>
                         <marker id="mB" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#38BDF8"/></marker>
                         <marker id="mR" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#EF4444"/></marker>
+                        <marker id="mP" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#A855F7"/></marker>
                     </defs>
                 `;
                 const curZone = phasesData[currentPhaseIdx]?.zone;
                 const zSvg = curZone ? `<circle cx="${curZone.cx}" cy="${curZone.cy}" r="${curZone.r}" fill="${curZone.color}" class="kinet-zone-circle"/>` : '';
+
+                // Líneas de vínculo de Marcaje Individual (Seguir Marca 1vs1)
+                let markLines = '';
+                if (showRivals) {
+                    Object.keys(manMarkingLinks).forEach(ownIdxStr => {
+                        const ownSlot = boardHorizontalSlots[parseInt(ownIdxStr, 10)];
+                        const rivSlot = rivalTokens[manMarkingLinks[ownIdxStr]];
+                        if (ownSlot && rivSlot) {
+                            const x1 = Math.round((ownSlot.x / 100) * 600);
+                            const y1 = Math.round((ownSlot.y / 100) * 420);
+                            const x2 = Math.round((rivSlot.x / 100) * 600);
+                            const y2 = Math.round((rivSlot.y / 100) * 420);
+                            markLines += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#A855F7" stroke-width="2" class="kinet-manmark-tether"/>`;
+                        }
+                    });
+                }
+
                 const vectors = phasesData[currentPhaseIdx]?.vectors || [];
                 const lines = vectors.map(v => {
-                    const mk = v.color === '#F59E0B' ? 'mA' : (v.color === '#38BDF8' ? 'mB' : (v.color === '#EF4444' ? 'mR' : 'mG'));
+                    const mk = v.color === '#F59E0B' ? 'mA' : (v.color === '#38BDF8' ? 'mB' : (v.color === '#EF4444' ? 'mR' : (v.color === '#A855F7' ? 'mP' : 'mG')));
                     return `<line x1="${v.x1}" y1="${v.y1}" x2="${v.x2}" y2="${v.y2}" stroke="${v.color}" stroke-width="2.6" class="kinet-laser-arrow" marker-end="url(#${mk})"/>`;
                 }).join('');
-                svgLayer.innerHTML = defs + zSvg + lines;
+                svgLayer.innerHTML = defs + zSvg + markLines + lines;
             }
             updateActorLabel();
-        }
-
-        function pushUndoState() {
-            const snap = {
-                phaseIdx: currentPhaseIdx,
-                slots: JSON.parse(JSON.stringify(boardHorizontalSlots)),
-                rivals: JSON.parse(JSON.stringify(rivalTokens)),
-                ball: { ...ballCoords },
-                phases: JSON.parse(JSON.stringify(phasesData))
-            };
-            undoHistoryStack.push(snap);
-            if (undoHistoryStack.length > 40) undoHistoryStack.shift();
-            updateUndoCounterUI();
         }
 
         function syncPhaseSnapshot() {
@@ -2230,12 +2377,15 @@
             el.onmousedown = (e) => {
                 e.stopPropagation();
                 const startX = slotObj.x, startY = slotObj.y;
+                const preDragSig = buildStateSignature(boardHorizontalSlots, rivalTokens, ballCoords, phasesData, manMarkingLinks);
                 const preDragState = {
+                    _sig: preDragSig,
                     phaseIdx: currentPhaseIdx,
                     slots: JSON.parse(JSON.stringify(boardHorizontalSlots)),
                     rivals: JSON.parse(JSON.stringify(rivalTokens)),
                     ball: { ...ballCoords },
-                    phases: JSON.parse(JSON.stringify(phasesData))
+                    phases: JSON.parse(JSON.stringify(phasesData)),
+                    marks: JSON.parse(JSON.stringify(manMarkingLinks))
                 };
 
                 let maxDelta = 0;
@@ -2271,11 +2421,37 @@
                         phasesData[currentPhaseIdx].vectors.push(toSvgVec(startX, startY, slotObj.x, slotObj.y, col));
                         if (!isRival && activeDrawingTool === 'dribble') ballCoords = { x: slotObj.x, y: slotObj.y };
 
+                        // Si se ha movido un jugador ROJO (Rival) y tiene un defensor tuyo asignado en "Seguir Marca", el defensor lo persigue automáticamente
+                        if (isRival) {
+                            triggerFollowersForRivalMove(idx, startX, startY, slotObj.x, slotObj.y);
+                        }
+
                         syncPhaseSnapshot();
                         renderHorizontalArena();
                     } else {
                         slotObj.x = startX;
                         slotObj.y = startY;
+
+                        // MODO SEGUIR MARCA 1VS1: Si tenías seleccionado un defensor tuyo (verde) y haces clic sobre un rival rojo, los vincula
+                        if (activeDrawingTool === 'manmark' && isRival && selectedActor && !selectedActor.isRival) {
+                            undoHistoryStack.push(preDragState);
+                            updateUndoCounterUI();
+                            hasUnsavedChanges = true;
+                            const ownIdx = selectedActor.index;
+                            if (manMarkingLinks[ownIdx] === idx) {
+                                delete manMarkingLinks[ownIdx];
+                                document.getElementById('ai-board-diagnosis').innerHTML = `🔓 <strong>Marca Liberada:</strong> [${boardHorizontalSlots[ownIdx].pos}] deja de seguir a ${slotObj.init}.`;
+                            } else {
+                                manMarkingLinks[ownIdx] = idx;
+                                document.getElementById('ai-board-diagnosis').innerHTML = `🔒 <strong>Seguir Marca Activo:</strong> Tu [${boardHorizontalSlots[ownIdx].pos}] perseguirá automáticamente a Rival <strong>${slotObj.init}</strong> cuando se mueva.`;
+                            }
+                            selectedActor = { isRival: true, index: idx };
+                            syncPhaseSnapshot();
+                            renderHorizontalArena();
+                            renderRightSubTab();
+                            return;
+                        }
+
                         if (activeDrawingTool === 'pass' && selectedActor && (selectedActor.isRival !== isRival || selectedActor.index !== idx)) {
                             undoHistoryStack.push(preDragState);
                             updateUndoCounterUI();
@@ -2295,6 +2471,15 @@
         }
 
         function setPlayStartingZone(zoneType) {
+            if (zoneType === 'corner') {
+                applyMomentPositioning('corner_left');
+                return;
+            }
+            if (zoneType === 'free_kick') {
+                applyMomentPositioning('fk_close');
+                return;
+            }
+
             pushUndoState();
             hasUnsavedChanges = true;
             boardHorizontalSlots = baseVerticalSlots.map(s => ({
@@ -2317,12 +2502,6 @@
                 showRivals = true; syncRivalToggleButton();
                 boardHorizontalSlots.forEach((s, i) => { if (i === 0) { s.x = 8; s.y = 50; } else s.x = Math.max(16, Math.round(s.x * 0.6)); });
                 ballCoords = { x: 42, y: 50 };
-            } else if (zoneType === 'corner') {
-                applyMomentPositioning('corner_left');
-                return;
-            } else if (zoneType === 'free_kick') {
-                applyMomentPositioning('fk_close');
-                return;
             }
             phasesData[currentPhaseIdx].vectors = [];
             syncPhaseSnapshot();
@@ -2383,6 +2562,7 @@
                 slotsSnapshot: JSON.parse(JSON.stringify(boardHorizontalSlots)),
                 rivalsSnapshot: JSON.parse(JSON.stringify(rivalTokens)),
                 ballSnapshot: { ...ballCoords },
+                marksSnapshot: JSON.parse(JSON.stringify(manMarkingLinks)),
                 showRivalsSnapshot: showRivals
             };
 
@@ -2418,6 +2598,7 @@
                 if (item.zoomMode) setTacticalZoom(item.zoomMode);
                 if (item.ballSnapshot) ballCoords = { ...item.ballSnapshot };
                 if (item.phasesSnapshot) phasesData = JSON.parse(JSON.stringify(item.phasesSnapshot));
+                manMarkingLinks = item.marksSnapshot ? JSON.parse(JSON.stringify(item.marksSnapshot)) : {};
 
                 hasUnsavedChanges = false;
                 undoHistoryStack = [];
@@ -2530,21 +2711,13 @@
 
         function setDrawingTool(toolKey) {
             activeDrawingTool = toolKey;
+            if (toolKey === 'manmark') {
+                showRivals = true;
+                syncRivalToggleButton();
+                renderHorizontalArena();
+                document.getElementById('live-tactical-teleprompter').innerHTML = `🔒 <strong>Modo Seguir Marca 1vs1:</strong> Selecciona primero a tu defensor (verde) y luego toca al jugador rojo del rival que quieres que persiga.`;
+            }
             renderRightSubTab();
-        }
-
-        function undoLastStep() {
-            if (undoHistoryStack.length === 0) return;
-            const prev = undoHistoryStack.pop();
-            currentPhaseIdx = prev.phaseIdx;
-            boardHorizontalSlots = prev.slots;
-            rivalTokens = prev.rivals;
-            ballCoords = prev.ball;
-            phasesData = prev.phases;
-            if (undoHistoryStack.length === 0) hasUnsavedChanges = false;
-            updatePhaseButtonsUI();
-            renderHorizontalArena();
-            updateUndoCounterUI();
         }
 
         function updateUndoCounterUI() {
@@ -2579,24 +2752,35 @@
                 hasUnsavedChanges = true;
                 const isRiv = Boolean(selectedActor && selectedActor.isRival);
                 const pName = slot ? (isRiv ? `Rival ${slot.init}` : (slot.player ? slot.player.name : slot.pos)) : 'Balón';
+                const oldX = slot ? slot.x : 0;
+                const oldY = slot ? slot.y : 0;
 
                 if (activeDrawingTool === 'pass') {
                     phasesData[currentPhaseIdx].vectors.push(toSvgVec(ballCoords.x, ballCoords.y, tx, ty, '#F59E0B'));
                     ballCoords = { x: tx, y: ty };
                     document.getElementById('ai-board-diagnosis').innerHTML = `🟠 <strong>Envío de Balón (Fase ${currentPhaseIdx + 1}):</strong> Pase/disparo hacia zona (${tx}%, ${ty}%).`;
-                } else if (activeDrawingTool === 'offball') {
+                } else if (activeDrawingTool === 'offball' || activeDrawingTool === 'manmark') {
                     const vecCol = isRiv ? '#EF4444' : '#00FF88';
                     phasesData[currentPhaseIdx].vectors.push(toSvgVec(slot.x, slot.y, tx, ty, vecCol));
                     slot.x = tx; slot.y = ty;
-                    document.getElementById('ai-board-diagnosis').innerHTML = `${isRiv ? '🔴' : '🟢'} <strong>Movimiento Sin Balón (Fase ${currentPhaseIdx + 1}):</strong> [${slot.pos}] ${pName} se desplaza hacia (${tx}%, ${ty}%).`;
+                    if (isRiv) {
+                        triggerFollowersForRivalMove(selectedActor.index, oldX, oldY, tx, ty);
+                    }
+                    document.getElementById('ai-board-diagnosis').innerHTML = `${isRiv ? '🔴' : '🟢'} <strong>Movimiento (Fase ${currentPhaseIdx + 1}):</strong> [${slot.pos}] ${pName} se desplaza a (${tx}%, ${ty}%).`;
                 } else if (activeDrawingTool === 'dribble') {
                     phasesData[currentPhaseIdx].vectors.push(toSvgVec(slot.x, slot.y, tx, ty, '#38BDF8'));
                     slot.x = tx; slot.y = ty;
                     ballCoords = { x: tx, y: ty };
+                    if (isRiv) {
+                        triggerFollowersForRivalMove(selectedActor.index, oldX, oldY, tx, ty);
+                    }
                     document.getElementById('ai-board-diagnosis').innerHTML = `🔵 <strong>Conducción Con Balón (Fase ${currentPhaseIdx + 1}):</strong> [${slot.pos}] ${pName} progresa con balón a (${tx}%, ${ty}%).`;
                 } else if (activeDrawingTool === 'screen') {
                     phasesData[currentPhaseIdx].vectors.push(toSvgVec(slot.x, slot.y, tx, ty, '#EF4444'));
                     slot.x = tx; slot.y = ty;
+                    if (isRiv) {
+                        triggerFollowersForRivalMove(selectedActor.index, oldX, oldY, tx, ty);
+                    }
                     document.getElementById('ai-board-diagnosis').innerHTML = `🔴 <strong>Presión / Pantalla (Fase ${currentPhaseIdx + 1}):</strong> [${slot.pos}] ${pName} salta a presionar/bloquear en (${tx}%, ${ty}%).`;
                 }
 
@@ -2608,7 +2792,7 @@
         function applyPresetAction(actType) {
             const slot = getActiveActorSlotObject();
             if (!slot) {
-                alert('Toca primero cualquier jugador tuyo o del rival en el campo para aplicarle el movimiento.');
+                alert('Toca primero cualquier jugador tuyo (verde) o del rival (rojo) en el campo.');
                 return;
             }
             pushUndoState();
@@ -2625,6 +2809,9 @@
 
             phasesData[currentPhaseIdx].vectors.push(toSvgVec(ox, oy, nx, ny, col));
             slot.x = nx; slot.y = ny;
+            if (isRiv) {
+                triggerFollowersForRivalMove(selectedActor.index, ox, oy, nx, ny);
+            }
             syncPhaseSnapshot();
             renderHorizontalArena();
         }
@@ -2640,11 +2827,13 @@
                     { vectors: [], slotsCoords: null, rivalsCoords: null, ballCoords: null, zone: null, note: '' }
                 ];
                 currentPhaseIdx = 0;
+                undoHistoryStack = [];
+                updateUndoCounterUI();
                 updatePhaseButtonsUI();
                 isRecordingPlay = true;
                 renderRightSubTab();
                 renderHorizontalArena();
-                document.getElementById('live-tactical-teleprompter').innerHTML = '🔴 <strong>Nueva Jugada en Grabación:</strong> Toca cualquier jugador tuyo o rival para trazar Fase 1, 2 y 3.';
+                document.getElementById('live-tactical-teleprompter').innerHTML = '🔴 <strong>Nueva Jugada en Grabación:</strong> Toca cualquier jugador verde o rojo para trazar Fase 1, 2 y 3.';
             });
         }
 
@@ -2672,6 +2861,7 @@
             document.getElementById('unsaved-play-modal')?.classList.remove('open');
             hasUnsavedChanges = false;
             undoHistoryStack = [];
+            updateUndoCounterUI();
             if (typeof pendingDiscardFn === 'function') {
                 const fn = pendingDiscardFn;
                 pendingDiscardFn = null;
