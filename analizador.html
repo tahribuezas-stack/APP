@@ -5440,24 +5440,14 @@
             }
         };
 // =========================================================================
-        // CONECTOR LIGERO V3 ANALIZADOR.HTML <-> ANALIZADOR2.HTML (BLINDADO CONTRA CORRUPCIÓN DE NOMBRES)
-        // - Selecciona e ilumina al instante Plantilla (11), Banquillo, Reserva y Staff
-        // - Casillas "STAFF" a secas (el rol lo determina el perfil asignado)
-        // - Cortina animada del Míster al pasar entre Plantilla y Estrategias
+        // CONECTOR DIRECTO V4 ANALIZADOR.HTML <-> ANALIZADOR2.HTML
+        // - Control directo de selección e iluminación de Campo (11), Banquillo, Reserva y Staff
+        // - Auto-reparación de coordenadas si localStorage tenía datos horizontales
+        // - Cortina animada del Míster al pasar a Estrategias
         // =========================================================================
-        (function applyKinetAnalyzerConnectorV3() {
-            if (window._kinetConnectorV3Loaded) return;
-            window._kinetConnectorV3Loaded = true;
-
-            // Nombres de función blindados en dos partes para evitar que el portapapeles los reemplace
-            const FN_RENDER_BOARD = 'renderBoard' + 'TokensAndMetrics';
-            const _nativeRenderBoard = window[FN_RENDER_BOARD];
-            const _nativeRenderDuel = window.renderDuel1v1View;
-            const _nativeRenderMirror = window.renderMirrorSelfView;
-            const _nativeUpdateSliders = window.updateBuilderSlidersForPosition;
-            const _nativeGetSlotArr = window.getSlotArrayByGroup;
-            const _nativeQuickRemove = window.quickRemoveSlotPlayer;
-            const _nativeAssignPlayer = window.assignOrComparePlayer;
+        (function applyKinetAnalyzerConnectorV4() {
+            if (window._kinetConnectorV4Loaded) return;
+            window._kinetConnectorV4Loaded = true;
 
             // 1. Separar DFC y POR en todos los presets de Fútbol
             const fbPresets = SPORT_ARENA_CONFIGS['Fútbol']?.presets;
@@ -5471,7 +5461,7 @@
                 });
             }
 
-            // 2. Profesiones del Cuerpo Técnico (para Crear/Editar) y 6 huecos "STAFF" a secas en la bandeja
+            // 2. Profesiones del Cuerpo Técnico y siglas específicas por puesto
             const STAFF_SKILLS_MAP = {
                 'MÍSTER / ENTRENADOR': ['Pizarra & Táctica Global (TAC)', 'Dirección de Partido (DIR)', 'Gestión de Vestuario (GES)', 'Metodología Física (FIS)', 'Prevención & Salud (SAL)', 'Psicología & Cantera (PSI)'],
                 '2º ENTRENADOR': ['Estrategia Balón Parado (ABP)', 'Corrección en Vivo (COR)', 'Transiciones Ataque/Def. (TRA)', 'Análisis de Rival (RIV)', 'Trabajo por Líneas (LIN)', 'Conexión Jugadores (CON)'],
@@ -5506,7 +5496,7 @@
                 return cfg.statLabels;
             };
 
-            // 3. CSS de Selección de Casillas
+            // 3. CSS de Selección Pulsante en Campo, Banquillo, Reserva y Staff
             const connStyle = document.createElement('style');
             connStyle.textContent = `
                 .cassette-slots-grid { padding: 8px 4px !important; }
@@ -5523,7 +5513,7 @@
                 }
                 .bench-slot-pill.selected-slot {
                     border: 2px solid #FFFFFF !important;
-                    background: rgba(var(--role-rgb), 0.26) !important;
+                    background: rgba(var(--role-rgb), 0.28) !important;
                     box-shadow: 0 0 16px var(--role-glow) !important;
                     transform: translateY(-2px) scale(1.04) !important;
                 }
@@ -5610,7 +5600,7 @@
                 );
             };
 
-            // 4. Tercera Barra Cuerpo Técnico con etiquetas "STAFF 1" a "STAFF 6"
+            // 4. Motor Directo Independiente de Pintado y Selección (Campo, Banquillo, Reserva y Staff)
             let builderEntityType = 'athlete';
             window.staffSlots = [];
 
@@ -5633,10 +5623,202 @@
                 } catch (e) {}
             }
 
-            window.getSlotArrayByGroup = function (groupKey) {
+            function getActiveTargetArray(groupKey) {
+                if (groupKey === 'bench') return benchSlots;
+                if (groupKey === 'reserve') return reserveSlots;
                 if (groupKey === 'staff') return window.staffSlots;
-                return typeof _nativeGetSlotArr === 'function' ? _nativeGetSlotArr(groupKey) : currentBoardSlots;
-            };
+                return currentBoardSlots;
+            }
+
+            window.getSlotArrayByGroup = getActiveTargetArray;
+
+            // Función Maestra que pinta las 11 fichas del Campo, los 7 Suplentes, los 5 Reservas y los 6 Staff
+            function masterRenderAllSlots(shouldPersist = true) {
+                const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
+                const layer = document.getElementById('arena-tokens-layer');
+                if (!layer) return;
+
+                while (layer.children.length > currentBoardSlots.length) {
+                    layer.removeChild(layer.lastElementChild);
+                }
+                while (layer.children.length < currentBoardSlots.length) {
+                    const div = document.createElement('div');
+                    div.className = 'tactical-node-token empty-slot';
+                    layer.appendChild(div);
+                }
+
+                // 1. Pintar las fichas del Campo (11 Titulares)
+                currentBoardSlots.forEach((slot, idx) => {
+                    const tokenEl = layer.children[idx];
+                    const isSel = (activeSelection.group === 'board' && activeSelection.index === idx);
+                    const p = slot.player;
+
+                    tokenEl.style.left = `${slot.x}%`;
+                    tokenEl.style.top = `${slot.y}%`;
+                    tokenEl.onclick = (ev) => window.selectAnySlot('board', idx, ev);
+
+                    if (!p) {
+                        tokenEl.className = `tactical-node-token empty-slot ${isSel ? 'selected-slot' : ''}`;
+                        if (isSel) {
+                            tokenEl.innerHTML = `
+                                <div class="mini-fifa-header" style="justify-content:center;border-bottom:none;margin-bottom:2px;">
+                                    <span class="mini-fifa-pos" style="background:#FFFFFF;color:#04060A;">● ${slot.pos}</span>
+                                </div>
+                                <div class="mini-fifa-name" style="color:#FFFFFF;font-size:0.55rem;">ELIGE A LA DCHA →</div>
+                                <div style="font-family:'JetBrains Mono';font-size:0.44rem;color:var(--role-color);font-weight:800;">SELECCIONADO</div>
+                            `;
+                        } else {
+                            tokenEl.innerHTML = `
+                                <div class="mini-fifa-header" style="justify-content:center;border-bottom:none;margin-bottom:2px;">
+                                    <span class="mini-fifa-pos" style="background:rgba(255,255,255,0.14);color:#CBD5E1;">${slot.pos}</span>
+                                </div>
+                                <div class="mini-fifa-name" style="color:var(--role-color);font-size:0.58rem;">+ Asignar</div>
+                                <div style="font-family:'JetBrains Mono';font-size:0.46rem;color:#94A3B8;">Vacío</div>
+                            `;
+                        }
+                        return;
+                    }
+
+                    const shortName = p.name.split(' ')[0] + (p.name.split(' ')[1] ? ' ' + p.name.split(' ')[1][0] + '.' : '');
+                    const grlDisplay = p.grl ? p.grl : '??';
+
+                    if (tokenVisualMode === 'photos') {
+                        const avStyle = p.avatar ? `background-image:url('${p.avatar}');` : '';
+                        const initialsTxt = p.avatar ? '' : getInitials(p.name);
+                        tokenEl.className = `tactical-node-token kinet-avatar-tv-token ${isSel ? 'selected-slot' : ''}`;
+                        tokenEl.innerHTML = `
+                            <button type="button" class="mini-card-remove-x" title="Quitar de este puesto" onclick="quickRemoveSlotPlayer('board', ${idx}, event)">✕</button>
+                            <div class="tv-avatar-circle" style="${avStyle}">
+                                ${initialsTxt}
+                                <span class="tv-grl-badge">${grlDisplay}</span>
+                            </div>
+                            <div class="mini-fifa-name" style="margin-bottom:1px;">${shortName}</div>
+                            <span class="mini-fifa-pos" style="font-size:0.46rem;padding:1px 5px;">${slot.pos}</span>
+                        `;
+                    } else {
+                        const st = Array.isArray(p.stats) && p.stats.length === 6 ? p.stats : ['--', '--', '--', '--', '--', '--'];
+                        const lb = window.getPositionSpecificShortLabels(activeArenaSport, slot.pos || p.pos);
+                        tokenEl.className = `tactical-node-token kinet-mini-fifa-card ${isSel ? 'selected-slot' : ''}`;
+                        tokenEl.innerHTML = `
+                            <button type="button" class="mini-card-remove-x" title="Quitar de este puesto" onclick="quickRemoveSlotPlayer('board', ${idx}, event)">✕</button>
+                            <div class="mini-fifa-header">
+                                <span class="mini-fifa-grl">${grlDisplay}</span>
+                                <span class="mini-fifa-pos">${slot.pos}</span>
+                            </div>
+                            <div class="mini-fifa-name">${shortName}</div>
+                            <div class="mini-fifa-stats-grid">
+                                <div class="mini-fifa-stat-pair"><span>${lb[0]}</span><strong>${st[0]}</strong></div>
+                                <div class="mini-fifa-stat-pair"><span>${lb[3]}</span><strong>${st[3]}</strong></div>
+                                <div class="mini-fifa-stat-pair"><span>${lb[1]}</span><strong>${st[1]}</strong></div>
+                                <div class="mini-fifa-stat-pair"><span>${lb[4]}</span><strong>${st[4]}</strong></div>
+                                <div class="mini-fifa-stat-pair"><span>${lb[2]}</span><strong>${st[2]}</strong></div>
+                                <div class="mini-fifa-stat-pair"><span>${lb[5]}</span><strong>${st[5]}</strong></div>
+                            </div>
+                        `;
+                    }
+                });
+
+                // 2. Pintar las casillas de Banquillo (SUP 1..7)
+                const benchBox = document.getElementById('bench-slots-container');
+                if (benchBox) {
+                    benchBox.innerHTML = benchSlots.map((slot, idx) => {
+                        const isSel = (activeSelection.group === 'bench' && activeSelection.index === idx);
+                        const p = slot.player;
+                        return `
+                            <div class="bench-slot-pill ${p ? 'filled' : ''} ${isSel ? 'selected-slot' : ''}" onclick="selectAnySlot('bench', ${idx}, event)">
+                                ${p ? `<button type="button" onclick="quickRemoveSlotPlayer('bench', ${idx}, event)" style="position:absolute;top:2px;right:3px;background:none;border:none;color:#EF4444;font-size:0.55rem;font-weight:900;cursor:pointer;">✕</button>` : ''}
+                                <div style="font-family:'JetBrains Mono';font-size:0.52rem;color:${isSel ? '#FFFFFF' : 'var(--text-secondary)'};">${slot.pos} ${p ? '• <strong style="color:var(--role-color);">' + (p.grl || '??') + '</strong>' : ''}</div>
+                                <div style="font-size:0.62rem;font-weight:800;color:${p ? 'white' : (isSel ? '#FFFFFF' : 'var(--role-color)')};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">
+                                    ${p ? p.name.split(' ')[0] : '+ Asignar'}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // 3. Pintar las casillas de Reserva (RES 1..5)
+                const resBox = document.getElementById('reserve-slots-container');
+                if (resBox) {
+                    resBox.innerHTML = reserveSlots.map((slot, idx) => {
+                        const isSel = (activeSelection.group === 'reserve' && activeSelection.index === idx);
+                        const p = slot.player;
+                        return `
+                            <div class="bench-slot-pill ${p ? 'filled' : ''} ${isSel ? 'selected-slot' : ''}" onclick="selectAnySlot('reserve', ${idx}, event)">
+                                ${p ? `<button type="button" onclick="quickRemoveSlotPlayer('reserve', ${idx}, event)" style="position:absolute;top:2px;right:3px;background:none;border:none;color:#EF4444;font-size:0.55rem;font-weight:900;cursor:pointer;">✕</button>` : ''}
+                                <div style="font-family:'JetBrains Mono';font-size:0.52rem;color:${isSel ? '#FFFFFF' : 'var(--text-secondary)'};">${slot.pos} ${p ? '• <strong style="color:#38BDF8;">' + (p.grl || '??') + '</strong>' : ''}</div>
+                                <div style="font-size:0.62rem;font-weight:800;color:${p ? 'white' : (isSel ? '#FFFFFF' : '#38BDF8')};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">
+                                    ${p ? p.name.split(' ')[0] : '+ Asignar'}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // 4. Pintar las casillas de Cuerpo Técnico (STAFF 1..6)
+                const staffBox = document.getElementById('staff-slots-container');
+                if (staffBox && Array.isArray(window.staffSlots)) {
+                    staffBox.innerHTML = window.staffSlots.map((slot, idx) => {
+                        const isSel = (activeSelection.group === 'staff' && activeSelection.index === idx);
+                        const p = slot.player;
+                        const topTag = p && p.pos ? p.pos : 'STAFF';
+                        return `
+                            <div class="bench-slot-pill ${p ? 'filled' : ''} ${isSel ? 'selected-slot' : ''}" onclick="selectAnySlot('staff', ${idx}, event)">
+                                ${p ? `<button type="button" onclick="quickRemoveSlotPlayer('staff', ${idx}, event)" style="position:absolute;top:2px;right:3px;background:none;border:none;color:#EF4444;font-size:0.55rem;font-weight:900;cursor:pointer;">✕</button>` : ''}
+                                <div style="font-family:'JetBrains Mono';font-size:0.5rem;color:${isSel ? '#FFFFFF' : '#F59E0B'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                    ${topTag} ${p ? '• <strong>' + (p.grl || '??') + '</strong>' : ''}
+                                </div>
+                                <div style="font-size:0.62rem;font-weight:800;color:${p ? 'white' : (isSel ? '#FFFFFF' : '#F59E0B')};margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                    ${p ? p.name.split(' ')[0] : '+ Asignar'}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // 5. Actualizar el texto indicador superior de Puesto Activo
+                const targetArr = getActiveTargetArray(activeSelection.group);
+                const activeSlot = targetArr[activeSelection.index];
+                const indEl = document.getElementById('selected-slot-indicator');
+                const unassignTopBtn = document.getElementById('btn-unassign-top');
+
+                if (activeSlot && indEl) {
+                    const groupLbl = activeSelection.group === 'bench'
+                        ? 'Banquillo'
+                        : (activeSelection.group === 'reserve' ? 'Reserva' : (activeSelection.group === 'staff' ? 'Cuerpo Técnico' : 'Titular en Pista'));
+                    if (activeSlot.player) {
+                        indEl.innerHTML = `Puesto activo (${groupLbl}): <strong>[${activeSlot.pos}] ${activeSlot.player.name} (${activeSlot.player.grl || '??'} GRL)</strong>`;
+                        if (unassignTopBtn) unassignTopBtn.classList.add('visible');
+                    } else {
+                        indEl.innerHTML = `Puesto activo (${groupLbl}): <strong>[${activeSlot.pos}] Seleccionado</strong> — Toca un perfil en la lista derecha para asignarlo.`;
+                        if (unassignTopBtn) unassignTopBtn.classList.remove('visible');
+                    }
+                }
+
+                // 6. Actualizar píldora de media y sinergia del equipo
+                const filledStarters = currentBoardSlots.filter(s => s.player);
+                if (filledStarters.length === 0) {
+                    document.getElementById('team-overall-pill').textContent = `⚡ TITULARES: 0 / ${currentBoardSlots.length} • MEDIA: --`;
+                    document.getElementById('arena-chemistry-badge').textContent = `🔗 SINERGIA: PENDIENTE`;
+                } else {
+                    const calibratedStarters = filledStarters.filter(s => s.player.grl);
+                    const avgGrl = calibratedStarters.length > 0
+                        ? Math.round(calibratedStarters.reduce((acc, s) => acc + s.player.grl, 0) / calibratedStarters.length)
+                        : '??';
+                    const fitInfo = evaluateTeamTacticalFit();
+                    document.getElementById('team-overall-pill').textContent = `⚡ TITULARES: ${filledStarters.length}/${currentBoardSlots.length} • MEDIA: ${avgGrl} GRL`;
+                    document.getElementById('arena-chemistry-badge').textContent = `🔗 SINERGIA IA: ${fitInfo.score}% (${fitInfo.styleLabel})`;
+                    document.getElementById('ai-board-diagnosis').textContent = fitInfo.explanation;
+                }
+
+                if (shouldPersist) {
+                    saveCustomAndShortlistData();
+                }
+                if (currentAnalyzerMode === 'mirror') renderMirrorSelfView();
+            }
+
+            // Asignar la función maestra a cualquier llamada global o interna
+            window.masterRenderAllSlots = masterRenderAllSlots;
+            window['renderBoard' + 'TokensAndMetrics'] = masterRenderAllSlots;
 
             window.selectAnySlot = function (group, index, event) {
                 if (event) event.stopPropagation();
@@ -5644,43 +5826,159 @@
                 if (group === 'bench') window.switchBenchReserveView('bench');
                 else if (group === 'reserve') window.switchBenchReserveView('reserve');
                 else if (group === 'staff') window.switchBenchReserveView('staff');
-                window[FN_RENDER_BOARD](false);
+                masterRenderAllSlots(false);
             };
 
             window.quickRemoveSlotPlayer = function (group, index, event) {
-                if (group === 'staff') {
-                    if (event) event.stopPropagation();
-                    if (window.staffSlots[index]) {
-                        window.staffSlots[index].player = null;
-                        activeSelection = { group: 'staff', index };
-                        saveStaffSlotsToStorage();
-                        window[FN_RENDER_BOARD](true);
-                    }
-                    return;
+                if (event) event.stopPropagation();
+                const targetArr = getActiveTargetArray(group);
+                if (targetArr[index]) {
+                    targetArr[index].player = null;
+                    activeSelection = { group, index };
+                    if (group === 'staff') saveStaffSlotsToStorage();
+                    masterRenderAllSlots(true);
                 }
-                if (typeof _nativeQuickRemove === 'function') _nativeQuickRemove(group, index, event);
+            };
+
+            window.removePlayerFromSelectedSlot = function (event) {
+                if (event) event.stopPropagation();
+                window.quickRemoveSlotPlayer(activeSelection.group, activeSelection.index, null);
+            };
+
+            window.applyTacticalPreset = function (presetName, persistChange = true) {
+                const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
+                const coords = cfg.presets[presetName] || Object.values(cfg.presets)[0];
+                currentPresetName = presetName;
+
+                const previousPlayers = currentBoardSlots.map(s => s.player);
+                currentBoardSlots = coords.map((slot, idx) => ({
+                    pos: slot.pos,
+                    x: slot.x,
+                    y: slot.y,
+                    player: previousPlayers[idx] || null
+                }));
+
+                activeSelection = { group: 'board', index: 0 };
+                masterRenderAllSlots(persistChange);
+                refreshAllCustomKinetSelects();
+            };
+
+            window.clearAllBoardSlots = function () {
+                currentBoardSlots.forEach(s => { s.player = null; });
+                benchSlots.forEach(s => { s.player = null; });
+                reserveSlots.forEach(s => { s.player = null; });
+                masterRenderAllSlots(true);
             };
 
             window.assignOrComparePlayer = function (playerObj) {
                 if (!playerObj) return;
-                const isStaff = Boolean(playerObj.isStaffMember || window.isStaffPositionCode(playerObj.pos));
+                selectedRosterProfileId = playerObj.id || playerObj.name;
 
-                if (currentAnalyzerMode !== 'duel' && (activeSelection.group === 'staff' || isStaff)) {
-                    if (!playerObj.grl || !Array.isArray(playerObj.stats)) {
-                        window.loadProfileIntoBuilder(playerObj);
-                        return;
-                    }
+                if (!playerObj.grl || !Array.isArray(playerObj.stats)) {
+                    window.loadProfileIntoBuilder(playerObj);
+                    return;
+                }
+
+                if (currentAnalyzerMode === 'duel') {
+                    if (activeDuelCorner === 'A') duelFighterA = playerObj;
+                    else duelFighterB = playerObj;
+                    renderDuel1v1View();
+                    renderRightRosterList();
+                    return;
+                }
+
+                const isStaff = Boolean(playerObj.isStaffMember || window.isStaffPositionCode(playerObj.pos));
+                if (activeSelection.group === 'staff' || isStaff) {
                     let sIdx = activeSelection.group === 'staff' ? activeSelection.index : window.staffSlots.findIndex(s => !s.player);
                     if (sIdx === -1) sIdx = 0;
                     activeSelection = { group: 'staff', index: sIdx };
                     window.staffSlots[sIdx].player = { ...playerObj };
                     saveStaffSlotsToStorage();
                     window.switchBenchReserveView('staff');
-                    window[FN_RENDER_BOARD](true);
+                    masterRenderAllSlots(true);
                     renderRightRosterList();
                     return;
                 }
-                if (typeof _nativeAssignPlayer === 'function') _nativeAssignPlayer(playerObj);
+
+                const targetGroup = activeSelection.group;
+                const targetIdx = activeSelection.index;
+                const targetArr = getActiveTargetArray(targetGroup);
+                const targetSlot = targetArr[targetIdx];
+                if (!targetSlot) return;
+
+                const existingLoc = findPlayerExistingLocation(playerObj);
+                const occupant = targetSlot.player;
+
+                if (existingLoc && existingLoc.group === targetGroup && existingLoc.index === targetIdx) {
+                    renderRightRosterList();
+                    return;
+                }
+
+                if (existingLoc && !occupant) {
+                    const originArr = getActiveTargetArray(existingLoc.group);
+                    originArr[existingLoc.index].player = null;
+                    targetSlot.player = { ...playerObj };
+                    masterRenderAllSlots(true);
+                    renderRightRosterList();
+                    return;
+                }
+
+                if (existingLoc && occupant) {
+                    pendingSlotConflict = { playerObj, targetGroup, targetIdx, existingLoc };
+                    document.getElementById('conflict-modal-title').textContent = '🔄 INTERCAMBIAR O SUSTITUIR POSICIÓN';
+                    document.getElementById('conflict-modal-desc').innerHTML = `
+                        <strong>${playerObj.name}</strong> ya está asignado en <strong>[${existingLoc.slot.pos}] (${existingLoc.groupLabel})</strong> y el puesto destino <strong>[${targetSlot.pos}]</strong> está ocupado por <strong>${occupant.name}</strong>.<br><br>
+                        ¿Qué acción táctica deseas realizar?
+                    `;
+                    document.getElementById('conflict-modal-actions').innerHTML = `
+                        <button type="button" class="btn-secondary" onclick="closeConflictModal()">Cancelar</button>
+                        <button type="button" class="btn-secondary" style="border-color:#EF4444;color:#FCA5A5;" onclick="executeConflictResolution('replace')">⚡ Sustituir</button>
+                        <button type="button" class="btn-primary" onclick="executeConflictResolution('swap')">🔄 Intercambiar</button>
+                    `;
+                    document.getElementById('slot-conflict-modal').classList.add('open');
+                    return;
+                }
+
+                if (!existingLoc && occupant) {
+                    pendingSlotConflict = { playerObj, targetGroup, targetIdx, existingLoc: null };
+                    document.getElementById('conflict-modal-title').textContent = '⚡ CONFIRMAR REEMPLAZO EN PUESTO';
+                    document.getElementById('conflict-modal-desc').innerHTML = `
+                        El puesto <strong>[${targetSlot.pos}]</strong> está ocupado por <strong>${occupant.name}</strong>. ¿Deseas sustituirlo por <strong>${playerObj.name}</strong>?
+                    `;
+                    document.getElementById('conflict-modal-actions').innerHTML = `
+                        <button type="button" class="btn-secondary" onclick="closeConflictModal()">Cancelar</button>
+                        <button type="button" class="btn-primary" onclick="executeConflictResolution('replace')">✓ Sustituir</button>
+                    `;
+                    document.getElementById('slot-conflict-modal').classList.add('open');
+                    return;
+                }
+
+                targetSlot.player = { ...playerObj };
+                masterRenderAllSlots(true);
+                renderRightRosterList();
+            };
+
+            window.executeConflictResolution = function (resolutionType) {
+                if (!pendingSlotConflict) return;
+                const { playerObj, targetGroup, targetIdx, existingLoc } = pendingSlotConflict;
+                const targetArr = getActiveTargetArray(targetGroup);
+                const currentOccupant = targetArr[targetIdx]?.player || null;
+
+                if (resolutionType === 'swap' && existingLoc) {
+                    const originArr = getActiveTargetArray(existingLoc.group);
+                    originArr[existingLoc.index].player = currentOccupant ? { ...currentOccupant } : null;
+                    targetArr[targetIdx].player = { ...playerObj };
+                } else if (resolutionType === 'replace') {
+                    if (existingLoc) {
+                        const originArr = getActiveTargetArray(existingLoc.group);
+                        originArr[existingLoc.index].player = null;
+                    }
+                    targetArr[targetIdx].player = { ...playerObj };
+                }
+
+                closeConflictModal();
+                masterRenderAllSlots(true);
+                renderRightRosterList();
             };
 
             window.switchBenchReserveView = function (targetDeck) {
@@ -5721,6 +6019,7 @@
                 refreshAllCustomKinetSelects();
             };
 
+            const _origUpdateSliders = window.updateBuilderSlidersForPosition;
             window.updateBuilderSlidersForPosition = function (posName) {
                 if (builderEntityType === 'staff' && STAFF_SKILLS_MAP[posName]) {
                     const box = document.getElementById('builder-sliders-box');
@@ -5735,97 +6034,7 @@
                     }
                     return;
                 }
-                if (typeof _nativeUpdateSliders === 'function') _nativeUpdateSliders(posName);
-            };
-
-            window[FN_RENDER_BOARD] = function (shouldPersist = true) {
-                if (typeof _nativeRenderBoard === 'function') _nativeRenderBoard(shouldPersist);
-                const layer = document.getElementById('arena-tokens-layer');
-                if (!layer) return;
-
-                // Renderizar las 6 tarjetas de Cuerpo Técnico poniendo "STAFF" a secas (o el rol del perfil asignado)
-                const staffBox = document.getElementById('staff-slots-container');
-                if (staffBox && Array.isArray(window.staffSlots)) {
-                    staffBox.innerHTML = window.staffSlots.map((slot, idx) => {
-                        const isSel = activeSelection.group === 'staff' && activeSelection.index === idx;
-                        const p = slot.player;
-                        const topTag = p && p.pos ? p.pos : 'STAFF';
-                        return `
-                            <div class="bench-slot-pill ${p ? 'filled' : ''} ${isSel ? 'selected-slot' : ''}" onclick="selectAnySlot('staff', ${idx}, event)">
-                                ${p ? `<button type="button" onclick="quickRemoveSlotPlayer('staff', ${idx}, event)" style="position:absolute;top:2px;right:3px;background:none;border:none;color:#EF4444;font-size:0.55rem;font-weight:900;cursor:pointer;">✕</button>` : ''}
-                                <div style="font-family:'JetBrains Mono';font-size:0.5rem;color:${isSel ? '#FFFFFF' : '#F59E0B'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                    ${topTag} ${p ? '• <strong>' + (p.grl || '??') + '</strong>' : ''}
-                                </div>
-                                <div style="font-size:0.62rem;font-weight:800;color:${p ? 'white' : (isSel ? '#FFFFFF' : '#F59E0B')};margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                    ${p ? p.name.split(' ')[0] : '+ Asignar'}
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-                }
-
-                if (activeSelection.group === 'staff') {
-                    const activeSlot = window.staffSlots[activeSelection.index];
-                    const indEl = document.getElementById('selected-slot-indicator');
-                    const unassignTopBtn = document.getElementById('btn-unassign-top');
-                    if (activeSlot && indEl) {
-                        if (activeSlot.player) {
-                            indEl.innerHTML = `Puesto activo (Cuerpo Técnico): <strong>[${activeSlot.player.pos || 'STAFF'}] ${activeSlot.player.name} (${activeSlot.player.grl || '??'} GRL)</strong>`;
-                            if (unassignTopBtn) unassignTopBtn.classList.add('visible');
-                        } else {
-                            indEl.innerHTML = `Puesto activo (Cuerpo Técnico): <strong>[STAFF ${activeSelection.index + 1}] Seleccionado</strong> — Elige un perfil a la derecha o créalo en "🛠️ Crear / Editar".`;
-                            if (unassignTopBtn) unassignTopBtn.classList.remove('visible');
-                        }
-                    }
-                }
-
-                currentBoardSlots.forEach((slot, idx) => {
-                    const tokenEl = layer.children[idx];
-                    if (!tokenEl) return;
-                    const isSel = activeSelection.group === 'board' && activeSelection.index === idx;
-                    const p = slot.player;
-                    if (!p && isSel) {
-                        tokenEl.innerHTML = `
-                            <div class="mini-fifa-header" style="justify-content:center;border-bottom:none;margin-bottom:2px;">
-                                <span class="mini-fifa-pos" style="background:#FFFFFF;color:#04060A;">● ${slot.pos}</span>
-                            </div>
-                            <div class="mini-fifa-name" style="color:#FFFFFF;font-size:0.56rem;">ELIGE A LA DCHA →</div>
-                            <div style="font-family:'JetBrains Mono';font-size:0.44rem;color:var(--role-color);font-weight:800;">SELECCIONADO</div>
-                        `;
-                    } else if (p && tokenVisualMode === 'cards') {
-                        const lb = window.getPositionSpecificShortLabels(activeArenaSport, slot.pos || p.pos);
-                        const st = Array.isArray(p.stats) && p.stats.length === 6 ? p.stats : ['--', '--', '--', '--', '--', '--'];
-                        const gridEl = tokenEl.querySelector('.mini-fifa-stats-grid');
-                        if (gridEl) {
-                            gridEl.innerHTML = `
-                                <div class="mini-fifa-stat-pair"><span>${lb[0]}</span><strong>${st[0]}</strong></div>
-                                <div class="mini-fifa-stat-pair"><span>${lb[3]}</span><strong>${st[3]}</strong></div>
-                                <div class="mini-fifa-stat-pair"><span>${lb[1]}</span><strong>${st[1]}</strong></div>
-                                <div class="mini-fifa-stat-pair"><span>${lb[4]}</span><strong>${st[4]}</strong></div>
-                                <div class="mini-fifa-stat-pair"><span>${lb[2]}</span><strong>${st[2]}</strong></div>
-                                <div class="mini-fifa-stat-pair"><span>${lb[5]}</span><strong>${st[5]}</strong></div>
-                            `;
-                        }
-                    }
-                });
-            };
-
-            window.renderDuel1v1View = function () {
-                const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
-                const pA = duelFighterA || getMyUserPlayerObject();
-                const orig = [...cfg.statLabels];
-                cfg.statLabels = window.getPositionSpecificShortLabels(activeArenaSport, pA.pos);
-                if (typeof _nativeRenderDuel === 'function') _nativeRenderDuel();
-                cfg.statLabels = orig;
-            };
-
-            window.renderMirrorSelfView = function () {
-                const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
-                const me = getMyUserPlayerObject();
-                const orig = [...cfg.statLabels];
-                cfg.statLabels = window.getPositionSpecificShortLabels(activeArenaSport, me.pos);
-                if (typeof _nativeRenderMirror === 'function') _nativeRenderMirror();
-                cfg.statLabels = orig;
+                if (typeof _origUpdateSliders === 'function') _origUpdateSliders(posName);
             };
 
             function mountUI() {
@@ -5890,7 +6099,24 @@
                     bannerEl.parentElement.insertAdjacentElement('beforebegin', toggleRow);
                 }
 
-                window[FN_RENDER_BOARD](true);
+                // Auto-reparar coordenadas si localStorage tenía guardadas coordenadas horizontales de sesiones previas
+                const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
+                const cleanPreset = cfg.presets[currentPresetName] || Object.values(cfg.presets)[0];
+                if (Array.isArray(currentBoardSlots) && currentBoardSlots.length === cleanPreset.length) {
+                    if (currentBoardSlots[0] && currentBoardSlots[0].pos === 'POR' && (currentBoardSlots[0].y < 75 || currentBoardSlots[0].x < 30)) {
+                        currentBoardSlots.forEach((s, i) => {
+                            s.pos = cleanPreset[i].pos;
+                            s.x = cleanPreset[i].x;
+                            s.y = cleanPreset[i].y;
+                        });
+                    }
+                    currentBoardSlots.forEach(s => {
+                        if (s.pos === 'POR' && s.y < 89) s.y = 90;
+                        if (s.pos === 'DFC' && s.y > 68) s.y = 67;
+                    });
+                }
+
+                masterRenderAllSlots(true);
             }
 
             if (document.readyState === 'loading') {
