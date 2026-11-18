@@ -5439,584 +5439,1046 @@
                 }
             }
         };
-       // =========================================================================
-        // PARCHE MINIMALISTA V9 (SUSTITUYE AL V8 SIN TOCAR NADA DEL ARCHIVO BASE):
-        // 1. TERCERA BARRA EN BANDEJA INFERIOR: [🪑 Banquillo] [📋 Reserva] [👔 Cuerpo Técnico (6)]
-        // 2. CONMUTADOR EN CREAR/EDITAR: [🏃 Atleta / Jugador] | [👔 Cuerpo Técnico / Staff]
-        // 3. 7 PROFESIONES DE STAFF PERSONALIZADAS POR DEPORTE (TOTALITARIO + 6 ESPECIALISTAS)
-        // 4. CÁLCULO DE ENCAJE IA DEL ENTRENADOR/STAFF CON TU CLUB Y PLANTILLA
-        // 5. FIX DE SIGLAS DE PORTERO (DIV/HAN/KIC/REF/SPD/POS) Y BLOQUEO A FREE/PRO 8,99€
+      // =========================================================================
+        // MOTOR TÁCTICO INTEGRAL V10 (SUSTITUYE AL PARCHE FINAL V8/V9):
+        // 1. FIX CHOQUE PORTERO/DEFENSA + ILUMINACIÓN NEÓN PULSANTE EN PLAZA "+ ASIGNAR"
+        // 2. VOLTEO 3D DE TODA LA INTERFAZ AL ENTRAR EN ESTRATEGIAS (MISMA ESTRUCTURA VISUAL)
+        // 3. CAMPO HORIZONTAL EN ESTRATEGIAS + FICHAS MICRO (INICIALES O FOTO) + RIVAL COMPLETO
+        // 4. MOVIMIENTO REAL ANIMADO DE FICHAS + BALÓN/PELOTA EN LOS 5 DEPORTES
+        // 5. CREADOR MANUAL DE MOVIMIENTOS, PARTIDO DE LA SEMANA, GUARDADO Y COMUNIDAD
         // =========================================================================
-        (function applyMinimalistTacticalAndStaffPatchV9() {
+        (function applyKinetTacticalEngineV10() {
 
             // ---------------------------------------------------------------------
-            // 1. DEFINICIÓN DE LAS 7 PROFESIONES DE CUERPO TÉCNICO POR DEPORTE
-            //    (Entrenador Totalitario + 2º Entrenador + Prep. Físico + Fisio + Mental + Nutri + Analista)
+            // 1. SEPARAR COORDENADAS DE DEFENSAS (DFC) Y PORTERO (POR) EN EL 11
             // ---------------------------------------------------------------------
-            const STAFF_PROFESSIONS_BY_SPORT = {
+            const fbPresets = SPORT_ARENA_CONFIGS['Fútbol']?.presets;
+            if (fbPresets) {
+                Object.keys(fbPresets).forEach(k => {
+                    fbPresets[k].forEach(slot => {
+                        if (slot.pos === 'POR') slot.y = 90;
+                        else if (slot.pos === 'DFC' && slot.y >= 71) slot.y = 67;
+                        else if ((slot.pos === 'LI' || slot.pos === 'LD') && slot.y >= 69) slot.y = 64;
+                    });
+                });
+            }
+
+            // ---------------------------------------------------------------------
+            // 2. PROFESIONES DEL CUERPO TÉCNICO (SEPARADAS DE JUGADORES) Y SIGLAS PORTERO
+            // ---------------------------------------------------------------------
+            const STAFF_ROLES_CONFIG = {
                 'Fútbol': {
                     slots: ['MÍSTER / TOTAL', '2º ENTRENADOR', 'PREP. FÍSICO', 'FISIOTERAPEUTA', 'COACH MENTAL', 'ANALISTA / NUTRI'],
                     skills: {
                         'MÍSTER / TOTAL': ['Pizarra & Táctica Global (TAC)', 'Dirección de Partido (DIR)', 'Gestión de Vestuario (GES)', 'Metodología Física (FIS)', 'Prevención & Salud (SAL)', 'Psicología & Cantera (PSI)'],
-                        '2º ENTRENADOR': ['Estrategia Balón Parado (ABP)', 'Corrección Táctica en Vivo (COR)', 'Transiciones Ataque/Def. (TRA)', 'Análisis de Rival (RIV)', 'Trabajo por Líneas (LIN)', 'Conexión Jugadores (CON)'],
-                        'PREP. FÍSICO': ['Fuerza & Explosividad (FUE)', 'Resistencia 90 Min (RES)', 'Velocidad & Sprints (VEL)', 'Control de Cargas GPS (CAR)', 'Pico de Forma (PIC)', 'Prevención Muscular (PRE)'],
-                        'FISIOTERAPEUTA': ['Diagnóstico Lesional (DIA)', 'Terapia Manual & Descarga (MAN)', 'Readaptación al Césped (REA)', 'Prevención Isquios/Rodilla (PRE)', 'Recuperación Post-Partido (REC)', 'Biomecánica Articular (BIO)'],
-                        'COACH MENTAL': ['Foco & Concentración (FOC)', 'Gestión de Presión / Penaltis (CLU)', 'Confianza & Resiliencia (CON)', 'Cohesión de Vestuario (COH)', 'Rutinas Pre-Partido (RUT)', 'Control Emocional (EMO)'],
-                        'NUTRICIONISTA': ['Carga de Glucógeno (GLU)', 'Hidratación & Sales (HID)', 'Composición Corporal (COM)', 'Suplementación Pro (SUP)', 'Recuperación Post-90m (REC)', 'Planificación Semanal (PLA)'],
-                        'ANALISTA / SCOUT': ['Scouting de Rivales (SCO)', 'Telemetría & Vídeo IA (VID)', 'Detección de Patrones (PAT)', 'Mapa de Calor & Datos (DAT)', 'Informes Pre-Partido (INF)', 'Radar de Fichajes (MER)']
-                    }
-                },
-                'Baloncesto': {
-                    slots: ['HEAD COACH', 'ASIST. TÁCTICO', 'PREP. FÍSICO', 'FISIOTERAPEUTA', 'COACH MENTAL', 'ANALISTA / NUTRI'],
-                    skills: {
-                        'HEAD COACH': ['Sistemas & Pizarra Global (TAC)', 'Rotaciones & Tiempos Muertos (DIR)', 'Gestión de Estrellas (GES)', 'Físico & Ritmo Pista (FIS)', 'Salud & Cargas (SAL)', 'Mentalidad Clutch (PSI)'],
-                        'ASIST. TÁCTICO': ['Pizarras ATO / Clutch (ATO)', 'Ajustes Pick & Roll (PKR)', 'Sistemas Defensivos/Zona (DEF)', 'Scouting de Tiradores (SCO)', 'Desarrollo Individual (IND)', 'Espaciado 5-Out (SPA)'],
-                        'PREP. FÍSICO': ['Salto Vertical & Potencia (SAL)', 'Agilidad Lateral en Pista (AGI)', 'Resistencia 4 Cuartos (RES)', 'Fuerza de Contacto Poste (FUE)', 'Control de Carga Back2Back (CAR)', 'Prevención Tobillo/Rodilla (PRE)'],
-                        'FISIOTERAPEUTA': ['Diagnóstico Articular (DIA)', 'Descarga Tren Inferior (MAN)', 'Readaptación a Parquet (REA)', 'Protección Tendón/Tobillo (PRE)', 'Crioterapia & Recuperación (REC)', 'Biomecánica de Aterrizaje (BIO)'],
-                        'COACH MENTAL': ['Foco en Tiros Libres (FOC)', 'Sangre Fría en Clutch (CLU)', 'Resiliencia tras Racha (CON)', 'Química de Quinteto (COH)', 'Visualización de Tiro (RUT)', 'Control de Faltas/Árbitro (EMO)'],
-                        'NUTRICIONISTA': ['Energía Explosiva (GLU)', 'Hidratación en Pabellón (HID)', 'Ratio Potencia/Peso (COM)', 'Ergogenia & Recuperación (SUP)', 'Recarga entre Partidos (REC)', 'Dieta de Temporada (PLA)'],
-                        'ANALISTA / SCOUT': ['Shot Charts & Eficiencia (SCO)', 'Vídeo & Posesiones IA (VID)', 'Tendencias de Rival (PAT)', 'Métricas Avanzadas PPP (DAT)', 'Dossier Pre-Partido (INF)', 'Scouting Draft / Mercado (MER)']
-                    }
-                },
-                'Pádel / Tenis': {
-                    slots: ['COACH PRINCIPAL', '2º ENT. TÁCTICO', 'PREP. FÍSICO', 'FISIOTERAPEUTA', 'COACH MENTAL', 'NUTRICIONISTA'],
-                    skills: {
-                        'COACH PRINCIPAL': ['Táctica de Pista Global (TAC)', 'Lectura de Partido / Coaching (DIR)', 'Compaginación de Pareja (GES)', 'Físico & Desplazamiento (FIS)', 'Prevención Articular (SAL)', 'Firmeza en Punto de Oro (PSI)'],
-                        '2º ENT. TÁCTICO': ['Técnica de Volea & Bandeja (VOL)', 'Defensa de Doble Pared (PAR)', 'Estrategia de Saque/Resto (SRV)', 'Análisis de Pareja Rival (RIV)', 'Cobertura de Red (RED)', 'Transición Fondo-Red (TRA)'],
-                        'PREP. FÍSICO': ['Arrancada & Primer Paso (VEL)', 'Coordinación & Split-Step (AGI)', 'Potencia de Remate/Saque (FUE)', 'Resistencia a 3 Sets (RES)', 'Control de Carga Torneo (CAR)', 'Estabilidad Core/Hombro (PRE)'],
-                        'FISIOTERAPEUTA': ['Tratamiento Codo/Hombro (DIA)', 'Descarga Gemelo/Tendón (MAN)', 'Readaptación a Pista (REA)', 'Prevención Epicondilitis (PRE)', 'Recuperación entre Rondas (REC)', 'Biomecánica de Golpeo (BIO)'],
-                        'COACH MENTAL': ['Gestión de Tie-Break / Oro (CLU)', 'Concentración Punto a Punto (FOC)', 'Química con el Compañero (COH)', 'Superación de Errores (CON)', 'Ritual entre Puntos (RUT)', 'Templanza en Momentos Clave (EMO)'],
-                        'NUTRICIONISTA': ['Energía en Partidos Largos (GLU)', 'Electrolitos & Calor (HID)', 'Agilidad & Peso Óptimo (COM)', 'Suplementación Intra-Set (SUP)', 'Recuperación Torneo (REC)', 'Planificación Viajes (PLA)'],
-                        'ANALISTA / SCOUT': ['Mapa de Golpes Rival (SCO)', 'Estadística Errores No Forz. (DAT)', 'Vídeo de Posicionamiento (VID)', 'Zonas Vulnerables Rival (PAT)', 'Plan de Partido (INF)', 'Ranking & Circuito (MER)']
-                    }
-                },
-                'Boxeo / MMA': {
-                    slots: ['HEAD COACH / ESQUINA', 'COACH STRIKING/LONA', 'PREP. FÍSICO', 'FISIO / CUTMAN', 'COACH MENTAL', 'NUTRI / CORTE PESO'],
-                    skills: {
-                        'HEAD COACH / ESQUINA': ['Gameplan Totalitario (TAC)', 'Dirección en Esquina 1 Min (DIR)', 'Gestión de Campamento (GES)', 'Condicionamiento 5/12 Rds (FIS)', 'Protección & Salud (SAL)', 'Mentalidad de Campeón (PSI)'],
-                        'COACH STRIKING/LONA': ['Manoplas & Combinaciones (STR)', 'Defensa & Corte de Ring (DEF)', 'Wrestling / Jiu-Jitsu (GRP)', 'Simulación de Rival (RIV)', 'Timing de Contragolpe (TIM)', 'Salidas de Jaula/Cuerdas (ESC)'],
-                        'PREP. FÍSICO': ['Potencia de KO Explosiva (FUE)', 'Cardio Anaeróbico Asaltos (RES)', 'Velocidad de Reacción (VEL)', 'Fuerza Isométrica Clinch (ISO)', 'Pico de Campamento (PIC)', 'Cuello & Core Anti-Impacto (PRE)'],
-                        'FISIO / CUTMAN': ['Control de Cortes en Esquina (CUT)', 'Recuperación Manos/Hombro (DIA)', 'Descarga en Fight Camp (MAN)', 'Readaptación de Impacto (REA)', 'Prevención Articular (PRE)', 'Movilidad de Cadera (BIO)'],
-                        'COACH MENTAL': ['Frialdad Bajo Fuego (CLU)', 'Foco en el Gameplan (FOC)', 'Control de Adrenalina (EMO)', 'Confianza en el Peso/Ring (CON)', 'Visualización de Combate (RUT)', 'Disciplina de Campamento (COH)'],
-                        'NUTRI / CORTE PESO': ['Corte de Peso Seguro (COR)', 'Rehidratación Post-Báscula (HID)', 'Recarga de Glucógeno 24h (GLU)', 'Mantenimiento de Fuerza (FUE)', 'Suplementación Fight Camp (SUP)', 'Composición Corporal (COM)'],
-                        'ANALISTA / SCOUT': ['Estudio de Guardia Rival (SCO)', 'Patrones yFintas en Vídeo (VID)', 'Frecuencia de Golpeo IA (DAT)', 'Huecos Defensivos Rival (PAT)', 'Informe de Asaltos (INF)', 'Matchmaking & Récord (MER)']
-                    }
-                },
-                'Running': {
-                    slots: ['ENTRENADOR JEFE', 'COACH BIOMECÁNICO', 'PREP. FUERZA', 'FISIOTERAPEUTA', 'COACH MENTAL', 'NUTRICIONISTA'],
-                    skills: {
-                        'ENTRENADOR JEFE': ['Periodización Totalitaria (TAC)', 'Estrategia de Carrera/Ritmo (DIR)', 'Gestión de Grupo/Liebres (GES)', 'Fisiología VO2 & Umbral (FIS)', 'Prevención Sobreentreno (SAL)', 'Mentalidad de Competición (PSI)'],
-                        'COACH BIOMECÁNICO': ['Economía de Zancada (ECO)', 'Reactividad & Cadencia SPM (CAD)', 'Técnica de Curva/Desnivel (TEC)', 'Análisis de Pisada (PIS)', 'Táctica de Drafting/Liebre (DRA)', 'Sprint & Kick Final (KIC)'],
-                        'PREP. FUERZA': ['Pliometría & Reactividad (PLI)', 'Fuerza Máxima sin Hipertrofia (FUE)', 'Estabilidad de Cadera/Core (COR)', 'Potencia en Cuestas (CUE)', 'Control de Volumen/Km (CAR)', 'Tendón de Aquiles & Sóleo (PRE)'],
-                        'FISIOTERAPEUTA': ['Prevención Periostitis/Fascia (PRE)', 'Descarga Muscular Profunda (MAN)', 'Diagnóstico de Sobrecarga (DIA)', 'Readaptación de Impacto (REA)', 'Recuperación Post-Maratón (REC)', 'Alineación Pélvica (BIO)'],
-                        'COACH MENTAL': ['Tolerancia al Muro / Fatiga (CLU)', 'Foco en Ritmo Objetivo (FOC)', 'Gestión de Nervios Salida (EMO)', 'Confianza en el Tapering (CON)', 'Disociación & Ritmo (RUT)', 'Constancia de Temporada (COH)'],
-                        'NUTRICIONISTA': [' Estrategia de Geles/HC Hora (GLU)', 'Hidratación & Sodio (HID)', 'Carga de Hidratos Pre-Carrera (CAR)', 'Ratio Peso/Potencia Saludable (COM)', 'Hierro & Ferritina (SUP)', 'Recuperación Muscular (REC)'],
-                        'ANALISTA / SCOUT': ['Telemetría VAM & Lactato (DAT)', 'Análisis de Parciales/Splits (SCO)', 'Biomecánica en Vídeo IA (VID)', 'Predicción de Marca (PAT)', 'Perfil Altimétrico Ruta (INF)', 'Calendario &Rivales (MER)']
+                        '2º ENTRENADOR': ['Estrategia Balón Parado (ABP)', 'Corrección en Vivo (COR)', 'Transiciones Ataque/Def. (TRA)', 'Análisis de Rival (RIV)', 'Trabajo por Líneas (LIN)', 'Conexión Jugadores (CON)'],
+                        'PREP. FÍSICO': ['Fuerza & Explosividad (FUE)', 'Resistencia 90 Min (RES)', 'Velocidad & Sprints (VEL)', 'Control Cargas GPS (CAR)', 'Pico de Forma (PIC)', 'Prevención Muscular (PRE)'],
+                        'FISIOTERAPEUTA': ['Diagnóstico Lesional (DIA)', 'Terapia Manual (MAN)', 'Readaptación Campo (REA)', 'Prevención Isquios (PRE)', 'Recuperación Post-90m (REC)', 'Biomecánica Articular (BIO)'],
+                        'COACH MENTAL': ['Foco & Concentración (FOC)', 'Gestión Presión/Penaltis (CLU)', 'Confianza & Resiliencia (CON)', 'Cohesión Vestuario (COH)', 'Rutinas Pre-Partido (RUT)', 'Control Emocional (EMO)'],
+                        'ANALISTA / NUTRI': ['Scouting & Vídeo IA (SCO)', 'Mapa de Calor & Datos (DAT)', 'Carga de Glucógeno (GLU)', 'Hidratación & Sales (HID)', 'Informes Pre-Partido (INF)', 'Recuperación Metabólica (REC)']
                     }
                 }
             };
 
-            // ---------------------------------------------------------------------
-            // 2. CORREGIR POSICIONES DE JUGADOR (ELIMINAR CUALQUIER OPCIÓN DE STAFF
-            //    DENTRO DE JUGADOR) Y SEPARAR ATLETA VS STAFF
-            // ---------------------------------------------------------------------
+            function getStaffCfg(sport) {
+                return STAFF_ROLES_CONFIG[sport] || STAFF_ROLES_CONFIG['Fútbol'];
+            }
+
             Object.keys(SPORT_ARENA_CONFIGS).forEach(sp => {
                 const cfg = SPORT_ARENA_CONFIGS[sp];
                 cfg.positions = cfg.positions.filter(p => p !== 'ENT / STAFF' && !p.includes('STAFF'));
-                if (cfg.posSkills && cfg.posSkills['ENT / STAFF']) {
-                    delete cfg.posSkills['ENT / STAFF'];
-                }
+                if (cfg.posSkills && cfg.posSkills['ENT / STAFF']) delete cfg.posSkills['ENT / STAFF'];
             });
 
-            let builderEntityType = 'athlete'; // 'athlete' | 'staff'
-            window.staffSlots = [];
-
-            function getSportStaffConfig(sportKey) {
-                return STAFF_PROFESSIONS_BY_SPORT[sportKey] || STAFF_PROFESSIONS_BY_SPORT['Fútbol'];
-            }
-
-            window.isStaffPositionCode = function (posCode) {
-                if (!posCode) return false;
-                const clean = String(posCode).trim().toUpperCase();
-                const stCfg = getSportStaffConfig(activeArenaSport);
-                return Object.keys(stCfg.skills).some(k => k.toUpperCase() === clean) ||
-                       clean.includes('MÍSTER') || clean.includes('COACH') || clean.includes('ENTRENADOR') ||
-                       clean.includes('FÍSICO') || clean.includes('FISIO') || clean.includes('MENTAL') ||
-                       clean.includes('NUTRI') || clean.includes('ANALISTA') || clean.includes('CUTMAN');
-            };
-
-            // Devuelve las 6 siglas cortas exactas tanto para Portero/Jugadores como para cualquiera de las 7 profesiones de Staff
             window.getPositionSpecificShortLabels = function (sportKey, posCode) {
                 const cfg = SPORT_ARENA_CONFIGS[sportKey] || SPORT_ARENA_CONFIGS['Fútbol'];
-                const stCfg = getSportStaffConfig(sportKey);
+                const stCfg = getStaffCfg(sportKey);
                 if (!posCode) return cfg.statLabels;
+                const clean = String(posCode).trim().toUpperCase();
 
-                const cleanPos = String(posCode).trim().toUpperCase();
-
-                // 1. Buscar primero en las profesiones de Staff del deporte
-                const staffMatch = Object.keys(stCfg.skills).find(k =>
-                    k.toUpperCase() === cleanPos || cleanPos.includes(k.toUpperCase()) || k.toUpperCase().includes(cleanPos)
-                );
-                if (staffMatch) {
-                    return stCfg.skills[staffMatch].map((fullLbl, idx) => {
-                        const m = fullLbl.match(/\(([A-Z0-9]+)\)/);
-                        return m ? m[1] : 'STF';
-                    });
+                const staffKey = Object.keys(stCfg.skills).find(k => k.toUpperCase() === clean || clean.includes(k.toUpperCase()));
+                if (staffKey) {
+                    return stCfg.skills[staffKey].map(l => (l.match(/\(([A-Z0-9]+)\)/) || [null, 'STF'])[1]);
                 }
-
-                // 2. Buscar en las posiciones de Atleta (ej: POR -> DIV, HAN, KIC, REF, SPD, POS)
                 if (cfg.posSkills) {
-                    const playerMatch = Object.keys(cfg.posSkills).find(k =>
-                        k.toUpperCase() === cleanPos || cleanPos.includes(k.toUpperCase()) || k.toUpperCase().includes(cleanPos)
-                    );
-                    if (playerMatch) {
-                        return cfg.posSkills[playerMatch].map((fullLbl, idx) => {
-                            const m = fullLbl.match(/\(([A-Z0-9]+)\)/);
-                            return m ? m[1] : (cfg.statLabels[idx] || 'STA');
-                        });
+                    const pKey = Object.keys(cfg.posSkills).find(k => k.toUpperCase() === clean || clean.includes(k.toUpperCase()));
+                    if (pKey) {
+                        return cfg.posSkills[pKey].map((l, i) => (l.match(/\(([A-Z0-9]+)\)/) || [null, cfg.statLabels[i]])[1]);
                     }
                 }
-
                 return cfg.statLabels;
             };
 
             // ---------------------------------------------------------------------
-            // 3. CÁLCULO DE ENCAJE IA PERSONALIZADO PARA CADA PROFESIÓN DEL STAFF
-            //    CON TU CLUB, TU ESTILO DE JUEGO Y LOS RASGOS DE TU PLANTILLA
+            // 3. CSS DE VOLTEO 3D, RESALTADO "+ ASIGNAR", CAMPO HORIZONTAL Y MICRO-FICHAS
             // ---------------------------------------------------------------------
-            const _baseCalcCandidateFit = window.calculateCandidateFitWithSquad;
-            window.calculateCandidateFitWithSquad = function (candidate) {
-                if (!candidate || !candidate.grl) {
-                    return { fitScore: null, reason: 'Perfil sin calibrar (Pulsa ✏️ para asignar sus niveles 50-99).' };
+            const v10Style = document.createElement('style');
+            v10Style.textContent = `
+                /* 1. Resaltado inconfundible cuando haces clic en una plaza "+ Asignar" vacía o llena */
+                @keyframes kinetSelectedSlotPulse {
+                    0%, 100% { box-shadow: 0 0 18px var(--role-color), 0 0 32px rgba(var(--role-rgb), 0.45), inset 0 0 12px rgba(var(--role-rgb), 0.35); transform: translate(-50%, -56%) scale(1.14); }
+                    50% { box-shadow: 0 0 28px #FFFFFF, 0 0 42px var(--role-color), inset 0 0 18px rgba(var(--role-rgb), 0.55); transform: translate(-50%, -58%) scale(1.18); }
+                }
+                .tactical-node-token.selected-slot,
+                .tactical-node-token.empty-slot.selected-slot {
+                    border: 2px solid #FFFFFF !important;
+                    background: linear-gradient(160deg, rgba(var(--role-rgb), 0.34), rgba(8, 14, 24, 0.98)) !important;
+                    animation: kinetSelectedSlotPulse 1.5s infinite ease-in-out !important;
+                    z-index: 80 !important;
+                }
+                .tactical-node-token.empty-slot.selected-slot .mini-fifa-name {
+                    color: #FFFFFF !important;
+                    text-shadow: 0 0 8px var(--role-color);
+                }
+                .bench-slot-pill.selected-slot {
+                    border: 2px solid #FFFFFF !important;
+                    background: rgba(var(--role-rgb), 0.28) !important;
+                    box-shadow: 0 0 18px var(--role-color) !important;
+                    transform: translateY(-3px) scale(1.06) !important;
                 }
 
-                if (candidate.isStaffMember || window.isStaffPositionCode(candidate.pos)) {
-                    const styleMap = {
-                        balanced: 'Equilibrado',
-                        direct: 'Juego Directo / Transición',
-                        possession: 'Posesión & Asociación',
-                        highpress: 'Presión Alta',
-                        counter: 'Bloque Bajo & Contra'
-                    };
-                    const clubStyleName = styleMap[currentPlayStyle] || 'Equilibrado';
-                    const staffStyle = candidate.preferredStyle || 'balanced';
-                    const filledStarters = currentBoardSlots.filter(s => s.player);
-                    const avgSquadGrl = filledStarters.length > 0
-                        ? Math.round(filledStarters.reduce((a, s) => a + (s.player.grl || 80), 0) / filledStarters.length)
-                        : 82;
+                /* 2. Animación de Volteo 3D (Card Flip) de toda la interfaz al cambiar entre Plantilla y Estrategias */
+                .bento-grid {
+                    perspective: 1800px;
+                }
+                #view-arena-3d, .col-4 > .kinet-panel {
+                    transform-style: preserve-3d;
+                    transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease !important;
+                }
+                .kinet-flipping-out {
+                    transform: rotateY(90deg) scale(0.96) !important;
+                    opacity: 0.15 !important;
+                }
+                .kinet-flipping-in {
+                    transform: rotateY(0deg) scale(1) !important;
+                    opacity: 1 !important;
+                }
 
-                    let fitScore = Math.min(96, Math.max(75, Math.round((candidate.grl * 0.7) + (avgSquadGrl * 0.3))));
-                    let styleVerdict = '';
+                /* 3. Conmutador Minimalista de 2 Botones Juntos */
+                .minimal-mode-switch {
+                    display: inline-flex;
+                    background: rgba(4, 6, 10, 0.95);
+                    border: 1px solid rgba(255, 255, 255, 0.14);
+                    border-radius: 11px;
+                    padding: 3px;
+                    gap: 4px;
+                }
+                .minimal-mode-btn {
+                    background: transparent;
+                    border: none;
+                    color: var(--text-secondary);
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 0.63rem;
+                    font-weight: 800;
+                    padding: 7px 13px;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    transition: all 0.22s ease;
+                }
+                .minimal-mode-btn:hover { color: #FFFFFF; }
+                .minimal-mode-btn.active {
+                    background: var(--role-gradient);
+                    color: #04060A;
+                    font-weight: 900;
+                    box-shadow: 0 0 14px var(--role-glow);
+                }
 
-                    if (staffStyle === currentPlayStyle || staffStyle === 'adaptable') {
-                        fitScore = Math.min(99, fitScore + 6);
-                        styleVerdict = `Filosofía 100% alineada con el estilo "${clubStyleName}" de tu club (+6% Sinergia).`;
+                /* 4. Modo Estrategias Horizontal: Micro-Fichas (Iniciales o Foto) + Rival + Balón Animado */
+                #view-arena-3d.strategy-horizontal-mode .arena-3d-surface {
+                    width: 96% !important;
+                    height: 90% !important;
+                    transform: perspective(1050px) rotateX(14deg) scale(0.98) !important;
+                }
+                #view-arena-3d.strategy-horizontal-mode .tactical-node-token {
+                    width: 44px !important;
+                    min-width: 44px !important;
+                    max-width: 44px !important;
+                    height: 44px !important;
+                    border-radius: 50% !important;
+                    padding: 0 !important;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    transition: left 1.15s cubic-bezier(0.22, 1, 0.36, 1), top 1.15s cubic-bezier(0.22, 1, 0.36, 1), transform 0.25s ease, box-shadow 0.25s ease !important;
+                    background: radial-gradient(circle at 30% 30%, rgba(var(--role-rgb), 0.38), rgba(6, 10, 18, 0.96)) !important;
+                    border: 2px solid var(--role-color) !important;
+                    box-shadow: 0 6px 16px rgba(0,0,0,0.85), 0 0 12px rgba(var(--role-rgb), 0.35) !important;
+                    background-size: cover !important;
+                    background-position: center !important;
+                }
+                #view-arena-3d.strategy-horizontal-mode .tactical-node-token.manual-selected-token {
+                    border: 2.5px solid #FFFFFF !important;
+                    box-shadow: 0 0 22px #FFFFFF, 0 0 32px var(--role-color) !important;
+                    transform: translate(-50%, -50%) scale(1.22) !important;
+                }
+                .micro-token-initials {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 0.66rem;
+                    font-weight: 900;
+                    color: #FFFFFF;
+                    line-height: 1;
+                    text-shadow: 0 1px 4px rgba(0,0,0,0.95);
+                }
+                .micro-token-pos-pill {
+                    position: absolute;
+                    bottom: -6px;
+                    background: var(--role-color);
+                    color: #04060A;
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.44rem;
+                    font-weight: 900;
+                    padding: 1px 4px;
+                    border-radius: 5px;
+                    border: 1px solid #04060A;
+                    line-height: 1;
+                }
+
+                /* Fichas del Equipo Rival en Horizontal */
+                .kinet-rival-horizontal-token {
+                    position: absolute;
+                    transform: translate(-50%, -50%);
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    background: radial-gradient(circle at 30% 30%, rgba(239, 68, 68, 0.45), rgba(24, 6, 10, 0.96));
+                    border: 2px solid #EF4444;
+                    box-shadow: 0 6px 14px rgba(0,0,0,0.85), 0 0 12px rgba(239, 68, 68, 0.4);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 27;
+                    pointer-events: none;
+                    transition: left 1.15s cubic-bezier(0.22, 1, 0.36, 1), top 1.15s cubic-bezier(0.22, 1, 0.36, 1);
+                }
+
+                /* Balón / Pelota / Objeto Deportivo Animado */
+                #kinet-sport-ball-token {
+                    position: absolute;
+                    transform: translate(-50%, -50%);
+                    width: 26px;
+                    height: 26px;
+                    border-radius: 50%;
+                    background: radial-gradient(circle at 35% 35%, #FFFFFF, #CBD5E1);
+                    border: 2px solid #04060A;
+                    box-shadow: 0 6px 14px rgba(0,0,0,0.9), 0 0 18px #FFFFFF;
+                    display: none;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 0.88rem;
+                    z-index: 75;
+                    cursor: pointer;
+                    transition: left 1.15s cubic-bezier(0.22, 1, 0.36, 1), top 1.15s cubic-bezier(0.22, 1, 0.36, 1);
+                }
+                #view-arena-3d.strategy-horizontal-mode #kinet-sport-ball-token {
+                    display: flex;
+                }
+
+                @keyframes kinetLaserDash { to { stroke-dashoffset: -44; } }
+                .kinet-laser-arrow { stroke-dasharray: 8 6; animation: kinetLaserDash 0.9s linear infinite; filter: drop-shadow(0 0 5px currentColor); }
+                @keyframes kinetZonePulse { 0%, 100% { opacity: 0.16; transform: scale(0.95); } 50% { opacity: 0.36; transform: scale(1.05); } }
+                .kinet-zone-circle { transform-origin: center; animation: kinetZonePulse 1.8s ease-in-out infinite; }
+                #arena-vectors-svg-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 26; }
+
+                .tactics-deck-pill {
+                    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); color: #E2E8F0;
+                    font-family: 'Orbitron', sans-serif; font-size: 0.59rem; font-weight: 800; padding: 7px 10px;
+                    border-radius: 9px; cursor: pointer; transition: all 0.2s ease; white-space: nowrap;
+                }
+                .tactics-deck-pill:hover { border-color: var(--role-color); color: #FFFFFF; }
+                .tactics-deck-pill.active { background: var(--role-gradient); color: #04060A; border-color: transparent; box-shadow: 0 0 12px var(--role-glow); }
+                .tactics-deck-pill.clash-on { background: linear-gradient(135deg, #EF4444, #B91C1C); color: #FFFFFF; border-color: #FCA5A5; }
+                .tactics-deck-pill.manual-on { background: linear-gradient(135deg, #F59E0B, #D97706); color: #04060A; border-color: #FDE68A; box-shadow: 0 0 14px rgba(245,158,11,0.45); }
+            `;
+            document.head.appendChild(v10Style);
+
+            // ---------------------------------------------------------------------
+            // 4. DIBUJOS SVG HORIZONTALES DE LOS 5 DEPORTES (PARA MODO ESTRATEGIAS)
+            // ---------------------------------------------------------------------
+            function buildHorizontalStrategySVG(sportKey) {
+                if (sportKey === 'Fútbol') {
+                    return `
+                    <svg class="arena-svg-canvas" viewBox="0 0 600 420" preserveAspectRatio="none">
+                        <defs>
+                            <pattern id="hTurf" width="60" height="420" patternUnits="userSpaceOnUse">
+                                <rect width="30" height="420" fill="#06160F"/>
+                                <rect x="30" width="30" height="420" fill="#0A2217"/>
+                            </pattern>
+                        </defs>
+                        <rect width="600" height="420" fill="url(#hTurf)"/>
+                        <g stroke="rgba(255,255,255,0.75)" stroke-width="2.2" fill="none">
+                            <rect x="18" y="18" width="564" height="384" rx="4"/>
+                            <line x1="300" y1="18" x2="300" y2="402"/>
+                            <circle cx="300" cy="210" r="52"/>
+                            <circle cx="300" cy="210" r="3.5" fill="#00FF88"/>
+                            <!-- Área Izquierda (Tu Portería) -->
+                            <rect x="18" y="105" width="84" height="210"/>
+                            <rect x="18" y="155" width="32" height="110"/>
+                            <path d="M 102 165 A 45 45 0 0 1 102 255"/>
+                            <!-- Área Derecha (Portería Rival) -->
+                            <rect x="498" y="105" width="84" height="210"/>
+                            <rect x="550" y="155" width="32" height="110"/>
+                            <path d="M 498 165 A 45 45 0 0 0 498 255"/>
+                        </g>
+                    </svg>`;
+                }
+                if (sportKey === 'Baloncesto') {
+                    return `
+                    <svg class="arena-svg-canvas" viewBox="0 0 600 420" preserveAspectRatio="none">
+                        <rect width="600" height="420" fill="#18130D"/>
+                        <g stroke="rgba(255,255,255,0.78)" stroke-width="2.2" fill="none">
+                            <rect x="18" y="18" width="564" height="384"/>
+                            <line x1="300" y1="18" x2="300" y2="402"/>
+                            <circle cx="300" cy="210" r="48"/>
+                            <rect x="18" y="145" width="115" height="130" fill="rgba(245,158,11,0.15)" stroke="#F59E0B"/>
+                            <path d="M 18 55 L 95 55 A 165 155 0 0 1 95 365 L 18 365" stroke="#00FF88"/>
+                            <rect x="467" y="145" width="115" height="130" fill="rgba(245,158,11,0.15)" stroke="#F59E0B"/>
+                            <path d="M 582 55 L 505 55 A 165 155 0 0 0 505 365 L 582 365" stroke="#00FF88"/>
+                        </g>
+                    </svg>`;
+                }
+                if (sportKey === 'Pádel / Tenis') {
+                    return `
+                    <svg class="arena-svg-canvas" viewBox="0 0 600 420" preserveAspectRatio="none">
+                        <rect width="600" height="420" fill="#071B30"/>
+                        <rect x="24" y="24" width="552" height="372" fill="#0B2847" stroke="#38BDF8" stroke-width="3"/>
+                        <g stroke="rgba(255,255,255,0.85)" stroke-width="2.2" fill="none">
+                            <line x1="125" y1="24" x2="125" y2="396"/>
+                            <line x1="475" y1="24" x2="475" y2="396"/>
+                            <line x1="125" y1="210" x2="475" y2="210"/>
+                        </g>
+                        <line x1="300" y1="18" x2="300" y2="402" stroke="#00FF88" stroke-width="5"/>
+                    </svg>`;
+                }
+                return buildProfessionalSportSVG(sportKey);
+            }
+
+            // Conversión automática de coordenadas Verticales (Plantilla) a Horizontales (Estrategias: Izquierda -> Derecha)
+            function verticalToHorizontalCoords(vx, vy) {
+                return {
+                    x: Math.min(93, Math.max(7, Math.round(100 - vy))),
+                    y: Math.min(91, Math.max(9, Math.round(vx)))
+                };
+            }
+
+            // Obtener Iniciales Limpias (Nombre + 1er Apellido: ej. "Naim Tahri" -> "N.T.")
+            function getMicroTokenInitials(nameStr) {
+                const parts = String(nameStr || 'J').trim().split(/\s+/).filter(Boolean);
+                if (parts.length === 0) return 'J';
+                if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+                return `${parts[0][0]}.${parts[1][0]}`.toUpperCase();
+            }
+
+            // ---------------------------------------------------------------------
+            // 5. ESTADO DEL MOTOR DE ESTRATEGIAS, PARTIDO DE LA SEMANA Y MOVIMIENTO MANUAL
+            // ---------------------------------------------------------------------
+            let isStrategyViewActive = false;
+            let activeStrategyCategory = 'train'; // 'train' | 'rival' | 'abp'
+            let activePlayIdx = 0;
+            let rivalClashOn = true;
+            let manualMoveMode = false;
+            let manualSelectedTokenIdx = -1;
+            let customManualVectors = [];
+            let savedTacticsLibrary = [];
+            let savedRosterCoordsBackup = null;
+            let currentBallCoords = { x: 50, y: 50 };
+
+            function loadSavedTacticsLibrary() {
+                const spKey = activeArenaSport.toLowerCase();
+                try {
+                    savedTacticsLibrary = JSON.parse(localStorage.getItem(`kinet_saved_tactics_${spKey}`) || '[]');
+                } catch (e) { savedTacticsLibrary = []; }
+                if (savedTacticsLibrary.length === 0) {
+                    savedTacticsLibrary = [
+                        { id: 'tac_1', title: 'Salida Lavolpiana + Ruptura Banda', category: 'train', sport: activeArenaSport, opponent: 'Rival Jornada', notes: 'Interior atrae presión y pase filtrado al extremo.' },
+                        { id: 'tac_2', title: 'Presión Tras Pérdida en Bloque Alto', category: 'rival', sport: activeArenaSport, opponent: 'Rival Jornada', notes: 'Cierre de líneas interiores en 4 segundos.' }
+                    ];
+                }
+            }
+
+            // Jugadas Horizontales Completas (Ataque Izquierda -> Derecha) con Trayectoria del Balón/Pelota y Movimiento de Fichas
+            const HORIZONTAL_PLAYS_BY_SPORT = {
+                'Fútbol': {
+                    train: [
+                        {
+                            name: '▶ 1. Salida + Ruptura Banda',
+                            note: 'El balón sale desde central a interior, atrae marca y lanza al extremo en diagonal.',
+                            ballStart: { x: 12, y: 50 },
+                            ballEnd: { x: 84, y: 24 },
+                            zone: { cx: 500, cy: 105, r: 44, color: '#00FF88' },
+                            arrows: [
+                                { x1: 150, y1: 165, x2: 320, y2: 135, color: '#00FF88' },
+                                { x1: 320, y1: 135, x2: 500, y2: 100, color: '#F59E0B' },
+                                { x1: 430, y1: 210, x2: 525, y2: 195, color: '#38BDF8' }
+                            ],
+                            moveToken: (hx, hy, idx, pos) => {
+                                if (pos === 'POR' || idx === 0) return { x: 10, y: 50 };
+                                if (hx > 62) return { x: Math.min(90, hx + 14), y: hy < 50 ? hy + 8 : hy - 8 };
+                                if (hx > 38) return { x: hx + 12, y: hy };
+                                return { x: hx + 7, y: hy };
+                            },
+                            rivals: [
+                                { pos: 'POR', init: 'G.K', x0: 92, y0: 50, x1: 91, y1: 48 },
+                                { pos: 'DFC', init: 'R.4', x0: 78, y0: 38, x1: 82, y1: 32 },
+                                { pos: 'DFC', init: 'R.5', x0: 78, y0: 62, x1: 83, y1: 56 },
+                                { pos: 'LD', init: 'R.2', x0: 74, y0: 18, x1: 80, y1: 22 },
+                                { pos: 'MCD', init: 'R.6', x0: 62, y0: 50, x1: 68, y1: 42 }
+                            ]
+                        },
+                        {
+                            name: '🔄 2. Basculación & Cambio Orientación',
+                            note: 'Sobrecarga en banda izquierda para atraer al rival y cambio de orientación rápido al carril derecho.',
+                            ballStart: { x: 45, y: 22 },
+                            ballEnd: { x: 78, y: 80 },
+                            zone: { cx: 470, cy: 330, r: 46, color: '#38BDF8' },
+                            arrows: [
+                                { x1: 270, y1: 95, x2: 465, y2: 330, color: '#00FF88' },
+                                { x1: 350, y1: 345, x2: 485, y2: 325, color: '#F59E0B' }
+                            ],
+                            moveToken: (hx, hy, idx, pos) => {
+                                if (pos === 'POR' || idx === 0) return { x: 11, y: 52 };
+                                return { x: Math.min(88, hx + 9), y: Math.min(88, hy + 10) };
+                            },
+                            rivals: [
+                                { pos: 'POR', init: 'G.K', x0: 92, y0: 50, x1: 92, y1: 54 },
+                                { pos: 'DFC', init: 'R.4', x0: 78, y0: 36, x1: 80, y1: 48 },
+                                { pos: 'LI', init: 'R.3', x0: 75, y0: 78, x1: 80, y1: 76 }
+                            ]
+                        }
+                    ],
+                    rival: [
+                        {
+                            name: '🛡️ 1. Repliegue Bloque Medio 4-4-2',
+                            note: 'Cierre de líneas interiores ante conducción del rival y robo en embudo central.',
+                            ballStart: { x: 68, y: 50 },
+                            ballEnd: { x: 44, y: 50 },
+                            zone: { cx: 265, cy: 210, r: 54, color: '#38BDF8' },
+                            arrows: [
+                                { x1: 390, y1: 95, x2: 270, y2: 165, color: '#38BDF8' },
+                                { x1: 390, y1: 325, x2: 270, y2: 255, color: '#38BDF8' },
+                                { x1: 265, y1: 210, x2: 420, y2: 210, color: '#00FF88' }
+                            ],
+                            moveToken: (hx, hy, idx, pos) => {
+                                if (pos === 'POR' || idx === 0) return { x: 8, y: 50 };
+                                return { x: Math.max(18, Math.round(hx * 0.68)), y: Math.round(50 + (hy - 50) * 0.72) };
+                            },
+                            rivals: [
+                                { pos: 'MCO', init: 'R.10', x0: 66, y0: 50, x1: 46, y1: 50 },
+                                { pos: 'EI', init: 'R.11', x0: 64, y0: 22, x1: 48, y1: 30 },
+                                { pos: 'ED', init: 'R.7', x0: 64, y0: 78, x1: 48, y1: 70 }
+                            ]
+                        }
+                    ],
+                    abp: [
+                        {
+                            name: '🎯 1. Córner Ofensivo al 2º Palo',
+                            note: 'Bloqueo en el primer palo y parábola del balón al segundo palo para entrada del central.',
+                            ballStart: { x: 96, y: 6 },
+                            ballEnd: { x: 88, y: 62 },
+                            zone: { cx: 525, cy: 255, r: 40, color: '#F59E0B' },
+                            arrows: [
+                                { x1: 575, y1: 25, x2: 525, y2: 255, color: '#F59E0B' },
+                                { x1: 430, y1: 155, x2: 530, y2: 165, color: '#00FF88' },
+                                { x1: 420, y1: 265, x2: 525, y2: 255, color: '#00FF88' }
+                            ],
+                            moveToken: (hx, hy, idx, pos) => {
+                                if (pos === 'POR' || idx === 0) return { x: 10, y: 50 };
+                                if (idx === 1) return { x: 95, y: 7 }; // Sacador
+                                if (idx <= 5) return { x: 86 + (idx % 2) * 3, y: 36 + (idx - 2) * 9 };
+                                return { x: 64, y: hy };
+                            },
+                            rivals: [
+                                { pos: 'POR', init: 'G.K', x0: 94, y0: 50, x1: 92, y1: 54 },
+                                { pos: 'DFC', init: 'M.1', x0: 88, y0: 42, x1: 88, y1: 44 },
+                                { pos: 'DFC', init: 'M.2', x0: 88, y0: 58, x1: 87, y1: 60 }
+                            ]
+                        }
+                    ]
+                },
+                'Pádel / Tenis': {
+                    train: [
+                        {
+                            name: '🎾 1. Golpeo Cruzado a Revés Rival',
+                            note: 'Lanzas pelota profunda al rincón izquierdo del rival; tu pareja cierra la red cubriendo el paralelo.',
+                            ballStart: { x: 28, y: 66 },
+                            ballEnd: { x: 84, y: 20 },
+                            zone: { cx: 505, cy: 85, r: 38, color: '#00FF88' },
+                            arrows: [
+                                { x1: 170, y1: 275, x2: 505, y2: 85, color: '#F59E0B' },
+                                { x1: 180, y1: 140, x2: 365, y2: 130, color: '#00FF88' }
+                            ],
+                            moveToken: (hx, hy, idx) => idx === 0 ? { x: 38, y: 32 } : { x: 38, y: 66 },
+                            rivals: [
+                                { pos: 'REV', init: 'R.1', x0: 74, y0: 30, x1: 85, y1: 20 },
+                                { pos: 'DRV', init: 'R.2', x0: 74, y0: 70, x1: 78, y1: 58 }
+                            ]
+                        },
+                        {
+                            name: '🎾 2. Globo + Ataque al Rincón Derecho',
+                            note: 'Desplazas al rival hacia su derecha y defines con víbora cruzada.',
+                            ballStart: { x: 36, y: 34 },
+                            ballEnd: { x: 85, y: 82 },
+                            zone: { cx: 510, cy: 340, r: 38, color: '#38BDF8' },
+                            arrows: [{ x1: 215, y1: 145, x2: 510, y2: 340, color: '#00FF88' }],
+                            moveToken: (hx, hy, idx) => idx === 0 ? { x: 42, y: 36 } : { x: 42, y: 68 },
+                            rivals: [
+                                { pos: 'REV', init: 'R.1', x0: 74, y0: 30, x1: 78, y1: 48 },
+                                { pos: 'DRV', init: 'R.2', x0: 74, y0: 70, x1: 86, y1: 82 }
+                            ]
+                        }
+                    ]
+                }
+            };
+
+            function getPlaysForCurrentSportAndCategory() {
+                const spObj = HORIZONTAL_PLAYS_BY_SPORT[activeArenaSport] || HORIZONTAL_PLAYS_BY_SPORT['Fútbol'];
+                return spObj[activeStrategyCategory] || spObj.train || HORIZONTAL_PLAYS_BY_SPORT['Fútbol'].train;
+            }
+
+            // ---------------------------------------------------------------------
+            // 6. VOLTEO 3D COMPLETO DE LA INTERFAZ AL PULSAR "JUGADAS & ESTRATEGIAS IA"
+            // ---------------------------------------------------------------------
+            window.switchArenaSubMode = function (subMode) {
+                if (subMode === 'tactics' && !window.isStrictClubScoutTier()) {
+                    window.showClubScoutExclusiveLockModal('Suite de Estrategias Animadas IA & Partido de la Semana');
+                    return;
+                }
+                if ((subMode === 'tactics' && isStrategyViewActive) || (subMode === 'roster' && !isStrategyViewActive)) return;
+
+                const leftPanel = document.getElementById('view-arena-3d');
+                const rightPanel = document.querySelector('.col-4 > .kinet-panel');
+
+                if (leftPanel) leftPanel.classList.add('kinet-flipping-out');
+                if (rightPanel) rightPanel.classList.add('kinet-flipping-out');
+
+                setTimeout(() => {
+                    isStrategyViewActive = (subMode === 'tactics');
+                    document.getElementById('min-btn-roster')?.classList.toggle('active', !isStrategyViewActive);
+                    document.getElementById('min-btn-tactics')?.classList.toggle('active', isStrategyViewActive);
+
+                    const benchMaster = document.querySelector('.bench-reserve-master-box:not(#tactics-replace-deck)');
+                    const tacDeck = document.getElementById('tactics-replace-deck');
+                    const rightRosterBox = rightPanel ? rightPanel.firstElementChild : null;
+                    let rightStrategyBox = document.getElementById('right-strategy-command-panel');
+
+                    // Bloquear/Desbloquear cambio de formación base cuando estás en Estrategias
+                    const formSelWrap = document.getElementById('tactical-formation-selector')?.closest('.kinet-custom-select-wrap');
+                    if (formSelWrap) {
+                        formSelWrap.style.opacity = isStrategyViewActive ? '0.45' : '1';
+                        formSelWrap.style.pointerEvents = isStrategyViewActive ? 'none' : 'auto';
+                    }
+
+                    if (isStrategyViewActive) {
+                        // Guardar copia exacta de las coordenadas verticales de tu 11 y pasar el campo a Horizontal
+                        savedRosterCoordsBackup = currentBoardSlots.map(s => ({ x: s.x, y: s.y }));
+                        currentBoardSlots.forEach(s => {
+                            const h = verticalToHorizontalCoords(s.x, s.y);
+                            s.x = h.x;
+                            s.y = h.y;
+                        });
+
+                        leftPanel?.classList.add('strategy-horizontal-mode');
+                        document.getElementById('arena-svg-mount').innerHTML = buildHorizontalStrategySVG(activeArenaSport);
+
+                        if (benchMaster) benchMaster.style.display = 'none';
+                        if (tacDeck) {
+                            tacDeck.style.display = 'block';
+                            renderTacticsBottomDeck();
+                        }
+
+                        // Cambiar el panel derecho a "Partido de la Semana, Creación de Movimientos y Biblioteca Táctica" (ocultando añadir jugadores)
+                        if (rightRosterBox) rightRosterBox.style.display = 'none';
+                        if (!rightStrategyBox && rightPanel) {
+                            rightStrategyBox = document.createElement('div');
+                            rightStrategyBox.id = 'right-strategy-command-panel';
+                            rightPanel.insertBefore(rightStrategyBox, rightPanel.firstElementChild);
+                        }
+                        if (rightStrategyBox) {
+                            rightStrategyBox.style.display = 'block';
+                            renderRightStrategyPanelContent();
+                        }
+
+                        window.playAnimatedTactic(0);
                     } else {
-                        styleVerdict = `Especialista en ${candidate.pos} (${candidate.grl} GRL). Aporta variantes tácticas a tu bloque "${clubStyleName}".`;
+                        // Restaurar coordenadas verticales originales y vista de Plantilla 11
+                        manualMoveMode = false;
+                        manualSelectedTokenIdx = -1;
+                        customManualVectors = [];
+                        if (savedRosterCoordsBackup && savedRosterCoordsBackup.length === currentBoardSlots.length) {
+                            currentBoardSlots.forEach((s, i) => {
+                                s.x = savedRosterCoordsBackup[i].x;
+                                s.y = savedRosterCoordsBackup[i].y;
+                            });
+                        }
+                        leftPanel?.classList.remove('strategy-horizontal-mode');
+                        document.getElementById('arena-svg-mount').innerHTML = buildProfessionalSportSVG(activeArenaSport);
+
+                        const svgL = document.getElementById('arena-vectors-svg-layer');
+                        if (svgL) svgL.innerHTML = '';
+                        const rivL = document.getElementById('arena-rivals-tokens-layer');
+                        if (rivL) rivL.innerHTML = '';
+
+                        if (tacDeck) tacDeck.style.display = 'none';
+                        if (benchMaster) benchMaster.style.display = 'block';
+                        if (rightStrategyBox) rightStrategyBox.style.display = 'none';
+                        if (rightRosterBox) rightRosterBox.style.display = 'block';
+
+                        window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
                     }
 
-                    if (candidate.traitNotes && candidate.traitNotes.length > 3) {
-                        styleVerdict += ` Metodología: "${candidate.traitNotes}".`;
+                    if (leftPanel) {
+                        leftPanel.classList.remove('kinet-flipping-out');
+                        leftPanel.classList.add('kinet-flipping-in');
                     }
-                    return { fitScore, reason: styleVerdict };
-                }
-
-                return typeof _baseCalcCandidateFit === 'function'
-                    ? _baseCalcCandidateFit(candidate)
-                    : { fitScore: candidate.grl, reason: `Media ${candidate.grl} GRL` };
+                    if (rightPanel) {
+                        rightPanel.classList.remove('kinet-flipping-out');
+                        rightPanel.classList.add('kinet-flipping-in');
+                    }
+                }, 310);
             };
 
             // ---------------------------------------------------------------------
-            // 4. TERCERA BARRA EN LA BANDEJA INFERIOR: [👔 Cuerpo Técnico (6)]
-            //    Y DESLIZAMIENTO EN 3 PÁGINAS (BANQUILLO <-> RESERVA <-> CUERPO TÉCNICO)
+            // 7. PANEL DERECHO EN MODO ESTRATEGIAS: PARTIDO DE LA SEMANA, MODOS Y BIBLIOTECA
             // ---------------------------------------------------------------------
-            function initStaffSlotsForSport() {
-                const stCfg = getSportStaffConfig(activeArenaSport);
-                const spKey = activeArenaSport.toLowerCase();
-                try {
-                    const saved = JSON.parse(localStorage.getItem(`kinet_staff_bench_slots_${spKey}`) || 'null');
-                    if (Array.isArray(saved) && saved.length === stCfg.slots.length) {
-                        window.staffSlots = saved;
-                        return;
-                    }
-                } catch (e) {}
-                window.staffSlots = stCfg.slots.map(roleName => ({ pos: roleName, player: null }));
+            function renderRightStrategyPanelContent() {
+                const box = document.getElementById('right-strategy-command-panel');
+                if (!box) return;
+                loadSavedTacticsLibrary();
+                const savedOpponent = localStorage.getItem('kinet_week_opponent') || 'Rival Jornada 14 (4-4-2)';
+                const savedPlan = localStorage.getItem('kinet_week_plan') || 'Presión alta tras pérdida y ataque exterior';
+
+                box.innerHTML = `
+                    <!-- Selector de las 3 modalidades tácticas -->
+                    <div class="right-panel-tabs" style="margin-bottom:10px;">
+                        <button type="button" class="right-tab-btn ${activeStrategyCategory === 'train' ? 'active' : ''}" onclick="window.setStrategyCategory('train')">📋 Entrenar</button>
+                        <button type="button" class="right-tab-btn ${activeStrategyCategory === 'rival' ? 'active' : ''}" onclick="window.setStrategyCategory('rival')">⚔️ Vs Rival</button>
+                        <button type="button" class="right-tab-btn ${activeStrategyCategory === 'abp' ? 'active' : ''}" onclick="window.setStrategyCategory('abp')">🎯 Balón Parado</button>
+                    </div>
+
+                    <!-- Bloque 1: Partido de la Semana & Plan de Entrenamiento Táctico -->
+                    <div style="background:rgba(4,6,10,0.82);border:1px solid rgba(var(--role-rgb),0.38);border-radius:13px;padding:10px 11px;margin-bottom:9px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                            <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);font-weight:700;">🏆 PARTIDO DE LA SEMANA // PLAN TÁCTICO</span>
+                            <span style="font-family:'JetBrains Mono';font-size:0.54rem;color:#38BDF8;">${activeArenaSport.toUpperCase()}</span>
+                        </div>
+                        <input type="text" id="week-opponent-input" class="kinet-input" style="margin-bottom:6px;padding:6px 9px;font-size:0.71rem;" value="${savedOpponent}" placeholder="Rival de esta semana y su sistema..." oninput="localStorage.setItem('kinet_week_opponent', this.value)">
+                        <input type="text" id="week-plan-input" class="kinet-input" style="padding:6px 9px;font-size:0.71rem;" value="${savedPlan}" placeholder="Objetivo del entrenamiento táctico..." oninput="localStorage.setItem('kinet_week_plan', this.value)">
+                    </div>
+
+                    <!-- Bloque 2: Creador Manual de Movimientos (Seleccionar Jugador + Mover o Preset) -->
+                    <div style="background:rgba(4,6,10,0.82);border:1px solid var(--border-subtle);border-radius:13px;padding:10px 11px;margin-bottom:9px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                            <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:#F59E0B;font-weight:700;">✋ CREADOR MANUAL DE MOVIMIENTOS</span>
+                            <button type="button" class="tactics-deck-pill ${manualMoveMode ? 'manual-on' : ''}" style="padding:3px 8px;font-size:0.55rem;" onclick="window.toggleManualMoveCreator()">
+                                ${manualMoveMode ? '● Editando en Campo' : '✋ Activar Manual'}
+                            </button>
+                        </div>
+                        <div style="font-size:0.66rem;color:#CBD5E1;margin-bottom:7px;line-height:1.35;" id="manual-creator-status">
+                            ${manualMoveMode ? 'Toca cualquier ficha en el campo horizontal y luego haz clic en el punto destino para trazar su movimiento.' : 'Activa el modo manual o aplica un movimiento rápido al jugador seleccionado:'}
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
+                            <button type="button" class="btn-secondary" style="padding:5px 7px;font-size:0.58rem;" onclick="window.applyQuickPresetMovement('desmarque')">↗️ Desmarque Ruptura</button>
+                            <button type="button" class="btn-secondary" style="padding:5px 7px;font-size:0.58rem;" onclick="window.applyQuickPresetMovement('apoyo')">↙️ Venir en Apoyo</button>
+                            <button type="button" class="btn-secondary" style="padding:5px 7px;font-size:0.58rem;" onclick="window.applyQuickPresetMovement('cambio')">🎯 Pase / Cambio Banda</button>
+                            <button type="button" class="btn-secondary" style="padding:5px 7px;font-size:0.58rem;" onclick="window.applyQuickPresetMovement('presion')">🔥 Saltar a Presión</button>
+                        </div>
+                    </div>
+
+                    <!-- Bloque 3: Guardar Jugada y Compartir en Comunidad para otros Entrenadores -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:9px;">
+                        <button type="button" class="btn-primary" style="padding:8px;font-size:0.62rem;" onclick="window.saveCurrentTacticalPlay()">💾 Guardar Táctica</button>
+                        <button type="button" class="btn-secondary" style="padding:8px;font-size:0.62rem;border-color:var(--role-color);color:var(--role-color);" onclick="window.shareTacticalPlayToCommunity()">🌐 Compartir Jugada</button>
+                    </div>
+
+                    <!-- Bloque 4: Biblioteca de Tácticas Guardadas -->
+                    <div style="max-height:135px;overflow-y:auto;">
+                        ${savedTacticsLibrary.map((t, idx) => `
+                            <div class="roster-candidate-item" style="padding:7px 9px;margin-bottom:5px;" onclick="window.loadSavedTacticFromLibrary(${idx})">
+                                <div style="min-width:0;">
+                                    <div style="font-weight:800;font-size:0.73rem;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🎬 ${t.title}</div>
+                                    <div style="font-size:0.6rem;color:var(--role-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Vs ${t.opponent} • ${t.notes}</div>
+                                </div>
+                                <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:#38BDF8;">▶ Cargar</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
             }
 
-            function saveStaffSlotsToStorage() {
-                const spKey = activeArenaSport.toLowerCase();
-                try {
-                    localStorage.setItem(`kinet_staff_bench_slots_${spKey}`, JSON.stringify(window.staffSlots));
-                } catch (e) {}
-            }
-
-            function mountThirdStaffBenchBar() {
-                initStaffSlotsForSport();
-
-                const pillsBox = document.querySelector('.deck-mode-pills');
-                if (pillsBox && !document.getElementById('pill-show-staff')) {
-                    const staffBtn = document.createElement('button');
-                    staffBtn.type = 'button';
-                    staffBtn.className = 'deck-mode-pill';
-                    staffBtn.id = 'pill-show-staff';
-                    staffBtn.onclick = () => window.switchBenchReserveView('staff');
-                    staffBtn.innerHTML = `👔 Cuerpo Técnico (<span id="staff-count-num">${window.staffSlots.length}</span>)`;
-                    pillsBox.appendChild(staffBtn);
-                }
-
-                const track = document.getElementById('bench-reserve-slider-track');
-                if (track && !document.getElementById('staff-slots-slide-page')) {
-                    track.style.width = '300%';
-                    Array.from(track.children).forEach(ch => { ch.style.width = '33.3333%'; });
-
-                    // Añadir botón ▶ en la página 2 (Reserva) para pasar a la página 3 (Cuerpo Técnico)
-                    const reservePage = track.children[1];
-                    if (reservePage && !reservePage.querySelector('.to-staff-arrow')) {
-                        const toStaffBtn = document.createElement('button');
-                        toStaffBtn.type = 'button';
-                        toStaffBtn.className = 'cassette-arrow-btn to-staff-arrow';
-                        toStaffBtn.style.cssText = 'border-color:rgba(245,158,11,0.5);color:#F59E0B;';
-                        toStaffBtn.title = 'Deslizar a Cuerpo Técnico';
-                        toStaffBtn.textContent = '▶';
-                        toStaffBtn.onclick = () => window.switchBenchReserveView('staff');
-                        reservePage.appendChild(toStaffBtn);
-                    }
-
-                    const staffPage = document.createElement('div');
-                    staffPage.className = 'bench-reserve-slide-page';
-                    staffPage.id = 'staff-slots-slide-page';
-                    staffPage.style.width = '33.3333%';
-                    staffPage.innerHTML = `
-                        <button type="button" class="cassette-arrow-btn" style="border-color:rgba(245,158,11,0.5);color:#F59E0B;" onclick="switchBenchReserveView('reserve')" title="Volver a Reserva">◀</button>
-                        <div class="cassette-slots-grid" id="staff-slots-container"></div>
-                    `;
-                    track.appendChild(staffPage);
-                }
-            }
-
-            window.switchBenchReserveView = function (targetDeck) {
-                const track = document.getElementById('bench-reserve-slider-track');
-                const pillBench = document.getElementById('pill-show-bench');
-                const pillRes = document.getElementById('pill-show-reserve');
-                const pillStaff = document.getElementById('pill-show-staff');
-                const hint = document.getElementById('deck-slide-hint');
-                if (!track) return;
-
-                track.classList.remove('show-reserve');
-                pillBench?.classList.remove('active-bench');
-                pillRes?.classList.remove('active-reserve');
-                if (pillStaff) {
-                    pillStaff.style.background = 'transparent';
-                    pillStaff.style.color = 'var(--text-secondary)';
-                    pillStaff.style.boxShadow = 'none';
-                }
-
-                if (targetDeck === 'reserve') {
-                    track.style.transform = 'translateX(-33.3333%)';
-                    pillRes?.classList.add('active-reserve');
-                    if (hint) hint.textContent = 'Pulsa ◀ Banquillo o ▶ Cuerpo Técnico';
-                } else if (targetDeck === 'staff') {
-                    track.style.transform = 'translateX(-66.6666%)';
-                    if (pillStaff) {
-                        pillStaff.style.background = 'linear-gradient(135deg, #F59E0B, #D97706)';
-                        pillStaff.style.color = '#04060A';
-                        pillStaff.style.boxShadow = '0 0 12px rgba(245, 158, 11, 0.4)';
-                    }
-                    if (hint) hint.textContent = '👔 Selecciona un puesto técnico para asignar especialista';
-                } else {
-                    track.style.transform = 'translateX(0%)';
-                    pillBench?.classList.add('active-bench');
-                    if (hint) hint.textContent = 'Pulsa ▶ para deslizar a Reserva o Cuerpo Técnico';
-                }
+            window.setStrategyCategory = function (cat) {
+                activeStrategyCategory = cat;
+                activePlayIdx = 0;
+                renderRightStrategyPanelContent();
+                renderTacticsBottomDeck();
+                window.playAnimatedTactic(0);
             };
 
-            const _origGetSlotArr = window.getSlotArrayByGroup;
-            window.getSlotArrayByGroup = function (groupKey) {
-                if (groupKey === 'staff') return window.staffSlots;
-                return typeof _origGetSlotArr === 'function' ? _origGetSlotArr(groupKey) : currentBoardSlots;
+            function renderTacticsBottomDeck() {
+                const tacDeck = document.getElementById('tactics-replace-deck');
+                if (!tacDeck) return;
+                const plays = getPlaysForCurrentSportAndCategory();
+
+                tacDeck.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                            ${plays.map((p, i) => `
+                                <button type="button" class="tactics-deck-pill ${activePlayIdx === i ? 'active' : ''}" onclick="window.playAnimatedTactic(${i})">
+                                    ${p.name}
+                                </button>
+                            `).join('')}
+                        </div>
+                        <div style="display:flex;gap:6px;align-items:center;">
+                            <button type="button" class="tactics-deck-pill ${manualMoveMode ? 'manual-on' : ''}" onclick="window.toggleManualMoveCreator()">
+                                ✋ Manual: ${manualMoveMode ? 'ON' : 'OFF'}
+                            </button>
+                            <button type="button" class="tactics-deck-pill ${rivalClashOn ? 'clash-on' : ''}" onclick="window.toggleRivalClashOnBoard()">
+                                ⚔️ Rival: ${rivalClashOn ? 'ON' : 'OFF'}
+                            </button>
+                            <button type="button" class="tactics-deck-pill" onclick="window.resetTacticalBoardPositions()">
+                                ↺ Base
+                            </button>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <input type="text" id="tactical-ai-prompt-input" class="kinet-input" style="padding:7px 11px;font-size:0.71rem;" placeholder="Chat IA Táctico: pide una jugada o pregunta sobre tus movimientos manuales..." onkeydown="if(event.key==='Enter') window.runAiTacticalPrompt()">
+                        <button type="button" class="btn-primary" style="padding:7px 13px;font-size:0.65rem;white-space:nowrap;" onclick="window.runAiTacticalPrompt()">Animar IA ⚡</button>
+                    </div>
+                `;
+            }
+
+            // ---------------------------------------------------------------------
+            // 8. ANIMACIÓN REAL DE FICHAS + BALÓN/PELOTA + CREADOR MANUAL EN EL CAMPO
+            // ---------------------------------------------------------------------
+            window.playAnimatedTactic = function (idx) {
+                const plays = getPlaysForCurrentSportAndCategory();
+                const play = plays[idx] || plays[0];
+                if (!play) return;
+
+                activePlayIdx = idx;
+                customManualVectors = [];
+                renderTacticsBottomDeck();
+
+                // Coordenadas horizontales base a partir del backup vertical
+                if (!savedRosterCoordsBackup || savedRosterCoordsBackup.length !== currentBoardSlots.length) {
+                    savedRosterCoordsBackup = currentBoardSlots.map(s => ({ x: s.x, y: s.y }));
+                }
+                const horizBase = savedRosterCoordsBackup.map(s => verticalToHorizontalCoords(s.x, s.y));
+
+                // 1. Colocar fichas y balón en posición de inicio de la jugada
+                currentBoardSlots.forEach((s, i) => {
+                    s.x = horizBase[i].x;
+                    s.y = horizBase[i].y;
+                });
+                currentBallCoords = play.ballStart ? { ...play.ballStart } : { x: 45, y: 50 };
+                window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+                updateSportBallPosition(currentBallCoords.x, currentBallCoords.y);
+
+                // 2. A los 110ms desplazar suavemente todas las fichas, los rivales y el balón a su destino táctico
+                setTimeout(() => {
+                    currentBoardSlots.forEach((s, i) => {
+                        const b = horizBase[i];
+                        const target = play.moveToken ? play.moveToken(b.x, b.y, i, s.pos) : { x: Math.min(88, b.x + 12), y: b.y };
+                        s.x = target.x;
+                        s.y = target.y;
+                    });
+                    if (play.ballEnd) {
+                        currentBallCoords = { ...play.ballEnd };
+                        updateSportBallPosition(currentBallCoords.x, currentBallCoords.y);
+                    }
+                    window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+                    paintHorizontalVectorsAndRivals(play);
+                }, 110);
+
+                const slotInd = document.getElementById('selected-slot-indicator');
+                if (slotInd) slotInd.innerHTML = `🎬 <strong>${play.name}:</strong> ${play.note}`;
+                const diagEl = document.getElementById('ai-board-diagnosis');
+                if (diagEl) diagEl.innerHTML = `🧠 <strong>Análisis IA de la Jugada:</strong> ${play.note} Sincronizado con el plan contra <em>${localStorage.getItem('kinet_week_opponent') || 'el rival'}</em>.`;
             };
 
-            const _origSelectAnySlot = window.selectAnySlot;
-            window.selectAnySlot = function (group, index, event) {
-                if (event) event.stopPropagation();
-                activeSelection = { group, index };
-                if (group === 'bench') window.switchBenchReserveView('bench');
-                else if (group === 'reserve') window.switchBenchReserveView('reserve');
-                else if (group === 'staff') window.switchBenchReserveView('staff');
+            function ensureSportBallMounted() {
+                const surface = document.getElementById('arena-3d-surface');
+                if (!surface) return null;
+                let ball = document.getElementById('kinet-sport-ball-token');
+                if (!ball) {
+                    ball = document.createElement('div');
+                    ball.id = 'kinet-sport-ball-token';
+                    ball.title = 'Balón / Pelota en juego';
+                    surface.appendChild(ball);
+                }
+                const iconMap = { 'Fútbol': '⚽', 'Baloncesto': '🏀', 'Pádel / Tenis': '🎾', 'Boxeo / MMA': '🥊', 'Running': '⏱️' };
+                ball.textContent = iconMap[activeArenaSport] || '⚽';
+                return ball;
+            }
+
+            function updateSportBallPosition(px, py) {
+                const ball = ensureSportBallMounted();
+                if (!ball) return;
+                ball.style.left = `${px}%`;
+                ball.style.top = `${py}%`;
+            }
+
+            function paintHorizontalVectorsAndRivals(play) {
+                const svgL = document.getElementById('arena-vectors-svg-layer');
+                const rivL = document.getElementById('arena-rivals-tokens-layer');
+                if (!svgL) return;
+
+                const defs = `
+                    <defs>
+                        <marker id="mG" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#00FF88"/></marker>
+                        <marker id="mA" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#F59E0B"/></marker>
+                        <marker id="mB" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#38BDF8"/></marker>
+                    </defs>
+                `;
+                const zSvg = play && play.zone ? `<circle cx="${play.zone.cx}" cy="${play.zone.cy}" r="${play.zone.r}" fill="${play.zone.color}" class="kinet-zone-circle"/>` : '';
+                const allArrows = [...(play && play.arrows ? play.arrows : []), ...customManualVectors];
+                const aSvg = allArrows.map(a => {
+                    const m = a.color === '#F59E0B' ? 'mA' : (a.color === '#38BDF8' ? 'mB' : 'mG');
+                    return `<line x1="${a.x1}" y1="${a.y1}" x2="${a.x2}" y2="${a.y2}" stroke="${a.color}" stroke-width="2.8" class="kinet-laser-arrow" marker-end="url(#${m})"/>`;
+                }).join('');
+                svgL.innerHTML = defs + zSvg + aSvg;
+
+                if (rivL) {
+                    if (!rivalClashOn || !play || !Array.isArray(play.rivals)) {
+                        rivL.innerHTML = '';
+                    } else {
+                        rivL.innerHTML = play.rivals.map((r, i) => `
+                            <div class="kinet-rival-horizontal-token" id="riv-h-node-${i}" style="left:${r.x0}%;top:${r.y0}%;">
+                                <span class="micro-token-initials">${r.init}</span>
+                                <span class="micro-token-pos-pill" style="background:#EF4444;color:#FFF;">${r.pos}</span>
+                            </div>
+                        `).join('');
+                        setTimeout(() => {
+                            play.rivals.forEach((r, i) => {
+                                const el = document.getElementById(`riv-h-node-${i}`);
+                                if (el) { el.style.left = `${r.x1}%`; el.style.top = `${r.y1}%`; }
+                            });
+                        }, 90);
+                    }
+                }
+            }
+
+            // Creador Manual: Tocar un jugador en el campo y hacer clic en la pista para moverlo y crear su flecha
+            window.toggleManualMoveCreator = function () {
+                manualMoveMode = !manualMoveMode;
+                if (manualMoveMode && manualSelectedTokenIdx === -1) {
+                    manualSelectedTokenIdx = activeSelection.index || 0;
+                }
+                renderRightStrategyPanelContent();
+                renderTacticsBottomDeck();
                 window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
             };
 
-            const _origQuickRemove = window.quickRemoveSlotPlayer;
-            window.quickRemoveSlotPlayer = function (group, index, event) {
-                if (group === 'staff') {
-                    if (event) event.stopPropagation();
-                    if (window.staffSlots[index]) {
-                        window.staffSlots[index].player = null;
-                        activeSelection = { group: 'staff', index };
-                        saveStaffSlotsToStorage();
-                        window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(true);
-                    }
-                    return;
-                }
-                if (typeof _origQuickRemove === 'function') _origQuickRemove(group, index, event);
-            };
+            function bindSurfaceManualClick() {
+                const surface = document.getElementById('arena-3d-surface');
+                if (!surface || surface._manualClickBound) return;
+                surface._manualClickBound = true;
 
-            // ---------------------------------------------------------------------
-            // 5. CONMUTADOR EN "🛠️ CREAR / EDITAR": [🏃 Atleta / Jugador] | [👔 Cuerpo Técnico / Staff]
-            // ---------------------------------------------------------------------
-            function mountBuilderAthleteStaffToggle() {
-                const builderView = document.getElementById('rview-builder');
-                const bannerEl = document.getElementById('builder-mode-banner');
-                if (!builderView || !bannerEl || document.getElementById('builder-entity-toggle')) return;
+                surface.addEventListener('click', (e) => {
+                    if (!isStrategyViewActive || !manualMoveMode) return;
+                    if (e.target.closest('.tactical-node-token')) return;
 
-                const toggleRow = document.createElement('div');
-                toggleRow.id = 'builder-entity-toggle';
-                toggleRow.className = 'source-subtoggle';
-                toggleRow.style.marginBottom = '8px';
-                toggleRow.innerHTML = `
-                    <button type="button" class="source-subbtn active" id="btn-build-athlete" onclick="window.setBuilderEntityMode('athlete')">
-                        🏃 Atleta / Jugador
-                    </button>
-                    <button type="button" class="source-subbtn" id="btn-build-staff" onclick="window.setBuilderEntityMode('staff')">
-                        👔 Cuerpo Técnico / Staff
-                    </button>
-                `;
-                bannerEl.parentElement.insertAdjacentElement('beforebegin', toggleRow);
+                    const idx = manualSelectedTokenIdx >= 0 ? manualSelectedTokenIdx : (activeSelection.index || 0);
+                    const slot = currentBoardSlots[idx];
+                    if (!slot) return;
 
-                // Añadir selector de Estilo / Filosofía exclusivo para Cuerpo Técnico
-                const traitsInput = document.getElementById('custom-p-traits');
-                if (traitsInput && !document.getElementById('staff-philosophy-wrap')) {
-                    const philWrap = document.createElement('div');
-                    philWrap.id = 'staff-philosophy-wrap';
-                    philWrap.style.cssText = 'display:none;margin-bottom:7px;';
-                    philWrap.innerHTML = `
-                        <label style="font-family:'JetBrains Mono';font-size:0.56rem;color:#F59E0B;display:block;margin-bottom:3px;">FILOSOFÍA / ESTILO PREFERIDO DEL TÉCNICO (PARA ENCAJE CON EL CLUB)</label>
-                        <select id="custom-staff-style" class="kinet-select" style="width:100%;">
-                            <option value="possession">🎯 Posesión, Asociación & Control</option>
-                            <option value="direct">⚡ Juego Directo, Transición & Verticalidad</option>
-                            <option value="highpress">🔥 Presión Alta & Ritmo Intenso</option>
-                            <option value="counter">🛡️ Bloque Sólido, Orden & Contragolpe</option>
-                            <option value="balanced">⚙️ Metodología Equilibrada / Adaptable al Club</option>
-                        </select>
-                    `;
-                    traitsInput.parentElement.insertAdjacentElement('beforebegin', philWrap);
-                }
+                    const rect = surface.getBoundingClientRect();
+                    const targetX = Math.min(94, Math.max(6, Math.round(((e.clientX - rect.left) / rect.width) * 100)));
+                    const targetY = Math.min(92, Math.max(8, Math.round(((e.clientY - rect.top) / rect.height) * 100)));
+
+                    customManualVectors.push({
+                        x1: Math.round((slot.x / 100) * 600),
+                        y1: Math.round((slot.y / 100) * 420),
+                        x2: Math.round((targetX / 100) * 600),
+                        y2: Math.round((targetY / 100) * 420),
+                        color: '#00FF88'
+                    });
+
+                    slot.x = targetX;
+                    slot.y = targetY;
+                    currentBallCoords = { x: targetX, y: targetY };
+                    updateSportBallPosition(targetX, targetY);
+                    window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+
+                    const plays = getPlaysForCurrentSportAndCategory();
+                    paintHorizontalVectorsAndRivals(plays[activePlayIdx] || plays[0]);
+
+                    const pName = slot.player ? slot.player.name : slot.pos;
+                    const diagEl = document.getElementById('ai-board-diagnosis');
+                    const moveSummary = `Movimiento manual detectado: [${slot.pos}] ${pName} conduce/desmarca hacia zona (${targetX}%, ${targetY}%).`;
+                    if (diagEl) diagEl.innerHTML = `🧠 <strong>IA Táctica en Vivo:</strong> ${moveSummary} Listo para enviar al Cuerpo Técnico IA.`;
+                    localStorage.setItem('kinet_last_manual_tactical_move', moveSummary);
+                });
             }
 
-            window.setBuilderEntityMode = function (mode) {
-                builderEntityType = mode === 'staff' ? 'staff' : 'athlete';
-                document.getElementById('btn-build-athlete')?.classList.toggle('active', builderEntityType === 'athlete');
-                document.getElementById('btn-build-staff')?.classList.toggle('active', builderEntityType === 'staff');
+            window.applyQuickPresetMovement = function (presetType) {
+                const idx = manualSelectedTokenIdx >= 0 ? manualSelectedTokenIdx : (activeSelection.index || 0);
+                const slot = currentBoardSlots[idx];
+                if (!slot) return;
 
-                const nameInp = document.getElementById('custom-p-name');
-                const posSel = document.getElementById('custom-p-pos');
-                const bannerEl = document.getElementById('builder-mode-banner');
-                const philWrap = document.getElementById('staff-philosophy-wrap');
-                const saveBoardBtn = document.querySelector('#rview-builder button[onclick*="saveCustomPlayerToTarget(\'board\')"]');
+                const oldX = slot.x, oldY = slot.y;
+                let newX = oldX, newY = oldY, color = '#00FF88';
 
-                const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
-                const stCfg = getSportStaffConfig(activeArenaSport);
+                if (presetType === 'desmarque') {
+                    newX = Math.min(92, oldX + 18);
+                    newY = oldY < 50 ? Math.max(12, oldY + 10) : Math.min(88, oldY - 10);
+                } else if (presetType === 'apoyo') {
+                    newX = Math.max(12, oldX - 14);
+                    color = '#38BDF8';
+                } else if (presetType === 'cambio') {
+                    newX = Math.min(90, oldX + 14);
+                    newY = oldY < 50 ? 80 : 20;
+                    color = '#F59E0B';
+                    updateSportBallPosition(newX, newY);
+                } else if (presetType === 'presion') {
+                    newX = Math.min(90, oldX + 15);
+                    color = '#EF4444';
+                }
 
-                if (builderEntityType === 'staff') {
-                    if (bannerEl) bannerEl.textContent = '👔 CREAR O CALIBRAR PROFESIONAL DEL CUERPO TÉCNICO (50-99)';
-                    if (nameInp) nameInp.placeholder = 'Nombre del entrenador, fisio, prep. físico...';
-                    if (philWrap) philWrap.style.display = 'block';
-                    if (saveBoardBtn) saveBoardBtn.innerHTML = '✓ Guardar y Poner en Cuerpo Técnico';
+                customManualVectors.push({
+                    x1: Math.round((oldX / 100) * 600),
+                    y1: Math.round((oldY / 100) * 420),
+                    x2: Math.round((newX / 100) * 600),
+                    y2: Math.round((newY / 100) * 420),
+                    color
+                });
+                slot.x = newX;
+                slot.y = newY;
+                window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+                const plays = getPlaysForCurrentSportAndCategory();
+                paintHorizontalVectorsAndRivals(plays[activePlayIdx] || plays[0]);
+            };
 
-                    const staffProfessions = Object.keys(stCfg.skills);
-                    if (posSel) {
-                        posSel.innerHTML = staffProfessions.map(prof => `<option value="${prof}">${prof}</option>`).join('');
-                        window.updateBuilderSlidersForPosition(staffProfessions[0]);
-                    }
+            // Guardar Jugada en la Biblioteca y Compartirla en Comunidad para otros Entrenadores
+            window.saveCurrentTacticalPlay = function () {
+                const title = prompt('Nombre de la jugada o estrategia táctica para guardar en tu biblioteca:', 'Salida Exterior + Ruptura Zona 14');
+                if (!title || !title.trim()) return;
+                const opponent = document.getElementById('week-opponent-input')?.value || 'Rival Jornada';
+                const notes = document.getElementById('week-plan-input')?.value || 'Estrategia personalizada';
+
+                loadSavedTacticsLibrary();
+                savedTacticsLibrary.unshift({
+                    id: 'tac_' + Date.now(),
+                    title: title.trim(),
+                    category: activeStrategyCategory,
+                    sport: activeArenaSport,
+                    opponent,
+                    notes,
+                    slotsSnapshot: JSON.parse(JSON.stringify(currentBoardSlots)),
+                    vectorsSnapshot: JSON.parse(JSON.stringify(customManualVectors))
+                });
+                const spKey = activeArenaSport.toLowerCase();
+                localStorage.setItem(`kinet_saved_tactics_${spKey}`, JSON.stringify(savedTacticsLibrary));
+                renderRightStrategyPanelContent();
+            };
+
+            window.loadSavedTacticFromLibrary = function (idx) {
+                const item = savedTacticsLibrary[idx];
+                if (!item) return;
+                if (Array.isArray(item.slotsSnapshot) && item.slotsSnapshot.length === currentBoardSlots.length) {
+                    currentBoardSlots = JSON.parse(JSON.stringify(item.slotsSnapshot));
+                    customManualVectors = Array.isArray(item.vectorsSnapshot) ? JSON.parse(JSON.stringify(item.vectorsSnapshot)) : [];
+                    window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+                    const plays = getPlaysForCurrentSportAndCategory();
+                    paintHorizontalVectorsAndRivals(plays[activePlayIdx] || plays[0]);
                 } else {
-                    if (bannerEl) bannerEl.textContent = '🏃 CREAR O CALIBRAR ATLETA / JUGADOR (50-99)';
-                    if (nameInp) nameInp.placeholder = 'Nombre del jugador...';
-                    if (philWrap) philWrap.style.display = 'none';
-                    if (saveBoardBtn) saveBoardBtn.innerHTML = '✓ Guardar y Poner en Plantilla';
-
-                    if (posSel) {
-                        posSel.innerHTML = cfg.positions.map(p => `<option value="${p}">${p}</option>`).join('');
-                        window.updateBuilderSlidersForPosition(cfg.positions[0]);
-                    }
+                    window.playAnimatedTactic(0);
                 }
-                refreshAllCustomKinetSelects();
+                const slotInd = document.getElementById('selected-slot-indicator');
+                if (slotInd) slotInd.innerHTML = `🎬 <strong>Táctica Cargada:</strong> ${item.title} (Vs ${item.opponent}) — ${item.notes}`;
             };
 
-            const _origUpdateSliders = window.updateBuilderSlidersForPosition;
-            window.updateBuilderSlidersForPosition = function (posName) {
-                const stCfg = getSportStaffConfig(activeArenaSport);
-                if (builderEntityType === 'staff' && stCfg.skills[posName]) {
-                    const skillLabels = stCfg.skills[posName];
-                    const box = document.getElementById('builder-sliders-box');
-                    if (box) {
-                        box.innerHTML = skillLabels.map((lbl, idx) => {
-                            const val = builderSliderValues[idx] || 82;
-                            return `
-                                <div class="custom-slider-row">
-                                    <div class="custom-slider-head">
-                                        <span>${lbl}</span>
-                                        <strong style="color:#F59E0B;" id="bslider-val-${idx}">${val}</strong>
-                                    </div>
-                                    <input type="range" min="50" max="99" value="${val}" class="kinet-range-slider" oninput="onBuilderSliderMove(${idx}, this.value)">
-                                </div>
-                            `;
-                        }).join('');
-                        recalcBuilderLiveGrl();
-                        refreshAllCustomKinetSelects();
-                    }
-                    return;
+            window.shareTacticalPlayToCommunity = async function () {
+                const opponent = document.getElementById('week-opponent-input')?.value || 'Rival';
+                const plan = document.getElementById('week-plan-input')?.value || 'Pizarra Táctica Animada';
+                const myName = localStorage.getItem('kinet_user_name') || 'Entrenador KINET';
+                const myHandle = localStorage.getItem('kinet_social_handle') || '@kinet_coach';
+
+                const postObj = {
+                    id: 'tac_post_' + Date.now(),
+                    author: myName,
+                    handle: myHandle.startsWith('@') ? myHandle : `@${myHandle}`,
+                    role: activeRoleKey,
+                    sport: activeArenaSport,
+                    mode: 'post',
+                    badge: 'PIZARRA INTERACTIVA // JUGADA IA',
+                    text: `🏟️ [JUGADA TÁCTICA COMPARTIDA — ${activeArenaSport.toUpperCase()}]: "${plan}" preparada para el partido de la semana vs ${opponent} (Sistema ${currentPresetName}). Otros entrenadores pueden guardarla y reproducir los movimientos en su Analizador 3D.`,
+                    reelData: {
+                        isInteractiveTactic: true,
+                        sport: activeArenaSport,
+                        formation: currentPresetName,
+                        plan,
+                        opponent
+                    },
+                    likes: 1
+                };
+                if (window.KinetBackend && typeof window.KinetBackend.createCloudPost === 'function') {
+                    await window.KinetBackend.createCloudPost(postObj);
                 }
-                if (typeof _origUpdateSliders === 'function') _origUpdateSliders(posName);
-            };
-
-            const _origLoadBuilder = window.loadProfileIntoBuilder;
-            window.loadProfileIntoBuilder = function (playerObj, event) {
-                if (event) event.stopPropagation();
-                if (!playerObj) return;
-                const isStaff = Boolean(playerObj.isStaffMember || window.isStaffPositionCode(playerObj.pos));
-                window.setBuilderEntityMode(isStaff ? 'staff' : 'athlete');
-
-                if (isStaff) {
-                    switchRightPanelTab('builder');
-                    document.getElementById('custom-editing-id').value = playerObj.id || '';
-                    document.getElementById('custom-p-name').value = playerObj.name || '';
-                    document.getElementById('custom-p-traits').value = playerObj.traitNotes || '';
-                    const stSel = document.getElementById('custom-staff-style');
-                    if (stSel && playerObj.preferredStyle) stSel.value = playerObj.preferredStyle;
-                    const posSel = document.getElementById('custom-p-pos');
-                    const stCfg = getSportStaffConfig(activeArenaSport);
-                    const matchedProf = Object.keys(stCfg.skills).find(k => k.toUpperCase() === (playerObj.pos || '').toUpperCase()) || Object.keys(stCfg.skills)[0];
-                    if (posSel) posSel.value = matchedProf;
-                    builderSliderValues = Array.isArray(playerObj.stats) && playerObj.stats.length === 6 ? [...playerObj.stats] : [82, 82, 82, 82, 82, 82];
-                    window.updateBuilderSlidersForPosition(matchedProf);
-                    return;
-                }
-                if (typeof _origLoadBuilder === 'function') _origLoadBuilder(playerObj, event);
-            };
-
-            const _origSaveCustom = window.saveCustomPlayerToTarget;
-            window.saveCustomPlayerToTarget = function (targetMode) {
-                if (builderEntityType === 'staff') {
-                    const editId = document.getElementById('custom-editing-id')?.value || '';
-                    const nameInput = document.getElementById('custom-p-name');
-                    const posSelect = document.getElementById('custom-p-pos');
-                    const traitsInput = document.getElementById('custom-p-traits');
-                    const styleSelect = document.getElementById('custom-staff-style');
-
-                    const nameVal = (nameInput?.value || '').trim();
-                    if (!nameVal) {
-                        alert('Escribe el nombre del profesional del Cuerpo Técnico.');
-                        nameInput?.focus();
-                        return;
-                    }
-                    const profVal = posSelect?.value || 'MÍSTER / TOTAL';
-                    const prefStyle = styleSelect?.value || 'balanced';
-                    const styleTextMap = {
-                        possession: 'Posesión & Asociación',
-                        direct: 'Juego Directo / Vertical',
-                        highpress: 'Presión Alta',
-                        counter: 'Bloque Sólido & Contra',
-                        balanced: 'Metodología Equilibrada'
-                    };
-                    const rawTraits = (traitsInput?.value || '').trim();
-                    const fullTraits = rawTraits ? `${styleTextMap[prefStyle]} • ${rawTraits}` : `Estilo: ${styleTextMap[prefStyle]}`;
-                    const grlVal = recalcBuilderLiveGrl();
-
-                    const staffObj = {
-                        id: editId || ('staff_' + Date.now()),
-                        name: nameVal,
-                        pos: profVal,
-                        grl: grlVal,
-                        sub: fullTraits.slice(0, 28),
-                        traitNotes: fullTraits,
-                        preferredStyle: prefStyle,
-                        stats: [...builderSliderValues],
-                        isCalibrated: true,
-                        isExternalCustom: true,
-                        isStaffMember: true
-                    };
-
-                    const cIdx = customCreatedPlayers.findIndex(c => c.id === staffObj.id || c.name.toLowerCase() === staffObj.name.toLowerCase());
-                    if (cIdx !== -1) customCreatedPlayers[cIdx] = staffObj;
-                    else customCreatedPlayers.unshift(staffObj);
-
-                    if (targetMode === 'shortlist') {
-                        const sIdx = shortlistPlayers.findIndex(s => s.id === staffObj.id || s.name.toLowerCase() === staffObj.name.toLowerCase());
-                        if (sIdx !== -1) shortlistPlayers[sIdx] = staffObj;
-                        else shortlistPlayers.unshift(staffObj);
-                        saveCustomAndShortlistData();
-                        resetBuilderForm();
-                        switchRightPanelTab('shortlist');
-                        return;
-                    }
-
-                    // Asignar directamente al puesto correspondiente de la 3ª barra (Cuerpo Técnico)
-                    let targetSlotIdx = activeSelection.group === 'staff' ? activeSelection.index : -1;
-                    if (targetSlotIdx === -1) {
-                        targetSlotIdx = window.staffSlots.findIndex(s => s.pos.toUpperCase() === profVal.toUpperCase() || profVal.toUpperCase().includes(s.pos.split(' ')[0].toUpperCase()));
-                    }
-                    if (targetSlotIdx === -1) {
-                        targetSlotIdx = window.staffSlots.findIndex(s => !s.player);
-                    }
-                    if (targetSlotIdx === -1) targetSlotIdx = 0;
-
-                    window.staffSlots[targetSlotIdx].player = { ...staffObj };
-                    activeSelection = { group: 'staff', index: targetSlotIdx };
-                    saveStaffSlotsToStorage();
-                    saveCustomAndShortlistData();
-                    resetBuilderForm();
-                    window.switchBenchReserveView('staff');
-                    window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(true);
-                    switchRightPanelTab('kinet');
-                    switchRosterSourceFilter('created');
-                    return;
-                }
-                if (typeof _origSaveCustom === 'function') _origSaveCustom(targetMode);
-            };
-
-            const _origAssignPlayer = window.assignOrComparePlayer;
-            window.assignOrComparePlayer = function (playerObj) {
-                if (!playerObj) return;
-                const isStaff = Boolean(playerObj.isStaffMember || window.isStaffPositionCode(playerObj.pos));
-
-                // Si estamos en modo Plantilla y se toca un miembro de Staff, asignarlo a la barra de Cuerpo Técnico (no al césped de jugadores)
-                if (currentAnalyzerMode !== 'duel' && isStaff && activeSelection.group !== 'staff') {
-                    let sIdx = window.staffSlots.findIndex(s => s.pos.toUpperCase() === (playerObj.pos || '').toUpperCase());
-                    if (sIdx === -1) sIdx = window.staffSlots.findIndex(s => !s.player);
-                    if (sIdx === -1) sIdx = 0;
-                    activeSelection = { group: 'staff', index: sIdx };
-                    window.switchBenchReserveView('staff');
-                }
-
-                if (activeSelection.group === 'staff' && currentAnalyzerMode !== 'duel') {
-                    if (!playerObj.grl || !Array.isArray(playerObj.stats)) {
-                        window.loadProfileIntoBuilder(playerObj);
-                        return;
-                    }
-                    window.staffSlots[activeSelection.index].player = { ...playerObj };
-                    saveStaffSlotsToStorage();
-                    window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(true);
-                    renderRightRosterList();
-                    return;
-                }
-
-                if (typeof _origAssignPlayer === 'function') _origAssignPlayer(playerObj);
+                alert('✓ Jugada táctica compartida en Comunidad KINET para que otros entrenadores puedan verla y guardarla.');
             };
 
             // ---------------------------------------------------------------------
-            // 6. REPARACIÓN DE rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63 (PORTEROS + 3ª BARRA STAFF)
+            // 9. RENDERIZADO DE MICRO-FICHAS (INICIALES O FOTO) EN ESTRATEGIAS
+            //    Y CARTAS COMPLETAS CON SIGLAS DE PORTERO EN PLANTILLA
             // ---------------------------------------------------------------------
-            const _baseRenderBoardTokens = window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63;
+            const _baseRenderBoard = window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63;
             window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63 = function (shouldPersist = true) {
-                if (typeof _baseRenderBoardTokens === 'function') _baseRenderBoardTokens(shouldPersist);
+                if (typeof _baseRenderBoard === 'function') _baseRenderBoard(shouldPersist);
 
-                // 6.1 Actualizar las 6 siglas de cada Mini KINET Card en el campo según su posición real (POR -> DIV, HAN, KIC, REF, SPD, POS)
                 const layer = document.getElementById('arena-tokens-layer');
-                if (layer && tokenVisualMode === 'cards') {
+                if (!layer) return;
+
+                if (isStrategyViewActive) {
+                    // En Modo Estrategias Horizontal: renderizar fichas compactas con Iniciales ("N.T.") o Foto de Perfil
                     currentBoardSlots.forEach((slot, idx) => {
-                        const p = slot.player;
                         const tokenEl = layer.children[idx];
-                        if (!p || !tokenEl) return;
+                        if (!tokenEl) return;
+                        const p = slot.player;
+                        const isManualSel = (manualSelectedTokenIdx === idx) || (activeSelection.group === 'board' && activeSelection.index === idx);
+
+                        tokenEl.className = `tactical-node-token ${isManualSel ? 'manual-selected-token' : ''}`;
+                        tokenEl.style.left = `${slot.x}%`;
+                        tokenEl.style.top = `${slot.y}%`;
+
+                        const hasPhoto = tokenVisualMode === 'photos' && p && p.avatar;
+                        tokenEl.style.backgroundImage = hasPhoto ? `url('${p.avatar}')` : '';
+                        const initialsText = p ? getMicroTokenInitials(p.name) : slot.pos;
+
+                        tokenEl.innerHTML = `
+                            ${hasPhoto ? '' : `<span class="micro-token-initials">${initialsText}</span>`}
+                            <span class="micro-token-pos-pill">${slot.pos}</span>
+                        `;
+                        tokenEl.onclick = (ev) => {
+                            ev.stopPropagation();
+                            manualSelectedTokenIdx = idx;
+                            activeSelection = { group: 'board', index: idx };
+                            window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+                        };
+                    });
+                    return;
+                }
+
+                // En Modo Plantilla Vertical: resaltar claramente cualquier plaza "+ Asignar" seleccionada y corregir siglas de Portero
+                currentBoardSlots.forEach((slot, idx) => {
+                    const tokenEl = layer.children[idx];
+                    if (!tokenEl) return;
+                    tokenEl.style.backgroundImage = '';
+                    const isSel = activeSelection.group === 'board' && activeSelection.index === idx;
+                    const p = slot.player;
+
+                    if (!p && isSel) {
+                        tokenEl.innerHTML = `
+                            <div class="mini-fifa-header" style="justify-content:center;border-bottom:none;margin-bottom:2px;">
+                                <span class="mini-fifa-pos" style="background:#FFFFFF;color:#04060A;">● ${slot.pos}</span>
+                            </div>
+                            <div class="mini-fifa-name" style="color:#FFFFFF;font-size:0.56rem;">ELIGE A LA DCHA →</div>
+                            <div style="font-family:'JetBrains Mono';font-size:0.44rem;color:var(--role-color);font-weight:800;">SELECCIONADO</div>
+                        `;
+                    } else if (p && tokenVisualMode === 'cards') {
                         const lb = window.getPositionSpecificShortLabels(activeArenaSport, slot.pos || p.pos);
                         const st = Array.isArray(p.stats) && p.stats.length === 6 ? p.stats : ['--', '--', '--', '--', '--', '--'];
                         const gridEl = tokenEl.querySelector('.mini-fifa-stats-grid');
@@ -6030,89 +6492,32 @@
                                 <div class="mini-fifa-stat-pair"><span>${lb[5]}</span><strong>${st[5]}</strong></div>
                             `;
                         }
-                    });
-                }
-
-                // 6.2 Renderizar las casillas de la 3ª barra (👔 Cuerpo Técnico) personalizadas para el deporte
-                const staffBox = document.getElementById('staff-slots-container');
-                if (staffBox && Array.isArray(window.staffSlots)) {
-                    staffBox.innerHTML = window.staffSlots.map((slot, idx) => {
-                        const isSel = activeSelection.group === 'staff' && activeSelection.index === idx;
-                        const p = slot.player;
-                        return `
-                            <div class="bench-slot-pill ${p ? 'filled' : ''} ${isSel ? 'selected-slot' : ''}" style="${p ? 'border-color:rgba(245,158,11,0.65);background:linear-gradient(160deg,rgba(245,158,11,0.16),rgba(8,12,20,0.95));' : ''}" onclick="selectAnySlot('staff', ${idx}, event)">
-                                ${p ? `<button type="button" onclick="quickRemoveSlotPlayer('staff', ${idx}, event)" style="position:absolute;top:2px;right:3px;background:none;border:none;color:#EF4444;font-size:0.55rem;font-weight:900;cursor:pointer;">✕</button>` : ''}
-                                <div style="font-family:'JetBrains Mono';font-size:0.49rem;color:#F59E0B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${slot.pos} ${p ? '• <strong>' + (p.grl || '??') + '</strong>' : ''}</div>
-                                <div style="font-size:0.61rem;font-weight:800;color:${p ? 'white' : '#F59E0B'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">
-                                    ${p ? p.name.split(' ')[0] : '+ Asignar'}
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-                }
-
-                // 6.3 Si hay un puesto de Cuerpo Técnico seleccionado, mostrar su indicador y su impacto en la Sinergia del Club
-                if (activeSelection.group === 'staff') {
-                    const activeSlot = window.staffSlots[activeSelection.index];
-                    const indEl = document.getElementById('selected-slot-indicator');
-                    const unassignTopBtn = document.getElementById('btn-unassign-top');
-                    if (activeSlot && indEl) {
-                        if (activeSlot.player) {
-                            const fit = window.calculateCandidateFitWithSquad(activeSlot.player);
-                            indEl.innerHTML = `Cuerpo Técnico Activo: <strong>[${activeSlot.pos}] ${activeSlot.player.name} (${activeSlot.player.grl} GRL • Encaje Club: ${fit.fitScore || '--'}%)</strong>`;
-                            if (unassignTopBtn) unassignTopBtn.classList.add('visible');
-                        } else {
-                            indEl.innerHTML = `Puesto Técnico Activo: <strong>[${activeSlot.pos}] Vacío</strong> — Ve a "🛠️ Crear / Editar → 👔 Cuerpo Técnico" o elige un perfil a la derecha.`;
-                            if (unassignTopBtn) unassignTopBtn.classList.remove('visible');
-                        }
                     }
-                }
-            };
-
-            const _origRenderDuel = window.renderDuel1v1View;
-            window.renderDuel1v1View = function () {
-                const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
-                const pA = duelFighterA || getMyUserPlayerObject();
-                const origLabels = [...cfg.statLabels];
-                cfg.statLabels = window.getPositionSpecificShortLabels(activeArenaSport, pA.pos);
-                if (typeof _origRenderDuel === 'function') _origRenderDuel();
-                cfg.statLabels = origLabels;
-            };
-
-            const _origRenderMirror = window.renderMirrorSelfView;
-            window.renderMirrorSelfView = function () {
-                const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
-                const me = getMyUserPlayerObject();
-                const origLabels = [...cfg.statLabels];
-                cfg.statLabels = window.getPositionSpecificShortLabels(activeArenaSport, me.pos);
-                if (typeof _origRenderMirror === 'function') _origRenderMirror();
-                cfg.statLabels = origLabels;
-            };
-
-            const _origOpenFullStats = window.openFullSquadStatsModal;
-            window.openFullSquadStatsModal = function () {
-                if (typeof _origOpenFullStats === 'function') _origOpenFullStats();
-                const body = document.getElementById('full-squad-stats-body');
-                if (!body) return;
-                const allAssigned = [
-                    ...currentBoardSlots.filter(s => s.player).map(s => ({ pos: s.pos, p: s.player })),
-                    ...benchSlots.filter(s => s.player).map(s => ({ pos: s.pos, p: s.player })),
-                    ...reserveSlots.filter(s => s.player).map(s => ({ pos: s.pos, p: s.player }))
-                ];
-                const rows = body.querySelectorAll('.squad-stats-fixed-row');
-                rows.forEach((rowEl, idx) => {
-                    const item = allAssigned[idx];
-                    if (!item) return;
-                    const lb = window.getPositionSpecificShortLabels(activeArenaSport, item.p.pos || item.pos);
-                    const statSpans = rowEl.querySelectorAll('div[style*="grid-template-columns:repeat(6"] span');
-                    statSpans.forEach((sp, i) => {
-                        if (lb[i]) sp.textContent = lb[i];
-                    });
                 });
             };
 
             // ---------------------------------------------------------------------
-            // 7. BLOQUEO DE JUGADAS IA Y PUBLICACIONES GRUPALES A FREE Y PRO (8,99€)
+            // 10. CONECTAR MOVIMIENTOS Y PLAN DE PARTIDO CON EL CHAT DE CUERPO TÉCNICO IA
+            // ---------------------------------------------------------------------
+            const _origAskCoach = window.askCoachAboutCurrentBoard;
+            window.askCoachAboutCurrentBoard = function () {
+                const opponent = localStorage.getItem('kinet_week_opponent') || '';
+                const plan = localStorage.getItem('kinet_week_plan') || '';
+                const manualMove = localStorage.getItem('kinet_last_manual_tactical_move') || '';
+                if (isStrategyViewActive || opponent || manualMove) {
+                    saveCustomAndShortlistData();
+                    const startersTxt = currentBoardSlots.filter(s => s.player).map(s => `${s.pos}: ${s.player.name} (${s.player.grl || '??'} GRL)`).join('; ');
+                    const q = `🏟️ [Informe de Estrategia & Partido de la Semana — ${activeArenaSport}]: Rival: "${opponent || 'Por definir'}". Plan de Entrenamiento Táctico: "${plan || currentPresetName}". ${manualMove ? 'Movimientos manuales trazados en pizarra: ' + manualMove : ''} Titulares en pizarra: ${startersTxt || 'En configuración'}. Diseña la sesión táctica semanal y dime qué ajustes hacer contra este rival.`;
+                    localStorage.setItem('kinet_pending_question', q);
+                    localStorage.setItem('kinet_target_agent', 'tecnico_video');
+                    window.location.href = `cuerpo-tecnico.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}&agent=tecnico_video`;
+                    return;
+                }
+                if (typeof _origAskCoach === 'function') _origAskCoach();
+            };
+
+            // ---------------------------------------------------------------------
+            // 11. CONTROLES DE SIMULACIÓN Y LICENCIA CLUB & SCOUT (29,99€)
             // ---------------------------------------------------------------------
             window.isStrictClubScoutTier = function () {
                 const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase().trim();
@@ -6140,234 +6545,49 @@
                 }
                 document.getElementById('club-lock-modal-title').textContent = `🔒 ${featureTitle.toUpperCase()}`;
                 document.getElementById('club-lock-modal-desc').innerHTML = `
-                    Esta herramienta está reservada exclusivamente para la licencia <strong>Club & Scout Pro (29,99€/mes)</strong>.<br><br>
-                    Las cuentas <strong>Gratuitas</strong> y <strong>Pro Player (8,99€)</strong> solo tienen acceso a 1 plantilla individual, asesoramiento de su propia posición y publicación de carta individual.
+                    Esta suite táctica está reservada exclusivamente para la licencia <strong>Club & Scout Pro (29,99€/mes)</strong>.<br><br>
+                    Las cuentas <strong>Gratuitas</strong> y <strong>Pro Player (8,99€)</strong> solo tienen acceso a gestión de 1 plantilla individual y publicación de carta individual.
                 `;
                 modal.classList.add('open');
             };
 
-            // Reutilizar el sistema minimalista de 2 botones [👥 Gestionar Plantilla] | [🎬 Jugadas & Estrategias IA]
-            const minStyle = document.createElement('style');
-            minStyle.textContent = `
-                .minimal-mode-switch {
-                    display: inline-flex;
-                    background: rgba(4, 6, 10, 0.92);
-                    border: 1px solid rgba(255, 255, 255, 0.12);
-                    border-radius: 10px;
-                    padding: 3px;
-                    gap: 4px;
-                }
-                .minimal-mode-btn {
-                    background: transparent;
-                    border: none;
-                    color: var(--text-secondary);
-                    font-family: 'Orbitron', sans-serif;
-                    font-size: 0.62rem;
-                    font-weight: 800;
-                    padding: 6px 12px;
-                    border-radius: 7px;
-                    cursor: pointer;
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 6px;
-                    transition: all 0.22s ease;
-                    white-space: nowrap;
-                }
-                .minimal-mode-btn:hover { color: #FFFFFF; }
-                .minimal-mode-btn.active {
-                    background: var(--role-gradient);
-                    color: #04060A;
-                    font-weight: 900;
-                    box-shadow: 0 0 12px var(--role-glow);
-                }
-                @keyframes kinetLaserDash { to { stroke-dashoffset: -44; } }
-                .kinet-laser-arrow { stroke-dasharray: 8 6; animation: kinetLaserDash 0.95s linear infinite; filter: drop-shadow(0 0 5px currentColor); }
-                @keyframes kinetZonePulse { 0%, 100% { opacity: 0.15; transform: scale(0.95); } 50% { opacity: 0.35; transform: scale(1.05); } }
-                .kinet-zone-circle { transform-origin: center; animation: kinetZonePulse 1.8s ease-in-out infinite; }
-                #arena-vectors-svg-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 26; }
-                .kinet-rival-mini-token {
-                    position: absolute; transform: translate(-50%, -50%); width: 62px;
-                    background: rgba(30, 8, 12, 0.95); border: 1.5px solid #EF4444; border-radius: 9px;
-                    padding: 3px 5px; text-align: center; z-index: 27; pointer-events: none;
-                    box-shadow: 0 6px 16px rgba(0,0,0,0.85), 0 0 12px rgba(239,68,68,0.4);
-                    transition: left 0.85s cubic-bezier(0.22, 1, 0.36, 1), top 0.85s cubic-bezier(0.22, 1, 0.36, 1);
-                }
-                .tactics-deck-pill {
-                    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); color: #E2E8F0;
-                    font-family: 'Orbitron', sans-serif; font-size: 0.6rem; font-weight: 800; padding: 7px 11px;
-                    border-radius: 9px; cursor: pointer; transition: all 0.2s ease; white-space: nowrap;
-                }
-                .tactics-deck-pill:hover { border-color: var(--role-color); color: #FFFFFF; }
-                .tactics-deck-pill.active { background: var(--role-gradient); color: #04060A; border-color: transparent; box-shadow: 0 0 12px var(--role-glow); }
-                .tactics-deck-pill.clash-on { background: linear-gradient(135deg, #EF4444, #B91C1C); color: #FFFFFF; border-color: #FCA5A5; }
-            `;
-            document.head.appendChild(minStyle);
-
-            let currentSubTab = 'roster';
-            let activePlayIdx = -1;
-            let rivalClashOn = false;
-            let baseCoordsSnapshot = null;
-
-            const SPORT_TACTICAL_PLAYS = {
-                'Fútbol': [
-                    {
-                        name: '▶ 1. Salida + Ruptura',
-                        note: 'Salida limpia desde atrás, interior atrae marca y pase filtrado a diagonal de extremos.',
-                        zone: { cx: 300, cy: 68, r: 42, color: '#00FF88' },
-                        arrows: [
-                            { x1: 300, y1: 240, x2: 210, y2: 148, color: '#00FF88' },
-                            { x1: 210, y1: 148, x2: 295, y2: 68, color: '#00FF88' },
-                            { x1: 120, y1: 115, x2: 250, y2: 64, color: '#F59E0B' },
-                            { x1: 480, y1: 115, x2: 350, y2: 64, color: '#38BDF8' }
-                        ],
-                        moveFn: (s, i) => i === 0 ? { x: s.x, y: s.y } : (s.y < 32 ? { x: s.x < 50 ? s.x + 11 : (s.x > 50 ? s.x - 11 : 50), y: Math.max(12, s.y - 6) } : { x: s.x, y: Math.max(24, s.y - 8) }),
-                        rivals: [
-                            { pos: 'DFC', name: 'RIVAL 4', grl: 84, x0: 41, y0: 22, x1: 37, y1: 25 },
-                            { pos: 'DFC', name: 'RIVAL 5', grl: 85, x0: 59, y0: 22, x1: 62, y1: 24 },
-                            { pos: 'MCD', name: 'RIVAL 6', grl: 83, x0: 50, y0: 36, x1: 44, y1: 33 }
-                        ]
-                    },
-                    {
-                        name: '🛡️ 2. Repliegue Bloque',
-                        note: 'Basculación intensiva cerrando pasillos interiores y protegiendo frontal del área.',
-                        zone: { cx: 300, cy: 235, r: 54, color: '#38BDF8' },
-                        arrows: [
-                            { x1: 120, y1: 95, x2: 185, y2: 205, color: '#38BDF8' },
-                            { x1: 480, y1: 95, x2: 415, y2: 205, color: '#38BDF8' },
-                            { x1: 300, y1: 130, x2: 300, y2: 225, color: '#00FF88' }
-                        ],
-                        moveFn: (s, i) => i === 0 ? { x: s.x, y: 89 } : { x: Math.round(50 + (s.x - 50) * 0.74), y: Math.min(82, s.y + 13) },
-                        rivals: [
-                            { pos: 'MCO', name: 'RIVAL 10', grl: 87, x0: 50, y0: 45, x1: 50, y1: 54 },
-                            { pos: 'DC', name: 'RIVAL 9', grl: 86, x0: 50, y0: 30, x1: 50, y1: 42 }
-                        ]
-                    },
-                    {
-                        name: '🎯 3. Balón Parado (ABP)',
-                        note: 'Córner ensayado con bloqueo en primer palo y entrada curva al segundo palo.',
-                        zone: { cx: 335, cy: 52, r: 38, color: '#F59E0B' },
-                        arrows: [
-                            { x1: 555, y1: 22, x2: 335, y2: 52, color: '#F59E0B' },
-                            { x1: 245, y1: 135, x2: 265, y2: 48, color: '#00FF88' },
-                            { x1: 375, y1: 145, x2: 338, y2: 54, color: '#00FF88' }
-                        ],
-                        moveFn: (s, i) => i === 0 ? { x: 50, y: 88 } : (i === 1 ? { x: 92, y: 8 } : (i <= 4 ? { x: 38 + i * 6, y: 16 } : { x: s.x, y: 40 })),
-                        rivals: [
-                            { pos: 'POR', name: 'RIVAL GK', grl: 85, x0: 50, y0: 9, x1: 49, y1: 11 },
-                            { pos: 'DFC', name: 'MARCA', grl: 84, x0: 46, y0: 18, x1: 45, y1: 16 }
-                        ]
-                    }
-                ],
-                'Baloncesto': [
-                    {
-                        name: '▶ 1. Spain Pick & Roll',
-                        note: 'Bloqueo directo en cabecera + pantalla trasera para triple liberado en esquina.',
-                        zone: { cx: 495, cy: 65, r: 38, color: '#00FF88' },
-                        arrows: [
-                            { x1: 300, y1: 255, x2: 365, y2: 145, color: '#00FF88' },
-                            { x1: 365, y1: 145, x2: 495, y2: 65, color: '#F59E0B' }
-                        ],
-                        moveFn: (s, i) => ([{ x: 60, y: 38 }, { x: 16, y: 20 }, { x: 83, y: 18 }, { x: 38, y: 34 }, { x: 49, y: 20 }][i % 5]),
-                        rivals: [{ pos: 'C', name: 'RIVAL C', grl: 86, x0: 50, y0: 24, x1: 54, y1: 28 }]
-                    },
-                    {
-                        name: '🛡️ 2. Zona Press 2-2-1',
-                        note: 'Trampa defensiva en banda tras saque y robo en línea de pase interior.',
-                        zone: { cx: 145, cy: 145, r: 42, color: '#38BDF8' },
-                        arrows: [{ x1: 240, y1: 185, x2: 145, y2: 145, color: '#38BDF8' }],
-                        moveFn: (s, i) => ([{ x: 24, y: 38 }, { x: 22, y: 46 }, { x: 65, y: 44 }, { x: 46, y: 30 }, { x: 50, y: 20 }][i % 5]),
-                        rivals: []
-                    },
-                    {
-                        name: '🎯 3. Pizarra Clutch ATO',
-                        note: 'Doble bloqueo Stagger en poste alto tras saque lateral para tiro ganador.',
-                        zone: { cx: 300, cy: 200, r: 38, color: '#F59E0B' },
-                        arrows: [{ x1: 150, y1: 90, x2: 300, y2: 200, color: '#F59E0B' }],
-                        moveFn: (s, i) => ([{ x: 50, y: 52 }, { x: 93, y: 44 }, { x: 38, y: 40 }, { x: 24, y: 24 }, { x: 68, y: 24 }][i % 5]),
-                        rivals: []
-                    }
-                ],
-                'Pádel / Tenis': [
-                    {
-                        name: '▶ 1. Ataque Red + Víbora',
-                        note: 'Presión sincronizada en volea y definición cruzada a la malla.',
-                        zone: { cx: 150, cy: 70, r: 36, color: '#00FF88' },
-                        arrows: [{ x1: 200, y1: 250, x2: 150, y2: 70, color: '#00FF88' }],
-                        moveFn: (s, i) => ({ x: s.x, y: i < 2 ? 56 : 22 }),
-                        rivals: []
-                    },
-                    {
-                        name: '🛡️ 2. Defensa Doble Pared',
-                        note: 'Globo profundo cruzado y recuperación del centro de pista.',
-                        zone: { cx: 455, cy: 65, r: 38, color: '#38BDF8' },
-                        arrows: [{ x1: 145, y1: 325, x2: 455, y2: 65, color: '#38BDF8' }],
-                        moveFn: (s, i) => ({ x: s.x, y: i < 2 ? 74 : 34 }),
-                        rivals: []
-                    },
-                    {
-                        name: '🎯 3. Australiana Punto Oro',
-                        note: 'Saque al T y cruce explosivo del compañero en la red.',
-                        zone: { cx: 440, cy: 120, r: 36, color: '#F59E0B' },
-                        arrows: [{ x1: 335, y1: 315, x2: 220, y2: 215, color: '#F59E0B' }],
-                        moveFn: (s, i) => ({ x: i === 0 ? 34 : 68, y: i < 2 ? 60 : 24 }),
-                        rivals: []
-                    }
-                ],
-                'Boxeo / MMA': [
-                    {
-                        name: '▶ 1. Corte de Ring + Pivote',
-                        note: 'Finta de Jab, paso lateral al ángulo muerto y Cross al mentón.',
-                        zone: { cx: 345, cy: 155, r: 40, color: '#00FF88' },
-                        arrows: [{ x1: 240, y1: 225, x2: 345, y2: 155, color: '#00FF88' }],
-                        moveFn: (s, i) => ({ x: i === 0 ? 46 : 58, y: i === 0 ? 42 : 40 }),
-                        rivals: []
-                    },
-                    {
-                        name: '🛡️ 2. Pull-Counter & Salida',
-                        note: 'Evasión en cuerdas con giro de cintura y gancho de respuesta.',
-                        zone: { cx: 300, cy: 190, r: 42, color: '#38BDF8' },
-                        arrows: [{ x1: 300, y1: 255, x2: 380, y2: 185, color: '#38BDF8' }],
-                        moveFn: (s, i) => ({ x: i === 0 ? 63 : 50, y: i === 0 ? 48 : 54 }),
-                        rivals: []
-                    },
-                    {
-                        name: '🎯 3. Sprawl & Centro Jaula',
-                        note: 'Defensa de derribo y dominio del centro del octágono.',
-                        zone: { cx: 300, cy: 180, r: 40, color: '#F59E0B' },
-                        arrows: [{ x1: 250, y1: 220, x2: 300, y2: 180, color: '#F59E0B' }],
-                        moveFn: () => ({ x: 50, y: 46 }),
-                        rivals: []
-                    }
-                ],
-                'Running': [
-                    {
-                        name: '▶ 1. Drafting en Cuña',
-                        note: 'Ahorro del 7.4% aerodinámico detrás de liebre Pacer.',
-                        zone: { cx: 430, cy: 65, r: 36, color: '#00FF88' },
-                        arrows: [{ x1: 185, y1: 65, x2: 415, y2: 65, color: '#00FF88' }],
-                        moveFn: (s, i) => ({ x: 68 - i * 9, y: 24 + (i % 2) * 8 }),
-                        rivals: []
-                    },
-                    {
-                        name: '🛡️ 2. Trazada Curva 188 SPM',
-                        note: 'Paso por cuerda interior sin pérdida de cadencia.',
-                        zone: { cx: 110, cy: 210, r: 42, color: '#38BDF8' },
-                        arrows: [{ x1: 190, y1: 325, x2: 95, y2: 210, color: '#38BDF8' }],
-                        moveFn: (s, i) => ({ x: 18 + i * 6, y: 44 + i * 8 }),
-                        rivals: []
-                    },
-                    {
-                        name: '🎯 3. Kick Final 200m',
-                        note: 'Cambio de ritmo explosivo por calle 2 en recta de meta.',
-                        zone: { cx: 420, cy: 62, r: 38, color: '#F59E0B' },
-                        arrows: [{ x1: 150, y1: 62, x2: 420, y2: 62, color: '#F59E0B' }],
-                        moveFn: (s, i) => ({ x: 72 - i * 8, y: 22 + i * 6 }),
-                        rivals: []
-                    }
-                ]
+            window.toggleRivalClashOnBoard = function () {
+                rivalClashOn = !rivalClashOn;
+                window.playAnimatedTactic(activePlayIdx);
             };
 
-            function mountMinimalTwoButtonSwitcher() {
+            window.resetTacticalBoardPositions = function () {
+                customManualVectors = [];
+                if (isStrategyViewActive && savedRosterCoordsBackup) {
+                    currentBoardSlots.forEach((s, i) => {
+                        const h = verticalToHorizontalCoords(savedRosterCoordsBackup[i].x, savedRosterCoordsBackup[i].y);
+                        s.x = h.x;
+                        s.y = h.y;
+                    });
+                    updateSportBallPosition(45, 50);
+                }
+                const svgL = document.getElementById('arena-vectors-svg-layer');
+                if (svgL) svgL.innerHTML = '';
+                const rivL = document.getElementById('arena-rivals-tokens-layer');
+                if (rivL) rivL.innerHTML = '';
+                window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+            };
+
+            window.runAiTacticalPrompt = function () {
+                const inp = document.getElementById('tactical-ai-prompt-input');
+                const q = (inp ? inp.value : '').toLowerCase();
+                if (inp) inp.value = '';
+                if (q.includes('repliegue') || q.includes('defensa') || q.includes('rival')) {
+                    window.setStrategyCategory('rival');
+                } else if (q.includes('parado') || q.includes('corner') || q.includes('córner') || q.includes('falta') || q.includes('abp')) {
+                    window.setStrategyCategory('abp');
+                } else {
+                    const plays = getPlaysForCurrentSportAndCategory();
+                    window.playAnimatedTactic((activePlayIdx + 1) % plays.length);
+                }
+            };
+
+            function mountMinimalHeaderAndLayers() {
                 const subtitleEl = document.getElementById('arena-panel-subtitle');
                 if (subtitleEl && !document.getElementById('minimal-arena-switcher')) {
                     const parentDiv = subtitleEl.parentElement;
@@ -6409,209 +6629,22 @@
                     tacDeck.style.display = 'none';
                     benchMaster.insertAdjacentElement('afterend', tacDeck);
                 }
-            }
 
-            window.switchArenaSubMode = function (subMode) {
-                if (subMode === 'tactics' && !window.isStrictClubScoutTier()) {
-                    window.showClubScoutExclusiveLockModal('Pizarra de Jugadas & Estrategias Animadas IA');
-                    return;
-                }
-                currentSubTab = subMode;
-                document.getElementById('min-btn-roster')?.classList.toggle('active', subMode === 'roster');
-                document.getElementById('min-btn-tactics')?.classList.toggle('active', subMode === 'tactics');
+                ensureSportBallMounted();
+                bindSurfaceManualClick();
 
-                const benchMaster = document.querySelector('.bench-reserve-master-box:not(#tactics-replace-deck)');
-                const tacDeck = document.getElementById('tactics-replace-deck');
-                const slotInd = document.getElementById('selected-slot-indicator');
-
-                if (subMode === 'tactics') {
-                    if (benchMaster) benchMaster.style.display = 'none';
-                    if (tacDeck) {
-                        tacDeck.style.display = 'block';
-                        renderTacticsDeckContent();
-                    }
-                    if (slotInd) slotInd.innerHTML = '🎬 <strong>Modo Estrategia IA Activo:</strong> Selecciona una jugada abajo o escribe al Director Táctico IA para animar el campo.';
-                } else {
-                    window.resetTacticalBoardPositions();
-                    if (tacDeck) tacDeck.style.display = 'none';
-                    if (benchMaster) benchMaster.style.display = 'block';
-                    window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
-                }
-            };
-
-            function renderTacticsDeckContent() {
-                const tacDeck = document.getElementById('tactics-replace-deck');
-                if (!tacDeck) return;
-                const plays = SPORT_TACTICAL_PLAYS[activeArenaSport] || SPORT_TACTICAL_PLAYS['Fútbol'];
-
-                tacDeck.innerHTML = `
-                    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                            ${plays.map((p, i) => `
-                                <button type="button" class="tactics-deck-pill ${activePlayIdx === i ? 'active' : ''}" onclick="window.playAnimatedTactic(${i})">
-                                    ${p.name}
-                                </button>
-                            `).join('')}
-                        </div>
-                        <div style="display:flex;gap:6px;align-items:center;">
-                            <button type="button" class="tactics-deck-pill ${rivalClashOn ? 'clash-on' : ''}" onclick="window.toggleRivalClashOnBoard()">
-                                ⚔️ Rival: ${rivalClashOn ? 'ON' : 'OFF'}
-                            </button>
-                            <button type="button" class="tactics-deck-pill" onclick="window.resetTacticalBoardPositions()">
-                                ↺ Base
-                            </button>
-                        </div>
-                    </div>
-                    <div style="display:flex;gap:8px;align-items:center;">
-                        <input type="text" id="tactical-ai-prompt-input" class="kinet-input" style="padding:7px 11px;font-size:0.71rem;" placeholder="Pide una jugada o táctica a la IA (ej: salida bajo presión, repliegue, balón parado)..." onkeydown="if(event.key==='Enter') window.runAiTacticalPrompt()">
-                        <button type="button" class="btn-primary" style="padding:7px 13px;font-size:0.65rem;white-space:nowrap;" onclick="window.runAiTacticalPrompt()">Animar IA ⚡</button>
-                    </div>
-                `;
-            }
-
-            window.playAnimatedTactic = function (idx) {
-                const plays = SPORT_TACTICAL_PLAYS[activeArenaSport] || SPORT_TACTICAL_PLAYS['Fútbol'];
-                const play = plays[idx];
-                if (!play) return;
-
-                if (!baseCoordsSnapshot || baseCoordsSnapshot.length !== currentBoardSlots.length) {
-                    baseCoordsSnapshot = currentBoardSlots.map(s => ({ x: s.x, y: s.y }));
-                }
-                activePlayIdx = idx;
-                renderTacticsDeckContent();
-
-                currentBoardSlots.forEach((s, i) => {
-                    s.x = baseCoordsSnapshot[i].x;
-                    s.y = baseCoordsSnapshot[i].y;
-                });
-                window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
-
-                setTimeout(() => {
-                    currentBoardSlots.forEach((s, i) => {
-                        const base = baseCoordsSnapshot[i];
-                        const next = play.moveFn({ x: base.x, y: base.y, pos: s.pos }, i);
-                        s.x = next.x;
-                        s.y = next.y;
-                    });
-                    window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
-                    paintVectorsAndRivals(play);
-                }, 90);
-
-                const slotInd = document.getElementById('selected-slot-indicator');
-                if (slotInd) slotInd.innerHTML = `🎬 <strong>${play.name}:</strong> ${play.note}`;
-            };
-
-            function paintVectorsAndRivals(play) {
-                const svgL = document.getElementById('arena-vectors-svg-layer');
-                const rivL = document.getElementById('arena-rivals-tokens-layer');
-                if (!svgL) return;
-
-                const defs = `
-                    <defs>
-                        <marker id="mG" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#00FF88"/></marker>
-                        <marker id="mA" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#F59E0B"/></marker>
-                        <marker id="mB" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#38BDF8"/></marker>
-                    </defs>
-                `;
-                const zSvg = play && play.zone ? `<circle cx="${play.zone.cx}" cy="${play.zone.cy}" r="${play.zone.r}" fill="${play.zone.color}" class="kinet-zone-circle"/>` : '';
-                const aSvg = (play && play.arrows ? play.arrows : []).map(a => {
-                    const m = a.color === '#F59E0B' ? 'mA' : (a.color === '#38BDF8' ? 'mB' : 'mG');
-                    return `<line x1="${a.x1}" y1="${a.y1}" x2="${a.x2}" y2="${a.y2}" stroke="${a.color}" stroke-width="2.8" class="kinet-laser-arrow" marker-end="url(#${m})"/>`;
-                }).join('');
-                svgL.innerHTML = defs + zSvg + aSvg;
-
-                if (rivL) {
-                    if (!rivalClashOn || !play || !Array.isArray(play.rivals)) {
-                        rivL.innerHTML = '';
-                    } else {
-                        rivL.innerHTML = play.rivals.map((r, i) => `
-                            <div class="kinet-rival-mini-token" id="riv-node-${i}" style="left:${r.x0}%;top:${r.y0}%;">
-                                <div style="font-family:'Orbitron';font-size:0.55rem;font-weight:900;color:#FCA5A5;">${r.grl} <span style="background:#EF4444;color:#04060A;padding:0 3px;border-radius:3px;font-size:0.44rem;">${r.pos}</span></div>
-                                <div style="font-family:'Orbitron';font-size:0.48rem;color:#FFF;">${r.name}</div>
-                            </div>
-                        `).join('');
-                        setTimeout(() => {
-                            play.rivals.forEach((r, i) => {
-                                const el = document.getElementById(`riv-node-${i}`);
-                                if (el) { el.style.left = `${r.x1}%`; el.style.top = `${r.y1}%`; }
-                            });
-                        }, 80);
-                    }
-                }
-            }
-
-            window.toggleRivalClashOnBoard = function () {
-                rivalClashOn = !rivalClashOn;
-                if (activePlayIdx === -1) window.playAnimatedTactic(0);
-                else window.playAnimatedTactic(activePlayIdx);
-            };
-
-            window.resetTacticalBoardPositions = function () {
-                activePlayIdx = -1;
-                if (baseCoordsSnapshot && baseCoordsSnapshot.length === currentBoardSlots.length) {
-                    currentBoardSlots.forEach((s, i) => {
-                        s.x = baseCoordsSnapshot[i].x;
-                        s.y = baseCoordsSnapshot[i].y;
+                // Si la formación guardada en localStorage tenía al DFC pegado al POR, separar sus coordenadas automáticamente
+                if (Array.isArray(currentBoardSlots)) {
+                    currentBoardSlots.forEach(s => {
+                        if (s.pos === 'POR' && s.y < 89) s.y = 90;
+                        if (s.pos === 'DFC' && s.y > 68) s.y = 67;
                     });
                 }
-                const svgL = document.getElementById('arena-vectors-svg-layer');
-                if (svgL) svgL.innerHTML = '';
-                const rivL = document.getElementById('arena-rivals-tokens-layer');
-                if (rivL) rivL.innerHTML = '';
-                if (currentSubTab === 'tactics') renderTacticsDeckContent();
                 window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
-            };
-
-            window.runAiTacticalPrompt = function () {
-                const inp = document.getElementById('tactical-ai-prompt-input');
-                const q = (inp ? inp.value : '').toLowerCase();
-                if (inp) inp.value = '';
-                if (q.includes('repliegue') || q.includes('defensa') || q.includes('bloque')) {
-                    window.playAnimatedTactic(1);
-                } else if (q.includes('parado') || q.includes('corner') || q.includes('córner') || q.includes('falta') || q.includes('clutch')) {
-                    window.playAnimatedTactic(2);
-                } else {
-                    window.playAnimatedTactic(0);
-                }
-            };
-
-            const _origPreset = window.applyTacticalPreset;
-            window.applyTacticalPreset = function (presetName, persistChange = true) {
-                activePlayIdx = -1;
-                const svgL = document.getElementById('arena-vectors-svg-layer');
-                if (svgL) svgL.innerHTML = '';
-                const rivL = document.getElementById('arena-rivals-tokens-layer');
-                if (rivL) rivL.innerHTML = '';
-                if (typeof _origPreset === 'function') _origPreset(presetName, persistChange);
-                baseCoordsSnapshot = currentBoardSlots.map(s => ({ x: s.x, y: s.y }));
-            };
-
-            const _origOpenMatchday = window.openMatchdayBroadcasterModal;
-            window.openMatchdayBroadcasterModal = function (formatMode) {
-                if (!window.isStrictClubScoutTier() && (formatMode === 'poster' || formatMode === 'pitch')) {
-                    window.showClubScoutExclusiveLockModal('Publicación Grupal de Plantilla y Póster de Partido');
-                    return;
-                }
-                if (typeof _origOpenMatchday === 'function') _origOpenMatchday(formatMode);
-            };
-
-            const _origSwitchFmt = window.switchBroadcasterFormat;
-            window.switchBroadcasterFormat = function (formatMode) {
-                if (!window.isStrictClubScoutTier() && (formatMode === 'poster' || formatMode === 'pitch')) {
-                    window.showClubScoutExclusiveLockModal('Póster Grupal de Partido y Pizarra 3D de Equipo');
-                    return;
-                }
-                if (typeof _origSwitchFmt === 'function') _origSwitchFmt(formatMode);
-            };
+            }
 
             window.addEventListener('DOMContentLoaded', () => {
-                setTimeout(() => {
-                    mountMinimalTwoButtonSwitcher();
-                    mountThirdStaffBenchBar();
-                    mountBuilderAthleteStaffToggle();
-                    window.setBuilderEntityMode('athlete');
-                    window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
-                }, 120);
+                setTimeout(mountMinimalHeaderAndLayers, 130);
             });
         })();
     </script>
