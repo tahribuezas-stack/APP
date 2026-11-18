@@ -5439,25 +5439,22 @@
                 }
             }
         };
-    // =========================================================================
-        // MOTOR TÁCTICO INTEGRAL V14 (CERO ERRORES DE SINTAXIS + GIRO 3D ILUMINADO):
-        // 1. ELIMINADO EL ERROR DE SINTAXIS Y CORREGIDO renderBoardTokensAndMetrics
-        // 2. FIX TOTAL AL VOLVER A PLANTILLA (RECONSTRUCCIÓN LIMPIA DE CARTAS Y COORDENADAS)
-        // 3. GIRO 3D PURO 100% ILUMINADO + DESHACER INFINITO (↩️ UNDO)
-        // 4. POSICIONAMIENTO AUTOMÁTICO SEGÚN FORMACIÓN Y MOMENTO TÁCTICO
+   // =========================================================================
+        // CONECTOR LIGERO ANALIZADOR.HTML <-> ANALIZADOR2.HTML (GIRO 3D FLUIDO)
+        // Mantiene Porteros (DIV/HAN/KIC), Separación DFC/POR, 3ª Barra Cuerpo Técnico (6)
+        // y redirige con animación 3D imperceptible a analizador2.html
         // =========================================================================
-        (function applyKinetTacticalEngineV14() {
-            if (window._kinetV14Loaded) return;
-            window._kinetV14Loaded = true;
+        (function applyKinetAnalyzerConnector() {
+            if (window._kinetConnectorLoaded) return;
+            window._kinetConnectorLoaded = true;
 
-            const _nativeRenderBoard = window.renderBoardTokensAndMetrics;
+            const _nativeRenderBoard = window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63;
             const _nativeRenderDuel = window.renderDuel1v1View;
             const _nativeRenderMirror = window.renderMirrorSelfView;
             const _nativeUpdateSliders = window.updateBuilderSlidersForPosition;
             const _nativeGetSlotArr = window.getSlotArrayByGroup;
-            const _nativeUpdatePlayStyle = window.updatePlayStyleSynergy;
 
-            // 1. Separar DFC y POR en coordenadas verticales de Fútbol
+            // 1. Separar DFC y POR en todos los presets de Fútbol
             const fbPresets = SPORT_ARENA_CONFIGS['Fútbol']?.presets;
             if (fbPresets) {
                 Object.keys(fbPresets).forEach(k => {
@@ -5469,7 +5466,7 @@
                 });
             }
 
-            // 2. Profesiones de Cuerpo Técnico y Siglas de Portero
+            // 2. Profesiones del Cuerpo Técnico y Siglas de Portero
             const STAFF_ROLES_BY_SPORT = {
                 'Fútbol': {
                     slots: ['MÍSTER / TOTAL', '2º ENTRENADOR', 'PREP. FÍSICO', 'FISIOTERAPEUTA', 'COACH MENTAL', 'ANALISTA / NUTRI'],
@@ -5489,12 +5486,6 @@
                 return STAFF_ROLES_BY_SPORT[sport] || STAFF_ROLES_BY_SPORT['Fútbol'];
             }
 
-            Object.keys(SPORT_ARENA_CONFIGS).forEach(sp => {
-                const cfg = SPORT_ARENA_CONFIGS[sp];
-                cfg.positions = cfg.positions.filter(p => p !== 'ENT / STAFF' && !p.includes('STAFF'));
-                if (cfg.posSkills && cfg.posSkills['ENT / STAFF']) delete cfg.posSkills['ENT / STAFF'];
-            });
-
             window.getPositionSpecificShortLabels = function (sportKey, posCode) {
                 const cfg = SPORT_ARENA_CONFIGS[sportKey] || SPORT_ARENA_CONFIGS['Fútbol'];
                 const stCfg = getStaffCfg(sportKey);
@@ -5502,21 +5493,18 @@
                 const clean = String(posCode).trim().toUpperCase();
 
                 const staffKey = Object.keys(stCfg.skills).find(k => k.toUpperCase() === clean || clean.includes(k.toUpperCase()));
-                if (staffKey) {
-                    return stCfg.skills[staffKey].map(l => (l.match(/\(([A-Z0-9]+)\)/) || [null, 'STF'])[1]);
-                }
+                if (staffKey) return stCfg.skills[staffKey].map(l => (l.match(/\(([A-Z0-9]+)\)/) || [null, 'STF'])[1]);
+
                 if (cfg.posSkills) {
                     const pKey = Object.keys(cfg.posSkills).find(k => k.toUpperCase() === clean || clean.includes(k.toUpperCase()));
-                    if (pKey) {
-                        return cfg.posSkills[pKey].map((l, i) => (l.match(/\(([A-Z0-9]+)\)/) || [null, cfg.statLabels[i]])[1]);
-                    }
+                    if (pKey) return cfg.posSkills[pKey].map((l, i) => (l.match(/\(([A-Z0-9]+)\)/) || [null, cfg.statLabels[i]])[1]);
                 }
                 return cfg.statLabels;
             };
 
-            // 3. CSS de Giro 3D 100% Iluminado + Micro-Fichas
-            const v14Style = document.createElement('style');
-            v14Style.textContent = `
+            // 3. Estilos de Resaltado "+ Asignar" y Giro 3D
+            const connStyle = document.createElement('style');
+            connStyle.textContent = `
                 @keyframes kinetSelectedSlotPulse {
                     0%, 100% { box-shadow: 0 0 18px var(--role-color), 0 0 32px rgba(var(--role-rgb), 0.45), inset 0 0 12px rgba(var(--role-rgb), 0.35); transform: translate(-50%, -56%) scale(1.14); }
                     50% { box-shadow: 0 0 28px #FFFFFF, 0 0 42px var(--role-color), inset 0 0 18px rgba(var(--role-rgb), 0.55); transform: translate(-50%, -58%) scale(1.18); }
@@ -5528,37 +5516,19 @@
                     animation: kinetSelectedSlotPulse 1.5s infinite ease-in-out !important;
                     z-index: 80 !important;
                 }
-                .bench-slot-pill.selected-slot {
-                    border: 2px solid #FFFFFF !important;
-                    background: rgba(var(--role-rgb), 0.28) !important;
-                    box-shadow: 0 0 18px var(--role-color) !important;
-                    transform: translateY(-3px) scale(1.06) !important;
-                }
-
                 .bento-grid { perspective: 2000px; }
-                #view-arena-3d, .col-4 > .kinet-panel {
-                    backface-visibility: hidden;
-                    transform-style: preserve-3d;
-                }
-                #view-arena-3d.kinet-flip-stage-1,
-                .col-4 > .kinet-panel.kinet-flip-stage-1 {
+                #view-arena-3d, .col-4 > .kinet-panel { backface-visibility: hidden; transform-style: preserve-3d; }
+                .kinet-page-flip-out {
                     transition: transform 0.24s cubic-bezier(0.4, 0, 0.2, 1) !important;
                     transform: perspective(1600px) rotateY(88deg) !important;
-                    opacity: 1 !important;
                 }
-                #view-arena-3d.kinet-flip-stage-2,
-                .col-4 > .kinet-panel.kinet-flip-stage-2 {
-                    transition: none !important;
-                    transform: perspective(1600px) rotateY(-88deg) !important;
-                    opacity: 1 !important;
+                @keyframes kinetFlipFromStrategies {
+                    0% { transform: perspective(1600px) rotateY(-88deg); }
+                    100% { transform: perspective(1600px) rotateY(0deg); }
                 }
-                #view-arena-3d.kinet-flip-stage-3,
-                .col-4 > .kinet-panel.kinet-flip-stage-3 {
-                    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
-                    transform: perspective(1600px) rotateY(0deg) !important;
-                    opacity: 1 !important;
+                .kinet-page-flip-in {
+                    animation: kinetFlipFromStrategies 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
                 }
-
                 .minimal-mode-switch {
                     display: inline-flex; background: rgba(4, 6, 10, 0.95);
                     border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 11px;
@@ -5575,1250 +5545,100 @@
                     background: var(--role-gradient); color: #04060A;
                     font-weight: 900; box-shadow: 0 0 14px var(--role-glow);
                 }
-
-                #view-arena-3d.strategy-horizontal-mode .arena-3d-surface {
-                    width: 96% !important; height: 90% !important;
-                    transform: perspective(1050px) rotateX(14deg) scale(0.98) !important;
-                }
-                #view-arena-3d.strategy-horizontal-mode .tactical-node-token {
-                    width: 42px !important; min-width: 42px !important; max-width: 42px !important;
-                    height: 42px !important; border-radius: 50% !important; padding: 0 !important;
-                    display: flex !important; flex-direction: column !important;
-                    align-items: center !important; justify-content: center !important;
-                    transition: left 0.85s cubic-bezier(0.22, 1, 0.36, 1), top 0.85s cubic-bezier(0.22, 1, 0.36, 1), transform 0.22s ease, box-shadow 0.22s ease !important;
-                    background: radial-gradient(circle at 30% 30%, rgba(var(--role-rgb), 0.38), rgba(6, 10, 18, 0.96)) !important;
-                    border: 2px solid var(--role-color) !important;
-                    box-shadow: 0 6px 16px rgba(0,0,0,0.85), 0 0 12px rgba(var(--role-rgb), 0.35) !important;
-                    background-size: cover !important; background-position: center !important;
-                }
-                #view-arena-3d.strategy-horizontal-mode .tactical-node-token.manual-selected-token {
-                    border: 2.5px solid #FFFFFF !important;
-                    box-shadow: 0 0 22px #FFFFFF, 0 0 32px var(--role-color) !important;
-                    transform: translate(-50%, -50%) scale(1.22) !important;
-                    animation: none !important;
-                }
-                .micro-token-initials {
-                    font-family: 'Orbitron', sans-serif; font-size: 0.64rem; font-weight: 900;
-                    color: #FFFFFF; line-height: 1; text-shadow: 0 1px 4px rgba(0,0,0,0.95);
-                }
-                .micro-token-pos-pill {
-                    position: absolute; bottom: -6px; background: var(--role-color); color: #04060A;
-                    font-family: 'JetBrains Mono', monospace; font-size: 0.43rem; font-weight: 900;
-                    padding: 1px 4px; border-radius: 5px; border: 1px solid #04060A; line-height: 1;
-                }
-                .kinet-rival-horizontal-token {
-                    position: absolute; transform: translate(-50%, -50%); width: 38px; height: 38px;
-                    border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(239, 68, 68, 0.48), rgba(24, 6, 10, 0.96));
-                    border: 2px solid #EF4444; box-shadow: 0 6px 14px rgba(0,0,0,0.85), 0 0 12px rgba(239, 68, 68, 0.4);
-                    display: flex; flex-direction: column; align-items: center; justify-content: center;
-                    z-index: 27; pointer-events: none;
-                    transition: left 0.85s cubic-bezier(0.22, 1, 0.36, 1), top 0.85s cubic-bezier(0.22, 1, 0.36, 1);
-                }
-                #kinet-sport-ball-token {
-                    position: absolute; transform: translate(-50%, -50%); width: 25px; height: 25px;
-                    border-radius: 50%; background: radial-gradient(circle at 35% 35%, #FFFFFF, #CBD5E1);
-                    border: 2px solid #04060A; box-shadow: 0 6px 14px rgba(0,0,0,0.9), 0 0 18px #FFFFFF;
-                    display: none; align-items: center; justify-content: center; font-size: 0.85rem;
-                    z-index: 75; pointer-events: none;
-                    transition: left 0.85s cubic-bezier(0.22, 1, 0.36, 1), top 0.85s cubic-bezier(0.22, 1, 0.36, 1);
-                }
-                #view-arena-3d.strategy-horizontal-mode #kinet-sport-ball-token { display: flex; }
-
-                @keyframes kinetLaserDash { to { stroke-dashoffset: -44; } }
-                .kinet-laser-arrow { stroke-dasharray: 8 6; animation: kinetLaserDash 0.9s linear infinite; filter: drop-shadow(0 0 5px currentColor); }
-                @keyframes kinetZonePulse { 0%, 100% { opacity: 0.16; transform: scale(0.95); } 50% { opacity: 0.36; transform: scale(1.05); } }
-                .kinet-zone-circle { transform-origin: center; animation: kinetZonePulse 1.8s ease-in-out infinite; }
-                #arena-vectors-svg-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 26; }
-
-                .tactics-deck-pill {
-                    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); color: #E2E8F0;
-                    font-family: 'Orbitron', sans-serif; font-size: 0.57rem; font-weight: 800; padding: 6px 9px;
-                    border-radius: 8px; cursor: pointer; transition: all 0.2s ease; white-space: nowrap;
-                }
-                .tactics-deck-pill:hover { border-color: var(--role-color); color: #FFFFFF; }
-                .tactics-deck-pill.active { background: var(--role-gradient); color: #04060A; border-color: transparent; box-shadow: 0 0 12px var(--role-glow); }
-                .tactics-deck-pill.clash-on { background: linear-gradient(135deg, #EF4444, #B91C1C); color: #FFFFFF; border-color: #FCA5A5; }
-                .tactics-deck-pill.manual-on { background: linear-gradient(135deg, #F59E0B, #D97706); color: #04060A; border-color: #FDE68A; box-shadow: 0 0 14px rgba(245,158,11,0.45); }
-
-                .manual-action-toggle {
-                    display: grid; grid-template-columns: 1fr 1fr; gap: 5px;
-                    background: rgba(4, 6, 10, 0.9); padding: 4px; border-radius: 10px;
-                    border: 1px solid rgba(255,255,255,0.1); margin-bottom: 7px;
-                }
-                .manual-act-btn {
-                    background: transparent; border: none; color: #94A3B8;
-                    font-family: 'Orbitron', sans-serif; font-size: 0.56rem; font-weight: 800;
-                    padding: 6px 5px; border-radius: 7px; cursor: pointer; transition: all 0.2s ease;
-                }
-                .manual-act-btn.active-run {
-                    background: rgba(0, 255, 136, 0.18); color: #00FF88;
-                    border: 1px solid #00FF88; box-shadow: 0 0 10px rgba(0,255,136,0.25);
-                }
-                .manual-act-btn.active-ball {
-                    background: rgba(245, 158, 11, 0.2); color: #F59E0B;
-                    border: 1px solid #F59E0B; box-shadow: 0 0 10px rgba(245,158,11,0.25);
-                }
-                .moment-grid-pills {
-                    display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-top: 6px;
-                }
             `;
-            document.head.appendChild(v14Style);
+            document.head.appendChild(connStyle);
 
-            // 4. SVGs Horizontales para los 5 Deportes
-            function buildHorizontalStrategySVG(sportKey) {
-                if (sportKey === 'Fútbol') {
-                    return `
-                    <svg class="arena-svg-canvas" viewBox="0 0 600 420" preserveAspectRatio="none">
-                        <defs>
-                            <pattern id="hTurf" width="60" height="420" patternUnits="userSpaceOnUse">
-                                <rect width="30" height="420" fill="#06160F"/>
-                                <rect x="30" width="30" height="420" fill="#0A2217"/>
-                            </pattern>
-                        </defs>
-                        <rect width="600" height="420" fill="url(#hTurf)"/>
-                        <g stroke="rgba(255,255,255,0.75)" stroke-width="2.2" fill="none">
-                            <rect x="18" y="18" width="564" height="384" rx="4"/>
-                            <line x1="300" y1="18" x2="300" y2="402"/>
-                            <circle cx="300" cy="210" r="52"/>
-                            <circle cx="300" cy="210" r="3.5" fill="#00FF88"/>
-                            <rect x="18" y="105" width="84" height="210"/>
-                            <rect x="18" y="155" width="32" height="110"/>
-                            <path d="M 102 165 A 45 45 0 0 1 102 255"/>
-                            <rect x="498" y="105" width="84" height="210"/>
-                            <rect x="550" y="155" width="32" height="110"/>
-                            <path d="M 498 165 A 45 45 0 0 0 498 255"/>
-                        </g>
-                    </svg>`;
+            window.isStrictClubScoutTier = function () {
+                const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase().trim();
+                return tier === 'club';
+            };
+
+            window.goToStrategiesPage = function () {
+                if (!window.isStrictClubScoutTier()) {
+                    let modal = document.getElementById('kinet-club-lock-modal');
+                    if (!modal) {
+                        modal = document.createElement('div');
+                        modal.id = 'kinet-club-lock-modal';
+                        modal.className = 'kinet-modal-overlay';
+                        modal.innerHTML = `
+                            <div class="kinet-modal-box" style="max-width:440px;text-align:center;border-color:#F59E0B;">
+                                <div style="width:48px;height:48px;border-radius:14px;background:rgba(245,158,11,0.15);border:1px solid #F59E0B;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin:0 auto;">🔒</div>
+                                <div style="font-family:'Orbitron';font-size:0.95rem;font-weight:900;color:#FFFFFF;">SUITE EXCLUSIVA CLUB & SCOUT PRO</div>
+                                <p style="font-size:0.78rem;color:#CBD5E1;line-height:1.55;">La Pizarra de Jugadas & Estrategias IA está reservada para la licencia <strong>Club & Scout Pro (29,99€/mes)</strong>.</p>
+                                <div style="display:flex;gap:8px;justify-content:center;margin-top:4px;">
+                                    <button type="button" class="btn-secondary" onclick="document.getElementById('kinet-club-lock-modal').classList.remove('open')">Cerrar</button>
+                                    <a href="despacho.html?tab=subscription" class="btn-primary" style="background:linear-gradient(135deg,#F59E0B,#D97706);color:#04060A;text-decoration:none;">Desbloquear (29,99€) →</a>
+                                </div>
+                            </div>
+                        `;
+                        document.body.appendChild(modal);
+                    }
+                    modal.classList.add('open');
+                    return;
                 }
-                if (sportKey === 'Baloncesto') {
-                    return `
-                    <svg class="arena-svg-canvas" viewBox="0 0 600 420" preserveAspectRatio="none">
-                        <rect width="600" height="420" fill="#18130D"/>
-                        <g stroke="rgba(255,255,255,0.78)" stroke-width="2.2" fill="none">
-                            <rect x="18" y="18" width="564" height="384"/>
-                            <line x1="300" y1="18" x2="300" y2="402"/>
-                            <circle cx="300" cy="210" r="48"/>
-                            <rect x="18" y="145" width="115" height="130" fill="rgba(245,158,11,0.15)" stroke="#F59E0B"/>
-                            <path d="M 18 55 L 95 55 A 165 155 0 0 1 95 365 L 18 365" stroke="#00FF88"/>
-                            <rect x="467" y="145" width="115" height="130" fill="rgba(245,158,11,0.15)" stroke="#F59E0B"/>
-                            <path d="M 582 55 L 505 55 A 165 155 0 0 0 505 365 L 582 365" stroke="#00FF88"/>
-                        </g>
-                    </svg>`;
-                }
-                if (sportKey === 'Pádel / Tenis') {
-                    return `
-                    <svg class="arena-svg-canvas" viewBox="0 0 600 420" preserveAspectRatio="none">
-                        <rect width="600" height="420" fill="#071B30"/>
-                        <rect x="24" y="24" width="552" height="372" fill="#0B2847" stroke="#38BDF8" stroke-width="3"/>
-                        <g stroke="rgba(255,255,255,0.85)" stroke-width="2.2" fill="none">
-                            <line x1="125" y1="24" x2="125" y2="396"/>
-                            <line x1="475" y1="24" x2="475" y2="396"/>
-                            <line x1="125" y1="210" x2="475" y2="210"/>
-                        </g>
-                        <line x1="300" y1="18" x2="300" y2="402" stroke="#00FF88" stroke-width="5"/>
-                    </svg>`;
-                }
-                return buildProfessionalSportSVG(sportKey);
-            }
+                saveCustomAndShortlistData();
+                sessionStorage.setItem('kinet_flip_transition', 'to_strategies');
+                document.getElementById('view-arena-3d')?.classList.add('kinet-page-flip-out');
+                document.querySelector('.col-4 > .kinet-panel')?.classList.add('kinet-page-flip-out');
+                setTimeout(() => {
+                    window.location.href = `analizador2.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`;
+                }, 220);
+            };
 
-            function getCleanVerticalFormationCoords() {
-                const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
-                const presetArr = cfg.presets[currentPresetName] || Object.values(cfg.presets)[0];
-                return presetArr.map(s => ({ pos: s.pos, x: s.x, y: s.y }));
-            }
-
-            function verticalToHorizontalCoords(vx, vy) {
-                return {
-                    x: Math.min(93, Math.max(7, Math.round(100 - vy))),
-                    y: Math.min(91, Math.max(9, Math.round(vx)))
-                };
-            }
-
-            function getMicroTokenInitials(nameStr) {
-                const parts = String(nameStr || 'J').trim().split(/\s+/).filter(Boolean);
-                if (parts.length === 0) return 'J';
-                if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-                return `${parts[0][0]}.${parts[1][0]}`.toUpperCase();
-            }
-
-            // 5. Estado de Estrategias + Pila de Deshacer Infinita
-            let isStrategyViewActive = false;
-            let activeStrategyCategory = 'train';
-            let activeMomentKey = 'build_up';
-            let rivalClashOn = true;
-            let manualMoveMode = false;
-            let manualMoveSubType = 'offball';
-            let hasUnsavedManualTactic = false;
-            let pendingDiscardCallback = null;
-            let manualSelectedTokenIdx = 0;
-            let customManualVectors = [];
-            let manualUndoStack = [];
-            let savedTacticsLibrary = [];
-            let currentBallCoords = { x: 45, y: 50 };
+            // 4. Tercera Barra Cuerpo Técnico (6) y Conmutador Atleta/Staff
             let builderEntityType = 'athlete';
             window.staffSlots = [];
 
-            function pushUndoSnapshot() {
-                manualUndoStack.push({
-                    slotsCoords: currentBoardSlots.map(s => ({ x: s.x, y: s.y })),
-                    ballCoords: { ...currentBallCoords },
-                    vectors: JSON.parse(JSON.stringify(customManualVectors))
-                });
-            }
-
-            window.undoLastManualMovement = function () {
-                if (manualUndoStack.length === 0) return;
-                const prev = manualUndoStack.pop();
-                currentBoardSlots.forEach((s, i) => {
-                    if (prev.slotsCoords[i]) {
-                        s.x = prev.slotsCoords[i].x;
-                        s.y = prev.slotsCoords[i].y;
-                    }
-                });
-                currentBallCoords = { ...prev.ballCoords };
-                customManualVectors = prev.vectors || [];
-                if (manualUndoStack.length === 0 && customManualVectors.length === 0) {
-                    hasUnsavedManualTactic = false;
-                }
-                updateSportBallPosition(currentBallCoords.x, currentBallCoords.y);
-                window.renderBoardTokensAndMetrics(false);
-                paintCurrentMomentVectorsAndRivals();
-                renderRightStrategyPanelContent();
-                renderTacticsBottomDeck();
-            };
-
-            // 6. Catálogo de Momentos Tácticos
-            const TACTICAL_MOMENTS_CATALOG = {
-                train: [
-                    { key: 'build_up', label: '1. Salida de Balón', desc: 'Centrales abiertos, laterales bajos y mediocentro en apoyo para superar primera línea.' },
-                    { key: 'positional_attack', label: '2. Ataque Posicional', desc: 'Equipo instalado en campo rival, extremos en amplitud e interiores en zona de finalización.' },
-                    { key: 'counter_attack', label: '3. Contraataque Rápido', desc: 'Bloque recogido listo para lanzar transición vertical al espacio libre.' },
-                    { key: 'high_press', label: '4. Presión Alta / Robo', desc: 'Líneas adelantadas asfixiando la salida rival en su propio tercio.' }
-                ],
-                rival: [
-                    { key: 'mid_block', label: '1. Bloque Medio vs Rival', desc: 'Líneas juntas en zona central cerrando pasillos interiores al rival.' },
-                    { key: 'low_block', label: '2. Repliegue Bloque Bajo', desc: 'Protección intensiva del área propia y cierre de espacios a la espalda.' },
-                    { key: 'gegenpress', label: '3. Presión Tras Pérdida', desc: 'Salto inmediato sobre el poseedor rival en menos de 4 segundos.' },
-                    { key: 'wing_trap', label: '4. Embudo en Banda', desc: 'Basculación hacia sector exterior para encerrar al rival contra la línea.' }
-                ],
-                abp: [
-                    { key: 'corner_left', label: '1. Córner Izquierdo', desc: 'Lanzamiento desde esquina superior izquierda con bloqueo en 1er palo y entrada al 2º.' },
-                    { key: 'corner_right', label: '2. Córner Derecho', desc: 'Lanzamiento desde esquina inferior derecha al corazón del área.' },
-                    { key: 'fk_close', label: '3. Falta Cercana Frontal', desc: 'Tiro libre directo en la frontal del área con barrera y rechace.' },
-                    { key: 'fk_side', label: '4. Falta Lateral', desc: 'Centro tenso desde banda a la línea de ruptura entre punto de penalti y 2º palo.' },
-                    { key: 'fk_far', label: '5. Falta Lejana / Segunda Jugada', desc: 'Envío frontal desde tres cuartos buscando prolongación aérea.' },
-                    { key: 'def_corner', label: '6. Córner / ABP Defensivo', desc: 'Marcaje mixto en área propia con 2 jugadores listos para salir a la contra.' }
-                ]
-            };
-
-            function computeFormationMomentCoordinates(momentKey) {
-                const baseVert = getCleanVerticalFormationCoords();
-                const baseHoriz = baseVert.map(s => verticalToHorizontalCoords(s.x, s.y));
-
-                const styleShiftX = currentPlayStyle === 'highpress' ? 6 : (currentPlayStyle === 'counter' ? -6 : (currentPlayStyle === 'direct' ? 4 : 0));
-                const styleSpreadY = currentPlayStyle === 'possession' ? 1.12 : (currentPlayStyle === 'counter' ? 0.85 : 1.0);
-
-                let ballStart = { x: 14, y: 50 };
-                let ballEnd = { x: 78, y: 28 };
-                let arrows = [];
-                let rivals = [];
-                let zone = null;
-
-                const transformed = baseHoriz.map((h, idx) => {
-                    const pos = (baseVert[idx]?.pos || '').toUpperCase();
-                    const isGK = (idx === 0 || pos === 'POR');
-                    let nx = h.x;
-                    let ny = Math.min(92, Math.max(8, Math.round(50 + (h.y - 50) * styleSpreadY)));
-
-                    if (momentKey === 'build_up') {
-                        if (isGK) { nx = 8; ny = 50; }
-                        else if (h.x < 38) { nx = Math.max(16, h.x - 6); ny = ny < 50 ? Math.max(12, ny - 6) : Math.min(88, ny + 6); }
-                        else if (h.x < 65) { nx = h.x - 5; }
-                        else { nx = Math.min(78, h.x - 4); }
-                        ballStart = { x: 9, y: 50 };
-                        ballEnd = { x: 46, y: 34 };
-                        zone = { cx: 280, cy: 145, r: 42, color: '#00FF88' };
-                        arrows = [
-                            { x1: 55, y1: 210, x2: 145, y2: 135, color: '#F59E0B' },
-                            { x1: 145, y1: 135, x2: 275, y2: 145, color: '#F59E0B' },
-                            { x1: 310, y1: 185, x2: 275, y2: 145, color: '#00FF88' }
-                        ];
-                        rivals = [
-                            { pos: 'DC', init: 'R.9', x0: 36, y0: 46, x1: 26, y1: 36 },
-                            { pos: 'MCO', init: 'R.10', x0: 48, y0: 54, x1: 42, y1: 48 },
-                            { pos: 'EI', init: 'R.11', x0: 44, y0: 22, x1: 36, y1: 24 },
-                            { pos: 'ED', init: 'R.7', x0: 44, y0: 78, x1: 38, y1: 74 }
-                        ];
-                    } else if (momentKey === 'positional_attack') {
-                        if (isGK) { nx = 22; ny = 50; }
-                        else { nx = Math.min(90, Math.round(h.x + 16 + styleShiftX)); }
-                        ballStart = { x: 58, y: 48 };
-                        ballEnd = { x: 86, y: 26 };
-                        zone = { cx: 515, cy: 115, r: 44, color: '#00FF88' };
-                        arrows = [
-                            { x1: 350, y1: 200, x2: 510, y2: 110, color: '#F59E0B' },
-                            { x1: 430, y1: 75, x2: 515, y2: 110, color: '#00FF88' },
-                            { x1: 440, y1: 235, x2: 530, y2: 205, color: '#38BDF8' }
-                        ];
-                        rivals = [
-                            { pos: 'POR', init: 'G.K', x0: 94, y0: 50, x1: 93, y1: 46 },
-                            { pos: 'DFC', init: 'R.4', x0: 84, y0: 38, x1: 86, y1: 34 },
-                            { pos: 'DFC', init: 'R.5', x0: 84, y0: 62, x1: 86, y1: 56 },
-                            { pos: 'LD', init: 'R.2', x0: 80, y0: 20, x1: 84, y1: 22 },
-                            { pos: 'MCD', init: 'R.6', x0: 72, y0: 50, x1: 76, y1: 42 }
-                        ];
-                    } else if (momentKey === 'counter_attack') {
-                        if (isGK) { nx = 10; ny = 50; }
-                        else if (h.x < 60) { nx = Math.max(18, Math.round(h.x * 0.72)); }
-                        else { nx = Math.min(89, h.x + 14); }
-                        ballStart = { x: 32, y: 52 };
-                        ballEnd = { x: 84, y: 44 };
-                        zone = { cx: 505, cy: 185, r: 48, color: '#F59E0B' };
-                        arrows = [
-                            { x1: 195, y1: 220, x2: 500, y2: 185, color: '#F59E0B' },
-                            { x1: 380, y1: 120, x2: 505, y2: 175, color: '#00FF88' },
-                            { x1: 380, y1: 295, x2: 495, y2: 225, color: '#00FF88' }
-                        ];
-                        rivals = [
-                            { pos: 'POR', init: 'G.K', x0: 93, y0: 50, x1: 90, y1: 48 },
-                            { pos: 'DFC', init: 'R.4', x0: 64, y0: 38, x1: 78, y1: 42 },
-                            { pos: 'DFC', init: 'R.5', x0: 64, y0: 62, x1: 78, y1: 58 }
-                        ];
-                    } else if (momentKey === 'high_press' || momentKey === 'gegenpress') {
-                        if (isGK) { nx = 28; ny = 50; }
-                        else { nx = Math.min(88, Math.round(h.x + 20)); }
-                        ballStart = { x: 84, y: 48 };
-                        ballEnd = { x: 78, y: 40 };
-                        zone = { cx: 475, cy: 175, r: 48, color: '#EF4444' };
-                        arrows = [
-                            { x1: 395, y1: 125, x2: 470, y2: 170, color: '#00FF88' },
-                            { x1: 395, y1: 245, x2: 470, y2: 190, color: '#00FF88' }
-                        ];
-                        rivals = [
-                            { pos: 'POR', init: 'G.K', x0: 94, y0: 50, x1: 94, y1: 50 },
-                            { pos: 'DFC', init: 'R.4', x0: 84, y0: 34, x1: 82, y1: 36 },
-                            { pos: 'MCD', init: 'R.6', x0: 78, y0: 48, x1: 78, y1: 42 }
-                        ];
-                    } else if (momentKey === 'mid_block' || momentKey === 'wing_trap') {
-                        const shiftY = momentKey === 'wing_trap' ? -12 : 0;
-                        if (isGK) { nx = 10; ny = 50; }
-                        else {
-                            nx = Math.round(30 + (h.x - 20) * 0.58);
-                            ny = Math.min(88, Math.max(12, Math.round(50 + (h.y - 50) * 0.72 + shiftY)));
-                        }
-                        ballStart = { x: 64, y: momentKey === 'wing_trap' ? 24 : 50 };
-                        ballEnd = { x: 48, y: momentKey === 'wing_trap' ? 22 : 50 };
-                        zone = { cx: 290, cy: momentKey === 'wing_trap' ? 95 : 210, r: 48, color: '#38BDF8' };
-                        arrows = [
-                            { x1: 365, y1: 135, x2: 290, y2: momentKey === 'wing_trap' ? 95 : 185, color: '#38BDF8' },
-                            { x1: 365, y1: 285, x2: 290, y2: momentKey === 'wing_trap' ? 125 : 235, color: '#38BDF8' }
-                        ];
-                        rivals = [
-                            { pos: 'MCO', init: 'R.10', x0: 64, y0: 50, x1: 50, y1: 50 },
-                            { pos: 'EI', init: 'R.11', x0: 62, y0: 22, x1: 48, y1: 24 },
-                            { pos: 'ED', init: 'R.7', x0: 62, y0: 78, x1: 52, y1: 74 }
-                        ];
-                    } else if (momentKey === 'low_block') {
-                        if (isGK) { nx = 7; ny = 50; }
-                        else {
-                            nx = Math.max(15, Math.min(44, Math.round(14 + (h.x * 0.36))));
-                            ny = Math.round(50 + (h.y - 50) * 0.65);
-                        }
-                        ballStart = { x: 46, y: 50 };
-                        ballEnd = { x: 34, y: 46 };
-                        zone = { cx: 195, cy: 210, r: 52, color: '#38BDF8' };
-                        arrows = [
-                            { x1: 260, y1: 150, x2: 190, y2: 195, color: '#38BDF8' },
-                            { x1: 195, y1: 210, x2: 410, y2: 210, color: '#00FF88' }
-                        ];
-                        rivals = [
-                            { pos: 'DC', init: 'R.9', x0: 36, y0: 50, x1: 30, y1: 50 },
-                            { pos: 'MCO', init: 'R.10', x0: 46, y0: 46, x1: 36, y1: 46 },
-                            { pos: 'EI', init: 'R.11', x0: 42, y0: 22, x1: 32, y1: 26 },
-                            { pos: 'ED', init: 'R.7', x0: 42, y0: 78, x1: 32, y1: 74 }
-                        ];
-                    } else if (momentKey === 'corner_left' || momentKey === 'corner_right') {
-                        const isLeft = momentKey === 'corner_left';
-                        if (isGK) { nx = 12; ny = 50; }
-                        else if (idx === 1) { nx = 95; ny = isLeft ? 6 : 94; } // Lanzador
-                        else if (idx === 2) { nx = 84; ny = isLeft ? 18 : 82; } // Apoyo corto
-                        else if (idx <= 7) { nx = 84 + (idx % 3) * 3; ny = 36 + (idx - 3) * 7; } // Rematadores área
-                        else { nx = 64; ny = 30 + (idx - 8) * 18; } // Vigilancias rechace
-
-                        ballStart = { x: 96, y: isLeft ? 5 : 95 };
-                        ballEnd = { x: 88, y: isLeft ? 58 : 42 };
-                        zone = { cx: 525, cy: isLeft ? 245 : 175, r: 38, color: '#F59E0B' };
-                        arrows = [
-                            { x1: 575, y1: isLeft ? 22 : 398, x2: 525, y2: isLeft ? 245 : 175, color: '#F59E0B' },
-                            { x1: 445, y1: 165, x2: 525, y2: 175, color: '#00FF88' },
-                            { x1: 445, y1: 255, x2: 525, y2: 245, color: '#00FF88' }
-                        ];
-                        rivals = [
-                            { pos: 'POR', init: 'G.K', x0: 94, y0: 50, x1: 93, y1: 50 },
-                            { pos: 'DFC', init: 'M.1', x0: 88, y0: 44, x1: 88, y1: 44 },
-                            { pos: 'DFC', init: 'M.2', x0: 88, y0: 56, x1: 88, y1: 56 }
-                        ];
-                    } else if (momentKey === 'fk_close') {
-                        if (isGK) { nx = 12; ny = 50; }
-                        else if (idx === 1) { nx = 75; ny = 46; }
-                        else if (idx === 2) { nx = 74; ny = 54; }
-                        else if (idx <= 7) { nx = 84; ny = 28 + (idx - 3) * 11; }
-                        else { nx = 60; ny = 32 + (idx - 8) * 18; }
-
-                        ballStart = { x: 76, y: 47 };
-                        ballEnd = { x: 93, y: 38 };
-                        zone = { cx: 550, cy: 160, r: 34, color: '#F59E0B' };
-                        arrows = [
-                            { x1: 455, y1: 198, x2: 555, y2: 160, color: '#F59E0B' },
-                            { x1: 485, y1: 270, x2: 540, y2: 230, color: '#00FF88' }
-                        ];
-                        rivals = [
-                            { pos: 'POR', init: 'G.K', x0: 95, y0: 52, x1: 94, y1: 42 },
-                            { pos: 'BAR', init: 'B.1', x0: 84, y0: 45, x1: 84, y1: 45 },
-                            { pos: 'BAR', init: 'B.2', x0: 84, y0: 50, x1: 84, y1: 50 }
-                        ];
-                    } else if (momentKey === 'fk_side' || momentKey === 'fk_far') {
-                        const isSide = momentKey === 'fk_side';
-                        if (isGK) { nx = 12; ny = 50; }
-                        else if (idx === 1) { nx = isSide ? 76 : 62; ny = isSide ? 16 : 48; }
-                        else if (idx <= 7) { nx = 83; ny = 30 + (idx - 2) * 8; }
-                        else { nx = 56; ny = 30 + (idx - 8) * 18; }
-
-                        ballStart = { x: isSide ? 76 : 62, y: isSide ? 16 : 48 };
-                        ballEnd = { x: 87, y: 52 };
-                        zone = { cx: 520, cy: 215, r: 40, color: '#00FF88' };
-                        arrows = [
-                            { x1: isSide ? 455 : 372, y1: isSide ? 68 : 202, x2: 520, y2: 215, color: '#F59E0B' },
-                            { x1: 470, y1: 150, x2: 520, y2: 195, color: '#00FF88' },
-                            { x1: 470, y1: 265, x2: 520, y2: 230, color: '#00FF88' }
-                        ];
-                        rivals = [
-                            { pos: 'POR', init: 'G.K', x0: 94, y0: 50, x1: 93, y1: 50 },
-                            { pos: 'DFC', init: 'M.1', x0: 86, y0: 44, x1: 87, y1: 46 },
-                            { pos: 'DFC', init: 'M.2', x0: 86, y0: 56, x1: 87, y1: 56 }
-                        ];
-                    } else if (momentKey === 'def_corner') {
-                        if (isGK) { nx = 6; ny = 50; }
-                        else if (idx <= 8) { nx = 11 + (idx % 3) * 3; ny = 34 + (idx - 1) * 4; }
-                        else { nx = 44; ny = idx === 9 ? 32 : 68; }
-
-                        ballStart = { x: 5, y: 6 };
-                        ballEnd = { x: 46, y: 32 };
-                        zone = { cx: 275, cy: 135, r: 42, color: '#00FF88' };
-                        arrows = [
-                            { x1: 85, y1: 195, x2: 275, y2: 135, color: '#F59E0B' },
-                            { x1: 265, y1: 135, x2: 455, y2: 135, color: '#00FF88' }
-                        ];
-                        rivals = [
-                            { pos: 'COR', init: 'R.7', x0: 5, y0: 6, x1: 8, y1: 10 },
-                            { pos: 'DC', init: 'R.9', x0: 12, y0: 46, x1: 12, y1: 48 },
-                            { pos: 'DFC', init: 'R.4', x0: 14, y0: 56, x1: 13, y1: 54 }
-                        ];
-                    }
-
-                    return { x: Math.min(94, Math.max(6, nx)), y: Math.min(93, Math.max(7, ny)) };
-                });
-
-                return { baseHoriz, targetCoords: transformed, ballStart, ballEnd, zone, arrows, rivals };
-            }
-
-            window.updatePlayStyleSynergy = function (styleVal) {
-                if (typeof _nativeUpdatePlayStyle === 'function') _nativeUpdatePlayStyle(styleVal);
-                if (isStrategyViewActive && !manualMoveMode) {
-                    window.applyTacticalMomentPositioning(activeMomentKey);
-                }
-            };
-
-            // 7. Guardia de Táctica Manual Sin Guardar
-            window.guardUnsavedManualTactic = function (onConfirmCallback) {
-                if (!hasUnsavedManualTactic || (customManualVectors.length === 0 && manualUndoStack.length === 0)) {
-                    onConfirmCallback();
-                    return;
-                }
-                pendingDiscardCallback = onConfirmCallback;
-                let modal = document.getElementById('kinet-unsaved-tactic-modal');
-                if (!modal) {
-                    modal = document.createElement('div');
-                    modal.id = 'kinet-unsaved-tactic-modal';
-                    modal.className = 'kinet-modal-overlay';
-                    modal.innerHTML = `
-                        <div class="kinet-modal-box" style="max-width:430px;text-align:center;border-color:#F59E0B;">
-                            <div style="width:46px;height:46px;border-radius:14px;background:rgba(245,158,11,0.16);border:1px solid #F59E0B;display:flex;align-items:center;justify-content:center;font-size:1.35rem;margin:0 auto;">⚠️</div>
-                            <div style="font-family:'Orbitron';font-size:0.92rem;font-weight:900;color:#FFFFFF;">TÁCTICA MANUAL SIN GUARDAR</div>
-                            <p style="font-size:0.78rem;color:#CBD5E1;line-height:1.5;">
-                                Has trazado movimientos manuales en la pizarra. Si cambias de jugada o de vista sin guardar, <strong>se borrarán los movimientos actuales</strong>.
-                            </p>
-                            <div style="display:flex;gap:8px;justify-content:center;margin-top:6px;">
-                                <button type="button" class="btn-secondary" onclick="document.getElementById('kinet-unsaved-tactic-modal').classList.remove('open')">Cancelar y Seguir</button>
-                                <button type="button" class="btn-primary" style="background:linear-gradient(135deg,#EF4444,#DC2626);color:#FFF;" onclick="window.confirmDiscardManualTactic()">Continuar y Borrar</button>
-                            </div>
-                        </div>
-                    `;
-                    document.body.appendChild(modal);
-                }
-                modal.classList.add('open');
-            };
-
-            window.confirmDiscardManualTactic = function () {
-                document.getElementById('kinet-unsaved-tactic-modal')?.classList.remove('open');
-                hasUnsavedManualTactic = false;
-                customManualVectors = [];
-                manualUndoStack = [];
-                manualMoveMode = false;
-                if (typeof pendingDiscardCallback === 'function') {
-                    const cb = pendingDiscardCallback;
-                    pendingDiscardCallback = null;
-                    cb();
-                }
-            };
-
-            function loadSavedTacticsLibrary() {
-                const spKey = activeArenaSport.toLowerCase();
-                try {
-                    savedTacticsLibrary = JSON.parse(localStorage.getItem(`kinet_saved_tactics_${spKey}`) || '[]');
-                } catch (e) { savedTacticsLibrary = []; }
-                if (savedTacticsLibrary.length === 0) {
-                    savedTacticsLibrary = [
-                        { id: 'tac_1', title: 'Salida + Desmarque Exterior', category: 'train', momentKey: 'build_up', sport: activeArenaSport, notes: 'Salida limpia según formación y ruptura.' },
-                        { id: 'tac_2', title: 'Córner Izquierdo al 2º Palo', category: 'abp', momentKey: 'corner_left', sport: activeArenaSport, notes: 'Pantalla en primer palo y remate en segundo.' }
-                    ];
-                }
-            }
-
-            // 8. GIRO 3D PURO SIN APAGARSE Y RESTAURACIÓN LIMPIA DE CARTAS AL VOLVER A PLANTILLA
-            window.switchArenaSubMode = function (subMode) {
-                if (subMode === 'tactics' && !window.isStrictClubScoutTier()) {
-                    window.showClubScoutExclusiveLockModal('Suite de Estrategias Animadas IA & Pizarra Manual');
-                    return;
-                }
-                if ((subMode === 'tactics' && isStrategyViewActive) || (subMode === 'roster' && !isStrategyViewActive)) return;
-
-                window.guardUnsavedManualTactic(() => {
-                    executePure3DFlipTransition(subMode);
-                });
-            };
-
-            function executePure3DFlipTransition(subMode) {
-                const leftPanel = document.getElementById('view-arena-3d');
-                const rightPanel = document.querySelector('.col-4 > .kinet-panel');
-
-                if (leftPanel) leftPanel.classList.add('kinet-flip-stage-1');
-                if (rightPanel) rightPanel.classList.add('kinet-flip-stage-1');
-
-                setTimeout(() => {
-                    try {
-                        isStrategyViewActive = (subMode === 'tactics');
-                        document.getElementById('min-btn-roster')?.classList.toggle('active', !isStrategyViewActive);
-                        document.getElementById('min-btn-tactics')?.classList.toggle('active', isStrategyViewActive);
-
-                        const benchMaster = document.querySelector('.bench-reserve-master-box:not(#tactics-replace-deck)');
-                        const tacDeck = document.getElementById('tactics-replace-deck');
-                        const rightRosterBox = rightPanel ? rightPanel.querySelector(':scope > div:not(#right-strategy-command-panel)') : null;
-                        let rightStrategyBox = document.getElementById('right-strategy-command-panel');
-
-                        const formSelWrap = document.getElementById('tactical-formation-selector')?.closest('.kinet-custom-select-wrap');
-                        if (formSelWrap) {
-                            formSelWrap.style.opacity = isStrategyViewActive ? '0.45' : '1';
-                            formSelWrap.style.pointerEvents = isStrategyViewActive ? 'none' : 'auto';
-                        }
-
-                        const tokensLayer = document.getElementById('arena-tokens-layer');
-                        if (tokensLayer) tokensLayer.innerHTML = '';
-
-                        if (isStrategyViewActive) {
-                            leftPanel?.classList.add('strategy-horizontal-mode');
-                            document.getElementById('arena-svg-mount').innerHTML = buildHorizontalStrategySVG(activeArenaSport);
-
-                            if (benchMaster) benchMaster.style.display = 'none';
-                            if (tacDeck) tacDeck.style.display = 'block';
-
-                            if (rightRosterBox) rightRosterBox.style.display = 'none';
-                            if (!rightStrategyBox && rightPanel) {
-                                rightStrategyBox = document.createElement('div');
-                                rightStrategyBox.id = 'right-strategy-command-panel';
-                                rightPanel.insertBefore(rightStrategyBox, rightPanel.firstElementChild);
-                            }
-                            if (rightStrategyBox) rightStrategyBox.style.display = 'block';
-
-                            const catMoments = TACTICAL_MOMENTS_CATALOG[activeStrategyCategory] || TACTICAL_MOMENTS_CATALOG.train;
-                            activeMomentKey = catMoments[0].key;
-                            window.applyTacticalMomentPositioning(activeMomentKey);
-                            renderRightStrategyPanelContent();
-                            renderTacticsBottomDeck();
-                        } else {
-                            manualMoveMode = false;
-                            hasUnsavedManualTactic = false;
-                            customManualVectors = [];
-                            manualUndoStack = [];
-
-                            const cleanVert = getCleanVerticalFormationCoords();
-                            currentBoardSlots.forEach((s, i) => {
-                                if (cleanVert[i]) {
-                                    s.pos = cleanVert[i].pos;
-                                    s.x = cleanVert[i].x;
-                                    s.y = cleanVert[i].y;
-                                }
-                            });
-
-                            leftPanel?.classList.remove('strategy-horizontal-mode');
-                            document.getElementById('arena-svg-mount').innerHTML = buildProfessionalSportSVG(activeArenaSport);
-
-                            const svgL = document.getElementById('arena-vectors-svg-layer');
-                            if (svgL) svgL.innerHTML = '';
-                            const rivL = document.getElementById('arena-rivals-tokens-layer');
-                            if (rivL) rivL.innerHTML = '';
-
-                            if (tacDeck) tacDeck.style.display = 'none';
-                            if (benchMaster) benchMaster.style.display = 'block';
-                            if (rightStrategyBox) rightStrategyBox.style.display = 'none';
-                            if (rightRosterBox) rightRosterBox.style.display = 'block';
-
-                            window.renderBoardTokensAndMetrics(true);
-                        }
-                    } catch (err) {
-                        console.error('Error en cambio de vista:', err);
-                    } finally {
-                        [leftPanel, rightPanel].forEach(panel => {
-                            if (!panel) return;
-                            panel.classList.remove('kinet-flip-stage-1');
-                            panel.classList.add('kinet-flip-stage-2');
-                            requestAnimationFrame(() => {
-                                requestAnimationFrame(() => {
-                                    panel.classList.remove('kinet-flip-stage-2');
-                                    panel.classList.add('kinet-flip-stage-3');
-                                    setTimeout(() => {
-                                        panel.classList.remove('kinet-flip-stage-3');
-                                    }, 290);
-                                });
-                            });
-                        });
-                    }
-                }, 240);
-            }
-
-            // 9. Aplicar Momento Táctico
-            let currentComputedMomentData = null;
-
-            window.requestTacticalMoment = function (momentKey) {
-                window.guardUnsavedManualTactic(() => {
-                    manualMoveMode = false;
-                    window.applyTacticalMomentPositioning(momentKey);
-                });
-            };
-
-            window.applyTacticalMomentPositioning = function (momentKey) {
-                activeMomentKey = momentKey;
-                customManualVectors = [];
-                manualUndoStack = [];
-                hasUnsavedManualTactic = false;
-
-                const mData = computeFormationMomentCoordinates(momentKey);
-                currentComputedMomentData = mData;
-
-                currentBoardSlots.forEach((s, i) => {
-                    if (mData.baseHoriz[i]) {
-                        s.x = mData.baseHoriz[i].x;
-                        s.y = mData.baseHoriz[i].y;
-                    }
-                });
-                currentBallCoords = { ...mData.ballStart };
-                window.renderBoardTokensAndMetrics(false);
-                updateSportBallPosition(currentBallCoords.x, currentBallCoords.y);
-
-                setTimeout(() => {
-                    currentBoardSlots.forEach((s, i) => {
-                        if (mData.targetCoords[i]) {
-                            s.x = mData.targetCoords[i].x;
-                            s.y = mData.targetCoords[i].y;
-                        }
-                    });
-                    currentBallCoords = { ...mData.ballEnd };
-                    updateSportBallPosition(currentBallCoords.x, currentBallCoords.y);
-                    window.renderBoardTokensAndMetrics(false);
-                    paintCurrentMomentVectorsAndRivals();
-                }, 85);
-
-                const allMoments = TACTICAL_MOMENTS_CATALOG[activeStrategyCategory] || TACTICAL_MOMENTS_CATALOG.train;
-                const foundM = allMoments.find(m => m.key === momentKey) || allMoments[0];
-                const slotInd = document.getElementById('selected-slot-indicator');
-                if (slotInd && foundM) {
-                    slotInd.innerHTML = `🎬 <strong>[${currentPresetName}] ${foundM.label}:</strong> ${foundM.desc}`;
-                }
-                renderRightStrategyPanelContent();
-                renderTacticsBottomDeck();
-            };
-
-            function paintCurrentMomentVectorsAndRivals() {
-                const svgL = document.getElementById('arena-vectors-svg-layer');
-                const rivL = document.getElementById('arena-rivals-tokens-layer');
-                if (!svgL) return;
-
-                const mData = currentComputedMomentData || computeFormationMomentCoordinates(activeMomentKey);
-
-                const defs = `
-                    <defs>
-                        <marker id="mG" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#00FF88"/></marker>
-                        <marker id="mA" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#F59E0B"/></marker>
-                        <marker id="mB" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#38BDF8"/></marker>
-                    </defs>
-                `;
-                const zSvg = (!manualMoveMode && mData.zone)
-                    ? `<circle cx="${mData.zone.cx}" cy="${mData.zone.cy}" r="${mData.zone.r}" fill="${mData.zone.color}" class="kinet-zone-circle"/>`
-                    : '';
-                const baseArrows = manualMoveMode ? [] : (mData.arrows || []);
-                const allArrows = [...baseArrows, ...customManualVectors];
-                const aSvg = allArrows.map(a => {
-                    const m = a.color === '#F59E0B' ? 'mA' : (a.color === '#38BDF8' ? 'mB' : 'mG');
-                    return `<line x1="${a.x1}" y1="${a.y1}" x2="${a.x2}" y2="${a.y2}" stroke="${a.color}" stroke-width="2.8" class="kinet-laser-arrow" marker-end="url(#${m})"/>`;
-                }).join('');
-                svgL.innerHTML = defs + zSvg + aSvg;
-
-                if (rivL) {
-                    if (!rivalClashOn || !Array.isArray(mData.rivals)) {
-                        rivL.innerHTML = '';
-                    } else {
-                        rivL.innerHTML = mData.rivals.map((r, i) => `
-                            <div class="kinet-rival-horizontal-token" id="riv-h-node-${i}" style="left:${r.x0}%;top:${r.y0}%;">
-                                <span class="micro-token-initials">${r.init}</span>
-                                <span class="micro-token-pos-pill" style="background:#EF4444;color:#FFF;">${r.pos}</span>
-                            </div>
-                        `).join('');
-                        setTimeout(() => {
-                            mData.rivals.forEach((r, i) => {
-                                const el = document.getElementById(`riv-h-node-${i}`);
-                                if (el) { el.style.left = `${r.x1}%`; el.style.top = `${r.y1}%`; }
-                            });
-                        }, 80);
-                    }
-                }
-            }
-
-            // 10. Panel Derecho con las 3 Interfaces Personalizadas + Botón Deshacer (∞)
-            function renderRightStrategyPanelContent() {
-                const box = document.getElementById('right-strategy-command-panel');
-                if (!box) return;
-                loadSavedTacticsLibrary();
-
-                const activeSlot = currentBoardSlots[manualSelectedTokenIdx] || currentBoardSlots[0];
-                const activePlayerName = activeSlot && activeSlot.player ? activeSlot.player.name : (activeSlot ? activeSlot.pos : 'Jugador');
-                const momentsList = TACTICAL_MOMENTS_CATALOG[activeStrategyCategory] || TACTICAL_MOMENTS_CATALOG.train;
-
-                let categoryHeaderTitle = '📋 MOMENTO DE ENTRENAMIENTO (SEGÚN TU FORMACIÓN)';
-                let categoryBorderColor = 'rgba(0,255,136,0.38)';
-                if (activeStrategyCategory === 'rival') {
-                    categoryHeaderTitle = '⚔️ SITUACIÓN TÁCTICA FRENTE AL RIVAL';
-                    categoryBorderColor = 'rgba(239,68,68,0.42)';
-                } else if (activeStrategyCategory === 'abp') {
-                    categoryHeaderTitle = '🎯 ÁNGULO Y JUGADA A BALÓN PARADO (ABP)';
-                    categoryBorderColor = 'rgba(245,158,11,0.45)';
-                }
-
-                const momentsCardHtml = `
-                    <div style="background:rgba(4,6,10,0.85);border:1px solid ${categoryBorderColor};border-radius:13px;padding:10px 11px;margin-bottom:9px;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <span style="font-family:'JetBrains Mono';font-size:0.57rem;color:var(--role-color);font-weight:700;">${categoryHeaderTitle}</span>
-                        </div>
-                        <div class="moment-grid-pills">
-                            ${momentsList.map(m => `
-                                <button type="button" class="tactics-deck-pill ${(!manualMoveMode && activeMomentKey === m.key) ? 'active' : ''}" style="text-align:left;overflow:hidden;text-overflow:ellipsis;" onclick="window.requestTacticalMoment('${m.key}')">
-                                    ${m.label}
-                                </button>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-
-                const manualCreatorCardHtml = `
-                    <div style="background:rgba(4,6,10,0.88);border:1px solid ${manualMoveMode ? '#F59E0B' : 'var(--border-subtle)'};border-radius:13px;padding:10px 11px;margin-bottom:9px;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;gap:4px;">
-                            <span style="font-family:'JetBrains Mono';font-size:0.57rem;color:${manualMoveMode ? '#F59E0B' : 'var(--text-secondary)'};font-weight:700;">
-                                ✋ PIZARRA MANUAL (${activeSlot ? activeSlot.pos : 'JUG'}: ${activePlayerName.split(' ')[0]})
-                            </span>
-                            <div style="display:flex;gap:4px;">
-                                <button type="button" class="tactics-deck-pill" style="padding:4px 8px;font-size:0.55rem;border-color:${manualUndoStack.length > 0 ? '#38BDF8' : 'rgba(255,255,255,0.1)'};color:${manualUndoStack.length > 0 ? '#38BDF8' : '#64748B'};" onclick="window.undoLastManualMovement()" title="Deshacer último movimiento sin límite">
-                                    ↩️ Deshacer (${manualUndoStack.length})
-                                </button>
-                                <button type="button" class="tactics-deck-pill ${manualMoveMode ? 'manual-on' : ''}" style="padding:4px 8px;font-size:0.55rem;" onclick="window.toggleManualMoveCreator()">
-                                    ${manualMoveMode ? '● Manual ON' : '✋ Activar'}
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="manual-action-toggle">
-                            <button type="button" class="manual-act-btn ${manualMoveSubType === 'offball' ? 'active-run' : ''}" onclick="window.setManualMoveSubType('offball')">
-                                🏃 Mover Jugador (Sin Balón)
-                            </button>
-                            <button type="button" class="manual-act-btn ${manualMoveSubType === 'onball' ? 'active-ball' : ''}" onclick="window.setManualMoveSubType('onball')">
-                                ⚽ Pase / Tiro (Con Balón)
-                            </button>
-                        </div>
-
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
-                            <button type="button" class="btn-secondary" style="padding:5px 6px;font-size:0.56rem;" onclick="window.applyQuickPresetMovement('desmarque')">🏃↗️ Desmarque Sin Balón</button>
-                            <button type="button" class="btn-secondary" style="padding:5px 6px;font-size:0.56rem;" onclick="window.applyQuickPresetMovement('apoyo')">🏃↙️ Apoyo Sin Balón</button>
-                            <button type="button" class="btn-secondary" style="padding:5px 6px;font-size:0.56rem;" onclick="window.applyQuickPresetMovement('pase')">⚽🎯 Enviar Pase Balón</button>
-                            <button type="button" class="btn-secondary" style="padding:5px 6px;font-size:0.56rem;" onclick="window.clearManualVectorsOnly()">🗑️ Limpiar Todo</button>
-                        </div>
-                    </div>
-                `;
-
-                const filteredLibrary = savedTacticsLibrary.filter(t => !t.category || t.category === activeStrategyCategory);
-                const listToRender = filteredLibrary.length > 0 ? filteredLibrary : savedTacticsLibrary;
-
-                box.innerHTML = `
-                    <div class="right-panel-tabs" style="margin-bottom:8px;">
-                        <button type="button" class="right-tab-btn ${activeStrategyCategory === 'train' ? 'active' : ''}" onclick="window.setStrategyCategory('train')">📋 Entrenar</button>
-                        <button type="button" class="right-tab-btn ${activeStrategyCategory === 'rival' ? 'active' : ''}" onclick="window.setStrategyCategory('rival')">⚔️ Vs Rival</button>
-                        <button type="button" class="right-tab-btn ${activeStrategyCategory === 'abp' ? 'active' : ''}" onclick="window.setStrategyCategory('abp')">🎯 Balón Parado</button>
-                    </div>
-
-                    ${momentsCardHtml}
-                    ${manualCreatorCardHtml}
-
-                    <div style="background:rgba(4,6,10,0.82);border:1px solid var(--border-subtle);border-radius:12px;padding:8px 10px;margin-bottom:8px;">
-                        <input type="text" id="custom-tactic-title-input" class="kinet-input" style="margin-bottom:6px;padding:6px 9px;font-size:0.7rem;" placeholder="Escribe nombre para tu jugada (ej: Córner al 2º Palo)...">
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                            <button type="button" class="btn-primary" style="padding:7px;font-size:0.61rem;" onclick="window.saveCurrentTacticalPlay()">💾 Guardar Jugada</button>
-                            <button type="button" class="btn-secondary" style="padding:7px;font-size:0.61rem;border-color:var(--role-color);color:var(--role-color);" onclick="window.shareTacticalPlayToCommunity()">🌐 Compartir</button>
-                        </div>
-                    </div>
-
-                    <div style="max-height:95px;overflow-y:auto;">
-                        ${listToRender.map((t, idx) => `
-                            <div class="roster-candidate-item" style="padding:6px 9px;margin-bottom:4px;" onclick="window.loadSavedTacticFromLibrary(${idx})">
-                                <div style="min-width:0;">
-                                    <div style="font-weight:800;font-size:0.71rem;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🎬 ${t.title}</div>
-                                    <div style="font-size:0.58rem;color:var(--role-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.notes}</div>
-                                </div>
-                                <span style="font-family:'JetBrains Mono';font-size:0.56rem;color:#38BDF8;flex-shrink:0;">▶ Cargar</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-            }
-
-            function renderTacticsBottomDeck() {
-                const tacDeck = document.getElementById('tactics-replace-deck');
-                if (!tacDeck) return;
-                const momentsList = TACTICAL_MOMENTS_CATALOG[activeStrategyCategory] || TACTICAL_MOMENTS_CATALOG.train;
-
-                tacDeck.innerHTML = `
-                    <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
-                        <div style="display:flex;gap:5px;flex-wrap:wrap;">
-                            ${momentsList.map(m => `
-                                <button type="button" class="tactics-deck-pill ${(!manualMoveMode && activeMomentKey === m.key) ? 'active' : ''}" onclick="window.requestTacticalMoment('${m.key}')">
-                                    ${m.label}
-                                </button>
-                            `).join('')}
-                        </div>
-                        <div style="display:flex;gap:5px;align-items:center;">
-                            <button type="button" class="tactics-deck-pill" style="border-color:${manualUndoStack.length > 0 ? '#38BDF8' : 'rgba(255,255,255,0.12)'};color:${manualUndoStack.length > 0 ? '#38BDF8' : '#94A3B8'};" onclick="window.undoLastManualMovement()">
-                                ↩️ Deshacer (${manualUndoStack.length})
-                            </button>
-                            <button type="button" class="tactics-deck-pill ${rivalClashOn ? 'clash-on' : ''}" onclick="window.toggleRivalClashOnBoard()">
-                                ⚔️ Rival: ${rivalClashOn ? 'ON' : 'OFF'}
-                            </button>
-                            <button type="button" class="tactics-deck-pill" onclick="window.requestResetBoardPositions()">
-                                ↺ Base
-                            </button>
-                        </div>
-                    </div>
-                    <div style="display:flex;gap:8px;align-items:center;">
-                        <input type="text" id="tactical-ai-prompt-input" class="kinet-input" style="padding:7px 11px;font-size:0.71rem;" placeholder="Pide una situación a la IA (ej: salida de balón, contraataque, córner derecho, falta cercana)..." onkeydown="if(event.key==='Enter') window.runAiTacticalPrompt()">
-                        <button type="button" class="btn-primary" style="padding:7px 13px;font-size:0.65rem;white-space:nowrap;" onclick="window.runAiTacticalPrompt()">Animar IA ⚡</button>
-                    </div>
-                `;
-            }
-
-            window.setManualMoveSubType = function (subType) {
-                manualMoveSubType = subType;
-                if (!manualMoveMode) manualMoveMode = true;
-                renderRightStrategyPanelContent();
-                renderTacticsBottomDeck();
-            };
-
-            window.clearManualVectorsOnly = function () {
-                pushUndoSnapshot();
-                customManualVectors = [];
-                hasUnsavedManualTactic = false;
-                paintCurrentMomentVectorsAndRivals();
-                renderRightStrategyPanelContent();
-                renderTacticsBottomDeck();
-            };
-
-            window.setStrategyCategory = function (cat) {
-                if (cat === activeStrategyCategory) return;
-                window.guardUnsavedManualTactic(() => {
-                    activeStrategyCategory = cat;
-                    manualMoveMode = false;
-                    rivalClashOn = (cat === 'rival' || cat === 'abp');
-                    const catMoments = TACTICAL_MOMENTS_CATALOG[cat] || TACTICAL_MOMENTS_CATALOG.train;
-                    activeMomentKey = catMoments[0].key;
-                    window.applyTacticalMomentPositioning(activeMomentKey);
-                });
-            };
-
-            window.requestResetBoardPositions = function () {
-                window.guardUnsavedManualTactic(() => {
-                    window.resetTacticalBoardPositions();
-                });
-            };
-
-            function ensureSportBallMounted() {
-                const surface = document.getElementById('arena-3d-surface');
-                if (!surface) return null;
-                let ball = document.getElementById('kinet-sport-ball-token');
-                if (!ball) {
-                    ball = document.createElement('div');
-                    ball.id = 'kinet-sport-ball-token';
-                    surface.appendChild(ball);
-                }
-                const iconMap = { 'Fútbol': '⚽', 'Baloncesto': '🏀', 'Pádel / Tenis': '🎾', 'Boxeo / MMA': '🥊', 'Running': '⏱️' };
-                ball.textContent = iconMap[activeArenaSport] || '⚽';
-                return ball;
-            }
-
-            function updateSportBallPosition(px, py) {
-                const ball = ensureSportBallMounted();
-                if (!ball) return;
-                ball.style.left = `${px}%`;
-                ball.style.top = `${py}%`;
-            }
-
-            window.toggleManualMoveCreator = function () {
-                manualMoveMode = !manualMoveMode;
-                if (manualMoveMode) {
-                    const svgL = document.getElementById('arena-vectors-svg-layer');
-                    if (svgL && customManualVectors.length === 0) svgL.innerHTML = '';
-                }
-                renderRightStrategyPanelContent();
-                renderTacticsBottomDeck();
-                window.renderBoardTokensAndMetrics(false);
-            };
-
-            function bindSurfaceManualClick() {
-                const surface = document.getElementById('arena-3d-surface');
-                if (!surface || surface._manualClickBoundV14) return;
-                surface._manualClickBoundV14 = true;
-
-                surface.addEventListener('click', (e) => {
-                    if (!isStrategyViewActive || !manualMoveMode) return;
-                    if (e.target.closest('.tactical-node-token')) return;
-
-                    const idx = manualSelectedTokenIdx >= 0 ? manualSelectedTokenIdx : (activeSelection.index || 0);
-                    const slot = currentBoardSlots[idx];
-                    if (!slot) return;
-
-                    const rect = surface.getBoundingClientRect();
-                    const targetX = Math.min(94, Math.max(6, Math.round(((e.clientX - rect.left) / rect.width) * 100)));
-                    const targetY = Math.min(92, Math.max(8, Math.round(((e.clientY - rect.top) / rect.height) * 100)));
-
-                    pushUndoSnapshot();
-                    hasUnsavedManualTactic = true;
-                    const pName = slot.player ? slot.player.name : slot.pos;
-
-                    if (manualMoveSubType === 'offball') {
-                        customManualVectors.push({
-                            x1: Math.round((slot.x / 100) * 600),
-                            y1: Math.round((slot.y / 100) * 420),
-                            x2: Math.round((targetX / 100) * 600),
-                            y2: Math.round((targetY / 100) * 420),
-                            color: '#00FF88'
-                        });
-                        slot.x = targetX;
-                        slot.y = targetY;
-                        const msg = `Desmarque SIN BALÓN de [${slot.pos}] ${pName} hacia (${targetX}%, ${targetY}%).`;
-                        document.getElementById('ai-board-diagnosis').innerHTML = `🧠 <strong>IA Táctica:</strong> ${msg}`;
-                        localStorage.setItem('kinet_last_manual_tactical_move', msg);
-                    } else {
-                        customManualVectors.push({
-                            x1: Math.round((currentBallCoords.x / 100) * 600),
-                            y1: Math.round((currentBallCoords.y / 100) * 420),
-                            x2: Math.round((targetX / 100) * 600),
-                            y2: Math.round((targetY / 100) * 420),
-                            color: '#F59E0B'
-                        });
-                        currentBallCoords = { x: targetX, y: targetY };
-                        updateSportBallPosition(targetX, targetY);
-                        const msg = `Envío de BALÓN / PASE hacia zona (${targetX}%, ${targetY}%).`;
-                        document.getElementById('ai-board-diagnosis').innerHTML = `🧠 <strong>IA Táctica:</strong> ${msg}`;
-                        localStorage.setItem('kinet_last_manual_tactical_move', msg);
-                    }
-
-                    window.renderBoardTokensAndMetrics(false);
-                    paintCurrentMomentVectorsAndRivals();
-                    renderRightStrategyPanelContent();
-                    renderTacticsBottomDeck();
-                });
-            }
-
-            window.applyQuickPresetMovement = function (type) {
-                if (!manualMoveMode) manualMoveMode = true;
-                pushUndoSnapshot();
-                hasUnsavedManualTactic = true;
-
-                const idx = manualSelectedTokenIdx >= 0 ? manualSelectedTokenIdx : (activeSelection.index || 0);
-                const slot = currentBoardSlots[idx];
-                if (!slot) return;
-
-                const oldX = slot.x, oldY = slot.y;
-                if (type === 'desmarque') {
-                    const nx = Math.min(92, oldX + 18);
-                    const ny = oldY < 50 ? Math.max(12, oldY + 8) : Math.min(88, oldY - 8);
-                    customManualVectors.push({
-                        x1: Math.round((oldX / 100) * 600), y1: Math.round((oldY / 100) * 420),
-                        x2: Math.round((nx / 100) * 600), y2: Math.round((ny / 100) * 420),
-                        color: '#00FF88'
-                    });
-                    slot.x = nx; slot.y = ny;
-                } else if (type === 'apoyo') {
-                    const nx = Math.max(12, oldX - 15);
-                    customManualVectors.push({
-                        x1: Math.round((oldX / 100) * 600), y1: Math.round((oldY / 100) * 420),
-                        x2: Math.round((nx / 100) * 600), y2: Math.round((oldY / 100) * 420),
-                        color: '#38BDF8'
-                    });
-                    slot.x = nx;
-                } else if (type === 'pase') {
-                    const bx = Math.min(90, slot.x + 20);
-                    const by = slot.y < 50 ? 75 : 25;
-                    customManualVectors.push({
-                        x1: Math.round((currentBallCoords.x / 100) * 600), y1: Math.round((currentBallCoords.y / 100) * 420),
-                        x2: Math.round((bx / 100) * 600), y2: Math.round((by / 100) * 420),
-                        color: '#F59E0B'
-                    });
-                    currentBallCoords = { x: bx, y: by };
-                    updateSportBallPosition(bx, by);
-                }
-
-                renderRightStrategyPanelContent();
-                renderTacticsBottomDeck();
-                window.renderBoardTokensAndMetrics(false);
-                paintCurrentMomentVectorsAndRivals();
-            };
-
-            window.saveCurrentTacticalPlay = function () {
-                const nameBox = document.getElementById('custom-tactic-title-input');
-                let title = (nameBox ? nameBox.value : '').trim();
-                if (!title) {
-                    title = prompt('Escribe un nombre para guardar esta jugada táctica:', `${currentPresetName} • Jugada Personalizada`) || '';
-                }
-                if (!title.trim()) return;
-
-                loadSavedTacticsLibrary();
-                savedTacticsLibrary.unshift({
-                    id: 'tac_' + Date.now(),
-                    title: title.trim(),
-                    category: activeStrategyCategory,
-                    momentKey: activeMomentKey,
-                    sport: activeArenaSport,
-                    notes: `${currentPresetName} (${customManualVectors.length} mov. trazados)`,
-                    ballCoords: { ...currentBallCoords },
-                    slotsSnapshot: JSON.parse(JSON.stringify(currentBoardSlots)),
-                    vectorsSnapshot: JSON.parse(JSON.stringify(customManualVectors))
-                });
-                const spKey = activeArenaSport.toLowerCase();
-                localStorage.setItem(`kinet_saved_tactics_${spKey}`, JSON.stringify(savedTacticsLibrary));
-                if (nameBox) nameBox.value = '';
-                hasUnsavedManualTactic = false;
-                manualUndoStack = [];
-                renderRightStrategyPanelContent();
-                renderTacticsBottomDeck();
-            };
-
-            window.loadSavedTacticFromLibrary = function (idx) {
-                window.guardUnsavedManualTactic(() => {
-                    const filtered = savedTacticsLibrary.filter(t => !t.category || t.category === activeStrategyCategory);
-                    const list = filtered.length > 0 ? filtered : savedTacticsLibrary;
-                    const item = list[idx];
-                    if (!item) return;
-
-                    manualUndoStack = [];
-                    hasUnsavedManualTactic = false;
-
-                    if (Array.isArray(item.slotsSnapshot) && item.slotsSnapshot.length === currentBoardSlots.length) {
-                        currentBoardSlots = JSON.parse(JSON.stringify(item.slotsSnapshot));
-                        customManualVectors = Array.isArray(item.vectorsSnapshot) ? JSON.parse(JSON.stringify(item.vectorsSnapshot)) : [];
-                        if (item.ballCoords) {
-                            currentBallCoords = { ...item.ballCoords };
-                            updateSportBallPosition(currentBallCoords.x, currentBallCoords.y);
-                        }
-                        window.renderBoardTokensAndMetrics(false);
-                        paintCurrentMomentVectorsAndRivals();
-                    } else if (item.momentKey) {
-                        window.applyTacticalMomentPositioning(item.momentKey);
-                    }
-                    const slotInd = document.getElementById('selected-slot-indicator');
-                    if (slotInd) slotInd.innerHTML = `🎬 <strong>Jugada Cargada:</strong> ${item.title} — ${item.notes}`;
-                });
-            };
-
-            window.shareTacticalPlayToCommunity = async function () {
-                const nameBox = document.getElementById('custom-tactic-title-input');
-                const title = (nameBox && nameBox.value.trim()) ? nameBox.value.trim() : `${currentPresetName} • Pizarra Animada`;
-                const myName = localStorage.getItem('kinet_user_name') || 'Entrenador KINET';
-                const myHandle = localStorage.getItem('kinet_social_handle') || '@kinet_coach';
-
-                const postObj = {
-                    id: 'tac_post_' + Date.now(),
-                    author: myName,
-                    handle: myHandle.startsWith('@') ? myHandle : `@${myHandle}`,
-                    role: activeRoleKey,
-                    sport: activeArenaSport,
-                    mode: 'post',
-                    badge: 'PIZARRA INTERACTIVA // JUGADA IA',
-                    text: `🏟️ [JUGADA TÁCTICA COMPARTIDA — ${activeArenaSport.toUpperCase()}]: "${title}" (${currentPresetName}). Otros entrenadores pueden cargarla y reproducir los movimientos en su Analizador 3D.`,
-                    likes: 1
-                };
-                if (window.KinetBackend && typeof window.KinetBackend.createCloudPost === 'function') {
-                    await window.KinetBackend.createCloudPost(postObj);
-                }
-                hasUnsavedManualTactic = false;
-                alert(`✓ Jugada "${title}" compartida en Comunidad KINET.`);
-            };
-
-            // 11. Tercera Barra de Cuerpo Técnico (6) y Conmutador Atleta/Staff
-            function initStaffSlotsForSport() {
+            function initStaffSlots() {
                 const stCfg = getStaffCfg(activeArenaSport);
                 const spKey = activeArenaSport.toLowerCase();
                 try {
                     const saved = JSON.parse(localStorage.getItem(`kinet_staff_bench_slots_${spKey}`) || 'null');
-                    if (Array.isArray(saved) && saved.length === stCfg.slots.length) {
-                        window.staffSlots = saved;
-                        return;
-                    }
+                    if (Array.isArray(saved) && saved.length === stCfg.slots.length) { window.staffSlots = saved; return; }
                 } catch (e) {}
-                window.staffSlots = stCfg.slots.map(roleName => ({ pos: roleName, player: null }));
+                window.staffSlots = stCfg.slots.map(r => ({ pos: r, player: null }));
             }
-
-            function mountThirdStaffBenchBarAndBuilderToggle() {
-                initStaffSlotsForSport();
-
-                const pillsBox = document.querySelector('.deck-mode-pills');
-                if (pillsBox && !document.getElementById('pill-show-staff')) {
-                    const staffBtn = document.createElement('button');
-                    staffBtn.type = 'button';
-                    staffBtn.className = 'deck-mode-pill';
-                    staffBtn.id = 'pill-show-staff';
-                    staffBtn.onclick = () => window.switchBenchReserveView('staff');
-                    staffBtn.innerHTML = `👔 Cuerpo Técnico (<span id="staff-count-num">${window.staffSlots.length}</span>)`;
-                    pillsBox.appendChild(staffBtn);
-                }
-
-                const track = document.getElementById('bench-reserve-slider-track');
-                if (track && !document.getElementById('staff-slots-slide-page')) {
-                    track.style.width = '300%';
-                    Array.from(track.children).forEach(ch => { ch.style.width = '33.3333%'; });
-
-                    const reservePage = track.children[1];
-                    if (reservePage && !reservePage.querySelector('.to-staff-arrow')) {
-                        const toStaffBtn = document.createElement('button');
-                        toStaffBtn.type = 'button';
-                        toStaffBtn.className = 'cassette-arrow-btn to-staff-arrow';
-                        toStaffBtn.style.cssText = 'border-color:rgba(245,158,11,0.5);color:#F59E0B;';
-                        toStaffBtn.title = 'Deslizar a Cuerpo Técnico';
-                        toStaffBtn.textContent = '▶';
-                        toStaffBtn.onclick = () => window.switchBenchReserveView('staff');
-                        reservePage.appendChild(toStaffBtn);
-                    }
-
-                    const staffPage = document.createElement('div');
-                    staffPage.className = 'bench-reserve-slide-page';
-                    staffPage.id = 'staff-slots-slide-page';
-                    staffPage.style.width = '33.3333%';
-                    staffPage.innerHTML = `
-                        <button type="button" class="cassette-arrow-btn" style="border-color:rgba(245,158,11,0.5);color:#F59E0B;" onclick="switchBenchReserveView('reserve')" title="Volver a Reserva">◀</button>
-                        <div class="cassette-slots-grid" id="staff-slots-container"></div>
-                    `;
-                    track.appendChild(staffPage);
-                }
-
-                const builderView = document.getElementById('rview-builder');
-                const bannerEl = document.getElementById('builder-mode-banner');
-                if (builderView && bannerEl && !document.getElementById('builder-entity-toggle')) {
-                    const toggleRow = document.createElement('div');
-                    toggleRow.id = 'builder-entity-toggle';
-                    toggleRow.className = 'source-subtoggle';
-                    toggleRow.style.marginBottom = '8px';
-                    toggleRow.innerHTML = `
-                        <button type="button" class="source-subbtn active" id="btn-build-athlete" onclick="window.setBuilderEntityMode('athlete')">
-                            🏃 Atleta / Jugador
-                        </button>
-                        <button type="button" class="source-subbtn" id="btn-build-staff" onclick="window.setBuilderEntityMode('staff')">
-                            👔 Cuerpo Técnico / Staff
-                        </button>
-                    `;
-                    bannerEl.parentElement.insertAdjacentElement('beforebegin', toggleRow);
-                }
-            }
-
-            window.switchBenchReserveView = function (targetDeck) {
-                const track = document.getElementById('bench-reserve-slider-track');
-                const pillBench = document.getElementById('pill-show-bench');
-                const pillRes = document.getElementById('pill-show-reserve');
-                const pillStaff = document.getElementById('pill-show-staff');
-                const hint = document.getElementById('deck-slide-hint');
-                if (!track) return;
-
-                track.classList.remove('show-reserve');
-                pillBench?.classList.remove('active-bench');
-                pillRes?.classList.remove('active-reserve');
-                if (pillStaff) {
-                    pillStaff.style.background = 'transparent';
-                    pillStaff.style.color = 'var(--text-secondary)';
-                    pillStaff.style.boxShadow = 'none';
-                }
-
-                if (targetDeck === 'reserve') {
-                    track.style.transform = 'translateX(-33.3333%)';
-                    pillRes?.classList.add('active-reserve');
-                    if (hint) hint.textContent = 'Pulsa ◀ Banquillo o ▶ Cuerpo Técnico';
-                } else if (targetDeck === 'staff') {
-                    track.style.transform = 'translateX(-66.6666%)';
-                    if (pillStaff) {
-                        pillStaff.style.background = 'linear-gradient(135deg, #F59E0B, #D97706)';
-                        pillStaff.style.color = '#04060A';
-                        pillStaff.style.boxShadow = '0 0 12px rgba(245, 158, 11, 0.4)';
-                    }
-                    if (hint) hint.textContent = '👔 Selecciona un puesto técnico para asignar especialista';
-                } else {
-                    track.style.transform = 'translateX(0%)';
-                    pillBench?.classList.add('active-bench');
-                    if (hint) hint.textContent = 'Pulsa ▶ para deslizar a Reserva o Cuerpo Técnico';
-                }
-            };
 
             window.getSlotArrayByGroup = function (groupKey) {
                 if (groupKey === 'staff') return window.staffSlots;
                 return typeof _nativeGetSlotArr === 'function' ? _nativeGetSlotArr(groupKey) : currentBoardSlots;
             };
 
+            window.switchBenchReserveView = function (targetDeck) {
+                const track = document.getElementById('bench-reserve-slider-track');
+                const pillBench = document.getElementById('pill-show-bench');
+                const pillRes = document.getElementById('pill-show-reserve');
+                const pillStaff = document.getElementById('pill-show-staff');
+                if (!track) return;
+                track.classList.remove('show-reserve');
+                pillBench?.classList.remove('active-bench');
+                pillRes?.classList.remove('active-reserve');
+                if (pillStaff) { pillStaff.style.background = 'transparent'; pillStaff.style.color = 'var(--text-secondary)'; }
+
+                if (targetDeck === 'reserve') {
+                    track.style.transform = 'translateX(-33.3333%)';
+                    pillRes?.classList.add('active-reserve');
+                } else if (targetDeck === 'staff') {
+                    track.style.transform = 'translateX(-66.6666%)';
+                    if (pillStaff) { pillStaff.style.background = 'linear-gradient(135deg, #F59E0B, #D97706)'; pillStaff.style.color = '#04060A'; }
+                } else {
+                    track.style.transform = 'translateX(0%)';
+                    pillBench?.classList.add('active-bench');
+                }
+            };
+
             window.setBuilderEntityMode = function (mode) {
                 builderEntityType = mode === 'staff' ? 'staff' : 'athlete';
                 document.getElementById('btn-build-athlete')?.classList.toggle('active', builderEntityType === 'athlete');
                 document.getElementById('btn-build-staff')?.classList.toggle('active', builderEntityType === 'staff');
-
-                const nameInp = document.getElementById('custom-p-name');
                 const posSel = document.getElementById('custom-p-pos');
-                const bannerEl = document.getElementById('builder-mode-banner');
                 const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
                 const stCfg = getStaffCfg(activeArenaSport);
-
                 if (builderEntityType === 'staff') {
-                    if (bannerEl) bannerEl.textContent = '👔 CREAR O CALIBRAR CUERPO TÉCNICO (50-99)';
-                    if (nameInp) nameInp.placeholder = 'Nombre del entrenador, fisio, prep. físico...';
-                    const staffProfessions = Object.keys(stCfg.skills);
-                    if (posSel) {
-                        posSel.innerHTML = staffProfessions.map(prof => `<option value="${prof}">${prof}</option>`).join('');
-                        window.updateBuilderSlidersForPosition(staffProfessions[0]);
-                    }
+                    const profs = Object.keys(stCfg.skills);
+                    if (posSel) { posSel.innerHTML = profs.map(p => `<option value="${p}">${p}</option>`).join(''); window.updateBuilderSlidersForPosition(profs[0]); }
                 } else {
-                    if (bannerEl) bannerEl.textContent = '🏃 CREAR O CALIBRAR ATLETA / JUGADOR (50-99)';
-                    if (nameInp) nameInp.placeholder = 'Nombre del jugador...';
-                    if (posSel) {
-                        posSel.innerHTML = cfg.positions.map(p => `<option value="${p}">${p}</option>`).join('');
-                        window.updateBuilderSlidersForPosition(cfg.positions[0]);
-                    }
+                    if (posSel) { posSel.innerHTML = cfg.positions.map(p => `<option value="${p}">${p}</option>`).join(''); window.updateBuilderSlidersForPosition(cfg.positions[0]); }
                 }
                 refreshAllCustomKinetSelects();
             };
@@ -6826,34 +5646,23 @@
             window.updateBuilderSlidersForPosition = function (posName) {
                 const stCfg = getStaffCfg(activeArenaSport);
                 if (builderEntityType === 'staff' && stCfg.skills[posName]) {
-                    const skillLabels = stCfg.skills[posName];
                     const box = document.getElementById('builder-sliders-box');
                     if (box) {
-                        box.innerHTML = skillLabels.map((lbl, idx) => {
-                            const val = builderSliderValues[idx] || 82;
-                            return `
-                                <div class="custom-slider-row">
-                                    <div class="custom-slider-head">
-                                        <span>${lbl}</span>
-                                        <strong style="color:#F59E0B;" id="bslider-val-${idx}">${val}</strong>
-                                    </div>
-                                    <input type="range" min="50" max="99" value="${val}" class="kinet-range-slider" oninput="onBuilderSliderMove(${idx}, this.value)">
-                                </div>
-                            `;
-                        }).join('');
+                        box.innerHTML = stCfg.skills[posName].map((lbl, idx) => `
+                            <div class="custom-slider-row">
+                                <div class="custom-slider-head"><span>${lbl}</span><strong style="color:#F59E0B;" id="bslider-val-${idx}">${builderSliderValues[idx] || 82}</strong></div>
+                                <input type="range" min="50" max="99" value="${builderSliderValues[idx] || 82}" class="kinet-range-slider" oninput="onBuilderSliderMove(${idx}, this.value)">
+                            </div>
+                        `).join('');
                         recalcBuilderLiveGrl();
-                        refreshAllCustomKinetSelects();
                     }
                     return;
                 }
                 if (typeof _nativeUpdateSliders === 'function') _nativeUpdateSliders(posName);
             };
 
-            // 12. Renderizado Unificado (Micro-Fichas en Estrategias vs Cartas Completas en Plantilla)
-            window.renderBoardTokensAndMetrics = function (shouldPersist = true) {
-                const allowPersist = shouldPersist && !isStrategyViewActive;
-                if (typeof _nativeRenderBoard === 'function') _nativeRenderBoard(allowPersist);
-
+            window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63 = function (shouldPersist = true) {
+                if (typeof _nativeRenderBoard === 'function') _nativeRenderBoard(shouldPersist);
                 const layer = document.getElementById('arena-tokens-layer');
                 if (!layer) return;
 
@@ -6863,73 +5672,20 @@
                         const isSel = activeSelection.group === 'staff' && activeSelection.index === idx;
                         const p = slot.player;
                         return `
-                            <div class="bench-slot-pill ${p ? 'filled' : ''} ${isSel ? 'selected-slot' : ''}" style="${p ? 'border-color:rgba(245,158,11,0.65);background:linear-gradient(160deg,rgba(245,158,11,0.16),rgba(8,12,20,0.95));' : ''}" onclick="selectAnySlot('staff', ${idx}, event)">
+                            <div class="bench-slot-pill ${p ? 'filled' : ''} ${isSel ? 'selected-slot' : ''}" onclick="selectAnySlot('staff', ${idx}, event)">
                                 ${p ? `<button type="button" onclick="quickRemoveSlotPlayer('staff', ${idx}, event)" style="position:absolute;top:2px;right:3px;background:none;border:none;color:#EF4444;font-size:0.55rem;font-weight:900;cursor:pointer;">✕</button>` : ''}
-                                <div style="font-family:'JetBrains Mono';font-size:0.49rem;color:#F59E0B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${slot.pos} ${p ? '• <strong>' + (p.grl || '??') + '</strong>' : ''}</div>
-                                <div style="font-size:0.61rem;font-weight:800;color:${p ? 'white' : '#F59E0B'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">
-                                    ${p ? p.name.split(' ')[0] : '+ Asignar'}
-                                </div>
+                                <div style="font-family:'JetBrains Mono';font-size:0.49rem;color:#F59E0B;">${slot.pos} ${p ? '• <strong>' + (p.grl || '??') + '</strong>' : ''}</div>
+                                <div style="font-size:0.61rem;font-weight:800;color:${p ? 'white' : '#F59E0B'};margin-top:2px;">${p ? p.name.split(' ')[0] : '+ Asignar'}</div>
                             </div>
                         `;
                     }).join('');
                 }
 
-                if (isStrategyViewActive) {
-                    currentBoardSlots.forEach((slot, idx) => {
-                        const tokenEl = layer.children[idx];
-                        if (!tokenEl) return;
-                        const p = slot.player;
-                        const isManualSel = (manualSelectedTokenIdx === idx);
-
-                        tokenEl.className = `tactical-node-token ${isManualSel ? 'manual-selected-token' : ''}`;
-                        tokenEl.style.left = `${slot.x}%`;
-                        tokenEl.style.top = `${slot.y}%`;
-
-                        const hasPhoto = tokenVisualMode === 'photos' && p && p.avatar;
-                        tokenEl.style.backgroundImage = hasPhoto ? `url('${p.avatar}')` : '';
-                        const initialsText = p ? getMicroTokenInitials(p.name) : slot.pos;
-
-                        tokenEl.innerHTML = `
-                            ${hasPhoto ? '' : `<span class="micro-token-initials">${initialsText}</span>`}
-                            <span class="micro-token-pos-pill">${slot.pos}</span>
-                        `;
-                        tokenEl.onclick = (ev) => {
-                            ev.stopPropagation();
-                            if (manualMoveMode && manualMoveSubType === 'onball' && manualSelectedTokenIdx !== idx) {
-                                pushUndoSnapshot();
-                                hasUnsavedManualTactic = true;
-                                customManualVectors.push({
-                                    x1: Math.round((currentBallCoords.x / 100) * 600),
-                                    y1: Math.round((currentBallCoords.y / 100) * 420),
-                                    x2: Math.round((slot.x / 100) * 600),
-                                    y2: Math.round((slot.y / 100) * 420),
-                                    color: '#F59E0B'
-                                });
-                                currentBallCoords = { x: slot.x, y: slot.y };
-                                updateSportBallPosition(slot.x, slot.y);
-                                manualSelectedTokenIdx = idx;
-                                paintCurrentMomentVectorsAndRivals();
-                                renderRightStrategyPanelContent();
-                                renderTacticsBottomDeck();
-                                window.renderBoardTokensAndMetrics(false);
-                                return;
-                            }
-                            manualSelectedTokenIdx = idx;
-                            activeSelection = { group: 'board', index: idx };
-                            renderRightStrategyPanelContent();
-                            window.renderBoardTokensAndMetrics(false);
-                        };
-                    });
-                    return;
-                }
-
                 currentBoardSlots.forEach((slot, idx) => {
                     const tokenEl = layer.children[idx];
                     if (!tokenEl) return;
-                    tokenEl.style.backgroundImage = '';
                     const isSel = activeSelection.group === 'board' && activeSelection.index === idx;
                     const p = slot.player;
-
                     if (!p && isSel) {
                         tokenEl.innerHTML = `
                             <div class="mini-fifa-header" style="justify-content:center;border-bottom:none;margin-bottom:2px;">
@@ -6959,192 +5715,98 @@
             window.renderDuel1v1View = function () {
                 const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
                 const pA = duelFighterA || getMyUserPlayerObject();
-                const origLabels = [...cfg.statLabels];
+                const orig = [...cfg.statLabels];
                 cfg.statLabels = window.getPositionSpecificShortLabels(activeArenaSport, pA.pos);
                 if (typeof _nativeRenderDuel === 'function') _nativeRenderDuel();
-                cfg.statLabels = origLabels;
+                cfg.statLabels = orig;
             };
 
             window.renderMirrorSelfView = function () {
                 const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
                 const me = getMyUserPlayerObject();
-                const origLabels = [...cfg.statLabels];
+                const orig = [...cfg.statLabels];
                 cfg.statLabels = window.getPositionSpecificShortLabels(activeArenaSport, me.pos);
                 if (typeof _nativeRenderMirror === 'function') _nativeRenderMirror();
-                cfg.statLabels = origLabels;
+                cfg.statLabels = orig;
             };
 
-            // 13. Licencia y Controles Inferiores
-            window.isStrictClubScoutTier = function () {
-                const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase().trim();
-                return tier === 'club';
-            };
-
-            window.showClubScoutExclusiveLockModal = function (featureTitle) {
-                let modal = document.getElementById('kinet-club-lock-modal');
-                if (!modal) {
-                    modal = document.createElement('div');
-                    modal.id = 'kinet-club-lock-modal';
-                    modal.className = 'kinet-modal-overlay';
-                    modal.innerHTML = `
-                        <div class="kinet-modal-box" style="max-width:440px;text-align:center;border-color:#F59E0B;">
-                            <div style="width:48px;height:48px;border-radius:14px;background:rgba(245,158,11,0.15);border:1px solid #F59E0B;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin:0 auto;">🔒</div>
-                            <div style="font-family:'Orbitron';font-size:0.95rem;font-weight:900;color:#FFFFFF;" id="club-lock-modal-title">FUNCIÓN EXCLUSIVA CLUB & SCOUT PRO</div>
-                            <p style="font-size:0.78rem;color:#CBD5E1;line-height:1.55;" id="club-lock-modal-desc"></p>
-                            <div style="display:flex;gap:8px;justify-content:center;margin-top:4px;">
-                                <button type="button" class="btn-secondary" onclick="document.getElementById('kinet-club-lock-modal').classList.remove('open')">Cerrar</button>
-                                <a href="despacho.html?tab=subscription" class="btn-primary" style="background:linear-gradient(135deg,#F59E0B,#D97706);color:#04060A;text-decoration:none;">Desbloquear Club & Scout (29,99€) →</a>
-                            </div>
-                        </div>
-                    `;
-                    document.body.appendChild(modal);
+            function mountUI() {
+                if (sessionStorage.getItem('kinet_flip_transition') === 'from_strategies') {
+                    sessionStorage.removeItem('kinet_flip_transition');
+                    document.getElementById('view-arena-3d')?.classList.add('kinet-page-flip-in');
+                    document.querySelector('.col-4 > .kinet-panel')?.classList.add('kinet-page-flip-in');
                 }
-                document.getElementById('club-lock-modal-title').textContent = `🔒 ${featureTitle.toUpperCase()}`;
-                document.getElementById('club-lock-modal-desc').innerHTML = `
-                    Esta suite táctica está reservada exclusivamente para la licencia <strong>Club & Scout Pro (29,99€/mes)</strong>.
-                `;
-                modal.classList.add('open');
-            };
 
-            window.toggleRivalClashOnBoard = function () {
-                rivalClashOn = !rivalClashOn;
-                paintCurrentMomentVectorsAndRivals();
-                renderTacticsBottomDeck();
-            };
-
-            window.resetTacticalBoardPositions = function () {
-                customManualVectors = [];
-                manualUndoStack = [];
-                hasUnsavedManualTactic = false;
-                if (isStrategyViewActive) {
-                    const cleanVert = getCleanVerticalFormationCoords();
-                    currentBoardSlots.forEach((s, i) => {
-                        if (cleanVert[i]) {
-                            const h = verticalToHorizontalCoords(cleanVert[i].x, cleanVert[i].y);
-                            s.x = h.x;
-                            s.y = h.y;
-                        }
-                    });
-                    currentBallCoords = { x: 45, y: 50 };
-                    updateSportBallPosition(45, 50);
-                }
-                const svgL = document.getElementById('arena-vectors-svg-layer');
-                if (svgL) svgL.innerHTML = '';
-                const rivL = document.getElementById('arena-rivals-tokens-layer');
-                if (rivL) rivL.innerHTML = '';
-                window.renderBoardTokensAndMetrics(false);
-                renderRightStrategyPanelContent();
-                renderTacticsBottomDeck();
-            };
-
-            window.runAiTacticalPrompt = function () {
-                const inp = document.getElementById('tactical-ai-prompt-input');
-                const q = (inp ? inp.value : '').toLowerCase();
-                if (inp) inp.value = '';
-                window.guardUnsavedManualTactic(() => {
-                    manualMoveMode = false;
-                    if (q.includes('salida')) {
-                        activeStrategyCategory = 'train';
-                        window.applyTacticalMomentPositioning('build_up');
-                    } else if (q.includes('contra')) {
-                        activeStrategyCategory = 'train';
-                        window.applyTacticalMomentPositioning('counter_attack');
-                    } else if (q.includes('bajo') || q.includes('repliegue')) {
-                        activeStrategyCategory = 'rival';
-                        window.applyTacticalMomentPositioning('low_block');
-                    } else if (q.includes('presion') || q.includes('presión') || q.includes('perdida')) {
-                        activeStrategyCategory = 'rival';
-                        window.applyTacticalMomentPositioning('gegenpress');
-                    } else if (q.includes('derech')) {
-                        activeStrategyCategory = 'abp';
-                        window.applyTacticalMomentPositioning('corner_right');
-                    } else if (q.includes('corner') || q.includes('córner') || q.includes('izquierd')) {
-                        activeStrategyCategory = 'abp';
-                        window.applyTacticalMomentPositioning('corner_left');
-                    } else if (q.includes('cercan') || q.includes('frontal') || q.includes('tiro libre')) {
-                        activeStrategyCategory = 'abp';
-                        window.applyTacticalMomentPositioning('fk_close');
-                    } else if (q.includes('lejan')) {
-                        activeStrategyCategory = 'abp';
-                        window.applyTacticalMomentPositioning('fk_far');
-                    } else if (q.includes('falta') || q.includes('lateral')) {
-                        activeStrategyCategory = 'abp';
-                        window.applyTacticalMomentPositioning('fk_side');
-                    } else {
-                        activeStrategyCategory = 'train';
-                        window.applyTacticalMomentPositioning('positional_attack');
-                    }
-                });
-            };
-
-            function mountMinimalHeaderAndLayers() {
                 const subtitleEl = document.getElementById('arena-panel-subtitle');
                 if (subtitleEl && !document.getElementById('minimal-arena-switcher')) {
-                    const parentDiv = subtitleEl.parentElement;
                     const switchWrap = document.createElement('div');
                     switchWrap.style.cssText = 'display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:3px;';
                     switchWrap.innerHTML = `
                         <div class="minimal-mode-switch" id="minimal-arena-switcher">
-                            <button type="button" class="minimal-mode-btn active" id="min-btn-roster" onclick="window.switchArenaSubMode('roster')">
-                                👥 Gestionar Plantilla
-                            </button>
-                            <button type="button" class="minimal-mode-btn" id="min-btn-tactics" onclick="window.switchArenaSubMode('tactics')">
-                                🎬 Jugadas & Estrategias IA <span id="tactics-lock-icon" style="font-size:0.55rem;">${window.isStrictClubScoutTier() ? '✓' : '🔒'}</span>
+                            <button type="button" class="minimal-mode-btn active">👥 Gestionar Plantilla</button>
+                            <button type="button" class="minimal-mode-btn" onclick="window.goToStrategiesPage()">
+                                🎬 Jugadas & Estrategias IA <span style="font-size:0.55rem;">${window.isStrictClubScoutTier() ? '✓' : '🔒'}</span>
                             </button>
                         </div>
                     `;
-                    parentDiv.insertBefore(switchWrap, subtitleEl);
+                    subtitleEl.parentElement.insertBefore(switchWrap, subtitleEl);
                     subtitleEl.style.display = 'none';
                 }
 
-                const surface = document.getElementById('arena-3d-surface');
-                if (surface && !document.getElementById('arena-vectors-svg-layer')) {
-                    const svgL = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                    svgL.setAttribute('id', 'arena-vectors-svg-layer');
-                    svgL.setAttribute('viewBox', '0 0 600 420');
-                    svgL.setAttribute('preserveAspectRatio', 'none');
-                    surface.appendChild(svgL);
-
-                    const rivL = document.createElement('div');
-                    rivL.id = 'arena-rivals-tokens-layer';
-                    rivL.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:27;';
-                    surface.appendChild(rivL);
+                initStaffSlots();
+                const pillsBox = document.querySelector('.deck-mode-pills');
+                if (pillsBox && !document.getElementById('pill-show-staff')) {
+                    const staffBtn = document.createElement('button');
+                    staffBtn.type = 'button';
+                    staffBtn.className = 'deck-mode-pill';
+                    staffBtn.id = 'pill-show-staff';
+                    staffBtn.onclick = () => window.switchBenchReserveView('staff');
+                    staffBtn.innerHTML = `👔 Cuerpo Técnico (<span>${window.staffSlots.length}</span>)`;
+                    pillsBox.appendChild(staffBtn);
+                }
+                const track = document.getElementById('bench-reserve-slider-track');
+                if (track && !document.getElementById('staff-slots-slide-page')) {
+                    track.style.width = '300%';
+                    Array.from(track.children).forEach(ch => { ch.style.width = '33.3333%'; });
+                    const staffPage = document.createElement('div');
+                    staffPage.className = 'bench-reserve-slide-page';
+                    staffPage.id = 'staff-slots-slide-page';
+                    staffPage.style.width = '33.3333%';
+                    staffPage.innerHTML = `<button type="button" class="cassette-arrow-btn" onclick="switchBenchReserveView('reserve')">◀</button><div class="cassette-slots-grid" id="staff-slots-container"></div>`;
+                    track.appendChild(staffPage);
                 }
 
-                const benchMaster = document.querySelector('.bench-reserve-master-box');
-                if (benchMaster && !document.getElementById('tactics-replace-deck')) {
-                    const tacDeck = document.createElement('div');
-                    tacDeck.id = 'tactics-replace-deck';
-                    tacDeck.className = 'bench-reserve-master-box';
-                    tacDeck.style.display = 'none';
-                    benchMaster.insertAdjacentElement('afterend', tacDeck);
+                const bannerEl = document.getElementById('builder-mode-banner');
+                if (bannerEl && !document.getElementById('builder-entity-toggle')) {
+                    const toggleRow = document.createElement('div');
+                    toggleRow.id = 'builder-entity-toggle';
+                    toggleRow.className = 'source-subtoggle';
+                    toggleRow.innerHTML = `
+                        <button type="button" class="source-subbtn active" id="btn-build-athlete" onclick="window.setBuilderEntityMode('athlete')">🏃 Atleta / Jugador</button>
+                        <button type="button" class="source-subbtn" id="btn-build-staff" onclick="window.setBuilderEntityMode('staff')">👔 Cuerpo Técnico / Staff</button>
+                    `;
+                    bannerEl.parentElement.insertAdjacentElement('beforebegin', toggleRow);
                 }
 
-                mountThirdStaffBenchBarAndBuilderToggle();
-                ensureSportBallMounted();
-                bindSurfaceManualClick();
-
-                const cleanVert = getCleanVerticalFormationCoords();
+                // Reparar coordenadas si habían quedado horizontales
+                const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
+                const cleanVert = cfg.presets[currentPresetName] || Object.values(cfg.presets)[0];
                 if (Array.isArray(currentBoardSlots) && currentBoardSlots.length === cleanVert.length) {
-                    const porSlot = currentBoardSlots[0];
-                    if (porSlot && porSlot.pos === 'POR' && porSlot.y < 75) {
-                        currentBoardSlots.forEach((s, i) => {
-                            s.x = cleanVert[i].x;
-                            s.y = cleanVert[i].y;
-                        });
+                    if (currentBoardSlots[0] && currentBoardSlots[0].pos === 'POR' && currentBoardSlots[0].y < 75) {
+                        currentBoardSlots.forEach((s, i) => { s.x = cleanVert[i].x; s.y = cleanVert[i].y; });
                     }
                     currentBoardSlots.forEach(s => {
                         if (s.pos === 'POR' && s.y < 89) s.y = 90;
                         if (s.pos === 'DFC' && s.y > 68) s.y = 67;
                     });
                 }
-                window.renderBoardTokensAndMetrics(true);
+                window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(true);
             }
 
             if (document.readyState === 'loading') {
-                window.addEventListener('DOMContentLoaded', () => setTimeout(mountMinimalHeaderAndLayers, 130));
+                window.addEventListener('DOMContentLoaded', () => setTimeout(mountUI, 100));
             } else {
-                setTimeout(mountMinimalHeaderAndLayers, 50);
+                setTimeout(mountUI, 40);
             }
         })();
     </script>
