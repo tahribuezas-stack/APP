@@ -5439,22 +5439,23 @@
                 }
             }
         };
- // =========================================================================
-        // CONECTOR LIGERO V2 ANALIZADOR.HTML <-> ANALIZADOR2.HTML
-        // - Casillas "STAFF 1..6" a secas (el rol lo determina el perfil asignado)
-        // - Selección e iluminación real al pulsar cualquier casilla de Staff
-        // - Giro 3D real (@keyframes con !important) al pasar de Plantilla a Estrategias
+// =========================================================================
+        // CONECTOR LIGERO V3 ANALIZADOR.HTML <-> ANALIZADOR2.HTML (BLINDADO CONTRA CORRUPCIÓN DE NOMBRES)
+        // - Selecciona e ilumina al instante Plantilla (11), Banquillo, Reserva y Staff
+        // - Casillas "STAFF" a secas (el rol lo determina el perfil asignado)
+        // - Cortina animada del Míster al pasar entre Plantilla y Estrategias
         // =========================================================================
-        (function applyKinetAnalyzerConnectorV2() {
-            if (window._kinetConnectorV2Loaded) return;
-            window._kinetConnectorV2Loaded = true;
+        (function applyKinetAnalyzerConnectorV3() {
+            if (window._kinetConnectorV3Loaded) return;
+            window._kinetConnectorV3Loaded = true;
 
-            const _nativeRenderBoard = window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63;
+            // Nombres de función blindados en dos partes para evitar que el portapapeles los reemplace
+            const FN_RENDER_BOARD = 'renderBoard' + 'TokensAndMetrics';
+            const _nativeRenderBoard = window[FN_RENDER_BOARD];
             const _nativeRenderDuel = window.renderDuel1v1View;
             const _nativeRenderMirror = window.renderMirrorSelfView;
             const _nativeUpdateSliders = window.updateBuilderSlidersForPosition;
             const _nativeGetSlotArr = window.getSlotArrayByGroup;
-            const _nativeSelectAnySlot = window.selectAnySlot;
             const _nativeQuickRemove = window.quickRemoveSlotPlayer;
             const _nativeAssignPlayer = window.assignOrComparePlayer;
 
@@ -5505,7 +5506,7 @@
                 return cfg.statLabels;
             };
 
-            // 3. CSS de Selección y Giro 3D Real (vence al transform:none !important de applyFinalAnalyzerFixes)
+            // 3. CSS de Selección de Casillas
             const connStyle = document.createElement('style');
             connStyle.textContent = `
                 .cassette-slots-grid { padding: 8px 4px !important; }
@@ -5525,23 +5526,6 @@
                     background: rgba(var(--role-rgb), 0.26) !important;
                     box-shadow: 0 0 16px var(--role-glow) !important;
                     transform: translateY(-2px) scale(1.04) !important;
-                }
-                .bento-grid { perspective: 2000px !important; }
-                @keyframes kinetFlipOutToStrategies {
-                    0% { transform: perspective(1800px) rotateY(0deg) scale(1); opacity: 1; }
-                    100% { transform: perspective(1800px) rotateY(88deg) scale(0.96); opacity: 0; }
-                }
-                @keyframes kinetFlipInFromStrategies {
-                    0% { transform: perspective(1800px) rotateY(-88deg) scale(0.96); opacity: 0; }
-                    100% { transform: perspective(1800px) rotateY(0deg) scale(1); opacity: 1; }
-                }
-                #view-arena-3d.kinet-page-flip-out,
-                .col-4 > .kinet-panel.kinet-page-flip-out {
-                    animation: kinetFlipOutToStrategies 0.34s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
-                }
-                #view-arena-3d.kinet-page-flip-in,
-                .col-4 > .kinet-panel.kinet-page-flip-in {
-                    animation: kinetFlipInFromStrategies 0.36s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
                 }
                 .minimal-mode-switch {
                     display: inline-flex; background: rgba(4, 6, 10, 0.95);
@@ -5567,20 +5551,20 @@
                 return tier === 'club';
             };
 
-          function triggerFunnyTacticalCurtain(titleTxt, subTxt, targetUrl) {
+            function triggerFunnyTacticalCurtain(titleTxt, subTxt, targetUrl) {
                 let curtain = document.getElementById('kinet-funny-curtain');
                 if (!curtain) {
                     curtain = document.createElement('div');
                     curtain.id = 'kinet-funny-curtain';
-                    curtain.style.cssText = 'position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 50% 50%, #0A1912 0%, #04060A 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;opacity:0;pointer-events:none;transition:opacity 0.22s ease;';
+                    curtain.style.cssText = 'position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 50% 50%, rgba(var(--role-rgb),0.18) 0%, #04060A 85%);backdrop-filter:blur(18px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;opacity:0;pointer-events:none;transition:opacity 0.24s ease;';
                     curtain.innerHTML = `
                         <style>
                             @keyframes kinetSpinBall { 0% { transform: scale(0.5) rotate(0deg); } 60% { transform: scale(1.18) rotate(220deg); } 100% { transform: scale(1) rotate(360deg); } }
                             @keyframes kinetWhistleBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
                         </style>
-                        <div style="font-size:3.6rem;animation:kinetSpinBall 0.45s cubic-bezier(0.16,1,0.3,1) forwards;filter:drop-shadow(0 0 25px var(--role-color));" id="curtain-icon">📋</div>
+                        <div style="font-size:3.6rem;animation:kinetSpinBall 0.45s cubic-bezier(0.16,1,0.3,1) forwards;filter:drop-shadow(0 0 25px var(--role-color));">📋</div>
                         <div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:#FFFFFF;letter-spacing:0.08em;text-align:center;animation:kinetWhistleBounce 0.6s infinite;" id="curtain-title"></div>
-                        <div style="font-family:'JetBrains Mono',monospace;font-size:0.74rem;color:var(--role-color);background:rgba(0,255,136,0.1);border:1px solid var(--role-color);padding:6px 14px;border-radius:99px;" id="curtain-sub"></div>
+                        <div style="font-family:'JetBrains Mono',monospace;font-size:0.74rem;color:var(--role-color);background:rgba(var(--role-rgb),0.12);border:1px solid var(--role-color);padding:6px 14px;border-radius:99px;" id="curtain-sub"></div>
                     `;
                     document.body.appendChild(curtain);
                 }
@@ -5589,7 +5573,7 @@
                 curtain.style.pointerEvents = 'all';
                 requestAnimationFrame(() => { curtain.style.opacity = '1'; });
                 if (targetUrl) {
-                    setTimeout(() => { window.location.href = targetUrl; }, 340);
+                    setTimeout(() => { window.location.href = targetUrl; }, 320);
                 }
             }
 
@@ -5624,15 +5608,6 @@
                     'Girando el estadio en horizontal y colocando los conos...',
                     `analizador2.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`
                 );
-            };
-                saveCustomAndShortlistData();
-                saveStaffSlotsToStorage();
-                sessionStorage.setItem('kinet_flip_transition', 'to_strategies');
-                document.getElementById('view-arena-3d')?.classList.add('kinet-page-flip-out');
-                document.querySelector('.col-4 > .kinet-panel')?.classList.add('kinet-page-flip-out');
-                setTimeout(() => {
-                    window.location.href = `analizador2.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`;
-                }, 330);
             };
 
             // 4. Tercera Barra Cuerpo Técnico con etiquetas "STAFF 1" a "STAFF 6"
@@ -5669,7 +5644,7 @@
                 if (group === 'bench') window.switchBenchReserveView('bench');
                 else if (group === 'reserve') window.switchBenchReserveView('reserve');
                 else if (group === 'staff') window.switchBenchReserveView('staff');
-                window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
+                window[FN_RENDER_BOARD](false);
             };
 
             window.quickRemoveSlotPlayer = function (group, index, event) {
@@ -5679,7 +5654,7 @@
                         window.staffSlots[index].player = null;
                         activeSelection = { group: 'staff', index };
                         saveStaffSlotsToStorage();
-                        window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(true);
+                        window[FN_RENDER_BOARD](true);
                     }
                     return;
                 }
@@ -5701,7 +5676,7 @@
                     window.staffSlots[sIdx].player = { ...playerObj };
                     saveStaffSlotsToStorage();
                     window.switchBenchReserveView('staff');
-                    window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(true);
+                    window[FN_RENDER_BOARD](true);
                     renderRightRosterList();
                     return;
                 }
@@ -5763,7 +5738,7 @@
                 if (typeof _nativeUpdateSliders === 'function') _nativeUpdateSliders(posName);
             };
 
-            window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63 = function (shouldPersist = true) {
+            window[FN_RENDER_BOARD] = function (shouldPersist = true) {
                 if (typeof _nativeRenderBoard === 'function') _nativeRenderBoard(shouldPersist);
                 const layer = document.getElementById('arena-tokens-layer');
                 if (!layer) return;
@@ -5789,7 +5764,6 @@
                     }).join('');
                 }
 
-                // Actualizar texto de puesto activo cuando se selecciona una casilla de STAFF
                 if (activeSelection.group === 'staff') {
                     const activeSlot = window.staffSlots[activeSelection.index];
                     const indEl = document.getElementById('selected-slot-indicator');
@@ -5855,12 +5829,6 @@
             };
 
             function mountUI() {
-                if (sessionStorage.getItem('kinet_flip_transition') === 'from_strategies') {
-                    sessionStorage.removeItem('kinet_flip_transition');
-                    document.getElementById('view-arena-3d')?.classList.add('kinet-page-flip-in');
-                    document.querySelector('.col-4 > .kinet-panel')?.classList.add('kinet-page-flip-in');
-                }
-
                 const subtitleEl = document.getElementById('arena-panel-subtitle');
                 if (subtitleEl && !document.getElementById('minimal-arena-switcher')) {
                     const switchWrap = document.createElement('div');
@@ -5922,7 +5890,7 @@
                     bannerEl.parentElement.insertAdjacentElement('beforebegin', toggleRow);
                 }
 
-                window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(true);
+                window[FN_RENDER_BOARD](true);
             }
 
             if (document.readyState === 'loading') {
