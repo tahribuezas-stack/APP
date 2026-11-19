@@ -19,18 +19,9 @@
   // ==========================================================================
   // Ensamblaje en tiempo de ejecución para que GitHub Push Protection no bloquee el commit
   function resolveRuntimeVaultKey() {
+    // La clave ya NO viaja en el código: cada usuario pega la suya en el botón "API IA".
     const saved = localStorage.getItem('kinet_gemini_api_key');
-    if (saved && saved.trim().length > 10) return saved.trim();
-    try {
-      const p1 = 'QVEuQWI4Uk42TGY1VU9raXNn';
-      const p2 = 'VFV3VEIwVlJ0eVdqU29nU2ZY';
-      const p3 = 'cXpIamh5OXE3NmNtWHJlWWc=';
-      const decoded = atob(p1 + p2 + p3);
-      localStorage.setItem('kinet_gemini_api_key', decoded);
-      return decoded;
-    } catch (e) {
-      return '';
-    }
+    return (saved && saved.trim().length > 10) ? saved.trim() : '';
   }
 
   const DEFAULT_INSTALLED_API_KEY = resolveRuntimeVaultKey();
@@ -96,6 +87,7 @@
       tierName: 'Plan Gratuito',
       priceMonthly: 0,
       dailyChatMessages: 15,
+      dailyImageGenerations: 3,
       dailyRoutineTemplates: 1,
       monthlyVideoMinutes: 0,
       bonusDiscountPct: 0,
@@ -108,7 +100,8 @@
     pro: {
       tierName: 'Pro Player',
       priceMonthly: 8.99,
-      dailyChatMessages: 250,
+      dailyChatMessages: 100,
+      dailyImageGenerations: 30,
       dailyRoutineTemplates: 999,
       monthlyVideoMinutes: 90,
       bonusDiscountPct: 50,
@@ -121,7 +114,8 @@
     club: {
       tierName: 'Club & Scout Pro',
       priceMonthly: 29.99,
-      dailyChatMessages: 600,
+      dailyChatMessages: 300,
+      dailyImageGenerations: 100,
       dailyRoutineTemplates: 999,
       monthlyVideoMinutes: 300,
       bonusDiscountPct: 50,
@@ -137,6 +131,18 @@
   // 3. ESQUEMA MULTIDEPORTE PARA LOS 5 MOTORES DE IA
   // ==========================================================================
   const SPORT_AI_SCHEMA = {
+    'Otros Deportes': {
+      cardStats: ['VEL', 'FZA', 'TEC', 'RES', 'TAC', 'MEN'],
+      videoBlocks: [
+        'Ejecución Técnica Principal (3-5 min)',
+        'Situación de Competición Real (3-5 min)',
+        'Movilidad y Desplazamientos (3-5 min)',
+        'Gesto Diferencial / Punto Fuerte (3-5 min)'
+      ],
+      metricsLabels: ['PRECISIÓN TÉCNICA', 'VELOCIDAD / POTENCIA', 'LECTURA DEL JUEGO', 'IMPACTO EN MEDIA'],
+      defaultBars: ['Calidad del gesto técnico', 'Coordinación y equilibrio', 'Toma de decisiones', 'Consistencia bajo presión'],
+      arenaName: 'Espacio de Competición'
+    },
     'Fútbol': {
       cardStats: ['PAC', 'SHO', 'PAS', 'DRI', 'DEF', 'PHY'],
       videoBlocks: [
@@ -271,17 +277,17 @@ REGLA DE CONVERSACIÓN: Si el usuario saluda o hace una pregunta casual ("hola",
     const role = localStorage.getItem('kinet_active_role') || 'athlete';
     const userName = localStorage.getItem('kinet_user_name') || 'Atleta KINET';
     const firstName = userName.trim().split(/\s+/)[0] || 'Crack';
-    const userPos = localStorage.getItem('kinet_position') || 'Delantero Centro / Nueve (DC)';
-    const userClub = localStorage.getItem('kinet_user_club') || 'KINET Performance';
-    const userCategory = localStorage.getItem('kinet_user_category') || 'Senior';
-    const city = localStorage.getItem('kinet_user_city') || 'España';
-    const anthro = localStorage.getItem('kinet_user_anthropometry') ||
-                   `${localStorage.getItem('kinet_height') || '178 cm'} • ${localStorage.getItem('kinet_weight') || '72.5 kg'}`;
-    const laterality = localStorage.getItem('kinet_user_laterality') || 'Diestro';
+    const userPos = localStorage.getItem('kinet_position') || 'no registrada';
+    const userClub = localStorage.getItem('kinet_user_club') || 'no registrado';
+    const userCategory = localStorage.getItem('kinet_user_category') || 'no registrada';
+    const city = localStorage.getItem('kinet_user_city') || 'no registrada';
+    const _h = localStorage.getItem('kinet_height'), _w = localStorage.getItem('kinet_weight');
+    const anthro = localStorage.getItem('kinet_user_anthropometry') || ((_h || _w) ? [_h, _w].filter(Boolean).join(' • ') : 'no registrada');
+    const laterality = localStorage.getItem('kinet_user_laterality') || 'no registrada';
     const schema = SPORT_AI_SCHEMA[sport] || SPORT_AI_SCHEMA['Fútbol'];
 
-    let cardStats = [90, 88, 84, 89, 82, 87];
-    let grl = 87;
+    let cardStats = null;
+    let grl = null;
     try {
       const parsedStats = JSON.parse(localStorage.getItem('kinet_custom_card_stats') || 'null');
       if (Array.isArray(parsedStats) && parsedStats.length === 6) {
@@ -290,15 +296,18 @@ REGLA DE CONVERSACIÓN: Si el usuario saluda o hace una pregunta casual ("hola",
       }
     } catch (e) {}
 
-    const formattedStats = schema.cardStats.map((lbl, idx) => `${lbl}: ${cardStats[idx]}`).join(' | ');
+    const hasCard = Array.isArray(cardStats);
+    const formattedStats = hasCard ? schema.cardStats.map((lbl, idx) => `${lbl}: ${cardStats[idx]}`).join(' | ') : 'carta sin calibrar todavía';
     let lowestStatIdx = 0;
     let highestStatIdx = 0;
-    cardStats.forEach((v, i) => {
-      if (v < cardStats[lowestStatIdx]) lowestStatIdx = i;
-      if (v > cardStats[highestStatIdx]) highestStatIdx = i;
-    });
-    const bestStatLabel = `${schema.cardStats[highestStatIdx]} (${cardStats[highestStatIdx]})`;
-    const weakestStatLabel = `${schema.cardStats[lowestStatIdx]} (${cardStats[lowestStatIdx]})`;
+    if (hasCard) {
+      cardStats.forEach((v, i) => {
+        if (v < cardStats[lowestStatIdx]) lowestStatIdx = i;
+        if (v > cardStats[highestStatIdx]) highestStatIdx = i;
+      });
+    }
+    const bestStatLabel = hasCard ? `${schema.cardStats[highestStatIdx]} (${cardStats[highestStatIdx]})` : 'sin datos';
+    const weakestStatLabel = hasCard ? `${schema.cardStats[lowestStatIdx]} (${cardStats[lowestStatIdx]})` : 'sin datos';
 
     let lastClipInfo = 'Ningún vídeo subido aún en esta sesión';
     try {
@@ -308,7 +317,7 @@ REGLA DE CONVERSACIÓN: Si el usuario saluda o hace una pregunta casual ("hola",
       }
     } catch (e) {}
 
-    let boardSummary = '4-3-3 Ofensivo';
+    let boardSummary = 'sin pizarra guardada';
     try {
       const b = JSON.parse(localStorage.getItem('kinet_active_tactical_board_summary') || 'null');
       if (b && b.formation) {
@@ -322,7 +331,35 @@ REGLA DE CONVERSACIÓN: Si el usuario saluda o hace una pregunta casual ("hola",
       if (Array.isArray(tacs)) savedTacticsCount = tacs.length;
     } catch (e) {}
 
+    const dayOk = localStorage.getItem('kinet_daily_log_date') === getTodayLocalKey();
+    const dv = (k, suf) => { const v = localStorage.getItem(k); return (dayOk && v) ? v + suf : null; };
+    const dlParts = [['Sueño', dv('kinet_sleep_hours', ' h')], ['Energía', dv('kinet_energy_pct', '%')], ['Hidratación', dv('kinet_hydration_l', ' L')], ['RPE', dv('kinet_rpe', '/10')], ['Foco', dv('kinet_focus_pct', '%')], ['Cumplimiento del plan', dv('kinet_plan_pct', '%')], ['Riesgo de lesión', dayOk ? localStorage.getItem('kinet_injury_risk') : null]]
+      .filter(x => x[1]).map(x => `${x[0]}: ${x[1]}`).join(' | ');
+    const dailyLog = dlParts || 'el usuario NO ha hecho su check-in de hoy (no inventes sus datos de hoy; invítale a registrarlo en el Vestuario)';
+    let verifiedReport = '';
+    try {
+      const vr = JSON.parse(localStorage.getItem('kinet_verified_report_' + sport.toLowerCase()) || 'null');
+      if (vr && vr.report && vr.report.archetype) verifiedReport = `${vr.report.archetype} | Zonas: ${vr.report.zones || '-'} | Biomecánica: ${vr.report.biomech || '-'}`;
+    } catch (e) {}
+    let memory = '';
+    try {
+      const mem = JSON.parse(localStorage.getItem('kinet_ai_shared_memory') || '[]');
+      if (Array.isArray(mem) && mem.length) memory = mem.slice(-10).map(m => `- (${m.agent}) ${m.text}`).join('\n');
+    } catch (e) {}
+    let planNote = '';
+    try { const p = JSON.parse(localStorage.getItem('kinet_ai_personalization_plan') || 'null'); if (p) planNote = JSON.stringify(p).slice(0, 500); } catch (e) {}
+    const tier = getCurrentTier();
+    const xp = localStorage.getItem('kinet_user_xp') || '0';
+    const bio = (localStorage.getItem('kinet_user_bio') || '').slice(0, 300);
+
     return {
+      dailyLog,
+      verifiedReport,
+      memory,
+      planNote,
+      tier,
+      xp,
+      bio,
       sport,
       role,
       userName,
@@ -374,11 +411,22 @@ REGLA DE CONVERSACIÓN: Si el usuario saluda o hace una pregunta casual ("hola",
 EXPEDIENTE BIOMÉTRICO Y TÁCTICO EN TIEMPO REAL DEL USUARIO:
 - Nombre: ${ctx.userName} (Llámalo "${ctx.firstName}") | Rol activo: ${ctx.role.toUpperCase()}
 - Disciplina: ${ctx.sport} | Demarcación/Especialidad: ${ctx.userPos} | Dominancia: ${ctx.laterality}
-- Club: ${ctx.userClub} (${ctx.userCategory}) | Ciudad: ${ctx.city} | Antropometría: ${ctx.anthro}
-- KINET Card Oficial: Media ${ctx.grl} GRL [ ${ctx.formattedStats} ]
+- Club: ${ctx.userClub} | Categoría: ${ctx.userCategory} | Ciudad: ${ctx.city} | Antropometría: ${ctx.anthro}
+- KINET Card Oficial: ${ctx.grl === null ? 'sin calibrar todavía' : 'Media ' + ctx.grl + ' GRL [ ' + ctx.formattedStats + ' ]'}
 - Punto más fuerte actual: ${ctx.bestStatLabel} | Punto prioritario a mejorar: ${ctx.weakestStatLabel}
 - Estado en Pizarra Táctica 3D: ${ctx.boardSummary} (${ctx.savedTacticsCount} jugadas tácticas guardadas)
 - Última auditoría en Vision Lab™: ${ctx.lastClipInfo}
+- Informe de la Ficha verificada: ${ctx.verifiedReport || 'sin verificar todavía'}
+- CHECK-IN DE HOY: ${ctx.dailyLog}
+- Plan de suscripción: ${ctx.tier} | XP: ${ctx.xp}${ctx.bio ? `\n- Bio del usuario: ${ctx.bio}` : ''}${ctx.planNote ? `\n- Plan de personalización guardado: ${ctx.planNote}` : ''}
+
+LO QUE EL USUARIO HA CONTADO RECIENTEMENTE A TU CUERPO TÉCNICO (memoria compartida entre los 4 especialistas):
+${ctx.memory || '- (aún nada)'}
+
+REGLAS DE VERACIDAD Y ROL:
+- Usa SOLO los datos del expediente. Si un dato figura como "no registrada", dilo y pídeselo; NUNCA inventes medidas, estadísticas ni resultados del usuario.
+- Adapta el enfoque al rol "${ctx.role}": atleta = mejora personal; entrenador = gestión de grupo y planificación; ojeador/scout = análisis y detección de talento.
+- Si algo del expediente de otra área es relevante para tu respuesta (p. ej. sueño, RPE o riesgo de lesión), tenlo en cuenta.
 
 INSTRUCCIONES DE FORMATO Y NATURALIDAD:
 1. Conversa en español de forma 100% natural, cercana y directa. Si el usuario te saluda ("qué tal estás", "hola", "buenas"), responde directamente a su saludo mencionando su puesto (${ctx.userPos}) y pregúntale qué quiere entrenar hoy.
@@ -406,6 +454,37 @@ INSTRUCCIONES DE FORMATO Y NATURALIDAD:
   function getTodayLocalKey() {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  }
+
+  function getDailyImageUsage() {
+    const today = getTodayLocalKey();
+    if (localStorage.getItem('kinet_ai_img_date') !== today) {
+      localStorage.setItem('kinet_ai_img_date', today);
+      localStorage.setItem('kinet_ai_img_count', '0');
+      return 0;
+    }
+    const n = parseInt(localStorage.getItem('kinet_ai_img_count') || '0', 10);
+    return isNaN(n) ? 0 : Math.max(0, n);
+  }
+
+  function incrementDailyImageUsage() {
+    localStorage.setItem('kinet_ai_img_count', String(getDailyImageUsage() + 1));
+  }
+
+  // Memoria compartida: lo que el usuario cuenta a un especialista lo conocen los demás.
+  function pushSharedMemory(agentId, text) {
+    const t = String(text || '').trim();
+    if (t.length < 14) return;
+    let mem = [];
+    try { mem = JSON.parse(localStorage.getItem('kinet_ai_shared_memory') || '[]'); } catch (e) {}
+    if (!Array.isArray(mem)) mem = [];
+    mem.push({ agent: agentId, text: t.slice(0, 220), ts: Date.now() });
+    localStorage.setItem('kinet_ai_shared_memory', JSON.stringify(mem.slice(-14)));
+  }
+
+  function buildAthleteContextLine() {
+    const c = gatherFullUserContextSnapshot();
+    return `${c.firstName}, ${c.sport}, posición ${c.userPos}, categoría ${c.userCategory}, ${c.anthro}, lateralidad ${c.laterality}; carta: ${c.formattedStats}; check-in de hoy: ${c.dailyLog}`;
   }
 
   function getDailyChatUsage() {
@@ -545,7 +624,7 @@ INSTRUCCIONES DE FORMATO Y NATURALIDAD:
         const safetyTimer = setTimeout(() => {
           if (objectUrlToRevoke) URL.revokeObjectURL(objectUrlToRevoke);
           resolve({ frames: [], durationSeconds: 0 });
-        }, 7500);
+        }, 20000);
 
         tempVideo.addEventListener('loadedmetadata', async () => {
           const duration = tempVideo.duration && isFinite(tempVideo.duration) ? tempVideo.duration : 6;
@@ -816,6 +895,9 @@ INSTRUCCIONES DE FORMATO Y NATURALIDAD:
         chatUsed: usedChat,
         chatRemaining: Math.max(0, limits.dailyChatMessages - usedChat),
         chatLimit: limits.dailyChatMessages,
+        imageUsed: getDailyImageUsage(),
+        imageLimit: limits.dailyImageGenerations,
+        imageRemaining: Math.max(0, limits.dailyImageGenerations - getDailyImageUsage()),
         videoRemaining: videoSt.totalAvailable,
         videoTotal: videoSt.totalCapacity,
         remainingPlanMins: videoSt.remainingPlanMins,
@@ -851,6 +933,7 @@ INSTRUCCIONES DE FORMATO Y NATURALIDAD:
       const remainingAfter = Math.max(0, quota.chatRemaining - (consumeQuota ? 1 : 0));
 
       const trainedPrompt = buildMasterTrainedSystemPrompt(agentId);
+      try { pushSharedMemory(agentId, userMessage); } catch (e) {}
       const finalSystemPrompt = systemPrompt ? `${trainedPrompt}\n\n${systemPrompt}` : trainedPrompt;
       const domHistory = (Array.isArray(chatHistory) && chatHistory.length > 0)
         ? chatHistory
@@ -960,19 +1043,23 @@ INSTRUCCIONES DE FORMATO Y NATURALIDAD:
         return edgeData;
       }
 
-      const visionSystemPrompt = `Eres el motor biomecánico y táctico KINET Vision Analytics™ para ${sport}.
+      const visionSystemPrompt = `Contexto del atleta: ${buildAthleteContextLine()}
+Eres el motor biomecánico y táctico KINET Vision Analytics™ para ${sport}.
 Analiza los fotogramas del vídeo y el contexto ("${matchContext}", bloque "${blockType}", nota del usuario: "${userNotes}") para el sujeto ${subjectName} (${subjectPos}).
+Sé conservador y realista: NO infles valores. Solo recibes pocos fotogramas; si la evidencia es insuficiente usa valores medios (55-70) y dilo en aiVerdict. Los valores de la estructura son marcadores, nunca los copies.
 Devuelve ESTRICTAMENTE un JSON válido con esta estructura:
 {
-  "metrics": ["95.4%", "33.9 km/h", "Top 4%", "+1.6 GRL"],
+  "metrics": ["<precisión en %>", "<velocidad o potencia estimada con unidad>", "<percentil estimado, ej. Top 35%>", "<variación GRL, ej. +0.8 GRL>"],
   "bars": [
-    ["${schema.defaultBars[0]}", 93],
-    ["${schema.defaultBars[1]}", 91],
-    ["${schema.defaultBars[2]}", 89],
-    ["${schema.defaultBars[3]}", 92]
+    ["${schema.defaultBars[0]}", <entero 30-99 según lo observado>],
+    ["${schema.defaultBars[1]}", <entero 30-99 según lo observado>],
+    ["${schema.defaultBars[2]}", <entero 30-99 según lo observado>],
+    ["${schema.defaultBars[3]}", <entero 30-99 según lo observado>]
   ],
-  "estimatedGrl": 90,
-  "cardStats": [91, 89, 88, 92, 87, 90],
+  "estimatedGrl": <entero 40-99>,
+  "cardStats": [<6 enteros 40-99 en este orden: ${schema.cardStats.join(', ')}>],
+  "percentiles": [<3 enteros 1-99>],
+  "report": { "archetype": "<perfil de jugador observado>", "zones": "<zonas o acciones donde más influye>", "biomech": "<observaciones biomecánicas>", "advice": "<consejo concreto y accionable>" },
   "aiVerdict": "Dictamen técnico detallado de 2-3 frases en ${role === 'athlete' ? '1ª persona (dirigido a ti)' : '3ª persona (informe de scouting)'} sobre lo observado en los fotogramas y el contexto."
 }`;
 
@@ -1051,6 +1138,7 @@ Devuelve ESTRICTAMENTE un JSON válido con:
           responseMimeType: 'application/json'
         });
         const parsed = JSON.parse(rawJson.replace(/```json|```/g, '').trim());
+        incrementDailyImageUsage();
         return { ok: true, ...parsed };
       } catch (err) {
         return { ok: false, error: err.message };
@@ -1061,6 +1149,10 @@ Devuelve ESTRICTAMENTE un JSON válido con:
     // MOTOR 4: KINET MEDIA STUDIO™ AI COPYWRITER & HUD DESIGNER
     // ------------------------------------------------------------------------
     async generateMediaStudioDesign({ promptText = '', formatMode = 'image', sport = 'Fútbol', presetName = 'Match Day' }) {
+      const _q = this.getQuotaStatus();
+      if (_q.imageRemaining <= 0) {
+        return { ok: false, limitReached: true, error: `Has alcanzado tu límite diario de ${_q.imageLimit} imágenes en el ${_q.tierName}.` };
+      }
       const edgeStudio = await invokeSupabaseEdgeFunction('kinet-media-studio', {
         promptText,
         formatMode,
@@ -1068,17 +1160,20 @@ Devuelve ESTRICTAMENTE un JSON válido con:
         presetName
       });
       if (edgeStudio && edgeStudio.headline) {
+        incrementDailyImageUsage();
         return { ok: true, ...edgeStudio };
       }
 
       const userPos = localStorage.getItem('kinet_position') || 'PRO';
-      const sysPrompt = `Eres el Director Creativo de KINET Media Studio™ para ${sport} (${userPos}).
+      const sysPrompt = `Eres el Director Creativo de KINET Media Studio™ para ${sport} (${userPos}). Atleta: ${buildAthleteContextLine()}.
 Transforma la petición del usuario ("${promptText}") en un titular deportivo de alto impacto (máximo 36 caracteres en mayúsculas), una línea de telemetría HUD verificada y el ID de pista recomendada ('trk_1' a 'trk_7').
 Devuelve ESTRICTAMENTE JSON:
 {
   "headline": "TITULAR ÉPICO EN MAYÚSCULAS",
   "subtext": "[ HUD TELEMETRY: dato biomecánico + eslogan corto ]",
   "recommendedTrackId": "trk_1",
+  "caption": "Texto breve para publicar con 2-3 hashtags",
+  "imagePrompt": "Descripción visual en inglés para un generador de imágenes: escena, luz, encuadre; sin texto ni logotipos",
   "replyText": "Breve respuesta presentando el diseño generado."
 }`;
 
@@ -1093,6 +1188,57 @@ Devuelve ESTRICTAMENTE JSON:
       } catch (err) {
         return { ok: false, error: err.message };
       }
+    },
+
+    // Imagen real con Gemini (modelos "Nano Banana"). Usa la clave del propio usuario.
+    async generateStudioImageAI({ prompt = '' }) {
+      const key = (localStorage.getItem('kinet_gemini_api_key') || '').trim();
+      if (!key) return { ok: false, error: 'Configura tu clave de Google AI Studio en el botón "API IA" para generar imágenes con IA.' };
+      const models = ['gemini-3.1-flash-lite-image', 'gemini-3.1-flash-image'];
+      const errs = [];
+      for (const m of models) {
+        try {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseModalities: ['IMAGE'] } })
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) { errs.push(`[${m}] HTTP ${res.status} ${(data && data.error && data.error.message) || ''}`.trim()); continue; }
+          const parts = (data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
+          const p = parts.find(x => x.inlineData || x.inline_data);
+          const d = p && (p.inlineData || p.inline_data);
+          if (d && d.data) return { ok: true, dataUrl: `data:${d.mimeType || d.mime_type || 'image/png'};base64,${d.data}` };
+          errs.push(`[${m}] la respuesta no incluyó imagen`);
+        } catch (e) { errs.push(`[${m}] ${e.message}`); }
+      }
+      return { ok: false, error: errs.join('\n') };
+    },
+
+    // La IA elige los mejores tramos de los clips del usuario según su petición (el montaje se hace en el navegador).
+    async generateVideoEditPlan({ promptText = '', clips = [], targetSeconds = 30, sport = 'Fútbol' }) {
+      const imgs = [];
+      const idx = [];
+      clips.forEach((c, ci) => c.frames.forEach(f => {
+        imgs.push(f.b64);
+        idx.push(`clip ${ci} («${c.name}», dura ${c.duration.toFixed(1)} s) · fotograma en t=${f.t.toFixed(1)} s`);
+      }));
+      const sys = `Eres el editor de vídeo IA de KINET Media Studio™ especializado en ${sport}. Atleta: ${buildAthleteContextLine()}.
+Recibes fotogramas de varios clips del usuario (cada uno indica su clip y su segundo). Crea un EDIT de unos ${targetSeconds} segundos según la petición del usuario, eligiendo los mejores tramos.
+Reglas: usa solo tiempos que estén dentro de la duración de cada clip; cada segmento dura entre 1.5 y 6 segundos; puedes repetir un clip con tramos distintos; usa cámara lenta (speed 0.5) solo en la jugada clave; zoom entre 1.0 y 1.25; los subtítulos (caption) son opcionales y muy cortos. No inventes datos del atleta.
+Orden de los fotogramas recibidos:
+${idx.map((t, i) => `${i + 1}. ${t}`).join('\n')}
+Devuelve ESTRICTAMENTE un JSON válido:
+{"title":"TÍTULO CORTO EN MAYÚSCULAS (máx 28 caracteres)","subtitle":"línea corta","segments":[{"clip":0,"start":0.0,"end":3.0,"speed":1,"zoom":1.0,"caption":""}],"outro":"texto final corto"}`;
+      const raw = await callDirectLLMProvider({
+        systemPrompt: sys,
+        userPrompt: promptText || 'Haz un edit con mis mejores jugadas',
+        imagesBase64: imgs,
+        responseMimeType: 'application/json'
+      });
+      const plan = JSON.parse(String(raw).replace(/```json|```/g, '').trim());
+      if (!plan || !Array.isArray(plan.segments) || !plan.segments.length) throw new Error('La IA no devolvió un plan de edición válido.');
+      return plan;
     },
 
     // ------------------------------------------------------------------------

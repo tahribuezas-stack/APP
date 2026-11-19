@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script src="kinet-guard.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
@@ -816,6 +817,28 @@
             box-shadow: 0 25px 60px rgba(0,0,0,0.95), 0 0 35px rgba(var(--role-rgb), 0.16);
         }
 
+        .checkin-pill { display: inline-flex; align-items: center; gap: 7px; font-weight: 800; letter-spacing: 0.06em; position: relative; }
+        .checkin-pill .checkin-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--role-color); }
+        .checkin-pill.pending { border-color: var(--role-color); color: #fff; background: rgba(var(--role-rgb), 0.14); animation: checkinGlow 1.8s ease-in-out infinite; }
+        .checkin-pill.pending .checkin-dot { animation: checkinPing 1.4s ease-out infinite; }
+        .checkin-pill.done { border-color: rgba(var(--role-rgb), 0.35); color: var(--role-color); animation: none; }
+        .checkin-pill.done .checkin-dot { opacity: 0.45; }
+        @keyframes checkinGlow {
+            0%, 100% { box-shadow: 0 0 6px rgba(var(--role-rgb), 0.25); transform: translateY(0); }
+            50% { box-shadow: 0 0 22px rgba(var(--role-rgb), 0.7), inset 0 0 10px rgba(var(--role-rgb), 0.18); transform: translateY(-1px); }
+        }
+        @keyframes checkinPing { 0% { box-shadow: 0 0 0 0 rgba(var(--role-rgb), 0.75); } 100% { box-shadow: 0 0 0 10px rgba(var(--role-rgb), 0); } }
+        @media (prefers-reduced-motion: reduce) { .checkin-pill.pending, .checkin-pill.pending .checkin-dot { animation: none; } }
+
+        .dl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+        @media (max-width: 560px) { .dl-grid { grid-template-columns: repeat(2, 1fr); } }
+        .dl-field { display: flex; flex-direction: column; gap: 4px; font-family: 'JetBrains Mono'; font-size: 0.58rem; color: #94A3B8; letter-spacing: 0.04em; }
+        .dl-field input { background: #060911; border: 1px solid rgba(var(--role-rgb), 0.35); border-radius: 10px; padding: 8px 10px; color: white; font-family: 'JetBrains Mono'; font-size: 0.78rem; width: 100%; transition: border-color 0.2s, box-shadow 0.2s; }
+        .dl-field input:focus { outline: none; border-color: var(--role-color); box-shadow: 0 0 12px rgba(var(--role-rgb), 0.25); }
+        .dl-risk-row { display: flex; gap: 8px; margin-top: 8px; }
+        .dl-risk-chip { flex: 1; background: #060911; border: 1px solid rgba(var(--role-rgb), 0.3); border-radius: 10px; padding: 8px 6px; color: #CBD5E1; font-family: 'JetBrains Mono'; font-size: 0.64rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
+        .dl-risk-chip.active { border-color: var(--role-color); color: white; background: rgba(var(--role-rgb), 0.16); box-shadow: 0 0 14px rgba(var(--role-rgb), 0.28); }
+
         .kinet-metric-card-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -1061,8 +1084,8 @@
                             <div class="panel-head">
                                 <span class="panel-label" id="bio-panel-title">ESTADO FÍSICO & DISPONIBILIDAD DE HOY</span>
                                 <div style="display:flex;align-items:center;gap:8px;">
-                                    <button type="button" class="mini-action-pill" onclick="openMetricsCustomizerModal()">⚙️ Personalizar</button>
-                                    <span class="verified-badge" id="readiness-pill">LISTO PARA COMPETIR (92%)</span>
+                                    <button type="button" id="checkin-pill" class="mini-action-pill checkin-pill pending" onclick="openMetricsCustomizerModal()"><span class="checkin-dot"></span><span id="checkin-pill-text">Check-in</span></button>
+                                    <span class="verified-badge" id="readiness-pill">HAZ TU CHECK-IN</span>
                                 </div>
                             </div>
 
@@ -1108,7 +1131,7 @@
                             <div>
                                 <div class="panel-head">
                                     <span class="panel-label" id="directive-label">CONSEJO DIRECTO DEL CUERPO TÉCNICO IA</span>
-                                    <span style="font-family:'JetBrains Mono';font-size:0.65rem;color:var(--role-color);font-weight:700;" id="xp-score-badge">⚡ 450 XP</span>
+                                    <span style="font-family:'JetBrains Mono';font-size:0.65rem;color:var(--role-color);font-weight:700;" id="xp-score-badge">⚡ 0 XP</span>
                                 </div>
                                 <p id="daily-ai-advice" style="font-size:0.84rem;line-height:1.48;color:#CBD5E1;background:rgba(255,255,255,0.02);padding:11px 12px;border-radius:12px;border-left:3px solid var(--role-color);">
                                     "Hoy tienes el depósito de energía al 92%. Aprovecha los primeros 30 minutos de sesión para trabajo explosivo y prioriza hidratación + carbohidratos complejos al terminar."
@@ -1134,7 +1157,7 @@
 
                     <!-- BLOQUE 3: PLANIFICACIÓN SEMANAL LIMPIA -->
                     <div class="col-7">
-                        <div class="kinet-panel">
+                        <div class="kinet-panel" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
                             <div class="panel-head">
                                 <span class="panel-label" id="schedule-panel-title">PLANIFICACIÓN SEMANAL & SESIONES DE HOY</span>
                                 <div style="display:flex;align-items:center;gap:8px;">
@@ -1149,7 +1172,7 @@
                             <div class="energy-checkin-box">
                                 <span style="font-size:0.76rem;color:var(--text-secondary);font-weight:600;" id="energy-question-lbl">¿Cómo te sientes de energía ahora mismo?</span>
                                 <div class="energy-btns">
-                                    <button class="energy-chip selected" onclick="updateEnergyFeeling('high', this)">⚡ A Tope</button>
+                                    <button class="energy-chip" onclick="updateEnergyFeeling('high', this)">⚡ A Tope</button>
                                     <button class="energy-chip" onclick="updateEnergyFeeling('medium', this)">🔥 Normal</button>
                                     <button class="energy-chip" onclick="updateEnergyFeeling('low', this)">🪫 Cargado</button>
                                 </div>
@@ -1259,6 +1282,26 @@
                 <button type="button" onclick="closeMetricsCustomizerModal()" style="background:none;border:none;color:white;font-size:1.2rem;cursor:pointer;">✕</button>
             </div>
 
+            <!-- SECCIÓN 0: REGISTRO DIARIO -->
+            <div style="margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--border-subtle);">
+                <span style="font-family:'JetBrains Mono';font-size:0.64rem;color:#E2E8F0;font-weight:700;">0. REGISTRO DE HOY (ALIMENTA TUS INDICADORES)</span>
+                <div class="dl-grid">
+                    <label class="dl-field">SUEÑO (h)<input id="dl-sleep" type="number" inputmode="decimal" min="0" max="14" step="0.5" placeholder="7.5"></label>
+                    <label class="dl-field">ENERGÍA (%)<input id="dl-energy" type="number" inputmode="numeric" min="0" max="100" step="1" placeholder="80"></label>
+                    <label class="dl-field">HIDRATACIÓN (L)<input id="dl-hydration" type="number" inputmode="decimal" min="0" max="8" step="0.1" placeholder="2.5"></label>
+                    <label class="dl-field">ESFUERZO RPE (1-10)<input id="dl-rpe" type="number" inputmode="numeric" min="1" max="10" step="1" placeholder="6"></label>
+                    <label class="dl-field">FOCO MENTAL (%)<input id="dl-focus" type="number" inputmode="numeric" min="0" max="100" step="1" placeholder="85"></label>
+                    <label class="dl-field">CUMPLIMIENTO PLAN (%)<input id="dl-plan" type="number" inputmode="numeric" min="0" max="100" step="1" placeholder="90"></label>
+                </div>
+                <div class="dl-risk-row">
+                    <button type="button" class="dl-risk-chip" data-risk="BAJO" onclick="setDailyRisk('BAJO')">RIESGO LESIÓN: BAJO</button>
+                    <button type="button" class="dl-risk-chip" data-risk="MEDIO" onclick="setDailyRisk('MEDIO')">MEDIO</button>
+                    <button type="button" class="dl-risk-chip" data-risk="ALTO" onclick="setDailyRisk('ALTO')">ALTO</button>
+                </div>
+                <button type="button" class="btn-primary" style="padding:9px 18px;margin-top:12px;width:100%;" onclick="saveDailyLog()">💾 Guardar registro de hoy</button>
+                <span style="display:block;margin-top:6px;font-size:0.66rem;color:var(--text-secondary);">Los datos solo valen para hoy; mañana vuelven a "—" hasta que registres de nuevo.</span>
+            </div>
+
             <!-- SECCIÓN 1: TARJETAS DE KPIs (ELEGIR 3) -->
             <div style="margin-bottom:16px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -1299,7 +1342,7 @@
             <div style="display:flex;flex-direction:column;gap:10px;font-size:0.78rem;color:#CBD5E1;line-height:1.45;">
                 <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
                     <strong style="color:white;display:block;margin-bottom:2px;">1. Estado Físico & Disponibilidad Personalizable</strong>
-                    Pulsa sobre cualquiera de las 3 casillas o en <em>⚙️ Personalizar</em> para elegir tus métricas favoritas (Energía, Horas de Sueño, RPE, Hidratación, Riesgo Lesional o Media GRL) con tarjetas interactivas.
+                    Pulsa sobre cualquiera de las 3 casillas o en <em>✨ Check-in</em> para elegir tus métricas favoritas (Energía, Horas de Sueño, RPE, Hidratación, Riesgo Lesional o Media GRL) con tarjetas interactivas.
                 </div>
                 <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
                     <strong style="color:white;display:block;margin-bottom:2px;">2. Calendario Semanal y Mensual con Iconos Inteligentes</strong>
@@ -1398,31 +1441,36 @@
                 }
             } catch (e) {}
 
-            const sleepVal = (localStorage.getItem('kinet_sleep_hours') || '8.0') + ' h';
+            const kv = (k, suf) => { const v = kinetDailyVal(k); return v === null ? '—' : v + suf; };
+            const sleepVal = kv('kinet_sleep_hours', ' h');
             const gpsVerified = localStorage.getItem('kinet_verified_gps_speed') || 'SIN MEDIR';
 
             return [
-                { id: 'energy', val: '92%', lbl: 'ENERGÍA & BATERÍA', desc: 'Disponibilidad energética hoy' },
+                { id: 'energy', val: kv('kinet_energy_pct', '%'), lbl: 'ENERGÍA & BATERÍA', desc: 'Disponibilidad energética hoy' },
                 { id: 'sleep', val: sleepVal, lbl: 'DESCANSO / SUEÑO', desc: 'Horas de recuperación nocturna' },
-                { id: 'risk', val: 'BAJO', lbl: 'RIESGO LESIONAL', desc: 'Semáforo de sobrecarga muscular' },
-                { id: 'rpe', val: '7 / 10', lbl: 'CARGA RPE SESIÓN', desc: 'Esfuerzo percibido del microciclo' },
-                { id: 'hydration', val: '2.8 L', lbl: 'HIDRATACIÓN HOY', desc: 'Balance hídrico y electrolitos' },
-                { id: 'mental', val: '95%', lbl: 'FOCO COMPETITIVO', desc: 'Activación y claridad mental' },
+                { id: 'risk', val: ((localStorage.getItem('kinet_daily_log_date') === kinetToday() && localStorage.getItem('kinet_injury_risk')) || '—'), lbl: 'RIESGO LESIONAL', desc: 'Semáforo de sobrecarga muscular' },
+                { id: 'rpe', val: kv('kinet_rpe', ' / 10'), lbl: 'CARGA RPE SESIÓN', desc: 'Esfuerzo percibido del microciclo' },
+                { id: 'hydration', val: kv('kinet_hydration_l', ' L'), lbl: 'HIDRATACIÓN HOY', desc: 'Balance hídrico y electrolitos' },
+                { id: 'mental', val: kv('kinet_focus_pct', '%'), lbl: 'FOCO COMPETITIVO', desc: 'Activación y claridad mental' },
                 { id: 'grl', val: realGrl, lbl: 'MEDIA KINET CARD', desc: 'Valoración oficial sincronizada' },
                 { id: 'gps', val: gpsVerified, lbl: 'VELOCIDAD GPS (LAB)', desc: 'Pico medido en Vision Lab™' }
             ];
         }
 
         function getSelectableBarCatalog() {
+            const e = kinetDailyVal('kinet_energy_pct'), r = kinetDailyVal('kinet_rpe'), sl = kinetDailyVal('kinet_sleep_hours'), p = kinetDailyVal('kinet_plan_pct');
+            const pc = v => v === null ? { t: '—', w: '0%' } : { t: Math.round(v) + '%', w: Math.max(0, Math.min(100, Math.round(v))) + '%' };
+            const load = pc(r === null ? null : r * 10), rec = pc(sl === null ? null : (sl / 8) * 100), fre = pc(e), pln = pc(p);
             return [
-                { id: 'freshness', title: 'Nivel de Frescura Muscular', pctText: '92%', width: '92%' },
-                { id: 'load', title: 'Carga Acumulada del Microciclo', pctText: '35% (Óptima)', width: '35%' },
-                { id: 'recovery', title: 'Calidad de Recuperación Nocturna', pctText: '88% (Alta)', width: '88%' },
-                { id: 'compliance', title: 'Cumplimiento del Plan Semanal', pctText: '85%', width: '85%' }
+                { id: 'freshness', title: 'Nivel de Frescura Muscular', pctText: fre.t, width: fre.w },
+                { id: 'load', title: 'Carga Acumulada del Microciclo', pctText: load.t, width: load.w },
+                { id: 'recovery', title: 'Calidad de Recuperación Nocturna', pctText: rec.t, width: rec.w },
+                { id: 'compliance', title: 'Cumplimiento del Plan Semanal', pctText: pln.t, width: pln.w }
             ];
         }
 
         let activeKpiSlots = JSON.parse(localStorage.getItem('kinet_selected_kpi_slots') || '["energy","sleep","risk"]');
+        activeKpiSlots = activeKpiSlots.filter((id, i) => activeKpiSlots.indexOf(id) === i);
         let activeBarSlots = JSON.parse(localStorage.getItem('kinet_selected_bar_slots') || '["freshness","load"]');
 
         function renderSelectedKpisAndBars() {
@@ -1453,7 +1501,12 @@
             const kCatalog = getSelectableKpiCatalog();
             const curId = activeKpiSlots[slotIdx];
             const curIndex = kCatalog.findIndex(k => k.id === curId);
-            const nextItem = kCatalog[(curIndex + 1) % kCatalog.length];
+            let step = 1;
+            let nextItem = kCatalog[(curIndex + 1) % kCatalog.length];
+            while (activeKpiSlots.some((id, i) => i !== slotIdx && id === nextItem.id) && step < kCatalog.length) {
+                step++;
+                nextItem = kCatalog[(curIndex + step) % kCatalog.length];
+            }
             activeKpiSlots[slotIdx] = nextItem.id;
             localStorage.setItem('kinet_selected_kpi_slots', JSON.stringify(activeKpiSlots));
             renderSelectedKpisAndBars();
@@ -1551,8 +1604,55 @@
             rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
         }
 
+        // ---------- REGISTRO DIARIO DEL VESTUARIO ----------
+        function kinetToday() {
+            const d = new Date();
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+        function kinetDailyVal(k) {
+            if (localStorage.getItem('kinet_daily_log_date') !== kinetToday()) return null;
+            const v = parseFloat(localStorage.getItem(k));
+            return isNaN(v) ? null : v;
+        }
+        let _dailyRisk = '';
+        const DAILY_FIELDS = [
+            ['dl-sleep', 'kinet_sleep_hours', 0, 14],
+            ['dl-energy', 'kinet_energy_pct', 0, 100],
+            ['dl-hydration', 'kinet_hydration_l', 0, 8],
+            ['dl-rpe', 'kinet_rpe', 1, 10],
+            ['dl-focus', 'kinet_focus_pct', 0, 100],
+            ['dl-plan', 'kinet_plan_pct', 0, 100]
+        ];
+        function setDailyRisk(r) {
+            _dailyRisk = r;
+            document.querySelectorAll('.dl-risk-chip').forEach(b => b.classList.toggle('active', b.dataset.risk === r));
+        }
+        function prefillDailyLog() {
+            DAILY_FIELDS.forEach(([id, key]) => {
+                const el = document.getElementById(id);
+                const v = kinetDailyVal(key);
+                if (el) el.value = v === null ? '' : v;
+            });
+            setDailyRisk(localStorage.getItem('kinet_daily_log_date') === kinetToday() ? (localStorage.getItem('kinet_injury_risk') || '') : '');
+        }
+        function saveDailyLog() {
+            let saved = 0;
+            DAILY_FIELDS.forEach(([id, key, min, max]) => {
+                const el = document.getElementById(id);
+                if (!el || el.value === '') return;
+                const n = Math.max(min, Math.min(max, parseFloat(el.value)));
+                if (!isNaN(n)) { localStorage.setItem(key, String(n)); saved++; }
+            });
+            if (_dailyRisk) { localStorage.setItem('kinet_injury_risk', _dailyRisk); saved++; }
+            if (!saved) { alert('Rellena al menos un dato para guardar tu registro de hoy.'); return; }
+            localStorage.setItem('kinet_daily_log_date', kinetToday());
+            closeMetricsCustomizerModal();
+            location.reload();
+        }
+
         function openMetricsCustomizerModal() {
             rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+            prefillDailyLog();
             document.getElementById('metrics-customizer-modal').classList.add('open');
         }
         function closeMetricsCustomizerModal() {
@@ -1583,7 +1683,7 @@
         }
 
         function completeFunDailyChallenge() {
-            let currentXp = parseInt(localStorage.getItem('kinet_user_xp') || '450', 10);
+            let currentXp = parseInt(localStorage.getItem('kinet_user_xp') || '0', 10);
             currentXp += 50;
             localStorage.setItem('kinet_user_xp', String(currentXp));
             const xpBadge = document.getElementById('xp-score-badge');
@@ -2055,14 +2155,15 @@
             document.getElementById('header-title').textContent = cfg.title;
             document.getElementById('countdown-badge').textContent = cfg.countdown;
             document.getElementById('bio-panel-title').textContent = cfg.panel1Title;
-            document.getElementById('readiness-pill').textContent = cfg.readiness;
-            document.getElementById('daily-ai-advice').textContent = (customPlan && customPlan.coachDirective) ? `"${customPlan.coachDirective}"` : cfg.advice;
+            window._readinessBase = String(cfg.readiness || 'LISTO PARA COMPETIR').replace(/\s*\(\d+%\)\s*$/, '');
+            window._customAdvice = (customPlan && customPlan.coachDirective) ? `"${customPlan.coachDirective}"` : '';
             document.getElementById('quick-doubt-input').placeholder = cfg.placeholder;
 
-            const savedXp = localStorage.getItem('kinet_user_xp') || '450';
+            const savedXp = localStorage.getItem('kinet_user_xp') || '0';
             document.getElementById('xp-score-badge').textContent = `⚡ ${savedXp} XP`;
 
             renderSelectedKpisAndBars();
+            refreshReadiness();
 
             const tagsBox = document.getElementById('sport-quick-tags');
             if (tagsBox && cfg.quickTags) {
@@ -2092,7 +2193,7 @@
 
             if (level === 'high') {
                 titleEl.textContent = `Directiva // ${sp}`;
-                contentEl.textContent = 'Estado óptimo (94%). Prioriza bloques de máxima calidad técnica y recarga energética al finalizar.';
+                contentEl.textContent = 'Estado óptimo. Prioriza bloques de máxima calidad técnica y recarga energética al finalizar.';
             } else if (level === 'medium') {
                 titleEl.textContent = `Carga Asimilada // ${sp}`;
                 contentEl.textContent = 'Ritmo sostenido. Mantén control de fatiga neuromuscular e hidratación constante.';
@@ -2130,37 +2231,52 @@
             renderSessions();
         }
 
-        function updateEnergyFeeling(level, btn) {
-            document.querySelectorAll('.energy-chip').forEach(c => c.classList.remove('selected'));
-            btn.classList.add('selected');
+        function computeReadiness() {
+            const e = kinetDailyVal('kinet_energy_pct'), sl = kinetDailyVal('kinet_sleep_hours'), r = kinetDailyVal('kinet_rpe'), f = kinetDailyVal('kinet_focus_pct');
+            const parts = [];
+            if (e !== null) parts.push(e);
+            if (sl !== null) parts.push(Math.min(100, (sl / 8) * 100));
+            if (r !== null) parts.push(110 - r * 10);
+            if (f !== null) parts.push(f);
+            return parts.length ? Math.round(parts.reduce((x, y) => x + y, 0) / parts.length) : null;
+        }
 
-            updateSidebarAiTip(level);
-
-            const bar1Fill = document.getElementById('bar-1-fill');
-            const bar1Pct = document.getElementById('bar-1-pct');
-            const bar2Fill = document.getElementById('bar-2-fill');
-            const bar2Pct = document.getElementById('bar-2-pct');
+        function refreshReadiness() {
             const pill = document.getElementById('readiness-pill');
+            const advice = document.getElementById('daily-ai-advice');
+            const checkin = document.getElementById('checkin-pill');
+            const checkinTxt = document.getElementById('checkin-pill-text');
+            const val = computeReadiness();
+            const doneToday = localStorage.getItem('kinet_daily_log_date') === kinetToday();
+            const base = window._readinessBase || 'LISTO PARA COMPETIR';
 
-            if (level === 'high') {
-                bar1Fill.style.width = '94%';
-                bar1Pct.textContent = '94%';
-                bar2Fill.style.width = '30%';
-                bar2Pct.textContent = '30% (Óptima)';
-                pill.textContent = 'PICO DE FORMA (94%)';
-            } else if (level === 'medium') {
-                bar1Fill.style.width = '78%';
-                bar1Pct.textContent = '78%';
-                bar2Fill.style.width = '58%';
-                bar2Pct.textContent = '58% (Media)';
-                pill.textContent = 'CARGA ASIMILADA (78%)';
-            } else {
-                bar1Fill.style.width = '54%';
-                bar1Pct.textContent = '54%';
-                bar2Fill.style.width = '82%';
-                bar2Pct.textContent = '82% (Alta Fatiga)';
-                pill.textContent = 'PRIORIZAR RECUPERACIÓN (54%)';
+            if (checkin) {
+                checkin.classList.toggle('pending', !doneToday);
+                checkin.classList.toggle('done', doneToday);
+                if (checkinTxt) checkinTxt.textContent = doneToday ? 'Registrado' : 'Check-in';
             }
+            let text;
+            if (val === null) text = 'Haz tu check-in de hoy y tu Cuerpo Técnico te dará un consejo con tus datos reales.';
+            else if (val >= 80) text = `Check-in al ${val}%: estás para trabajo de calidad. Aprovecha la sesión de hoy y recarga bien al terminar.`;
+            else if (val >= 60) text = `Check-in al ${val}%: ritmo sostenido. Controla la fatiga e hidrátate de forma constante.`;
+            else text = `Check-in al ${val}%: tu cuerpo pide recuperación. Baja la intensidad y prioriza sueño e hidratación.`;
+            if (pill) pill.textContent = val === null ? 'HAZ TU CHECK-IN' : (val >= 80 ? `${base} (${val}%)` : val >= 60 ? `CARGA ASIMILADA (${val}%)` : `PRIORIZAR RECUPERACIÓN (${val}%)`);
+            if (advice) advice.textContent = window._customAdvice || text;
+
+            const e = kinetDailyVal('kinet_energy_pct');
+            const chips = document.querySelectorAll('.energy-chip');
+            chips.forEach(c => c.classList.remove('selected'));
+            if (e !== null && chips.length === 3) chips[e >= 80 ? 0 : (e >= 55 ? 1 : 2)].classList.add('selected');
+        }
+
+        function updateEnergyFeeling(level, btn) {
+            const map = { high: 90, medium: 70, low: 40 };
+            localStorage.setItem('kinet_energy_pct', String(map[level] || 70));
+            localStorage.setItem('kinet_daily_log_date', kinetToday());
+            if (btn) btn.classList.add('selected');
+            updateSidebarAiTip(level);
+            renderSelectedKpisAndBars();
+            refreshReadiness();
         }
 
         function routeToAgent() {

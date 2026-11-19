@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script src="kinet-guard.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
@@ -2493,7 +2494,15 @@ function stageResetRoleColor() {
 
             const currentTier = normalizeTier(localStorage.getItem('kinet_account_tier'));
             const itemKey = pendingCheckoutMode === 'bonus' ? pendingBonusPackKey : (pendingCheckoutTier || 'pro');
-            const stripeUrl = getStripeCheckoutLink(itemKey, currentTier);
+            let stripeUrl = getStripeCheckoutLink(itemKey, currentTier);
+            try {
+                const u = new URL(stripeUrl);
+                const uid = localStorage.getItem('kinet_user_id');
+                const em = localStorage.getItem('kinet_user_email');
+                if (uid) u.searchParams.set('client_reference_id', uid);
+                if (em) u.searchParams.set('prefilled_email', em);
+                stripeUrl = u.toString();
+            } catch (e) {}
 
             if (stripeUrl && stripeUrl.startsWith('https://')) {
                 sessionStorage.setItem('kinet_pending_stripe_item', itemKey);
@@ -2503,59 +2512,20 @@ function stageResetRoleColor() {
             }
         }
 
-        function confirmCheckoutActivation() {
-            const consentBox = document.getElementById('legal-checkout-consent');
-            if (!consentBox || !consentBox.checked) {
-                alert('Debes aceptar primero la casilla de condiciones legales y renuncia al desistimiento (Art. 103.m TRLGDCU) antes de validar.');
-                return;
-            }
-
-            const keyVal = (document.getElementById('license-key-input').value || '').trim().toUpperCase();
-            const validMasterKeys = ['KINET-MASTER-2026', 'KINET-PRO-AUTH-2026', 'KINET-CLUB-AUTH-2026', 'KINET-PRO-2026'];
-            if (!validMasterKeys.includes(keyVal)) {
-                openInfoModal('⚠️ CLAVE NO VÁLIDA', 'Por seguridad antifraude, solo se admiten pagos completados a través de <strong>Stripe Checkout</strong> o claves corporativas firmadas por KINET OS.');
-                return;
-            }
-
+        async function confirmCheckoutActivation() {
             closeKinetModal('checkout-upgrade-modal');
-            localStorage.setItem('kinet_legal_contract_accepted_at', new Date().toISOString());
-
-            if (pendingCheckoutMode === 'bonus' && pendingBonusPackKey) {
-                const pack = KINET_BONUS_CATALOG[pendingBonusPackKey];
-                if (pack) {
-                    applyVerifiedBonusPack(pack.mins, pack.title);
-                }
-                return;
+            openInfoModal('⏳ COMPROBANDO TU PAGO', 'Consultando tu cuenta en el servidor. Si ya has pagado, tu plan se activa en unos segundos.');
+            let r = null;
+            for (let i = 0; i < 5; i++) {
+                r = (window.KinetBackend && window.KinetBackend.syncPrivilegedFromServer) ? await window.KinetBackend.syncPrivilegedFromServer() : null;
+                if (r && (r.tier !== 'free' || r.bonus > 0)) break;
+                await new Promise(res => setTimeout(res, 2500));
             }
-
-            const previousTier = normalizeTier(localStorage.getItem('kinet_account_tier'));
-            const newTier = pendingCheckoutTier || 'pro';
-
-            // Duplicar minutos al subir de Free a PRO hasta el tope máximo de 595 min (sin excedentes ni créditos)
-            let bonusUpgradeMsg = '';
-            const prevBonus = Math.min(MAX_BONUS_WALLET_MINS, Math.max(0, parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0')));
-            if (previousTier === 'free' && (newTier === 'pro' || newTier === 'club') && prevBonus > 0) {
-                const finalVideoMins = Math.min(MAX_BONUS_WALLET_MINS, +(prevBonus * 2).toFixed(1));
-                localStorage.setItem('kinet_bonus_video_mins', String(finalVideoMins));
-                if (prevBonus >= MAX_BONUS_WALLET_MINS) {
-                    bonusUpgradeMsg = `<br><br>🎁 <strong>Monedero en Capacidad Máxima:</strong> Conservas tus <strong>${MAX_BONUS_WALLET_MINS} min</strong> de bono además de tu nueva cuota mensual.`;
-                } else {
-                    bonusUpgradeMsg = `<br><br>🎁 <strong>Bonificación PRO Aplicada:</strong> Tus <strong>${prevBonus} min</strong> en reserva han subido automáticamente a <strong>${finalVideoMins} min</strong> (tope máx. ${MAX_BONUS_WALLET_MINS} min).`;
-                }
+            if (r && (r.tier !== 'free' || r.bonus > 0)) {
+                location.reload();
+            } else {
+                openInfoModal('ℹ️ PAGO NO DETECTADO', 'Todavía no figura ningún pago en tu cuenta. Completa el pago en Stripe; si ya lo hiciste, espera un minuto y vuelve a pulsar.');
             }
-
-            localStorage.setItem('kinet_account_tier', newTier);
-            localStorage.setItem('kinet_is_pro', 'true');
-            localStorage.setItem('kinet_plan_cycle_start', String(Date.now()));
-            localStorage.setItem('kinet_video_mins_used', '0');
-
-            if (window.KinetBackend) window.KinetBackend.pushLocalStateToCloud();
-            updateTierUI(newTier);
-            refreshPayAsYouGoUI();
-            openInfoModal(
-                '✓ LICENCIA VERIFICADA Y ACTIVADA',
-                `Tu cuenta ha sido actualizada a <strong>${newTier === 'club' ? 'Club & Scout B2B' : 'Pro Player'}</strong>. Se han activado tus minutos mensuales, el descuento del 50% en bonos y el sello AI Verified.${bonusUpgradeMsg}`
-            );
         }
 
         function applyVerifiedBonusPack(addMins, packTitle) {
@@ -3067,5 +3037,14 @@ function stageResetRoleColor() {
             }
         }
     </script>
+<script>
+    (function () {
+        try {
+            var k = document.getElementById('license-key-input');
+            if (k) { var box = k.closest('div'); if (box) box.style.display = 'none'; }
+            if (new URLSearchParams(location.search).get('checkout') === 'success') setTimeout(function () { confirmCheckoutActivation(); }, 700);
+        } catch (e) {}
+    })();
+</script>
 </body>
 </html>

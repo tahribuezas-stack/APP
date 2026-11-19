@@ -1,0 +1,3037 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<script src="kinet-guard.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#06080E">
+    <title>KINET OS // Pizarra de Estrategias & Jugadas IA</title>
+
+    <!-- ZERO-FLASH THEME LOCK -->
+    <script>
+        (function applyZeroFlashStyleRule() {
+            try {
+                var isReset = localStorage.getItem('kinet_theme_color_reset') === 'true';
+                var savedAccent = isReset ? null : (localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color'));
+                var rainbowOn = localStorage.getItem('kinet_rainbow_mode') === 'true';
+                if (savedAccent && savedAccent.charAt(0) === '#' && !rainbowOn) {
+                    var clean = savedAccent.replace('#', '');
+                    var num = parseInt(clean, 16);
+                    if (!isNaN(num)) {
+                        var r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
+                        var st = document.createElement('style');
+                        st.id = 'kinet-zero-flash-override';
+                        st.textContent = ':root, html, body, body[data-role="athlete"], body[data-role="staff"], body[data-role="scout"] {' +
+                            '--role-color: ' + savedAccent + ' !important;' +
+                            '--role-rgb: ' + r + ', ' + g + ', ' + b + ' !important;' +
+                            '--role-glow: rgba(' + r + ', ' + g + ', ' + b + ', 0.42) !important;' +
+                            '--role-gradient: linear-gradient(135deg, ' + savedAccent + ' 0%, rgba(' + r + ',' + g + ',' + b + ',0.75) 100%) !important;' +
+                        '}';
+                        document.head.appendChild(st);
+                    }
+                }
+            } catch (e) {}
+        })();
+    </script>
+
+    <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="kinet-backend.js"></script>
+    <script src="kinet-api-config.js"></script>
+
+    <style>
+        :root {
+            --bg-void: #06080E;
+            --bg-panel: rgba(13, 17, 26, 0.92);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --role-color: #00FF88;
+            --role-rgb: 0, 255, 136;
+            --role-glow: rgba(0, 255, 136, 0.38);
+            --role-gradient: linear-gradient(135deg, #00FF88 0%, #00B359 100%);
+        }
+        body[data-role="athlete"] {
+            --role-color: #00FF88; --role-rgb: 0, 255, 136;
+            --role-glow: rgba(0, 255, 136, 0.38);
+            --role-gradient: linear-gradient(135deg, #00FF88 0%, #00B359 100%);
+        }
+        body[data-role="staff"] {
+            --role-color: #F59E0B; --role-rgb: 245, 158, 11;
+            --role-glow: rgba(245, 158, 11, 0.38);
+            --role-gradient: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        }
+        body[data-role="scout"] {
+            --role-color: #3B82F6; --role-rgb: 59, 130, 246;
+            --role-glow: rgba(59, 130, 246, 0.38);
+            --role-gradient: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; scrollbar-width: none !important; }
+        *::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; }
+
+        html, body {
+            background-color: var(--bg-void);
+            background-image:
+                radial-gradient(circle at 50% -20%, rgba(var(--role-rgb), 0.14), transparent 60%),
+                linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .os-layout { display: grid; grid-template-columns: 270px 1fr; height: 100vh; overflow: hidden; }
+        @media (max-width: 960px) {
+            .os-layout { grid-template-columns: 1fr; height: auto; min-height: 100vh; overflow-y: auto; padding-bottom: 135px; }
+            html, body { height: auto !important; overflow-y: auto !important; }
+            .os-main { height: auto !important; overflow: visible !important; }
+            .os-sidebar { display: none !important; }
+        }
+
+        /* CORTINA DIVERTIDA CON SEGURO AUTOMÁTICO CSS */
+        @keyframes kinetCurtainAutoHide {
+            0%, 60% { opacity: 1; pointer-events: all; }
+            100% { opacity: 0; pointer-events: none; visibility: hidden; }
+        }
+        #kinet-funny-curtain {
+            position: fixed; inset: 0; z-index: 99999;
+            background: radial-gradient(circle at 50% 50%, rgba(var(--role-rgb), 0.18) 0%, #04060A 85%);
+            backdrop-filter: blur(18px);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+            opacity: 1;
+            transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: kinetCurtainAutoHide 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            cursor: pointer;
+        }
+        #kinet-funny-curtain.curtain-hidden {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            visibility: hidden !important;
+            display: none !important;
+        }
+        #kinet-funny-curtain.curtain-exit-active {
+            animation: none !important;
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            pointer-events: all !important;
+        }
+        @keyframes kinetSpinBall {
+            0% { transform: scale(0.6) rotate(0deg); }
+            60% { transform: scale(1.16) rotate(210deg); }
+            100% { transform: scale(1) rotate(360deg); }
+        }
+        @keyframes kinetWhistleBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-7px); }
+        }
+
+        /* SIDEBAR OFICIAL */
+        .os-sidebar {
+            background: rgba(8, 11, 18, 0.95); backdrop-filter: blur(24px);
+            border-right: 1px solid var(--border-subtle); padding: 18px 16px;
+            display: flex; flex-direction: column; justify-content: space-between;
+            height: 100vh; z-index: 90; overflow: hidden;
+        }
+        .brand-box { display: flex; align-items: center; gap: 12px; text-decoration: none; padding: 4px; border-radius: 14px; margin-bottom: 6px; transition: all 0.3s ease; }
+        .brand-box:hover { transform: scale(1.03); filter: drop-shadow(0 0 16px var(--role-glow)); }
+        .brand-logo-icon {
+            width: 36px; height: 36px; border-radius: 12px; background: var(--role-gradient);
+            color: #04060A; font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.15rem;
+            display: flex; align-items: center; justify-content: center; box-shadow: 0 0 18px var(--role-glow);
+        }
+        .brand-text h1 { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1rem; letter-spacing: 0.15em; color: white; line-height: 1; }
+        .brand-text span { font-size: 7.5px; font-family: 'JetBrains Mono', monospace; color: var(--role-color); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 3px; display: block; }
+        .sidebar-top-section { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+        .sidebar-nav { display: flex; flex-direction: column; justify-content: center; flex: 1 1 auto; gap: 8px; padding: 8px 0; }
+        .sidebar-bottom-section { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border-subtle); }
+        .side-link {
+            display: flex; align-items: center; justify-content: space-between; padding: 10px 14px;
+            border-radius: 14px; background: rgba(255, 255, 255, 0.015); border: 1px solid var(--border-subtle);
+            color: var(--text-secondary); font-size: 0.83rem; font-weight: 600; height: 44px; text-decoration: none;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden;
+        }
+        .side-link::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(150px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(var(--role-rgb), 0.22), transparent 70%);
+            opacity: 0; transition: opacity 0.2s ease; pointer-events: none; z-index: 0;
+        }
+        .side-link:hover::before { opacity: 1; }
+        .side-link-left { display: flex; align-items: center; gap: 12px; z-index: 1; }
+        .side-link:hover { color: var(--text-primary); border-color: rgba(var(--role-rgb), 0.45); transform: translateX(3px); }
+        .side-link.active { background: rgba(var(--role-rgb), 0.14); border-color: var(--role-color); color: var(--role-color); box-shadow: 0 0 18px rgba(var(--role-rgb), 0.18); }
+        .sidebar-ai-tip-box {
+            background: rgba(var(--role-rgb), 0.05); border: 1px solid rgba(var(--role-rgb), 0.24);
+            border-radius: 12px; padding: 8px 11px; height: 86px; display: flex; flex-direction: column; justify-content: center;
+        }
+        .sidebar-ai-tip-header { display: flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--role-color); text-transform: uppercase; margin-bottom: 3px; font-weight: 700; }
+        .sidebar-ai-tip-text { font-size: 0.68rem; color: #CBD5E1; line-height: 1.28; }
+
+        /* TOPBAR Y WORKSPACE */
+        .os-main { display: flex; flex-direction: column; min-width: 0; height: 100vh; overflow: hidden; }
+        .os-topbar {
+            background: rgba(6, 8, 14, 0.9); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle); padding: 11px 24px;
+            display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-shrink: 0;
+        }
+        .active-role-indicator { display: flex; align-items: center; background: rgba(13, 17, 26, 0.95); border: 1px solid rgba(var(--role-rgb), 0.45); border-radius: 999px; padding: 6px 14px; gap: 7px; }
+        .active-role-indicator .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--role-color); box-shadow: 0 0 8px var(--role-color); }
+        .active-role-text { font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.66rem; color: var(--text-primary); letter-spacing: 0.06em; text-transform: uppercase; }
+
+        .os-workspace { max-width: 1280px; width: 100%; margin: 0 auto; padding: 12px 22px 24px 22px; flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; }
+        .context-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+        .context-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.64rem; color: var(--role-color); text-transform: uppercase; letter-spacing: 0.14em; display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+        .context-title { font-family: 'Orbitron', sans-serif; font-size: clamp(1.25rem, 2vw, 1.72rem); font-weight: 900; letter-spacing: -0.02em; color: white; }
+
+        /* BARRA DE COMANDO PERFECTAMENTE DISTRIBUIDA */
+        .analyzer-toolbar {
+            background: rgba(13, 17, 26, 0.95); border: 1px solid var(--border-subtle); border-radius: 16px;
+            padding: 7px 10px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;
+            gap: 8px; flex-wrap: nowrap; box-shadow: 0 8px 22px rgba(0,0,0,0.4); position: relative; z-index: 75;
+        }
+        @media (max-width: 1120px) { .analyzer-toolbar { flex-wrap: wrap; } }
+        .analyzer-tabs-group {
+            display: inline-grid; grid-template-columns: repeat(3, auto); background: rgba(4, 6, 10, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 11px; padding: 3px; gap: 4px; flex-shrink: 0;
+        }
+        .analyzer-tab-btn {
+            background: transparent; border: none; color: var(--text-secondary); font-family: 'Orbitron', sans-serif;
+            font-size: 0.63rem; font-weight: 800; padding: 7px 11px; border-radius: 8px; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.22s ease; white-space: nowrap;
+        }
+        .analyzer-tab-btn:hover { color: white; background: rgba(255, 255, 255, 0.04); }
+        .analyzer-tab-btn.active { background: var(--role-gradient); color: #04060A; font-weight: 900; box-shadow: 0 0 14px var(--role-glow); }
+        .analyzer-controls-right { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; min-width: 0; }
+
+        /* DESPLEGABLES KINET COMPACTOS Y ANIMADOS */
+        .kinet-custom-select-wrap { position: relative; display: inline-block; min-width: 155px; max-width: 245px; user-select: none; z-index: 80; }
+        .kinet-custom-select-wrap.open { z-index: 260; }
+        .kinet-custom-select-trigger {
+            width: 100%; background: rgba(6, 9, 16, 0.96); border: 1px solid rgba(var(--role-rgb), 0.45);
+            border-radius: 10px; padding: 7px 10px; color: #F8FAFC; font-family: 'Inter', sans-serif;
+            font-size: 0.68rem; font-weight: 700; cursor: pointer; display: flex; align-items: center;
+            justify-content: space-between; gap: 6px; transition: all 0.22s ease; box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+        }
+        .kinet-custom-select-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .kinet-custom-select-trigger:hover, .kinet-custom-select-wrap.open .kinet-custom-select-trigger {
+            border-color: var(--role-color); box-shadow: 0 0 16px rgba(var(--role-rgb), 0.25); background: rgba(var(--role-rgb), 0.08);
+        }
+        .kinet-custom-select-arrow { font-size: 0.6rem; color: var(--role-color); transition: transform 0.3s ease; flex-shrink: 0; }
+        .kinet-custom-select-wrap.open .kinet-custom-select-arrow { transform: rotate(180deg); }
+        @keyframes kinetDropIn { 0% { opacity: 0; transform: translateY(-8px) scale(0.96); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+        .kinet-custom-select-menu {
+            position: absolute; top: calc(100% + 6px); right: 0; min-width: 100%; width: max-content; max-width: 310px;
+            max-height: 265px; overflow-y: auto; background: rgba(9, 13, 22, 0.98); backdrop-filter: blur(24px);
+            border: 1px solid rgba(var(--role-rgb), 0.55); border-radius: 13px; padding: 5px;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.94), 0 0 25px rgba(var(--role-rgb), 0.22); display: none; z-index: 350;
+        }
+        .kinet-custom-select-wrap.open .kinet-custom-select-menu { display: block; animation: kinetDropIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .kinet-custom-option {
+            padding: 8px 11px; border-radius: 9px; font-size: 0.71rem; font-weight: 600; color: #CBD5E1;
+            cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 8px; transition: all 0.18s ease; margin-bottom: 2px;
+        }
+        .kinet-custom-option:hover { background: rgba(var(--role-rgb), 0.14); color: #FFFFFF; transform: translateX(3px); }
+        .kinet-custom-option.selected { background: var(--role-gradient); color: #04060A; font-weight: 800; box-shadow: 0 0 12px var(--role-glow); }
+
+        .kinet-input {
+            background: rgba(4, 6, 10, 0.92); border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 10px; padding: 7px 11px; color: white; font-family: 'Inter', sans-serif;
+            font-size: 0.71rem; font-weight: 500; outline: none; width: 100%; transition: all 0.2s ease;
+        }
+        .kinet-input:focus { border-color: var(--role-color); box-shadow: 0 0 12px rgba(var(--role-rgb), 0.18); }
+
+        .btn-primary {
+            background: var(--role-gradient); color: #04060A; border: none; border-radius: 10px;
+            padding: 7px 13px; font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.65rem;
+            cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+            box-shadow: 0 0 16px var(--role-glow); transition: all 0.22s ease; white-space: nowrap;
+        }
+        .btn-primary:hover { transform: translateY(-1px) scale(1.02); filter: brightness(1.08); }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.04); color: white; border: 1px solid var(--border-subtle);
+            border-radius: 10px; padding: 7px 10px; font-family: 'Orbitron', sans-serif; font-weight: 700;
+            font-size: 0.61rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.22s ease; white-space: nowrap;
+        }
+        .btn-secondary:hover { border-color: rgba(var(--role-rgb), 0.5); background: rgba(var(--role-rgb), 0.1); }
+        .verified-badge {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.59rem; font-weight: 700;
+            padding: 5px 9px; border-radius: 8px; background: rgba(var(--role-rgb), 0.12);
+            border: 1px solid rgba(var(--role-rgb), 0.38); color: var(--role-color); display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+        }
+
+        /* BENTO GRID */
+        .bento-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 15px; align-items: stretch; }
+        .col-8 { grid-column: span 8; }
+        .col-4 { grid-column: span 4; }
+        @media (max-width: 1080px) { .col-8, .col-4 { grid-column: span 12; } }
+
+        .kinet-panel {
+            background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 20px;
+            padding: 14px 16px; position: relative; box-shadow: 0 12px 30px rgba(0,0,0,0.45);
+            overflow: hidden; transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .kinet-panel::before {
+            content: ''; position: absolute; inset: 0; border-radius: inherit;
+            background: radial-gradient(240px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(var(--role-rgb), 0.15), transparent 70%);
+            opacity: 0; transition: opacity 0.2s ease; pointer-events: none; z-index: 0;
+        }
+        .kinet-panel > * { position: relative; z-index: 1; }
+        .kinet-panel:hover::before { opacity: 1; }
+        .kinet-panel:hover { border-color: rgba(var(--role-rgb), 0.38); }
+
+        /* CABECERA DEL CAMPO FIJA EN 1 SOLA LÍNEA */
+        .panel-head-fixed {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: nowrap !important;
+            height: 48px;
+            min-height: 48px;
+            max-height: 48px;
+            margin-bottom: 8px;
+            gap: 10px;
+            overflow: hidden;
+        }
+        .panel-head-left {
+            min-width: 0;
+            flex: 1 1 auto;
+            overflow: hidden;
+        }
+        .panel-head-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        #live-tactical-teleprompter {
+            font-size: 0.71rem;
+            color: var(--role-color);
+            font-weight: 700;
+            margin-top: 3px;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            display: block !important;
+        }
+
+        .minimal-mode-switch { display: inline-flex; background: rgba(4, 6, 10, 0.95); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 11px; padding: 3px; gap: 4px; }
+        .minimal-mode-btn {
+            background: transparent; border: none; color: var(--text-secondary); font-family: 'Orbitron', sans-serif;
+            font-size: 0.61rem; font-weight: 800; padding: 5px 11px; border-radius: 8px; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 6px; transition: all 0.22s ease;
+        }
+        .minimal-mode-btn:hover { color: #FFFFFF; }
+        .minimal-mode-btn.active { background: var(--role-gradient); color: #04060A; font-weight: 900; box-shadow: 0 0 14px var(--role-glow); }
+
+        /* ESCENARIO HORIZONTAL CON ZOOM VECTORIAL REAL HD PANORÁMICO (380x420) */
+        .arena-3d-viewport {
+            width: 100%; height: 400px;
+            background:
+                radial-gradient(ellipse at 50% 8%, rgba(var(--role-rgb), 0.25), transparent 62%),
+                linear-gradient(180deg, #030509 0%, #070C16 100%);
+            border: 1px solid rgba(var(--role-rgb), 0.42); border-radius: 18px;
+            position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
+            box-shadow: inset 0 0 65px rgba(0, 0, 0, 0.9), 0 16px 36px rgba(0, 0, 0, 0.65);
+        }
+        .arena-3d-surface {
+            width: 95%; height: 90%; position: relative;
+            transform: perspective(1100px) rotateX(11deg);
+            transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+            border-radius: 16px; border: 2px solid rgba(var(--role-rgb), 0.55);
+            box-shadow: 0 12px 0 #05120D, 0 14px 0 rgba(var(--role-rgb), 0.45), 0 30px 50px rgba(0, 0, 0, 0.95);
+            cursor: crosshair; overflow: hidden;
+        }
+        .arena-svg-canvas { width: 100%; height: 100%; display: block; border-radius: 14px; pointer-events: none; }
+
+        /* CAPAS TRANSPARENTES A CLICS Y FICHAS ACTIVAS */
+        #arena-rivals-layer, #arena-tokens-layer {
+            position: absolute; inset: 0; pointer-events: none !important;
+        }
+        .micro-player-token {
+            position: absolute; transform: translate(-50%, -50%);
+            width: 40px; height: 40px; border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(var(--role-rgb), 0.46), rgba(6, 10, 18, 0.98));
+            border: 2px solid var(--role-color);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.88), 0 0 12px rgba(var(--role-rgb), 0.35);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: grab; z-index: 40; user-select: none;
+            pointer-events: auto !important;
+            background-size: cover; background-position: center;
+            transition: left 0.72s cubic-bezier(0.22, 1, 0.36, 1), top 0.72s cubic-bezier(0.22, 1, 0.36, 1), transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .micro-player-token.dragging, .micro-rival-token.dragging {
+            transition: none !important; cursor: grabbing !important; z-index: 95 !important;
+        }
+        .micro-player-token:hover, .micro-player-token.active-actor {
+            border: 2.5px solid #FFFFFF;
+            box-shadow: 0 0 20px #FFFFFF, 0 0 30px var(--role-color);
+            transform: translate(-50%, -50%) scale(1.18);
+            z-index: 70;
+        }
+        .micro-rival-token {
+            position: absolute; transform: translate(-50%, -50%);
+            width: 38px; height: 38px; border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(239, 68, 68, 0.58), rgba(24, 6, 10, 0.98));
+            border: 2px solid #EF4444; box-shadow: 0 6px 14px rgba(0,0,0,0.88), 0 0 12px rgba(239, 68, 68, 0.48);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 42; cursor: grab; user-select: none;
+            pointer-events: auto !important;
+            transition: left 0.72s cubic-bezier(0.22, 1, 0.36, 1), top 0.72s cubic-bezier(0.22, 1, 0.36, 1), transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .micro-rival-token:hover, .micro-rival-token.active-actor {
+            border: 2.5px solid #FFFFFF;
+            box-shadow: 0 0 22px #FFFFFF, 0 0 32px #EF4444;
+            transform: translate(-50%, -50%) scale(1.2);
+            z-index: 72;
+        }
+        .micro-initials {
+            font-family: 'Orbitron', sans-serif; font-size: 0.62rem; font-weight: 900;
+            color: #FFFFFF; line-height: 1; text-shadow: 0 1px 4px rgba(0,0,0,0.95);
+            -webkit-font-smoothing: antialiased;
+        }
+        .micro-pos-tag {
+            position: absolute; bottom: -5px; background: var(--role-color); color: #04060A;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.42rem; font-weight: 900;
+            padding: 1px 4px; border-radius: 4px; border: 1px solid #04060A; line-height: 1;
+        }
+        .micro-mark-badge {
+            position: absolute; top: -6px; right: -6px;
+            background: #A855F7; color: #FFFFFF;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.42rem; font-weight: 900;
+            padding: 1px 4px; border-radius: 99px; border: 1px solid #04060A;
+            box-shadow: 0 0 8px #A855F7;
+        }
+
+        #sport-ball-node {
+            position: absolute; transform: translate(-50%, -50%); width: 25px; height: 25px;
+            border-radius: 50%; background: radial-gradient(circle at 35% 35%, #FFFFFF, #CBD5E1);
+            border: 2px solid #04060A; box-shadow: 0 6px 14px rgba(0,0,0,0.9), 0 0 18px #FFFFFF;
+            display: flex; align-items: center; justify-content: center; font-size: 0.84rem;
+            z-index: 75; pointer-events: none;
+            transition: left 0.72s cubic-bezier(0.22, 1, 0.36, 1), top 0.72s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        @keyframes kinetLaserDash { to { stroke-dashoffset: -44; } }
+        .kinet-laser-arrow { stroke-dasharray: 8 6; animation: kinetLaserDash 0.9s linear infinite; filter: drop-shadow(0 0 5px currentColor); }
+        .kinet-manmark-tether { stroke-dasharray: 4 4; animation: kinetLaserDash 1.2s linear infinite; opacity: 0.88; }
+        @keyframes kinetZonePulse { 0%, 100% { opacity: 0.14; transform: scale(0.95); } 50% { opacity: 0.32; transform: scale(1.05); } }
+        .kinet-zone-circle { transform-origin: center; animation: kinetZonePulse 1.8s ease-in-out infinite; }
+
+        /* CONSOLA INFERIOR Y ESTUDIO EJECUTIVO CON ANIMACIÓN POWER-UP NEÓN */
+        .bench-reserve-master-box {
+            margin-top: 10px; background: rgba(4, 6, 10, 0.88);
+            border: 1px solid var(--border-subtle); border-radius: 15px; padding: 9px 11px;
+        }
+        .right-panel-tabs {
+            display: grid; grid-template-columns: repeat(3, 1fr); background: rgba(4, 6, 10, 0.92);
+            border: 1px solid var(--border-subtle); border-radius: 11px; padding: 3px; gap: 4px; margin-bottom: 9px;
+        }
+        .right-tab-btn {
+            background: transparent; border: none; color: var(--text-secondary); font-family: 'Orbitron', sans-serif;
+            font-size: 0.6rem; font-weight: 800; padding: 7px 4px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;
+        }
+        .right-tab-btn:hover { color: #FFF; }
+        .right-tab-btn.active { background: rgba(var(--role-rgb), 0.18); color: var(--role-color); border: 1px solid rgba(var(--role-rgb), 0.45); box-shadow: 0 0 12px rgba(var(--role-rgb), 0.16); }
+
+        .tool-pill-btn {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); color: #E2E8F0;
+            font-family: 'Orbitron', sans-serif; font-size: 0.56rem; font-weight: 800; padding: 6px 9px;
+            border-radius: 8px; cursor: pointer; transition: all 0.22s ease; display: inline-flex; align-items: center; justify-content: center; gap: 5px; white-space: nowrap;
+        }
+        .tool-pill-btn:hover { border-color: var(--role-color); color: #FFF; }
+        .tool-pill-btn.active-green { background: rgba(0,255,136,0.18); color: #00FF88; border-color: #00FF88; box-shadow: 0 0 12px rgba(0,255,136,0.22); }
+        .tool-pill-btn.active-amber { background: rgba(245,158,11,0.2); color: #F59E0B; border-color: #F59E0B; box-shadow: 0 0 12px rgba(245,158,11,0.25); }
+        .tool-pill-btn.active-blue { background: rgba(56,189,248,0.2); color: #38BDF8; border-color: #38BDF8; box-shadow: 0 0 12px rgba(56,189,248,0.25); }
+        .tool-pill-btn.active-red { background: rgba(239,68,68,0.22); color: #FCA5A5; border-color: #EF4444; box-shadow: 0 0 12px rgba(239,68,68,0.25); }
+        .tool-pill-btn.active-purple { background: rgba(168,85,247,0.22); color: #D8B4FE; border-color: #A855F7; box-shadow: 0 0 12px rgba(168,85,247,0.3); }
+
+        @keyframes studioPowerUpGlow {
+            0% { box-shadow: 0 0 0 rgba(var(--role-rgb), 0); }
+            50% { box-shadow: 0 0 28px rgba(var(--role-rgb), 0.48), inset 0 0 18px rgba(var(--role-rgb), 0.22); }
+            100% { box-shadow: 0 0 16px rgba(var(--role-rgb), 0.24), inset 0 0 10px rgba(var(--role-rgb), 0.08); }
+        }
+
+        .exec-studio-section {
+            background: rgba(5, 8, 15, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-left: 3px solid var(--role-color);
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin-bottom: 9px;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        /* Cuando el modo "Empezar a Crear" está ENCENDIDO, todo el bloque se ilumina con energía neón */
+        .exec-studio-section.creation-powered-on {
+            border-color: rgba(var(--role-rgb), 0.65);
+            border-left: 3.5px solid var(--role-color);
+            background: linear-gradient(160deg, rgba(var(--role-rgb), 0.09), rgba(5, 8, 15, 0.95));
+            animation: studioPowerUpGlow 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        /* Contenedor de herramientas de trazo: Apagado (Standby) vs Encendido (Iluminado) */
+        .creation-tools-deck {
+            transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), filter 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .creation-tools-deck.deck-standby-off {
+            opacity: 0.34;
+            filter: grayscale(0.85) brightness(0.75);
+            pointer-events: none;
+            user-select: none;
+        }
+        .creation-tools-deck.deck-powered-on {
+            opacity: 1;
+            filter: grayscale(0) brightness(1.06) drop-shadow(0 0 8px rgba(var(--role-rgb), 0.16));
+            pointer-events: auto;
+        }
+
+        .exec-studio-header {
+            display: flex; justify-content: space-between; align-items: center;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.56rem;
+            color: var(--text-secondary); letter-spacing: 0.06em; text-transform: uppercase;
+            margin-bottom: 7px; font-weight: 700; gap: 6px;
+        }
+        .exec-segmented-bar {
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            background: rgba(12, 17, 28, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-radius: 9px; padding: 3px; gap: 3px;
+        }
+        .exec-seg-option {
+            background: transparent; border: 1px solid transparent; color: #94A3B8;
+            font-family: 'Inter', sans-serif; font-size: 0.65rem; font-weight: 700;
+            padding: 6px 8px; border-radius: 6px; cursor: pointer;
+            display: flex; align-items: center; gap: 6px; transition: all 0.22s ease;
+        }
+        .exec-seg-option:hover { color: #FFFFFF; background: rgba(255,255,255,0.03); }
+        .exec-seg-option.active-tool {
+            background: rgba(var(--role-rgb), 0.18);
+            border-color: var(--role-color);
+            color: #FFFFFF;
+            box-shadow: 0 0 12px rgba(var(--role-rgb), 0.25), inset 0 0 10px rgba(var(--role-rgb), 0.15);
+        }
+        .exec-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+        @keyframes startBtnPulse {
+            0%, 100% { box-shadow: 0 0 12px rgba(var(--role-rgb), 0.35); transform: scale(1); }
+            50% { box-shadow: 0 0 22px rgba(var(--role-rgb), 0.75); transform: scale(1.03); }
+        }
+        .btn-start-creation {
+            background: var(--role-gradient) !important;
+            color: #04060A !important;
+            border: none !important;
+            font-weight: 900 !important;
+            animation: startBtnPulse 1.8s infinite ease-in-out;
+        }
+
+        @keyframes recPulse { 0%, 100% { box-shadow: 0 0 10px rgba(239,68,68,0.4); } 50% { box-shadow: 0 0 22px rgba(239,68,68,0.85); } }
+        .btn-recording-active {
+            background: linear-gradient(135deg, #EF4444, #B91C1C) !important;
+            color: #FFFFFF !important; border-color: #FCA5A5 !important;
+            animation: recPulse 1.3s infinite ease-in-out;
+        }
+
+        .saved-play-card {
+            background: rgba(6, 10, 18, 0.88); border: 1px solid var(--border-subtle);
+            border-left: 3px solid var(--role-color);
+            border-radius: 11px; padding: 9px 11px; margin-bottom: 7px; transition: all 0.22s ease;
+        }
+        .saved-play-card:hover { border-color: var(--role-color); background: rgba(var(--role-rgb), 0.07); }
+
+        /* MODALES ANIMADOS CON ESTÉTICA KINET OS */
+        .kinet-modal-overlay {
+            position: fixed; inset: 0; background: rgba(4, 6, 10, 0.88); backdrop-filter: blur(18px); z-index: 600;
+            display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.26s ease; padding: 14px;
+        }
+        .kinet-modal-overlay.open { opacity: 1; pointer-events: auto; }
+        .kinet-modal-box {
+            background: rgba(11, 15, 24, 0.98); border: 1.5px solid rgba(var(--role-rgb), 0.58); border-radius: 22px;
+            max-width: 620px; width: 100%; padding: 22px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.95), 0 0 32px rgba(var(--role-rgb), 0.22);
+            transform: scale(0.94) translateY(12px);
+            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; flex-direction: column; gap: 13px; text-align: left;
+        }
+        .kinet-modal-overlay.open .kinet-modal-box {
+            transform: scale(1) translateY(0);
+        }
+
+        .customizer-two-cols {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+        }
+        @media (max-width: 640px) { .customizer-two-cols { grid-template-columns: 1fr; } }
+        .customizer-team-card {
+            background: rgba(4, 6, 12, 0.88);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px; padding: 12px;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .customizer-player-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 6px 9px; border-radius: 9px;
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 0.71rem; color: #F8FAFC;
+        }
+    </style>
+</head>
+<body data-role="athlete">
+
+    <!-- CORTINA DE TRANSICIÓN CON AUTO-OCULTACIÓN CSS -->
+    <div id="kinet-funny-curtain" onclick="this.classList.add('curtain-hidden')">
+        <div style="font-size:3.6rem;animation:kinetSpinBall 0.45s cubic-bezier(0.16,1,0.3,1) forwards;filter:drop-shadow(0 0 25px var(--role-color));" id="curtain-icon">📋</div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:#FFFFFF;letter-spacing:0.08em;text-align:center;animation:kinetWhistleBounce 0.6s infinite;" id="curtain-title">📣 ¡PIZARRA TÁCTICA LISTA!</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.74rem;color:var(--role-color);background:rgba(var(--role-rgb),0.12);border:1px solid var(--role-color);padding:6px 14px;border-radius:99px;" id="curtain-sub">Desplegando el campo en horizontal...</div>
+    </div>
+
+    <div class="os-layout">
+        <!-- SIDEBAR -->
+        <aside class="os-sidebar">
+            <div class="sidebar-top-section">
+                <a href="app.html" id="brand-logo-desktop" class="brand-box">
+                    <div class="brand-logo-icon">K</div>
+                    <div class="brand-text">
+                        <h1>KINET OS</h1>
+                        <span id="sidebar-sport-subtitle">AI PRECISION // FÚTBOL</span>
+                    </div>
+                </a>
+                <nav class="sidebar-nav">
+                    <a href="app.html" id="nav-vestuario" class="side-link"><span class="side-link-left"><span>⚡</span> <span>Vestuario</span></span><span style="font-size:0.65rem;font-family:'JetBrains Mono';">HOY</span></a>
+                    <a href="cuerpo-tecnico.html" id="nav-cuerpo-tecnico" class="side-link"><span class="side-link-left"><span>🧠</span> <span>Cuerpo Técnico IA</span></span><span>→</span></a>
+                    <a href="ficha-pro.html" id="nav-ficha-pro" class="side-link"><span class="side-link-left"><span>🎴</span> <span>Ficha & KINET Card</span></span><span>→</span></a>
+                    <a href="ojeador-live.html" id="nav-ojeador-live" class="side-link"><span class="side-link-left"><span>🎬</span> <span>Laboratorio Vídeo</span></span><span>→</span></a>
+                    <a href="analizador.html" id="nav-analizador" class="side-link active"><span class="side-link-left"><span>🏟️</span> <span>Analizador & Pizarra 3D</span></span><span style="color:var(--role-color);">●</span></a>
+                    <a href="comunidad.html" id="nav-comunidad" class="side-link"><span class="side-link-left"><span>🌐</span> <span>Comunidad / Red Social</span></span><span>→</span></a>
+                    <a href="media-studio.html" id="nav-media-studio" class="side-link"><span class="side-link-left"><span>🎵</span> <span>KINET Media Studio™</span></span><span>→</span></a>
+                </nav>
+            </div>
+            <div class="sidebar-bottom-section">
+                <div class="sidebar-ai-tip-box">
+                    <div class="sidebar-ai-tip-header"><span>💡</span> <span>Modo Libre vs Crear</span></div>
+                    <div class="sidebar-ai-tip-text">Mueve fichas libremente sin líneas. Pulsa "⚡ Empezar a Crear" para encender las herramientas y trazar tu jugada.</div>
+                </div>
+                <a href="perfil.html" id="nav-perfil" class="side-link"><span class="side-link-left"><span>👤</span> <span>Mi Perfil</span></span><span>→</span></a>
+                <a href="despacho.html" id="nav-despacho" class="side-link"><span class="side-link-left"><span>⚙️</span> <span>Despacho & Ajustes</span></span><span>→</span></a>
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <div class="os-main">
+            <header class="os-topbar">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-secondary);display:flex;align-items:center;gap:10px;">
+                    <span>LABORATORIO DE ESTRATEGIAS, MARCAJE 1VS1 & JUGADAS MULTIFASE</span>
+                    <span style="color:var(--role-color);font-weight:700;" id="topbar-sport-tag">● FÚTBOL</span>
+                </div>
+                <div class="active-role-indicator">
+                    <span class="dot"></span>
+                    <span class="active-role-text" id="topbar-role-title">CLUB & SCOUT PRO</span>
+                </div>
+            </header>
+
+            <main class="os-workspace">
+                <div class="context-header">
+                    <div>
+                        <span class="context-tag"><span>🎬</span> <span id="header-tag-text">PIZARRA TÁCTICA HORIZONTAL • JUGADAS & ESTRATEGIAS IA</span></span>
+                        <h1 class="context-title">Analizador & Estrategias 3D</h1>
+                    </div>
+                    <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;">
+                        <div class="verified-badge" id="active-formation-pill">📐 MI FORMACIÓN: 4-3-3</div>
+                        <button type="button" class="btn-secondary" onclick="openHelpModal()">❓ Guía Táctica</button>
+                        <button type="button" class="btn-secondary" onclick="resetBoardToCleanBase()">🧹 Limpiar Pizarra</button>
+                        <button type="button" class="btn-primary" onclick="exportCurrentPlayPDF()">📄 Exportar Jugada PDF</button>
+                    </div>
+                </div>
+
+                <!-- BARRA DE COMANDO -->
+                <div class="analyzer-toolbar">
+                    <div class="analyzer-tabs-group">
+                        <button type="button" class="analyzer-tab-btn active" id="top-sec-train" onclick="switchMainSection('train')">
+                            <span>📋</span> <span>1. Entrenar</span>
+                        </button>
+                        <button type="button" class="analyzer-tab-btn" id="top-sec-rival" onclick="switchMainSection('rival')">
+                            <span>⚔️</span> <span>2. Vs Rival</span>
+                        </button>
+                        <button type="button" class="analyzer-tab-btn" id="top-sec-abp" onclick="switchMainSection('abp')">
+                            <span>🎯</span> <span>3. Balón Parado</span>
+                        </button>
+                    </div>
+
+                    <div class="analyzer-controls-right">
+                        <select id="rival-formation-selector" class="kinet-select" onchange="onRivalFormationChange(this.value)" title="Formación del Equipo Rival"></select>
+                        <select id="dynamic-moment-selector" class="kinet-select" onchange="onMomentDropdownChange(this.value)" title="Momento táctico o jugada"></select>
+
+                        <button type="button" class="btn-secondary" id="toggle-token-display-btn" onclick="toggleMicroTokenDisplay()">
+                            🎴 Ficha: Iniciales
+                        </button>
+                        <button type="button" class="btn-secondary" id="toggle-zoom-btn" onclick="cycleTacticalZoom()" title="Acercar cámara panorámica en HD a la zona de acción o ver campo completo">
+                            🔍 Zoom: Campo Total
+                        </button>
+                    </div>
+                </div>
+
+                <!-- BENTO GRID -->
+                <div class="bento-grid">
+                    <!-- COLUMNA IZQUIERDA (8 COL) -->
+                    <div class="col-8">
+                        <div class="kinet-panel" id="left-strategy-panel">
+                            <!-- CABECERA BLOQUEADA EN 1 SOLA LÍNEA -->
+                            <div class="panel-head-fixed">
+                                <div class="panel-head-left">
+                                    <div class="minimal-mode-switch">
+                                        <button type="button" class="minimal-mode-btn" onclick="returnToRosterPage()">
+                                            👥 Gestionar Plantilla
+                                        </button>
+                                        <button type="button" class="minimal-mode-btn active">
+                                            🎬 Jugadas & Estrategias IA ✓
+                                        </button>
+                                    </div>
+                                    <div id="live-tactical-teleprompter">
+                                        Modo Colocación Libre: Mueve cualquier ficha a tu gusto sin dejar líneas, o pulsa "⚡ Empezar a Crear".
+                                    </div>
+                                </div>
+                                <div class="panel-head-right">
+                                    <button type="button" class="tool-pill-btn active-blue" onclick="openCustomizePlayersModal()" title="Añadir o eliminar jugadores tuyos o rivales por posición">
+                                        ⚙️ Personalizar Efectivos
+                                    </button>
+                                    <button type="button" class="tool-pill-btn" id="btn-undo-top" onclick="undoLastStep()">↩️ Deshacer (0)</button>
+                                    <span class="verified-badge" id="phase-indicator-badge">FASE 1 / 3</span>
+                                </div>
+                            </div>
+
+                            <!-- ESCENARIO 3D HORIZONTAL CON ZOOM VECTORIAL HD PANORÁMICO -->
+                            <div class="arena-3d-viewport" id="arena-viewport-box">
+                                <div class="arena-3d-surface" id="arena-3d-surface">
+                                    <div id="arena-svg-mount" style="width:100%;height:100%;"></div>
+                                    <svg id="arena-vectors-svg" viewBox="0 0 600 420" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:26;"></svg>
+                                    <div id="arena-rivals-layer"></div>
+                                    <div id="arena-tokens-layer"></div>
+                                    <div id="sport-ball-node" style="left:50%;top:50%;">⚽</div>
+                                </div>
+                            </div>
+
+                            <!-- CONSOLA INFERIOR LIMPIA -->
+                            <div class="bench-reserve-master-box">
+                                <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+                                    <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;">
+                                        <button type="button" class="btn-primary" style="padding:7px 12px;font-size:0.62rem;" onclick="playFullMultiPhaseAnimation()">
+                                            ▶ Reproducir (Fases 1→3)
+                                        </button>
+                                        <button type="button" class="tool-pill-btn active-green" id="phase-btn-0" onclick="selectTacticalPhase(0)">1. Fase Inicial</button>
+                                        <button type="button" class="tool-pill-btn" id="phase-btn-1" onclick="selectTacticalPhase(1)">2. Desarrollo</button>
+                                        <button type="button" class="tool-pill-btn" id="phase-btn-2" onclick="selectTacticalPhase(2)">3. Finalización</button>
+                                    </div>
+                                    <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;">
+                                        <button type="button" class="tool-pill-btn" id="btn-rival-toggle" onclick="toggleRivalVisibility()">⚔️ Rival: OFF</button>
+                                        <button type="button" class="tool-pill-btn" onclick="openCustomizePlayersModal()">⚙️ Efectivos</button>
+                                        <button type="button" class="tool-pill-btn" onclick="applyKickoffFormation()">⚽ Saque Centro</button>
+                                        <button type="button" class="tool-pill-btn" onclick="resetBoardToCleanBase()">↺ Base</button>
+                                    </div>
+                                </div>
+                                <div style="display:flex;gap:8px;align-items:center;">
+                                    <input type="text" id="ai-tactical-input" class="kinet-input" placeholder="Pide una jugada al Director Táctico IA (ej: saque inicial, salida con laterales, córner derecho, falta cercana)..." onkeydown="if(event.key==='Enter') executeAiTacticalCommand()">
+                                    <button type="button" class="btn-primary" style="padding:7px 14px;font-size:0.63rem;" onclick="executeAiTacticalCommand()">Generar IA ⚡</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- COLUMNA DERECHA (4 COL) -->
+                    <div class="col-4">
+                        <div class="kinet-panel" id="right-strategy-panel" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
+                            <div>
+                                <div class="right-panel-tabs">
+                                    <button type="button" class="right-tab-btn active" id="subtab-btn-create" onclick="switchRightSubTab('create')">🛠️ Crear</button>
+                                    <button type="button" class="right-tab-btn" id="subtab-btn-ia" onclick="switchRightSubTab('ia')">🧠 Jugadas IA</button>
+                                    <button type="button" class="right-tab-btn" id="subtab-btn-saved" onclick="switchRightSubTab('saved')">💾 Guardados (<span id="saved-count-lbl">0</span>)</button>
+                                </div>
+
+                                <div id="right-subtab-content"></div>
+                            </div>
+
+                            <!-- DICTAMEN IA Y ENVÍO AL ENTRENADOR -->
+                            <div style="margin-top:8px;background:rgba(var(--role-rgb),0.06);border:1px solid rgba(var(--role-rgb),0.32);border-radius:13px;padding:9px 11px;">
+                                <div style="font-family:'JetBrains Mono';font-size:0.56rem;color:var(--role-color);font-weight:700;margin-bottom:2px;">🧠 LECTURA TÁCTICA EN TIEMPO REAL</div>
+                                <p style="font-size:0.68rem;color:#E2E8F0;line-height:1.34;margin-bottom:7px;" id="ai-board-diagnosis">
+                                    Mueve fichas libremente para ajustar posiciones, o pulsa "⚡ Empezar a Crear" para encender las herramientas y grabar líneas.
+                                </p>
+                                <button type="button" class="btn-primary" style="width:100%;padding:7px 11px;font-size:0.62rem;" onclick="sendTacticToCoachChat()">
+                                    ⚡ Analizar esta Pizarra con el Cuerpo Técnico IA →
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- =========================================================================
+         MODAL 1: GUARDAR JUGADA AL TERMINAR DE CREAR (ESTÉTICA KINET OS)
+         ========================================================================= -->
+    <div id="save-recording-modal" class="kinet-modal-overlay">
+        <div class="kinet-modal-box" style="max-width:460px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:10px;">
+                <div style="display:flex;align-items:center;gap:9px;">
+                    <span style="width:32px;height:32px;border-radius:10px;background:rgba(var(--role-rgb),0.16);border:1px solid var(--role-color);display:flex;align-items:center;justify-content:center;font-size:1rem;">💾</span>
+                    <div>
+                        <div style="font-family:'Orbitron';font-size:0.88rem;font-weight:900;color:#FFFFFF;">GUARDAR JUGADA CREADA</div>
+                        <div style="font-family:'JetBrains Mono';font-size:0.56rem;color:var(--role-color);" id="rec-modal-summary">3 FASES CAPTURADAS • CLOUD SYNC</div>
+                    </div>
+                </div>
+                <button type="button" onclick="closeSaveRecordingModal()" style="background:none;border:none;color:#94A3B8;font-size:1.15rem;cursor:pointer;">✕</button>
+            </div>
+
+            <div style="font-size:0.74rem;color:#CBD5E1;line-height:1.45;">
+                Ponle un nombre a la jugada que acabas de crear para almacenarla con todos sus movimientos en tu Biblioteca y en la nube:
+            </div>
+
+            <div>
+                <label style="font-family:'JetBrains Mono';font-size:0.56rem;color:var(--role-color);font-weight:700;display:block;margin-bottom:4px;">🎬 NOMBRE DE LA JUGADA / ESTRATEGIA</label>
+                <input type="text" id="rec-modal-title-input" class="kinet-input" placeholder="Ej: Salida Lavolpiana + Ruptura Banda..." onkeydown="if(event.key==='Enter') confirmSaveRecordedPlay()">
+            </div>
+
+            <div>
+                <label style="font-family:'JetBrains Mono';font-size:0.56rem;color:var(--text-secondary);font-weight:700;display:block;margin-bottom:4px;">📝 CONSIGNA O NOTA TÁCTICA (OPCIONAL)</label>
+                <input type="text" id="rec-modal-notes-input" class="kinet-input" placeholder="Ej: Ejecutar ante presión alta rival en Fase 2...">
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:8px;margin-top:4px;">
+                <button type="button" class="btn-secondary" onclick="closeSaveRecordingModal()">Cerrar sin Guardar</button>
+                <button type="button" class="btn-primary" onclick="confirmSaveRecordedPlay()">💾 Guardar Jugada en Nube</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================================
+         MODAL 2: PERSONALIZAR EFECTIVOS POR POSICIÓN (TU EQUIPO Y RIVAL)
+         ========================================================================= -->
+    <div id="customize-players-modal" class="kinet-modal-overlay">
+        <div class="kinet-modal-box" style="max-width:660px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:10px;">
+                <div style="display:flex;align-items:center;gap:9px;">
+                    <span style="width:32px;height:32px;border-radius:10px;background:rgba(56,189,248,0.16);border:1px solid #38BDF8;display:flex;align-items:center;justify-content:center;font-size:1rem;">⚙️</span>
+                    <div>
+                        <div style="font-family:'Orbitron';font-size:0.9rem;font-weight:900;color:#FFFFFF;">PERSONALIZAR EFECTIVOS EN PISTA</div>
+                        <div style="font-family:'JetBrains Mono';font-size:0.56rem;color:#38BDF8;">AÑADE O ELIMINA JUGADORES DE CADA DEMARCACIÓN (SUPERIORIDADES / RONDOS / EXPULSIONES)</div>
+                    </div>
+                </div>
+                <button type="button" onclick="closeCustomizePlayersModal()" style="background:none;border:none;color:#94A3B8;font-size:1.15rem;cursor:pointer;">✕</button>
+            </div>
+
+            <div class="customizer-two-cols">
+                <!-- Columna 1: Tu Equipo -->
+                <div class="customizer-team-card" style="border-color:rgba(var(--role-rgb),0.4);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-family:'Orbitron';font-size:0.74rem;font-weight:800;color:var(--role-color);">🛡️ TU EQUIPO (<span id="cust-own-count">11</span>)</span>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                        <select id="cust-add-own-pos" class="kinet-input" style="padding:6px 8px;font-weight:700;cursor:pointer;"></select>
+                        <button type="button" class="btn-primary" style="padding:6px 10px;font-size:0.58rem;" onclick="addCustomPositionToken('own')">+ Añadir</button>
+                    </div>
+                    <div id="cust-own-list" style="max-height:210px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;"></div>
+                </div>
+
+                <!-- Columna 2: Equipo Rival -->
+                <div class="customizer-team-card" style="border-color:rgba(239,68,68,0.45);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-family:'Orbitron';font-size:0.74rem;font-weight:800;color:#FCA5A5;">⚔️ EQUIPO RIVAL (<span id="cust-rival-count">11</span>)</span>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                        <select id="cust-add-rival-pos" class="kinet-input" style="padding:6px 8px;font-weight:700;cursor:pointer;"></select>
+                        <button type="button" class="btn-primary" style="padding:6px 10px;font-size:0.58rem;background:linear-gradient(135deg,#EF4444,#DC2626);color:#FFF;" onclick="addCustomPositionToken('rival')">+ Añadir</button>
+                    </div>
+                    <div id="cust-rival-list" style="max-height:210px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;"></div>
+                </div>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border-subtle);padding-top:10px;">
+                <button type="button" class="btn-secondary" onclick="resetBoardToCleanBase(); renderCustomizePlayersModalContent();">↺ Restaurar 11 vs 11 Base</button>
+                <button type="button" class="btn-primary" onclick="closeCustomizePlayersModal()">✓ Aplicar en Pizarra</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE GUÍA TÁCTICA RÁPIDA -->
+    <div id="tactical-help-modal" class="kinet-modal-overlay">
+        <div class="kinet-modal-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:8px;">
+                <div style="font-family:'Orbitron';font-size:0.9rem;font-weight:900;color:var(--role-color);">❓ GUÍA DE LA PIZARRA DE ESTRATEGIAS 3D</div>
+                <button type="button" onclick="document.getElementById('tactical-help-modal').classList.remove('open')" style="background:none;border:none;color:white;font-size:1.15rem;cursor:pointer;">✕</button>
+            </div>
+            <div style="font-size:0.76rem;color:#CBD5E1;line-height:1.55;display:flex;flex-direction:column;gap:8px;">
+                <div><strong style="color:#00FF88;">1. ⚡ Modo Colocación Libre vs Modo Crear Jugada:</strong> Mientras no pulses <strong>"⚡ Empezar a Crear"</strong>, puedes mover libremente a todos los jugadores por el campo sin que salgan líneas. Al pulsar <strong>"⚡ Empezar a Crear"</strong>, se iluminan las herramientas de creación y se registran las flechas y fases. Al pulsar <strong>"⏹ Terminar"</strong>, las herramientas se apagan y se abre la ventana para guardar.</div>
+                <div><strong style="color:#A855F7;">2. 🔒 Seguir Marca (Marcaje Individual 1vs1):</strong> Con el modo crear encendido, selecciona a tu defensor (verde), pulsa <strong>"🔒 Seguir Marca 1vs1"</strong> y toca al rival rojo que quieres que persiga automáticamente.</div>
+                <div><strong style="color:#38BDF8;">3. ⚙️ Personalizar Efectivos:</strong> Añade o quita jugadores de cualquier posición en ambos equipos.</div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;margin-top:4px;">
+                <button type="button" class="btn-primary" onclick="document.getElementById('tactical-help-modal').classList.remove('open')">Entendido ⚡</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE ADVERTENCIA: JUGADA MANUAL SIN GUARDAR -->
+    <div id="unsaved-play-modal" class="kinet-modal-overlay">
+        <div class="kinet-modal-box" style="max-width:430px;text-align:center;">
+            <div style="width:46px;height:46px;border-radius:14px;background:rgba(245,158,11,0.16);border:1px solid #F59E0B;display:flex;align-items:center;justify-content:center;font-size:1.35rem;margin:0 auto;">⚠️</div>
+            <div style="font-family:'Orbitron';font-size:0.92rem;font-weight:900;color:#FFFFFF;">JUGADA MANUAL SIN GUARDAR</div>
+            <p style="font-size:0.78rem;color:#CBD5E1;line-height:1.5;">
+                Has trazado movimientos en la pizarra que aún no has guardado. Si continúas, <strong>se borrarán los trazos actuales</strong>.
+            </p>
+            <div style="display:flex;gap:8px;justify-content:center;margin-top:6px;">
+                <button type="button" class="btn-secondary" onclick="closeUnsavedModal()">Cancelar y Seguir</button>
+                <button type="button" class="btn-primary" style="background:linear-gradient(135deg,#EF4444,#DC2626);color:#FFF;" onclick="confirmDiscardUnsaved()">Continuar sin Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================
+        // MOTOR PROFESIONAL ANALIZADOR2.HTML V8:
+        // - MODO LIBRE POR DEFECTO: MUEVE FICHAS A TU ANTOJO SIN QUE SALGAN LÍNEAS DETRÁS
+        // - BOTÓN "⚡ EMPEZAR A CREAR" / "⏹ TERMINAR": ENCIENDE E ILUMINA LAS HERRAMIENTAS DE CREACIÓN Y AL TERMINAR LAS APAGA Y GUARDA
+        // =========================================================================
+        function normalizeArenaSport(raw) {
+            const s = String(raw || 'Fútbol').toLowerCase();
+            let name = 'Fútbol';
+            if (s.includes('baloncesto') || s.includes('basket')) name = 'Baloncesto';
+            else if (s.includes('pádel') || s.includes('padel') || s.includes('tenis')) name = 'Pádel / Tenis';
+            else if (s.includes('boxeo') || s.includes('mma') || s.includes('combate')) name = 'Boxeo / MMA';
+            else if (s.includes('running') || s.includes('atletismo') || s.includes('carrera')) name = 'Running';
+            else if (s.includes('otro')) name = 'Otros Deportes';
+            if (name === 'Otros Deportes' && !SPORT_POSITIONS_LIST[name]) {
+                const map = { PACER: 'POLIVALENTE', FONDO: 'ESPECIALISTA', SPRINT: 'APOYO' };
+                SPORT_POSITIONS_LIST[name] = ['POLIVALENTE', 'ESPECIALISTA', 'APOYO'];
+                const src = RIVAL_FORMATIONS_BY_SPORT['Running'] || {};
+                const out = {};
+                Object.keys(src).forEach(k => { out[k] = src[k].map(o => Object.assign({}, o, { pos: map[o.pos] || 'POLIVALENTE' })); });
+                RIVAL_FORMATIONS_BY_SPORT[name] = out;
+            }
+            return name;
+        }
+
+        const SPORT_POSITIONS_LIST = {
+            'Fútbol': ['POR', 'DFC', 'LI', 'LD', 'MCD', 'MC', 'MCO', 'EI', 'ED', 'DC'],
+            'Baloncesto': ['PG', 'SG', 'SF', 'PF', 'C'],
+            'Pádel / Tenis': ['REVÉS', 'DRIVE', 'INDIV'],
+            'Boxeo / MMA': ['STRIKER', 'GRAPPLER', 'SPARRING'],
+            'Running': ['PACER', 'FONDO', 'SPRINT']
+        };
+
+        const RIVAL_FORMATIONS_BY_SPORT = {
+            'Fútbol': {
+                '⚔️ Rival: 4-4-2 Bloque Medio': [
+                    { pos: 'POR', x: 94, y: 50 },
+                    { pos: 'LD', x: 82, y: 16 }, { pos: 'DFC', x: 84, y: 38 }, { pos: 'DFC', x: 84, y: 62 }, { pos: 'LI', x: 82, y: 84 },
+                    { pos: 'MD', x: 68, y: 18 }, { pos: 'MC', x: 70, y: 39 }, { pos: 'MC', x: 70, y: 61 }, { pos: 'MI', x: 68, y: 82 },
+                    { pos: 'DC', x: 56, y: 38 }, { pos: 'DC', x: 56, y: 62 }
+                ],
+                '⚔️ Rival: 4-3-3 Presión Alta': [
+                    { pos: 'POR', x: 93, y: 50 },
+                    { pos: 'LD', x: 79, y: 16 }, { pos: 'DFC', x: 81, y: 38 }, { pos: 'DFC', x: 81, y: 62 }, { pos: 'LI', x: 79, y: 84 },
+                    { pos: 'MCD', x: 68, y: 50 }, { pos: 'MC', x: 62, y: 31 }, { pos: 'MC', x: 62, y: 69 },
+                    { pos: 'ED', x: 53, y: 20 }, { pos: 'DC', x: 52, y: 50 }, { pos: 'EI', x: 53, y: 80 }
+                ],
+                '⚔️ Rival: 5-3-2 Bloque Bajo': [
+                    { pos: 'POR', x: 95, y: 50 },
+                    { pos: 'CAD', x: 83, y: 14 }, { pos: 'DFC', x: 86, y: 32 }, { pos: 'DFC', x: 87, y: 50 }, { pos: 'DFC', x: 86, y: 68 }, { pos: 'CAI', x: 83, y: 86 },
+                    { pos: 'MC', x: 73, y: 30 }, { pos: 'MCD', x: 75, y: 50 }, { pos: 'MC', x: 73, y: 70 },
+                    { pos: 'DC', x: 61, y: 40 }, { pos: 'DC', x: 61, y: 60 }
+                ],
+                '⚔️ Rival: 4-2-3-1 Doble Pivote': [
+                    { pos: 'POR', x: 94, y: 50 },
+                    { pos: 'LD', x: 81, y: 18 }, { pos: 'DFC', x: 83, y: 38 }, { pos: 'DFC', x: 83, y: 62 }, { pos: 'LI', x: 81, y: 82 },
+                    { pos: 'MCD', x: 71, y: 38 }, { pos: 'MCD', x: 71, y: 62 },
+                    { pos: 'ED', x: 60, y: 20 }, { pos: 'MCO', x: 61, y: 50 }, { pos: 'EI', x: 60, y: 80 },
+                    { pos: 'DC', x: 53, y: 50 }
+                ]
+            },
+            'Baloncesto': {
+                '⚔️ Rival: Zona 2-3': [
+                    { pos: 'PG', x: 68, y: 34 }, { pos: 'SG', x: 68, y: 66 },
+                    { pos: 'SF', x: 82, y: 22 }, { pos: 'C', x: 85, y: 50 }, { pos: 'PF', x: 82, y: 78 }
+                ],
+                '⚔️ Rival: Individual 1vs1': [
+                    { pos: 'PG', x: 60, y: 50 }, { pos: 'SG', x: 66, y: 20 },
+                    { pos: 'SF', x: 66, y: 80 }, { pos: 'PF', x: 78, y: 34 }, { pos: 'C', x: 82, y: 64 }
+                ]
+            },
+            'Pádel / Tenis': {
+                '⚔️ Rival: Pareja en Red': [{ pos: 'REV', x: 64, y: 30 }, { pos: 'DRV', x: 64, y: 70 }],
+                '⚔️ Rival: Pareja al Fondo': [{ pos: 'REV', x: 84, y: 30 }, { pos: 'DRV', x: 84, y: 70 }]
+            },
+            'Boxeo / MMA': {
+                '⚔️ Rival: Guardia Ortodoxa': [{ pos: 'RIV', x: 62, y: 50 }],
+                '⚔️ Rival: Presión Cuerdas': [{ pos: 'RIV', x: 46, y: 50 }]
+            },
+            'Running': {
+                '⚔️ Rival: Pelotón Frontal': [{ pos: 'R.1', x: 64, y: 44 }, { pos: 'R.2', x: 60, y: 56 }]
+            }
+        };
+
+        const MOMENT_DROPDOWN_CATALOG = {
+            train: {
+                prefix: '📋 Momento:',
+                items: [
+                    { key: 'base_formation', label: '0. Formación Base (Limpia)', desc: 'Tu plantilla colocada exactamente en tu formación guardada sin jugadas activas.' },
+                    { key: 'kickoff_center', label: '1. Saque Inicial (Centro del Campo)', desc: 'Cada equipo en su mitad propia (sin solaparse) listos para el saque de centro.' },
+                    { key: 'build_up', label: '2. Salida de Balón (3 Fases)', desc: 'Fase 1: Apoyo corto • Fase 2: Giro a banda • Fase 3: Ruptura profunda.' },
+                    { key: 'positional_attack', label: '3. Ataque Posicional (3 Fases)', desc: 'Fase 1: Instalación • Fase 2: Pase interior • Fase 3: Diagonal y remate.' },
+                    { key: 'counter_attack', label: '4. Contraataque Rápido (3 Fases)', desc: 'Fase 1: Robo • Fase 2: Lanzamiento al espacio • Fase 3: Definición 2vs1.' },
+                    { key: 'switch_play', label: '5. Basculación & Cambio Banda', desc: 'Fase 1: Atracción izq. • Fase 2: Giro al medio • Fase 3: Llegada carril der.' }
+                ]
+            },
+            rival: {
+                prefix: '⚔️ Situación:',
+                items: [
+                    { key: 'kickoff_center', label: '0. Saque Inicial (Cada Once en su Campo)', desc: 'Tu equipo en mitad izquierda y el rival en mitad derecha listos para empezar.' },
+                    { key: 'mid_block', label: '1. Bloque Medio + Robo (3 Fases)', desc: 'Fase 1: Cierre interior • Fase 2: Salto a presión • Fase 3: Salida tras robo.' },
+                    { key: 'low_block', label: '2. Repliegue Bajo + Contra', desc: 'Fase 1: Embudo en área • Fase 2: Despeje orientado • Fase 3: Transición.' },
+                    { key: 'gegenpress', label: '3. Presión Tras Pérdida (Gegenpress)', desc: 'Fase 1: Acoso inmediato • Fase 2: Cierre de líneas • Fase 3: Disparo rápido.' }
+                ]
+            },
+            abp: {
+                prefix: '🎯 Jugada ABP:',
+                items: [
+                    { key: 'corner_left', label: '1. Córner Izquierdo (Zoom Panorámico)', desc: 'Sacador arriba, bloqueo al central y 4 rematadores entrando en abanico.' },
+                    { key: 'corner_right', label: '2. Córner Derecho (Zoom Panorámico)', desc: 'Sacador abajo, arrastre corto en esquina y centro cerrado al 2º palo.' },
+                    { key: 'fk_close', label: '3. Falta Cercana Frontal (Zoom)', desc: 'Barrera de 4 rivales, doble lanzador frontal y ruptura a los costados.' },
+                    { key: 'fk_side', label: '4. Falta Lateral en Banda (Zoom)', desc: 'Línea del fuera de juego en la frontal y entrada lanzada en diagonal.' },
+                    { key: 'fk_far', label: '5. Falta Lejana (Segunda Jugada)', desc: 'Bloque adelantado buscando prolongación aérea en el segundo palo.' },
+                    { key: 'def_corner', label: '6. Córner Defensivo + Contra (Zoom)', desc: 'Defensa mixta en tu propia área y 2 velocistas listos para salir.' }
+                ]
+            }
+        };
+
+        let activeArenaSport = 'Fútbol';
+        let activeRoleKey = 'athlete';
+        let currentPresetName = '4-3-3 Ofensivo (11vs11)';
+        let currentRivalPresetName = '';
+        let activeSection = 'train';
+        let activeRightSubTab = 'create';
+        let activeMomentKey = 'base_formation';
+        let activeDrawingTool = 'offball'; // 'offball' | 'pass' | 'dribble' | 'screen' | 'manmark'
+        let selectedActor = null; // { isRival: boolean, index: number } | null
+        let showPhotoTokens = false;
+        let currentZoomMode = 'full';
+        let showRivals = false;
+        let isRecordingPlay = false; // SOLO CUANDO ESTÁ EN TRUE SE REGISTRAN LÍNEAS Y SE ENCIENDEN LAS OPCIONES DE CREAR
+        let editingPlayId = null;
+
+        let baseVerticalSlots = [];
+        let boardHorizontalSlots = [];
+        let rivalTokens = [];
+        let ballCoords = { x: 50, y: 50 };
+        let manMarkingLinks = {};
+
+        let currentPhaseIdx = 0;
+        let phasesData = [
+            { vectors: [], slotsCoords: null, rivalsCoords: null, ballCoords: null, zone: null, note: '' },
+            { vectors: [], slotsCoords: null, rivalsCoords: null, ballCoords: null, zone: null, note: '' },
+            { vectors: [], slotsCoords: null, rivalsCoords: null, ballCoords: null, zone: null, note: '' }
+        ];
+        let undoHistoryStack = [];
+        let hasUnsavedChanges = false;
+        let pendingDiscardFn = null;
+        let savedPlaysLibrary = [];
+
+        // =========================================================================
+        // 1. DESHACER INTELIGENTE CON DEDUPLICACIÓN ESTRICTA DE ESTADO
+        // =========================================================================
+        function buildStateSignature(slots, rivals, ball, phases, markLinks) {
+            return JSON.stringify({
+                s: slots.map(u => [u.pos, u.x, u.y]),
+                r: rivals.map(u => [u.pos, u.x, u.y]),
+                b: [ball.x, ball.y],
+                v: phases.map(p => p.vectors || []),
+                m: markLinks || {}
+            });
+        }
+
+        function pushUndoState() {
+            const currentSig = buildStateSignature(boardHorizontalSlots, rivalTokens, ballCoords, phasesData, manMarkingLinks);
+            if (undoHistoryStack.length > 0) {
+                const topSnap = undoHistoryStack[undoHistoryStack.length - 1];
+                if (topSnap._sig === currentSig) {
+                    return false;
+                }
+            }
+            const snap = {
+                _sig: currentSig,
+                phaseIdx: currentPhaseIdx,
+                slots: JSON.parse(JSON.stringify(boardHorizontalSlots)),
+                rivals: JSON.parse(JSON.stringify(rivalTokens)),
+                ball: { ...ballCoords },
+                phases: JSON.parse(JSON.stringify(phasesData)),
+                marks: JSON.parse(JSON.stringify(manMarkingLinks))
+            };
+            undoHistoryStack.push(snap);
+            if (undoHistoryStack.length > 40) undoHistoryStack.shift();
+            updateUndoCounterUI();
+            return true;
+        }
+
+        function undoLastStep() {
+            if (undoHistoryStack.length === 0) return;
+            const currentSig = buildStateSignature(boardHorizontalSlots, rivalTokens, ballCoords, phasesData, manMarkingLinks);
+            let prev = undoHistoryStack.pop();
+            while (prev && prev._sig === currentSig && undoHistoryStack.length > 0) {
+                prev = undoHistoryStack.pop();
+            }
+            if (!prev) {
+                updateUndoCounterUI();
+                return;
+            }
+            currentPhaseIdx = prev.phaseIdx;
+            boardHorizontalSlots = prev.slots;
+            rivalTokens = prev.rivals;
+            ballCoords = prev.ball;
+            phasesData = prev.phases;
+            manMarkingLinks = prev.marks || {};
+            if (undoHistoryStack.length === 0) hasUnsavedChanges = false;
+            updatePhaseButtonsUI();
+            renderHorizontalArena();
+            updateUndoCounterUI();
+        }
+
+        // =========================================================================
+        // 2. MOTOR DE SEGUIMIENTO AUTOMÁTICO DE MARCA DEFENSIVA (1VS1)
+        // =========================================================================
+        function triggerFollowersForRivalMove(rivalIdx, oldRx, oldRy, newRx, newRy) {
+            Object.keys(manMarkingLinks).forEach(ownIdxStr => {
+                const linkedRivalIdx = manMarkingLinks[ownIdxStr];
+                if (linkedRivalIdx !== rivalIdx) return;
+                const ownIdx = parseInt(ownIdxStr, 10);
+                const defender = boardHorizontalSlots[ownIdx];
+                if (!defender) return;
+
+                const startDx = defender.x;
+                const startDy = defender.y;
+
+                const offsetX = Math.max(-5, Math.min(5, startDx - oldRx));
+                const offsetY = Math.max(-5, Math.min(5, startDy - oldRy));
+                const finalDx = Math.min(94, Math.max(6, Math.round(newRx + (offsetX !== 0 ? offsetX : -3))));
+                const finalDy = Math.min(92, Math.max(8, Math.round(newRy + offsetY)));
+
+                if (Math.hypot(finalDx - startDx, finalDy - startDy) >= 2) {
+                    if (isRecordingPlay) {
+                        phasesData[currentPhaseIdx].vectors.push(toSvgVec(startDx, startDy, finalDx, finalDy, '#A855F7'));
+                    }
+                    defender.x = finalDx;
+                    defender.y = finalDy;
+                }
+            });
+        }
+
+        function clearAllManMarks() {
+            if (!isRecordingPlay) return;
+            if (Object.keys(manMarkingLinks).length === 0) return;
+            pushUndoState();
+            manMarkingLinks = {};
+            renderHorizontalArena();
+            renderRightSubTab();
+            document.getElementById('live-tactical-teleprompter').innerHTML = `🔓 <strong>Marcajes Individuales Liberados:</strong> Tus defensores vuelven a defensa zonal.`;
+        }
+
+        // =========================================================================
+        // 3. ZOOM VECTORIAL PANORÁMICO (380x420 NO ESTRECHO Y 100% NÍTIDO)
+        // =========================================================================
+        function getActiveViewBoxString() {
+            if (currentZoomMode === 'right') return '220 0 380 420';
+            if (currentZoomMode === 'left') return '0 0 380 420';
+            return '0 0 600 420';
+        }
+
+        function fieldPctToDisplayPctX(fieldX) {
+            if (currentZoomMode === 'right') {
+                return ((fieldX - 36.666) / 63.333) * 100;
+            }
+            if (currentZoomMode === 'left') {
+                return (fieldX / 63.333) * 100;
+            }
+            return fieldX;
+        }
+
+        function displayPctToFieldPctX(dispX) {
+            if (currentZoomMode === 'right') {
+                return Math.min(98, Math.max(37, Math.round(36.666 + (dispX / 100) * 63.333)));
+            }
+            if (currentZoomMode === 'left') {
+                return Math.min(63, Math.max(2, Math.round((dispX / 100) * 63.333)));
+            }
+            return Math.min(96, Math.max(4, Math.round(dispX)));
+        }
+
+        function setTacticalZoom(mode) {
+            currentZoomMode = mode;
+            const btn = document.getElementById('toggle-zoom-btn');
+            if (mode === 'right') {
+                if (btn) btn.textContent = '🔍 Zoom HD: Ataque';
+            } else if (mode === 'left') {
+                if (btn) btn.textContent = '🔍 Zoom HD: Defensa';
+            } else {
+                if (btn) btn.textContent = '🔍 Zoom: Campo Total';
+            }
+
+            const vb = getActiveViewBoxString();
+            const pitchSvg = document.querySelector('#arena-svg-mount svg');
+            if (pitchSvg) pitchSvg.setAttribute('viewBox', vb);
+            const vecSvg = document.getElementById('arena-vectors-svg');
+            if (vecSvg) vecSvg.setAttribute('viewBox', vb);
+
+            renderHorizontalArena();
+        }
+
+        function cycleTacticalZoom() {
+            if (currentZoomMode === 'full') setTacticalZoom('right');
+            else if (currentZoomMode === 'right') setTacticalZoom('left');
+            else setTacticalZoom('full');
+        }
+
+        // =========================================================================
+        // 4. LAS 3 SUB-PESTAÑAS DEL PANEL DERECHO CON INTERRUPTOR "⚡ EMPEZAR A CREAR" / "⏹ TERMINAR"
+        // =========================================================================
+        function getActiveActorSlotObject() {
+            if (!selectedActor) return null;
+            if (selectedActor.isRival) return rivalTokens[selectedActor.index] || null;
+            return boardHorizontalSlots[selectedActor.index] || null;
+        }
+
+        function getActorLabelString() {
+            const actObj = getActiveActorSlotObject();
+            if (!actObj) return '✋ TOCA UN JUGADOR (VERDE/ROJO)';
+            if (selectedActor.isRival) return `⚔️ RIVAL: [${actObj.pos}] ${actObj.init}`;
+            const pName = actObj.player ? actObj.player.name.split(' ')[0] : actObj.pos;
+            const markRivIdx = manMarkingLinks[selectedActor.index];
+            const markSuffix = (markRivIdx !== undefined && rivalTokens[markRivIdx]) ? ` 🔒→${rivalTokens[markRivIdx].init}` : '';
+            return `✋ MÍO: [${actObj.pos}] ${pName.toUpperCase()}${markSuffix}`;
+        }
+
+        function switchRightSubTab(tabKey) {
+            activeRightSubTab = tabKey;
+            ['create', 'ia', 'saved'].forEach(k => {
+                document.getElementById(`subtab-btn-${k}`)?.classList.toggle('active', k === tabKey);
+            });
+            renderRightSubTab();
+        }
+
+        function renderRightSubTab() {
+            const box = document.getElementById('right-subtab-content');
+            if (!box) return;
+
+            const activeMarksCount = Object.keys(manMarkingLinks).length;
+
+            if (activeRightSubTab === 'create') {
+                box.innerHTML = `
+                    <!-- BLOQUE 1: CONSOLA CON BOTÓN "⚡ EMPEZAR A CREAR" QUE ILUMINA Y DESBLOQUEA LAS OPCIONES -->
+                    <div class="exec-studio-section ${isRecordingPlay ? 'creation-powered-on' : ''}">
+                        <div class="exec-studio-header">
+                            <span id="active-actor-label" style="color:${isRecordingPlay ? '#FFFFFF' : 'var(--text-secondary)'};">${getActorLabelString()}</span>
+                            <button type="button" class="tool-pill-btn ${isRecordingPlay ? 'btn-recording-active' : 'btn-start-creation'}" style="padding:5px 10px;" onclick="togglePlayRecording()">
+                                ${isRecordingPlay ? '⏹ Terminar' : '⚡ Empezar a Crear'}
+                            </button>
+                        </div>
+
+                        <!-- DECK DE HERRAMIENTAS: APAGADO EN STANDBY HASTA PULSAR "EMPEZAR A CREAR", SE ILUMINA AL ACTIVAR -->
+                        <div class="creation-tools-deck ${isRecordingPlay ? 'deck-powered-on' : 'deck-standby-off'}">
+                            <div class="exec-segmented-bar" style="margin-bottom:6px;">
+                                <button type="button" class="exec-seg-option ${activeDrawingTool === 'offball' ? 'active-tool' : ''}" onclick="setDrawingTool('offball')">
+                                    <span class="exec-dot" style="background:#00FF88;box-shadow:0 0 6px #00FF88;"></span>
+                                    <span>Desmarque</span>
+                                </button>
+                                <button type="button" class="exec-seg-option ${activeDrawingTool === 'pass' ? 'active-tool' : ''}" onclick="setDrawingTool('pass')">
+                                    <span class="exec-dot" style="background:#F59E0B;box-shadow:0 0 6px #F59E0B;"></span>
+                                    <span>Pase / Tiro</span>
+                                </button>
+                                <button type="button" class="exec-seg-option ${activeDrawingTool === 'dribble' ? 'active-tool' : ''}" onclick="setDrawingTool('dribble')">
+                                    <span class="exec-dot" style="background:#38BDF8;box-shadow:0 0 6px #38BDF8;"></span>
+                                    <span>Conducción</span>
+                                </button>
+                                <button type="button" class="exec-seg-option ${activeDrawingTool === 'screen' ? 'active-tool' : ''}" onclick="setDrawingTool('screen')">
+                                    <span class="exec-dot" style="background:#EF4444;box-shadow:0 0 6px #EF4444;"></span>
+                                    <span>Presión / Bloq.</span>
+                                </button>
+                            </div>
+
+                            <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:5px;margin-bottom:6px;">
+                                <button type="button" class="tool-pill-btn ${activeDrawingTool === 'manmark' ? 'active-purple' : ''}" style="padding:6px 8px;" onclick="setDrawingTool('manmark')">
+                                    🔒 Seguir Marca 1vs1 (${activeMarksCount})
+                                </button>
+                                <button type="button" class="btn-secondary" style="padding:5px 6px;font-size:0.54rem;" onclick="clearAllManMarks()">
+                                    🔓 Soltar Marcas
+                                </button>
+                            </div>
+
+                            <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:4px;">
+                                <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="applyPresetAction('ruptura')">↗️ Ruptura</button>
+                                <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="applyPresetAction('apoyo')">↙️ Apoyo</button>
+                                <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;color:#FCA5A5;" onclick="clearAllVectorsOnBoard()">🗑️ Borrar Fase</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BLOQUE 2: ZONA DE INICIO TÁCTICO RÁPIDO (SIEMPRE DISPONIBLE PARA COLOCAR ANTES DE CREAR) -->
+                    <div class="exec-studio-section" style="border-left-color:#38BDF8;">
+                        <div class="exec-studio-header">
+                            <span>📍 ZONA DE PARTIDA EN CAMPO</span>
+                            <span style="color:#38BDF8;">1-CLIC</span>
+                        </div>
+                        <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:4px;">
+                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;border-color:var(--role-color);color:var(--role-color);" onclick="applyKickoffFormation()">⚽ Saque Centro</button>
+                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="setPlayStartingZone('own_box')">Saque Puerta</button>
+                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="setPlayStartingZone('final_third')">Último Tercio</button>
+                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="setPlayStartingZone('def_block')">Bloque Def.</button>
+                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="setPlayStartingZone('corner')">Córner Zoom</button>
+                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="setPlayStartingZone('free_kick')">Falta Zoom</button>
+                        </div>
+                    </div>
+
+                    <!-- BLOQUE 3: REGISTRO EN BIBLIOTECA Y NUBE SUPABASE -->
+                    <div class="exec-studio-section" style="border-left-color:#F59E0B;margin-bottom:0;">
+                        <div class="exec-studio-header">
+                            <span>💾 GUARDAR PIZARRA MULTIFASE</span>
+                            <span style="color:#F59E0B;">CLOUD SYNC</span>
+                        </div>
+                        <input type="text" id="play-title-input" class="kinet-input" style="margin-bottom:6px;" placeholder="Nombre de la jugada (ej: Salida Lavolpiana)...">
+                        <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:6px;">
+                            <button type="button" class="btn-primary" style="padding:7px;font-size:0.6rem;" onclick="savePlayToLibrary()">
+                                ${editingPlayId ? '💾 Actualizar' : '💾 Guardar Jugada'}
+                            </button>
+                            <button type="button" class="btn-secondary" style="padding:7px;font-size:0.6rem;" onclick="createNewBlankPlay()">
+                                ➕ Nueva Limpia
+                            </button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            if (activeRightSubTab === 'ia') {
+                const catObj = MOMENT_DROPDOWN_CATALOG[activeSection] || MOMENT_DROPDOWN_CATALOG.train;
+                const presets = catObj.items.filter(m => !m.key.startsWith('base_'));
+                box.innerHTML = `
+                    <div style="font-size:0.66rem;color:#CBD5E1;margin-bottom:7px;line-height:1.35;">
+                        Pizarras IA con <strong>3 fases completas (Inicial → Desarrollo → Finalización)</strong>. Pulsa <strong>"▶ Cargar 3 Fases"</strong> o edítalas:
+                    </div>
+                    <div style="max-height:285px;overflow-y:auto;padding-bottom:6px;">
+                        ${presets.map(item => `
+                            <div class="saved-play-card">
+                                <div style="font-family:'Orbitron';font-size:0.68rem;font-weight:800;color:white;margin-bottom:2px;">🎬 ${item.label}</div>
+                                <div style="font-size:0.61rem;color:#94A3B8;margin-bottom:7px;line-height:1.32;">${item.desc}</div>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                                    <button type="button" class="btn-primary" style="padding:6px;font-size:0.57rem;" onclick="applyMomentPositioning('${item.key}')">▶ Cargar 3 Fases</button>
+                                    <button type="button" class="btn-secondary" style="padding:6px;font-size:0.57rem;" onclick="editPresetInCreator('${item.key}', '${item.label.replace(/'/g, '')}')">✏️ Editar en Crear</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                return;
+            }
+
+            if (savedPlaysLibrary.length === 0) {
+                box.innerHTML = `
+                    <div style="text-align:center;padding:24px 12px;border:1px dashed var(--border-subtle);border-radius:14px;font-size:0.71rem;color:var(--text-secondary);">
+                        No tienes jugadas guardadas aún. Pulsa <strong>"⚡ Empezar a Crear"</strong> en la pestaña Crear o personaliza una de <strong>"🧠 Jugadas IA"</strong>.
+                    </div>
+                `;
+                return;
+            }
+
+            box.innerHTML = `
+                <div style="max-height:295px;overflow-y:auto;padding-bottom:6px;">
+                    ${savedPlaysLibrary.map(p => `
+                        <div class="saved-play-card">
+                            <div style="font-family:'Orbitron';font-size:0.69rem;font-weight:800;color:white;">🎬 ${p.title}</div>
+                            <div style="font-family:'JetBrains Mono';font-size:0.55rem;color:var(--role-color);margin-top:2px;">${p.notes || currentPresetName} • ☁️ Nube</div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:5px;margin-top:7px;">
+                                <button type="button" class="btn-primary" style="padding:5px 6px;font-size:0.55rem;" onclick="loadPlayFromLibrary('${p.id}')">▶ Cargar</button>
+                                <button type="button" class="btn-secondary" style="padding:5px 6px;font-size:0.55rem;" onclick="editSavedPlay('${p.id}')">✏️ Editar</button>
+                                <button type="button" class="btn-secondary" style="padding:5px 6px;font-size:0.55rem;border-color:var(--role-color);color:var(--role-color);" onclick="shareSavedPlayById('${p.id}')">🌐 Publicar</button>
+                                <button type="button" class="btn-secondary" style="padding:5px 8px;font-size:0.55rem;color:#FCA5A5;border-color:rgba(239,68,68,0.4);" onclick="deletePlayFromLibrary('${p.id}', event)">🗑️</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // =========================================================================
+        // 5. MODAL PERSONALIZAR EFECTIVOS POR POSICIÓN (TU EQUIPO Y RIVAL)
+        // =========================================================================
+        function openCustomizePlayersModal() {
+            const posList = SPORT_POSITIONS_LIST[activeArenaSport] || SPORT_POSITIONS_LIST['Fútbol'];
+            const ownSel = document.getElementById('cust-add-own-pos');
+            const rivSel = document.getElementById('cust-add-rival-pos');
+            if (ownSel) ownSel.innerHTML = posList.map(p => `<option value="${p}">Puesto: ${p}</option>`).join('');
+            if (rivSel) rivSel.innerHTML = posList.map(p => `<option value="${p}">Puesto: ${p}</option>`).join('');
+
+            renderCustomizePlayersModalContent();
+            document.getElementById('customize-players-modal')?.classList.add('open');
+        }
+
+        function closeCustomizePlayersModal() {
+            document.getElementById('customize-players-modal')?.classList.remove('open');
+        }
+
+        function renderCustomizePlayersModalContent() {
+            document.getElementById('cust-own-count').textContent = boardHorizontalSlots.length;
+            document.getElementById('cust-rival-count').textContent = rivalTokens.length;
+
+            const ownBox = document.getElementById('cust-own-list');
+            if (ownBox) {
+                ownBox.innerHTML = boardHorizontalSlots.map((s, idx) => {
+                    const pName = s.player ? s.player.name : `Efectivo #${idx + 1}`;
+                    return `
+                        <div class="customizer-player-row">
+                            <div>
+                                <span style="font-family:'JetBrains Mono';font-size:0.58rem;background:var(--role-color);color:#04060A;font-weight:900;padding:1px 5px;border-radius:4px;margin-right:6px;">${s.pos}</span>
+                                <strong>${pName}</strong>
+                            </div>
+                            <button type="button" class="tool-pill-btn" style="padding:3px 7px;font-size:0.54rem;color:#FCA5A5;border-color:rgba(239,68,68,0.4);" onclick="removeSpecificToken('own', ${idx})">🗑️ Quitar</button>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            const rivBox = document.getElementById('cust-rival-list');
+            if (rivBox) {
+                rivBox.innerHTML = rivalTokens.map((r, idx) => `
+                    <div class="customizer-player-row">
+                        <div>
+                            <span style="font-family:'JetBrains Mono';font-size:0.58rem;background:#EF4444;color:#FFFFFF;font-weight:900;padding:1px 5px;border-radius:4px;margin-right:6px;">${r.pos}</span>
+                            <strong>Rival ${r.init}</strong>
+                        </div>
+                        <button type="button" class="tool-pill-btn" style="padding:3px 7px;font-size:0.54rem;color:#FCA5A5;border-color:rgba(239,68,68,0.4);" onclick="removeSpecificToken('rival', ${idx})">🗑️ Quitar</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function getSmartDefaultCoordsForPos(posCode, isRival) {
+            const p = String(posCode || 'MC').toUpperCase();
+            let x = 40, y = 50;
+            if (p === 'POR') { x = 8; y = 50; }
+            else if (p === 'DFC') { x = 22; y = 44 + Math.round((Math.random() - 0.5) * 20); }
+            else if (p === 'LI' || p === 'CAI') { x = 26; y = 16; }
+            else if (p === 'LD' || p === 'CAD') { x = 26; y = 84; }
+            else if (p === 'MCD') { x = 34; y = 50; }
+            else if (p === 'MC') { x = 40; y = 36 + Math.round((Math.random() - 0.5) * 24); }
+            else if (p === 'MCO') { x = 44; y = 50; }
+            else if (p === 'EI' || p === 'MI') { x = 46; y = 20; }
+            else if (p === 'ED' || p === 'MD') { x = 46; y = 80; }
+            else if (p === 'DC') { x = 48; y = 50; }
+
+            if (isRival) x = 100 - x;
+            return { x, y };
+        }
+
+        function addCustomPositionToken(side) {
+            pushUndoState();
+            if (side === 'own') {
+                const posVal = document.getElementById('cust-add-own-pos')?.value || 'MC';
+                const coords = getSmartDefaultCoordsForPos(posVal, false);
+                boardHorizontalSlots.push({ pos: posVal, x: coords.x, y: coords.y, player: null });
+            } else {
+                showRivals = true;
+                syncRivalToggleButton();
+                const posVal = document.getElementById('cust-add-rival-pos')?.value || 'MC';
+                const coords = getSmartDefaultCoordsForPos(posVal, true);
+                rivalTokens.push({ pos: posVal, init: `${posVal}${rivalTokens.length + 1}`, x: coords.x, y: coords.y });
+            }
+            syncPhaseSnapshot();
+            renderHorizontalArena();
+            renderCustomizePlayersModalContent();
+        }
+
+        function removeSpecificToken(side, idx) {
+            pushUndoState();
+            if (side === 'own') {
+                if (boardHorizontalSlots.length <= 1) return;
+                boardHorizontalSlots.splice(idx, 1);
+                delete manMarkingLinks[idx];
+                if (selectedActor && !selectedActor.isRival && selectedActor.index === idx) selectedActor = null;
+            } else {
+                if (rivalTokens.length <= 1) return;
+                rivalTokens.splice(idx, 1);
+                if (selectedActor && selectedActor.isRival && selectedActor.index === idx) selectedActor = null;
+            }
+            syncPhaseSnapshot();
+            renderHorizontalArena();
+            renderCustomizePlayersModalContent();
+        }
+
+        // =========================================================================
+        // 6. INTERRUPTOR MAESTRO "⚡ EMPEZAR A CREAR" / "⏹ TERMINAR" Y GUARDADO EN NUBE
+        // =========================================================================
+        function togglePlayRecording() {
+            if (!isRecordingPlay) {
+                // ENCENDER E ILUMINAR LAS OPCIONES DE CREACIÓN
+                isRecordingPlay = true;
+                syncPhaseSnapshot();
+                renderRightSubTab();
+                document.getElementById('live-tactical-teleprompter').innerHTML = `⚡ <strong>MODO CREAR ACTIVO (Fase ${currentPhaseIdx + 1}):</strong> Herramientas encendidas. Ahora cada movimiento o clic dibuja las líneas de tu jugada.`;
+                document.getElementById('ai-board-diagnosis').innerHTML = `🔴 <strong>Grabando Jugada:</strong> Arrastra jugadores o haz clic en el campo con la herramienta elegida. Pulsa "⏹ Terminar" cuando acabes.`;
+            } else {
+                // APAGAR LAS OPCIONES DE CREACIÓN Y ABRIR MODAL KINET DE GUARDADO
+                isRecordingPlay = false;
+                syncPhaseSnapshot();
+                renderRightSubTab();
+                document.getElementById('live-tactical-teleprompter').innerHTML = `✓ <strong>Creación Finalizada:</strong> Herramientas en reposo. Ponle nombre a tu jugada o mueve fichas libremente.`;
+                openSaveRecordingModal();
+            }
+        }
+
+        function openSaveRecordingModal() {
+            const totalVecs = phasesData.reduce((acc, p) => acc + (p.vectors ? p.vectors.length : 0), 0);
+            const activePhasesCount = phasesData.filter((p, i) => i === 0 || (p.vectors && p.vectors.length > 0)).length;
+            const summaryEl = document.getElementById('rec-modal-summary');
+            if (summaryEl) {
+                summaryEl.textContent = `${activePhasesCount} FASE(S) ACTIVA(S) • ${totalVecs} MOVIMIENTO(S) TRAZADO(S)`;
+            }
+
+            const existingTitle = (document.getElementById('play-title-input')?.value || '').trim();
+            const modalTitleInp = document.getElementById('rec-modal-title-input');
+            const modalNotesInp = document.getElementById('rec-modal-notes-input');
+            if (modalTitleInp) modalTitleInp.value = existingTitle || `${currentPresetName} • Jugada Creada`;
+            if (modalNotesInp) modalNotesInp.value = `${activePhasesCount} fases (${totalVecs} desplazamientos/pases)`;
+
+            document.getElementById('save-recording-modal')?.classList.add('open');
+            setTimeout(() => modalTitleInp?.focus(), 120);
+        }
+
+        function closeSaveRecordingModal() {
+            document.getElementById('save-recording-modal')?.classList.remove('open');
+        }
+
+        function confirmSaveRecordedPlay() {
+            const titleVal = (document.getElementById('rec-modal-title-input')?.value || '').trim() || `${currentPresetName} • Jugada Táctica`;
+            const notesVal = (document.getElementById('rec-modal-notes-input')?.value || '').trim();
+            closeSaveRecordingModal();
+            savePlayToLibrary(titleVal, notesVal);
+        }
+
+        // =========================================================================
+        // 7. DESPLEGABLES PERSONALIZADOS KINET
+        // =========================================================================
+        function closeKinetCustomSelect(wrapEl) {
+            if (!wrapEl) return;
+            wrapEl.classList.remove('open');
+        }
+        function refreshAllCustomKinetSelects() {
+            document.querySelectorAll('select.kinet-select').forEach(sel => {
+                let wrap = sel.closest('.kinet-custom-select-wrap');
+                if (!wrap) {
+                    wrap = document.createElement('div');
+                    wrap.className = 'kinet-custom-select-wrap';
+                    sel.parentNode.insertBefore(wrap, sel);
+                    wrap.appendChild(sel);
+                    sel.style.display = 'none';
+
+                    const trigger = document.createElement('button');
+                    trigger.type = 'button';
+                    trigger.className = 'kinet-custom-select-trigger';
+                    trigger.innerHTML = `<span class="kinet-custom-select-label"></span><span class="kinet-custom-select-arrow">▾</span>`;
+                    wrap.appendChild(trigger);
+
+                    const menu = document.createElement('div');
+                    menu.className = 'kinet-custom-select-menu';
+                    wrap.appendChild(menu);
+
+                    trigger.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const isOpen = wrap.classList.contains('open');
+                        document.querySelectorAll('.kinet-custom-select-wrap.open').forEach(o => closeKinetCustomSelect(o));
+                        if (!isOpen) wrap.classList.add('open');
+                    });
+                }
+                const labelEl = wrap.querySelector('.kinet-custom-select-label');
+                const menuEl = wrap.querySelector('.kinet-custom-select-menu');
+                const selectedOpt = sel.options[sel.selectedIndex] || sel.options[0];
+                if (labelEl) labelEl.textContent = selectedOpt ? selectedOpt.textContent : '';
+                if (menuEl) {
+                    menuEl.innerHTML = Array.from(sel.options).map((opt, idx) => `
+                        <div class="kinet-custom-option ${idx === sel.selectedIndex ? 'selected' : ''}" data-idx="${idx}">
+                            <span>${opt.textContent}</span>
+                            ${idx === sel.selectedIndex ? '<span>●</span>' : ''}
+                        </div>
+                    `).join('');
+                    menuEl.querySelectorAll('.kinet-custom-option').forEach(optEl => {
+                        optEl.addEventListener('click', (ev) => {
+                            ev.stopPropagation();
+                            sel.selectedIndex = parseInt(optEl.getAttribute('data-idx'), 10);
+                            sel.dispatchEvent(new Event('change', { bubbles: true }));
+                            closeKinetCustomSelect(wrap);
+                            refreshAllCustomKinetSelects();
+                        });
+                    });
+                }
+            });
+        }
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.kinet-custom-select-wrap.open').forEach(w => closeKinetCustomSelect(w));
+        });
+
+        function bindSpotlightToElements() {
+            document.querySelectorAll('.kinet-panel, .side-link').forEach(el => {
+                if (el._spotlightBound) return;
+                el._spotlightBound = true;
+                el.addEventListener('mousemove', (e) => {
+                    const rect = el.getBoundingClientRect();
+                    el.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+                    el.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+                });
+            });
+        }
+
+        function verticalToHorizontal(vx, vy) {
+            return {
+                x: Math.min(93, Math.max(7, Math.round(100 - vy))),
+                y: Math.min(91, Math.max(9, Math.round(vx)))
+            };
+        }
+
+        function getInitials(nameStr) {
+            const parts = String(nameStr || 'J').trim().split(/\s+/).filter(Boolean);
+            if (parts.length === 0) return 'J';
+            if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+            return `${parts[0][0]}.${parts[1][0]}`.toUpperCase();
+        }
+
+        function buildHorizontalSVG(sportKey) {
+            const vb = getActiveViewBoxString();
+            if (sportKey === 'Baloncesto') {
+                return `
+                <svg class="arena-svg-canvas" viewBox="${vb}" preserveAspectRatio="none">
+                    <rect width="600" height="420" fill="#18130D"/>
+                    <g stroke="rgba(255,255,255,0.82)" stroke-width="2.2" fill="none">
+                        <rect x="18" y="18" width="564" height="384"/>
+                        <line x1="300" y1="18" x2="300" y2="402"/>
+                        <circle cx="300" cy="210" r="48"/>
+                        <rect x="18" y="145" width="115" height="130" fill="rgba(245,158,11,0.15)" stroke="#F59E0B"/>
+                        <path d="M 18 55 L 95 55 A 165 155 0 0 1 95 365 L 18 365" stroke="#00FF88"/>
+                        <rect x="467" y="145" width="115" height="130" fill="rgba(245,158,11,0.15)" stroke="#F59E0B"/>
+                        <path d="M 582 55 L 505 55 A 165 155 0 0 0 505 365 L 582 365" stroke="#00FF88"/>
+                    </g>
+                </svg>`;
+            }
+            if (sportKey === 'Pádel / Tenis') {
+                return `
+                <svg class="arena-svg-canvas" viewBox="${vb}" preserveAspectRatio="none">
+                    <rect width="600" height="420" fill="#071B30"/>
+                    <rect x="24" y="24" width="552" height="372" fill="#0B2847" stroke="#38BDF8" stroke-width="3"/>
+                    <g stroke="rgba(255,255,255,0.85)" stroke-width="2.2" fill="none">
+                        <line x1="125" y1="24" x2="125" y2="396"/><line x1="475" y1="24" x2="475" y2="396"/><line x1="125" y1="210" x2="475" y2="210"/>
+                    </g>
+                    <line x1="300" y1="18" x2="300" y2="402" stroke="#00FF88" stroke-width="5"/>
+                </svg>`;
+            }
+            if (sportKey === 'Boxeo / MMA') {
+                return `
+                <svg class="arena-svg-canvas" viewBox="${vb}" preserveAspectRatio="none">
+                    <rect width="600" height="420" fill="#070A12"/>
+                    <polygon points="175,20 425,20 560,125 560,295 425,400 175,400 40,295 40,125" fill="#0D1320" stroke="rgba(255,255,255,0.4)" stroke-width="3"/>
+                    <circle cx="300" cy="210" r="65" fill="rgba(0,255,136,0.06)" stroke="#00FF88" stroke-width="2"/>
+                </svg>`;
+            }
+            if (sportKey === 'Running') {
+                return `
+                <svg class="arena-svg-canvas" viewBox="${vb}" preserveAspectRatio="none">
+                    <rect width="600" height="420" fill="#090D16"/>
+                    <rect x="28" y="24" width="544" height="372" rx="180" fill="#6E1D1B" stroke="rgba(255,255,255,0.8)" stroke-width="2.5"/>
+                    <rect x="104" y="100" width="392" height="220" rx="105" fill="#0A1F17" stroke="#00FF88" stroke-width="2.5"/>
+                </svg>`;
+            }
+            return `
+            <svg class="arena-svg-canvas" viewBox="${vb}" preserveAspectRatio="none">
+                <defs>
+                    <pattern id="hTurf" width="60" height="420" patternUnits="userSpaceOnUse">
+                        <rect width="30" height="420" fill="#06160F"/><rect x="30" width="30" height="420" fill="#0A2217"/>
+                    </pattern>
+                </defs>
+                <rect width="600" height="420" fill="url(#hTurf)"/>
+                <g stroke="rgba(255,255,255,0.8)" stroke-width="2.2" fill="none">
+                    <rect x="18" y="18" width="564" height="384" rx="4"/>
+                    <line x1="300" y1="18" x2="300" y2="402"/>
+                    <circle cx="300" cy="210" r="52"/>
+                    <circle cx="300" cy="210" r="3.5" fill="#00FF88"/>
+                    <rect x="18" y="105" width="84" height="210"/><rect x="18" y="155" width="32" height="110"/>
+                    <path d="M 102 165 A 45 45 0 0 1 102 255"/>
+                    <rect x="498" y="105" width="84" height="210"/><rect x="550" y="155" width="32" height="110"/>
+                    <path d="M 498 165 A 45 45 0 0 0 498 255"/>
+                </g>
+            </svg>`;
+        }
+
+        // =========================================================================
+        // 8. INICIALIZACIÓN CON BLOQUE TRY/FINALLY
+        // =========================================================================
+        function initStrategyAnalyzer() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                activeRoleKey = urlParams.get('role') || localStorage.getItem('kinet_active_role') || 'athlete';
+                document.body.setAttribute('data-role', activeRoleKey);
+                activeArenaSport = normalizeArenaSport(urlParams.get('sport') || localStorage.getItem('kinet_sport') || 'Fútbol');
+
+                document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${activeArenaSport.toUpperCase()}`;
+                document.getElementById('topbar-sport-tag').textContent = `● ${activeArenaSport.toUpperCase()}`;
+
+                const queryParams = `?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`;
+                const navMap = {
+                    'brand-logo-desktop': 'app.html', 'nav-vestuario': 'app.html', 'nav-cuerpo-tecnico': 'cuerpo-tecnico.html',
+                    'nav-ficha-pro': 'ficha-pro.html', 'nav-ojeador-live': 'ojeador-live.html', 'nav-analizador': 'analizador.html',
+                    'nav-comunidad': 'comunidad.html', 'nav-media-studio': 'media-studio.html', 'nav-perfil': 'perfil.html', 'nav-despacho': 'despacho.html'
+                };
+                Object.keys(navMap).forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.href = `${navMap[id]}${queryParams}`;
+                });
+
+                const spKey = activeArenaSport.toLowerCase();
+                let savedBoard = null;
+                try {
+                    savedBoard = JSON.parse(localStorage.getItem(`kinet_full_board_state_${spKey}`) || 'null');
+                } catch (e) {}
+
+                if (savedBoard && Array.isArray(savedBoard.boardSlots) && savedBoard.boardSlots.length > 0) {
+                    currentPresetName = savedBoard.presetName || '4-3-3 Ofensivo (11vs11)';
+                    baseVerticalSlots = savedBoard.boardSlots.map(s => ({
+                        pos: s.pos,
+                        x: s.x,
+                        y: s.pos === 'POR' && s.y < 85 ? 90 : (s.pos === 'DFC' && s.y > 68 ? 67 : s.y),
+                        player: s.player || null
+                    }));
+                } else {
+                    currentPresetName = '4-3-3 Ofensivo (11vs11)';
+                    baseVerticalSlots = [
+                        { pos: 'POR', x: 50, y: 90, player: null }, { pos: 'LI', x: 14, y: 64, player: null },
+                        { pos: 'DFC', x: 37, y: 67, player: null }, { pos: 'DFC', x: 63, y: 67, player: null },
+                        { pos: 'LD', x: 86, y: 64, player: null }, { pos: 'MCD', x: 50, y: 54, player: null },
+                        { pos: 'MC', x: 29, y: 41, player: null }, { pos: 'MC', x: 71, y: 41, player: null },
+                        { pos: 'EI', x: 19, y: 20, player: null }, { pos: 'DC', x: 50, y: 15, player: null },
+                        { pos: 'ED', x: 81, y: 20, player: null }
+                    ];
+                }
+
+                document.getElementById('active-formation-pill').textContent = `📐 MI FORMACIÓN: ${currentPresetName.toUpperCase()}`;
+                document.getElementById('arena-svg-mount').innerHTML = buildHorizontalSVG(activeArenaSport);
+
+                const ballIconMap = { 'Fútbol': '⚽', 'Baloncesto': '🏀', 'Pádel / Tenis': '🎾', 'Boxeo / MMA': '🥊', 'Running': '⏱️' };
+                document.getElementById('sport-ball-node').textContent = ballIconMap[activeArenaSport] || '⚽';
+                const cIcon = document.getElementById('curtain-icon');
+                if (cIcon) cIcon.textContent = ballIconMap[activeArenaSport] || '📋';
+
+                const rivMap = RIVAL_FORMATIONS_BY_SPORT[activeArenaSport] || RIVAL_FORMATIONS_BY_SPORT['Fútbol'];
+                const rivKeys = Object.keys(rivMap);
+                currentRivalPresetName = rivKeys[0];
+                const rivSel = document.getElementById('rival-formation-selector');
+                if (rivSel) {
+                    rivSel.innerHTML = rivKeys.map(k => `<option value="${k}">${k}</option>`).join('');
+                }
+                loadRivalFormationCoords(currentRivalPresetName);
+
+                try {
+                    savedPlaysLibrary = JSON.parse(localStorage.getItem(`kinet_saved_tactics_${spKey}`) || '[]');
+                } catch (e) { savedPlaysLibrary = []; }
+                updateSavedCountBadge();
+
+                populateDynamicMomentDropdown();
+                resetBoardToCleanBase(true);
+                renderRightSubTab();
+                refreshAllCustomKinetSelects();
+                bindSpotlightToElements();
+            } catch (err) {
+                console.error('Error en inicialización táctica:', err);
+            } finally {
+                setTimeout(() => {
+                    document.getElementById('kinet-funny-curtain')?.classList.add('curtain-hidden');
+                }, 260);
+            }
+        }
+
+        function loadRivalFormationCoords(rivPresetKey) {
+            const rivMap = RIVAL_FORMATIONS_BY_SPORT[activeArenaSport] || RIVAL_FORMATIONS_BY_SPORT['Fútbol'];
+            const coords = rivMap[rivPresetKey] || Object.values(rivMap)[0];
+            rivalTokens = coords.map((r, i) => ({
+                pos: r.pos,
+                init: r.init || `${r.pos}${i + 1}`,
+                x: r.x,
+                y: r.y
+            }));
+        }
+
+        function onRivalFormationChange(newRivKey) {
+            currentRivalPresetName = newRivKey;
+            showRivals = true;
+            syncRivalToggleButton();
+            loadRivalFormationCoords(newRivKey);
+            if (activeMomentKey === 'kickoff_center' || activeSection === 'rival') {
+                applyKickoffFormation(true);
+            } else {
+                renderHorizontalArena();
+            }
+        }
+
+        // =========================================================================
+        // 9. FORMACIÓN EN SAQUE INICIAL DE CENTRO DEL CAMPO Y JUGADAS IA
+        // =========================================================================
+        function applyKickoffFormation(skipUndo) {
+            const hasAnyVec = phasesData.some(p => p.vectors && p.vectors.length > 0);
+            if (!skipUndo && activeMomentKey === 'kickoff_center' && !hasAnyVec) {
+                return;
+            }
+            if (!skipUndo) pushUndoState();
+
+            activeMomentKey = 'kickoff_center';
+            setTacticalZoom('full');
+            showRivals = true;
+            syncRivalToggleButton();
+            populateDynamicMomentDropdown();
+            refreshAllCustomKinetSelects();
+
+            selectedActor = null;
+            const rawHoriz = baseVerticalSlots.map(s => ({
+                pos: s.pos,
+                player: s.player,
+                ...verticalToHorizontal(s.x, s.y)
+            }));
+
+            let maxXIdx = 0;
+            rawHoriz.forEach((s, i) => { if (s.x > rawHoriz[maxXIdx].x) maxXIdx = i; });
+
+            boardHorizontalSlots = rawHoriz.map((s, idx) => {
+                if (idx === 0 || s.pos === 'POR') return { ...s, x: 7, y: 50 };
+                const compressedX = Math.min(46, Math.max(17, Math.round(14 + (s.x * 0.38))));
+                return { ...s, x: compressedX, y: s.y };
+            });
+
+            if (boardHorizontalSlots[maxXIdx]) {
+                boardHorizontalSlots[maxXIdx].x = 49;
+                boardHorizontalSlots[maxXIdx].y = 50;
+            }
+
+            loadRivalFormationCoords(currentRivalPresetName);
+            rivalTokens.forEach((r, idx) => {
+                if (idx === 0 || r.pos === 'POR') { r.x = 94; r.y = 50; }
+                else if (r.x < 56) { r.x = 57; }
+            });
+
+            ballCoords = { x: 50, y: 50 };
+            currentPhaseIdx = 0;
+
+            const sClone = () => JSON.parse(JSON.stringify(boardHorizontalSlots));
+            const rClone = () => JSON.parse(JSON.stringify(rivalTokens));
+
+            phasesData = [
+                { vectors: [], slotsCoords: sClone(), rivalsCoords: rClone(), ballCoords: { x: 50, y: 50 }, zone: null, note: '1. Fase Inicial (Saque de Centro): Cada equipo en su propio campo listo para sacar.' },
+                { vectors: [], slotsCoords: null, rivalsCoords: null, ballCoords: null, zone: null, note: '2. Desarrollo: Traza hacia dónde va el balón tras el saque inicial.' },
+                { vectors: [], slotsCoords: null, rivalsCoords: null, ballCoords: null, zone: null, note: '3. Finalización: Continuación de la jugada.' }
+            ];
+
+            hasUnsavedChanges = false;
+            updatePhaseButtonsUI();
+            renderHorizontalArena();
+            document.getElementById('live-tactical-teleprompter').innerHTML = `⚽ <strong>Saque Inicial (Centro del Campo):</strong> Tu once en campo propio y el rival en el suyo sin solaparse.`;
+        }
+
+        function resetBoardToCleanBase(skipUndo) {
+            selectedActor = null;
+            isRecordingPlay = false;
+            activeMomentKey = 'base_formation';
+            manMarkingLinks = {};
+            setTacticalZoom('full');
+            populateDynamicMomentDropdown();
+            refreshAllCustomKinetSelects();
+
+            boardHorizontalSlots = baseVerticalSlots.map(s => ({
+                pos: s.pos,
+                player: s.player,
+                ...verticalToHorizontal(s.x, s.y)
+            }));
+            loadRivalFormationCoords(currentRivalPresetName);
+            ballCoords = { x: 50, y: 50 };
+            currentPhaseIdx = 0;
+
+            const baseClone = () => JSON.parse(JSON.stringify(boardHorizontalSlots));
+            const rivClone = () => JSON.parse(JSON.stringify(rivalTokens));
+
+            phasesData = [
+                { vectors: [], slotsCoords: baseClone(), rivalsCoords: rivClone(), ballCoords: { x: 50, y: 50 }, zone: null, note: 'Fase 1 (Inicial): Posicionamiento base.' },
+                { vectors: [], slotsCoords: null, rivalsCoords: null, ballCoords: null, zone: null, note: 'Fase 2 (Desarrollo): Sin movimientos aún.' },
+                { vectors: [], slotsCoords: null, rivalsCoords: null, ballCoords: null, zone: null, note: 'Fase 3 (Finalización): Sin movimientos aún.' }
+            ];
+            hasUnsavedChanges = false;
+            undoHistoryStack = [];
+            updateUndoCounterUI();
+            updatePhaseButtonsUI();
+            renderHorizontalArena();
+            renderRightSubTab();
+            document.getElementById('live-tactical-teleprompter').innerHTML = `📐 <strong>Modo Colocación Libre (${currentPresetName}):</strong> Mueve cualquier ficha sin dejar líneas o pulsa "⚡ Empezar a Crear".`;
+        }
+
+        function findRoleIndex(slotsArr, type) {
+            if (!slotsArr || slotsArr.length === 0) return 0;
+            if (type === 'gk') return 0;
+            if (type === 'cb') {
+                const k = slotsArr.findIndex((s, i) => i > 0 && s.x < 44 && s.y >= 28 && s.y <= 72);
+                return k !== -1 ? k : Math.min(2, slotsArr.length - 1);
+            }
+            if (type === 'lb') {
+                let b = 1;
+                slotsArr.forEach((s, i) => { if (i > 0 && s.y < slotsArr[b].y) b = i; });
+                return b;
+            }
+            if (type === 'rb') {
+                let b = 1;
+                slotsArr.forEach((s, i) => { if (i > 0 && s.y > slotsArr[b].y) b = i; });
+                return b;
+            }
+            if (type === 'cm') {
+                const k = slotsArr.findIndex((s, i) => i > 0 && s.x >= 36 && s.x <= 68);
+                return k !== -1 ? k : Math.floor(slotsArr.length / 2);
+            }
+            if (type === 'lw') {
+                let b = slotsArr.length - 1;
+                slotsArr.forEach((s, i) => { if (s.x > 52 && s.y < 42) b = i; });
+                return b;
+            }
+            if (type === 'rw') {
+                let b = slotsArr.length - 1;
+                slotsArr.forEach((s, i) => { if (s.x > 52 && s.y > 58) b = i; });
+                return b;
+            }
+            let maxIdx = 0;
+            slotsArr.forEach((s, i) => { if (s.x > slotsArr[maxIdx].x) maxIdx = i; });
+            return maxIdx;
+        }
+
+        function toSvgVec(x1Pct, y1Pct, x2Pct, y2Pct, color) {
+            return {
+                x1: Math.round((x1Pct / 100) * 600),
+                y1: Math.round((y1Pct / 100) * 420),
+                x2: Math.round((x2Pct / 100) * 600),
+                y2: Math.round((y2Pct / 100) * 420),
+                color
+            };
+        }
+
+        function applyMomentPositioning(momentKey) {
+            selectedActor = null;
+            if (momentKey === 'base_formation') {
+                resetBoardToCleanBase(true);
+                return;
+            }
+            if (momentKey === 'kickoff_center' || momentKey === 'base_rival') {
+                applyKickoffFormation(true);
+                return;
+            }
+
+            activeMomentKey = momentKey;
+            populateDynamicMomentDropdown();
+            refreshAllCustomKinetSelects();
+            undoHistoryStack = [];
+            updateUndoCounterUI();
+            hasUnsavedChanges = false;
+
+            const baseSlots = baseVerticalSlots.map(s => ({
+                pos: s.pos,
+                player: s.player,
+                ...verticalToHorizontal(s.x, s.y)
+            }));
+            loadRivalFormationCoords(currentRivalPresetName);
+            const baseRivals = JSON.parse(JSON.stringify(rivalTokens));
+            const cloneSlots = (arr) => JSON.parse(JSON.stringify(arr));
+
+            const gkIdx = findRoleIndex(baseSlots, 'gk');
+            const cbIdx = findRoleIndex(baseSlots, 'cb');
+            const lbIdx = findRoleIndex(baseSlots, 'lb');
+            const cmIdx = findRoleIndex(baseSlots, 'cm');
+            const lwIdx = findRoleIndex(baseSlots, 'lw');
+            const rwIdx = findRoleIndex(baseSlots, 'rw');
+            const stIdx = findRoleIndex(baseSlots, 'st');
+
+            if (momentKey === 'corner_left') {
+                showRivals = true; syncRivalToggleButton();
+                const taker = { x: 96, y: 6 };
+                const s1 = cloneSlots(baseSlots);
+                const r1 = cloneSlots(baseRivals);
+
+                const attackSpots1 = [
+                    { x: 30, y: 50 }, taker, { x: 82, y: 14 }, { x: 90, y: 36 },
+                    { x: 77, y: 32 }, { x: 76, y: 47 }, { x: 77, y: 63 },
+                    { x: 67, y: 42 }, { x: 68, y: 60 }, { x: 50, y: 36 }, { x: 50, y: 64 }
+                ];
+                s1.forEach((s, i) => { if (attackSpots1[i]) { s.x = attackSpots1[i].x; s.y = attackSpots1[i].y; } });
+
+                const defSpots1 = [
+                    { x: 96, y: 50 }, { x: 88, y: 18 }, { x: 93, y: 40 },
+                    { x: 85, y: 35 }, { x: 85, y: 48 }, { x: 85, y: 61 },
+                    { x: 73, y: 40 }, { x: 73, y: 56 }, { x: 58, y: 50 }, { x: 92, y: 58 }, { x: 82, y: 25 }
+                ];
+                r1.forEach((r, i) => { if (defSpots1[i]) { r.x = defSpots1[i].x; r.y = defSpots1[i].y; } });
+
+                const v1 = [
+                    toSvgVec(82, 14, 78, 20, '#38BDF8'),
+                    toSvgVec(90, 36, 93, 44, '#EF4444')
+                ];
+                const s2 = cloneSlots(s1);
+                if (s2[4]) { s2[4].x = 90; s2[4].y = 35; }
+                if (s2[5]) { s2[5].x = 88; s2[5].y = 49; }
+                if (s2[6]) { s2[6].x = 90; s2[6].y = 61; }
+                const v2 = [
+                    toSvgVec(96, 6, 90, 61, '#F59E0B'),
+                    toSvgVec(77, 32, 90, 35, '#00FF88'),
+                    toSvgVec(76, 47, 88, 49, '#00FF88'),
+                    toSvgVec(77, 63, 90, 61, '#00FF88')
+                ];
+                const s3 = cloneSlots(s2);
+                const v3 = [toSvgVec(90, 61, 98, 51, '#F59E0B')];
+
+                phasesData = [
+                    { vectors: v1, slotsCoords: s1, rivalsCoords: r1, ballCoords: { ...taker }, zone: null, note: '1. Fase Inicial (Córner Izquierdo): Pantalla en 1er palo y línea de rematadores en la frontal.' },
+                    { vectors: v2, slotsCoords: s2, rivalsCoords: r1, ballCoords: { x: 90, y: 61 }, zone: { cx: 540, cy: 256, r: 26, color: '#F59E0B' }, note: '2. Desarrollo (Córner Izquierdo): Vuelo pasado al 2º palo y triple ruptura al área.' },
+                    { vectors: v3, slotsCoords: s3, rivalsCoords: r1, ballCoords: { x: 97, y: 51 }, zone: { cx: 580, cy: 214, r: 22, color: '#00FF88' }, note: '3. Finalización (Córner Izquierdo): Remate cruzado a la red.' }
+                ];
+                setTacticalZoom('right');
+                selectTacticalPhase(0);
+                return;
+            }
+
+            if (momentKey === 'corner_right') {
+                showRivals = true; syncRivalToggleButton();
+                const taker = { x: 96, y: 94 };
+                const s1 = cloneSlots(baseSlots);
+                const r1 = cloneSlots(baseRivals);
+
+                const attackSpots1 = [
+                    { x: 30, y: 50 }, taker, { x: 83, y: 85 }, { x: 90, y: 63 },
+                    { x: 77, y: 67 }, { x: 76, y: 50 }, { x: 77, y: 34 },
+                    { x: 67, y: 58 }, { x: 68, y: 40 }, { x: 50, y: 38 }, { x: 50, y: 62 }
+                ];
+                s1.forEach((s, i) => { if (attackSpots1[i]) { s.x = attackSpots1[i].x; s.y = attackSpots1[i].y; } });
+
+                const defSpots1 = [
+                    { x: 96, y: 50 }, { x: 88, y: 80 }, { x: 93, y: 60 },
+                    { x: 85, y: 64 }, { x: 85, y: 50 }, { x: 85, y: 36 },
+                    { x: 73, y: 58 }, { x: 73, y: 42 }, { x: 58, y: 50 }, { x: 92, y: 42 }, { x: 82, y: 74 }
+                ];
+                r1.forEach((r, i) => { if (defSpots1[i]) { r.x = defSpots1[i].x; r.y = defSpots1[i].y; } });
+
+                const v1 = [
+                    toSvgVec(96, 94, 83, 85, '#F59E0B'),
+                    toSvgVec(90, 63, 93, 56, '#EF4444')
+                ];
+                const s2 = cloneSlots(s1);
+                if (s2[4]) { s2[4].x = 90; s2[4].y = 63; }
+                if (s2[5]) { s2[5].x = 88; s2[5].y = 48; }
+                if (s2[6]) { s2[6].x = 90; s2[6].y = 35; }
+                const v2 = [
+                    toSvgVec(83, 85, 88, 48, '#F59E0B'),
+                    toSvgVec(76, 50, 88, 48, '#00FF88'),
+                    toSvgVec(77, 34, 90, 35, '#00FF88')
+                ];
+                const s3 = cloneSlots(s2);
+                const v3 = [toSvgVec(88, 48, 98, 49, '#F59E0B')];
+
+                phasesData = [
+                    { vectors: v1, slotsCoords: s1, rivalsCoords: r1, ballCoords: { ...taker }, zone: null, note: '1. Fase Inicial (Córner Derecho): Saque en corto 2vs1 para abrir ángulo de centro.' },
+                    { vectors: v2, slotsCoords: s2, rivalsCoords: r1, ballCoords: { x: 88, y: 48 }, zone: { cx: 528, cy: 202, r: 26, color: '#F59E0B' }, note: '2. Desarrollo (Córner Derecho): Centro tenso al punto de penalti.' },
+                    { vectors: v3, slotsCoords: s3, rivalsCoords: r1, ballCoords: { x: 97, y: 49 }, zone: { cx: 580, cy: 206, r: 22, color: '#00FF88' }, note: '3. Finalización (Córner Derecho): Definición al primer toque.' }
+                ];
+                setTacticalZoom('right');
+                selectTacticalPhase(0);
+                return;
+            }
+
+            if (momentKey === 'fk_close') {
+                showRivals = true; syncRivalToggleButton();
+                const fkSpot = { x: 70, y: 46 };
+                const s1 = cloneSlots(baseSlots);
+                const r1 = cloneSlots(baseRivals);
+
+                const attackSpots1 = [
+                    { x: 26, y: 50 }, { x: 69, y: 43 }, { x: 69, y: 51 },
+                    { x: 81, y: 34 }, { x: 75, y: 18 }, { x: 75, y: 78 },
+                    { x: 77, y: 63 }, { x: 61, y: 36 }, { x: 61, y: 60 }, { x: 48, y: 40 }, { x: 48, y: 60 }
+                ];
+                s1.forEach((s, i) => { if (attackSpots1[i]) { s.x = attackSpots1[i].x; s.y = attackSpots1[i].y; } });
+
+                const defSpots1 = [
+                    { x: 96, y: 52 }, { x: 82, y: 40 }, { x: 82, y: 45 },
+                    { x: 82, y: 50 }, { x: 82, y: 55 }, { x: 83, y: 22 },
+                    { x: 83, y: 74 }, { x: 85, y: 63 }, { x: 74, y: 58 }, { x: 56, y: 50 }, { x: 87, y: 32 }
+                ];
+                r1.forEach((r, i) => { if (defSpots1[i]) { r.x = defSpots1[i].x; r.y = defSpots1[i].y; } });
+
+                const v1 = [
+                    toSvgVec(69, 51, 86, 63, '#00FF88'),
+                    toSvgVec(75, 18, 88, 25, '#00FF88')
+                ];
+                const s2 = cloneSlots(s1);
+                if (s2[2]) { s2[2].x = 86; s2[2].y = 63; }
+                if (s2[4]) { s2[4].x = 88; s2[4].y = 25; }
+                const v2 = [
+                    toSvgVec(70, 46, 88, 25, '#F59E0B'),
+                    toSvgVec(77, 63, 90, 52, '#00FF88')
+                ];
+                const s3 = cloneSlots(s2);
+                if (s3[6]) { s3[6].x = 90; s3[6].y = 52; }
+                const v3 = [
+                    toSvgVec(88, 25, 90, 52, '#F59E0B'),
+                    toSvgVec(90, 52, 98, 49, '#F59E0B')
+                ];
+
+                phasesData = [
+                    { vectors: v1, slotsCoords: s1, rivalsCoords: r1, ballCoords: { ...fkSpot }, zone: null, note: '1. Fase Inicial (Falta Cercana): Barrera de 4 hombres y desmarque ciego exterior.' },
+                    { vectors: v2, slotsCoords: s2, rivalsCoords: r1, ballCoords: { x: 88, y: 25 }, zone: { cx: 528, cy: 105, r: 24, color: '#38BDF8' }, note: '2. Desarrollo (Falta Cercana): Pase filtrado raso superando la barrera por fuera.' },
+                    { vectors: v3, slotsCoords: s3, rivalsCoords: r1, ballCoords: { x: 97, y: 49 }, zone: { cx: 580, cy: 206, r: 22, color: '#00FF88' }, note: '3. Finalización (Falta Cercana): Centro raso al segundo palo y gol.' }
+                ];
+                setTacticalZoom('right');
+                selectTacticalPhase(0);
+                return;
+            }
+
+            if (momentKey === 'fk_side' || momentKey === 'fk_far') {
+                showRivals = true; syncRivalToggleButton();
+                const isSide = momentKey === 'fk_side';
+                const fkSpot = isSide ? { x: 72, y: 14 } : { x: 58, y: 48 };
+                const s1 = cloneSlots(baseSlots);
+                const r1 = cloneSlots(baseRivals);
+
+                const attackSpots1 = [
+                    { x: 26, y: 50 }, fkSpot, { x: isSide ? 64 : 52, y: isSide ? 22 : 34 },
+                    { x: 77, y: 33 }, { x: 77, y: 45 }, { x: 77, y: 57 }, { x: 77, y: 69 },
+                    { x: 66, y: 48 }, { x: 66, y: 66 }, { x: 48, y: 40 }, { x: 48, y: 60 }
+                ];
+                s1.forEach((s, i) => { if (attackSpots1[i]) { s.x = attackSpots1[i].x; s.y = attackSpots1[i].y; } });
+
+                const defSpots1 = [
+                    { x: 95, y: 50 }, { x: isSide ? 79 : 68, y: isSide ? 19 : 46 }, { x: isSide ? 79 : 68, y: isSide ? 24 : 52 },
+                    { x: 83, y: 34 }, { x: 83, y: 44 }, { x: 83, y: 54 }, { x: 83, y: 64 }, { x: 83, y: 73 },
+                    { x: 72, y: 48 }, { x: 56, y: 50 }, { x: 84, y: 26 }
+                ];
+                r1.forEach((r, i) => { if (defSpots1[i]) { r.x = defSpots1[i].x; r.y = defSpots1[i].y; } });
+
+                const v1 = [
+                    toSvgVec(77, 33, 89, 38, '#00FF88'),
+                    toSvgVec(77, 45, 89, 48, '#00FF88'),
+                    toSvgVec(77, 57, 89, 58, '#00FF88'),
+                    toSvgVec(77, 69, 89, 68, '#00FF88')
+                ];
+                const s2 = cloneSlots(s1);
+                if (s2[3]) { s2[3].x = 89; s2[3].y = 38; }
+                if (s2[4]) { s2[4].x = 89; s2[4].y = 48; }
+                if (s2[5]) { s2[5].x = 89; s2[5].y = 58; }
+                if (s2[6]) { s2[6].x = 89; s2[6].y = 68; }
+                const v2 = [toSvgVec(fkSpot.x, fkSpot.y, 89, 58, '#F59E0B')];
+                const s3 = cloneSlots(s2);
+                const v3 = [toSvgVec(89, 58, 98, 51, '#F59E0B')];
+
+                phasesData = [
+                    { vectors: v1, slotsCoords: s1, rivalsCoords: r1, ballCoords: { ...fkSpot }, zone: null, note: `1. Fase Inicial (${isSide ? 'Falta Lateral' : 'Falta Lejana'}): Línea de 4 rematadores separados de la línea rival.` },
+                    { vectors: v2, slotsCoords: s2, rivalsCoords: r1, ballCoords: { x: 89, y: 58 }, zone: { cx: 534, cy: 244, r: 28, color: '#F59E0B' }, note: '2. Desarrollo: Envío tenso a la espalda de la defensa.' },
+                    { vectors: v3, slotsCoords: s3, rivalsCoords: r1, ballCoords: { x: 97, y: 51 }, zone: { cx: 580, cy: 214, r: 22, color: '#00FF88' }, note: '3. Finalización: Remate atacando el balón en carrera.' }
+                ];
+                setTacticalZoom('right');
+                selectTacticalPhase(0);
+                return;
+            }
+
+            if (momentKey === 'def_corner') {
+                showRivals = true; syncRivalToggleButton();
+                const s1 = cloneSlots(baseSlots);
+                const r1 = cloneSlots(baseRivals);
+
+                s1.forEach((s, i) => {
+                    if (i === 0) { s.x = 4; s.y = 50; }
+                    else if (i <= 8) { s.x = 10 + (i % 3) * 4; s.y = 30 + (i - 1) * 5.5; }
+                    else { s.x = 44; s.y = i === 9 ? 28 : 72; }
+                });
+                r1.forEach((r, i) => {
+                    if (i === 0) { r.x = 85; r.y = 50; }
+                    else if (i === 1) { r.x = 4; r.y = 6; }
+                    else if (i <= 7) { r.x = 16 + (i % 2) * 5; r.y = 32 + (i - 2) * 7; }
+                    else { r.x = 36; r.y = 32 + (i - 8) * 16; }
+                });
+
+                const v1 = [toSvgVec(4, 6, 12, 46, '#EF4444')];
+                const s2 = cloneSlots(s1);
+                if (s2[9]) { s2[9].x = 52; s2[9].y = 26; }
+                const v2 = [
+                    toSvgVec(12, 46, 52, 26, '#F59E0B'),
+                    toSvgVec(44, 72, 54, 62, '#00FF88')
+                ];
+                const s3 = cloneSlots(s2);
+                const v3 = [toSvgVec(52, 26, 58, 26, '#38BDF8')];
+
+                phasesData = [
+                    { vectors: v1, slotsCoords: s1, rivalsCoords: r1, ballCoords: { x: 4, y: 6 }, zone: { cx: 72, cy: 193, r: 28, color: '#38BDF8' }, note: '1. Fase Inicial (ABP Defensivo): Marcaje mixto en tu área y 2 velocistas arriba.' },
+                    { vectors: v2, slotsCoords: s2, rivalsCoords: r1, ballCoords: { x: 52, y: 26 }, zone: { cx: 312, cy: 109, r: 28, color: '#00FF88' }, note: '2. Desarrollo: Despeje orientado a banda hacia el extremo descolgado.' },
+                    { vectors: v3, slotsCoords: s3, rivalsCoords: r1, ballCoords: { x: 58, y: 26 }, zone: null, note: '3. Finalización: Transición ofensiva hacia campo abierto.' }
+                ];
+                setTacticalZoom('left');
+                selectTacticalPhase(0);
+                return;
+            }
+
+            setTacticalZoom('full');
+
+            if (momentKey === 'build_up') {
+                const s1 = cloneSlots(baseSlots);
+                s1[gkIdx].x = 8; s1[gkIdx].y = 50;
+                s1[cbIdx].x = 20; s1[cbIdx].y = 34;
+                s1[cmIdx].x = 36; s1[cmIdx].y = 48;
+                const v1 = [
+                    toSvgVec(s1[gkIdx].x, s1[gkIdx].y, s1[cbIdx].x, s1[cbIdx].y, '#F59E0B'),
+                    toSvgVec(s1[cmIdx].x + 6, s1[cmIdx].y, s1[cmIdx].x, s1[cmIdx].y, '#38BDF8')
+                ];
+
+                const s2 = cloneSlots(s1);
+                s2[cbIdx].x = 24;
+                s2[cmIdx].x = 44; s2[cmIdx].y = 44;
+                s2[lwIdx].x = 64; s2[lwIdx].y = 18;
+                const v2 = [
+                    toSvgVec(s1[cbIdx].x, s1[cbIdx].y, s2[cmIdx].x, s2[cmIdx].y, '#F59E0B'),
+                    toSvgVec(s1[lwIdx].x, s1[lwIdx].y, 78, 16, '#00FF88'),
+                    toSvgVec(s2[cmIdx].x, s2[cmIdx].y, 78, 16, '#F59E0B')
+                ];
+
+                const s3 = cloneSlots(s2);
+                s3[lwIdx].x = 82; s3[lwIdx].y = 18;
+                s3[stIdx].x = 86; s3[stIdx].y = 48;
+                s3[rwIdx].x = 84; s3[rwIdx].y = 66;
+                const v3 = [
+                    toSvgVec(s3[lwIdx].x, s3[lwIdx].y, 86, 48, '#F59E0B'),
+                    toSvgVec(86, 48, 96, 48, '#F59E0B')
+                ];
+
+                phasesData = [
+                    { vectors: v1, slotsCoords: s1, rivalsCoords: cloneSlots(baseRivals), ballCoords: { x: s1[gkIdx].x, y: s1[gkIdx].y }, zone: null, note: '1. Fase Inicial: Centrales abiertos y salida limpia desde portería.' },
+                    { vectors: v2, slotsCoords: s2, rivalsCoords: cloneSlots(baseRivals), ballCoords: { x: s2[cmIdx].x, y: s2[cmIdx].y }, zone: { cx: 468, cy: 70, r: 36, color: '#00FF88' }, note: '2. Desarrollo: Mediocentro recibe entre líneas y lanza al extremo en ruptura.' },
+                    { vectors: v3, slotsCoords: s3, rivalsCoords: cloneSlots(baseRivals), ballCoords: { x: 86, y: 48 }, zone: { cx: 516, cy: 202, r: 38, color: '#F59E0B' }, note: '3. Finalización: Centro tenso al punto de penalti y remate a gol.' }
+                ];
+            } else {
+                if (activeSection === 'rival') { showRivals = true; syncRivalToggleButton(); }
+                const s1 = cloneSlots(baseSlots).map((s, i) => ({
+                    ...s,
+                    x: i === 0 ? 9 : (showRivals ? Math.min(48, Math.round(14 + s.x * 0.42)) : Math.min(80, s.x + 8))
+                }));
+                const v1 = [
+                    toSvgVec(s1[cmIdx].x, s1[cmIdx].y, s1[lwIdx].x, s1[lwIdx].y, '#F59E0B'),
+                    toSvgVec(s1[lbIdx].x, s1[lbIdx].y, s1[lbIdx].x + 12, s1[lbIdx].y, '#00FF88')
+                ];
+                const s2 = cloneSlots(s1);
+                s2[lbIdx].x = Math.min(82, s1[lbIdx].x + 12);
+                s2[rwIdx].x = 76; s2[rwIdx].y = 74;
+                const v2 = [
+                    toSvgVec(s2[lwIdx].x, s2[lwIdx].y, s2[rwIdx].x, s2[rwIdx].y, '#F59E0B'),
+                    toSvgVec(s2[stIdx].x, s2[stIdx].y, 86, 46, '#00FF88')
+                ];
+                const s3 = cloneSlots(s2);
+                s3[stIdx].x = 86; s3[stIdx].y = 46;
+                const v3 = [
+                    toSvgVec(s3[rwIdx].x, s3[rwIdx].y, 86, 46, '#F59E0B'),
+                    toSvgVec(86, 46, 96, 46, '#F59E0B')
+                ];
+
+                phasesData = [
+                    { vectors: v1, slotsCoords: s1, rivalsCoords: cloneSlots(baseRivals), ballCoords: { x: s1[cmIdx].x, y: s1[cmIdx].y }, zone: null, note: '1. Fase Inicial: Posicionamiento del bloque sin solapamientos y activación exterior.' },
+                    { vectors: v2, slotsCoords: s2, rivalsCoords: cloneSlots(baseRivals), ballCoords: { x: s2[lwIdx].x, y: s2[lwIdx].y }, zone: { cx: 456, cy: 310, r: 38, color: '#38BDF8' }, note: '2. Desarrollo: Giro de orientación al carril libre y ruptura del 9.' },
+                    { vectors: v3, slotsCoords: s3, rivalsCoords: cloneSlots(baseRivals), ballCoords: { x: 86, y: 46 }, zone: { cx: 516, cy: 193, r: 36, color: '#00FF88' }, note: '3. Finalización: Asistencia al área y definición.' }
+                ];
+            }
+
+            selectTacticalPhase(0);
+        }
+
+        // =========================================================================
+        // 10. CONTROL DE FASES, RENDERIZADO Y ARRASTRE LIBRE (SIN LÍNEAS HASTA PULSAR EMPEZAR A CREAR)
+        // =========================================================================
+        function selectTacticalPhase(targetPhaseIdx) {
+            if (phasesData[currentPhaseIdx]) {
+                syncPhaseSnapshot();
+            }
+            currentPhaseIdx = targetPhaseIdx;
+            updatePhaseButtonsUI();
+
+            if (!phasesData[targetPhaseIdx].slotsCoords) {
+                const prevIdx = Math.max(0, targetPhaseIdx - 1);
+                phasesData[targetPhaseIdx].slotsCoords = JSON.parse(JSON.stringify(phasesData[prevIdx].slotsCoords || boardHorizontalSlots));
+                phasesData[targetPhaseIdx].rivalsCoords = JSON.parse(JSON.stringify(phasesData[prevIdx].rivalsCoords || rivalTokens));
+                phasesData[targetPhaseIdx].ballCoords = { ...(phasesData[prevIdx].ballCoords || ballCoords) };
+            }
+
+            boardHorizontalSlots.forEach((s, idx) => {
+                if (phasesData[targetPhaseIdx].slotsCoords[idx]) {
+                    s.x = phasesData[targetPhaseIdx].slotsCoords[idx].x;
+                    s.y = phasesData[targetPhaseIdx].slotsCoords[idx].y;
+                }
+            });
+            if (phasesData[targetPhaseIdx].rivalsCoords) {
+                rivalTokens.forEach((r, idx) => {
+                    if (phasesData[targetPhaseIdx].rivalsCoords[idx]) {
+                        r.x = phasesData[targetPhaseIdx].rivalsCoords[idx].x;
+                        r.y = phasesData[targetPhaseIdx].rivalsCoords[idx].y;
+                    }
+                });
+            }
+            if (phasesData[targetPhaseIdx].ballCoords) {
+                ballCoords = { ...phasesData[targetPhaseIdx].ballCoords };
+            }
+
+            renderHorizontalArena();
+            const phaseNote = phasesData[targetPhaseIdx].note || `Fase ${targetPhaseIdx + 1} activa en pizarra.`;
+            document.getElementById('live-tactical-teleprompter').innerHTML = `🎬 <strong>${phaseNote}</strong>`;
+        }
+
+        function updatePhaseButtonsUI() {
+            [0, 1, 2].forEach(i => {
+                const btn = document.getElementById(`phase-btn-${i}`);
+                if (btn) btn.className = `tool-pill-btn ${i === currentPhaseIdx ? 'active-green' : ''}`;
+            });
+            document.getElementById('phase-indicator-badge').textContent = `FASE ${currentPhaseIdx + 1} / 3`;
+        }
+
+        function playFullMultiPhaseAnimation() {
+            syncPhaseSnapshot();
+            let step = 0;
+            function next() {
+                if (step > 2) return;
+                selectTacticalPhase(step);
+                step++;
+                if (step <= 2) setTimeout(next, 1050);
+            }
+            next();
+        }
+
+        function renderHorizontalArena() {
+            const tokensLayer = document.getElementById('arena-tokens-layer');
+            const rivalsLayer = document.getElementById('arena-rivals-layer');
+            const svgLayer = document.getElementById('arena-vectors-svg');
+            const ballEl = document.getElementById('sport-ball-node');
+
+            if (ballEl) {
+                const bx = fieldPctToDisplayPctX(ballCoords.x);
+                ballEl.style.left = `${bx}%`;
+                ballEl.style.top = `${ballCoords.y}%`;
+                ballEl.style.display = (bx < -5 || bx > 105) ? 'none' : 'flex';
+            }
+
+            if (tokensLayer) {
+                while (tokensLayer.children.length > boardHorizontalSlots.length) tokensLayer.removeChild(tokensLayer.lastElementChild);
+                while (tokensLayer.children.length < boardHorizontalSlots.length) {
+                    const d = document.createElement('div');
+                    d.className = 'micro-player-token';
+                    tokensLayer.appendChild(d);
+                }
+
+                boardHorizontalSlots.forEach((slot, idx) => {
+                    const el = tokensLayer.children[idx];
+                    const isAct = Boolean(selectedActor && !selectedActor.isRival && selectedActor.index === idx);
+                    const dispX = fieldPctToDisplayPctX(slot.x);
+                    const markedRivIdx = manMarkingLinks[idx];
+                    const hasMark = (markedRivIdx !== undefined && rivalTokens[markedRivIdx]);
+
+                    el.className = `micro-player-token ${isAct ? 'active-actor' : ''}`;
+                    el.style.left = `${dispX}%`;
+                    el.style.top = `${slot.y}%`;
+                    el.style.display = (dispX < -6 || dispX > 106) ? 'none' : 'flex';
+
+                    const p = slot.player;
+                    const hasPhoto = showPhotoTokens && p && p.avatar;
+                    el.style.backgroundImage = hasPhoto ? `url('${p.avatar}')` : '';
+                    const initTxt = p ? getInitials(p.name) : slot.pos;
+
+                    el.innerHTML = `
+                        ${hasMark ? `<span class="micro-mark-badge">🔒</span>` : ''}
+                        ${hasPhoto ? '' : `<span class="micro-initials">${initTxt}</span>`}
+                        <span class="micro-pos-tag">${slot.pos}</span>
+                    `;
+
+                    bindTokenDragAndClick(el, slot, idx, false);
+                });
+            }
+
+            if (rivalsLayer) {
+                if (!showRivals || !Array.isArray(rivalTokens)) {
+                    rivalsLayer.innerHTML = '';
+                } else {
+                    while (rivalsLayer.children.length > rivalTokens.length) rivalsLayer.removeChild(rivalsLayer.lastElementChild);
+                    while (rivalsLayer.children.length < rivalTokens.length) {
+                        const d = document.createElement('div');
+                        d.className = 'micro-rival-token';
+                        rivalsLayer.appendChild(d);
+                    }
+                    rivalTokens.forEach((r, idx) => {
+                        const el = rivalsLayer.children[idx];
+                        const isAct = Boolean(selectedActor && selectedActor.isRival && selectedActor.index === idx);
+                        const dispX = fieldPctToDisplayPctX(r.x);
+                        el.className = `micro-rival-token ${isAct ? 'active-actor' : ''}`;
+                        el.style.left = `${dispX}%`;
+                        el.style.top = `${r.y}%`;
+                        el.style.display = (dispX < -6 || dispX > 106) ? 'none' : 'flex';
+                        el.innerHTML = `
+                            <span class="micro-initials">${r.init}</span>
+                            <span class="micro-pos-tag" style="background:#EF4444;color:#FFF;">${r.pos}</span>
+                        `;
+                        bindTokenDragAndClick(el, r, idx, true);
+                    });
+                }
+            }
+
+            if (svgLayer) {
+                svgLayer.setAttribute('viewBox', getActiveViewBoxString());
+                const defs = `
+                    <defs>
+                        <marker id="mG" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#00FF88"/></marker>
+                        <marker id="mA" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#F59E0B"/></marker>
+                        <marker id="mB" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#38BDF8"/></marker>
+                        <marker id="mR" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#EF4444"/></marker>
+                        <marker id="mP" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#A855F7"/></marker>
+                    </defs>
+                `;
+                const curZone = phasesData[currentPhaseIdx]?.zone;
+                const zSvg = curZone ? `<circle cx="${curZone.cx}" cy="${curZone.cy}" r="${curZone.r}" fill="${curZone.color}" class="kinet-zone-circle"/>` : '';
+
+                let markLines = '';
+                if (showRivals) {
+                    Object.keys(manMarkingLinks).forEach(ownIdxStr => {
+                        const ownSlot = boardHorizontalSlots[parseInt(ownIdxStr, 10)];
+                        const rivSlot = rivalTokens[manMarkingLinks[ownIdxStr]];
+                        if (ownSlot && rivSlot) {
+                            const x1 = Math.round((ownSlot.x / 100) * 600);
+                            const y1 = Math.round((ownSlot.y / 100) * 420);
+                            const x2 = Math.round((rivSlot.x / 100) * 600);
+                            const y2 = Math.round((rivSlot.y / 100) * 420);
+                            markLines += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#A855F7" stroke-width="2" class="kinet-manmark-tether"/>`;
+                        }
+                    });
+                }
+
+                const vectors = phasesData[currentPhaseIdx]?.vectors || [];
+                const lines = vectors.map(v => {
+                    const mk = v.color === '#F59E0B' ? 'mA' : (v.color === '#38BDF8' ? 'mB' : (v.color === '#EF4444' ? 'mR' : (v.color === '#A855F7' ? 'mP' : 'mG')));
+                    return `<line x1="${v.x1}" y1="${v.y1}" x2="${v.x2}" y2="${v.y2}" stroke="${v.color}" stroke-width="2.6" class="kinet-laser-arrow" marker-end="url(#${mk})"/>`;
+                }).join('');
+                svgLayer.innerHTML = defs + zSvg + markLines + lines;
+            }
+            updateActorLabel();
+        }
+
+        function syncPhaseSnapshot() {
+            phasesData[currentPhaseIdx].slotsCoords = JSON.parse(JSON.stringify(boardHorizontalSlots));
+            phasesData[currentPhaseIdx].rivalsCoords = JSON.parse(JSON.stringify(rivalTokens));
+            phasesData[currentPhaseIdx].ballCoords = { ...ballCoords };
+        }
+
+        // ARRASTRE DE FICHAS: SI isRecordingPlay ES FALSE, MUEVE AL JUGADOR LIBREMENTE SIN DEJAR LÍNEAS DETRÁS
+        function bindTokenDragAndClick(el, slotObj, idx, isRival) {
+            const surface = document.getElementById('arena-3d-surface');
+            if (!surface) return;
+
+            el.onmousedown = (e) => {
+                e.stopPropagation();
+                const startX = slotObj.x, startY = slotObj.y;
+                const preDragSig = buildStateSignature(boardHorizontalSlots, rivalTokens, ballCoords, phasesData, manMarkingLinks);
+                const preDragState = {
+                    _sig: preDragSig,
+                    phaseIdx: currentPhaseIdx,
+                    slots: JSON.parse(JSON.stringify(boardHorizontalSlots)),
+                    rivals: JSON.parse(JSON.stringify(rivalTokens)),
+                    ball: { ...ballCoords },
+                    phases: JSON.parse(JSON.stringify(phasesData)),
+                    marks: JSON.parse(JSON.stringify(manMarkingLinks))
+                };
+
+                let maxDelta = 0;
+                el.classList.add('dragging');
+
+                const onMove = (ev) => {
+                    const rect = surface.getBoundingClientRect();
+                    const dispX = ((ev.clientX - rect.left) / rect.width) * 100;
+                    const nx = displayPctToFieldPctX(dispX);
+                    const ny = Math.min(93, Math.max(7, Math.round(((ev.clientY - rect.top) / rect.height) * 100)));
+                    const dist = Math.hypot(nx - startX, ny - startY);
+                    if (dist > maxDelta) maxDelta = dist;
+                    slotObj.x = nx;
+                    slotObj.y = ny;
+                    el.style.left = `${fieldPctToDisplayPctX(nx)}%`;
+                    el.style.top = `${ny}%`;
+                };
+
+                const onUp = () => {
+                    window.removeEventListener('mousemove', onMove);
+                    window.removeEventListener('mouseup', onUp);
+                    el.classList.remove('dragging');
+
+                    if (maxDelta >= 2) {
+                        selectedActor = { isRival, index: idx };
+
+                        // SOLO SI HAS DADO A "⚡ EMPEZAR A CREAR" (isRecordingPlay === true) SE REGISTRA LA LÍNEA DETRÁS
+                        if (isRecordingPlay) {
+                            undoHistoryStack.push(preDragState);
+                            updateUndoCounterUI();
+                            hasUnsavedChanges = true;
+
+                            const col = isRival
+                                ? '#EF4444'
+                                : (activeDrawingTool === 'dribble' ? '#38BDF8' : (activeDrawingTool === 'screen' ? '#EF4444' : '#00FF88'));
+                            phasesData[currentPhaseIdx].vectors.push(toSvgVec(startX, startY, slotObj.x, slotObj.y, col));
+                            if (!isRival && activeDrawingTool === 'dribble') ballCoords = { x: slotObj.x, y: slotObj.y };
+                        }
+
+                        if (isRival) {
+                            triggerFollowersForRivalMove(idx, startX, startY, slotObj.x, slotObj.y);
+                        }
+
+                        syncPhaseSnapshot();
+                        renderHorizontalArena();
+                    } else {
+                        slotObj.x = startX;
+                        slotObj.y = startY;
+
+                        if (isRecordingPlay && activeDrawingTool === 'manmark' && isRival && selectedActor && !selectedActor.isRival) {
+                            undoHistoryStack.push(preDragState);
+                            updateUndoCounterUI();
+                            hasUnsavedChanges = true;
+                            const ownIdx = selectedActor.index;
+                            if (manMarkingLinks[ownIdx] === idx) {
+                                delete manMarkingLinks[ownIdx];
+                                document.getElementById('ai-board-diagnosis').innerHTML = `🔓 <strong>Marca Liberada:</strong> [${boardHorizontalSlots[ownIdx].pos}] deja de seguir a ${slotObj.init}.`;
+                            } else {
+                                manMarkingLinks[ownIdx] = idx;
+                                document.getElementById('ai-board-diagnosis').innerHTML = `🔒 <strong>Seguir Marca Activo:</strong> Tu [${boardHorizontalSlots[ownIdx].pos}] perseguirá automáticamente a Rival <strong>${slotObj.init}</strong> cuando se mueva.`;
+                            }
+                            selectedActor = { isRival: true, index: idx };
+                            syncPhaseSnapshot();
+                            renderHorizontalArena();
+                            renderRightSubTab();
+                            return;
+                        }
+
+                        if (isRecordingPlay && activeDrawingTool === 'pass' && selectedActor && (selectedActor.isRival !== isRival || selectedActor.index !== idx)) {
+                            undoHistoryStack.push(preDragState);
+                            updateUndoCounterUI();
+                            hasUnsavedChanges = true;
+                            phasesData[currentPhaseIdx].vectors.push(toSvgVec(ballCoords.x, ballCoords.y, slotObj.x, slotObj.y, '#F59E0B'));
+                            ballCoords = { x: slotObj.x, y: slotObj.y };
+                        }
+                        selectedActor = { isRival, index: idx };
+                        syncPhaseSnapshot();
+                        renderHorizontalArena();
+                    }
+                };
+
+                window.addEventListener('mousemove', onMove);
+                window.addEventListener('mouseup', onUp);
+            };
+        }
+
+        function setPlayStartingZone(zoneType) {
+            if (zoneType === 'corner') {
+                applyMomentPositioning('corner_left');
+                return;
+            }
+            if (zoneType === 'free_kick') {
+                applyMomentPositioning('fk_close');
+                return;
+            }
+
+            boardHorizontalSlots = baseVerticalSlots.map(s => ({
+                pos: s.pos, player: s.player, ...verticalToHorizontal(s.x, s.y)
+            }));
+
+            if (zoneType === 'own_box') {
+                setTacticalZoom('left');
+                boardHorizontalSlots.forEach((s, i) => { if (i === 0) { s.x = 7; s.y = 50; } else s.x = Math.max(14, s.x - 10); });
+                ballCoords = { x: 8, y: 50 };
+            } else if (zoneType === 'midfield') {
+                setTacticalZoom('full');
+                ballCoords = { x: 46, y: 50 };
+            } else if (zoneType === 'final_third') {
+                setTacticalZoom('right');
+                boardHorizontalSlots.forEach((s, i) => { if (i === 0) { s.x = 22; s.y = 50; } else s.x = Math.min(86, s.x + 14); });
+                ballCoords = { x: 68, y: 48 };
+            } else if (zoneType === 'def_block') {
+                setTacticalZoom('left');
+                showRivals = true; syncRivalToggleButton();
+                boardHorizontalSlots.forEach((s, i) => { if (i === 0) { s.x = 8; s.y = 50; } else s.x = Math.max(16, Math.round(s.x * 0.6)); });
+                ballCoords = { x: 42, y: 50 };
+            }
+            phasesData[currentPhaseIdx].vectors = [];
+            syncPhaseSnapshot();
+            renderHorizontalArena();
+        }
+
+        function editPresetInCreator(momentKey, labelTxt) {
+            applyMomentPositioning(momentKey);
+            isRecordingPlay = true;
+            switchRightSubTab('create');
+            const inp = document.getElementById('play-title-input');
+            if (inp) inp.value = `${labelTxt} (Personalizada)`;
+        }
+
+        function editSavedPlay(playId) {
+            const item = savedPlaysLibrary.find(p => p.id === playId);
+            if (!item) return;
+            loadPlayFromLibrary(playId);
+            editingPlayId = playId;
+            isRecordingPlay = true;
+            switchRightSubTab('create');
+            const inp = document.getElementById('play-title-input');
+            if (inp) inp.value = item.title;
+        }
+
+        function updateSavedCountBadge() {
+            const el = document.getElementById('saved-count-lbl');
+            if (el) el.textContent = savedPlaysLibrary.length;
+        }
+
+        function syncSavedPlaysToSupabase() {
+            const spKey = activeArenaSport.toLowerCase();
+            localStorage.setItem(`kinet_saved_tactics_${spKey}`, JSON.stringify(savedPlaysLibrary));
+            updateSavedCountBadge();
+            if (window.KinetBackend && typeof window.KinetBackend.pushLocalStateToCloud === 'function') {
+                window.KinetBackend.pushLocalStateToCloud();
+            }
+        }
+
+        function savePlayToLibrary(overrideTitle, overrideNotes) {
+            syncPhaseSnapshot();
+            const inp = document.getElementById('play-title-input');
+            let title = overrideTitle || (inp ? inp.value : '').trim();
+            if (!title) {
+                openSaveRecordingModal();
+                return;
+            }
+
+            const totalVecs = phasesData.reduce((acc, p) => acc + (p.vectors ? p.vectors.length : 0), 0);
+            const playRecord = {
+                id: editingPlayId || ('play_' + Date.now()),
+                title: title.trim(),
+                section: activeSection,
+                momentKey: activeMomentKey,
+                zoomMode: currentZoomMode,
+                notes: overrideNotes || `${currentPresetName} • 3 Fases (${totalVecs} trazos)`,
+                phasesSnapshot: JSON.parse(JSON.stringify(phasesData)),
+                slotsSnapshot: JSON.parse(JSON.stringify(boardHorizontalSlots)),
+                rivalsSnapshot: JSON.parse(JSON.stringify(rivalTokens)),
+                ballSnapshot: { ...ballCoords },
+                marksSnapshot: JSON.parse(JSON.stringify(manMarkingLinks)),
+                showRivalsSnapshot: showRivals
+            };
+
+            if (editingPlayId) {
+                const idx = savedPlaysLibrary.findIndex(p => p.id === editingPlayId);
+                if (idx !== -1) savedPlaysLibrary[idx] = playRecord;
+                else savedPlaysLibrary.unshift(playRecord);
+                editingPlayId = null;
+            } else {
+                savedPlaysLibrary.unshift(playRecord);
+            }
+
+            syncSavedPlaysToSupabase();
+            hasUnsavedChanges = false;
+            isRecordingPlay = false;
+            undoHistoryStack = [];
+            updateUndoCounterUI();
+            switchRightSubTab('saved');
+            document.getElementById('live-tactical-teleprompter').innerHTML = `✓ <strong>Jugada Guardada en Nube:</strong> "${playRecord.title}" con todos sus movimientos registrados.`;
+        }
+
+        function loadPlayFromLibrary(playId) {
+            guardUnsavedPlay(() => {
+                const item = savedPlaysLibrary.find(p => p.id === playId);
+                if (!item) return;
+
+                if (item.slotsSnapshot) boardHorizontalSlots = JSON.parse(JSON.stringify(item.slotsSnapshot));
+                if (item.rivalsSnapshot) rivalTokens = JSON.parse(JSON.stringify(item.rivalsSnapshot));
+                if (typeof item.showRivalsSnapshot === 'boolean') {
+                    showRivals = item.showRivalsSnapshot;
+                    syncRivalToggleButton();
+                }
+                if (item.zoomMode) setTacticalZoom(item.zoomMode);
+                if (item.ballSnapshot) ballCoords = { ...item.ballSnapshot };
+                if (item.phasesSnapshot) phasesData = JSON.parse(JSON.stringify(item.phasesSnapshot));
+                manMarkingLinks = item.marksSnapshot ? JSON.parse(JSON.stringify(item.marksSnapshot)) : {};
+
+                hasUnsavedChanges = false;
+                undoHistoryStack = [];
+                updateUndoCounterUI();
+                currentPhaseIdx = 0;
+                updatePhaseButtonsUI();
+
+                if (phasesData[0] && phasesData[0].slotsCoords) {
+                    boardHorizontalSlots = JSON.parse(JSON.stringify(phasesData[0].slotsCoords));
+                }
+                if (phasesData[0] && phasesData[0].rivalsCoords) {
+                    rivalTokens = JSON.parse(JSON.stringify(phasesData[0].rivalsCoords));
+                }
+                if (phasesData[0] && phasesData[0].ballCoords) {
+                    ballCoords = { ...phasesData[0].ballCoords };
+                }
+
+                renderHorizontalArena();
+                document.getElementById('live-tactical-teleprompter').innerHTML = `🎬 <strong>Jugada Cargada:</strong> ${item.title} (${item.notes})`;
+            });
+        }
+
+        function deletePlayFromLibrary(playId, ev) {
+            if (ev) ev.stopPropagation();
+            savedPlaysLibrary = savedPlaysLibrary.filter(p => p.id !== playId);
+            syncSavedPlaysToSupabase();
+            renderRightSubTab();
+        }
+
+        async function shareSavedPlayById(playId) {
+            const item = savedPlaysLibrary.find(p => p.id === playId);
+            if (!item) return;
+            loadPlayFromLibrary(playId);
+            const myName = localStorage.getItem('kinet_user_name') || 'Entrenador KINET';
+            const myHandle = localStorage.getItem('kinet_social_handle') || '@kinet_coach';
+
+            const postObj = {
+                id: 'tac_post_' + Date.now(),
+                author: myName,
+                handle: myHandle.startsWith('@') ? myHandle : `@${myHandle}`,
+                role: activeRoleKey,
+                sport: activeArenaSport,
+                mode: 'post',
+                badge: 'PIZARRA INTERACTIVA // JUGADA IA',
+                text: `🏟️ [JUGADA TÁCTICA COMPARTIDA — ${activeArenaSport.toUpperCase()}]: "${item.title}" (${item.notes}). Creada en el Laboratorio de Estrategias 3D de KINET OS.`,
+                likes: 1
+            };
+            if (window.KinetBackend && typeof window.KinetBackend.createCloudPost === 'function') {
+                await window.KinetBackend.createCloudPost(postObj);
+            }
+            alert(`✓ Jugada "${item.title}" publicada en Comunidad KINET.`);
+        }
+
+        async function exportCurrentPlayPDF() {
+            try {
+                const target = document.getElementById('arena-viewport-box');
+                const canvas = await html2canvas(target, { scale: 2.2, backgroundColor: '#050811', useCORS: true, logging: false });
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+                pdf.setFillColor(5, 8, 15);
+                pdf.rect(0, 0, 297, 210, 'F');
+                pdf.setTextColor(0, 255, 136);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(13);
+                pdf.text(`KINET OS // DOSSIER DE ESTRATEGIA & PIZARRA 3D (${activeArenaSport.toUpperCase()})`, 15, 16);
+                pdf.setTextColor(226, 232, 240);
+                pdf.setFontSize(9.5);
+                pdf.text(`Formación: ${currentPresetName}   |   Fase Activa: Fase ${currentPhaseIdx + 1}`, 15, 23);
+                pdf.addImage(imgData, 'PNG', 15, 28, 267, 165);
+                pdf.save(`KINET_Estrategia_3D_${Date.now()}.pdf`);
+            } catch (e) {
+                window.print();
+            }
+        }
+
+        function switchMainSection(secKey) {
+            if (secKey === activeSection) return;
+            guardUnsavedPlay(() => {
+                activeSection = secKey;
+                ['train', 'rival', 'abp'].forEach(k => {
+                    document.getElementById(`top-sec-${k}`)?.classList.toggle('active', k === secKey);
+                });
+                showRivals = (secKey === 'rival' || secKey === 'abp');
+                syncRivalToggleButton();
+
+                const catObj = MOMENT_DROPDOWN_CATALOG[secKey] || MOMENT_DROPDOWN_CATALOG.train;
+                activeMomentKey = catObj.items[0].key;
+                populateDynamicMomentDropdown();
+                refreshAllCustomKinetSelects();
+                applyMomentPositioning(activeMomentKey);
+                renderRightSubTab();
+            });
+        }
+
+        function populateDynamicMomentDropdown() {
+            const catObj = MOMENT_DROPDOWN_CATALOG[activeSection] || MOMENT_DROPDOWN_CATALOG.train;
+            const sel = document.getElementById('dynamic-moment-selector');
+            if (!sel) return;
+            sel.innerHTML = catObj.items.map(item =>
+                `<option value="${item.key}" ${item.key === activeMomentKey ? 'selected' : ''}>${catObj.prefix} ${item.label}</option>`
+            ).join('');
+        }
+
+        function onMomentDropdownChange(newMomentKey) {
+            guardUnsavedPlay(() => {
+                applyMomentPositioning(newMomentKey);
+            });
+        }
+
+        function setDrawingTool(toolKey) {
+            if (!isRecordingPlay) return;
+            activeDrawingTool = toolKey;
+            if (toolKey === 'manmark') {
+                showRivals = true;
+                syncRivalToggleButton();
+                renderHorizontalArena();
+                document.getElementById('live-tactical-teleprompter').innerHTML = `🔒 <strong>Modo Seguir Marca 1vs1:</strong> Selecciona primero a tu defensor (verde) y luego toca al jugador rojo del rival que quieres que persiga.`;
+            }
+            renderRightSubTab();
+        }
+
+        function updateUndoCounterUI() {
+            const c = undoHistoryStack.length;
+            const b1 = document.getElementById('btn-undo-top');
+            if (b1) b1.textContent = `↩️ Deshacer (${c})`;
+        }
+
+        function updateActorLabel() {
+            const lbl = document.getElementById('active-actor-label');
+            if (lbl) lbl.textContent = getActorLabelString();
+        }
+
+        // CLIC EN EL CÉSPED: SOLO DIBUJA LÍNEAS SI HAS DADO A "⚡ EMPEZAR A CREAR" (isRecordingPlay === true)
+        function bindArenaSurfaceClick() {
+            const surface = document.getElementById('arena-3d-surface');
+            if (!surface) return;
+
+            surface.addEventListener('click', (e) => {
+                if (e.target.closest('.micro-player-token') || e.target.closest('.micro-rival-token')) return;
+                if (!isRecordingPlay) return;
+
+                const slot = getActiveActorSlotObject();
+                if (!slot && activeDrawingTool !== 'pass') return;
+
+                const rect = surface.getBoundingClientRect();
+                const dispX = ((e.clientX - rect.left) / rect.width) * 100;
+                const tx = displayPctToFieldPctX(dispX);
+                const ty = Math.min(92, Math.max(8, Math.round(((e.clientY - rect.top) / rect.height) * 100)));
+
+                if (activeDrawingTool === 'pass' && Math.hypot(tx - ballCoords.x, ty - ballCoords.y) < 2) return;
+                if (activeDrawingTool !== 'pass' && slot && Math.hypot(tx - slot.x, ty - slot.y) < 2) return;
+
+                pushUndoState();
+                hasUnsavedChanges = true;
+                const isRiv = Boolean(selectedActor && selectedActor.isRival);
+                const pName = slot ? (isRiv ? `Rival ${slot.init}` : (slot.player ? slot.player.name : slot.pos)) : 'Balón';
+                const oldX = slot ? slot.x : 0;
+                const oldY = slot ? slot.y : 0;
+
+                if (activeDrawingTool === 'pass') {
+                    phasesData[currentPhaseIdx].vectors.push(toSvgVec(ballCoords.x, ballCoords.y, tx, ty, '#F59E0B'));
+                    ballCoords = { x: tx, y: ty };
+                    document.getElementById('ai-board-diagnosis').innerHTML = `🟠 <strong>Envío de Balón (Fase ${currentPhaseIdx + 1}):</strong> Pase/disparo hacia zona (${tx}%, ${ty}%).`;
+                } else if (activeDrawingTool === 'offball' || activeDrawingTool === 'manmark') {
+                    const vecCol = isRiv ? '#EF4444' : '#00FF88';
+                    phasesData[currentPhaseIdx].vectors.push(toSvgVec(slot.x, slot.y, tx, ty, vecCol));
+                    slot.x = tx; slot.y = ty;
+                    if (isRiv) {
+                        triggerFollowersForRivalMove(selectedActor.index, oldX, oldY, tx, ty);
+                    }
+                    document.getElementById('ai-board-diagnosis').innerHTML = `${isRiv ? '🔴' : '🟢'} <strong>Movimiento (Fase ${currentPhaseIdx + 1}):</strong> [${slot.pos}] ${pName} se desplaza a (${tx}%, ${ty}%).`;
+                } else if (activeDrawingTool === 'dribble') {
+                    phasesData[currentPhaseIdx].vectors.push(toSvgVec(slot.x, slot.y, tx, ty, '#38BDF8'));
+                    slot.x = tx; slot.y = ty;
+                    ballCoords = { x: tx, y: ty };
+                    if (isRiv) {
+                        triggerFollowersForRivalMove(selectedActor.index, oldX, oldY, tx, ty);
+                    }
+                    document.getElementById('ai-board-diagnosis').innerHTML = `🔵 <strong>Conducción Con Balón (Fase ${currentPhaseIdx + 1}):</strong> [${slot.pos}] ${pName} progresa con balón a (${tx}%, ${ty}%).`;
+                } else if (activeDrawingTool === 'screen') {
+                    phasesData[currentPhaseIdx].vectors.push(toSvgVec(slot.x, slot.y, tx, ty, '#EF4444'));
+                    slot.x = tx; slot.y = ty;
+                    if (isRiv) {
+                        triggerFollowersForRivalMove(selectedActor.index, oldX, oldY, tx, ty);
+                    }
+                    document.getElementById('ai-board-diagnosis').innerHTML = `🔴 <strong>Presión / Pantalla (Fase ${currentPhaseIdx + 1}):</strong> [${slot.pos}] ${pName} salta a presionar/bloquear en (${tx}%, ${ty}%).`;
+                }
+
+                syncPhaseSnapshot();
+                renderHorizontalArena();
+            });
+        }
+
+        function applyPresetAction(actType) {
+            if (!isRecordingPlay) return;
+            const slot = getActiveActorSlotObject();
+            if (!slot) {
+                alert('Toca primero cualquier jugador tuyo (verde) o del rival (rojo) en el campo.');
+                return;
+            }
+            pushUndoState();
+            hasUnsavedChanges = true;
+            const isRiv = Boolean(selectedActor && selectedActor.isRival);
+            const ox = slot.x, oy = slot.y;
+            let nx = ox, ny = oy;
+            let col = isRiv ? '#EF4444' : '#00FF88';
+
+            const dir = isRiv ? -1 : 1;
+            if (actType === 'ruptura') nx = Math.min(93, Math.max(7, ox + 16 * dir));
+            else if (actType === 'apoyo') { nx = Math.min(93, Math.max(7, ox - 12 * dir)); col = '#38BDF8'; }
+            else if (actType === 'diagonal') { nx = Math.min(93, Math.max(7, ox + 14 * dir)); ny = oy < 50 ? Math.min(86, oy + 14) : Math.max(14, oy - 14); }
+
+            phasesData[currentPhaseIdx].vectors.push(toSvgVec(ox, oy, nx, ny, col));
+            slot.x = nx; slot.y = ny;
+            if (isRiv) {
+                triggerFollowersForRivalMove(selectedActor.index, ox, oy, nx, ny);
+            }
+            syncPhaseSnapshot();
+            renderHorizontalArena();
+        }
+
+        function createNewBlankPlay() {
+            guardUnsavedPlay(() => {
+                editingPlayId = null;
+                const inp = document.getElementById('play-title-input');
+                if (inp) inp.value = '';
+                phasesData = [
+                    { vectors: [], slotsCoords: JSON.parse(JSON.stringify(boardHorizontalSlots)), rivalsCoords: JSON.parse(JSON.stringify(rivalTokens)), ballCoords: { ...ballCoords }, zone: null, note: '' },
+                    { vectors: [], slotsCoords: null, rivalsCoords: null, ballCoords: null, zone: null, note: '' },
+                    { vectors: [], slotsCoords: null, rivalsCoords: null, ballCoords: null, zone: null, note: '' }
+                ];
+                currentPhaseIdx = 0;
+                undoHistoryStack = [];
+                updateUndoCounterUI();
+                updatePhaseButtonsUI();
+                isRecordingPlay = true;
+                renderRightSubTab();
+                renderHorizontalArena();
+                document.getElementById('live-tactical-teleprompter').innerHTML = '⚡ <strong>MODO CREAR ACTIVO:</strong> Herramientas encendidas. Toca cualquier jugador verde o rojo para trazar Fase 1, 2 y 3.';
+            });
+        }
+
+        function clearAllVectorsOnBoard(skipUndo) {
+            if (!skipUndo && phasesData[currentPhaseIdx].vectors.length > 0) pushUndoState();
+            phasesData[currentPhaseIdx].vectors = [];
+            phasesData[currentPhaseIdx].zone = null;
+            syncPhaseSnapshot();
+            renderHorizontalArena();
+        }
+
+        function guardUnsavedPlay(cb) {
+            if (!hasUnsavedChanges || undoHistoryStack.length === 0) {
+                cb();
+                return;
+            }
+            pendingDiscardFn = cb;
+            document.getElementById('unsaved-play-modal')?.classList.add('open');
+        }
+        function closeUnsavedModal() {
+            document.getElementById('unsaved-play-modal')?.classList.remove('open');
+            pendingDiscardFn = null;
+        }
+        function confirmDiscardUnsaved() {
+            document.getElementById('unsaved-play-modal')?.classList.remove('open');
+            hasUnsavedChanges = false;
+            undoHistoryStack = [];
+            updateUndoCounterUI();
+            if (typeof pendingDiscardFn === 'function') {
+                const fn = pendingDiscardFn;
+                pendingDiscardFn = null;
+                fn();
+            }
+        }
+
+        function returnToRosterPage() {
+            guardUnsavedPlay(() => {
+                sessionStorage.setItem('kinet_flip_transition', 'from_strategies');
+                const curtain = document.getElementById('kinet-funny-curtain');
+                if (curtain) {
+                    document.getElementById('curtain-title').textContent = '🏃‍♂️ ¡RECOGIENDO LOS CONOS!';
+                    document.getElementById('curtain-sub').textContent = 'Volviendo a la pizarra vertical de plantilla...';
+                    curtain.classList.remove('curtain-hidden');
+                    curtain.classList.add('curtain-exit-active');
+                }
+                setTimeout(() => {
+                    window.location.href = `analizador.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`;
+                }, 300);
+            });
+        }
+
+        function toggleRivalVisibility() {
+            showRivals = !showRivals;
+            syncRivalToggleButton();
+            renderHorizontalArena();
+        }
+        function syncRivalToggleButton() {
+            const btn = document.getElementById('btn-rival-toggle');
+            if (!btn) return;
+            btn.textContent = `⚔️ Rival: ${showRivals ? 'ON' : 'OFF'}`;
+            btn.className = `tool-pill-btn ${showRivals ? 'active-red' : ''}`;
+        }
+
+        function toggleMicroTokenDisplay() {
+            showPhotoTokens = !showPhotoTokens;
+            document.getElementById('toggle-token-display-btn').textContent = showPhotoTokens ? '📸 Ficha: Foto' : '🎴 Ficha: Iniciales';
+            renderHorizontalArena();
+        }
+
+        function openHelpModal() {
+            document.getElementById('tactical-help-modal')?.classList.add('open');
+        }
+
+        function executeAiTacticalCommand() {
+            const inp = document.getElementById('ai-tactical-input');
+            const q = (inp ? inp.value : '').toLowerCase();
+            if (inp) inp.value = '';
+            guardUnsavedPlay(() => {
+                if (q.includes('saque') || q.includes('centro') || q.includes('inicial')) { applyKickoffFormation(); return; }
+                else if (q.includes('salida')) { switchMainSection('train'); applyMomentPositioning('build_up'); }
+                else if (q.includes('contra')) { switchMainSection('train'); applyMomentPositioning('counter_attack'); }
+                else if (q.includes('bajo') || q.includes('repliegue')) { switchMainSection('rival'); applyMomentPositioning('low_block'); }
+                else if (q.includes('presion') || q.includes('presión') || q.includes('perdida')) { switchMainSection('rival'); applyMomentPositioning('gegenpress'); }
+                else if (q.includes('derech')) { switchMainSection('abp'); applyMomentPositioning('corner_right'); }
+                else if (q.includes('corner') || q.includes('córner') || q.includes('izquierd')) { switchMainSection('abp'); applyMomentPositioning('corner_left'); }
+                else if (q.includes('cercan') || q.includes('frontal')) { switchMainSection('abp'); applyMomentPositioning('fk_close'); }
+                else if (q.includes('lejan')) { switchMainSection('abp'); applyMomentPositioning('fk_far'); }
+                else if (q.includes('falta') || q.includes('lateral')) { switchMainSection('abp'); applyMomentPositioning('fk_side'); }
+                else { switchMainSection('train'); applyMomentPositioning('positional_attack'); }
+                playFullMultiPhaseAnimation();
+            });
+        }
+
+        function sendTacticToCoachChat() {
+            const diag = document.getElementById('ai-board-diagnosis')?.innerText || '';
+            const q = `🏟️ [Consulta de Estrategia & Jugada Táctica — ${activeArenaSport}]: Mi Formación ${currentPresetName} vs ${currentRivalPresetName}, Situación "${activeMomentKey}". Acción en pizarra: "${diag}". ¿Qué variantes tácticas y ajustes de entrenamiento me recomiendas?`;
+            localStorage.setItem('kinet_pending_question', q);
+            localStorage.setItem('kinet_target_agent', 'tecnico_video');
+            window.location.href = `cuerpo-tecnico.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}&agent=tecnico_video`;
+        }
+
+        function applyDespachoThemeSettings() {
+            const isReset = localStorage.getItem('kinet_theme_color_reset') === 'true';
+            let savedAccent = isReset ? null : (localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color'));
+            if (savedAccent && savedAccent.startsWith('#')) {
+                const clean = savedAccent.replace('#', '');
+                const num = parseInt(clean, 16);
+                if (!isNaN(num)) {
+                    const r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
+                    document.body.style.setProperty('--role-color', savedAccent);
+                    document.body.style.setProperty('--role-rgb', `${r}, ${g}, ${b}`);
+                    document.body.style.setProperty('--role-glow', `rgba(${r}, ${g}, ${b}, 0.42)`);
+                    document.body.style.setProperty('--role-gradient', `linear-gradient(135deg, ${savedAccent} 0%, rgba(${r},${g},${b},0.75) 100%)`);
+                }
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            applyDespachoThemeSettings();
+            initStrategyAnalyzer();
+            bindArenaSurfaceClick();
+        });
+        window.addEventListener('kinet:cloud-synced', () => {
+            applyDespachoThemeSettings();
+            const spKey = activeArenaSport.toLowerCase();
+            try {
+                savedPlaysLibrary = JSON.parse(localStorage.getItem(`kinet_saved_tactics_${spKey}`) || '[]');
+                updateSavedCountBadge();
+                if (activeRightSubTab === 'saved') renderRightSubTab();
+            } catch (e) {}
+        });
+    </script>
+</body>
+</html>

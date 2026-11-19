@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script src="kinet-guard.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
@@ -2088,7 +2089,7 @@
             const userName = localStorage.getItem('kinet_user_name') || 'Atleta KINET';
             const userClub = localStorage.getItem('kinet_user_club') || 'Club Competitivo';
             const userCategory = localStorage.getItem('kinet_user_category') || 'Senior';
-            const anthro = localStorage.getItem('kinet_user_anthropometry') || '178 cm • 72.5 kg';
+            const anthro = localStorage.getItem('kinet_user_anthropometry') || 'sin datos registrados';
             const laterality = localStorage.getItem('kinet_user_laterality') || 'Diestro';
             const cardStats = localStorage.getItem('kinet_custom_card_stats') || '[90,88,85,89,82,86]';
 
@@ -2365,47 +2366,40 @@ Responde siempre en español con naturalidad y precisión técnica.`;
 
         function detectCrossSpecialistHandoff(userText, currentAgent) {
             if (currentAgent === 'group') return null;
-            const q = (userText || '').toLowerCase();
+            const raw = String(userText || '');
+            const q = raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-            // Si es un saludo o charla corta ("que tal estas", "hola"), NO derivar a otro especialista
-            if (q.length < 30 && /\b(hola|buenas|que tal|que tak|como estas|como va|gracias|ok|vale)\b/.test(q)) {
-                return null;
-            }
+            // Saludos y charla corta: nunca derivar
+            if (q.length < 30 && /\b(hola|buenas|que tal|como estas|como va|gracias|ok|vale)\b/.test(q)) return null;
 
-            const isFisicoNutriTopic = /lesi[oó]n|dolor|molestia|isquio|gemelo|rodilla|tobillo|sobrecarga|fatiga|cansad|dieta|comer|comida|hidrat|suplement|prote[ií]na|carbohidrat|calor[ií]a|peso|fisio|aguja|contractura/.test(q);
-            const isPsicoTopic = /nervio|ansiedad|presi[oó]n|miedo|confianza|concentraci[oó]n|mental|bloqueo|frustraci[oó]n|foco|motivaci[oó]n|cabeza|estr[eé]s/.test(q);
-            const isTecnicoVideoTopic = /v[ií]deo|clip|t[aá]ctica|t[eé]cnica|pizarra|formaci[oó]n|4-3-3|posicionamiento|desmarque|tiro|pase|regate|defensa|ataque|guardia|volea|cadencia|bloque/.test(q);
-            const isMarketingTopic = /scout|ojeador|fichaje|contrato|patrocin|marca|sponsor|representante|agente|radar|oferta|club|seguidores|cv|redes|edit|p[oó]ster|foto para subir/.test(q);
+            const topics = {
+                fisico_nutri: /\b(?:lesion|dolor|molestia|isquio|gemelo|rodilla|tobillo|sobrecarga|fatiga|cansad|dieta|comer|comida|hidrat|suplement|proteina|carbohidrat|caloria|peso|fisio|aguja|contractura|nutricion|entreno de fuerza|descanso|sueno)/g,
+                psicologia: /\b(?:nervio|ansiedad|presion|miedo|confianza|concentracion|mental|bloqueo|frustracion|foco|motivacion|cabeza|estres|autoestima|vergüenza|verguenza)/g,
+                tecnico_video: /\b(?:video|clip|tactica|tecnica|pizarra|formacion|4-3-3|posicionamiento|desmarque|tiro|pase|regate|defensa|ataque|guardia|volea|cadencia|bloque|jugada)/g,
+                agente_marketing: /\b(?:scout|ojeador|fichaje|contrato|patrocin|marca personal|sponsor|representante|agente|radar|oferta|club|seguidores|cv|redes|red social|instagram|tiktok|youtube|twitter|linkedin|visibilidad|portfolio|highlights|trayectoria|carrera profesional|carrera deportiva|mi carrera|entrevista|beca|mercado|poster|edit|reel|publicar|imagen publica)/g
+            };
+            const score = (id) => (q.match(topics[id]) || []).length;
+            const own = topics[currentAgent] ? score(currentAgent) : 0;
 
-            if (currentAgent !== 'fisico_nutri' && isFisicoNutriTopic) {
-                return {
-                    targetAgentId: 'fisico_nutri',
-                    reason: 'Detectada consulta sobre carga física, molestia muscular/fisioterapia o nutrición deportiva.',
-                    summary: `[Traspaso desde ${activeChatsState[currentChatKey].title}]: El usuario consulta: "${userText}". Por favor, dale el protocolo físico, nutricional o de fisioterapia específico.`
-                };
-            }
-            if (currentAgent !== 'psicologia' && isPsicoTopic) {
-                return {
-                    targetAgentId: 'psicologia',
-                    reason: 'Detectada consulta sobre gestión de presión, confianza o foco mental en competición.',
-                    summary: `[Traspaso desde ${activeChatsState[currentChatKey].title}]: El usuario comenta: "${userText}". Aplícale una rutina de Psicología Deportiva y Mind Coaching.`
-                };
-            }
-            if (currentAgent !== 'tecnico_video' && isTecnicoVideoTopic) {
-                return {
-                    targetAgentId: 'tecnico_video',
-                    reason: 'Detectada consulta sobre táctica, corrección técnica o análisis de clips de vídeo.',
-                    summary: `[Traspaso desde ${activeChatsState[currentChatKey].title}]: El usuario plantea esta duda táctica/técnica: "${userText}". Dame el ajuste táctico o de bloques de vídeo.`
-                };
-            }
-            if (currentAgent !== 'agente_marketing' && isMarketingTopic) {
-                return {
-                    targetAgentId: 'agente_marketing',
-                    reason: 'Detectada consulta sobre captación de Scouts, patrocinios, edición de fotos o marca personal.',
-                    summary: `[Traspaso desde ${activeChatsState[currentChatKey].title}]: El usuario busca impulsar su marca o carrera: "${userText}". Diseña la estrategia o el prompt para Media Studio.`
-                };
-            }
-            return null;
+            let best = null, bestScore = 0;
+            Object.keys(topics).forEach((id) => {
+                if (id === currentAgent) return;
+                const sc = score(id);
+                if (sc > bestScore) { best = id; bestScore = sc; }
+            });
+            // Solo se deriva si el tema es claramente de otro especialista y no lo cubre ya el actual
+            if (!best || bestScore === 0) return null;
+            if (own >= bestScore) return null;
+            if (own > 0 && bestScore < own + 2) return null;
+
+            const from = (activeChatsState[currentChatKey] && activeChatsState[currentChatKey].title) || 'otro especialista';
+            const info = {
+                fisico_nutri: { reason: 'Detectada consulta sobre carga física, molestia muscular/fisioterapia o nutrición deportiva.', summary: `[Traspaso desde ${from}]: El usuario consulta: "${raw}". Por favor, dale el protocolo físico, nutricional o de fisioterapia específico.` },
+                psicologia: { reason: 'Detectada consulta sobre gestión de presión, confianza o foco mental en competición.', summary: `[Traspaso desde ${from}]: El usuario comenta: "${raw}". Aplícale una rutina de Psicología Deportiva y Mind Coaching.` },
+                tecnico_video: { reason: 'Detectada consulta sobre táctica, corrección técnica o análisis de clips de vídeo.', summary: `[Traspaso desde ${from}]: El usuario plantea esta duda táctica/técnica: "${raw}". Dame el ajuste táctico o de bloques de vídeo.` },
+                agente_marketing: { reason: 'Detectada consulta sobre captación de Scouts, patrocinios, redes sociales o marca personal.', summary: `[Traspaso desde ${from}]: El usuario busca impulsar su marca o carrera: "${raw}". Diseña la estrategia o el prompt para Media Studio.` }
+            };
+            return { targetAgentId: best, reason: info[best].reason, summary: info[best].summary };
         }
 
         function buildContextualSpecialistResponse(userText, agentKey, sportChosen, handoffObj, hasAttachedImage) {
@@ -2413,9 +2407,9 @@ Responde siempre en español con naturalidad y precisión técnica.`;
             const q = raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
             const userName = localStorage.getItem('kinet_user_name') || 'Crack';
             const firstName = userName.trim().split(/\s+/)[0] || 'Crack';
-            const userPos = localStorage.getItem('kinet_position') || 'Delantero Centro / Nueve (DC)';
-            const userClub = localStorage.getItem('kinet_user_club') || 'KINET Performance';
-            const anthro = localStorage.getItem('kinet_user_anthropometry') || '178 cm • 72.5 kg';
+            const userPos = localStorage.getItem('kinet_position') || `jugador de ${sportChosen}`;
+            const userClub = localStorage.getItem('kinet_user_club') || 'tu club';
+            const anthro = localStorage.getItem('kinet_user_anthropometry') || 'sin datos registrados';
             const schema = (window.KinetAPIs && window.KinetAPIs.getSportSchema)
                 ? window.KinetAPIs.getSportSchema(sportChosen)
                 : { cardStats: ['PAC','SHO','PAS','DRI','DEF','PHY'], videoBlocks: ['Fase Ofensiva','Fase Defensiva','Involucración'] };
@@ -2739,7 +2733,7 @@ Responde siempre en español con naturalidad y precisión técnica.`;
             const sportChosen = (localStorage.getItem('kinet_sport') || 'Fútbol').toUpperCase();
             const userName = (localStorage.getItem('kinet_user_name') || 'ATLETA KINET').toUpperCase();
             const userPos = (localStorage.getItem('kinet_position') || 'PRO').toUpperCase();
-            const anthropometry = localStorage.getItem('kinet_user_anthropometry') || '178 cm • 72.5 kg';
+            const anthropometry = localStorage.getItem('kinet_user_anthropometry') || 'sin datos registrados';
 
             const templatesData = {
                 workout: {

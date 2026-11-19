@@ -114,9 +114,10 @@
   } catch (e) {}
 
   async function supabaseRestRequest(tableAndQuery, method = 'GET', bodyObj = null, upsert = false) {
+    const accessToken = await getAccessToken();
     const headers = {
       'apikey': SUPABASE_ANON_KEY,
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Authorization': `Bearer ${accessToken || SUPABASE_ANON_KEY}`,
       'Content-Type': 'application/json',
       'Prefer': upsert ? 'resolution=merge-duplicates,return=representation' : 'return=representation'
     };
@@ -188,6 +189,54 @@
       }
     });
   }
+
+  // Token de la sesión real de Supabase (necesario para que RLS identifique al usuario)
+  async function getAccessToken() {
+    try {
+      const c = initSupabase();
+      if (c && c.auth) {
+        const { data } = await c.auth.getSession();
+        return (data && data.session && data.session.access_token) || null;
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  // El plan, los minutos bonus y el rango de staff los decide SIEMPRE el servidor.
+  async function syncPrivilegedFromServer() {
+    try {
+      if (!isStrictlyAuthenticatedUser()) return null;
+      if (!(await getAccessToken())) return null;
+      const uid = localStorage.getItem('kinet_user_id');
+      if (!uid) return null;
+      const rows = await supabaseRestRequest(`profiles?id=eq.${encodeURIComponent(uid)}&select=account_tier,bonus_video_mins,staff_role&limit=1`, 'GET');
+      const row = Array.isArray(rows) && rows[0];
+      if (!row) return null;
+      const prevTier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
+      const tier = ['pro', 'club'].includes(String(row.account_tier).toLowerCase()) ? String(row.account_tier).toLowerCase() : 'free';
+      originalSetItem.call(localStorage, 'kinet_account_tier', tier);
+      originalSetItem.call(localStorage, 'kinet_is_pro', tier === 'free' ? 'false' : 'true');
+      if (row.staff_role) originalSetItem.call(localStorage, 'kinet_staff_admin_role', row.staff_role);
+      else localStorage.removeItem('kinet_staff_admin_role');
+
+      const server = Math.min(595, Math.max(0, parseFloat(row.bonus_video_mins) || 0));
+      const local = parseFloat(localStorage.getItem('kinet_bonus_video_mins'));
+      const seen = parseFloat(localStorage.getItem('kinet_bonus_server_seen'));
+      let next = server;
+      // Si el servidor no cambió desde la última sincronización y el usuario gastó minutos, se registra el gasto (solo puede bajar).
+      if (!isNaN(seen) && seen === server && !isNaN(local) && local < server) {
+        try { await supabaseRestRequest(`profiles?id=eq.${encodeURIComponent(uid)}`, 'PATCH', { bonus_video_mins: local }); next = local; } catch (e) {}
+      }
+      originalSetItem.call(localStorage, 'kinet_bonus_video_mins', String(next));
+      originalSetItem.call(localStorage, 'kinet_bonus_server_seen', String(next));
+      if (prevTier !== tier && !sessionStorage.getItem('kinet_tier_reloaded')) {
+        sessionStorage.setItem('kinet_tier_reloaded', '1');
+        location.reload();
+      }
+      return { tier, bonus: next };
+    } catch (e) { return null; }
+  }
+  window.addEventListener('load', () => setTimeout(() => { syncPrivilegedFromServer(); }, 900));
 
   function initSupabase() {
     if (sbClient) return sbClient;
@@ -398,7 +447,7 @@
       if (profileRow.position && profileRow.position !== 'Por asignar') originalSetItem.call(localStorage, 'kinet_position', profileRow.position);
       if (profileRow.category) originalSetItem.call(localStorage, 'kinet_category', profileRow.category);
       if (profileRow.club) originalSetItem.call(localStorage, 'kinet_user_club', profileRow.club);
-      const resolvedTier = String(profileRow.account_tier || cloudState.kinet_account_tier || 'free').toLowerCase().trim();
+      const resolvedTier = String(profileRow.account_tier || 'free').toLowerCase().trim();
       originalSetItem.call(localStorage, 'kinet_account_tier', resolvedTier);
       originalSetItem.call(localStorage, 'kinet_is_pro', (resolvedTier === 'pro' || resolvedTier === 'club') ? 'true' : 'false');
 
@@ -691,6 +740,7 @@
 
   const KinetBackend = {
     getClient: initSupabase,
+    syncPrivilegedFromServer,
     compressAvatar: compressAvatarDataUrl,
     refreshUI: refreshDOMAvatarsAndProfileUI,
     updateCommunityBadge: updateGlobalCommunityExclamationBadge,
@@ -721,45 +771,18 @@
 
     async adminUpdateUserAccount({ targetEmailOrHandle, accountTier, bonusVideoMins, staffRole }) {
       if (!this.hasStaffPermission('subadmin')) {
-        throw new Error('Acceso denegado: Se requiere rango de Jefe (superadmin) o Subjefe (subadmin) en Supabase.');
+        throw new Error('Acceso denegado: se requiere rango de Jefe (superadmin) o Subjefe (subadmin).');
       }
       const q = String(targetEmailOrHandle || '').trim();
       if (!q) throw new Error('Indica el correo o @handle del usuario.');
-      const filter = q.includes('@') && !q.startsWith('@')
-        ? `email=ilike.${encodeURIComponent(q)}`
-        : `handle=ilike.${encodeURIComponent(q.startsWith('@') ? q : '@' + q)}`;
-
-      const rows = await supabaseRestRequest(`profiles?${filter}&select=*&limit=1`, 'GET');
-      if (!Array.isArray(rows) || !rows[0]) {
-        throw new Error(`No se encontró ningún usuario con "${q}" en Supabase.`);
-      }
-      const targetRow = rows[0];
-      const nextState = { ...(targetRow.user_state || {}) };
-      const patchPayload = { updated_at: new Date().toISOString() };
-
-      if (accountTier !== undefined && accountTier !== null) {
-        const cleanTier = String(accountTier).toLowerCase().trim();
-        patchPayload.account_tier = cleanTier;
-        nextState.kinet_account_tier = cleanTier;
-        nextState.kinet_is_pro = (cleanTier === 'pro' || cleanTier === 'club') ? 'true' : 'false';
-      }
-      if (bonusVideoMins !== undefined && bonusVideoMins !== null && !isNaN(parseFloat(bonusVideoMins))) {
-        const capped = Math.min(595, Math.max(0, parseFloat(bonusVideoMins)));
-        patchPayload.bonus_video_mins = capped;
-        nextState.kinet_bonus_video_mins = String(capped);
-      }
-      if (staffRole !== undefined) {
-        if (!this.hasStaffPermission('owner_only') && staffRole === 'superadmin') {
-          throw new Error('Solo el Jefe (superadmin) puede otorgar el rango de superadmin.');
-        }
-        const cleanStaff = String(staffRole || '').toLowerCase().trim();
-        nextState.supabase_staff_role = cleanStaff;
-        patchPayload.staff_role = cleanStaff || null;
-      }
-
-      patchPayload.user_state = nextState;
-      const updated = await supabaseRestRequest(`profiles?id=eq.${targetRow.id}`, 'PATCH', patchPayload, false);
-      return { ok: true, updated: Array.isArray(updated) ? updated[0] : updated };
+      // La validación real del rango la hace el servidor (función admin_update_user).
+      await supabaseRestRequest('rpc/admin_update_user', 'POST', {
+        target: q,
+        tier: (accountTier === undefined || accountTier === null) ? null : String(accountTier).toLowerCase().trim(),
+        bonus: (bonusVideoMins === undefined || bonusVideoMins === null || isNaN(parseFloat(bonusVideoMins))) ? null : parseFloat(bonusVideoMins),
+        staff: (staffRole === undefined) ? null : String(staffRole || '').toLowerCase().trim()
+      });
+      return { ok: true };
     },
 
     async adminFetchAllProfiles(limit = 100) {
@@ -847,7 +870,7 @@
       originalSetItem.call(localStorage, 'kinet_social_handle', '@invitado_kinet');
     },
 
-    async registerUser({ firstName, lastName, handle, email, phone, password, birthDate }) {
+    async registerUser({ firstName, lastName, handle, email, phone, password, birthDate, fromSession, authUserId }) {
       localStorage.removeItem('kinet_is_guest');
       localStorage.removeItem('kinet_guest_session');
       originalSetItem.call(localStorage, 'kinet_mode', 'pro');
@@ -860,16 +883,26 @@
       localStorage.removeItem('kinet_user_avatar');
 
       let userId = null;
-      try {
-        const authData = await supabaseAuthRequest('signup', {
-          email: cleanEmail,
-          password: password,
-          data: { full_name: fullName, handle: cleanHandle, phone: phone || '', birth_date: birthDate || '' }
-        });
+      if (fromSession && authUserId) {
+        userId = authUserId; // usuario ya autenticado por Google/OTP: no se crea contraseña
+      } else {
+        let authData = null;
+        try {
+          const meta = { full_name: fullName, handle: cleanHandle, phone: phone || '', birth_date: birthDate || '' };
+          const sbs = initSupabase();
+          if (sbs && sbs.auth) {
+            const r = await sbs.auth.signUp({ email: cleanEmail, password: password, options: { data: meta } });
+            if (r.error) throw r.error;
+            authData = r.data;
+          } else {
+            authData = await supabaseAuthRequest('signup', { email: cleanEmail, password: password, data: meta });
+          }
+        } catch (authErr) {
+          throw new Error((authErr && authErr.message) || 'No se pudo crear la cuenta. Inténtalo de nuevo.');
+        }
         userId = authData?.user?.id || authData?.id || null;
-      } catch (authErr) {}
-
-      if (!userId) userId = generateUUID();
+        if (!userId) throw new Error('No se pudo crear la cuenta (el servidor no devolvió usuario).');
+      }
 
       originalSetItem.call(localStorage, 'kinet_user_id', userId);
       originalSetItem.call(localStorage, 'kinet_auth_session_token', 'auth_' + userId + '_' + Date.now());
@@ -900,7 +933,7 @@
         updated_at: new Date().toISOString()
       };
 
-      await supabaseRestRequest('profiles', 'POST', newProfilePayload, true);
+      try { await supabaseRestRequest('profiles', 'POST', newProfilePayload, true); } catch (e) { /* si Supabase exige confirmar el correo, el perfil lo crea el trigger del servidor */ }
       initialCloudPullFinished = true;
       return { ok: true, user: newProfilePayload };
     },
@@ -909,32 +942,51 @@
       const cleanInput = (email || '').trim();
       const isHandleLogin = cleanInput.startsWith('@') || !cleanInput.includes('@');
 
-      if (!isHandleLogin && password) {
+      let foundProfile = null;
+      let authedUserId = null;
+      let lookupEmail = cleanInput;
+      const sbc = (window.KinetBackend && window.KinetBackend.getClient) ? window.KinetBackend.getClient() : null;
+
+      if (password) {
+        if (isHandleLogin) {
+          const hq = cleanInput.startsWith('@') ? cleanInput : `@${cleanInput}`;
+          let hEmail = '';
+          try { const r = await supabaseRestRequest('rpc/email_from_handle', 'POST', { h: hq }); hEmail = (typeof r === 'string') ? r : ''; } catch (e) {}
+          if (!hEmail) {
+            try {
+              const hrows = await supabaseRestRequest(`profiles?handle=ilike.${encodeURIComponent(hq)}&select=email&limit=1`, 'GET');
+              hEmail = (Array.isArray(hrows) && hrows[0] && hrows[0].email) ? hrows[0].email : '';
+            } catch (e) {}
+          }
+          lookupEmail = hEmail;
+          if (!lookupEmail) throw new Error('Usuario o contraseña incorrectos.');
+        }
+        let authData = null;
         try {
-          const authData = await supabaseAuthRequest('token?grant_type=password', {
-            email: cleanInput.toLowerCase(),
-            password: password
-          });
-          if (authData?.user?.id) {
-            originalSetItem.call(localStorage, 'kinet_user_id', authData.user.id);
+          if (sbc && sbc.auth) {
+            const r = await sbc.auth.signInWithPassword({ email: lookupEmail.toLowerCase(), password: password });
+            if (!r.error && r.data && r.data.user) authData = { user: r.data.user };
+          } else {
+            authData = await supabaseAuthRequest('token?grant_type=password', { email: lookupEmail.toLowerCase(), password: password });
           }
         } catch (e) {}
-      }
-
-      let foundProfile = null;
-      if (!isHandleLogin) {
-        const rows = await supabaseRestRequest(
-          `profiles?email=ilike.${encodeURIComponent(cleanInput)}&select=*&order=updated_at.desc&limit=1`,
-          'GET'
-        );
-        if (Array.isArray(rows) && rows[0]) foundProfile = rows[0];
+        if (!authData || !authData.user || !authData.user.id) throw new Error('Usuario o contraseña incorrectos.');
+        authedUserId = authData.user.id;
       } else {
-        const hQuery = cleanInput.startsWith('@') ? cleanInput : `@${cleanInput}`;
-        const rows = await supabaseRestRequest(
-          `profiles?handle=ilike.${encodeURIComponent(hQuery)}&select=*&order=updated_at.desc&limit=1`,
-          'GET'
-        );
-        if (Array.isArray(rows) && rows[0]) foundProfile = rows[0];
+        let sess = null;
+        try { const r = sbc && sbc.auth ? await sbc.auth.getSession() : null; sess = r && r.data && r.data.session; } catch (e) {}
+        if (!sess || !sess.user) throw new Error('Verifica tu identidad con contraseña, código o Google para entrar.');
+        authedUserId = sess.user.id;
+        lookupEmail = (sess.user.email || '').toLowerCase();
+      }
+      originalSetItem.call(localStorage, 'kinet_user_id', authedUserId);
+      try {
+        const prow = await supabaseRestRequest(`profiles?id=eq.${authedUserId}&select=*&limit=1`, 'GET');
+        if (Array.isArray(prow) && prow[0]) foundProfile = prow[0];
+      } catch (e) {}
+      if (!foundProfile && lookupEmail) {
+        const erows = await supabaseRestRequest(`profiles?email=ilike.${encodeURIComponent(lookupEmail)}&select=*&order=updated_at.desc&limit=1`, 'GET');
+        if (Array.isArray(erows) && erows[0]) foundProfile = erows[0];
       }
 
       if (foundProfile) {

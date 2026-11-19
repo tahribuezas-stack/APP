@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script src="kinet-guard.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
@@ -47,6 +48,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="kinet-backend.js"></script>
     <script src="kinet-api-config.js"></script>
+    <script src="kinet-video-edit.js"></script>
 
     <style>
         :root {
@@ -1216,7 +1218,8 @@
                                     <svg class="svg-ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                                 </button>
                                 <input type="text" id="ai-prompt-input" placeholder="Describe el póster o ajuste visual para generar en el chat (ej: Póster Match Day con estadio iluminado y 34.2 KM/H)..." onkeydown="if(event.key==='Enter') generateAiEdit()">
-                                <button class="btn-primary" onclick="generateAiEdit()" style="padding:8px 14px;font-size:0.64rem;">Generar Imagen</button>
+                                <button class="btn-primary" id="btn-generate-image" onclick="generateAiEdit()" style="padding:8px 14px;font-size:0.64rem;">Generar Imagen</button>
+                                <button class="btn-primary" type="button" onclick="openVideoEditModal()" style="padding:8px 14px;font-size:0.64rem;">Edit IA de Vídeo</button>
                             </div>
                         </div>
                     </div>
@@ -1293,6 +1296,42 @@
     </div>
 
     <!-- MODAL 1: UPGRADE PRO PARA MODO VÍDEO -->
+
+    <!-- MODAL: EDIT IA DE VÍDEO -->
+    <div id="video-edit-modal" class="kinet-modal-overlay" onclick="if(event.target===this)closeVideoEditModal()">
+        <div class="kinet-modal-box" style="max-width:560px;max-height:90vh;overflow-y:auto;">
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:12px;margin-bottom:14px;">
+                <div>
+                    <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);letter-spacing:0.1em;">KINET MEDIA STUDIO // EDIT IA</span>
+                    <h3 style="font-family:'Orbitron';font-size:1rem;font-weight:900;color:white;margin-top:2px;">Crea tu edit con IA</h3>
+                </div>
+                <button type="button" onclick="closeVideoEditModal()" style="background:none;border:none;color:white;font-size:1.2rem;cursor:pointer;">✕</button>
+            </div>
+            <p style="font-size:0.74rem;color:var(--text-secondary);margin-bottom:10px;">Sube hasta 4 clips tuyos (máx. 3 min cada uno). La IA elige las mejores jugadas según lo que pidas y monta el edit con rótulos, zoom y cámara lenta.</p>
+            <button type="button" class="btn-primary" style="padding:9px 14px;font-size:0.68rem;" onclick="document.getElementById('ve-files').click()">Elegir vídeos</button>
+            <input type="file" id="ve-files" accept="video/*" multiple style="display:none;" onchange="onVideoEditFiles(this)">
+            <div id="ve-file-list" style="font-family:'JetBrains Mono';font-size:0.62rem;color:#94A3B8;margin:8px 0 12px;">Ningún vídeo seleccionado</div>
+            <textarea id="ve-prompt" rows="3" placeholder="Ej: Edit de mis mejores goles con cámara lenta en el remate y ritmo rápido" style="width:100%;background:#060911;border:1px solid rgba(var(--role-rgb),0.35);border-radius:12px;padding:10px 12px;color:white;font-size:0.8rem;resize:vertical;"></textarea>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">
+                <button type="button" class="preset-pill-btn" onclick="setVeOption('seconds',15,this)">15 s</button>
+                <button type="button" class="preset-pill-btn active" onclick="setVeOption('seconds',30,this)">30 s</button>
+                <button type="button" class="preset-pill-btn" onclick="setVeOption('seconds',60,this)">60 s</button>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">
+                <button type="button" class="preset-pill-btn active" onclick="setVeOption('format','vertical',this)">Vertical 9:16</button>
+                <button type="button" class="preset-pill-btn" onclick="setVeOption('format','horizontal',this)">Horizontal 16:9</button>
+            </div>
+            <button type="button" class="btn-primary" id="ve-run" style="width:100%;margin-top:14px;padding:11px;" onclick="runVideoEdit()">Generar edit</button>
+            <div style="height:5px;background:rgba(255,255,255,0.08);border-radius:99px;margin-top:12px;overflow:hidden;"><div id="ve-bar" style="height:100%;width:0%;background:var(--role-color);transition:width 0.3s ease;"></div></div>
+            <div id="ve-status" style="font-family:'JetBrains Mono';font-size:0.64rem;color:#CBD5E1;margin-top:8px;min-height:1.2em;"></div>
+            <div id="ve-result" style="display:none;margin-top:12px;">
+                <video id="ve-video" controls playsinline style="width:100%;max-height:50vh;border-radius:14px;background:#000;"></video>
+                <a id="ve-download" class="btn-primary" style="display:block;text-align:center;margin-top:10px;padding:10px;text-decoration:none;">Descargar edit</a>
+            </div>
+            <p style="font-size:0.62rem;color:var(--text-secondary);margin-top:10px;">Coste: 0,5 min de tu cuota de vídeo por cada 30 s de edit. El audio original no se incluye. Mantén esta pestaña abierta mientras se monta.</p>
+        </div>
+    </div>
+
     <div id="upgrade-tier-modal" class="kinet-modal-overlay" onclick="if(event.target===this)this.classList.remove('open')">
         <div class="kinet-modal-box">
             <div class="kinet-modal-header" style="color: var(--role-color);">
@@ -1914,32 +1953,136 @@
             if (latestWm) latestWm.textContent = wm;
         }
 
-        function generateAiEdit() {
+        let lastAiBgUrl = null;
+
+        function compressDataUrl(dataUrl, maxW, q) {
+            return new Promise((res) => {
+                const im = new Image();
+                im.onload = () => {
+                    const s = Math.min(1, maxW / im.width);
+                    const c = document.createElement('canvas');
+                    c.width = Math.round(im.width * s); c.height = Math.round(im.height * s);
+                    c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+                    res(c.toDataURL('image/jpeg', q));
+                };
+                im.onerror = () => res(dataUrl);
+                im.src = dataUrl;
+            });
+        }
+
+        async function generateAiEdit() {
             const inputEl = document.getElementById('ai-prompt-input');
             const prompt = inputEl.value.trim();
             if (!prompt) return;
+            if (!window.KinetAPIs) { pushStudioChatBubble('El motor de IA no está cargado. Recarga la página.', true); return; }
 
-            hasUploadedPublicationMedia = true;
-            if (!userManuallyLockedTrack) {
-                recommendTrackIfAllowed('trk_1');
+            const q = window.KinetAPIs.getQuotaStatus();
+            if (q.imageRemaining <= 0) {
+                pushStudioChatBubble(`Has alcanzado tu límite de ${q.imageLimit} imágenes al día en el ${q.tierName}. Se renueva mañana.`, true);
+                if (!isPaidOrBonusAccount()) document.getElementById('upgrade-tier-modal').classList.add('open');
+                return;
             }
 
+            const btn = document.getElementById('btn-generate-image');
+            if (btn) btn.disabled = true;
+            hasUploadedPublicationMedia = true;
             pushStudioChatBubble(prompt, false);
-            currentHeadlineTitle = prompt.slice(0, 42).toUpperCase();
-            currentSubStatusText = `[ Estilo IA & HUD (${currentStudioFormat.toUpperCase()}): "${prompt}" ]`;
             inputEl.value = '';
+            pushStudioChatBubble('Dirigiendo la pieza con IA...', true);
 
-            setTimeout(() => {
-                pushStudioChatBubble(
-                    `Aquí tienes el resultado generado para "${prompt}":`,
-                    true,
-                    {
-                        headline: currentHeadlineTitle,
-                        subtext: currentSubStatusText,
-                        bgUrl: currentCompressedMediaUrl
+            try {
+                const design = await window.KinetAPIs.generateMediaStudioDesign({
+                    promptText: prompt,
+                    formatMode: currentStudioFormat,
+                    sport: localStorage.getItem('kinet_sport') || 'Fútbol'
+                });
+                if (!design || !design.ok) {
+                    pushStudioChatBubble('No se pudo generar la pieza: ' + ((design && design.error) || 'error desconocido') + '\n(Revisa tu clave en el botón "API IA" del Cuerpo Técnico.)', true);
+                    return;
+                }
+                currentHeadlineTitle = String(design.headline || prompt).slice(0, 42).toUpperCase();
+                currentSubStatusText = design.subtext || `[ ${currentStudioFormat.toUpperCase()} · ${prompt.slice(0, 50)} ]`;
+                if (!userManuallyLockedTrack) recommendTrackIfAllowed(design.recommendedTrackId || 'trk_1');
+
+                // Imagen real con IA, salvo que el usuario haya subido su propia foto/vídeo.
+                let note = '';
+                const userOwnsMedia = currentCompressedMediaUrl && currentCompressedMediaUrl !== lastAiBgUrl;
+                if (!userOwnsMedia) {
+                    const img = await window.KinetAPIs.generateStudioImageAI({ prompt: design.imagePrompt || prompt });
+                    if (img && img.ok) {
+                        currentCompressedMediaUrl = await compressDataUrl(img.dataUrl, 1080, 0.82);
+                        lastAiBgUrl = currentCompressedMediaUrl;
+                    } else {
+                        note = '\nNo pude generar la imagen con IA (' + String((img && img.error) || '').split('\n')[0].slice(0, 140) + '). Te dejo el diseño base; puedes subir tu propia foto.';
                     }
-                );
-            }, 280);
+                }
+                pushStudioChatBubble((design.replyText || `Aquí tienes la pieza para "${prompt}":`) + note, true, {
+                    headline: currentHeadlineTitle,
+                    subtext: currentSubStatusText,
+                    bgUrl: currentCompressedMediaUrl
+                });
+                if (design.caption) pushStudioChatBubble('Texto sugerido para publicar: ' + design.caption, true);
+            } catch (err) {
+                pushStudioChatBubble('Error al generar: ' + (err && err.message ? err.message : err), true);
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        // ---------- EDIT IA DE VÍDEO ----------
+        let _veFiles = [];
+        let _veFormat = 'vertical';
+        let _veSeconds = 30;
+        function openVideoEditModal() {
+            if (!isPaidOrBonusAccount()) { document.getElementById('upgrade-tier-modal').classList.add('open'); return; }
+            document.getElementById('video-edit-modal').classList.add('open');
+        }
+        function closeVideoEditModal() { document.getElementById('video-edit-modal').classList.remove('open'); }
+        function setVeOption(kind, val, btnEl) {
+            if (kind === 'format') _veFormat = val; else _veSeconds = val;
+            btnEl.parentElement.querySelectorAll('.preset-pill-btn').forEach(b => b.classList.remove('active'));
+            btnEl.classList.add('active');
+        }
+        function onVideoEditFiles(inp) {
+            _veFiles = Array.from(inp.files).slice(0, 4);
+            document.getElementById('ve-file-list').textContent = _veFiles.length ? _veFiles.map(f => f.name).join(' · ') : 'Ningún vídeo seleccionado';
+        }
+        function setVeStatus(txt, pct) {
+            document.getElementById('ve-status').textContent = txt;
+            if (typeof pct === 'number') document.getElementById('ve-bar').style.width = pct + '%';
+        }
+        async function runVideoEdit() {
+            const runBtn = document.getElementById('ve-run');
+            if (!_veFiles.length) { setVeStatus('Sube al menos un vídeo (máx. 4).', 0); return; }
+            const cost = Math.max(0.5, Math.ceil(_veSeconds / 30) * 0.5);
+            const q = window.KinetAPIs.getQuotaStatus();
+            if (q.videoRemaining < cost) {
+                setVeStatus(`Te quedan ${q.videoRemaining} min de vídeo y este edit cuesta ${cost} min. Consigue más en Despacho.`, 0);
+                return;
+            }
+            runBtn.disabled = true;
+            document.getElementById('ve-result').style.display = 'none';
+            try {
+                const res = await window.KinetVideoEdit.create({
+                    files: _veFiles,
+                    prompt: document.getElementById('ve-prompt').value.trim(),
+                    targetSeconds: _veSeconds,
+                    format: _veFormat,
+                    onProgress: (p, t) => setVeStatus(t, p)
+                });
+                const d = window.KinetAPIs.deductVideoMinutes(cost);
+                const url = URL.createObjectURL(res.blob);
+                const vid = document.getElementById('ve-video');
+                vid.src = url;
+                const dl = document.getElementById('ve-download');
+                dl.href = url; dl.download = `kinet-edit-${Date.now()}.${res.ext}`;
+                document.getElementById('ve-result').style.display = 'block';
+                setVeStatus(`Edit listo (${cost} min descontados). Se ha creado en tu dispositivo; no se sube a ningún servidor.`, 100);
+            } catch (e) {
+                setVeStatus('⚠️ ' + (e && e.message ? e.message : e) + ' No se ha descontado ningún minuto.', 0);
+            } finally {
+                runBtn.disabled = false;
+            }
         }
 
         function checkTierUpgradePrompt() {
