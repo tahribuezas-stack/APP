@@ -732,7 +732,7 @@
                                     <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;">
                                         <button type="button" class="tool-pill-btn" id="btn-rival-toggle" onclick="toggleRivalVisibility()">⚔️ Rival: OFF</button>
                                         <button type="button" class="tool-pill-btn" onclick="openCustomizePlayersModal()">⚙️ Efectivos</button>
-                                        <button type="button" class="tool-pill-btn" onclick="applyKickoffFormation()">⚽ Saque Centro</button>
+                                        <button type="button" class="tool-pill-btn" id="btn-kickoff-bottom" onclick="applyKickoffFormation()">⚽ Saque Centro</button>
                                         <button type="button" class="tool-pill-btn" onclick="resetBoardToCleanBase()">↺ Base</button>
                                     </div>
                                 </div>
@@ -977,39 +977,319 @@
             }
         };
 
-        const MOMENT_DROPDOWN_CATALOG = {
-            train: {
-                prefix: '📋 Momento:',
-                items: [
-                    { key: 'base_formation', label: '0. Formación Base (Limpia)', desc: 'Tu plantilla colocada exactamente en tu formación guardada sin jugadas activas.' },
-                    { key: 'kickoff_center', label: '1. Saque Inicial (Centro del Campo)', desc: 'Cada equipo en su mitad propia (sin solaparse) listos para el saque de centro.' },
-                    { key: 'build_up', label: '2. Salida de Balón (3 Fases)', desc: 'Fase 1: Apoyo corto • Fase 2: Giro a banda • Fase 3: Ruptura profunda.' },
-                    { key: 'positional_attack', label: '3. Ataque Posicional (3 Fases)', desc: 'Fase 1: Instalación • Fase 2: Pase interior • Fase 3: Diagonal y remate.' },
-                    { key: 'counter_attack', label: '4. Contraataque Rápido (3 Fases)', desc: 'Fase 1: Robo • Fase 2: Lanzamiento al espacio • Fase 3: Definición 2vs1.' },
-                    { key: 'switch_play', label: '5. Basculación & Cambio Banda', desc: 'Fase 1: Atracción izq. • Fase 2: Giro al medio • Fase 3: Llegada carril der.' }
-                ]
+        const SPORT_STRATEGY_PROFILES = {
+            'Fútbol': {
+                tabs: ['1. Entrenar', '2. Vs Rival', '3. Balón Parado'],
+                kickoffBtn: '⚽ Saque Centro',
+                aiPlaceholder: 'Pide una jugada al Director Táctico IA (ej: saque inicial, salida con laterales, córner derecho, falta cercana)...',
+                playTitlePlaceholder: 'Nombre de la jugada (ej: Salida Lavolpiana)...',
+                tools: {
+                    offball: 'Desmarque', pass: 'Pase / Tiro', dribble: 'Conducción', screen: 'Presión / Bloq.',
+                    manmark: 'Seguir Marca 1vs1', releaseMarks: 'Soltar Marcas',
+                    preset1: '↗️ Ruptura', preset2: '↙️ Apoyo'
+                },
+                zones: [
+                    { key: 'kickoff', label: '⚽ Saque Centro', primary: true },
+                    { key: 'own_box', label: 'Saque Puerta' },
+                    { key: 'final_third', label: 'Último Tercio' },
+                    { key: 'def_block', label: 'Bloque Def.' },
+                    { key: 'corner', label: 'Córner Zoom' },
+                    { key: 'free_kick', label: 'Falta Zoom' }
+                ],
+                catalog: {
+                    train: {
+                        prefix: '📋 Momento:',
+                        items: [
+                            { key: 'base_formation', label: '0. Formación Base (Limpia)', desc: 'Tu plantilla colocada exactamente en tu formación guardada sin jugadas activas.' },
+                            { key: 'kickoff_center', label: '1. Saque Inicial (Centro del Campo)', desc: 'Cada equipo en su mitad propia (sin solaparse) listos para el saque de centro.' },
+                            { key: 'build_up', label: '2. Salida de Balón (3 Fases)', desc: 'Fase 1: Apoyo corto • Fase 2: Giro a banda • Fase 3: Ruptura profunda.' },
+                            { key: 'positional_attack', label: '3. Ataque Posicional (3 Fases)', desc: 'Fase 1: Instalación • Fase 2: Pase interior • Fase 3: Diagonal y remate.' },
+                            { key: 'counter_attack', label: '4. Contraataque Rápido (3 Fases)', desc: 'Fase 1: Robo • Fase 2: Lanzamiento al espacio • Fase 3: Definición 2vs1.' },
+                            { key: 'switch_play', label: '5. Basculación & Cambio Banda', desc: 'Fase 1: Atracción izq. • Fase 2: Giro al medio • Fase 3: Llegada carril der.' }
+                        ]
+                    },
+                    rival: {
+                        prefix: '⚔️ Situación:',
+                        items: [
+                            { key: 'kickoff_center', label: '0. Saque Inicial (Cada Once en su Campo)', desc: 'Tu equipo en mitad izquierda y el rival en mitad derecha listos para empezar.' },
+                            { key: 'mid_block', label: '1. Bloque Medio + Robo (3 Fases)', desc: 'Fase 1: Cierre interior • Fase 2: Salto a presión • Fase 3: Salida tras robo.' },
+                            { key: 'low_block', label: '2. Repliegue Bajo + Contra', desc: 'Fase 1: Embudo en área • Fase 2: Despeje orientado • Fase 3: Transición.' },
+                            { key: 'gegenpress', label: '3. Presión Tras Pérdida (Gegenpress)', desc: 'Fase 1: Acoso inmediato • Fase 2: Cierre de líneas • Fase 3: Disparo rápido.' }
+                        ]
+                    },
+                    abp: {
+                        prefix: '🎯 Jugada ABP:',
+                        items: [
+                            { key: 'corner_left', label: '1. Córner Izquierdo (Zoom Panorámico)', desc: 'Sacador arriba, bloqueo al central y 4 rematadores entrando en abanico.' },
+                            { key: 'corner_right', label: '2. Córner Derecho (Zoom Panorámico)', desc: 'Sacador abajo, arrastre corto en esquina y centro cerrado al 2º palo.' },
+                            { key: 'fk_close', label: '3. Falta Cercana Frontal (Zoom)', desc: 'Barrera de 4 rivales, doble lanzador frontal y ruptura a los costados.' },
+                            { key: 'fk_side', label: '4. Falta Lateral en Banda (Zoom)', desc: 'Línea del fuera de juego en la frontal y entrada lanzada en diagonal.' },
+                            { key: 'fk_far', label: '5. Falta Lejana (Segunda Jugada)', desc: 'Bloque adelantado buscando prolongación aérea en el segundo palo.' },
+                            { key: 'def_corner', label: '6. Córner Defensivo + Contra (Zoom)', desc: 'Defensa mixta en tu propia área y 2 velocistas listos para salir.' }
+                        ]
+                    }
+                }
             },
-            rival: {
-                prefix: '⚔️ Situación:',
-                items: [
-                    { key: 'kickoff_center', label: '0. Saque Inicial (Cada Once en su Campo)', desc: 'Tu equipo en mitad izquierda y el rival en mitad derecha listos para empezar.' },
-                    { key: 'mid_block', label: '1. Bloque Medio + Robo (3 Fases)', desc: 'Fase 1: Cierre interior • Fase 2: Salto a presión • Fase 3: Salida tras robo.' },
-                    { key: 'low_block', label: '2. Repliegue Bajo + Contra', desc: 'Fase 1: Embudo en área • Fase 2: Despeje orientado • Fase 3: Transición.' },
-                    { key: 'gegenpress', label: '3. Presión Tras Pérdida (Gegenpress)', desc: 'Fase 1: Acoso inmediato • Fase 2: Cierre de líneas • Fase 3: Disparo rápido.' }
-                ]
+            'Running': {
+                tabs: ['1. Entrenar', '2. Vs Pelotón', '3. Salida & Meta'],
+                kickoffBtn: '⏱️ Salida Pista',
+                aiPlaceholder: 'Pide una táctica de carrera IA (ej: tren de liebres, series 400m, ataque en contrarrecta, sprint final)...',
+                playTitlePlaceholder: 'Nombre de la estrategia (ej: Tren Liebres 10K)...',
+                tools: {
+                    offball: 'Cambio Ritmo', pass: 'Relevo / Aviso', dribble: 'Tramo Libre', screen: 'Ataque / Sprint',
+                    manmark: 'Seguir Liebre 1vs1', releaseMarks: 'Soltar Liebres',
+                    preset1: '↗️ Acelerar', preset2: '↙️ Drafting'
+                },
+                zones: [
+                    { key: 'kickoff', label: '⏱️ Salida Pista', primary: true },
+                    { key: 'own_box', label: 'Curva 1' },
+                    { key: 'final_third', label: 'Contrarrecta' },
+                    { key: 'def_block', label: 'Pelotón Compacto' },
+                    { key: 'corner', label: 'Curva Final' },
+                    { key: 'free_kick', label: 'Recta Meta' }
+                ],
+                catalog: {
+                    train: {
+                        prefix: '🏃 Sesión:',
+                        items: [
+                            { key: 'base_formation', label: '0. Formación Base en Pista (Limpia)', desc: 'Tus corredores colocados en su posición base sobre la pista de 400m.' },
+                            { key: 'kickoff_center', label: '1. Salida en Pista (Línea de Meta)', desc: 'Posición de salida ordenada por calles sin solapamientos.' },
+                            { key: 'build_up', label: '2. Tren de Liebres & Drafting (3 Fases)', desc: 'Fase 1: Colocación tras liebre • Fase 2: Ahorro aerodinámico • Fase 3: Lanzamiento.' },
+                            { key: 'positional_attack', label: '3. Series 400m Ritmo Progresivo', desc: 'Fase 1: Salida controlada • Fase 2: Contrarrecta a umbral • Fase 3: Cierre rápido.' },
+                            { key: 'counter_attack', label: '4. Cambio de Ritmo en Curva Final', desc: 'Fase 1: Apertura a calle 2 • Fase 2: Aceleración progresiva • Fase 3: Remate.' },
+                            { key: 'switch_play', label: '5. Relevo 4x400m (Zonas de Entrega)', desc: 'Fase 1: Aproximación • Fase 2: Zona de transferencia • Fase 3: Salida lanzada.' }
+                        ]
+                    },
+                    rival: {
+                        prefix: '⚔️ Pelotón:',
+                        items: [
+                            { key: 'kickoff_center', label: '0. Salida vs Pelotón Rival', desc: 'Ubicación inicial frente al grupo perseguidor en pista.' },
+                            { key: 'mid_block', label: '1. Marcaje de Liebre + Adelantamiento', desc: 'Fase 1: Cubrir espalda • Fase 2: Salida a calle exterior • Fase 3: Cambio de ritmo.' },
+                            { key: 'low_block', label: '2. Reserva en Cola + Remontada', desc: 'Fase 1: Ahorro de energía • Fase 2: Progresión exterior • Fase 3: Ataque últimos 200m.' },
+                            { key: 'gegenpress', label: '3. Tirones Sucesivos para Romper Grupo', desc: 'Fase 1: Primer tirón • Fase 2: Mantenimiento umbral • Fase 3: Escape en solitario.' }
+                        ]
+                    },
+                    abp: {
+                        prefix: '🎯 Clave Pista:',
+                        items: [
+                            { key: 'corner_left', label: '1. Salida de Tacos (Primeros 50m)', desc: 'Aceleración inicial, fase de transición y compensación de curva.' },
+                            { key: 'corner_right', label: '2. Paso de Curva Final (200m a Meta)', desc: 'Trazada pegada a cuerda interior y preparación del sprint.' },
+                            { key: 'fk_close', label: '3. Sprint Final (Últimos 100m)', desc: 'Apertura a calle libre y máxima frecuencia de zancada hacia meta.' },
+                            { key: 'fk_side', label: '4. Avituallamiento / Zona de Relevo', desc: 'Trazada óptima sin perder ritmo en zona de control.' }
+                        ]
+                    }
+                }
             },
-            abp: {
-                prefix: '🎯 Jugada ABP:',
-                items: [
-                    { key: 'corner_left', label: '1. Córner Izquierdo (Zoom Panorámico)', desc: 'Sacador arriba, bloqueo al central y 4 rematadores entrando en abanico.' },
-                    { key: 'corner_right', label: '2. Córner Derecho (Zoom Panorámico)', desc: 'Sacador abajo, arrastre corto en esquina y centro cerrado al 2º palo.' },
-                    { key: 'fk_close', label: '3. Falta Cercana Frontal (Zoom)', desc: 'Barrera de 4 rivales, doble lanzador frontal y ruptura a los costados.' },
-                    { key: 'fk_side', label: '4. Falta Lateral en Banda (Zoom)', desc: 'Línea del fuera de juego en la frontal y entrada lanzada en diagonal.' },
-                    { key: 'fk_far', label: '5. Falta Lejana (Segunda Jugada)', desc: 'Bloque adelantado buscando prolongación aérea en el segundo palo.' },
-                    { key: 'def_corner', label: '6. Córner Defensivo + Contra (Zoom)', desc: 'Defensa mixta en tu propia área y 2 velocistas listos para salir.' }
-                ]
+            'Baloncesto': {
+                tabs: ['1. Entrenar', '2. Vs Rival', '3. Saques & ATO'],
+                kickoffBtn: '🏀 Salto Inicial',
+                aiPlaceholder: 'Pide una jugada de baloncesto IA (ej: Pick and Roll central, 5-Out, saque de fondo, defensa zona 2-3)...',
+                playTitlePlaceholder: 'Nombre de la jugada (ej: Horns Pick & Pop)...',
+                tools: {
+                    offball: 'Corte / Desmarque', pass: 'Pase / Tiro', dribble: 'Bote / Penetración', screen: 'Bloqueo / Pantalla',
+                    manmark: 'Defensa 1vs1', releaseMarks: 'Soltar Marcas',
+                    preset1: '↗️ Corte Aro', preset2: '↙️ Pop / Abrir'
+                },
+                zones: [
+                    { key: 'kickoff', label: '🏀 Salto Inicial', primary: true },
+                    { key: 'own_box', label: 'Fondo Propio' },
+                    { key: 'final_third', label: 'Media Pista' },
+                    { key: 'def_block', label: 'Zona 2-3' },
+                    { key: 'corner', label: 'Saque Fondo' },
+                    { key: 'free_kick', label: 'Saque Banda' }
+                ],
+                catalog: {
+                    train: {
+                        prefix: '🏀 Sistema:',
+                        items: [
+                            { key: 'base_formation', label: '0. Quinteto Base (Limpio)', desc: 'Tus 5 jugadores colocados en su sistema base.' },
+                            { key: 'kickoff_center', label: '1. Salto Inicial (Centro Pista)', desc: 'Quintetos colocados en su media pista listos para el salto.' },
+                            { key: 'build_up', label: '2. Pick & Roll Central (3 Fases)', desc: 'Fase 1: Bloqueo alto • Fase 2: Continuación Roll • Fase 3: Pase esquina o mate.' },
+                            { key: 'positional_attack', label: '3. Ataque 5-Out Spacing (3 Fases)', desc: 'Fase 1: Pintura abierta • Fase 2: Penetración y descarga • Fase 3: Triple liberado.' },
+                            { key: 'counter_attack', label: '4. Transición Rápida 3vs2', desc: 'Fase 1: Rebote y primer pase • Fase 2: Carriles abiertos • Fase 3: Finalización.' }
+                        ]
+                    },
+                    rival: {
+                        prefix: '⚔️ Vs Defensa:',
+                        items: [
+                            { key: 'kickoff_center', label: '0. Emparejamiento 5vs5', desc: 'Tu quinteto frente al quinteto defensivo rival.' },
+                            { key: 'mid_block', label: '1. Ataque contra Zona 2-3', desc: 'Fase 1: Sobrecarga poste alto • Fase 2: Inversión rápida • Fase 3: Triple esquina.' },
+                            { key: 'low_block', label: '2. Defensa de Ayudas & Rebote', desc: 'Fase 1: Cierre de pintura • Fase 2: Rotación lado débil • Fase 3: Contraataque.' },
+                            { key: 'gegenpress', label: '3. Presión Toda Pista (Trap)', desc: 'Fase 1: 2vs1 en esquina • Fase 2: Robo en línea de pase • Fase 3: Bandeja.' }
+                        ]
+                    },
+                    abp: {
+                        prefix: '🎯 Pizarra ATO:',
+                        items: [
+                            { key: 'corner_left', label: '1. Saque de Fondo (BLOB) Bajo Aro', desc: 'Bloqueo ciego para pívot y tirador saliendo a esquina.' },
+                            { key: 'corner_right', label: '2. Saque de Banda (SLOB) Último Segundo', desc: 'Doble pantalla escalonada para tiro ganador.' },
+                            { key: 'fk_close', label: '3. Rebote de Tiro Libre + Transición', desc: 'Cierre de rebote (Box-Out) y salida rápida.' }
+                        ]
+                    }
+                }
+            },
+            'Pádel / Tenis': {
+                tabs: ['1. Entrenar', '2. Vs Pareja', '3. Saque & Resto'],
+                kickoffBtn: '🎾 Posición Saque',
+                aiPlaceholder: 'Pide una jugada de pádel/tenis IA (ej: australiana, subida a red, globo defensivo, chiquita)...',
+                playTitlePlaceholder: 'Nombre de la jugada (ej: Saque Australiana + Volea)...',
+                tools: {
+                    offball: 'Desplazamiento', pass: 'Golpeo / Globo', dribble: 'Subida a Red', screen: 'Bloqueo / Chiquita',
+                    manmark: 'Emparejar 1vs1', releaseMarks: 'Soltar Marcas',
+                    preset1: '↗️ Subir Red', preset2: '↙️ Fondo'
+                },
+                zones: [
+                    { key: 'kickoff', label: '🎾 Saque', primary: true },
+                    { key: 'own_box', label: 'Fondo Pista' },
+                    { key: 'final_third', label: 'Red Ataque' },
+                    { key: 'def_block', label: 'Defensa Cristal' },
+                    { key: 'corner', label: 'Australiana' },
+                    { key: 'free_kick', label: 'Resto' }
+                ],
+                catalog: {
+                    train: {
+                        prefix: '🎾 Patrón:',
+                        items: [
+                            { key: 'base_formation', label: '0. Posición Base en Pista (Limpia)', desc: 'Tu pareja o jugador en posición base sin flechas.' },
+                            { key: 'kickoff_center', label: '1. Posición de Saque y Resto', desc: 'Colocación reglamentaria de inicio de punto.' },
+                            { key: 'build_up', label: '2. Transición Fondo a Red (3 Fases)', desc: 'Fase 1: Globo profundo • Fase 2: Subida en bloque • Fase 3: Volea definitoria.' },
+                            { key: 'positional_attack', label: '3. Presión en Red & Bandeja al Rincón', desc: 'Fase 1: Cierre central • Fase 2: Bandeja profunda • Fase 3: Remate X3.' },
+                            { key: 'counter_attack', label: '4. Chiquita + Contraataque', desc: 'Fase 1: Bola baja a los pies • Fase 2: Subida sorpresa • Fase 3: Volea ganadora.' }
+                        ]
+                    },
+                    rival: {
+                        prefix: '⚔️ Vs Pareja:',
+                        items: [
+                            { key: 'kickoff_center', label: '0. Pareja vs Pareja Base', desc: 'Posicionamiento estándar en red y fondo.' },
+                            { key: 'mid_block', label: '1. Nevera Táctica & Cierre Central', desc: 'Fase 1: Carga sobre un jugador • Fase 2: Apertura de ángulo • Fase 3: Definición.' },
+                            { key: 'low_block', label: '2. Defensa Doble Pared + Globo', desc: 'Fase 1: Giro en rincón • Fase 2: Globo alto • Fase 3: Recuperar la red.' }
+                        ]
+                    },
+                    abp: {
+                        prefix: '🎯 Saque/Resto:',
+                        items: [
+                            { key: 'corner_left', label: '1. Formación a la Australiana', desc: 'Sacador mantiene lado de revés y compañero cubre paralelo.' },
+                            { key: 'corner_right', label: '2. Saque al Cristal + Volea Centro', desc: 'Servicio cortado buscando rebote incómodo y cierre al medio.' },
+                            { key: 'fk_close', label: '3. Resto al Cuerpo + Chiquita', desc: 'Devolución baja para impedir volea cómoda al sacador.' }
+                        ]
+                    }
+                }
+            },
+            'Boxeo / MMA': {
+                tabs: ['1. Entrenar', '2. Vs Rival', '3. Esquina & Clinch'],
+                kickoffBtn: '🥊 Centro Ring',
+                aiPlaceholder: 'Pide una estrategia de combate IA (ej: corte de ring, esquiva y contra, salida de cuerdas, derribo)...',
+                playTitlePlaceholder: 'Nombre de la secuencia (ej: Jab + Gancho Hígado)...',
+                tools: {
+                    offball: 'Footwork / Ángulo', pass: 'Golpeo / Jab', dribble: 'Avance / Presión', screen: 'Guardia / Clinch',
+                    manmark: 'Fijar Distancia', releaseMarks: 'Soltar Foco',
+                    preset1: '↗️ Entrar', preset2: '↙️ Salir Ángulo'
+                },
+                zones: [
+                    { key: 'kickoff', label: '🥊 Centro Ring', primary: true },
+                    { key: 'own_box', label: 'Esquina Propia' },
+                    { key: 'final_third', label: 'Presión Rival' },
+                    { key: 'def_block', label: 'Cuerdas / Reja' },
+                    { key: 'corner', label: 'Esquina Rival' },
+                    { key: 'free_kick', label: 'Clinch' }
+                ],
+                catalog: {
+                    train: {
+                        prefix: '🥊 Secuencia:',
+                        items: [
+                            { key: 'base_formation', label: '0. Posición Base en Ring (Limpia)', desc: 'Colocación inicial limpia en el centro del ring/octágono.' },
+                            { key: 'kickoff_center', label: '1. Toque de Guantes (Centro)', desc: 'Inicio de asalto a distancia larga.' },
+                            { key: 'build_up', label: '2. Corte de Ring + Combinación (3 Fases)', desc: 'Fase 1: Jab de medida • Fase 2: Paso lateral • Fase 3: Serie cabeza-cuerpo.' },
+                            { key: 'positional_attack', label: '3. Esquiva + Contragolpe (Pull-Counter)', desc: 'Fase 1: Finta • Fase 2: Paso atrás / Slip • Fase 3: Cross de contra.' }
+                        ]
+                    },
+                    rival: {
+                        prefix: '⚔️ Combate:',
+                        items: [
+                            { key: 'kickoff_center', label: '0. Guardia vs Guardia', desc: 'Lectura de distancia frente al rival.' },
+                            { key: 'mid_block', label: '1. Presión contra las Cuerdas / Jaula', desc: 'Fase 1: Encierro lateral • Fase 2: Ráfaga corta • Fase 3: Salida en pivote.' },
+                            { key: 'low_block', label: '2. Escape de Esquina + Giro', desc: 'Fase 1: Guardia alta • Fase 2: Pivote sobre pie delantero • Fase 3: Centro de ring.' }
+                        ]
+                    },
+                    abp: {
+                        prefix: '🎯 Situación:',
+                        items: [
+                            { key: 'corner_left', label: '1. Salida de Esquina Comprometida', desc: 'Giro defensivo para revertir la posición.' },
+                            { key: 'corner_right', label: '2. Entrada de Clinch / Takedown', desc: 'Cambio de nivel y control de caderas.' },
+                            { key: 'fk_close', label: '3. Últimos 10 Segundos de Asalto', desc: 'Cierre de asalto asegurando puntuación sin descuidar guardia.' }
+                        ]
+                    }
+                }
+            },
+            'Otros Deportes': {
+                tabs: ['1. Entrenar', '2. Vs Rival', '3. Situación Clave'],
+                kickoffBtn: '⚡ Inicio Base',
+                aiPlaceholder: 'Pide una estrategia táctica IA para tu disciplina...',
+                playTitlePlaceholder: 'Nombre de la estrategia...',
+                tools: {
+                    offball: 'Movimiento', pass: 'Acción / Pase', dribble: 'Progresión', screen: 'Presión / Bloq.',
+                    manmark: 'Seguir Marca 1vs1', releaseMarks: 'Soltar Marcas',
+                    preset1: '↗️ Avanzar', preset2: '↙️ Replegar'
+                },
+                zones: [
+                    { key: 'kickoff', label: '⚡ Inicio Base', primary: true },
+                    { key: 'own_box', label: 'Zona Propia' },
+                    { key: 'final_third', label: 'Zona Ataque' },
+                    { key: 'def_block', label: 'Bloque Def.' },
+                    { key: 'corner', label: 'Zona Clave 1' },
+                    { key: 'free_kick', label: 'Zona Clave 2' }
+                ],
+                catalog: {
+                    train: {
+                        prefix: '📋 Plan:',
+                        items: [
+                            { key: 'base_formation', label: '0. Posición Base (Limpia)', desc: 'Colocación inicial limpia.' },
+                            { key: 'kickoff_center', label: '1. Posición de Inicio', desc: 'Inicio ordenado de la secuencia.' },
+                            { key: 'build_up', label: '2. Progresión Táctica (3 Fases)', desc: 'Desarrollo en 3 fases.' },
+                            { key: 'positional_attack', label: '3. Ataque / Aceleración (3 Fases)', desc: 'Ejecución ofensiva en 3 fases.' }
+                        ]
+                    },
+                    rival: {
+                        prefix: '⚔️ Rival:',
+                        items: [
+                            { key: 'kickoff_center', label: '0. Inicio vs Rival', desc: 'Colocación frente al rival.' },
+                            { key: 'mid_block', label: '1. Control & Respuesta (3 Fases)', desc: 'Lectura y contraataque.' }
+                        ]
+                    },
+                    abp: {
+                        prefix: '🎯 Clave:',
+                        items: [
+                            { key: 'corner_left', label: '1. Situación Especial A', desc: 'Ejecución en zona clave.' },
+                            { key: 'fk_close', label: '2. Situación Especial B', desc: 'Cierre táctico.' }
+                        ]
+                    }
+                }
             }
         };
+
+        function getActiveSportProfile() {
+            return SPORT_STRATEGY_PROFILES[activeArenaSport] || SPORT_STRATEGY_PROFILES['Fútbol'];
+        }
+
+        function getActiveMomentCatalog() {
+            return getActiveSportProfile().catalog;
+        }
+
+        function applySportLocalizationToStrategyUI() {
+            const prof = getActiveSportProfile();
+            const t1 = document.querySelector('#top-sec-train span:last-child');
+            const t2 = document.querySelector('#top-sec-rival span:last-child');
+            const t3 = document.querySelector('#top-sec-abp span:last-child');
+            if (t1) t1.textContent = prof.tabs[0];
+            if (t2) t2.textContent = prof.tabs[1];
+            if (t3) t3.textContent = prof.tabs[2];
+
+            const kBtn = document.getElementById('btn-kickoff-bottom');
+            if (kBtn) kBtn.textContent = prof.kickoffBtn;
+
+            const aiInp = document.getElementById('ai-tactical-input');
+            if (aiInp) aiInp.placeholder = prof.aiPlaceholder;
+        }
 
         let activeArenaSport = 'Fútbol';
         let activeRoleKey = 'athlete';
@@ -1230,6 +1510,14 @@
             const activeMarksCount = Object.keys(manMarkingLinks).length;
 
             if (activeRightSubTab === 'create') {
+                const spProf = getActiveSportProfile();
+                const tl = spProf.tools;
+                const zonesHtml = spProf.zones.map(z => {
+                    const actionCall = z.key === 'kickoff' ? 'applyKickoffFormation()' : `setPlayStartingZone('${z.key}')`;
+                    const extraStyle = z.primary ? 'border-color:var(--role-color);color:var(--role-color);' : '';
+                    return `<button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;${extraStyle}" onclick="${actionCall}">${z.label}</button>`;
+                }).join('');
+
                 box.innerHTML = `
                     <!-- BLOQUE 1: CONSOLA CON BOTÓN "⚡ EMPEZAR A CREAR" QUE ILUMINA Y DESBLOQUEA LAS OPCIONES -->
                     <div class="exec-studio-section ${isRecordingPlay ? 'creation-powered-on' : ''}">
@@ -1245,52 +1533,47 @@
                             <div class="exec-segmented-bar" style="margin-bottom:6px;">
                                 <button type="button" class="exec-seg-option ${activeDrawingTool === 'offball' ? 'active-tool' : ''}" onclick="setDrawingTool('offball')">
                                     <span class="exec-dot" style="background:#00FF88;box-shadow:0 0 6px #00FF88;"></span>
-                                    <span>Desmarque</span>
+                                    <span>${tl.offball}</span>
                                 </button>
                                 <button type="button" class="exec-seg-option ${activeDrawingTool === 'pass' ? 'active-tool' : ''}" onclick="setDrawingTool('pass')">
                                     <span class="exec-dot" style="background:#F59E0B;box-shadow:0 0 6px #F59E0B;"></span>
-                                    <span>Pase / Tiro</span>
+                                    <span>${tl.pass}</span>
                                 </button>
                                 <button type="button" class="exec-seg-option ${activeDrawingTool === 'dribble' ? 'active-tool' : ''}" onclick="setDrawingTool('dribble')">
                                     <span class="exec-dot" style="background:#38BDF8;box-shadow:0 0 6px #38BDF8;"></span>
-                                    <span>Conducción</span>
+                                    <span>${tl.dribble}</span>
                                 </button>
                                 <button type="button" class="exec-seg-option ${activeDrawingTool === 'screen' ? 'active-tool' : ''}" onclick="setDrawingTool('screen')">
                                     <span class="exec-dot" style="background:#EF4444;box-shadow:0 0 6px #EF4444;"></span>
-                                    <span>Presión / Bloq.</span>
+                                    <span>${tl.screen}</span>
                                 </button>
                             </div>
 
                             <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:5px;margin-bottom:6px;">
                                 <button type="button" class="tool-pill-btn ${activeDrawingTool === 'manmark' ? 'active-purple' : ''}" style="padding:6px 8px;" onclick="setDrawingTool('manmark')">
-                                    🔒 Seguir Marca 1vs1 (${activeMarksCount})
+                                    🔒 ${tl.manmark} (${activeMarksCount})
                                 </button>
                                 <button type="button" class="btn-secondary" style="padding:5px 6px;font-size:0.54rem;" onclick="clearAllManMarks()">
-                                    🔓 Soltar Marcas
+                                    🔓 ${tl.releaseMarks}
                                 </button>
                             </div>
 
                             <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:4px;">
-                                <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="applyPresetAction('ruptura')">↗️ Ruptura</button>
-                                <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="applyPresetAction('apoyo')">↙️ Apoyo</button>
+                                <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="applyPresetAction('ruptura')">${tl.preset1}</button>
+                                <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="applyPresetAction('apoyo')">${tl.preset2}</button>
                                 <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;color:#FCA5A5;" onclick="clearAllVectorsOnBoard()">🗑️ Borrar Fase</button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- BLOQUE 2: ZONA DE INICIO TÁCTICO RÁPIDO (SIEMPRE DISPONIBLE PARA COLOCAR ANTES DE CREAR) -->
+                    <!-- BLOQUE 2: ZONA DE INICIO TÁCTICO RÁPIDO PERSONALIZADA POR DEPORTE -->
                     <div class="exec-studio-section" style="border-left-color:#38BDF8;">
                         <div class="exec-studio-header">
-                            <span>📍 ZONA DE PARTIDA EN CAMPO</span>
+                            <span>📍 ZONA DE PARTIDA (${activeArenaSport.toUpperCase()})</span>
                             <span style="color:#38BDF8;">1-CLIC</span>
                         </div>
                         <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:4px;">
-                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;border-color:var(--role-color);color:var(--role-color);" onclick="applyKickoffFormation()">⚽ Saque Centro</button>
-                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="setPlayStartingZone('own_box')">Saque Puerta</button>
-                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="setPlayStartingZone('final_third')">Último Tercio</button>
-                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="setPlayStartingZone('def_block')">Bloque Def.</button>
-                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="setPlayStartingZone('corner')">Córner Zoom</button>
-                            <button type="button" class="btn-secondary" style="padding:5px 4px;font-size:0.54rem;" onclick="setPlayStartingZone('free_kick')">Falta Zoom</button>
+                            ${zonesHtml}
                         </div>
                     </div>
 
@@ -1300,7 +1583,7 @@
                             <span>💾 GUARDAR PIZARRA MULTIFASE</span>
                             <span style="color:#F59E0B;">CLOUD SYNC</span>
                         </div>
-                        <input type="text" id="play-title-input" class="kinet-input" style="margin-bottom:6px;" placeholder="Nombre de la jugada (ej: Salida Lavolpiana)...">
+                        <input type="text" id="play-title-input" class="kinet-input" style="margin-bottom:6px;" placeholder="${spProf.playTitlePlaceholder}">
                         <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:6px;">
                             <button type="button" class="btn-primary" style="padding:7px;font-size:0.6rem;" onclick="savePlayToLibrary()">
                                 ${editingPlayId ? '💾 Actualizar' : '💾 Guardar Jugada'}
@@ -1315,7 +1598,7 @@
             }
 
             if (activeRightSubTab === 'ia') {
-                const catObj = MOMENT_DROPDOWN_CATALOG[activeSection] || MOMENT_DROPDOWN_CATALOG.train;
+                const catObj = getActiveMomentCatalog()[activeSection] || getActiveMomentCatalog().train;
                 const presets = catObj.items.filter(m => !m.key.startsWith('base_'));
                 box.innerHTML = `
                     <div style="font-size:0.66rem;color:#CBD5E1;margin-bottom:7px;line-height:1.35;">
@@ -1647,7 +1930,10 @@
                 <svg class="arena-svg-canvas" viewBox="${vb}" preserveAspectRatio="none">
                     <rect width="600" height="420" fill="#090D16"/>
                     <rect x="28" y="24" width="544" height="372" rx="180" fill="#6E1D1B" stroke="rgba(255,255,255,0.8)" stroke-width="2.5"/>
+                    <rect x="52" y="48" width="496" height="324" rx="156" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.8" stroke-dasharray="10 6"/>
+                    <rect x="78" y="74" width="444" height="272" rx="130" fill="none" stroke="rgba(255,255,255,0.38)" stroke-width="1.4" stroke-dasharray="10 6"/>
                     <rect x="104" y="100" width="392" height="220" rx="105" fill="#0A1F17" stroke="#00FF88" stroke-width="2.5"/>
+                    <line x1="420" y1="24" x2="420" y2="100" stroke="#FFFFFF" stroke-width="5"/>
                 </svg>`;
             }
             return `
@@ -1738,6 +2024,7 @@
                 }
 
                 document.getElementById('active-formation-pill').textContent = `📐 MI FORMACIÓN: ${currentPresetName.toUpperCase()}`;
+                applySportLocalizationToStrategyUI();
                 document.getElementById('arena-svg-mount').innerHTML = buildHorizontalSVG(activeArenaSport);
 
                 const ballIconMap = { 'Fútbol': '⚽', 'Baloncesto': '🏀', 'Pádel / Tenis': '🎾', 'Boxeo / MMA': '🥊', 'Running': '⏱️' };
@@ -2764,7 +3051,7 @@
                 showRivals = (secKey === 'rival' || secKey === 'abp');
                 syncRivalToggleButton();
 
-                const catObj = MOMENT_DROPDOWN_CATALOG[secKey] || MOMENT_DROPDOWN_CATALOG.train;
+                const catObj = getActiveMomentCatalog()[secKey] || getActiveMomentCatalog().train;
                 activeMomentKey = catObj.items[0].key;
                 populateDynamicMomentDropdown();
                 refreshAllCustomKinetSelects();
@@ -2774,7 +3061,7 @@
         }
 
         function populateDynamicMomentDropdown() {
-            const catObj = MOMENT_DROPDOWN_CATALOG[activeSection] || MOMENT_DROPDOWN_CATALOG.train;
+            const catObj = getActiveMomentCatalog()[activeSection] || getActiveMomentCatalog().train;
             const sel = document.getElementById('dynamic-moment-selector');
             if (!sel) return;
             sel.innerHTML = catObj.items.map(item =>
