@@ -45,6 +45,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="kinet-backend.js"></script>
+    <script src="kinet-positions.js"></script>
     <script src="kinet-api-config.js"></script>
 
     <style>
@@ -1760,7 +1761,7 @@
             }
 
             refreshVideoQuotaUI();
-            rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+            renderVisionSessionsList();
 
             if (analyzedSessionsHistory.length > 0) {
                 loadSessionIntoMonitor(analyzedSessionsHistory[0]);
@@ -1953,7 +1954,8 @@
             refreshVideoQuotaUI();
 
             const myName = localStorage.getItem('kinet_user_name') || 'Atleta KINET';
-            const myPos = localStorage.getItem('kinet_position') || (opt.id.includes('gk') ? 'POR' : 'PRO');
+            const rawMyPos = localStorage.getItem('kinet_position') || (opt.id.includes('gk') ? 'POR' : 'PRO');
+            const myPos = window.KinetPositions ? window.KinetPositions.toCode(rawMyPos) : rawMyPos;
             const subjNameInput = (document.getElementById('wizard-subject-name')?.value || '').trim();
             const subjPosInput = (document.getElementById('wizard-subject-pos')?.value || '').trim();
 
@@ -1972,9 +1974,41 @@
                 localStorage.setItem('kinet_verified_gps_speed', opt.metrics[1]);
             }
 
-            const aiPersonalizedVerdict = (activeRoleKey === 'athlete')
+            let finalMetrics = opt.metrics;
+            let finalBars = opt.bars;
+            let finalGrl = 89;
+            let aiPersonalizedVerdict = (activeRoleKey === 'athlete')
                 ? `✓ [Análisis en 1ª Persona sobre "${matchCtx}"]: En tu bloque "${opt.title}" donde destacas "${actionNotes}", el motor KINET Vision AI confirma una precisión biomecánica del ${opt.metrics[0]} y un registro de ${opt.metrics[1]}. Sello AI Verified actualizado (${opt.metrics[3]}).`
                 : `✓ [Informe Técnico en 3ª Persona — ${evaluatedPerson} (${evaluatedPos})]: Evaluando "${matchCtx}" (${opt.title}) bajo la observación "${actionNotes}", el deportista registra ${opt.metrics[0]} de eficacia cinemática y ${opt.metrics[1]} (${opt.metrics[2]} de su categoría). Listo para transferir al Analizador 3D.`;
+
+            // Conectar con el motor real KINET Vision AI (extracción de fotogramas + Edge Function / Gemini)
+            if (window.KinetAPIs && typeof window.KinetAPIs.analyzeTacticalVideoClip === 'function') {
+                const statusTitleEl = document.getElementById('vision-status-title');
+                const statusDescEl = document.getElementById('vision-status-desc');
+                if (statusTitleEl) statusTitleEl.textContent = '⏳ Analizando fotogramas clave con KINET Vision AI...';
+                if (statusDescEl) statusDescEl.textContent = `Extrayendo fotogramas de "${file.name}" y evaluando "${actionNotes}"...`;
+                try {
+                    const aiRes = await window.KinetAPIs.analyzeTacticalVideoClip({
+                        videoFileOrElement: file,
+                        clipTitle: opt.title,
+                        blockType: selectedWizardCat,
+                        matchContext: matchCtx,
+                        userNotes: actionNotes,
+                        subjectName: evaluatedPerson,
+                        subjectPos: evaluatedPos,
+                        durationMinutes: opt.dur,
+                        alreadyDeductedQuota: true
+                    });
+                    if (aiRes && aiRes.ok) {
+                        if (Array.isArray(aiRes.metrics) && aiRes.metrics.length === 4) finalMetrics = aiRes.metrics;
+                        if (Array.isArray(aiRes.bars) && aiRes.bars.length > 0) finalBars = aiRes.bars;
+                        if (aiRes.estimatedGrl) finalGrl = Number(aiRes.estimatedGrl) || 89;
+                        if (aiRes.aiVerdict) aiPersonalizedVerdict = aiRes.aiVerdict;
+                    }
+                } catch (e) {
+                    console.warn('Vision Lab AI fallback:', e);
+                }
+            }
 
             const newSession = {
                 id: 'vs_' + Date.now(),
@@ -1983,21 +2017,21 @@
                 category: selectedWizardCat,
                 optionLabel: opt.title,
                 subjectName: evaluatedPerson,
-                subjectPos: evaluatedPos,
+                subjectPos: window.KinetPositions ? window.KinetPositions.toCode(evaluatedPos) : evaluatedPos,
                 matchContext: matchCtx,
                 userNotes: actionNotes,
                 targetSlotRole: slotRole,
-                metrics: opt.metrics,
-                bars: opt.bars,
+                metrics: finalMetrics,
+                bars: finalBars,
                 aiVerdict: aiPersonalizedVerdict,
-                estimatedGrl: 89,
+                estimatedGrl: finalGrl,
                 dateStr: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
             };
 
             analyzedSessionsHistory.unshift(newSession);
             saveSessionsToStorage();
             loadSessionIntoMonitor(newSession);
-            rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+            renderVisionSessionsList();
             input.value = '';
         }
 
@@ -2033,7 +2067,7 @@
             `).join('');
         }
 
-        function rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63() {
+        function renderVisionSessionsList() {
             const box = document.getElementById('vision-sessions-list');
             document.getElementById('sessions-count-badge').textContent = `${analyzedSessionsHistory.length} CLIPS EN HISTORIAL`;
 
