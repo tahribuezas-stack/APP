@@ -544,37 +544,40 @@
             z-index: 70;
         }
         .analyzer-tabs-group {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            display: inline-grid;
+            grid-template-columns: repeat(3, auto);
             background: rgba(4, 6, 10, 0.95);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 12px;
             padding: 4px;
-            gap: 6px;
-            flex: 1.3;
-            min-width: 300px;
+            gap: 5px;
+            flex: 0 0 auto;
+            max-width: 100%;
+            overflow: hidden;
         }
         @media (max-width: 720px) {
-            .analyzer-tabs-group { grid-template-columns: 1fr; min-width: 100%; }
+            .analyzer-tabs-group { display: grid; grid-template-columns: 1fr; width: 100%; }
             .analyzer-controls-right { width: 100%; justify-content: space-between; }
         }
         .analyzer-tab-btn {
             background: transparent;
             border: none;
+            outline: none;
             color: var(--text-secondary);
             font-family: 'Orbitron', sans-serif;
-            font-size: 0.72rem;
+            font-size: 0.67rem;
             font-weight: 800;
-            padding: 9px 14px;
+            padding: 8px 11px;
             border-radius: 9px;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 7px;
+            gap: 6px;
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             white-space: nowrap;
         }
+        .analyzer-tab-btn:focus, .analyzer-tab-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(var(--role-rgb), 0.55); }
         .analyzer-tab-btn:hover { color: white; background: rgba(255, 255, 255, 0.04); transform: translateY(-1px); }
         .analyzer-tab-btn.active {
             background: var(--role-gradient);
@@ -1945,19 +1948,19 @@
             <div id="broadcaster-match-inputs" class="matchday-inputs-2x2">
                 <div class="md-field-group">
                     <label>🛡️ TU CLUB / EQUIPO</label>
-                    <input type="text" id="md-my-team" class="kinet-input" placeholder="Ej: KINET PERFORMANCE FC" value="KINET PERFORMANCE" oninput="renderMatchdayPreviewCard()">
+                    <input type="text" id="md-my-team" class="kinet-input" placeholder="Ej: KINET PERFORMANCE FC" value="KINET PERFORMANCE" oninput="rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63()">
                 </div>
                 <div class="md-field-group">
                     <label>⚔️ EQUIPO RIVAL / OPONENTE</label>
-                    <input type="text" id="md-rival-team" class="kinet-input" placeholder="Ej: RIVAL ÉLITE CF" value="RIVAL ÉLITE" oninput="renderMatchdayPreviewCard()">
+                    <input type="text" id="md-rival-team" class="kinet-input" placeholder="Ej: RIVAL ÉLITE CF" value="RIVAL ÉLITE" oninput="rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63()">
                 </div>
                 <div class="md-field-group">
                     <label>🕒 FECHA, HORA O JORNADA</label>
-                    <input type="text" id="md-match-time" class="kinet-input" placeholder="Ej: JORNADA 14 • HOY 20:00H" value="HOY • 20:00H" oninput="renderMatchdayPreviewCard()">
+                    <input type="text" id="md-match-time" class="kinet-input" placeholder="Ej: JORNADA 14 • HOY 20:00H" value="HOY • 20:00H" oninput="rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63()">
                 </div>
                 <div class="md-field-group">
                     <label>📍 ESTADIO / PABELLÓN / PISTA</label>
-                    <input type="text" id="md-match-venue" class="kinet-input" placeholder="Ej: ESTADIO CENTRAL" value="ESTADIO CENTRAL" oninput="renderMatchdayPreviewCard()">
+                    <input type="text" id="md-match-venue" class="kinet-input" placeholder="Ej: ESTADIO CENTRAL" value="ESTADIO CENTRAL" oninput="rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63()">
                 </div>
             </div>
 
@@ -2712,7 +2715,7 @@
         window.addEventListener('kinet:cloud-synced', () => {
             loadPersistedCustomAndShortlistData();
             restoreFullSquadStateFromStorage();
-            renderBoardTokensAndMetrics(false);
+            rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
             renderRightRosterList();
             renderShortlistTab();
             refreshAllCustomKinetSelects();
@@ -2806,7 +2809,8 @@
                         ? rawSaved.reserveSlots
                         : Array.from({ length: cfg.reserveCount || 5 }, (_, i) => ({ pos: `RES ${i + 1}`, player: null }));
 
-                    const presetSel = document.getElementById('tactical-formation-selector');
+                    populateSportStylesSelector();
+            const presetSel = document.getElementById('tactical-formation-selector');
                     if (presetSel) presetSel.value = currentPresetName;
                     const styleSel = document.getElementById('tactical-style-selector');
                     if (styleSel) styleSel.value = currentPlayStyle;
@@ -2890,6 +2894,78 @@
             renderRightRosterList();
         }
 
+
+        const SPORT_TACTICAL_STYLES = {
+            'Fútbol': [
+                { val: 'balanced', label: '⚙️ Estilo: Equilibrado' },
+                { val: 'direct', label: '⚡ Estilo: Juego Directo / Balón Largo' },
+                { val: 'possession', label: '🎯 Estilo: Posesión & Asociación' },
+                { val: 'highpress', label: '🔥 Estilo: Presión Alta' },
+                { val: 'counter', label: '🛡️ Estilo: Bloque Bajo & Contra' }
+            ],
+            'Baloncesto': [
+                { val: 'balanced', label: '⚙️ Estilo: Equilibrado' },
+                { val: 'direct', label: '⚡ Estilo: Run & Gun / Transición' },
+                { val: 'possession', label: '🎯 Estilo: 5-Out & Pick and Roll' },
+                { val: 'highpress', label: '🔥 Estilo: Presión Toda Pista' },
+                { val: 'counter', label: '🛡️ Estilo: Defensa Zona 2-3 & Rebote' }
+            ],
+            'Pádel / Tenis': [
+                { val: 'balanced', label: '⚙️ Estilo: Equilibrado' },
+                { val: 'direct', label: '⚡ Estilo: Pegada & Red Agresiva' },
+                { val: 'possession', label: '🎯 Estilo: Control, Globo & Nevera' },
+                { val: 'highpress', label: '🔥 Estilo: Presión en Red / Australiana' },
+                { val: 'counter', label: '🛡️ Estilo: Defensa Fondo & Contraataque' }
+            ],
+            'Boxeo / MMA': [
+                { val: 'balanced', label: '⚙️ Estilo: Equilibrado' },
+                { val: 'direct', label: '⚡ Estilo: Presión Constante / Fajador' },
+                { val: 'possession', label: '🎯 Estilo: Estilista & Control Distancia' },
+                { val: 'highpress', label: '🔥 Estilo: Volumen Alto / Corte de Ring' },
+                { val: 'counter', label: '🛡️ Estilo: Contraataque & Esquiva' }
+            ],
+            'Running': [
+                { val: 'balanced', label: '⚙️ Ritmo: Crucero Constante' },
+                { val: 'direct', label: '⚡ Ritmo: Negative Split (De menos a más)' },
+                { val: 'possession', label: '🎯 Ritmo: Drafting / Tren de Liebres' },
+                { val: 'highpress', label: '🔥 Ritmo: Salida Explosiva / Series' },
+                { val: 'counter', label: '🛡️ Ritmo: Conservador + Sprint Final' }
+            ],
+            'Otros Deportes': [
+                { val: 'balanced', label: '⚙️ Plan: Equilibrado' },
+                { val: 'direct', label: '⚡ Plan: Ritmo Explosivo' },
+                { val: 'possession', label: '🎯 Plan: Control Técnico' },
+                { val: 'highpress', label: '🔥 Plan: Máxima Intensidad' },
+                { val: 'counter', label: '🛡️ Plan: Gestión y Remate Final' }
+            ]
+        };
+
+        const SPORT_TRAIT_PLACEHOLDERS = {
+            'Fútbol': 'Ej: Bueno en disparos rasos / Balón largo a extremos...',
+            'Baloncesto': 'Ej: Tirador letal desde esquina / Gran protector de aro...',
+            'Pádel / Tenis': 'Ej: Remate X3 potente / Muy sólido en defensa de doble pared...',
+            'Boxeo / MMA': 'Ej: Jab muy rápido / Gancho al hígado y buena esquiva...',
+            'Running': 'Ej: Cadencia alta 188 SPM / Fuerte en cambios de ritmo y sprint final...',
+            'Otros Deportes': 'Ej: Alta resistencia bajo presión / Gran técnica en momentos clave...'
+        };
+
+        function populateSportStylesSelector() {
+            const styleSel = document.getElementById('tactical-style-selector');
+            if (!styleSel) return;
+            const list = SPORT_TACTICAL_STYLES[activeArenaSport] || SPORT_TACTICAL_STYLES['Fútbol'];
+            styleSel.innerHTML = list.map(o => `<option value="${o.val}">${o.label}</option>`).join('');
+            if (list.some(o => o.val === currentPlayStyle)) {
+                styleSel.value = currentPlayStyle;
+            } else {
+                currentPlayStyle = list[0].val;
+                styleSel.value = currentPlayStyle;
+            }
+            const traitsInp = document.getElementById('custom-p-traits');
+            if (traitsInp) {
+                traitsInp.placeholder = SPORT_TRAIT_PLACEHOLDERS[activeArenaSport] || SPORT_TRAIT_PLACEHOLDERS['Fútbol'];
+            }
+        }
+
         function initAnalyzerByRoleAndSport() {
             const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
 
@@ -2932,7 +3008,7 @@
                 currentPresetName = presetKeys[0];
                 applyTacticalPreset(currentPresetName, false);
             } else {
-                renderBoardTokensAndMetrics(false);
+                rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
             }
 
             sync2D3DViewportUI();
@@ -2979,7 +3055,7 @@
             setTimeout(() => {
                 tokenVisualMode = tokenVisualMode === 'cards' ? 'photos' : 'cards';
                 syncTokenVisualModeButton();
-                renderBoardTokensAndMetrics(true);
+                rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(true);
                 if (layer) {
                     requestAnimationFrame(() => {
                         layer.style.opacity = '1';
@@ -3074,7 +3150,7 @@
             }));
 
             activeSelection = { group: 'board', index: 0 };
-            renderBoardTokensAndMetrics(persistChange);
+            rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(persistChange);
             refreshAllCustomKinetSelects();
         }
 
@@ -3082,7 +3158,7 @@
             currentBoardSlots.forEach(s => { s.player = null; });
             benchSlots.forEach(s => { s.player = null; });
             reserveSlots.forEach(s => { s.player = null; });
-            renderBoardTokensAndMetrics(true);
+            rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(true);
         }
 
         function selectAnySlot(group, index, event) {
@@ -3090,7 +3166,7 @@
             activeSelection = { group, index };
             if (group === 'bench') switchBenchReserveView('bench');
             else if (group === 'reserve') switchBenchReserveView('reserve');
-            renderBoardTokensAndMetrics(false);
+            rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(false);
         }
 
         function quickRemoveSlotPlayer(group, index, event) {
@@ -3099,7 +3175,7 @@
             if (targetArr[index]) {
                 targetArr[index].player = null;
                 activeSelection = { group, index };
-                renderBoardTokensAndMetrics(true);
+                rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(true);
             }
         }
 
@@ -3158,7 +3234,7 @@
             }
 
             closeConflictModal();
-            renderBoardTokensAndMetrics(true);
+            rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(true);
             renderRightRosterList();
         }
 
@@ -3196,7 +3272,7 @@
                 const originArr = getSlotArrayByGroup(existingLoc.group);
                 originArr[existingLoc.index].player = null;
                 targetSlot.player = { ...playerObj };
-                renderBoardTokensAndMetrics(true);
+                rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(true);
                 renderRightRosterList();
                 return;
             }
@@ -3233,7 +3309,7 @@
             }
 
             targetSlot.player = { ...playerObj };
-            renderBoardTokensAndMetrics(true);
+            rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(true);
             renderRightRosterList();
         }
 
@@ -3245,7 +3321,7 @@
             return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
         }
 
-        function renderBoardTokensAndMetrics(shouldPersist = true) {
+        function rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(shouldPersist = true) {
             const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
             const layer = document.getElementById('arena-tokens-layer');
             if (!layer) return;
@@ -3393,18 +3469,14 @@
 
         function updatePlayStyleSynergy(styleVal) {
             currentPlayStyle = styleVal;
-            renderBoardTokensAndMetrics(true);
+            rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(true);
             refreshAllCustomKinetSelects();
         }
 
         function evaluateTeamTacticalFit() {
-            const styleNames = {
-                balanced: 'Equilibrado',
-                direct: 'Juego Directo / Balón Largo',
-                possession: 'Posesión & Asociación',
-                highpress: 'Presión Alta',
-                counter: 'Bloque Bajo & Contra'
-            };
+            const sportStyles = SPORT_TACTICAL_STYLES[activeArenaSport] || SPORT_TACTICAL_STYLES['Fútbol'];
+            const styleNames = {};
+            sportStyles.forEach(o => { styleNames[o.val] = o.label.replace(/^[^:]+:\s*/, ''); });
             const filled = currentBoardSlots.filter(s => s.player);
             if (filled.length === 0) {
                 return { score: 0, styleLabel: styleNames[currentPlayStyle], explanation: 'Asigna jugadores en la plantilla para evaluar su sinergia táctica.' };
@@ -3528,7 +3600,7 @@
             ['poster', 'pitch', 'player'].forEach(k => {
                 document.querySelectorAll(`[id="fmt-btn-${k}"]`).forEach(el => el.classList.toggle('active', k === activeBroadcasterFormat));
             });
-            renderMatchdayPreviewCard();
+            rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
         }
 
         function handleClubCrestSelected(input) {
@@ -3537,12 +3609,12 @@
             reader.onload = function (e) {
                 uploadedClubCrestUrl = e.target.result;
                 try { localStorage.setItem('kinet_club_crest_url', uploadedClubCrestUrl); } catch (err) {}
-                renderMatchdayPreviewCard();
+                rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
             };
             reader.readAsDataURL(input.files[0]);
         }
 
-        function renderMatchdayPreviewCard() {
+        function rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63() {
             const stage = document.getElementById('broadcaster-export-stage');
             const inputsRow = document.getElementById('broadcaster-match-inputs');
             if (!stage) return;
@@ -5101,7 +5173,7 @@
                 });
 
                 setTimeout(() => {
-                    renderMatchdayPreviewCard();
+                    rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
                     requestAnimationFrame(() => {
                         const targetH = stage.offsetHeight;
                         morphWrap.style.height = `${targetH}px`;
@@ -5119,12 +5191,12 @@
             ['poster', 'pitch', 'player'].forEach(k => {
                 document.getElementById(`fmt-btn-${k}`)?.classList.toggle('active', k === activeBroadcasterFormat);
             });
-            renderMatchdayPreviewCard();
+            rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
         };
 
-        // Sobrescribir el formato 'player' dentro de renderMatchdayPreviewCard para que renderice la KINET Card Oficial (Holo Neón Élite)
-        const _editorialRenderFn = window.renderMatchdayPreviewCard;
-        window.renderMatchdayPreviewCard = function () {
+        // Sobrescribir el formato 'player' dentro de rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63 para que renderice la KINET Card Oficial (Holo Neón Élite)
+        const _editorialRenderFn = window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63;
+        window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63 = function () {
             if (activeBroadcasterFormat !== 'player') {
                 const stage = document.getElementById('broadcaster-export-stage');
                 if (activeBroadcasterFormat === 'pitch' && stage) {
@@ -5444,8 +5516,8 @@
         };
 
         // Asegurar que la vista previa de "3. Carta Jugador Activo" use el Grid de 2 columnas sin caer debajo ni cortarse
-        const _prevCardPreviewFn = window.renderMatchdayPreviewCard;
-        window.renderMatchdayPreviewCard = function () {
+        const _prevCardPreviewFn = window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63;
+        window.rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63 = function () {
             if (typeof _prevCardPreviewFn === 'function') _prevCardPreviewFn();
             if (activeBroadcasterFormat === 'player') {
                 const stage = document.getElementById('broadcaster-export-stage');
@@ -5486,20 +5558,71 @@
             }
 
             // 2. Profesiones del Cuerpo Técnico y siglas específicas por puesto
-            const STAFF_SKILLS_MAP = {
-                'MÍSTER / ENTRENADOR': ['Pizarra & Táctica Global (TAC)', 'Dirección de Partido (DIR)', 'Gestión de Vestuario (GES)', 'Metodología Física (FIS)', 'Prevención & Salud (SAL)', 'Psicología & Cantera (PSI)'],
-                '2º ENTRENADOR': ['Estrategia Balón Parado (ABP)', 'Corrección en Vivo (COR)', 'Transiciones Ataque/Def. (TRA)', 'Análisis de Rival (RIV)', 'Trabajo por Líneas (LIN)', 'Conexión Jugadores (CON)'],
-                'PREP. FÍSICO': ['Fuerza & Explosividad (FUE)', 'Resistencia 90 Min (RES)', 'Velocidad & Sprints (VEL)', 'Control Cargas GPS (CAR)', 'Pico de Forma (PIC)', 'Prevención Muscular (PRE)'],
-                'FISIOTERAPEUTA': ['Diagnóstico Lesional (DIA)', 'Terapia Manual (MAN)', 'Readaptación Campo (REA)', 'Prevención Isquios (PRE)', 'Recuperación Post-90m (REC)', 'Biomecánica Articular (BIO)'],
-                'COACH MENTAL': ['Foco & Concentración (FOC)', 'Gestión Presión/Penaltis (CLU)', 'Confianza & Resiliencia (CON)', 'Cohesión Vestuario (COH)', 'Rutinas Pre-Partido (RUT)', 'Control Emocional (EMO)'],
-                'NUTRICIONISTA': ['Carga de Glucógeno (GLU)', 'Hidratación & Sales (HID)', 'Composición Corporal (COM)', 'Suplementación Pro (SUP)', 'Recuperación Post-90m (REC)', 'Planificación Semanal (PLA)'],
-                'ANALISTA / SCOUT': ['Scouting de Rivales (SCO)', 'Telemetría & Vídeo IA (VID)', 'Detección de Patrones (PAT)', 'Mapa de Calor & Datos (DAT)', 'Informes Pre-Partido (INF)', 'Radar de Fichajes (MER)']
+            const STAFF_SKILLS_BY_SPORT = {
+                'Fútbol': {
+                    'MÍSTER / ENTRENADOR': ['Pizarra & Táctica Global (TAC)', 'Dirección de Partido (DIR)', 'Gestión de Vestuario (GES)', 'Metodología Física (FIS)', 'Prevención & Salud (SAL)', 'Psicología & Cantera (PSI)'],
+                    '2º ENTRENADOR': ['Estrategia Balón Parado (ABP)', 'Corrección en Vivo (COR)', 'Transiciones Ataque/Def. (TRA)', 'Análisis de Rival (RIV)', 'Trabajo por Líneas (LIN)', 'Conexión Jugadores (CON)'],
+                    'PREP. FÍSICO': ['Fuerza & Explosividad (FUE)', 'Resistencia 90 Min (RES)', 'Velocidad & Sprints (VEL)', 'Control Cargas GPS (CAR)', 'Pico de Forma (PIC)', 'Prevención Muscular (PRE)'],
+                    'FISIOTERAPEUTA': ['Diagnóstico Lesional (DIA)', 'Terapia Manual (MAN)', 'Readaptación Campo (REA)', 'Prevención Isquios (PRE)', 'Recuperación Post-90m (REC)', 'Biomecánica Articular (BIO)'],
+                    'COACH MENTAL': ['Foco & Concentración (FOC)', 'Gestión Presión/Penaltis (CLU)', 'Confianza & Resiliencia (CON)', 'Cohesión Vestuario (COH)', 'Rutinas Pre-Partido (RUT)', 'Control Emocional (EMO)'],
+                    'NUTRICIONISTA': ['Carga de Glucógeno (GLU)', 'Hidratación & Sales (HID)', 'Composición Corporal (COM)', 'Suplementación Pro (SUP)', 'Recuperación Post-90m (REC)', 'Planificación Semanal (PLA)'],
+                    'ANALISTA / SCOUT': ['Scouting de Rivales (SCO)', 'Telemetría & Vídeo IA (VID)', 'Detección de Patrones (PAT)', 'Mapa de Calor & Datos (DAT)', 'Informes Pre-Partido (INF)', 'Radar de Fichajes (MER)']
+                },
+                'Running': {
+                    'ENTRENADOR ATLETISMO': ['Planificación Mesociclos (PLA)', 'Control Umbral & VO2 (VO2)', 'Estrategia de Carrera (TAC)', 'Gestión de Series Pista (SER)', 'Pico de Forma Competición (PIC)', 'Dirección Técnica (DIR)'],
+                    'BIOMECÁNICO PISADA': ['Análisis de Pisada (PIS)', 'Cadencia & Zancada (CAD)', 'Alineación Rodilla/Tobillo (ALI)', 'Eficiencia Energética (EFI)', 'Prevención Sobrecargas (PRE)', 'Selección de Calzado (CAL)'],
+                    'PREP. FÍSICO / FUERZA': ['Fuerza Reactiva & Plio (FUE)', 'Estabilidad de Core (COR)', 'Potencia de Salida (VEL)', 'Control Cargas Semanales (CAR)', 'Trabajo en Cuestas (CUE)', 'Prevención Tendinosa (PRE)'],
+                    'FISIOTERAPEUTA': ['Descarga Muscular (DES)', 'Readaptación Carrera (REA)', 'Prevención Tendón Aquiles (PRE)', 'Recuperación Post-Carrera (REC)', 'Terapia Manual (MAN)', 'Movilidad Articular (MOV)'],
+                    'NUTRICIONISTA RESISTENCIA': ['Carga de Carbohidratos (GLU)', 'Geles & Hidratación Ruta (HID)', 'Sales & Electrolitos (SAL)', 'Composición Corporal (COM)', 'Recuperación Post-Tirada (REC)', 'Plan Nutricional Carrera (PLA)'],
+                    'PSICÓLOGO DEPORTIVO': ['Gestión del Muro / Fatiga (FAT)', 'Foco en Competición (FOC)', 'Control de Ansiedad Salida (CON)', 'Resiliencia Mental (RES)', 'Visualización de Ritmos (VIS)', 'Rutinas Pre-Carrera (RUT)'],
+                    'ANALISTA RITMOS / GPS': ['Telemetría GPS & Splits (GPS)', 'Análisis Frecuencia Card. (PUL)', 'Táctica de Liebres (PAC)', 'Estudio de Circuito/Perfil (PER)', 'Informes Post-Carrera (INF)', 'Seguimiento Progreso (DAT)']
+                },
+                'Baloncesto': {
+                    'HEAD COACH': ['Pizarra & Sistemas 5vs5 (TAC)', 'Gestión Tiempos Muertos (DIR)', 'Rotación de Quintetos (ROT)', 'Ajustes Defensivos (DEF)', 'Liderazgo Vestuario (GES)', 'Desarrollo Jugadores (DES)'],
+                    'ENTRENADOR ASISTENTE': ['Jugadas ATO / Saques (ATO)', 'Scouting de Rival (RIV)', 'Trabajo de Interiores/Ext. (TEC)', 'Corrección en Vivo (COR)', 'Defensa de Bloqueos (BLQ)', 'Análisis Estadístico (DAT)'],
+                    'ENTRENADOR DE TIRO': ['Mecánica de Liberación (MEC)', 'Consistencia Triple (3PT)', 'Tiro Tras Bote (BOT)', 'Tiros Libres Clutch (TLB)', 'Alineación de Pies (PIE)', 'Rutinas de Volumen (VOL)'],
+                    'PREP. FÍSICO PISTA': ['Salto Vertical & Plio (SAL)', 'Desplazamiento Lateral (LAT)', 'Resistencia 4 Cuartos (RES)', 'Fuerza en Contacto (FUE)', 'Prevención Tobillo/Rodilla (PRE)', 'Control de Cargas (CAR)'],
+                    'FISIOTERAPEUTA': ['Prevención Esguinces (PRE)', 'Recuperación Back-to-Back (REC)', 'Readaptación en Pista (REA)', 'Terapia Manual (MAN)', 'Diagnóstico Articular (DIA)', 'Vendaje Funcional (VEN)'],
+                    'NUTRICIONISTA': ['Energía Explosiva (GLU)', 'Hidratación en Pabellón (HID)', 'Masa Muscular Magra (COM)', 'Recuperación Post-Partido (REC)', 'Suplementación Pro (SUP)', 'Plan de Viajes (PLA)'],
+                    'ANALISTA / SCOUT': ['Estadística Avanzada (DAT)', 'Vídeo Scouting Rivales (VID)', 'Mapas de Tiro (TIR)', 'Detección Talento (SCO)', 'Eficiencia Quintetos (EFI)', 'Informes Pre-Partido (INF)']
+                },
+                'Pádel / Tenis': {
+                    'ENTRENADOR PRINCIPAL': ['Táctica de Partido (TAC)', 'Gestión desde Banquillo (DIR)', 'Lectura del Rival (RIV)', 'Selección de Golpes (GOL)', 'Preparación Torneos (TOR)', 'Química de Pareja (PAR)'],
+                    'ENTRENADOR DE PISTA': ['Técnica Bandeja/Víbora (TEC)', 'Volea & Juego en Red (RED)', 'Defensa Cristales/Fondo (DEF)', 'Saque & Resto (SAQ)', 'Carro de Alta Intensidad (CAR)', 'Ajuste de Footwork (PIE)'],
+                    'PREP. FÍSICO / AGILIDAD': ['Primer Paso & Arranque (VEL)', 'Cambios de Dirección (COD)', 'Fuerza Hombro & Core (FUE)', 'Resistencia 3 Sets (RES)', 'Pliometría & Salto (PLI)', 'Prevención Codo/Hombro (PRE)'],
+                    'FISIOTERAPEUTA': ['Prevención Epicondilitis (PRE)', 'Descarga Hombro/Espalda (DES)', 'Readaptación Pista (REA)', 'Recuperación Entre Rondas (REC)', 'Terapia Manual (MAN)', 'Movilidad de Cadera (MOV)'],
+                    'COACH MENTAL': ['Gestión Punto de Oro (CLU)', 'Control de Errores (CON)', 'Foco Entre Puntos (FOC)', 'Comunicación en Pareja (COM)', 'Resiliencia en Tie-Break (RES)', 'Rutinas de Saque (RUT)'],
+                    'NUTRICIONISTA': ['Hidratación en Pista (HID)', 'Reposición Entre Sets (GLU)', 'Sales Minerales (SAL)', 'Composición Corporal (COM)', 'Recuperación Post-Torneo (REC)', 'Suplementación (SUP)'],
+                    'ANALISTA DE VÍDEO': ['Estadística Errores/Winners (DAT)', 'Patrones de Saque/Resto (PAT)', 'Zonas de Impacto (ZON)', 'Scouting de Rivales (SCO)', 'Vídeo Biomecánico (VID)', 'Informes de Partido (INF)']
+                },
+                'Boxeo / MMA': {
+                    'HEAD COACH / ESQUINA': ['Estrategia de Combate (TAC)', 'Dirección en Esquina (DIR)', 'Plan de Campamento (PLA)', 'Lectura Entre Asaltos (LEC)', 'Gestión de Sparring (SPA)', 'Psicología de Ring (PSI)'],
+                    'COACH DE STRIKING': ['Técnica de Boxeo/Kick (TEC)', 'Combinaciones & Ángulos (COM)', 'Manoplas & Timing (MAN)', 'Defensa & Esquivas (DEF)', 'Potencia de Impacto (PWR)', 'Control de Distancia (DIS)'],
+                    'COACH DE GRAPPLING': ['Derribos & Lucha (DER)', 'Defensa Sprawl/Jaula (DEF)', 'Control en Suelo (SUE)', 'Transiciones & Clinch (CLI)', 'Sumisiones & Escapes (SUM)', 'Presión Corporal (PRE)'],
+                    'PREP. FÍSICO / CARDIO': ['Potencia Anaeróbica (POT)', 'Cardio Asaltos Altos (RES)', 'Fuerza Explosiva Core (FUE)', 'Recuperación en 1 Min (REC)', 'Velocidad de Manos/Pies (VEL)', 'Prevención Lesiones (PRE)'],
+                    'CUTMAN / FISIO': ['Cuidado de Cortes/Hemat. (CUT)', 'Vendaje Profesional (VEN)', 'Descarga Post-Sparring (DES)', 'Readaptación Articular (REA)', 'Recuperación Post-Pelea (REC)', 'Movilidad & Cuello (MOV)'],
+                    'NUTRICIONISTA CORTE PESO': ['Corte de Peso Seguro (PES)', 'Rehidratación Post-Pesaje (HID)', 'Energía Campamento (GLU)', 'Composición Corporal (COM)', 'Electrolitos & Sales (SAL)', 'Suplementación Combate (SUP)'],
+                    'ANALISTA DE RIVALES': ['Estudio de Guardia Rival (SCO)', 'Detección de Patrones (PAT)', 'Vídeo Frame a Frame (VID)', 'Timing de Contragolpes (TIM)', 'Estadística de Golpes (DAT)', 'Plan Táctico Pre-Pelea (INF)']
+                },
+                'Otros Deportes': {
+                    'ENTRENADOR PRINCIPAL': ['Estrategia & Táctica (TAC)', 'Dirección Competitiva (DIR)', 'Planificación Temporada (PLA)', 'Desarrollo Técnico (TEC)', 'Gestión de Equipo (GES)', 'Liderazgo (LID)'],
+                    '2º ENTRENADOR': ['Análisis de Sesiones (ANA)', 'Corrección Técnica (COR)', 'Trabajo Específico (ESP)', 'Seguimiento Rivales (RIV)', 'Apoyo en Competición (APO)', 'Feedback Directo (FEE)'],
+                    'PREP. FÍSICO': ['Fuerza & Potencia (FUE)', 'Resistencia Específica (RES)', 'Velocidad & Agilidad (VEL)', 'Control de Cargas (CAR)', 'Pico de Forma (PIC)', 'Prevención (PRE)'],
+                    'FISIOTERAPEUTA': ['Diagnóstico Lesional (DIA)', 'Terapia Manual (MAN)', 'Readaptación Deportiva (REA)', 'Prevención Muscular (PRE)', 'Recuperación (REC)', 'Biomecánica (BIO)'],
+                    'COACH MENTAL': ['Foco & Concentración (FOC)', 'Gestión de Presión (CLU)', 'Confianza (CON)', 'Cohesión (COH)', 'Rutinas Pre-Competición (RUT)', 'Control Emocional (EMO)'],
+                    'NUTRICIONISTA': ['Energía & Glucógeno (GLU)', 'Hidratación (HID)', 'Composición Corporal (COM)', 'Suplementación (SUP)', 'Recuperación (REC)', 'Plan Semanal (PLA)'],
+                    'ANALISTA / DATOS': ['Telemetría & Vídeo (VID)', 'Métricas Rendimiento (DAT)', 'Detección Patrones (PAT)', 'Scouting Rivales (SCO)', 'Informes Técnicos (INF)', 'Evolución Temporada (EVO)']
+                }
             };
+            function getActiveStaffSkillsMap() {
+                return STAFF_SKILLS_BY_SPORT[activeArenaSport] || STAFF_SKILLS_BY_SPORT['Fútbol'];
+            }
 
             window.isStaffPositionCode = function (posCode) {
                 if (!posCode) return false;
                 const clean = String(posCode).trim().toUpperCase();
-                return Object.keys(STAFF_SKILLS_MAP).some(k => k.toUpperCase() === clean) ||
+                const allStaffKeys = Object.values(STAFF_SKILLS_BY_SPORT).flatMap(m => Object.keys(m));
+                return allStaffKeys.some(k => k.toUpperCase() === clean) ||
                        clean.includes('STAFF') || clean.includes('MÍSTER') || clean.includes('ENTRENADOR') ||
                        clean.includes('FÍSICO') || clean.includes('FISIO') || clean.includes('MENTAL') ||
                        clean.includes('NUTRI') || clean.includes('ANALISTA');
@@ -5510,8 +5633,9 @@
                 if (!posCode) return cfg.statLabels;
                 const clean = String(posCode).trim().toUpperCase();
 
-                const staffKey = Object.keys(STAFF_SKILLS_MAP).find(k => k.toUpperCase() === clean || clean.includes(k.toUpperCase()));
-                if (staffKey) return STAFF_SKILLS_MAP[staffKey].map(l => (l.match(/\(([A-Z0-9]+)\)/) || [null, 'STF'])[1]);
+                const activeStaffMap = getActiveStaffSkillsMap();
+                const staffKey = Object.keys(activeStaffMap).find(k => k.toUpperCase() === clean || clean.includes(k.toUpperCase()));
+                if (staffKey) return activeStaffMap[staffKey].map(l => (l.match(/\(([A-Z0-9]+)\)/) || [null, 'STF'])[1]);
 
                 if (cfg.posSkills) {
                     const pKey = Object.keys(cfg.posSkills).find(k => (window.KinetPositions && window.KinetPositions.samePosition(k, posCode)) || k.toUpperCase() === clean || clean.includes(k.toUpperCase()));
@@ -6065,7 +6189,7 @@
                 const posSel = document.getElementById('custom-p-pos');
                 const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
                 if (builderEntityType === 'staff') {
-                    const profs = Object.keys(STAFF_SKILLS_MAP);
+                    const profs = Object.keys(getActiveStaffSkillsMap());
                     if (posSel) { posSel.innerHTML = profs.map(p => `<option value="${p}">${p}</option>`).join(''); window.updateBuilderSlidersForPosition(profs[0]); }
                 } else {
                     if (posSel) { posSel.innerHTML = cfg.positions.map(p => `<option value="${p}">${p}</option>`).join(''); window.updateBuilderSlidersForPosition(cfg.positions[0]); }
@@ -6075,10 +6199,11 @@
 
             const _origUpdateSliders = window.updateBuilderSlidersForPosition;
             window.updateBuilderSlidersForPosition = function (posName) {
-                if (builderEntityType === 'staff' && STAFF_SKILLS_MAP[posName]) {
+                const activeStaffMap = getActiveStaffSkillsMap();
+                if (builderEntityType === 'staff' && activeStaffMap[posName]) {
                     const box = document.getElementById('builder-sliders-box');
                     if (box) {
-                        box.innerHTML = STAFF_SKILLS_MAP[posName].map((lbl, idx) => `
+                        box.innerHTML = activeStaffMap[posName].map((lbl, idx) => `
                             <div class="custom-slider-row">
                                 <div class="custom-slider-head"><span>${lbl}</span><strong style="color:#F59E0B;" id="bslider-val-${idx}">${builderSliderValues[idx] || 82}</strong></div>
                                 <input type="range" min="50" max="99" value="${builderSliderValues[idx] || 82}" class="kinet-range-slider" oninput="onBuilderSliderMove(${idx}, this.value)">
