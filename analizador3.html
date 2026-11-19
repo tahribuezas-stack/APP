@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
-    <title>KINET OS // Laboratorio Táctico Especializado</title>
+    <title>KINET OS // Laboratorio Táctico 3D Especializado</title>
 
     <!-- ZERO-FLASH THEME LOCK -->
     <script>
@@ -58,9 +58,21 @@
             --role-glow: rgba(0, 255, 136, 0.38);
             --role-gradient: linear-gradient(135deg, #00FF88 0%, #00B359 100%);
         }
-        body[data-role="athlete"] { --role-color: #00FF88; --role-rgb: 0, 255, 136; --role-glow: rgba(0, 255, 136, 0.38); --role-gradient: linear-gradient(135deg, #00FF88 0%, #00B359 100%); }
-        body[data-role="staff"] { --role-color: #F59E0B; --role-rgb: 245, 158, 11; --role-glow: rgba(245, 158, 11, 0.38); --role-gradient: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); }
-        body[data-role="scout"] { --role-color: #3B82F6; --role-rgb: 59, 130, 246; --role-glow: rgba(59, 130, 246, 0.38); --role-gradient: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); }
+        body[data-role="athlete"] {
+            --role-color: #00FF88; --role-rgb: 0, 255, 136;
+            --role-glow: rgba(0, 255, 136, 0.38);
+            --role-gradient: linear-gradient(135deg, #00FF88 0%, #00B359 100%);
+        }
+        body[data-role="staff"] {
+            --role-color: #F59E0B; --role-rgb: 245, 158, 11;
+            --role-glow: rgba(245, 158, 11, 0.38);
+            --role-gradient: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        }
+        body[data-role="scout"] {
+            --role-color: #3B82F6; --role-rgb: 59, 130, 246;
+            --role-glow: rgba(59, 130, 246, 0.38);
+            --role-gradient: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+        }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; scrollbar-width: none !important; }
         *::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; }
@@ -80,19 +92,41 @@
 
         .os-layout { display: grid; grid-template-columns: 270px 1fr; height: 100vh; overflow: hidden; }
         @media (max-width: 960px) {
-            .os-layout { grid-template-columns: 1fr; height: auto; min-height: 100vh; overflow-y: auto; padding-bottom: 100px; }
+            .os-layout { grid-template-columns: 1fr; height: auto; min-height: 100vh; overflow-y: auto; padding-bottom: 120px; }
             html, body { height: auto !important; overflow-y: auto !important; }
             .os-main { height: auto !important; overflow: visible !important; }
             .os-sidebar { display: none !important; }
         }
 
+        /* CORTINA DE CARGA ANIMADA IDÉNTICA A ANALIZADOR 2 */
+        @keyframes kinetCurtainAutoHide {
+            0%, 58% { opacity: 1; pointer-events: all; }
+            100% { opacity: 0; pointer-events: none; visibility: hidden; }
+        }
+        #kinet-funny-curtain {
+            position: fixed; inset: 0; z-index: 99999;
+            background: radial-gradient(circle at 50% 50%, rgba(var(--role-rgb), 0.18) 0%, #04060A 85%);
+            backdrop-filter: blur(18px);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+            opacity: 1;
+            transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: kinetCurtainAutoHide 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            cursor: pointer;
+        }
+        #kinet-funny-curtain.curtain-hidden { opacity: 0 !important; pointer-events: none !important; visibility: hidden !important; display: none !important; }
+        #kinet-funny-curtain.curtain-exit-active { animation: none !important; display: flex !important; visibility: visible !important; opacity: 1 !important; pointer-events: all !important; }
+        @keyframes kinetSpinBall { 0% { transform: scale(0.6) rotate(0deg); } 60% { transform: scale(1.16) rotate(210deg); } 100% { transform: scale(1) rotate(360deg); } }
+        @keyframes kinetWhistleBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+
+        /* SIDEBAR OFICIAL */
         .os-sidebar {
             background: rgba(8, 11, 18, 0.95); backdrop-filter: blur(24px);
             border-right: 1px solid var(--border-subtle); padding: 18px 16px;
             display: flex; flex-direction: column; justify-content: space-between;
             height: 100vh; z-index: 90; overflow: hidden;
         }
-        .brand-box { display: flex; align-items: center; gap: 12px; text-decoration: none; padding: 4px; border-radius: 14px; margin-bottom: 6px; }
+        .brand-box { display: flex; align-items: center; gap: 12px; text-decoration: none; padding: 4px; border-radius: 14px; margin-bottom: 6px; transition: all 0.3s ease; }
+        .brand-box:hover { transform: scale(1.03); filter: drop-shadow(0 0 16px var(--role-glow)); }
         .brand-logo-icon {
             width: 36px; height: 36px; border-radius: 12px; background: var(--role-gradient);
             color: #04060A; font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.15rem;
@@ -107,9 +141,15 @@
             display: flex; align-items: center; justify-content: space-between; padding: 10px 14px;
             border-radius: 14px; background: rgba(255, 255, 255, 0.015); border: 1px solid var(--border-subtle);
             color: var(--text-secondary); font-size: 0.83rem; font-weight: 600; height: 44px; text-decoration: none;
-            transition: all 0.25s ease;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden;
         }
-        .side-link-left { display: flex; align-items: center; gap: 12px; }
+        .side-link::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(150px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(var(--role-rgb), 0.22), transparent 70%);
+            opacity: 0; transition: opacity 0.2s ease; pointer-events: none; z-index: 0;
+        }
+        .side-link:hover::before { opacity: 1; }
+        .side-link-left { display: flex; align-items: center; gap: 12px; z-index: 1; }
         .side-link:hover { color: var(--text-primary); border-color: rgba(var(--role-rgb), 0.45); transform: translateX(3px); }
         .side-link.active { background: rgba(var(--role-rgb), 0.14); border-color: var(--role-color); color: var(--role-color); box-shadow: 0 0 18px rgba(var(--role-rgb), 0.18); }
         .sidebar-ai-tip-box {
@@ -119,6 +159,7 @@
         .sidebar-ai-tip-header { display: flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--role-color); text-transform: uppercase; margin-bottom: 3px; font-weight: 700; }
         .sidebar-ai-tip-text { font-size: 0.68rem; color: #CBD5E1; line-height: 1.28; }
 
+        /* TOPBAR & WORKSPACE */
         .os-main { display: flex; flex-direction: column; min-width: 0; height: 100vh; overflow: hidden; }
         .os-topbar {
             background: rgba(6, 8, 14, 0.9); backdrop-filter: blur(20px);
@@ -129,118 +170,296 @@
         .active-role-indicator .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--role-color); box-shadow: 0 0 8px var(--role-color); }
         .active-role-text { font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.66rem; color: var(--text-primary); letter-spacing: 0.06em; text-transform: uppercase; }
 
-        .os-workspace { max-width: 1280px; width: 100%; margin: 0 auto; padding: 14px 22px 24px 22px; flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; }
-        .context-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+        .os-workspace { max-width: 1280px; width: 100%; margin: 0 auto; padding: 12px 22px 24px 22px; flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; animation: pageEnter 0.42s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes pageEnter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .context-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
         .context-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.64rem; color: var(--role-color); text-transform: uppercase; letter-spacing: 0.14em; display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
         .context-title { font-family: 'Orbitron', sans-serif; font-size: clamp(1.25rem, 2vw, 1.72rem); font-weight: 900; letter-spacing: -0.02em; color: white; }
 
+        /* BARRA DE COMANDO IDÉNTICA A ANALIZADOR 2 */
+        .analyzer-toolbar {
+            background: rgba(13, 17, 26, 0.95); border: 1px solid var(--border-subtle); border-radius: 16px;
+            padding: 7px 10px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;
+            gap: 8px; flex-wrap: nowrap; box-shadow: 0 8px 22px rgba(0,0,0,0.4); position: relative; z-index: 75;
+        }
+        .analyzer-toolbar::before {
+            content: ''; position: absolute; inset: 0; border-radius: inherit;
+            background: radial-gradient(240px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(var(--role-rgb), 0.12), transparent 70%);
+            opacity: 0; transition: opacity 0.2s ease; pointer-events: none;
+        }
+        .analyzer-toolbar:hover::before { opacity: 1; }
+        @media (max-width: 1120px) { .analyzer-toolbar { flex-wrap: wrap; } }
+
+        .analyzer-tabs-group {
+            display: inline-grid; grid-template-columns: repeat(3, auto); background: rgba(4, 6, 10, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 11px; padding: 3px; gap: 4px; flex-shrink: 0;
+        }
+        .analyzer-tab-btn {
+            background: transparent; border: none; outline: none; color: var(--text-secondary); font-family: 'Orbitron', sans-serif;
+            font-size: 0.63rem; font-weight: 800; padding: 7px 11px; border-radius: 8px; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.22s ease; white-space: nowrap;
+        }
+        .analyzer-tab-btn:hover { color: white; background: rgba(255, 255, 255, 0.04); }
+        .analyzer-tab-btn.active { background: var(--role-gradient); color: #04060A; font-weight: 900; box-shadow: 0 0 14px var(--role-glow); }
+        .analyzer-controls-right { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; min-width: 0; }
+
+        /* BOCATAS / DESPLEGABLES PERSONALIZADOS KINET (ANCHO FIJO + PUNTOS SUSPENSIVOS) */
+        .kinet-custom-select-wrap {
+            position: relative; display: inline-block; width: 190px; min-width: 145px; max-width: 190px;
+            flex-shrink: 0; user-select: none; z-index: 80;
+        }
+        .kinet-custom-select-wrap.full-w { width: 100%; max-width: 100%; }
+        .kinet-custom-select-wrap.open { z-index: 260; }
+        .kinet-custom-select-trigger {
+            width: 100%; background: rgba(6, 9, 16, 0.96); border: 1px solid rgba(var(--role-rgb), 0.45);
+            border-radius: 10px; padding: 7px 10px; color: #F8FAFC; font-family: 'Inter', sans-serif;
+            font-size: 0.69rem; font-weight: 700; cursor: pointer; display: flex; align-items: center;
+            justify-content: space-between; gap: 6px; overflow: hidden; transition: all 0.22s ease; box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+        }
+        .kinet-custom-select-label { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+        .kinet-custom-select-trigger:hover, .kinet-custom-select-wrap.open .kinet-custom-select-trigger {
+            border-color: var(--role-color); box-shadow: 0 0 16px rgba(var(--role-rgb), 0.25); background: rgba(var(--role-rgb), 0.08);
+        }
+        .kinet-custom-select-arrow { font-size: 0.6rem; color: var(--role-color); transition: transform 0.3s ease; flex-shrink: 0; }
+        .kinet-custom-select-wrap.open .kinet-custom-select-arrow { transform: rotate(180deg); }
+        @keyframes kinetDropIn { 0% { opacity: 0; transform: translateY(-8px) scale(0.96); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+        .kinet-custom-select-menu {
+            position: absolute; top: calc(100% + 6px); right: 0; min-width: 100%; width: max-content; max-width: 300px;
+            max-height: 265px; overflow-y: auto; background: rgba(9, 13, 22, 0.98); backdrop-filter: blur(24px);
+            border: 1px solid rgba(var(--role-rgb), 0.55); border-radius: 13px; padding: 5px;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.94), 0 0 25px rgba(var(--role-rgb), 0.22); display: none; z-index: 350;
+        }
+        .kinet-custom-select-wrap.full-w .kinet-custom-select-menu { left: 0; right: auto; width: 100%; max-width: 100%; }
+        .kinet-custom-select-wrap.open .kinet-custom-select-menu { display: block; animation: kinetDropIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .kinet-custom-option {
+            padding: 8px 11px; border-radius: 9px; font-size: 0.71rem; font-weight: 600; color: #CBD5E1;
+            cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 8px; transition: all 0.18s ease; margin-bottom: 2px;
+        }
+        .kinet-custom-option:hover { background: rgba(var(--role-rgb), 0.14); color: #FFFFFF; transform: translateX(3px); }
+        .kinet-custom-option.selected { background: var(--role-gradient); color: #04060A; font-weight: 800; box-shadow: 0 0 12px var(--role-glow); }
+
+        .kinet-input {
+            background: rgba(4, 6, 10, 0.92); border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 10px; padding: 7px 11px; color: white; font-family: 'Inter', sans-serif;
+            font-size: 0.72rem; font-weight: 500; outline: none; width: 100%; transition: all 0.2s ease;
+        }
+        .kinet-input:focus { border-color: var(--role-color); box-shadow: 0 0 12px rgba(var(--role-rgb), 0.18); }
+
         .btn-primary {
             background: var(--role-gradient); color: #04060A; border: none; border-radius: 10px;
-            padding: 8px 14px; font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.65rem;
-            cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            padding: 7px 13px; font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.64rem;
+            cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
             box-shadow: 0 0 16px var(--role-glow); transition: all 0.22s ease; white-space: nowrap;
         }
         .btn-primary:hover { transform: translateY(-1px) scale(1.02); filter: brightness(1.08); }
         .btn-secondary {
             background: rgba(255, 255, 255, 0.04); color: white; border: 1px solid var(--border-subtle);
-            border-radius: 10px; padding: 8px 11px; font-family: 'Orbitron', sans-serif; font-weight: 700;
-            font-size: 0.62rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.22s ease; white-space: nowrap;
+            border-radius: 10px; padding: 7px 10px; font-family: 'Orbitron', sans-serif; font-weight: 700;
+            font-size: 0.6rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.22s ease; white-space: nowrap;
         }
         .btn-secondary:hover { border-color: rgba(var(--role-rgb), 0.5); background: rgba(var(--role-rgb), 0.1); }
         .verified-badge {
-            font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; font-weight: 700;
-            padding: 5px 10px; border-radius: 8px; background: rgba(var(--role-rgb), 0.12);
-            border: 1px solid rgba(var(--role-rgb), 0.38); color: var(--role-color); display: inline-flex; align-items: center; gap: 5px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.59rem; font-weight: 700;
+            padding: 5px 9px; border-radius: 8px; background: rgba(var(--role-rgb), 0.12);
+            border: 1px solid rgba(var(--role-rgb), 0.38); color: var(--role-color); display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+        }
+
+        /* BENTO GRID 8 + 4 IDÉNTICO A ANALIZADOR 2 */
+        .bento-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 15px; align-items: stretch; }
+        .col-8 { grid-column: span 8; }
+        .col-4 { grid-column: span 4; }
+        @media (max-width: 1080px) { .col-8, .col-4 { grid-column: span 12; } }
+
+        .kinet-panel {
+            background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 20px;
+            padding: 14px 16px; position: relative; box-shadow: 0 12px 30px rgba(0,0,0,0.45);
+            overflow: hidden; transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .kinet-panel::before {
+            content: ''; position: absolute; inset: 0; border-radius: inherit;
+            background: radial-gradient(260px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(var(--role-rgb), 0.16), transparent 70%);
+            opacity: 0; transition: opacity 0.2s ease; pointer-events: none; z-index: 0;
+        }
+        .kinet-panel > * { position: relative; z-index: 1; }
+        .kinet-panel:hover::before { opacity: 1; }
+        .kinet-panel:hover { border-color: rgba(var(--role-rgb), 0.4); }
+
+        .panel-head-fixed {
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: nowrap !important;
+            height: 48px; min-height: 48px; max-height: 48px; margin-bottom: 8px; gap: 10px; overflow: hidden;
+        }
+        .panel-head-left { min-width: 0; flex: 1 1 auto; overflow: hidden; }
+        .panel-head-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; white-space: nowrap; }
+        #live-tactical-teleprompter {
+            font-size: 0.7rem; color: var(--role-color); font-weight: 700; margin-top: 3px;
+            white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; display: block !important;
         }
 
         .minimal-mode-switch { display: inline-flex; background: rgba(4, 6, 10, 0.95); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 11px; padding: 3px; gap: 4px; }
         .minimal-mode-btn {
             background: transparent; border: none; color: var(--text-secondary); font-family: 'Orbitron', sans-serif;
-            font-size: 0.62rem; font-weight: 800; padding: 6px 12px; border-radius: 8px; cursor: pointer;
+            font-size: 0.61rem; font-weight: 800; padding: 5px 11px; border-radius: 8px; cursor: pointer;
             display: inline-flex; align-items: center; gap: 6px; transition: all 0.22s ease;
         }
         .minimal-mode-btn:hover { color: #FFFFFF; }
         .minimal-mode-btn.active { background: var(--role-gradient); color: #04060A; font-weight: 900; box-shadow: 0 0 14px var(--role-glow); }
 
-        .bento-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 15px; align-items: stretch; }
-        .col-7 { grid-column: span 7; }
-        .col-5 { grid-column: span 5; }
-        @media (max-width: 1060px) { .col-7, .col-5 { grid-column: span 12; } }
-
-        .kinet-panel {
-            background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 20px;
-            padding: 15px 17px; position: relative; box-shadow: 0 12px 30px rgba(0,0,0,0.45);
-        }
-
-        .kinet-input, .kinet-select-native {
-            background: rgba(4, 6, 10, 0.92); border: 1px solid rgba(var(--role-rgb), 0.38);
-            border-radius: 10px; padding: 8px 11px; color: #F8FAFC; font-family: 'Inter', sans-serif;
-            font-size: 0.74rem; font-weight: 600; outline: none; width: 100%;
-        }
-        .kinet-input:focus, .kinet-select-native:focus { border-color: var(--role-color); box-shadow: 0 0 12px rgba(var(--role-rgb), 0.2); }
-
-        .field-lbl {
-            font-family: 'JetBrains Mono', monospace; font-size: 0.56rem; color: var(--role-color);
-            font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 4px;
-        }
-
-        .stage-viewport {
-            width: 100%; height: 320px;
-            background: radial-gradient(ellipse at 50% 10%, rgba(var(--role-rgb), 0.2), transparent 65%), #04070E;
-            border: 1px solid rgba(var(--role-rgb), 0.4); border-radius: 16px;
+        /* ESCENARIO 3D PROTAGONISTA DE ALTA DEFINICIÓN */
+        .arena-3d-viewport {
+            width: 100%; height: 390px;
+            background:
+                radial-gradient(ellipse at 50% 8%, rgba(var(--role-rgb), 0.25), transparent 62%),
+                linear-gradient(180deg, #030509 0%, #070C16 100%);
+            border: 1px solid rgba(var(--role-rgb), 0.42); border-radius: 18px;
             position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
-            margin-bottom: 12px;
+            box-shadow: inset 0 0 65px rgba(0, 0, 0, 0.9), 0 16px 36px rgba(0, 0, 0, 0.65);
         }
-        .stage-svg { width: 94%; height: 90%; display: block; }
+        .arena-3d-surface {
+            width: 95%; height: 90%; position: relative;
+            transform: perspective(1050px) rotateX(15deg);
+            transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.65s ease;
+            border-radius: 16px; border: 2px solid rgba(var(--role-rgb), 0.55);
+            box-shadow: 0 12px 0 #05120D, 0 14px 0 rgba(var(--role-rgb), 0.45), 0 30px 50px rgba(0, 0, 0, 0.95);
+            overflow: hidden;
+        }
+        .arena-3d-viewport.flat-2d .arena-3d-surface {
+            transform: perspective(1050px) rotateX(0deg);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.8);
+        }
+        .arena-svg-canvas { width: 100%; height: 100%; display: block; border-radius: 14px; }
 
-        .splits-table {
-            width: 100%; border-collapse: collapse; font-size: 0.72rem;
+        /* FICHAS ANIMADAS EN EL ESCENARIO 3D */
+        .lab-actor-token {
+            position: absolute; transform: translate(-50%, -50%);
+            width: 38px; height: 38px; border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(var(--role-rgb), 0.52), rgba(6, 10, 18, 0.98));
+            border: 2px solid var(--role-color);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.88), 0 0 14px rgba(var(--role-rgb), 0.42);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 40; user-select: none; pointer-events: none;
+            transition: left 0.85s cubic-bezier(0.22, 1, 0.36, 1), top 0.85s cubic-bezier(0.22, 1, 0.36, 1);
         }
-        .splits-table th {
-            text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 0.56rem;
-            color: var(--text-secondary); padding: 7px 8px; border-bottom: 1px solid var(--border-subtle);
-            text-transform: uppercase;
+        .lab-actor-token.rival {
+            background: radial-gradient(circle at 30% 30%, rgba(239, 68, 68, 0.58), rgba(24, 6, 10, 0.98));
+            border-color: #EF4444; box-shadow: 0 6px 14px rgba(0,0,0,0.88), 0 0 14px rgba(239, 68, 68, 0.48);
         }
-        .splits-table td {
-            padding: 8px 8px; border-bottom: 1px solid rgba(255,255,255,0.04); color: #E2E8F0;
+        .lab-actor-token.pacer {
+            background: radial-gradient(circle at 30% 30%, rgba(245, 158, 11, 0.58), rgba(24, 15, 4, 0.98));
+            border-color: #F59E0B; box-shadow: 0 6px 14px rgba(0,0,0,0.88), 0 0 14px rgba(245, 158, 11, 0.48);
         }
-        .zone-pill {
-            font-family: 'JetBrains Mono', monospace; font-size: 0.56rem; font-weight: 800;
-            padding: 2px 7px; border-radius: 6px; display: inline-block;
+        .lab-actor-init { font-family: 'Orbitron', sans-serif; font-size: 0.56rem; font-weight: 900; color: #FFFFFF; line-height: 1; }
+        .lab-actor-tag {
+            position: absolute; bottom: -5px; background: var(--role-color); color: #04060A;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.4rem; font-weight: 900;
+            padding: 1px 4px; border-radius: 4px; border: 1px solid #04060A; line-height: 1; white-space: nowrap;
         }
-        .z2 { background: rgba(56,189,248,0.16); color: #38BDF8; }
-        .z3 { background: rgba(0,255,136,0.16); color: #00FF88; }
-        .z4 { background: rgba(245,158,11,0.2); color: #F59E0B; }
-        .z5 { background: rgba(239,68,68,0.22); color: #FCA5A5; }
+        .lab-actor-token.rival .lab-actor-tag { background: #EF4444; color: #FFF; }
+        .lab-actor-token.pacer .lab-actor-tag { background: #F59E0B; color: #04060A; }
 
-        .pill-btn {
-            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); color: #CBD5E1;
-            font-family: 'Orbitron', sans-serif; font-size: 0.58rem; font-weight: 800;
-            padding: 7px 10px; border-radius: 9px; cursor: pointer; transition: all 0.2s ease;
+        #lab-ball-node {
+            position: absolute; transform: translate(-50%, -50%); width: 22px; height: 22px;
+            border-radius: 50%; background: radial-gradient(circle at 35% 35%, #FFFFFF, #CBD5E1);
+            border: 2px solid #04060A; box-shadow: 0 4px 12px rgba(0,0,0,0.9), 0 0 14px #FFFFFF;
+            display: none; align-items: center; justify-content: center; font-size: 0.75rem; z-index: 65; pointer-events: none;
+            transition: left 0.78s cubic-bezier(0.22, 1, 0.36, 1), top 0.78s cubic-bezier(0.22, 1, 0.36, 1);
         }
-        .pill-btn:hover { border-color: var(--role-color); color: #FFF; }
-        .pill-btn.active { background: var(--role-gradient); color: #04060A; border-color: transparent; box-shadow: 0 0 12px var(--role-glow); }
 
-        .round-card {
-            background: rgba(5, 8, 15, 0.85); border: 1px solid var(--border-subtle);
-            border-left: 3px solid var(--role-color); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px;
+        @keyframes kinetLaserDash { to { stroke-dashoffset: -44; } }
+        .kinet-laser-arrow { stroke-dasharray: 8 6; animation: kinetLaserDash 0.9s linear infinite; filter: drop-shadow(0 0 5px currentColor); }
+
+        /* CONSOLA INFERIOR DE FASES + TABLA DE DATOS EN VIVO */
+        .bench-reserve-master-box {
+            margin-top: 10px; background: rgba(4, 6, 10, 0.88);
+            border: 1px solid var(--border-subtle); border-radius: 15px; padding: 9px 11px;
         }
-        .saved-item-card {
-            background: rgba(5, 8, 15, 0.85); border: 1px solid var(--border-subtle);
+        .tool-pill-btn {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); color: #E2E8F0;
+            font-family: 'Orbitron', sans-serif; font-size: 0.56rem; font-weight: 800; padding: 6px 9px;
+            border-radius: 8px; cursor: pointer; transition: all 0.22s ease; display: inline-flex; align-items: center; justify-content: center; gap: 5px; white-space: nowrap;
+        }
+        .tool-pill-btn:hover { border-color: var(--role-color); color: #FFF; }
+        .tool-pill-btn.active-green { background: rgba(var(--role-rgb), 0.18); color: var(--role-color); border-color: var(--role-color); box-shadow: 0 0 12px rgba(var(--role-rgb), 0.22); }
+
+        .splits-mini-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 6px; margin-top: 8px;
+        }
+        .split-chip-card {
+            background: rgba(10, 15, 25, 0.9); border: 1px solid rgba(255,255,255,0.08);
+            border-top: 2px solid var(--role-color); border-radius: 10px; padding: 6px 8px; text-align: center;
+            transition: all 0.2s ease;
+        }
+        .split-chip-card.active-phase-card {
+            border-color: var(--role-color); background: rgba(var(--role-rgb), 0.12); box-shadow: 0 0 14px rgba(var(--role-rgb), 0.22);
+        }
+
+        /* PANEL DERECHO IDÉNTICO A ANALIZADOR 2 */
+        .right-panel-tabs {
+            display: grid; grid-template-columns: repeat(3, 1fr); background: rgba(4, 6, 10, 0.92);
+            border: 1px solid var(--border-subtle); border-radius: 11px; padding: 3px; gap: 4px; margin-bottom: 9px;
+        }
+        .right-tab-btn {
+            background: transparent; border: none; color: var(--text-secondary); font-family: 'Orbitron', sans-serif;
+            font-size: 0.59rem; font-weight: 800; padding: 7px 4px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;
+        }
+        .right-tab-btn:hover { color: #FFF; }
+        .right-tab-btn.active { background: rgba(var(--role-rgb), 0.18); color: var(--role-color); border: 1px solid rgba(var(--role-rgb), 0.45); box-shadow: 0 0 12px rgba(var(--role-rgb), 0.16); }
+
+        .exec-studio-section {
+            background: rgba(5, 8, 15, 0.9); border: 1px solid rgba(255, 255, 255, 0.08);
+            border-left: 3px solid var(--role-color); border-radius: 12px; padding: 10px 12px; margin-bottom: 9px;
+        }
+        .exec-studio-header {
+            display: flex; justify-content: space-between; align-items: center;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.56rem; color: var(--text-secondary);
+            letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 7px; font-weight: 700;
+        }
+        .saved-play-card {
+            background: rgba(6, 10, 18, 0.88); border: 1px solid var(--border-subtle);
             border-left: 3px solid var(--role-color); border-radius: 11px; padding: 9px 11px; margin-bottom: 7px;
-            display: flex; justify-content: space-between; align-items: center; gap: 8px;
+            position: relative; overflow: hidden; transition: all 0.22s ease;
         }
+        .saved-play-card:hover { border-color: var(--role-color); background: rgba(var(--role-rgb), 0.07); }
+
+        .zone-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.52rem; font-weight: 800; padding: 1px 6px; border-radius: 5px; }
+        .z2 { background: rgba(56,189,248,0.18); color: #38BDF8; }
+        .z3 { background: rgba(0,255,136,0.18); color: #00FF88; }
+        .z4 { background: rgba(245,158,11,0.22); color: #F59E0B; }
+        .z5 { background: rgba(239,68,68,0.24); color: #FCA5A5; }
+
+        /* NAVEGACIÓN MÓVIL INFERIOR */
+        .mobile-bottom-nav {
+            display: none; position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
+            width: calc(100% - 24px); max-width: 440px; background: rgba(8, 11, 18, 0.95);
+            backdrop-filter: blur(24px); border: 1px solid var(--border-subtle); border-radius: 20px;
+            padding: 6px; z-index: 120; box-shadow: 0 20px 40px rgba(0,0,0,0.85); justify-content: space-around;
+        }
+        @media (max-width: 960px) { .mobile-bottom-nav { display: flex !important; } }
+        .m-nav-btn {
+            background: transparent; border: none; color: var(--text-secondary); font-size: 0.62rem; font-weight: 700;
+            padding: 6px 8px; border-radius: 14px; display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none;
+        }
+        .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
 </head>
 <body data-role="athlete">
+
+    <!-- CORTINA DE CARGA ANIMADA -->
+    <div id="kinet-funny-curtain" onclick="this.classList.add('curtain-hidden')">
+        <div style="font-size:3.6rem;animation:kinetSpinBall 0.45s cubic-bezier(0.16,1,0.3,1) forwards;filter:drop-shadow(0 0 25px var(--role-color));" id="curtain-icon">⏱️</div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:#FFFFFF;letter-spacing:0.08em;text-align:center;animation:kinetWhistleBounce 0.6s infinite;" id="curtain-title">⏱️ ¡LABORATORIO ESPECIALIZADO LISTO!</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.74rem;color:var(--role-color);background:rgba(var(--role-rgb),0.12);border:1px solid var(--role-color);padding:6px 14px;border-radius:99px;" id="curtain-sub">Calibrando pizarra 3D, parciales y simulador táctico...</div>
+    </div>
+
     <div class="os-layout">
+        <!-- SIDEBAR -->
         <aside class="os-sidebar">
             <div class="sidebar-top-section">
                 <a href="app.html" id="brand-logo-desktop" class="brand-box">
                     <div class="brand-logo-icon">K</div>
                     <div class="brand-text">
                         <h1>KINET OS</h1>
-                        <span id="sidebar-sport-subtitle">AI PRECISION // LAB</span>
+                        <span id="sidebar-sport-subtitle">AI PRECISION // RUNNING</span>
                     </div>
                 </a>
                 <nav class="sidebar-nav">
@@ -255,18 +474,19 @@
             </div>
             <div class="sidebar-bottom-section">
                 <div class="sidebar-ai-tip-box">
-                    <div class="sidebar-ai-tip-header"><span>💡</span> <span>Lab Especializado</span></div>
-                    <div class="sidebar-ai-tip-text" id="sidebar-lab-tip">Planifica ritmos, patrones de golpeo o asaltos diseñados al 100% para tu disciplina.</div>
+                    <div class="sidebar-ai-tip-header"><span>💡</span> <span>Simulador Especializado</span></div>
+                    <div class="sidebar-ai-tip-text" id="sidebar-lab-tip">Diseña sesiones de entrenamiento, planes de competición y reprodúcelos en 3D con sincronización en la nube.</div>
                 </div>
                 <a href="perfil.html" id="nav-perfil" class="side-link"><span class="side-link-left"><span>👤</span> <span>Mi Perfil</span></span><span>→</span></a>
                 <a href="despacho.html" id="nav-despacho" class="side-link"><span class="side-link-left"><span>⚙️</span> <span>Despacho & Ajustes</span></span><span>→</span></a>
             </div>
         </aside>
 
+        <!-- MAIN -->
         <div class="os-main">
             <header class="os-topbar">
                 <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-secondary);display:flex;align-items:center;gap:10px;">
-                    <span id="topbar-lab-label">LABORATORIO TÁCTICO ESPECIALIZADO</span>
+                    <span id="topbar-lab-desc">LABORATORIO DE ENTRENAMIENTO, COMPETICIÓN & ESTRATEGIA 3D</span>
                     <span style="color:var(--role-color);font-weight:700;" id="topbar-sport-tag">● RUNNING</span>
                 </div>
                 <div class="active-role-indicator">
@@ -276,31 +496,252 @@
             </header>
 
             <main class="os-workspace">
+                <!-- HEADER COHERENTE CON ANALIZADOR 2 -->
                 <div class="context-header">
                     <div>
-                        <span class="context-tag"><span id="header-icon">⏱️</span> <span id="header-tag-text">LABORATORIO ESPECIALIZADO • RUNNING / ATLETISMO</span></span>
-                        <h1 class="context-title" id="header-main-title">Estrategia de Carrera & Parciales</h1>
+                        <span class="context-tag"><span id="header-icon">⏱️</span> <span id="header-tag-text">LABORATORIO 3D ESPECIALIZADO • RUNNING / ATLETISMO</span></span>
+                        <h1 class="context-title" id="header-main-title">Analizador & Estrategias 3D</h1>
                     </div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-                        <div class="minimal-mode-switch">
-                            <button type="button" class="minimal-mode-btn" onclick="goBackToRoster()">👥 Gestionar Plantilla</button>
-                            <button type="button" class="minimal-mode-btn active">🎯 Estrategias Especializadas ✓</button>
-                        </div>
-                        <button type="button" class="btn-primary" onclick="exportSpecializedPDF()">📄 Exportar Plan PDF</button>
+                    <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;">
+                        <div class="verified-badge" id="active-plan-pill">🎯 PLAN ACTIVO</div>
+                        <button type="button" class="btn-secondary" onclick="resetCurrentLabToDefault()">🧹 Restablecer</button>
+                        <button type="button" class="btn-primary" onclick="exportLabPlanPDF()">📄 Exportar Plan PDF</button>
                     </div>
                 </div>
 
-                <!-- CONTENIDO DINÁMICO SEGÚN EL DEPORTE -->
-                <div id="specialized-lab-mount"></div>
+                <!-- BARRA DE COMANDO CON 3 MODOS + DESPLEGABLES KINET DE ANCHO FIJO -->
+                <div class="analyzer-toolbar">
+                    <div class="analyzer-tabs-group">
+                        <button type="button" class="analyzer-tab-btn active" id="mode-btn-train" onclick="switchLabMode('train')">
+                            <span>🏋️</span> <span id="mode-lbl-train">1. Entrenar</span>
+                        </button>
+                        <button type="button" class="analyzer-tab-btn" id="mode-btn-comp" onclick="switchLabMode('comp')">
+                            <span>🏆</span> <span id="mode-lbl-comp">2. Día de Carrera</span>
+                        </button>
+                        <button type="button" class="analyzer-tab-btn" id="mode-btn-tactic" onclick="switchLabMode('tactic')">
+                            <span>🎯</span> <span id="mode-lbl-tactic">3. Claves Tácticas</span>
+                        </button>
+                    </div>
+
+                    <div class="analyzer-controls-right">
+                        <select id="lab-primary-select" class="kinet-select" onchange="onPrimarySelectChange(this.value)"></select>
+                        <select id="lab-secondary-select" class="kinet-select" onchange="onSecondarySelectChange(this.value)"></select>
+                        <button type="button" class="btn-secondary" id="toggle-3d-btn" onclick="toggleLab3D()">📐 Vista: 3D Pro</button>
+                    </div>
+                </div>
+
+                <!-- BENTO GRID 8 + 4 IDÉNTICO A ANALIZADOR 2 -->
+                <div class="bento-grid">
+                    <!-- COLUMNA IZQUIERDA (8 COL): PIZARRA 3D GRANDE + CONSOLA DE FASES + PARCIALES/RESUMEN -->
+                    <div class="col-8">
+                        <div class="kinet-panel" id="export-stage-panel">
+                            <div class="panel-head-fixed">
+                                <div class="panel-head-left">
+                                    <div class="minimal-mode-switch">
+                                        <button type="button" class="minimal-mode-btn" onclick="returnToRosterPage()">👥 Gestionar Plantilla</button>
+                                        <button type="button" class="minimal-mode-btn active">🎬 Jugadas & Estrategias IA ✓</button>
+                                    </div>
+                                    <div id="live-tactical-teleprompter">Cargando simulador especializado...</div>
+                                </div>
+                                <div class="panel-head-right">
+                                    <span class="verified-badge" id="phase-indicator-badge">FASE 1 / 3</span>
+                                </div>
+                            </div>
+
+                            <!-- PIZARRA 3D GRANDE -->
+                            <div class="arena-3d-viewport" id="arena-viewport-box">
+                                <div class="arena-3d-surface" id="arena-3d-surface">
+                                    <div id="arena-svg-mount" style="width:100%;height:100%;"></div>
+                                    <svg id="arena-vectors-svg" viewBox="0 0 600 420" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:26;"></svg>
+                                    <div id="arena-actors-layer" style="position:absolute;inset:0;pointer-events:none;"></div>
+                                    <div id="lab-ball-node">🎾</div>
+                                </div>
+                            </div>
+
+                            <!-- CONSOLA INFERIOR DE ANIMACIÓN Y FASES -->
+                            <div class="bench-reserve-master-box">
+                                <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;">
+                                    <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;">
+                                        <button type="button" class="btn-primary" style="padding:7px 12px;font-size:0.62rem;" onclick="playLabAnimation()">
+                                            ▶ Reproducir Simulación (1→3)
+                                        </button>
+                                        <button type="button" class="tool-pill-btn active-green" id="phase-btn-0" onclick="selectLabPhase(0)">1. Fase Inicial</button>
+                                        <button type="button" class="tool-pill-btn" id="phase-btn-1" onclick="selectLabPhase(1)">2. Desarrollo</button>
+                                        <button type="button" class="tool-pill-btn" id="phase-btn-2" onclick="selectLabPhase(2)">3. Remate / Cierre</button>
+                                    </div>
+                                    <div style="display:flex;gap:5px;align-items:center;">
+                                        <button type="button" class="tool-pill-btn" id="btn-extra-toggle" onclick="toggleExtraActor()">🏃 Liebre / Rival: ON</button>
+                                    </div>
+                                </div>
+
+                                <!-- TARJETAS DE DATOS EN VIVO (SPLITS / GOLPES / ASALTOS) -->
+                                <div id="bottom-live-metrics" class="splits-mini-grid"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- COLUMNA DERECHA (4 COL): 3 PESTAÑAS (CONFIGURAR | EJERCICIOS IA | GUARDADOS) + LECTURA IA -->
+                    <div class="col-4">
+                        <div class="kinet-panel" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
+                            <div>
+                                <div class="right-panel-tabs">
+                                    <button type="button" class="right-tab-btn active" id="rtab-config" onclick="switchRightTab('config')">🛠️ Configurar</button>
+                                    <button type="button" class="right-tab-btn" id="rtab-presets" onclick="switchRightTab('presets')">🧠 Ejercicios IA</button>
+                                    <button type="button" class="right-tab-btn" id="rtab-saved" onclick="switchRightTab('saved')">💾 Guardados (<span id="saved-count-lbl">0</span>)</button>
+                                </div>
+
+                                <div id="right-tab-mount" style="max-height:365px;overflow-y:auto;"></div>
+                            </div>
+
+                            <div style="margin-top:8px;background:rgba(var(--role-rgb),0.06);border:1px solid rgba(var(--role-rgb),0.32);border-radius:13px;padding:9px 11px;">
+                                <div style="font-family:'JetBrains Mono';font-size:0.56rem;color:var(--role-color);font-weight:700;margin-bottom:2px;">🧠 LECTURA TÁCTICA EN TIEMPO REAL</div>
+                                <p style="font-size:0.68rem;color:#E2E8F0;line-height:1.36;margin-bottom:7px;" id="ai-live-diagnosis">
+                                    Configura tu sesión o plan de competición y pulsa "▶ Reproducir Simulación" para verlo en la pista 3D.
+                                </p>
+                                <button type="button" class="btn-primary" style="width:100%;padding:8px 11px;font-size:0.62rem;" onclick="sendLabPlanToCoachAI()">
+                                    ⚡ Analizar este Plan con el Cuerpo Técnico IA →
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </main>
         </div>
     </div>
 
+    <!-- NAVEGACIÓN MÓVIL INFERIOR -->
+    <nav class="mobile-bottom-nav">
+        <a href="app.html" id="mob-vestuario" class="m-nav-btn"><span style="font-size:1rem;">⚡</span><span>Vestuario</span></a>
+        <a href="cuerpo-tecnico.html" id="mob-cuerpo-tecnico" class="m-nav-btn"><span style="font-size:1rem;">🧠</span><span>Técnicos</span></a>
+        <a href="ficha-pro.html" id="mob-ficha-pro" class="m-nav-btn"><span style="font-size:1rem;">🎴</span><span>Ficha</span></a>
+        <a href="analizador.html" id="mob-analizador" class="m-nav-btn active"><span style="font-size:1rem;">🏟️</span><span>Pizarra</span></a>
+    </nav>
+
     <script>
+        // =========================================================================
+        // ESTADO GLOBAL DEL LABORATORIO ESPECIALIZADO (RUNNING | PÁDEL/TENIS | BOXEO/MMA)
+        // =========================================================================
         let activeArenaSport = 'Running';
         let activeRoleKey = 'athlete';
+        let activeLabMode = 'train'; // 'train' | 'comp' | 'tactic'
+        let activeRightTab = 'config'; // 'config' | 'presets' | 'saved'
+        let currentPhaseIdx = 0;
+        let isFlat2D = false;
+        let showExtraActor = true; // Liebre en Running, Rival en Pádel/Boxeo
         let savedPlans = [];
+        let animTimer = null;
 
+        // ----- CONFIGURACIÓN REALISTA DE RUNNING / ATLETISMO -----
+        const RUN_DISTANCES = {
+            '400m':  { km: 0.4,    defSec: 56,    label: '400m Pista',    segLbl: '100m',  segs: 4 },
+            '800m':  { km: 0.8,    defSec: 126,   label: '800m Mediofondo', segLbl: '200m', segs: 4 },
+            '1500m': { km: 1.5,    defSec: 255,   label: '1500m Pista',   segLbl: 'Vuelta', segs: 4 },
+            '5K':    { km: 5.0,    defSec: 1170,  label: '5K Ruta/Pista', segLbl: 'Km',    segs: 5 },
+            '10K':   { km: 10.0,   defSec: 2400,  label: '10K Ruta',      segLbl: 'Bloque 2K', segs: 5 },
+            '21K':   { km: 21.097, defSec: 5400,  label: 'Media Maratón', segLbl: 'Tramo 5K', segs: 4 },
+            '42K':   { km: 42.195, defSec: 11400, label: 'Maratón 42K',   segLbl: 'Bloque 10K', segs: 4 }
+        };
+
+        let runState = {
+            distance: '10K',
+            targetSec: 2400, // 40:00
+            strategy: 'negative', // negative | even | drafting | kick | intervals
+            sessionType: 'series_400',
+            planTitle: 'Plan 10K Sub-40 Negative Split',
+            notes: 'Mantener cadencia 186 SPM y atacar en el último bloque.'
+        };
+
+        // ----- CONFIGURACIÓN DE PÁDEL / TENIS -----
+        let racketState = {
+            presetKey: 'australiana',
+            matchType: 'dobles',
+            planTitle: 'Australiana + Bandeja al Rincón',
+            shots: [
+                { from: [230, 355], to: [410, 128], label: '1. Saque cortado al cristal', actorPos: [[230,355],[360,255],[415,120],[185,125]] },
+                { from: [410, 128], to: [240, 175], label: '2. Globo defensivo rival',    actorPos: [[250,245],[365,245],[420,95],[195,115]] },
+                { from: [240, 175], to: [470, 68],  label: '3. Bandeja profunda al rincón', actorPos: [[240,195],[375,235],[455,75],[210,120]] }
+            ],
+            notes: 'Cerrar el centro tras la bandeja para bloquear el paralelo.'
+        };
+
+        const RACKET_LIBRARY = {
+            australiana: {
+                title: 'Australiana + Bandeja al Rincón',
+                desc: 'Saque al cristal, mantenimiento de lados y bandeja profunda para conservar la red.',
+                shots: [
+                    { from: [230, 355], to: [410, 128], label: '1. Saque cortado al cristal', actorPos: [[230,355],[360,255],[415,120],[185,125]] },
+                    { from: [410, 128], to: [240, 175], label: '2. Globo defensivo rival',    actorPos: [[250,245],[365,245],[420,95],[195,115]] },
+                    { from: [240, 175], to: [470, 68],  label: '3. Bandeja profunda al rincón', actorPos: [[240,195],[375,235],[455,75],[210,120]] }
+                ]
+            },
+            chiquita: {
+                title: 'Defensa Doble Pared + Chiquita',
+                desc: 'Desde el fondo, bola baja a los pies del voleador para robar la iniciativa y subir.',
+                shots: [
+                    { from: [145, 345], to: [285, 225], label: '1. Chiquita baja a los pies', actorPos: [[145,345],[385,335],[285,175],[430,175]] },
+                    { from: [285, 225], to: [215, 255], label: '2. Volea forzada y subida',   actorPos: [[215,255],[380,255],[295,165],[425,165]] },
+                    { from: [215, 255], to: [455, 85],  label: '3. Volea cruzada ganadora',   actorPos: [[220,235],[375,235],[315,155],[445,105]] }
+                ]
+            },
+            nevera: {
+                title: 'Nevera Táctica + Remate X3',
+                desc: 'Sobrecarga al jugador más débil para provocar globo corto y definir por 3.',
+                shots: [
+                    { from: [215, 245], to: [455, 105], label: '1. Volea profunda sobre Drive', actorPos: [[215,245],[385,245],[455,105],[175,115]] },
+                    { from: [455, 105], to: [220, 265], label: '2. Globo corto del rival',      actorPos: [[220,265],[385,245],[440,115],[180,120]] },
+                    { from: [220, 265], to: [495, 55],  label: '3. Remate X3 definitivo',       actorPos: [[225,240],[390,235],[455,95],[195,125]] }
+                ]
+            }
+        };
+
+        // ----- CONFIGURACIÓN DE BOXEO / MMA -----
+        let combatState = {
+            presetKey: 'corte_ring',
+            distance: 'media', // larga | media | corta
+            planTitle: 'Corte de Ring + Gancho al Hígado',
+            rounds: [
+                { num: 1, focus: 'Jab de Medida & Centro', combo: '1 - 1 - 2 + Paso Lateral', note: 'Medir alcance y quitarle la salida a su izquierda.', me: [255, 215], riv: [355, 205] },
+                { num: 2, focus: 'Corte de Ring & Cuerpo', combo: 'Finta Alta + Gancho Hígado', note: 'Encerrar cerca de cuerdas y bajar su guardia.', me: [330, 195], riv: [415, 175] },
+                { num: 3, focus: 'Esquiva & Salida Ángulo', combo: 'Slip Izq + Cross + Pivote', note: 'Castigar su contra y salir por fuera del pie adelantado.', me: [365, 235], riv: [425, 185] }
+            ]
+        };
+
+        const COMBAT_LIBRARY = {
+            corte_ring: {
+                title: 'Corte de Ring + Gancho al Hígado',
+                distance: 'media',
+                desc: 'Presión inteligente cerrando salidas laterales y castigando abajo.',
+                rounds: [
+                    { num: 1, focus: 'Jab de Medida & Centro', combo: '1 - 1 - 2 + Paso Lateral', note: 'Medir alcance y quitarle la salida a su izquierda.', me: [255, 215], riv: [355, 205] },
+                    { num: 2, focus: 'Corte de Ring & Cuerpo', combo: 'Finta Alta + Gancho Hígado', note: 'Encerrar cerca de cuerdas y bajar su guardia.', me: [330, 195], riv: [415, 175] },
+                    { num: 3, focus: 'Esquiva & Salida Ángulo', combo: 'Slip Izq + Cross + Pivote', note: 'Castigar su contra y salir por fuera del pie adelantado.', me: [365, 235], riv: [425, 185] }
+                ]
+            },
+            pull_counter: {
+                title: 'Estilista: Esquiva & Pull-Counter',
+                distance: 'larga',
+                desc: 'Control de distancia larga provocando el jab rival para entrar con mano atrasada.',
+                rounds: [
+                    { num: 1, focus: 'Lectura de Distancia Larga', combo: 'Jab Doble + Paso Atrás', note: 'Mantenerse justo fuera de su alcance efectivo.', me: [220, 210], riv: [375, 210] },
+                    { num: 2, focus: 'Pull-Counter Limpio', combo: 'Inclinación + Cross + Hook', note: 'Hacerle fallar el jab y responder en el mismo tiempo.', me: [270, 210], riv: [335, 210] },
+                    { num: 3, focus: 'Rotación & Reset Centro', combo: 'Pivote 90° + Jab Salida', note: 'Nunca quedar estático tras golpear.', me: [295, 155], riv: [335, 225] }
+                ]
+            },
+            mma_clinch: {
+                title: 'MMA: Cambio de Nivel & Takedown',
+                distance: 'corta',
+                desc: 'Entrada a caderas tras combinación alta para controlar contra la jaula.',
+                rounds: [
+                    { num: 1, focus: 'Finta de Striking Alto', combo: '1 - 2 Alto (Levantar Guardia)', note: 'Obligar al rival a subir manos y aligerar caderas.', me: [265, 210], riv: [350, 210] },
+                    { num: 2, focus: 'Cambio de Nivel & Double Leg', combo: 'Drop Nivel + Empuje Jaula', note: 'Cabeza por fuera y espalda recta al contacto.', me: [345, 205], riv: [390, 205] },
+                    { num: 3, focus: 'Control en Jaula / Derribo', combo: 'Underhook + Barrido Interior', note: 'Asegurar posición dominante en suelo.', me: [410, 195], riv: [448, 195] }
+                ]
+            }
+        };
+
+        // =========================================================================
+        // UTILIDADES DE FORMATO Y PERSONALIZACIÓN DE DESPACHO + SPOTLIGHT
+        // =========================================================================
         function normalizeRole(val) {
             if (!val) return null;
             const v = String(val).toLowerCase().trim();
@@ -314,561 +755,852 @@
             const s = String(raw || 'Running').toLowerCase();
             if (s.includes('pádel') || s.includes('padel') || s.includes('tenis')) return 'Pádel / Tenis';
             if (s.includes('boxeo') || s.includes('mma') || s.includes('combate')) return 'Boxeo / MMA';
-            if (s.includes('running') || s.includes('atletismo') || s.includes('carrera')) return 'Running';
             if (s.includes('fútbol') || s.includes('futbol')) return 'Fútbol';
             if (s.includes('baloncesto') || s.includes('basket')) return 'Baloncesto';
             return 'Running';
         }
 
-        function goBackToRoster() {
-            window.location.href = `analizador.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`;
+        function formatSecClock(sec) {
+            sec = Math.max(1, Math.round(sec));
+            const h = Math.floor(sec / 3600);
+            const m = Math.floor((sec % 3600) / 60);
+            const s = sec % 60;
+            if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            return `${m}:${String(s).padStart(2,'0')}`;
         }
 
-        function loadSavedPlans() {
-            try {
-                const key = `kinet_spec_plans_${activeArenaSport.toLowerCase()}`;
-                savedPlans = JSON.parse(localStorage.getItem(key) || '[]');
-            } catch (e) { savedPlans = []; }
-        }
-
-        function persistSavedPlans() {
-            try {
-                const key = `kinet_spec_plans_${activeArenaSport.toLowerCase()}`;
-                localStorage.setItem(key, JSON.stringify(savedPlans));
-                if (window.KinetBackend && typeof window.KinetBackend.pushLocalStateToCloud === 'function') {
-                    window.KinetBackend.pushLocalStateToCloud();
-                }
-            } catch (e) {}
-        }
-
-        // =========================================================================
-        // 1. LABORATORIO DE RUNNING / ATLETISMO (PARCIALES, ZONAS Y DRAFTING)
-        // =========================================================================
-        let runState = {
-            distance: '10K',
-            targetMinutes: 40,
-            strategy: 'negative',
-            pacerActive: true,
-            planTitle: 'Plan 10K Sub-40 Negative Split'
-        };
-
-        const RUN_DISTANCES = {
-            '400m': { totalKm: 0.4, segments: 4, segLabel: '100m', unit: 'seg' },
-            '1500m': { totalKm: 1.5, segments: 4, segLabel: 'Vuelta', unit: 'min' },
-            '5K': { totalKm: 5, segments: 5, segLabel: 'Km', unit: 'min' },
-            '10K': { totalKm: 10, segments: 5, segLabel: 'Bloque 2K', unit: 'min' },
-            '21K': { totalKm: 21.097, segments: 6, segLabel: 'Bloque 3.5K', unit: 'min' },
-            '42K': { totalKm: 42.195, segments: 6, segLabel: 'Bloque 7K', unit: 'min' }
-        };
-
-        function formatPace(secPerKm) {
+        function formatPacePerKm(secPerKm) {
             const m = Math.floor(secPerKm / 60);
             const s = Math.round(secPerKm % 60);
+            if (s === 60) return `${m + 1}:00 /km`;
             return `${m}:${String(s).padStart(2, '0')} /km`;
         }
 
-        function formatClock(totalSec) {
-            const h = Math.floor(totalSec / 3600);
-            const m = Math.floor((totalSec % 3600) / 60);
-            const s = Math.round(totalSec % 60);
-            if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-            return `${m}:${String(s).padStart(2, '0')}`;
+        function bindSpotlightToElements() {
+            document.querySelectorAll('.kinet-panel, .side-link, .analyzer-toolbar, .saved-play-card').forEach(el => {
+                if (el._spotlightBound) return;
+                el._spotlightBound = true;
+                el.addEventListener('mousemove', (e) => {
+                    const rect = el.getBoundingClientRect();
+                    el.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+                    el.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+                });
+            });
         }
 
+        // BOCATAS / DESPLEGABLES PERSONALIZADOS KINET CON ANCHO FIJO + ELLIPSIS
+        function closeAllCustomSelects() {
+            document.querySelectorAll('.kinet-custom-select-wrap.open').forEach(w => w.classList.remove('open'));
+        }
+        document.addEventListener('click', closeAllCustomSelects);
+
+        function refreshAllCustomKinetSelects() {
+            document.querySelectorAll('select.kinet-select').forEach(sel => {
+                let wrap = sel.closest('.kinet-custom-select-wrap');
+                if (!wrap) {
+                    wrap = document.createElement('div');
+                    wrap.className = 'kinet-custom-select-wrap' + (sel.dataset.fullWidth === 'true' ? ' full-w' : '');
+                    sel.parentNode.insertBefore(wrap, sel);
+                    wrap.appendChild(sel);
+                    sel.style.display = 'none';
+
+                    const trigger = document.createElement('button');
+                    trigger.type = 'button';
+                    trigger.className = 'kinet-custom-select-trigger';
+                    trigger.innerHTML = `<span class="kinet-custom-select-label"></span><span class="kinet-custom-select-arrow">▾</span>`;
+                    wrap.appendChild(trigger);
+
+                    const menu = document.createElement('div');
+                    menu.className = 'kinet-custom-select-menu';
+                    wrap.appendChild(menu);
+
+                    trigger.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const isOpen = wrap.classList.contains('open');
+                        closeAllCustomSelects();
+                        if (!isOpen) wrap.classList.add('open');
+                    });
+                }
+                const labelEl = wrap.querySelector('.kinet-custom-select-label');
+                const menuEl = wrap.querySelector('.kinet-custom-select-menu');
+                const selectedOpt = sel.options[sel.selectedIndex] || sel.options[0];
+                if (labelEl) labelEl.textContent = selectedOpt ? selectedOpt.textContent : '';
+                if (menuEl) {
+                    menuEl.innerHTML = Array.from(sel.options).map((opt, idx) => `
+                        <div class="kinet-custom-option ${idx === sel.selectedIndex ? 'selected' : ''}" data-idx="${idx}">
+                            <span>${opt.textContent}</span>
+                            ${idx === sel.selectedIndex ? '<span>●</span>' : ''}
+                        </div>
+                    `).join('');
+                    menuEl.querySelectorAll('.kinet-custom-option').forEach(optEl => {
+                        optEl.addEventListener('click', (ev) => {
+                            ev.stopPropagation();
+                            sel.selectedIndex = parseInt(optEl.getAttribute('data-idx'), 10);
+                            sel.dispatchEvent(new Event('change', { bubbles: true }));
+                            closeAllCustomSelects();
+                            refreshAllCustomKinetSelects();
+                        });
+                    });
+                }
+            });
+        }
+
+        // PERSONALIZACIÓN COMPLETA DE DESPACHO (COLOR NEÓN, ARCOÍRIS, FONDO, PANEL, BORDES, FAVICON)
+        function hslToHexRgb(h, s, l) {
+            s /= 100; l /= 100;
+            const k = n => (n + h / 30) % 12;
+            const a = s * Math.min(l, 1 - l);
+            const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+            const r = Math.round(255 * f(0)), g = Math.round(255 * f(8)), b = Math.round(255 * f(4));
+            const hex = '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+            return { hex, r, g, b };
+        }
+        function forceUpdateTabFavicon(hexColor) {
+            const fav = document.getElementById('dynamic-favicon');
+            if (!fav) return;
+            const enc = encodeURIComponent(hexColor);
+            fav.href = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22${enc}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`;
+        }
+        function applyDespachoThemeSettings() {
+            const roleHexMap = { athlete: '#00FF88', staff: '#F59E0B', scout: '#3B82F6' };
+            const defaultRoleHex = roleHexMap[activeRoleKey] || '#00FF88';
+            const isReset = localStorage.getItem('kinet_theme_color_reset') === 'true';
+            let savedAccent = isReset ? null : (localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color'));
+            const rainbowOn = localStorage.getItem('kinet_rainbow_mode') === 'true';
+
+            if (rainbowOn) {
+                let hue = 0, lastFav = 0;
+                function stepRainbow(ts) {
+                    if (localStorage.getItem('kinet_rainbow_mode') !== 'true') return;
+                    hue = (hue + 1.4) % 360;
+                    const c1 = hslToHexRgb(hue, 100, 54);
+                    const c2 = hslToHexRgb((hue + 60) % 360, 100, 48);
+                    document.body.style.setProperty('--role-color', c1.hex);
+                    document.body.style.setProperty('--role-rgb', `${c1.r}, ${c1.g}, ${c1.b}`);
+                    document.body.style.setProperty('--role-glow', `rgba(${c1.r}, ${c1.g}, ${c1.b}, 0.45)`);
+                    document.body.style.setProperty('--role-gradient', `linear-gradient(135deg, ${c1.hex} 0%, ${c2.hex} 100%)`);
+                    if (ts - lastFav > 500) { forceUpdateTabFavicon(c1.hex); lastFav = ts; }
+                    requestAnimationFrame(stepRainbow);
+                }
+                requestAnimationFrame(stepRainbow);
+            } else if (savedAccent && savedAccent.startsWith('#')) {
+                const clean = savedAccent.replace('#', '');
+                const num = parseInt(clean, 16);
+                if (!isNaN(num)) {
+                    const r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
+                    document.body.style.setProperty('--role-color', savedAccent);
+                    document.body.style.setProperty('--role-rgb', `${r}, ${g}, ${b}`);
+                    document.body.style.setProperty('--role-glow', `rgba(${r}, ${g}, ${b}, 0.42)`);
+                    document.body.style.setProperty('--role-gradient', `linear-gradient(135deg, ${savedAccent} 0%, rgba(${r},${g},${b},0.75) 100%)`);
+                    forceUpdateTabFavicon(savedAccent);
+                }
+            } else {
+                forceUpdateTabFavicon(defaultRoleHex);
+            }
+
+            const savedBg = localStorage.getItem('kinet_bg_intensity');
+            const bgMap = { deep: '#020305', contrast: '#0B1222', emerald: '#04120E', crimson: '#120509', standard: '#06080E' };
+            if (savedBg && bgMap[savedBg]) document.documentElement.style.setProperty('--bg-void', bgMap[savedBg]);
+
+            const savedPanelStyle = localStorage.getItem('kinet_panel_style');
+            if (savedPanelStyle === 'carbon') {
+                document.documentElement.style.setProperty('--bg-panel', 'rgba(8, 10, 15, 0.98)');
+                document.documentElement.style.setProperty('--border-subtle', 'rgba(255, 255, 255, 0.14)');
+            } else if (savedPanelStyle === 'neon-border') {
+                document.documentElement.style.setProperty('--bg-panel', 'rgba(10, 14, 22, 0.92)');
+                document.documentElement.style.setProperty('--border-subtle', 'rgba(var(--role-rgb), 0.38)');
+            }
+            const savedRadius = localStorage.getItem('kinet_corner_radius');
+            if (savedRadius) document.querySelectorAll('.kinet-panel').forEach(p => p.style.borderRadius = savedRadius);
+        }
+
+        // =========================================================================
+        // SVGs 3D PROFESIONALES POR DEPORTE
+        // =========================================================================
+        function buildSportStageSVG() {
+            if (activeArenaSport === 'Pádel / Tenis') {
+                return `
+                <svg class="arena-svg-canvas" viewBox="0 0 600 420" preserveAspectRatio="none">
+                    <rect width="600" height="420" fill="#071B30"/>
+                    <rect x="48" y="20" width="504" height="380" fill="#0B2847" stroke="#38BDF8" stroke-width="3"/>
+                    <rect x="42" y="14" width="516" height="392" fill="none" stroke="rgba(56,189,248,0.48)" stroke-width="6" stroke-dasharray="28 6"/>
+                    <g stroke="rgba(255,255,255,0.85)" stroke-width="2.2" fill="none">
+                        <line x1="48" y1="84" x2="552" y2="84"/>
+                        <line x1="48" y1="336" x2="552" y2="336"/>
+                        <line x1="300" y1="84" x2="300" y2="336"/>
+                    </g>
+                    <line x1="40" y1="210" x2="560" y2="210" stroke="#00FF88" stroke-width="5"/>
+                </svg>`;
+            }
+            if (activeArenaSport === 'Boxeo / MMA') {
+                const distR = combatState.distance === 'larga' ? 145 : (combatState.distance === 'media' ? 98 : 54);
+                return `
+                <svg class="arena-svg-canvas" viewBox="0 0 600 420" preserveAspectRatio="none">
+                    <rect width="600" height="420" fill="#070A12"/>
+                    <polygon points="175,18 425,18 564,124 564,296 425,402 175,402 36,296 36,124" fill="#0D1320" stroke="rgba(255,255,255,0.42)" stroke-width="3"/>
+                    <rect x="115" y="52" width="370" height="316" fill="rgba(16,23,38,0.84)" stroke="rgba(255,255,255,0.62)" stroke-width="2.2"/>
+                    <circle cx="300" cy="210" r="145" fill="none" stroke="rgba(56,189,248,0.28)" stroke-width="1.6" stroke-dasharray="8 6"/>
+                    <circle cx="300" cy="210" r="98" fill="none" stroke="rgba(245,158,11,0.34)" stroke-width="1.6" stroke-dasharray="6 4"/>
+                    <circle cx="300" cy="210" r="${distR}" fill="rgba(0,255,136,0.08)" stroke="#00FF88" stroke-width="2.4"/>
+                    <polygon points="115,52 165,52 115,102" fill="#EF4444"/>
+                    <polygon points="485,368 435,368 485,318" fill="#3B82F6"/>
+                </svg>`;
+            }
+            // Running / Atletismo: Pista olímpica 400m completa con doble línea discontinua y meta
+            return `
+            <svg class="arena-svg-canvas" viewBox="0 0 600 420" preserveAspectRatio="none">
+                <rect width="600" height="420" fill="#090D16"/>
+                <rect x="28" y="24" width="544" height="372" rx="180" fill="#6E1D1B" stroke="rgba(255,255,255,0.85)" stroke-width="2.5"/>
+                <rect x="52" y="48" width="496" height="324" rx="156" fill="none" stroke="rgba(255,255,255,0.62)" stroke-width="1.8" stroke-dasharray="10 6"/>
+                <rect x="78" y="74" width="444" height="272" rx="130" fill="none" stroke="rgba(255,255,255,0.46)" stroke-width="1.6" stroke-dasharray="10 6"/>
+                <rect x="104" y="100" width="392" height="220" rx="105" fill="#0A1F17" stroke="#00FF88" stroke-width="2.5"/>
+                <line x1="420" y1="24" x2="420" y2="100" stroke="#FFFFFF" stroke-width="5"/>
+            </svg>`;
+        }
+
+        // =========================================================================
+        // CÁLCULO DE PARCIALES REALISTAS DE RUNNING (NUNCA 100:00/KM EN 400M)
+        // =========================================================================
         function computeRunningSplits() {
             const cfg = RUN_DISTANCES[runState.distance] || RUN_DISTANCES['10K'];
-            const totalSec = Math.max(45, runState.targetMinutes * 60);
-            const avgSecPerKm = totalSec / cfg.totalKm;
-            const segKm = cfg.totalKm / cfg.segments;
+            const totalSec = Math.max(30, runState.targetSec);
+            const avgSecPerKm = totalSec / cfg.km;
+            const segKm = cfg.km / cfg.segs;
 
-            const multipliersMap = {
-                even: Array(cfg.segments).fill(1.0),
-                negative: [1.04, 1.02, 1.0, 0.98, 0.96, 0.94],
-                drafting: [1.02, 1.01, 1.01, 0.99, 0.97, 0.95],
-                aggressive: [0.95, 0.98, 1.0, 1.02, 1.03, 1.04],
-                kick: [1.03, 1.03, 1.02, 1.0, 0.96, 0.90]
+            const multsByStrat = {
+                negative:  [1.045, 1.02, 1.0, 0.975, 0.95],
+                even:      [1.0, 1.0, 1.0, 1.0, 1.0],
+                drafting:  [1.025, 1.015, 1.005, 0.985, 0.96],
+                kick:      [1.03, 1.025, 1.015, 0.99, 0.92],
+                intervals: [0.93, 1.07, 0.93, 1.07, 0.94]
             };
-            const rawMults = (multipliersMap[runState.strategy] || multipliersMap.even).slice(0, cfg.segments);
-            const avgMult = rawMults.reduce((a, b) => a + b, 0) / rawMults.length;
-            const normMults = rawMults.map(m => m / avgMult);
+            const raw = (multsByStrat[runState.strategy] || multsByStrat.even).slice(0, cfg.segs);
+            const avgM = raw.reduce((a, b) => a + b, 0) / raw.length;
+            const mults = raw.map(x => x / avgM);
 
-            let cumSec = 0;
-            return normMults.map((m, i) => {
-                const paceSec = avgSecPerKm * m;
-                const segSec = paceSec * segKm;
-                cumSec += segSec;
-                let zone = 'Z3';
-                let cue = 'Ritmo crucero estable y respiración controlada';
-                if (m > 1.02) { zone = 'Z2'; cue = runState.pacerActive ? 'Ahorro en drafting detrás de liebre' : 'Salida conservadora sin gastar glucógeno'; }
-                else if (m < 0.97) { zone = 'Z5'; cue = 'Cambio de ritmo final + máxima frecuencia de zancada'; }
-                else if (m < 0.995) { zone = 'Z4'; cue = 'Progresión en umbral de lactato, postura alta'; }
-
+            let cum = 0;
+            return mults.map((m, idx) => {
+                const paceKm = avgSecPerKm * m;
+                const segTime = paceKm * segKm;
+                cum += segTime;
+                let z = 'Z3', zClass = 'z3', cue = 'Ritmo crucero fluido';
+                if (m > 1.02) { z = 'Z2'; zClass = 'z2'; cue = showExtraActor ? 'Drafting tras liebre' : 'Control aeróbico'; }
+                else if (m < 0.965) { z = 'Z5'; zClass = 'z5'; cue = 'Sprint final / Máxima cadencia'; }
+                else if (m < 0.995) { z = 'Z4'; zClass = 'z4'; cue = 'Umbral de lactato'; }
                 return {
-                    idx: i + 1,
-                    label: `${cfg.segLabel} ${i + 1}`,
-                    pace: formatPace(paceSec),
-                    cumTime: formatClock(cumSec),
-                    zone,
+                    label: `${cfg.segLbl} ${idx + 1}`,
+                    paceTxt: cfg.km <= 0.8 ? `${segTime.toFixed(1)}s` : formatPacePerKm(paceKm),
+                    cumTxt: cfg.km <= 0.8 ? `${cum.toFixed(1)}s` : formatSecClock(cum),
+                    zone: z,
+                    zClass,
                     cue
                 };
             });
         }
 
-        function renderRunningLab() {
-            const mount = document.getElementById('specialized-lab-mount');
-            const splits = computeRunningSplits();
-            const cfg = RUN_DISTANCES[runState.distance] || RUN_DISTANCES['10K'];
-            const avgPace = formatPace((runState.targetMinutes * 60) / cfg.totalKm);
-
-            mount.innerHTML = `
-                <div class="bento-grid">
-                    <div class="col-7">
-                        <div class="kinet-panel" id="export-stage-card">
-                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
-                                <div>
-                                    <div style="font-family:'Orbitron';font-size:0.86rem;font-weight:900;color:#FFF;">PISTA OLÍMPICA 400M & ESTRATEGIA DE RITMO</div>
-                                    <div style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);">OBJETIVO: ${runState.distance} EN ${runState.targetMinutes} MIN • RITMO MEDIO: ${avgPace}</div>
-                                </div>
-                                <span class="verified-badge">${runState.pacerActive ? '🏃 LIEBRE / DRAFTING ON' : '🏃 CARRERA INDIVIDUAL'}</span>
-                            </div>
-
-                            <div class="stage-viewport">
-                                <svg class="stage-svg" viewBox="0 0 600 420" preserveAspectRatio="xMidYMid meet">
-                                    <rect width="600" height="420" fill="#090D16" rx="14"/>
-                                    <rect x="28" y="24" width="544" height="372" rx="180" fill="#6E1D1B" stroke="rgba(255,255,255,0.85)" stroke-width="2.5"/>
-                                    <rect x="52" y="48" width="496" height="324" rx="156" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.8" stroke-dasharray="10 6"/>
-                                    <rect x="78" y="74" width="444" height="272" rx="130" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.6" stroke-dasharray="10 6"/>
-                                    <rect x="104" y="100" width="392" height="220" rx="105" fill="#0A1F17" stroke="#00FF88" stroke-width="2.5"/>
-                                    <line x1="420" y1="24" x2="420" y2="100" stroke="#FFFFFF" stroke-width="5"/>
-                                    <text x="420" y="18" fill="#FFFFFF" font-family="JetBrains Mono" font-size="10" text-anchor="middle">META / SALIDA</text>
-                                    <text x="300" y="195" fill="#00FF88" font-family="Orbitron" font-size="18" font-weight="900" text-anchor="middle">${runState.distance} • ${avgPace}</text>
-                                    <text x="300" y="220" fill="#94A3B8" font-family="JetBrains Mono" font-size="11" text-anchor="middle">ESTRATEGIA: ${runState.strategy.toUpperCase()}</text>
-                                    ${runState.pacerActive ? `
-                                        <circle cx="385" cy="60" r="14" fill="#0A1422" stroke="#F59E0B" stroke-width="2.5"/>
-                                        <text x="385" y="64" fill="#F59E0B" font-family="Orbitron" font-size="8" font-weight="900" text-anchor="middle">PAC</text>
-                                        <line x1="340" y1="60" x2="368" y2="60" stroke="#00FF88" stroke-width="2.5" stroke-dasharray="4 3"/>
-                                    ` : ''}
-                                    <circle cx="325" cy="60" r="15" fill="#041810" stroke="#00FF88" stroke-width="2.5"/>
-                                    <text x="325" y="64" fill="#FFFFFF" font-family="Orbitron" font-size="8" font-weight="900" text-anchor="middle">TÚ</text>
-                                </svg>
-                            </div>
-
-                            <div style="overflow-x:auto;">
-                                <table class="splits-table">
-                                    <thead>
-                                        <tr><th>Tramo</th><th>Ritmo Objetivo</th><th>Tiempo Acum.</th><th>Zona</th><th>Consigna Táctica</th></tr>
-                                    </thead>
-                                    <tbody>
-                                        ${splits.map(s => `
-                                            <tr>
-                                                <td><strong>${s.label}</strong></td>
-                                                <td style="font-family:'JetBrains Mono';color:var(--role-color);font-weight:700;">${s.pace}</td>
-                                                <td style="font-family:'JetBrains Mono';">${s.cumTime}</td>
-                                                <td><span class="zone-pill ${s.zone.toLowerCase()}">${s.zone}</span></td>
-                                                <td style="font-size:0.68rem;color:#CBD5E1;">${s.cue}</td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-5">
-                        <div class="kinet-panel" style="display:flex;flex-direction:column;gap:12px;">
-                            <div style="font-family:'Orbitron';font-size:0.84rem;font-weight:900;color:var(--role-color);">⚙️ CONFIGURADOR DE CARRERA</div>
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                                <div>
-                                    <label class="field-lbl">Distancia / Prueba</label>
-                                    <select class="kinet-select-native" onchange="runState.distance=this.value; renderRunningLab();">
-                                        ${Object.keys(RUN_DISTANCES).map(d => `<option value="${d}" ${runState.distance === d ? 'selected' : ''}>${d}</option>`).join('')}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="field-lbl">Marca Objetivo (Minutos)</label>
-                                    <input type="number" min="1" max="360" step="0.5" class="kinet-input" value="${runState.targetMinutes}" oninput="runState.targetMinutes=parseFloat(this.value)||40; renderRunningLab();">
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="field-lbl">Estrategia de Ritmo</label>
-                                <select class="kinet-select-native" onchange="runState.strategy=this.value; renderRunningLab();">
-                                    <option value="negative" ${runState.strategy==='negative'?'selected':''}>⚡ Negative Split (De menos a más)</option>
-                                    <option value="even" ${runState.strategy==='even'?'selected':''}>⚙️ Crucero Constante (Even Splits)</option>
-                                    <option value="drafting" ${runState.strategy==='drafting'?'selected':''}>🎯 Drafting / Tren de Liebres</option>
-                                    <option value="aggressive" ${runState.strategy==='aggressive'?'selected':''}>🔥 Salida Explosiva</option>
-                                    <option value="kick" ${runState.strategy==='kick'?'selected':''}>🛡️ Conservador + Sprint Final</option>
-                                </select>
-                            </div>
-
-                            <div style="display:flex;gap:8px;">
-                                <button type="button" class="pill-btn ${runState.pacerActive ? 'active' : ''}" style="flex:1;" onclick="runState.pacerActive=!runState.pacerActive; renderRunningLab();">
-                                    🏃 Liebre / Drafting: ${runState.pacerActive ? 'ON' : 'OFF'}
-                                </button>
-                            </div>
-
-                            <div style="border-top:1px solid var(--border-subtle);padding-top:10px;">
-                                <label class="field-lbl">Guardar Plan en tu Biblioteca</label>
-                                <div style="display:flex;gap:6px;">
-                                    <input type="text" id="spec-plan-title" class="kinet-input" value="${runState.planTitle}" placeholder="Nombre del plan...">
-                                    <button type="button" class="btn-primary" onclick="saveCurrentSpecializedPlan()">💾 Guardar</button>
-                                </div>
-                            </div>
-
-                            <div id="saved-plans-list"></div>
-
-                            <button type="button" class="btn-primary" style="width:100%;" onclick="sendSpecializedPlanToCoach()">
-                                ⚡ Analizar este Plan con mi Entrenador IA →
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            renderSavedPlansList();
-        }
-
         // =========================================================================
-        // 2. LABORATORIO DE PÁDEL / TENIS (PATRONES DE 3 GOLPES Y ZONAS DE PISTA)
+        // RENDERIZADO DE LA PIZARRA 3D, ACTORES ANIMADOS Y VECTORES POR FASE
         // =========================================================================
-        let racketState = {
-            patternName: 'Australiana + Bandeja al Rincón',
-            formation: 'Australiana en Saque',
-            shot1: { from: [180, 355], to: [410, 125], label: '1. Saque cortado a la T' },
-            shot2: { from: [410, 125], to: [220, 150], label: '2. Resto cruzado bajo' },
-            shot3: { from: [220, 150], to: [460, 75], label: '3. Bandeja profunda al rincón' }
-        };
+        function renderStageAndBottomMetrics() {
+            document.getElementById('arena-svg-mount').innerHTML = buildSportStageSVG();
+            const actorsLayer = document.getElementById('arena-actors-layer');
+            const vecSvg = document.getElementById('arena-vectors-svg');
+            const ballEl = document.getElementById('lab-ball-node');
+            const metricsBox = document.getElementById('bottom-live-metrics');
+            const tele = document.getElementById('live-tactical-teleprompter');
+            const diag = document.getElementById('ai-live-diagnosis');
 
-        const RACKET_PRESETS = {
-            'australiana': {
-                patternName: 'Australiana + Bandeja al Rincón',
-                formation: 'Australiana en Saque',
-                shot1: { from: [230, 355], to: [410, 130], label: '1. Saque al cristal lateral' },
-                shot2: { from: [410, 130], to: [240, 165], label: '2. Globo defensivo rival' },
-                shot3: { from: [240, 165], to: [470, 65], label: '3. Bandeja profunda al rincón' }
-            },
-            'chiquita': {
-                patternName: 'Defensa Doble Pared + Chiquita',
-                formation: 'Transición Fondo → Red',
-                shot1: { from: [150, 340], to: [290, 225], label: '1. Chiquita baja a los pies' },
-                shot2: { from: [290, 225], to: [180, 155], label: '2. Volea forzada del rival' },
-                shot3: { from: [180, 155], to: [440, 95], label: '3. Contrapared / Volea ganadora' }
-            },
-            'nevera': {
-                patternName: 'Nevera Táctica + Remate X3',
-                formation: 'Presión en Red',
-                shot1: { from: [210, 245], to: [450, 110], label: '1. Volea profunda sobre el Drive' },
-                shot2: { from: [450, 110], to: [210, 250], label: '2. Globo corto del rival' },
-                shot3: { from: [210, 250], to: [490, 55], label: '3. Remate por 3 (X3) ganador' }
-            }
-        };
+            const defs = `
+                <defs>
+                    <marker id="mkG" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#00FF88"/></marker>
+                    <marker id="mkA" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#F59E0B"/></marker>
+                    <marker id="mkB" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#38BDF8"/></marker>
+                </defs>`;
 
-        function renderRacketLab() {
-            const mount = document.getElementById('specialized-lab-mount');
-            const s1 = racketState.shot1, s2 = racketState.shot2, s3 = racketState.shot3;
-            mount.innerHTML = `
-                <div class="bento-grid">
-                    <div class="col-7">
-                        <div class="kinet-panel" id="export-stage-card">
-                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                                <div>
-                                    <div style="font-family:'Orbitron';font-size:0.86rem;font-weight:900;color:#FFF;">PIZARRA DE PATRONES DE 3 GOLPES</div>
-                                    <div style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);">${racketState.patternName.toUpperCase()} • ${racketState.formation.toUpperCase()}</div>
-                                </div>
-                                <span class="verified-badge">🎾 SECUENCIA 1 → 2 → 3</span>
-                            </div>
+            if (activeArenaSport === 'Running') {
+                ballEl.style.display = 'none';
+                const splits = computeRunningSplits();
+                const cfg = RUN_DISTANCES[runState.distance] || RUN_DISTANCES['10K'];
+                const avgPace = formatPacePerKm(runState.targetSec / cfg.km);
+                document.getElementById('active-plan-pill').textContent = `⏱️ ${runState.distance} • ${formatSecClock(runState.targetSec)} (${avgPace})`;
 
-                            <div class="stage-viewport">
-                                <svg class="stage-svg" viewBox="0 0 600 420" preserveAspectRatio="xMidYMid meet">
-                                    <defs>
-                                        <marker id="rkG" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#00FF88"/></marker>
-                                        <marker id="rkA" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#F59E0B"/></marker>
-                                        <marker id="rkB" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#38BDF8"/></marker>
-                                    </defs>
-                                    <rect width="600" height="420" fill="#071B30" rx="12"/>
-                                    <rect x="60" y="24" width="480" height="372" fill="#0B2847" stroke="#38BDF8" stroke-width="3"/>
-                                    <line x1="60" y1="88" x2="540" y2="88" stroke="rgba(255,255,255,0.75)" stroke-width="2"/>
-                                    <line x1="60" y1="332" x2="540" y2="332" stroke="rgba(255,255,255,0.75)" stroke-width="2"/>
-                                    <line x1="300" y1="88" x2="300" y2="332" stroke="rgba(255,255,255,0.75)" stroke-width="2"/>
-                                    <line x1="50" y1="210" x2="550" y2="210" stroke="#00FF88" stroke-width="5"/>
+                // Posiciones reales sobre la pista roja en las 3 fases (sentido antihorario olímpico)
+                const phaseCoords = [
+                    { me: [67, 15], pacer: [60, 15], rival: [73, 18], note: '1. Fase Inicial (Salida & Colocación): Salida controlada en calle 1-2 evitando tirones innecesarios.', arrow: [67, 15, 36, 15] },
+                    { me: [16, 62], pacer: [20, 74], rival: [14, 50], note: '2. Desarrollo (Contrarrecta & Drafting): Ritmo en zona objetivo ahorrando hasta un 4% de energía tras la liebre.', arrow: [16, 62, 48, 86] },
+                    { me: [74, 82], pacer: [62, 85], rival: [58, 85], note: '3. Remate Final (Curva Final → Recta de Meta): Apertura a calle 2 y cambio de ritmo progresivo hacia meta.', arrow: [74, 82, 70, 16] }
+                ];
+                const ph = phaseCoords[currentPhaseIdx] || phaseCoords[0];
 
-                                    <line x1="${s1.from[0]}" y1="${s1.from[1]}" x2="${s1.to[0]}" y2="${s1.to[1]}" stroke="#00FF88" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#rkG)"/>
-                                    <line x1="${s2.from[0]}" y1="${s2.from[1]}" x2="${s2.to[0]}" y2="${s2.to[1]}" stroke="#38BDF8" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#rkB)"/>
-                                    <line x1="${s3.from[0]}" y1="${s3.from[1]}" x2="${s3.to[0]}" y2="${s3.to[1]}" stroke="#F59E0B" stroke-width="3.2" marker-end="url(#rkA)"/>
-
-                                    <circle cx="${s1.from[0]}" cy="${s1.from[1]}" r="12" fill="#041810" stroke="#00FF88" stroke-width="2.5"/>
-                                    <text x="${s1.from[0]}" y="${s1.from[1]+4}" fill="#FFF" font-family="Orbitron" font-size="9" text-anchor="middle">1</text>
-                                    <circle cx="${s2.from[0]}" cy="${s2.from[1]}" r="12" fill="#081C2E" stroke="#38BDF8" stroke-width="2.5"/>
-                                    <text x="${s2.from[0]}" y="${s2.from[1]+4}" fill="#FFF" font-family="Orbitron" font-size="9" text-anchor="middle">2</text>
-                                    <circle cx="${s3.to[0]}" cy="${s3.to[1]}" r="13" fill="#2A1704" stroke="#F59E0B" stroke-width="2.5"/>
-                                    <text x="${s3.to[0]}" y="${s3.to[1]+4}" fill="#F59E0B" font-family="Orbitron" font-size="9" text-anchor="middle">★</text>
-                                </svg>
-                            </div>
-
-                            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-                                <div class="round-card" style="margin:0;border-left-color:#00FF88;"><div style="font-family:'JetBrains Mono';font-size:0.56rem;color:#00FF88;">GOLPE 1</div><div style="font-size:0.72rem;font-weight:700;">${s1.label}</div></div>
-                                <div class="round-card" style="margin:0;border-left-color:#38BDF8;"><div style="font-family:'JetBrains Mono';font-size:0.56rem;color:#38BDF8;">GOLPE 2</div><div style="font-size:0.72rem;font-weight:700;">${s2.label}</div></div>
-                                <div class="round-card" style="margin:0;border-left-color:#F59E0B;"><div style="font-family:'JetBrains Mono';font-size:0.56rem;color:#F59E0B;">GOLPE 3</div><div style="font-size:0.72rem;font-weight:700;">${s3.label}</div></div>
-                            </div>
+                let actorsHtml = `
+                    <div class="lab-actor-token" style="left:${ph.me[0]}%;top:${ph.me[1]}%;">
+                        <span class="lab-actor-init">TÚ</span>
+                        <span class="lab-actor-tag">${splits[Math.min(currentPhaseIdx, splits.length-1)].zone}</span>
+                    </div>`;
+                if (showExtraActor) {
+                    actorsHtml += `
+                        <div class="lab-actor-token pacer" style="left:${ph.pacer[0]}%;top:${ph.pacer[1]}%;">
+                            <span class="lab-actor-init">PAC</span>
+                            <span class="lab-actor-tag">LIEBRE</span>
                         </div>
+                        <div class="lab-actor-token rival" style="left:${ph.rival[0]}%;top:${ph.rival[1]}%;">
+                            <span class="lab-actor-init">PEL</span>
+                            <span class="lab-actor-tag">RIVAL</span>
+                        </div>`;
+                }
+                actorsLayer.innerHTML = actorsHtml;
+
+                const ax1 = ph.arrow[0] * 6, ay1 = ph.arrow[1] * 4.2, ax2 = ph.arrow[2] * 6, ay2 = ph.arrow[3] * 4.2;
+                vecSvg.innerHTML = defs + `
+                    <line x1="${ax1}" y1="${ay1}" x2="${ax2}" y2="${ay2}" stroke="#00FF88" stroke-width="3" class="kinet-laser-arrow" marker-end="url(#mkG)"/>
+                    <text x="300" y="198" fill="#00FF88" font-family="Orbitron" font-size="18" font-weight="900" text-anchor="middle">${runState.distance} • ${formatSecClock(runState.targetSec)}</text>
+                    <text x="300" y="224" fill="#CBD5E1" font-family="JetBrains Mono" font-size="11" text-anchor="middle">MEDIA: ${avgPace} • ${runState.strategy.toUpperCase()}</text>`;
+
+                tele.innerHTML = `🏃 <strong>${ph.note}</strong>`;
+                diag.textContent = `Plan ${runState.distance} en ${formatSecClock(runState.targetSec)} (${avgPace}). Estrategia ${runState.strategy.toUpperCase()}${showExtraActor ? ' con referencia de liebre' : ''}. ${runState.notes}`;
+
+                metricsBox.innerHTML = splits.map((s, idx) => `
+                    <div class="split-chip-card ${idx === currentPhaseIdx ? 'active-phase-card' : ''}">
+                        <div style="font-family:'JetBrains Mono';font-size:0.52rem;color:var(--text-secondary);">${s.label} <span class="zone-badge ${s.zClass}">${s.zone}</span></div>
+                        <div style="font-family:'Orbitron';font-size:0.74rem;font-weight:900;color:var(--role-color);margin:2px 0;">${s.paceTxt}</div>
+                        <div style="font-family:'JetBrains Mono';font-size:0.54rem;color:#CBD5E1;">Acum: ${s.cumTxt}</div>
                     </div>
-
-                    <div class="col-5">
-                        <div class="kinet-panel" style="display:flex;flex-direction:column;gap:11px;">
-                            <div style="font-family:'Orbitron';font-size:0.84rem;font-weight:900;color:var(--role-color);">🎾 PATRONES PROFESIONALES</div>
-                            <div style="display:flex;flex-direction:column;gap:6px;">
-                                <button type="button" class="pill-btn" onclick="racketState=JSON.parse(JSON.stringify(RACKET_PRESETS.australiana)); renderRacketLab();">1. Australiana + Bandeja al Rincón</button>
-                                <button type="button" class="pill-btn" onclick="racketState=JSON.parse(JSON.stringify(RACKET_PRESETS.chiquita)); renderRacketLab();">2. Defensa Doble Pared + Chiquita</button>
-                                <button type="button" class="pill-btn" onclick="racketState=JSON.parse(JSON.stringify(RACKET_PRESETS.nevera)); renderRacketLab();">3. Nevera Táctica + Remate X3</button>
-                            </div>
-
-                            <div>
-                                <label class="field-lbl">Personalizar Golpe 1 / 2 / 3</label>
-                                <input type="text" class="kinet-input" style="margin-bottom:5px;" value="${s1.label}" oninput="racketState.shot1.label=this.value;">
-                                <input type="text" class="kinet-input" style="margin-bottom:5px;" value="${s2.label}" oninput="racketState.shot2.label=this.value;">
-                                <input type="text" class="kinet-input" value="${s3.label}" oninput="racketState.shot3.label=this.value;">
-                            </div>
-
-                            <div style="display:flex;gap:6px;">
-                                <input type="text" id="spec-plan-title" class="kinet-input" value="${racketState.patternName}">
-                                <button type="button" class="btn-primary" onclick="saveCurrentSpecializedPlan()">💾 Guardar</button>
-                            </div>
-
-                            <div id="saved-plans-list"></div>
-
-                            <button type="button" class="btn-primary" style="width:100%;" onclick="sendSpecializedPlanToCoach()">
-                                ⚡ Analizar Patrón con Entrenador IA →
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            renderSavedPlansList();
-        }
-
-        // =========================================================================
-        // 3. LABORATORIO DE BOXEO / MMA (PLAN POR ASALTOS, DISTANCIAS Y COMBINACIONES)
-        // =========================================================================
-        let combatState = {
-            planTitle: 'Plan Combate 6 Asaltos — Corte de Ring',
-            distance: 'media',
-            rounds: [
-                { num: 1, focus: 'Lectura & Jab de Medida', combo: '1 - 1 - 2 + Paso Lateral', note: 'Controlar centro del ring y medir su mano adelantada.' },
-                { num: 2, focus: 'Trabajo al Cuerpo', combo: '1 - 2 - Gancho Hígado', note: 'Bajar su guardia atacando abajo tras finta alta.' },
-                { num: 3, focus: 'Esquiva & Contragolpe', combo: 'Slip Izq + Cross + Hook', note: 'Castigar cuando entre en línea recta.' }
-            ]
-        };
-
-        function renderCombatLab() {
-            const mount = document.getElementById('specialized-lab-mount');
-            const distRadius = combatState.distance === 'larga' ? 140 : (combatState.distance === 'media' ? 95 : 52);
-            mount.innerHTML = `
-                <div class="bento-grid">
-                    <div class="col-7">
-                        <div class="kinet-panel" id="export-stage-card">
-                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                                <div>
-                                    <div style="font-family:'Orbitron';font-size:0.86rem;font-weight:900;color:#FFF;">RING / OCTÁGONO & ZONAS DE DISTANCIA</div>
-                                    <div style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);">DISTANCIA ACTIVA: ${combatState.distance.toUpperCase()} • ${combatState.rounds.length} ASALTOS PLANIFICADOS</div>
-                                </div>
-                                <span class="verified-badge">🥊 PLAN DE ESQUINA</span>
-                            </div>
-
-                            <div class="stage-viewport">
-                                <svg class="stage-svg" viewBox="0 0 600 420" preserveAspectRatio="xMidYMid meet">
-                                    <rect width="600" height="420" fill="#070A12" rx="12"/>
-                                    <polygon points="175,20 425,20 560,125 560,295 425,400 175,400 40,295 40,125" fill="#0D1320" stroke="rgba(255,255,255,0.4)" stroke-width="3"/>
-                                    <circle cx="300" cy="210" r="145" fill="none" stroke="rgba(56,189,248,0.28)" stroke-width="1.8" stroke-dasharray="8 6"/>
-                                    <circle cx="300" cy="210" r="95" fill="none" stroke="rgba(245,158,11,0.38)" stroke-width="1.8" stroke-dasharray="6 4"/>
-                                    <circle cx="300" cy="210" r="${distRadius}" fill="rgba(0,255,136,0.08)" stroke="#00FF88" stroke-width="2.5"/>
-                                    <circle cx="${300 - distRadius/2}" cy="210" r="18" fill="#041810" stroke="#00FF88" stroke-width="2.5"/>
-                                    <text x="${300 - distRadius/2}" y="214" fill="#FFF" font-family="Orbitron" font-size="9" font-weight="900" text-anchor="middle">TÚ</text>
-                                    <circle cx="${300 + distRadius/2}" cy="210" r="18" fill="#2A080C" stroke="#EF4444" stroke-width="2.5"/>
-                                    <text x="${300 + distRadius/2}" y="214" fill="#FCA5A5" font-family="Orbitron" font-size="9" font-weight="900" text-anchor="middle">RIV</text>
-                                </svg>
-                            </div>
-
-                            <div style="max-height:220px;overflow-y:auto;">
-                                ${combatState.rounds.map((r, i) => `
-                                    <div class="round-card">
-                                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
-                                            <strong style="font-family:'Orbitron';font-size:0.74rem;color:var(--role-color);">ASALTO ${r.num} • ${r.focus}</strong>
-                                            <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:#F59E0B;font-weight:700;">${r.combo}</span>
-                                        </div>
-                                        <div style="font-size:0.7rem;color:#CBD5E1;">${r.note}</div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-5">
-                        <div class="kinet-panel" style="display:flex;flex-direction:column;gap:11px;">
-                            <div style="font-family:'Orbitron';font-size:0.84rem;font-weight:900;color:var(--role-color);">🥊 CONSTRUCTOR DE ASALTOS</div>
-                            <div>
-                                <label class="field-lbl">Distancia de Combate</label>
-                                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
-                                    <button type="button" class="pill-btn ${combatState.distance==='larga'?'active':''}" onclick="combatState.distance='larga'; renderCombatLab();">Larga (Jab)</button>
-                                    <button type="button" class="pill-btn ${combatState.distance==='media'?'active':''}" onclick="combatState.distance='media'; renderCombatLab();">Media (Series)</button>
-                                    <button type="button" class="pill-btn ${combatState.distance==='corta'?'active':''}" onclick="combatState.distance='corta'; renderCombatLab();">Corta / Clinch</button>
-                                </div>
-                            </div>
-
-                            <div style="background:rgba(4,6,10,0.75);border:1px solid var(--border-subtle);border-radius:12px;padding:10px;">
-                                <label class="field-lbl">Añadir Nuevo Asalto</label>
-                                <input type="text" id="new-rd-focus" class="kinet-input" style="margin-bottom:6px;" placeholder="Objetivo (Ej: Presión en cuerdas / Takedown)">
-                                <input type="text" id="new-rd-combo" class="kinet-input" style="margin-bottom:6px;" placeholder="Combinación (Ej: 1-2-3 + Low Kick)">
-                                <input type="text" id="new-rd-note" class="kinet-input" style="margin-bottom:7px;" placeholder="Consigna de esquina...">
-                                <button type="button" class="btn-secondary" style="width:100%;border-color:var(--role-color);color:var(--role-color);" onclick="addCombatRound()">+ Añadir Asalto ${combatState.rounds.length + 1}</button>
-                            </div>
-
-                            <div style="display:flex;gap:6px;">
-                                <input type="text" id="spec-plan-title" class="kinet-input" value="${combatState.planTitle}">
-                                <button type="button" class="btn-primary" onclick="saveCurrentSpecializedPlan()">💾 Guardar</button>
-                            </div>
-
-                            <div id="saved-plans-list"></div>
-
-                            <button type="button" class="btn-primary" style="width:100%;" onclick="sendSpecializedPlanToCoach()">
-                                ⚡ Enviar Plan de Combate a Esquina IA →
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            renderSavedPlansList();
-        }
-
-        function addCombatRound() {
-            const focus = (document.getElementById('new-rd-focus')?.value || '').trim() || 'Ritmo & Presión';
-            const combo = (document.getElementById('new-rd-combo')?.value || '').trim() || '1 - 2 - Hook';
-            const note = (document.getElementById('new-rd-note')?.value || '').trim() || 'Mantener guardia alta al salir.';
-            combatState.rounds.push({ num: combatState.rounds.length + 1, focus, combo, note });
-            renderCombatLab();
-        }
-
-        // =========================================================================
-        // GUARDADO, PDF Y ENVÍO AL ENTRENADOR IA (COMÚN A LOS 3 LABS)
-        // =========================================================================
-        function saveCurrentSpecializedPlan() {
-            const title = (document.getElementById('spec-plan-title')?.value || '').trim() || `Plan ${activeArenaSport}`;
-            const payload = activeArenaSport === 'Running' ? JSON.parse(JSON.stringify(runState))
-                : (activeArenaSport === 'Pádel / Tenis' ? JSON.parse(JSON.stringify(racketState))
-                    : JSON.parse(JSON.stringify(combatState)));
-            savedPlans.unshift({ id: 'sp_' + Date.now(), title, sport: activeArenaSport, payload, date: new Date().toLocaleDateString('es-ES') });
-            persistSavedPlans();
-            renderSavedPlansList();
-        }
-
-        function renderSavedPlansList() {
-            const box = document.getElementById('saved-plans-list');
-            if (!box) return;
-            if (savedPlans.length === 0) {
-                box.innerHTML = `<div style="font-size:0.68rem;color:var(--text-secondary);text-align:center;padding:8px;border:1px dashed var(--border-subtle);border-radius:10px;">Sin planes guardados aún en ${activeArenaSport}.</div>`;
+                `).join('');
                 return;
             }
-            box.innerHTML = savedPlans.slice(0, 4).map(p => `
-                <div class="saved-item-card">
-                    <div style="min-width:0;">
-                        <div style="font-family:'Orbitron';font-size:0.68rem;font-weight:800;color:#FFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.title}</div>
-                        <div style="font-family:'JetBrains Mono';font-size:0.54rem;color:var(--role-color);">${p.date} • ☁️ Nube</div>
+
+            if (activeArenaSport === 'Pádel / Tenis') {
+                const sh = racketState.shots[currentPhaseIdx] || racketState.shots[0];
+                document.getElementById('active-plan-pill').textContent = `🎾 ${racketState.planTitle.slice(0, 26)}`;
+
+                const pos = sh.actorPos;
+                const actors = [
+                    { x: pos[0][0]/6, y: pos[0][1]/4.2, init: 'REV', tag: 'TÚ', cls: '' },
+                    { x: pos[1][0]/6, y: pos[1][1]/4.2, init: 'DRV', tag: 'COMP', cls: '' }
+                ];
+                if (showExtraActor) {
+                    actors.push({ x: pos[2][0]/6, y: pos[2][1]/4.2, init: 'R1', tag: 'RIV', cls: 'rival' });
+                    actors.push({ x: pos[3][0]/6, y: pos[3][1]/4.2, init: 'R2', tag: 'RIV', cls: 'rival' });
+                }
+                actorsLayer.innerHTML = actors.map(a => `
+                    <div class="lab-actor-token ${a.cls}" style="left:${a.x.toFixed(1)}%;top:${a.y.toFixed(1)}%;">
+                        <span class="lab-actor-init">${a.init}</span>
+                        <span class="lab-actor-tag">${a.tag}</span>
+                    </div>`).join('');
+
+                ballEl.style.display = 'flex';
+                ballEl.textContent = '🎾';
+                ballEl.style.left = `${(sh.to[0]/6).toFixed(1)}%`;
+                ballEl.style.top = `${(sh.to[1]/4.2).toFixed(1)}%`;
+
+                const cols = ['#00FF88', '#38BDF8', '#F59E0B'];
+                const mks = ['mkG', 'mkB', 'mkA'];
+                vecSvg.innerHTML = defs + racketState.shots.slice(0, currentPhaseIdx + 1).map((s, i) => `
+                    <line x1="${s.from[0]}" y1="${s.from[1]}" x2="${s.to[0]}" y2="${s.to[1]}" stroke="${cols[i]}" stroke-width="${i === currentPhaseIdx ? 3.2 : 1.8}" opacity="${i === currentPhaseIdx ? 1 : 0.45}" class="kinet-laser-arrow" marker-end="url(#${mks[i]})"/>
+                `).join('');
+
+                tele.innerHTML = `🎾 <strong>${sh.label}</strong> — ${racketState.notes}`;
+                diag.textContent = `Secuencia "${racketState.planTitle}": ${racketState.shots.map(x => x.label).join(' → ')}.`;
+
+                metricsBox.innerHTML = racketState.shots.map((s, idx) => `
+                    <div class="split-chip-card ${idx === currentPhaseIdx ? 'active-phase-card' : ''}" style="cursor:pointer;" onclick="selectLabPhase(${idx})">
+                        <div style="font-family:'JetBrains Mono';font-size:0.52rem;color:var(--role-color);">GOLPE ${idx + 1}</div>
+                        <div style="font-size:0.66rem;font-weight:700;color:#FFF;margin-top:2px;">${s.label}</div>
                     </div>
-                    <div style="display:flex;gap:5px;flex-shrink:0;">
-                        <button type="button" class="btn-secondary" style="padding:4px 8px;font-size:0.55rem;" onclick="loadSpecializedPlan('${p.id}')">Cargar</button>
-                        <button type="button" class="btn-secondary" style="padding:4px 7px;font-size:0.55rem;color:#FCA5A5;" onclick="deleteSpecializedPlan('${p.id}')">✕</button>
-                    </div>
+                `).join('');
+                return;
+            }
+
+            // BOXEO / MMA
+            ballEl.style.display = 'none';
+            const rd = combatState.rounds[currentPhaseIdx] || combatState.rounds[0];
+            document.getElementById('active-plan-pill').textContent = `🥊 ${combatState.rounds.length} ASALTOS • DIST. ${combatState.distance.toUpperCase()}`;
+
+            const meX = rd.me[0]/6, meY = rd.me[1]/4.2;
+            const rivX = rd.riv[0]/6, rivY = rd.riv[1]/4.2;
+            let cHtml = `
+                <div class="lab-actor-token" style="left:${meX.toFixed(1)}%;top:${meY.toFixed(1)}%;">
+                    <span class="lab-actor-init">TÚ</span>
+                    <span class="lab-actor-tag">ESQ.A</span>
+                </div>`;
+            if (showExtraActor) {
+                cHtml += `
+                <div class="lab-actor-token rival" style="left:${rivX.toFixed(1)}%;top:${rivY.toFixed(1)}%;">
+                    <span class="lab-actor-init">RIV</span>
+                    <span class="lab-actor-tag">ESQ.B</span>
+                </div>`;
+            }
+            actorsLayer.innerHTML = cHtml;
+            vecSvg.innerHTML = defs + `
+                <line x1="${rd.me[0]}" y1="${rd.me[1]}" x2="${rd.riv[0] - 20}" y2="${rd.riv[1]}" stroke="#F59E0B" stroke-width="3" class="kinet-laser-arrow" marker-end="url(#mkA)"/>`;
+
+            tele.innerHTML = `🥊 <strong>Asalto ${rd.num} (${rd.focus}):</strong> ${rd.combo} — ${rd.note}`;
+            diag.textContent = `Plan de Combate "${combatState.planTitle}" en distancia ${combatState.distance.toUpperCase()}. Asalto activo: ${rd.combo}.`;
+
+            metricsBox.innerHTML = combatState.rounds.slice(0, 4).map((r, idx) => `
+                <div class="split-chip-card ${idx === currentPhaseIdx ? 'active-phase-card' : ''}" style="cursor:pointer;" onclick="selectLabPhase(${idx})">
+                    <div style="font-family:'JetBrains Mono';font-size:0.52rem;color:var(--role-color);">ASALTO ${r.num} • ${r.focus.slice(0, 14)}</div>
+                    <div style="font-family:'Orbitron';font-size:0.64rem;font-weight:800;color:#F59E0B;margin-top:2px;">${r.combo}</div>
                 </div>
             `).join('');
         }
 
-        function loadSpecializedPlan(id) {
+        // =========================================================================
+        // CONTROLES SUPERIORES (3 MODOS + BOCATAS KINET + FASES + ANIMACIÓN)
+        // =========================================================================
+        function setupTopBarBySport() {
+            const pSel = document.getElementById('lab-primary-select');
+            const sSel = document.getElementById('lab-secondary-select');
+            const extraBtn = document.getElementById('btn-extra-toggle');
+
+            if (activeArenaSport === 'Running') {
+                document.getElementById('header-icon').textContent = '⏱️';
+                document.getElementById('header-tag-text').textContent = 'LABORATORIO 3D ESPECIALIZADO • RUNNING / ATLETISMO';
+                document.getElementById('header-main-title').textContent = 'Estrategia de Carrera & Parciales';
+                document.getElementById('mode-lbl-train').textContent = '1. Entrenar';
+                document.getElementById('mode-lbl-comp').textContent = '2. Día de Carrera';
+                document.getElementById('mode-lbl-tactic').textContent = '3. Claves Pista';
+                extraBtn.textContent = `🏃 Liebre / Pelotón: ${showExtraActor ? 'ON' : 'OFF'}`;
+
+                pSel.innerHTML = Object.keys(RUN_DISTANCES).map(k =>
+                    `<option value="${k}" ${runState.distance === k ? 'selected' : ''}>📏 Prueba: ${RUN_DISTANCES[k].label}</option>`
+                ).join('');
+                sSel.innerHTML = `
+                    <option value="negative" ${runState.strategy==='negative'?'selected':''}>⚡ Ritmo: Negative Split</option>
+                    <option value="even" ${runState.strategy==='even'?'selected':''}>⚙️ Ritmo: Crucero Constante</option>
+                    <option value="drafting" ${runState.strategy==='drafting'?'selected':''}>🎯 Ritmo: Drafting / Liebre</option>
+                    <option value="kick" ${runState.strategy==='kick'?'selected':''}>🔥 Ritmo: Sprint Final</option>
+                    <option value="intervals" ${runState.strategy==='intervals'?'selected':''}>⏱️ Entreno: Series / Fartlek</option>
+                `;
+            } else if (activeArenaSport === 'Pádel / Tenis') {
+                document.getElementById('header-icon').textContent = '🎾';
+                document.getElementById('header-tag-text').textContent = 'LABORATORIO 3D ESPECIALIZADO • PÁDEL / TENIS';
+                document.getElementById('header-main-title').textContent = 'Patrones de Golpeo & Partido';
+                document.getElementById('mode-lbl-train').textContent = '1. Entrenar';
+                document.getElementById('mode-lbl-comp').textContent = '2. Día de Partido';
+                document.getElementById('mode-lbl-tactic').textContent = '3. Saque & Resto';
+                extraBtn.textContent = `⚔️ Rivales: ${showExtraActor ? 'ON' : 'OFF'}`;
+
+                pSel.innerHTML = Object.keys(RACKET_LIBRARY).map(k =>
+                    `<option value="${k}" ${racketState.presetKey === k ? 'selected' : ''}>🎾 Patrón: ${RACKET_LIBRARY[k].title}</option>`
+                ).join('');
+                sSel.innerHTML = `
+                    <option value="dobles" ${racketState.matchType==='dobles'?'selected':''}>👥 Modalidad: Dobles / Pádel</option>
+                    <option value="indiv" ${racketState.matchType==='indiv'?'selected':''}>👤 Modalidad: Individual Tenis</option>
+                `;
+            } else {
+                document.getElementById('header-icon').textContent = '🥊';
+                document.getElementById('header-tag-text').textContent = 'LABORATORIO 3D ESPECIALIZADO • BOXEO / MMA';
+                document.getElementById('header-main-title').textContent = 'Plan de Combate & Asaltos';
+                document.getElementById('mode-lbl-train').textContent = '1. Sparring';
+                document.getElementById('mode-lbl-comp').textContent = '2. Día de Combate';
+                document.getElementById('mode-lbl-tactic').textContent = '3. Esquina & Clinch';
+                extraBtn.textContent = `⚔️ Rival: ${showExtraActor ? 'ON' : 'OFF'}`;
+
+                pSel.innerHTML = Object.keys(COMBAT_LIBRARY).map(k =>
+                    `<option value="${k}" ${combatState.presetKey === k ? 'selected' : ''}>🥊 Plan: ${COMBAT_LIBRARY[k].title}</option>`
+                ).join('');
+                sSel.innerHTML = `
+                    <option value="larga" ${combatState.distance==='larga'?'selected':''}>📏 Distancia: Larga (Jab)</option>
+                    <option value="media" ${combatState.distance==='media'?'selected':''}>📏 Distancia: Media (Series)</option>
+                    <option value="corta" ${combatState.distance==='corta'?'selected':''}>📏 Distancia: Corta / Clinch</option>
+                `;
+            }
+            refreshAllCustomKinetSelects();
+        }
+
+        function switchLabMode(modeKey) {
+            activeLabMode = modeKey;
+            ['train', 'comp', 'tactic'].forEach(k => {
+                document.getElementById(`mode-btn-${k}`)?.classList.toggle('active', k === modeKey);
+            });
+            if (activeArenaSport === 'Running') {
+                if (modeKey === 'train') runState.strategy = 'intervals';
+                else if (modeKey === 'comp') runState.strategy = 'negative';
+                else runState.strategy = 'kick';
+            }
+            setupTopBarBySport();
+            renderStageAndBottomMetrics();
+            renderRightTab();
+        }
+
+        function onPrimarySelectChange(val) {
+            if (activeArenaSport === 'Running') {
+                runState.distance = val;
+                const cfg = RUN_DISTANCES[val];
+                if (cfg) {
+                    runState.targetSec = cfg.defSec;
+                    runState.planTitle = `Plan ${val} (${formatSecClock(cfg.defSec)})`;
+                }
+            } else if (activeArenaSport === 'Pádel / Tenis') {
+                racketState.presetKey = val;
+                const lib = RACKET_LIBRARY[val];
+                if (lib) {
+                    racketState.planTitle = lib.title;
+                    racketState.shots = JSON.parse(JSON.stringify(lib.shots));
+                }
+            } else {
+                combatState.presetKey = val;
+                const lib = COMBAT_LIBRARY[val];
+                if (lib) {
+                    combatState.planTitle = lib.title;
+                    combatState.distance = lib.distance;
+                    combatState.rounds = JSON.parse(JSON.stringify(lib.rounds));
+                }
+            }
+            currentPhaseIdx = 0;
+            updatePhaseButtonsUI();
+            renderStageAndBottomMetrics();
+            renderRightTab();
+        }
+
+        function onSecondarySelectChange(val) {
+            if (activeArenaSport === 'Running') runState.strategy = val;
+            else if (activeArenaSport === 'Pádel / Tenis') racketState.matchType = val;
+            else combatState.distance = val;
+            renderStageAndBottomMetrics();
+            renderRightTab();
+        }
+
+        function toggleLab3D() {
+            isFlat2D = !isFlat2D;
+            document.getElementById('arena-viewport-box')?.classList.toggle('flat-2d', isFlat2D);
+            document.getElementById('toggle-3d-btn').textContent = isFlat2D ? '📐 Vista: Pizarra 2D' : '📐 Vista: 3D Pro';
+        }
+
+        function toggleExtraActor() {
+            showExtraActor = !showExtraActor;
+            setupTopBarBySport();
+            renderStageAndBottomMetrics();
+        }
+
+        function selectLabPhase(idx) {
+            currentPhaseIdx = idx;
+            updatePhaseButtonsUI();
+            renderStageAndBottomMetrics();
+        }
+
+        function updatePhaseButtonsUI() {
+            [0, 1, 2].forEach(i => {
+                const b = document.getElementById(`phase-btn-${i}`);
+                if (b) b.className = `tool-pill-btn ${i === currentPhaseIdx ? 'active-green' : ''}`;
+            });
+            document.getElementById('phase-indicator-badge').textContent = `FASE ${currentPhaseIdx + 1} / 3`;
+        }
+
+        function playLabAnimation() {
+            clearTimeout(animTimer);
+            let step = 0;
+            function runStep() {
+                selectLabPhase(step);
+                step++;
+                if (step <= 2) animTimer = setTimeout(runStep, 1100);
+            }
+            runStep();
+        }
+
+        // =========================================================================
+        // PANEL DERECHO: 3 PESTAÑAS (CONFIGURAR | EJERCICIOS IA | GUARDADOS)
+        // =========================================================================
+        function switchRightTab(tabKey) {
+            activeRightTab = tabKey;
+            ['config', 'presets', 'saved'].forEach(k => {
+                document.getElementById(`rtab-${k}`)?.classList.toggle('active', k === tabKey);
+            });
+            renderRightTab();
+        }
+
+        function renderRightTab() {
+            const box = document.getElementById('right-tab-mount');
+            if (!box) return;
+
+            if (activeRightTab === 'config') {
+                if (activeArenaSport === 'Running') {
+                    const mins = Math.floor(runState.targetSec / 60);
+                    const secs = Math.round(runState.targetSec % 60);
+                    box.innerHTML = `
+                        <div class="exec-studio-section">
+                            <div class="exec-studio-header"><span>⏱️ MARCA OBJETIVO REAL</span><span style="color:var(--role-color);">${runState.distance}</span></div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:7px;">
+                                <div>
+                                    <span style="font-family:'JetBrains Mono';font-size:0.54rem;color:#94A3B8;display:block;margin-bottom:3px;">MINUTOS</span>
+                                    <input type="number" min="0" max="360" class="kinet-input" value="${mins}" oninput="updateRunTargetTime(this.value, null)">
+                                </div>
+                                <div>
+                                    <span style="font-family:'JetBrains Mono';font-size:0.54rem;color:#94A3B8;display:block;margin-bottom:3px;">SEGUNDOS</span>
+                                    <input type="number" min="0" max="59" class="kinet-input" value="${secs}" oninput="updateRunTargetTime(null, this.value)">
+                                </div>
+                            </div>
+                            <input type="text" class="kinet-input" value="${runState.notes}" placeholder="Consigna táctica (cadencia, geles, ataque)..." oninput="runState.notes=this.value; renderStageAndBottomMetrics();">
+                        </div>
+                        <div class="exec-studio-section" style="border-left-color:#F59E0B;margin-bottom:0;">
+                            <div class="exec-studio-header"><span>💾 GUARDAR EN NUBE</span><span style="color:#F59E0B;">CLOUD SYNC</span></div>
+                            <input type="text" id="plan-save-title" class="kinet-input" style="margin-bottom:6px;" value="${runState.planTitle}">
+                            <button type="button" class="btn-primary" style="width:100%;" onclick="saveCurrentLabPlan()">💾 Guardar Plan de Carrera</button>
+                        </div>`;
+                } else if (activeArenaSport === 'Pádel / Tenis') {
+                    box.innerHTML = `
+                        <div class="exec-studio-section">
+                            <div class="exec-studio-header"><span>🎾 SECUENCIA DE 3 GOLPES</span><span style="color:var(--role-color);">EDITABLE</span></div>
+                            <input type="text" class="kinet-input" style="margin-bottom:5px;" value="${racketState.shots[0].label}" oninput="racketState.shots[0].label=this.value; renderStageAndBottomMetrics();">
+                            <input type="text" class="kinet-input" style="margin-bottom:5px;" value="${racketState.shots[1].label}" oninput="racketState.shots[1].label=this.value; renderStageAndBottomMetrics();">
+                            <input type="text" class="kinet-input" style="margin-bottom:5px;" value="${racketState.shots[2].label}" oninput="racketState.shots[2].label=this.value; renderStageAndBottomMetrics();">
+                            <input type="text" class="kinet-input" value="${racketState.notes}" placeholder="Consigna táctica..." oninput="racketState.notes=this.value; renderStageAndBottomMetrics();">
+                        </div>
+                        <div class="exec-studio-section" style="border-left-color:#F59E0B;margin-bottom:0;">
+                            <div class="exec-studio-header"><span>💾 GUARDAR PATRÓN</span><span style="color:#F59E0B;">CLOUD SYNC</span></div>
+                            <input type="text" id="plan-save-title" class="kinet-input" style="margin-bottom:6px;" value="${racketState.planTitle}">
+                            <button type="button" class="btn-primary" style="width:100%;" onclick="saveCurrentLabPlan()">💾 Guardar Patrón en Nube</button>
+                        </div>`;
+                } else {
+                    const rd = combatState.rounds[currentPhaseIdx] || combatState.rounds[0];
+                    box.innerHTML = `
+                        <div class="exec-studio-section">
+                            <div class="exec-studio-header"><span>🥊 EDITAR ASALTO ${rd.num}</span><span style="color:var(--role-color);">${combatState.distance.toUpperCase()}</span></div>
+                            <input type="text" class="kinet-input" style="margin-bottom:5px;" value="${rd.focus}" placeholder="Enfoque..." oninput="combatState.rounds[${currentPhaseIdx}].focus=this.value; renderStageAndBottomMetrics();">
+                            <input type="text" class="kinet-input" style="margin-bottom:5px;" value="${rd.combo}" placeholder="Combinación..." oninput="combatState.rounds[${currentPhaseIdx}].combo=this.value; renderStageAndBottomMetrics();">
+                            <input type="text" class="kinet-input" value="${rd.note}" placeholder="Consigna de esquina..." oninput="combatState.rounds[${currentPhaseIdx}].note=this.value; renderStageAndBottomMetrics();">
+                        </div>
+                        <div class="exec-studio-section" style="border-left-color:#F59E0B;margin-bottom:0;">
+                            <div class="exec-studio-header"><span>💾 GUARDAR PLAN COMBATE</span><span style="color:#F59E0B;">CLOUD SYNC</span></div>
+                            <input type="text" id="plan-save-title" class="kinet-input" style="margin-bottom:6px;" value="${combatState.planTitle}">
+                            <button type="button" class="btn-primary" style="width:100%;" onclick="saveCurrentLabPlan()">💾 Guardar Plan en Nube</button>
+                        </div>`;
+                }
+                return;
+            }
+
+            if (activeRightTab === 'presets') {
+                if (activeArenaSport === 'Running') {
+                    const items = [
+                        { title: 'Series 10x400m a Ritmo 1500m', dist: '400m', sec: 64, strat: 'intervals', desc: 'Trabajo de VO2 Máx en pista con 90s de recuperación.' },
+                        { title: '10K Negative Split Sub-40', dist: '10K', sec: 2380, strat: 'negative', desc: 'Primera mitad controlada a 4:02/km y cierre por debajo de 3:52/km.' },
+                        { title: '5K con Liebre + Sprint Final', dist: '5K', sec: 1140, strat: 'kick', desc: 'Drafting hasta el Km 4 y cambio de ritmo en los últimos 1000m.' }
+                    ];
+                    box.innerHTML = items.map((it, i) => `
+                        <div class="saved-play-card">
+                            <div style="font-family:'Orbitron';font-size:0.68rem;font-weight:800;color:#FFF;">🏃 ${it.title}</div>
+                            <div style="font-size:0.62rem;color:#94A3B8;margin:3px 0 7px 0;">${it.desc}</div>
+                            <button type="button" class="btn-primary" style="width:100%;padding:6px;font-size:0.58rem;" onclick="applyRunPreset('${it.dist}', ${it.sec}, '${it.strat}', '${it.title}')">▶ Cargar y Simular</button>
+                        </div>`).join('');
+                } else if (activeArenaSport === 'Pádel / Tenis') {
+                    box.innerHTML = Object.keys(RACKET_LIBRARY).map(k => `
+                        <div class="saved-play-card">
+                            <div style="font-family:'Orbitron';font-size:0.68rem;font-weight:800;color:#FFF;">🎾 ${RACKET_LIBRARY[k].title}</div>
+                            <div style="font-size:0.62rem;color:#94A3B8;margin:3px 0 7px 0;">${RACKET_LIBRARY[k].desc}</div>
+                            <button type="button" class="btn-primary" style="width:100%;padding:6px;font-size:0.58rem;" onclick="onPrimarySelectChange('${k}'); playLabAnimation();">▶ Cargar y Simular</button>
+                        </div>`).join('');
+                } else {
+                    box.innerHTML = Object.keys(COMBAT_LIBRARY).map(k => `
+                        <div class="saved-play-card">
+                            <div style="font-family:'Orbitron';font-size:0.68rem;font-weight:800;color:#FFF;">🥊 ${COMBAT_LIBRARY[k].title}</div>
+                            <div style="font-size:0.62rem;color:#94A3B8;margin:3px 0 7px 0;">${COMBAT_LIBRARY[k].desc}</div>
+                            <button type="button" class="btn-primary" style="width:100%;padding:6px;font-size:0.58rem;" onclick="onPrimarySelectChange('${k}'); playLabAnimation();">▶ Cargar y Simular</button>
+                        </div>`).join('');
+                }
+                bindSpotlightToElements();
+                return;
+            }
+
+            // GUARDADOS
+            if (savedPlans.length === 0) {
+                box.innerHTML = `<div style="text-align:center;padding:24px 12px;border:1px dashed var(--border-subtle);border-radius:14px;font-size:0.71rem;color:var(--text-secondary);">No tienes planes guardados aún en ${activeArenaSport}. Configura uno y pulsa Guardar.</div>`;
+                return;
+            }
+            box.innerHTML = savedPlans.map(p => `
+                <div class="saved-play-card">
+                    <div style="font-family:'Orbitron';font-size:0.69rem;font-weight:800;color:#FFF;">🎬 ${p.title}</div>
+                    <div style="font-family:'JetBrains Mono';font-size:0.55rem;color:var(--role-color);margin-top:2px;">${p.date} • ☁️ Cloud Sync</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:5px;margin-top:7px;">
+                        <button type="button" class="btn-primary" style="padding:5px;font-size:0.56rem;" onclick="loadSavedLabPlan('${p.id}')">▶ Cargar</button>
+                        <button type="button" class="btn-secondary" style="padding:5px;font-size:0.56rem;border-color:var(--role-color);color:var(--role-color);" onclick="shareSavedPlanCommunity('${p.id}')">🌐 Publicar</button>
+                        <button type="button" class="btn-secondary" style="padding:5px 8px;font-size:0.56rem;color:#FCA5A5;" onclick="deleteSavedLabPlan('${p.id}')">🗑️</button>
+                    </div>
+                </div>`).join('');
+            bindSpotlightToElements();
+        }
+
+        function updateRunTargetTime(newMin, newSec) {
+            const curMin = Math.floor(runState.targetSec / 60);
+            const curSec = Math.round(runState.targetSec % 60);
+            const m = newMin !== null ? Math.max(0, parseInt(newMin, 10) || 0) : curMin;
+            const s = newSec !== null ? Math.min(59, Math.max(0, parseInt(newSec, 10) || 0)) : curSec;
+            runState.targetSec = Math.max(30, m * 60 + s);
+            renderStageAndBottomMetrics();
+        }
+
+        function applyRunPreset(dist, sec, strat, title) {
+            runState.distance = dist;
+            runState.targetSec = sec;
+            runState.strategy = strat;
+            runState.planTitle = title;
+            setupTopBarBySport();
+            renderStageAndBottomMetrics();
+            playLabAnimation();
+        }
+
+        function resetCurrentLabToDefault() {
+            if (activeArenaSport === 'Running') onPrimarySelectChange('10K');
+            else if (activeArenaSport === 'Pádel / Tenis') onPrimarySelectChange('australiana');
+            else onPrimarySelectChange('corte_ring');
+        }
+
+        // =========================================================================
+        // PERSISTENCIA NUBE SUPABASE + COMUNIDAD + PDF + ENVÍO A IA
+        // =========================================================================
+        function getStorageKey() { return `kinet_lab3_plans_${activeArenaSport.toLowerCase()}`; }
+
+        function loadSavedPlansFromStorage() {
+            try { savedPlans = JSON.parse(localStorage.getItem(getStorageKey()) || '[]'); }
+            catch (e) { savedPlans = []; }
+            document.getElementById('saved-count-lbl').textContent = savedPlans.length;
+        }
+
+        function persistSavedPlansToCloud() {
+            localStorage.setItem(getStorageKey(), JSON.stringify(savedPlans));
+            document.getElementById('saved-count-lbl').textContent = savedPlans.length;
+            if (window.KinetBackend && typeof window.KinetBackend.pushLocalStateToCloud === 'function') {
+                window.KinetBackend.pushLocalStateToCloud();
+            }
+        }
+
+        function saveCurrentLabPlan() {
+            const title = (document.getElementById('plan-save-title')?.value || '').trim() || `Plan ${activeArenaSport}`;
+            const payload = activeArenaSport === 'Running' ? JSON.parse(JSON.stringify(runState))
+                : (activeArenaSport === 'Pádel / Tenis' ? JSON.parse(JSON.stringify(racketState))
+                    : JSON.parse(JSON.stringify(combatState)));
+            savedPlans.unshift({ id: 'lab3_' + Date.now(), title, sport: activeArenaSport, date: new Date().toLocaleDateString('es-ES'), payload });
+            persistSavedPlansToCloud();
+            switchRightTab('saved');
+        }
+
+        function loadSavedLabPlan(id) {
             const item = savedPlans.find(x => x.id === id);
             if (!item) return;
-            if (activeArenaSport === 'Running') { runState = JSON.parse(JSON.stringify(item.payload)); renderRunningLab(); }
-            else if (activeArenaSport === 'Pádel / Tenis') { racketState = JSON.parse(JSON.stringify(item.payload)); renderRacketLab(); }
-            else { combatState = JSON.parse(JSON.stringify(item.payload)); renderCombatLab(); }
+            if (activeArenaSport === 'Running') runState = JSON.parse(JSON.stringify(item.payload));
+            else if (activeArenaSport === 'Pádel / Tenis') racketState = JSON.parse(JSON.stringify(item.payload));
+            else combatState = JSON.parse(JSON.stringify(item.payload));
+            setupTopBarBySport();
+            renderStageAndBottomMetrics();
+            playLabAnimation();
         }
 
-        function deleteSpecializedPlan(id) {
+        function deleteSavedLabPlan(id) {
             savedPlans = savedPlans.filter(x => x.id !== id);
-            persistSavedPlans();
-            renderSavedPlansList();
+            persistSavedPlansToCloud();
+            renderRightTab();
         }
 
-        async function exportSpecializedPDF() {
-            const target = document.getElementById('export-stage-card');
-            if (!target) return;
-            const canvas = await html2canvas(target, { scale: 2, backgroundColor: '#050811', useCORS: true, logging: false });
-            const imgData = canvas.toDataURL('image/png');
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-            pdf.setFillColor(5, 8, 15);
-            pdf.rect(0, 0, 297, 210, 'F');
-            pdf.setTextColor(0, 255, 136);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(13);
-            pdf.text(`KINET OS // LABORATORIO ESPECIALIZADO (${activeArenaSport.toUpperCase()})`, 15, 16);
-            pdf.addImage(imgData, 'PNG', 15, 22, 267, 172);
-            pdf.save(`KINET_Plan_${activeArenaSport.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
-        }
-
-        function sendSpecializedPlanToCoach() {
-            let summary = '';
-            if (activeArenaSport === 'Running') {
-                summary = `Plan de Carrera ${runState.distance} en ${runState.targetMinutes} min con estrategia ${runState.strategy} (Liebre: ${runState.pacerActive ? 'Sí' : 'No'}).`;
-            } else if (activeArenaSport === 'Pádel / Tenis') {
-                summary = `Patrón de 3 golpes (${racketState.patternName}): ${racketState.shot1.label} -> ${racketState.shot2.label} -> ${racketState.shot3.label}.`;
-            } else {
-                summary = `Plan de Combate (${combatState.distance}): ` + combatState.rounds.map(r => `R${r.num} ${r.focus} (${r.combo})`).join(' | ');
+        async function shareSavedPlanCommunity(id) {
+            const item = savedPlans.find(x => x.id === id);
+            if (!item) return;
+            const myName = localStorage.getItem('kinet_user_name') || 'Atleta KINET';
+            const myHandle = localStorage.getItem('kinet_social_handle') || '@kinet_pro';
+            const postObj = {
+                id: 'lab3_post_' + Date.now(),
+                author: myName,
+                handle: myHandle.startsWith('@') ? myHandle : `@${myHandle}`,
+                role: activeRoleKey,
+                sport: activeArenaSport,
+                mode: 'post',
+                badge: `ESTRATEGIA ${activeArenaSport.toUpperCase()}`,
+                text: `🎯 [PLAN ESPECIALIZADO — ${activeArenaSport.toUpperCase()}]: "${item.title}" diseñado en el Laboratorio 3D de KINET OS.`,
+                likes: 1
+            };
+            if (window.KinetBackend && typeof window.KinetBackend.createCloudPost === 'function') {
+                await window.KinetBackend.createCloudPost(postObj);
             }
-            localStorage.setItem('kinet_pending_question', `🎯 [Laboratorio Especializado ${activeArenaSport}]: ${summary} Analiza este plan y dame recomendaciones concretas para perfeccionarlo.`);
+            alert(`✓ Plan "${item.title}" publicado en Comunidad KINET.`);
+        }
+
+        async function exportLabPlanPDF() {
+            try {
+                const target = document.getElementById('export-stage-panel');
+                const canvas = await html2canvas(target, { scale: 2.2, backgroundColor: '#050811', useCORS: true, logging: false });
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+                pdf.setFillColor(5, 8, 15);
+                pdf.rect(0, 0, 297, 210, 'F');
+                pdf.setTextColor(0, 255, 136);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(13);
+                pdf.text(`KINET OS // LABORATORIO ESPECIALIZADO 3D (${activeArenaSport.toUpperCase()})`, 15, 15);
+                pdf.addImage(imgData, 'PNG', 15, 22, 267, 174);
+                pdf.save(`KINET_Lab3D_${activeArenaSport.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
+            } catch (e) { window.print(); }
+        }
+
+        function sendLabPlanToCoachAI() {
+            const diag = document.getElementById('ai-live-diagnosis')?.innerText || '';
+            const q = `🎯 [Laboratorio Especializado 3D — ${activeArenaSport}]: ${diag} Analiza este plan en detalle, corrige cualquier fallo de ritmo/táctica y dame una sesión complementaria.`;
+            localStorage.setItem('kinet_pending_question', q);
             localStorage.setItem('kinet_target_agent', 'tecnico_video');
             window.location.href = `cuerpo-tecnico.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}&agent=tecnico_video`;
         }
 
+        function returnToRosterPage() {
+            const curtain = document.getElementById('kinet-funny-curtain');
+            if (curtain) {
+                document.getElementById('curtain-title').textContent = '🏃‍♂️ ¡VOLVIENDO A PLANTILLA 3D!';
+                document.getElementById('curtain-sub').textContent = 'Sincronizando cambios con tu pizarra principal...';
+                curtain.classList.remove('curtain-hidden');
+                curtain.classList.add('curtain-exit-active');
+            }
+            setTimeout(() => {
+                window.location.href = `analizador.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`;
+            }, 300);
+        }
+
+        // =========================================================================
+        // INICIALIZACIÓN
+        // =========================================================================
         window.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const storedRole = normalizeRole(localStorage.getItem('kinet_active_role')) || normalizeRole(localStorage.getItem('kinet_role'));
-            activeRoleKey = storedRole || normalizeRole(urlParams.get('role')) || 'athlete';
-            document.body.setAttribute('data-role', activeRoleKey);
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const storedRole = normalizeRole(localStorage.getItem('kinet_active_role')) || normalizeRole(localStorage.getItem('kinet_role'));
+                activeRoleKey = storedRole || normalizeRole(urlParams.get('role')) || 'athlete';
+                document.body.setAttribute('data-role', activeRoleKey);
 
-            const roleLabels = { athlete: 'ATLETA PRO', staff: 'ENTRENADOR / STAFF', scout: 'DIRECTOR DEPORTIVO / SCOUT' };
-            document.getElementById('topbar-role-title').textContent = roleLabels[activeRoleKey] || 'ATLETA PRO';
+                const roleLabels = { athlete: 'ATLETA PRO', staff: 'ENTRENADOR / STAFF', scout: 'DIRECTOR DEPORTIVO / SCOUT' };
+                document.getElementById('topbar-role-title').textContent = roleLabels[activeRoleKey] || 'ATLETA PRO';
 
-            activeArenaSport = normalizeSport(urlParams.get('sport') || localStorage.getItem('kinet_sport') || 'Running');
-            // Si alguien abre analizador3.html con Fútbol o Baloncesto, redirigir a analizador2.html
-            if (activeArenaSport === 'Fútbol' || activeArenaSport === 'Baloncesto') {
-                window.location.replace(`analizador2.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`);
-                return;
+                activeArenaSport = normalizeSport(urlParams.get('sport') || localStorage.getItem('kinet_sport') || 'Running');
+                if (activeArenaSport === 'Fútbol' || activeArenaSport === 'Baloncesto') {
+                    window.location.replace(`analizador2.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`);
+                    return;
+                }
+
+                document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${activeArenaSport.toUpperCase()}`;
+                document.getElementById('topbar-sport-tag').textContent = `● ${activeArenaSport.toUpperCase()}`;
+
+                const cIcon = document.getElementById('curtain-icon');
+                if (cIcon) cIcon.textContent = activeArenaSport === 'Pádel / Tenis' ? '🎾' : (activeArenaSport === 'Boxeo / MMA' ? '🥊' : '⏱️');
+
+                const qp = `?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`;
+                ['brand-logo-desktop','nav-vestuario','nav-cuerpo-tecnico','nav-ficha-pro','nav-ojeador-live','nav-analizador','nav-comunidad','nav-media-studio','nav-perfil','nav-despacho','mob-vestuario','mob-cuerpo-tecnico','mob-ficha-pro','mob-analizador'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.href = el.getAttribute('href').split('?')[0] + qp;
+                });
+
+                applyDespachoThemeSettings();
+                loadSavedPlansFromStorage();
+                setupTopBarBySport();
+                updatePhaseButtonsUI();
+                renderStageAndBottomMetrics();
+                renderRightTab();
+                bindSpotlightToElements();
+            } finally {
+                setTimeout(() => document.getElementById('kinet-funny-curtain')?.classList.add('curtain-hidden'), 280);
             }
+        });
 
-            document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${activeArenaSport.toUpperCase()}`;
-            document.getElementById('topbar-sport-tag').textContent = `● ${activeArenaSport.toUpperCase()}`;
-
-            const queryParams = `?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`;
-            ['brand-logo-desktop','nav-vestuario','nav-cuerpo-tecnico','nav-ficha-pro','nav-ojeador-live','nav-analizador','nav-comunidad','nav-media-studio','nav-perfil','nav-despacho'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.href = el.getAttribute('href').split('?')[0] + queryParams;
-            });
-
-            loadSavedPlans();
-
-            if (activeArenaSport === 'Pádel / Tenis') {
-                document.getElementById('header-icon').textContent = '🎾';
-                document.getElementById('header-tag-text').textContent = 'LABORATORIO ESPECIALIZADO • PÁDEL / TENIS';
-                document.getElementById('header-main-title').textContent = 'Patrones de Golpeo & Red';
-                renderRacketLab();
-            } else if (activeArenaSport === 'Boxeo / MMA') {
-                document.getElementById('header-icon').textContent = '🥊';
-                document.getElementById('header-tag-text').textContent = 'LABORATORIO ESPECIALIZADO • BOXEO / MMA';
-                document.getElementById('header-main-title').textContent = 'Plan de Combate & Asaltos';
-                renderCombatLab();
-            } else {
-                document.getElementById('header-icon').textContent = '⏱️';
-                document.getElementById('header-tag-text').textContent = 'LABORATORIO ESPECIALIZADO • RUNNING / ATLETISMO';
-                document.getElementById('header-main-title').textContent = 'Estrategia de Carrera & Parciales';
-                renderRunningLab();
-            }
+        window.addEventListener('kinet:cloud-synced', () => {
+            applyDespachoThemeSettings();
+            loadSavedPlansFromStorage();
+            if (activeRightTab === 'saved') renderRightTab();
         });
     </script>
 </body>
 </html>
+
