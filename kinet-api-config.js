@@ -676,14 +676,17 @@ INSTRUCCIONES DE FORMATO Y NATURALIDAD:
     if (localStorage.getItem('kinet_edge_functions_deployed') !== 'true') {
       return null;
     }
-    const userId = localStorage.getItem('kinet_user_id') || '';
-    const tier = getCurrentTier();
+
+    const sb = window.KinetBackend?.getClient?.();
+    const { data: { session } } = sb ? await sb.auth.getSession() : { data: { session: null } };
+    if (!session?.access_token) {
+      throw new Error('Inicia sesión para usar la IA.');
+    }
+
     const headers = {
       'Content-Type': 'application/json',
       'apikey': SUPABASE_ANON_KEY,
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-      'x-kinet-user-id': userId,
-      'x-kinet-tier': tier
+      'Authorization': `Bearer ${session.access_token}`
     };
 
     const controller = new AbortController();
@@ -693,7 +696,7 @@ INSTRUCCIONES DE FORMATO Y NATURALIDAD:
       const res = await fetch(`${EDGE_FUNCTIONS_BASE}/${functionName}`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ ...payloadObj, userId, tier }),
+        body: JSON.stringify(payloadObj),
         signal: controller.signal
       });
       clearTimeout(timeoutId);
