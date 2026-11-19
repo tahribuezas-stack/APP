@@ -20,6 +20,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="kinet-backend.js"></script>
+    <script src="kinet-positions.js"></script>
     <script src="kinet-api-config.js"></script>
 
     <style>
@@ -2646,7 +2647,7 @@
             const fromActiveStorage = normalizeRole(localStorage.getItem('kinet_active_role'));
             const fromLegacyRole = normalizeRole(localStorage.getItem('kinet_role'));
 
-            activeRoleKey = fromUrl || fromActiveStorage || fromLegacyRole || 'athlete';
+            activeRoleKey = fromActiveStorage || fromLegacyRole || fromUrl || 'athlete';
             document.body.setAttribute('data-role', activeRoleKey);
             localStorage.setItem('kinet_active_role', activeRoleKey);
             localStorage.setItem('kinet_role', activeRoleKey);
@@ -3838,7 +3839,7 @@
 
             const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
             const posSel = document.getElementById('custom-p-pos');
-            const matchedPos = cfg.positions.find(p => p.toLowerCase() === (playerObj.pos || '').toLowerCase()) || cfg.positions[0];
+            const matchedPos = cfg.positions.find(p => (window.KinetPositions && window.KinetPositions.samePosition(p, playerObj.pos)) || p.toLowerCase() === (playerObj.pos || '').toLowerCase()) || cfg.positions[0];
             if (posSel) posSel.value = matchedPos;
 
             builderSliderValues = Array.isArray(playerObj.stats) && playerObj.stats.length === 6
@@ -3934,7 +3935,7 @@
 
             const filtered = sourceArray.filter(p => {
                 const matchText = !q || p.name.toLowerCase().includes(q) || (p.pos || '').toLowerCase().includes(q) || (p.traitNotes || '').toLowerCase().includes(q);
-                const matchPos = posFilter === 'ALL' || (p.pos || '').toUpperCase().includes(posFilter.toUpperCase());
+                const matchPos = posFilter === 'ALL' || (window.KinetPositions && window.KinetPositions.samePosition(p.pos, posFilter)) || (p.pos || '').toUpperCase().includes(posFilter.toUpperCase());
                 return matchText && matchPos;
             });
 
@@ -5513,7 +5514,7 @@
                 if (staffKey) return STAFF_SKILLS_MAP[staffKey].map(l => (l.match(/\(([A-Z0-9]+)\)/) || [null, 'STF'])[1]);
 
                 if (cfg.posSkills) {
-                    const pKey = Object.keys(cfg.posSkills).find(k => k.toUpperCase() === clean || clean.includes(k.toUpperCase()));
+                    const pKey = Object.keys(cfg.posSkills).find(k => (window.KinetPositions && window.KinetPositions.samePosition(k, posCode)) || k.toUpperCase() === clean || clean.includes(k.toUpperCase()));
                     if (pKey) return cfg.posSkills[pKey].map((l, i) => (l.match(/\(([A-Z0-9]+)\)/) || [null, cfg.statLabels[i]])[1]);
                 }
                 return cfg.statLabels;
@@ -5947,7 +5948,7 @@
 
                 // Si aún no había tocado ninguna plaza del campo, buscar el puesto que coincida con su posición o el primer hueco libre
                 if (!activeSelection.group || activeSelection.index < 0) {
-                    let matchIdx = currentBoardSlots.findIndex(s => !s.player && s.pos.toUpperCase() === (playerObj.pos || '').toUpperCase());
+                    let matchIdx = currentBoardSlots.findIndex(s => !s.player && ((window.KinetPositions && window.KinetPositions.samePosition(s.pos, playerObj.pos)) || s.pos.toUpperCase() === (playerObj.pos || '').toUpperCase()));
                     if (matchIdx === -1) matchIdx = currentBoardSlots.findIndex(s => !s.player);
                     if (matchIdx === -1) matchIdx = 0;
                     activeSelection = { group: 'board', index: matchIdx };
