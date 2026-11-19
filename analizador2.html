@@ -43,6 +43,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="kinet-backend.js"></script>
+    <script src="kinet-positions.js"></script>
     <script src="kinet-api-config.js"></script>
 
     <style>
@@ -1675,9 +1676,22 @@
         // =========================================================================
         function initStrategyAnalyzer() {
             try {
+                function normalizeRole(val) {
+                    if (!val) return null;
+                    const v = String(val).toLowerCase().trim();
+                    if (v === 'athlete' || v === 'atleta' || v.includes('atleta') || v.includes('jugador')) return 'athlete';
+                    if (v === 'staff' || v.includes('entrenador') || v.includes('coach') || v.includes('fisio') || v.includes('staff')) return 'staff';
+                    if (v === 'scout' || v.includes('scout') || v.includes('director') || v.includes('ojeador')) return 'scout';
+                    return null;
+                }
                 const urlParams = new URLSearchParams(window.location.search);
-                activeRoleKey = urlParams.get('role') || localStorage.getItem('kinet_active_role') || 'athlete';
+                const storedRole = normalizeRole(localStorage.getItem('kinet_active_role')) || normalizeRole(localStorage.getItem('kinet_role'));
+                const urlRole = normalizeRole(urlParams.get('role'));
+                activeRoleKey = storedRole || urlRole || 'athlete';
                 document.body.setAttribute('data-role', activeRoleKey);
+                const roleLabels = { athlete: 'ATLETA PRO', staff: 'ENTRENADOR / STAFF', scout: 'DIRECTOR DEPORTIVO / SCOUT' };
+                const roleTitleEl = document.getElementById('topbar-role-title');
+                if (roleTitleEl) roleTitleEl.textContent = roleLabels[activeRoleKey] || 'ATLETA PRO';
                 activeArenaSport = normalizeArenaSport(urlParams.get('sport') || localStorage.getItem('kinet_sport') || 'Fútbol');
 
                 document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${activeArenaSport.toUpperCase()}`;
@@ -1702,12 +1716,15 @@
 
                 if (savedBoard && Array.isArray(savedBoard.boardSlots) && savedBoard.boardSlots.length > 0) {
                     currentPresetName = savedBoard.presetName || '4-3-3 Ofensivo (11vs11)';
-                    baseVerticalSlots = savedBoard.boardSlots.map(s => ({
-                        pos: s.pos,
-                        x: s.x,
-                        y: s.pos === 'POR' && s.y < 85 ? 90 : (s.pos === 'DFC' && s.y > 68 ? 67 : s.y),
-                        player: s.player || null
-                    }));
+                    baseVerticalSlots = savedBoard.boardSlots.map(s => {
+                        const normPos = window.KinetPositions ? window.KinetPositions.toScreenFormat(s.pos, 'analizador2') : s.pos;
+                        return {
+                            pos: normPos,
+                            x: s.x,
+                            y: normPos === 'POR' && s.y < 85 ? 90 : (normPos === 'DFC' && s.y > 68 ? 67 : s.y),
+                            player: s.player || null
+                        };
+                    });
                 } else {
                     currentPresetName = '4-3-3 Ofensivo (11vs11)';
                     baseVerticalSlots = [
@@ -2694,7 +2711,7 @@
             const item = savedPlaysLibrary.find(p => p.id === playId);
             if (!item) return;
             loadPlayFromLibrary(playId);
-            const myName = localStorage.getItem('kinet_user_name') || 'Entrenador KINET';
+            const myName = localStorage.getItem('kinet_user_name') || (activeRoleKey === 'staff' ? 'Entrenador KINET' : (activeRoleKey === 'scout' ? 'Scout KINET' : 'Atleta KINET'));
             const myHandle = localStorage.getItem('kinet_social_handle') || '@kinet_coach';
 
             const postObj = {
