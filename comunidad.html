@@ -21,6 +21,7 @@
     <!-- SDK Oficial de Supabase + Motor Central KINET Backend + Config APIs -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="kinet-backend.js"></script>
+    <script src="kinet-positions.js"></script>
     <script src="kinet-api-config.js"></script>
 
     <style>
@@ -1992,7 +1993,7 @@
                                 </div>
 
                                 <div style="margin-bottom:9px;">
-                                    <input type="text" id="side-dm-search" class="kinet-input" style="padding:7px 10px;font-size:0.74rem;" placeholder="🔍 Buscar chat, club, ciudad o usuario..." oninput="rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63(true)">
+                                    <input type="text" id="side-dm-search" class="kinet-input" style="padding:7px 10px;font-size:0.74rem;" placeholder="🔍 Buscar chat, club, ciudad o usuario..." oninput="renderSideDmInboxList(true)">
                                 </div>
 
                                 <div id="dm-inbox-list" style="max-height:245px;overflow-y:auto;"></div>
@@ -2935,7 +2936,7 @@
             }
 
             filterSocialFeed(forceRedraw);
-            rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+            renderSideDmInboxList();
             renderModalLeftList();
             renderInlineDirectLeftList();
             syncDmHeaderFollowBtn();
@@ -4280,7 +4281,7 @@
                 score += 35;
                 reasons.push(`⚽ ${person.sport}`);
             }
-            if (myPos && (person.position || '').toLowerCase().includes(myPos)) {
+            if (myPos && ((window.KinetPositions && window.KinetPositions.samePosition(myPos, person.position)) || (person.position || '').toLowerCase().includes(myPos))) {
                 score += 20;
                 reasons.push(`🎯 ${person.position}`);
             }
@@ -4298,7 +4299,7 @@
             sideDmMode = tab;
             document.getElementById('side-tab-chats').classList.toggle('active', tab === 'chats');
             document.getElementById('side-tab-friends').classList.toggle('active', tab === 'friends');
-            rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+            renderSideDmInboxList();
         }
 
         function switchInlineDmTab(tab) {
@@ -4406,7 +4407,7 @@
             }
         }
 
-        function rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63() {
+        function renderSideDmInboxList() {
             const container = document.getElementById('dm-inbox-list');
             if (!container) return;
             const q = document.getElementById('side-dm-search')?.value || '';
@@ -4534,7 +4535,7 @@
             document.getElementById('dm-safety-dd')?.classList.remove('open');
             syncActiveDmHeaderUI(person);
             renderModalLeftList();
-            rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+            renderSideDmInboxList();
             updateUnreadBadgesUI();
         }
 
@@ -4559,7 +4560,7 @@
             syncActiveDmHeaderUI(person);
             renderDmMessages(true);
             renderModalLeftList();
-            rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+            renderSideDmInboxList();
             filterSocialFeed(true);
         }
 
@@ -4599,7 +4600,7 @@
             renderDmMessages(true);
             renderModalLeftList();
             renderInlineDirectLeftList();
-            rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+            renderSideDmInboxList();
 
             if (openMobileChatView) {
                 document.getElementById('ig-direct-shell')?.classList.add('mobile-chat-open');
@@ -4747,7 +4748,7 @@
             renderDmMessages(true);
             renderModalLeftList();
             renderInlineDirectLeftList();
-            rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+            renderSideDmInboxList();
 
             if (isBotSupport) {
                 setTimeout(() => {
@@ -4763,7 +4764,7 @@
                     renderDmMessages(true);
                     renderModalLeftList();
                     renderInlineDirectLeftList();
-                    rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+                    renderSideDmInboxList();
                 }, 1100);
             }
         }
@@ -4940,7 +4941,7 @@
                 syncActiveDmHeaderUI(findDirectoryPerson(currentDmContact));
                 updateUnreadBadgesUI();
                 filterSocialFeed(false);
-                rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+                renderSideDmInboxList();
                 renderInlineDirectLeftList();
                 renderModalLeftList();
                 renderDmMessages(false);
@@ -5008,7 +5009,7 @@
                 renderDmMessages(false);
                 renderModalLeftList();
                 renderInlineDirectLeftList();
-                rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+                renderSideDmInboxList();
             }
             return changed;
         }
@@ -5017,7 +5018,7 @@
         window.addEventListener('kinet:cloud-synced', () => {
             refreshMySocialCardUI();
             filterSocialFeed(false);
-            rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+            renderSideDmInboxList();
             renderModalLeftList();
             renderInlineDirectLeftList();
         });
@@ -5173,7 +5174,7 @@
         // =========================================================================
         // UPGRADE PRODUCCIÓN COMUNIDAD: AVATARES FIX + DM CERRADO POR DEFECTO + COMPRESOR MEDIA + PUENTE LAB/ANALIZADOR + API SOPORTE
         // =========================================================================
-        (function upgrpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63() {
+        (function upgradeCommunityProduction() {
             const prodStyles = document.createElement('style');
             prodStyles.textContent = `
                 /* Animaciones orgánicas y micro-interacciones sin parpadeo */
@@ -5526,7 +5527,7 @@
                 renderDmMessages(true);
                 renderModalLeftList();
                 renderInlineDirectLeftList();
-                rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+                renderSideDmInboxList();
                 return;
             }
             _origSelectConversation(contactName, initials, handle, openMobileChatView);
@@ -5603,7 +5604,7 @@
                 renderDmMessages(true);
                 renderModalLeftList();
                 renderInlineDirectLeftList();
-                rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+                renderSideDmInboxList();
             }, 60);
         });
 
@@ -5811,7 +5812,7 @@
             renderDmMessages(true);
             renderModalLeftList();
             renderInlineDirectLeftList();
-            rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+            renderSideDmInboxList();
 
             if (isBotSupport) {
                 const subEl1 = document.getElementById('dm-active-sub');
@@ -5843,7 +5844,7 @@
                 renderDmMessages(true);
                 renderModalLeftList();
                 renderInlineDirectLeftList();
-                rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+                renderSideDmInboxList();
             }
         };
         // =========================================================================
@@ -6539,7 +6540,7 @@
             // SOLO repintar si realmente se eliminó algún post de invitado (evita cualquier rebote al recargar)
             if (removedFromFeed) {
                 filterSocialFeed(true);
-                rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+                renderSideDmInboxList();
             }
         }
 
