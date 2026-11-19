@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<script src="kinet-guard.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#06080E">
+    <title>KINET OS // Laboratorio Táctico Especializado</title>
+
+    <!-- ZERO-FLASH THEME LOCK -->
+    <script>
+        (function applyZeroFlashStyleRule() {
+            try {
+                var isReset = localStorage.getItem('kinet_theme_color_reset') === 'true';
+                var savedAccent = isReset ? null : (localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color'));
+                var rainbowOn = localStorage.getItem('kinet_rainbow_mode') === 'true';
+                if (savedAccent && savedAccent.charAt(0) === '#' && !rainbowOn) {
+                    var clean = savedAccent.replace('#', '');
+                    var num = parseInt(clean, 16);
+                    if (!isNaN(num)) {
+                        var r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
+                        var st = document.createElement('style');
+                        st.id = 'kinet-zero-flash-override';
+                        st.textContent = ':root, html, body, body[data-role="athlete"], body[data-role="staff"], body[data-role="scout"] {' +
+                            '--role-color: ' + savedAccent + ' !important;' +
+                            '--role-rgb: ' + r + ', ' + g + ', ' + b + ' !important;' +
+                            '--role-glow: rgba(' + r + ', ' + g + ', ' + b + ', 0.42) !important;' +
+                            '--role-gradient: linear-gradient(135deg, ' + savedAccent + ' 0%, rgba(' + r + ',' + g + ',' + b + ',0.75) 100%) !important;' +
+                        '}';
+                        document.head.appendChild(st);
+                    }
+                }
+            } catch (e) {}
+        })();
+    </script>
+
+    <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="kinet-backend.js"></script>
+    <script src="kinet-positions.js"></script>
+    <script src="kinet-api-config.js"></script>
+
+    <style>
+        :root {
+            --bg-void: #06080E;
+            --bg-panel: rgba(13, 17, 26, 0.92);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --role-color: #00FF88;
+            --role-rgb: 0, 255, 136;
+            --role-glow: rgba(0, 255, 136, 0.38);
+            --role-gradient: linear-gradient(135deg, #00FF88 0%, #00B359 100%);
+        }
+        body[data-role="athlete"] { --role-color: #00FF88; --role-rgb: 0, 255, 136; --role-glow: rgba(0, 255, 136, 0.38); --role-gradient: linear-gradient(135deg, #00FF88 0%, #00B359 100%); }
+        body[data-role="staff"] { --role-color: #F59E0B; --role-rgb: 245, 158, 11; --role-glow: rgba(245, 158, 11, 0.38); --role-gradient: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); }
+        body[data-role="scout"] { --role-color: #3B82F6; --role-rgb: 59, 130, 246; --role-glow: rgba(59, 130, 246, 0.38); --role-gradient: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; scrollbar-width: none !important; }
+        *::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; }
+
+        html, body {
+            background-color: var(--bg-void);
+            background-image:
+                radial-gradient(circle at 50% -20%, rgba(var(--role-rgb), 0.14), transparent 60%),
+                linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .os-layout { display: grid; grid-template-columns: 270px 1fr; height: 100vh; overflow: hidden; }
+        @media (max-width: 960px) {
+            .os-layout { grid-template-columns: 1fr; height: auto; min-height: 100vh; overflow-y: auto; padding-bottom: 100px; }
+            html, body { height: auto !important; overflow-y: auto !important; }
+            .os-main { height: auto !important; overflow: visible !important; }
+            .os-sidebar { display: none !important; }
+        }
+
+        .os-sidebar {
+            background: rgba(8, 11, 18, 0.95); backdrop-filter: blur(24px);
+            border-right: 1px solid var(--border-subtle); padding: 18px 16px;
+            display: flex; flex-direction: column; justify-content: space-between;
+            height: 100vh; z-index: 90; overflow: hidden;
+        }
+        .brand-box { display: flex; align-items: center; gap: 12px; text-decoration: none; padding: 4px; border-radius: 14px; margin-bottom: 6px; }
+        .brand-logo-icon {
+            width: 36px; height: 36px; border-radius: 12px; background: var(--role-gradient);
+            color: #04060A; font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.15rem;
+            display: flex; align-items: center; justify-content: center; box-shadow: 0 0 18px var(--role-glow);
+        }
+        .brand-text h1 { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1rem; letter-spacing: 0.15em; color: white; line-height: 1; }
+        .brand-text span { font-size: 7.5px; font-family: 'JetBrains Mono', monospace; color: var(--role-color); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 3px; display: block; }
+        .sidebar-top-section { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+        .sidebar-nav { display: flex; flex-direction: column; justify-content: center; flex: 1 1 auto; gap: 8px; padding: 8px 0; }
+        .sidebar-bottom-section { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border-subtle); }
+        .side-link {
+            display: flex; align-items: center; justify-content: space-between; padding: 10px 14px;
+            border-radius: 14px; background: rgba(255, 255, 255, 0.015); border: 1px solid var(--border-subtle);
+            color: var(--text-secondary); font-size: 0.83rem; font-weight: 600; height: 44px; text-decoration: none;
+            transition: all 0.25s ease;
+        }
+        .side-link-left { display: flex; align-items: center; gap: 12px; }
+        .side-link:hover { color: var(--text-primary); border-color: rgba(var(--role-rgb), 0.45); transform: translateX(3px); }
+        .side-link.active { background: rgba(var(--role-rgb), 0.14); border-color: var(--role-color); color: var(--role-color); box-shadow: 0 0 18px rgba(var(--role-rgb), 0.18); }
+        .sidebar-ai-tip-box {
+            background: rgba(var(--role-rgb), 0.05); border: 1px solid rgba(var(--role-rgb), 0.24);
+            border-radius: 12px; padding: 8px 11px; height: 86px; display: flex; flex-direction: column; justify-content: center;
+        }
+        .sidebar-ai-tip-header { display: flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--role-color); text-transform: uppercase; margin-bottom: 3px; font-weight: 700; }
+        .sidebar-ai-tip-text { font-size: 0.68rem; color: #CBD5E1; line-height: 1.28; }
+
+        .os-main { display: flex; flex-direction: column; min-width: 0; height: 100vh; overflow: hidden; }
+        .os-topbar {
+            background: rgba(6, 8, 14, 0.9); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle); padding: 11px 24px;
+            display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-shrink: 0;
+        }
+        .active-role-indicator { display: flex; align-items: center; background: rgba(13, 17, 26, 0.95); border: 1px solid rgba(var(--role-rgb), 0.45); border-radius: 999px; padding: 6px 14px; gap: 7px; }
+        .active-role-indicator .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--role-color); box-shadow: 0 0 8px var(--role-color); }
+        .active-role-text { font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.66rem; color: var(--text-primary); letter-spacing: 0.06em; text-transform: uppercase; }
+
+        .os-workspace { max-width: 1280px; width: 100%; margin: 0 auto; padding: 14px 22px 24px 22px; flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; }
+        .context-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+        .context-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.64rem; color: var(--role-color); text-transform: uppercase; letter-spacing: 0.14em; display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+        .context-title { font-family: 'Orbitron', sans-serif; font-size: clamp(1.25rem, 2vw, 1.72rem); font-weight: 900; letter-spacing: -0.02em; color: white; }
+
+        .btn-primary {
+            background: var(--role-gradient); color: #04060A; border: none; border-radius: 10px;
+            padding: 8px 14px; font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.65rem;
+            cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            box-shadow: 0 0 16px var(--role-glow); transition: all 0.22s ease; white-space: nowrap;
+        }
+        .btn-primary:hover { transform: translateY(-1px) scale(1.02); filter: brightness(1.08); }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.04); color: white; border: 1px solid var(--border-subtle);
+            border-radius: 10px; padding: 8px 11px; font-family: 'Orbitron', sans-serif; font-weight: 700;
+            font-size: 0.62rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.22s ease; white-space: nowrap;
+        }
+        .btn-secondary:hover { border-color: rgba(var(--role-rgb), 0.5); background: rgba(var(--role-rgb), 0.1); }
+        .verified-badge {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; font-weight: 700;
+            padding: 5px 10px; border-radius: 8px; background: rgba(var(--role-rgb), 0.12);
+            border: 1px solid rgba(var(--role-rgb), 0.38); color: var(--role-color); display: inline-flex; align-items: center; gap: 5px;
+        }
+
+        .minimal-mode-switch { display: inline-flex; background: rgba(4, 6, 10, 0.95); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 11px; padding: 3px; gap: 4px; }
+        .minimal-mode-btn {
+            background: transparent; border: none; color: var(--text-secondary); font-family: 'Orbitron', sans-serif;
+            font-size: 0.62rem; font-weight: 800; padding: 6px 12px; border-radius: 8px; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 6px; transition: all 0.22s ease;
+        }
+        .minimal-mode-btn:hover { color: #FFFFFF; }
+        .minimal-mode-btn.active { background: var(--role-gradient); color: #04060A; font-weight: 900; box-shadow: 0 0 14px var(--role-glow); }
+
+        .bento-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 15px; align-items: stretch; }
+        .col-7 { grid-column: span 7; }
+        .col-5 { grid-column: span 5; }
+        @media (max-width: 1060px) { .col-7, .col-5 { grid-column: span 12; } }
+
+        .kinet-panel {
+            background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 20px;
+            padding: 15px 17px; position: relative; box-shadow: 0 12px 30px rgba(0,0,0,0.45);
+        }
+
+        .kinet-input, .kinet-select-native {
+            background: rgba(4, 6, 10, 0.92); border: 1px solid rgba(var(--role-rgb), 0.38);
+            border-radius: 10px; padding: 8px 11px; color: #F8FAFC; font-family: 'Inter', sans-serif;
+            font-size: 0.74rem; font-weight: 600; outline: none; width: 100%;
+        }
+        .kinet-input:focus, .kinet-select-native:focus { border-color: var(--role-color); box-shadow: 0 0 12px rgba(var(--role-rgb), 0.2); }
+
+        .field-lbl {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.56rem; color: var(--role-color);
+            font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 4px;
+        }
+
+        .stage-viewport {
+            width: 100%; height: 320px;
+            background: radial-gradient(ellipse at 50% 10%, rgba(var(--role-rgb), 0.2), transparent 65%), #04070E;
+            border: 1px solid rgba(var(--role-rgb), 0.4); border-radius: 16px;
+            position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
+            margin-bottom: 12px;
+        }
+        .stage-svg { width: 94%; height: 90%; display: block; }
+
+        .splits-table {
+            width: 100%; border-collapse: collapse; font-size: 0.72rem;
+        }
+        .splits-table th {
+            text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 0.56rem;
+            color: var(--text-secondary); padding: 7px 8px; border-bottom: 1px solid var(--border-subtle);
+            text-transform: uppercase;
+        }
+        .splits-table td {
+            padding: 8px 8px; border-bottom: 1px solid rgba(255,255,255,0.04); color: #E2E8F0;
+        }
+        .zone-pill {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.56rem; font-weight: 800;
+            padding: 2px 7px; border-radius: 6px; display: inline-block;
+        }
+        .z2 { background: rgba(56,189,248,0.16); color: #38BDF8; }
+        .z3 { background: rgba(0,255,136,0.16); color: #00FF88; }
+        .z4 { background: rgba(245,158,11,0.2); color: #F59E0B; }
+        .z5 { background: rgba(239,68,68,0.22); color: #FCA5A5; }
+
+        .pill-btn {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); color: #CBD5E1;
+            font-family: 'Orbitron', sans-serif; font-size: 0.58rem; font-weight: 800;
+            padding: 7px 10px; border-radius: 9px; cursor: pointer; transition: all 0.2s ease;
+        }
+        .pill-btn:hover { border-color: var(--role-color); color: #FFF; }
+        .pill-btn.active { background: var(--role-gradient); color: #04060A; border-color: transparent; box-shadow: 0 0 12px var(--role-glow); }
+
+        .round-card {
+            background: rgba(5, 8, 15, 0.85); border: 1px solid var(--border-subtle);
+            border-left: 3px solid var(--role-color); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px;
+        }
+        .saved-item-card {
+            background: rgba(5, 8, 15, 0.85); border: 1px solid var(--border-subtle);
+            border-left: 3px solid var(--role-color); border-radius: 11px; padding: 9px 11px; margin-bottom: 7px;
+            display: flex; justify-content: space-between; align-items: center; gap: 8px;
+        }
+    </style>
+</head>
+<body data-role="athlete">
+    <div class="os-layout">
+        <aside class="os-sidebar">
+            <div class="sidebar-top-section">
+                <a href="app.html" id="brand-logo-desktop" class="brand-box">
+                    <div class="brand-logo-icon">K</div>
+                    <div class="brand-text">
+                        <h1>KINET OS</h1>
+                        <span id="sidebar-sport-subtitle">AI PRECISION // LAB</span>
+                    </div>
+                </a>
+                <nav class="sidebar-nav">
+                    <a href="app.html" id="nav-vestuario" class="side-link"><span class="side-link-left"><span>⚡</span> <span>Vestuario</span></span><span style="font-size:0.65rem;font-family:'JetBrains Mono';">HOY</span></a>
+                    <a href="cuerpo-tecnico.html" id="nav-cuerpo-tecnico" class="side-link"><span class="side-link-left"><span>🧠</span> <span>Cuerpo Técnico IA</span></span><span>→</span></a>
+                    <a href="ficha-pro.html" id="nav-ficha-pro" class="side-link"><span class="side-link-left"><span>🎴</span> <span>Ficha & KINET Card</span></span><span>→</span></a>
+                    <a href="ojeador-live.html" id="nav-ojeador-live" class="side-link"><span class="side-link-left"><span>🎬</span> <span>Laboratorio Vídeo</span></span><span>→</span></a>
+                    <a href="analizador.html" id="nav-analizador" class="side-link active"><span class="side-link-left"><span>🏟️</span> <span>Analizador & Pizarra 3D</span></span><span style="color:var(--role-color);">●</span></a>
+                    <a href="comunidad.html" id="nav-comunidad" class="side-link"><span class="side-link-left"><span>🌐</span> <span>Comunidad / Red Social</span></span><span>→</span></a>
+                    <a href="media-studio.html" id="nav-media-studio" class="side-link"><span class="side-link-left"><span>🎵</span> <span>KINET Media Studio™</span></span><span>→</span></a>
+                </nav>
+            </div>
+            <div class="sidebar-bottom-section">
+                <div class="sidebar-ai-tip-box">
+                    <div class="sidebar-ai-tip-header"><span>💡</span> <span>Lab Especializado</span></div>
+                    <div class="sidebar-ai-tip-text" id="sidebar-lab-tip">Planifica ritmos, patrones de golpeo o asaltos diseñados al 100% para tu disciplina.</div>
+                </div>
+                <a href="perfil.html" id="nav-perfil" class="side-link"><span class="side-link-left"><span>👤</span> <span>Mi Perfil</span></span><span>→</span></a>
+                <a href="despacho.html" id="nav-despacho" class="side-link"><span class="side-link-left"><span>⚙️</span> <span>Despacho & Ajustes</span></span><span>→</span></a>
+            </div>
+        </aside>
+
+        <div class="os-main">
+            <header class="os-topbar">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-secondary);display:flex;align-items:center;gap:10px;">
+                    <span id="topbar-lab-label">LABORATORIO TÁCTICO ESPECIALIZADO</span>
+                    <span style="color:var(--role-color);font-weight:700;" id="topbar-sport-tag">● RUNNING</span>
+                </div>
+                <div class="active-role-indicator">
+                    <span class="dot"></span>
+                    <span class="active-role-text" id="topbar-role-title">ATLETA PRO</span>
+                </div>
+            </header>
+
+            <main class="os-workspace">
+                <div class="context-header">
+                    <div>
+                        <span class="context-tag"><span id="header-icon">⏱️</span> <span id="header-tag-text">LABORATORIO ESPECIALIZADO • RUNNING / ATLETISMO</span></span>
+                        <h1 class="context-title" id="header-main-title">Estrategia de Carrera & Parciales</h1>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                        <div class="minimal-mode-switch">
+                            <button type="button" class="minimal-mode-btn" onclick="goBackToRoster()">👥 Gestionar Plantilla</button>
+                            <button type="button" class="minimal-mode-btn active">🎯 Estrategias Especializadas ✓</button>
+                        </div>
+                        <button type="button" class="btn-primary" onclick="exportSpecializedPDF()">📄 Exportar Plan PDF</button>
+                    </div>
+                </div>
+
+                <!-- CONTENIDO DINÁMICO SEGÚN EL DEPORTE -->
+                <div id="specialized-lab-mount"></div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        let activeArenaSport = 'Running';
+        let activeRoleKey = 'athlete';
+        let savedPlans = [];
+
+        function normalizeRole(val) {
+            if (!val) return null;
+            const v = String(val).toLowerCase().trim();
+            if (v === 'athlete' || v === 'atleta' || v.includes('atleta') || v.includes('jugador')) return 'athlete';
+            if (v === 'staff' || v.includes('entrenador') || v.includes('coach') || v.includes('fisio') || v.includes('staff')) return 'staff';
+            if (v === 'scout' || v.includes('scout') || v.includes('director') || v.includes('ojeador')) return 'scout';
+            return null;
+        }
+
+        function normalizeSport(raw) {
+            const s = String(raw || 'Running').toLowerCase();
+            if (s.includes('pádel') || s.includes('padel') || s.includes('tenis')) return 'Pádel / Tenis';
+            if (s.includes('boxeo') || s.includes('mma') || s.includes('combate')) return 'Boxeo / MMA';
+            if (s.includes('running') || s.includes('atletismo') || s.includes('carrera')) return 'Running';
+            if (s.includes('fútbol') || s.includes('futbol')) return 'Fútbol';
+            if (s.includes('baloncesto') || s.includes('basket')) return 'Baloncesto';
+            return 'Running';
+        }
+
+        function goBackToRoster() {
+            window.location.href = `analizador.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`;
+        }
+
+        function loadSavedPlans() {
+            try {
+                const key = `kinet_spec_plans_${activeArenaSport.toLowerCase()}`;
+                savedPlans = JSON.parse(localStorage.getItem(key) || '[]');
+            } catch (e) { savedPlans = []; }
+        }
+
+        function persistSavedPlans() {
+            try {
+                const key = `kinet_spec_plans_${activeArenaSport.toLowerCase()}`;
+                localStorage.setItem(key, JSON.stringify(savedPlans));
+                if (window.KinetBackend && typeof window.KinetBackend.pushLocalStateToCloud === 'function') {
+                    window.KinetBackend.pushLocalStateToCloud();
+                }
+            } catch (e) {}
+        }
+
+        // =========================================================================
+        // 1. LABORATORIO DE RUNNING / ATLETISMO (PARCIALES, ZONAS Y DRAFTING)
+        // =========================================================================
+        let runState = {
+            distance: '10K',
+            targetMinutes: 40,
+            strategy: 'negative',
+            pacerActive: true,
+            planTitle: 'Plan 10K Sub-40 Negative Split'
+        };
+
+        const RUN_DISTANCES = {
+            '400m': { totalKm: 0.4, segments: 4, segLabel: '100m', unit: 'seg' },
+            '1500m': { totalKm: 1.5, segments: 4, segLabel: 'Vuelta', unit: 'min' },
+            '5K': { totalKm: 5, segments: 5, segLabel: 'Km', unit: 'min' },
+            '10K': { totalKm: 10, segments: 5, segLabel: 'Bloque 2K', unit: 'min' },
+            '21K': { totalKm: 21.097, segments: 6, segLabel: 'Bloque 3.5K', unit: 'min' },
+            '42K': { totalKm: 42.195, segments: 6, segLabel: 'Bloque 7K', unit: 'min' }
+        };
+
+        function formatPace(secPerKm) {
+            const m = Math.floor(secPerKm / 60);
+            const s = Math.round(secPerKm % 60);
+            return `${m}:${String(s).padStart(2, '0')} /km`;
+        }
+
+        function formatClock(totalSec) {
+            const h = Math.floor(totalSec / 3600);
+            const m = Math.floor((totalSec % 3600) / 60);
+            const s = Math.round(totalSec % 60);
+            if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            return `${m}:${String(s).padStart(2, '0')}`;
+        }
+
+        function computeRunningSplits() {
+            const cfg = RUN_DISTANCES[runState.distance] || RUN_DISTANCES['10K'];
+            const totalSec = Math.max(45, runState.targetMinutes * 60);
+            const avgSecPerKm = totalSec / cfg.totalKm;
+            const segKm = cfg.totalKm / cfg.segments;
+
+            const multipliersMap = {
+                even: Array(cfg.segments).fill(1.0),
+                negative: [1.04, 1.02, 1.0, 0.98, 0.96, 0.94],
+                drafting: [1.02, 1.01, 1.01, 0.99, 0.97, 0.95],
+                aggressive: [0.95, 0.98, 1.0, 1.02, 1.03, 1.04],
+                kick: [1.03, 1.03, 1.02, 1.0, 0.96, 0.90]
+            };
+            const rawMults = (multipliersMap[runState.strategy] || multipliersMap.even).slice(0, cfg.segments);
+            const avgMult = rawMults.reduce((a, b) => a + b, 0) / rawMults.length;
+            const normMults = rawMults.map(m => m / avgMult);
+
+            let cumSec = 0;
+            return normMults.map((m, i) => {
+                const paceSec = avgSecPerKm * m;
+                const segSec = paceSec * segKm;
+                cumSec += segSec;
+                let zone = 'Z3';
+                let cue = 'Ritmo crucero estable y respiración controlada';
+                if (m > 1.02) { zone = 'Z2'; cue = runState.pacerActive ? 'Ahorro en drafting detrás de liebre' : 'Salida conservadora sin gastar glucógeno'; }
+                else if (m < 0.97) { zone = 'Z5'; cue = 'Cambio de ritmo final + máxima frecuencia de zancada'; }
+                else if (m < 0.995) { zone = 'Z4'; cue = 'Progresión en umbral de lactato, postura alta'; }
+
+                return {
+                    idx: i + 1,
+                    label: `${cfg.segLabel} ${i + 1}`,
+                    pace: formatPace(paceSec),
+                    cumTime: formatClock(cumSec),
+                    zone,
+                    cue
+                };
+            });
+        }
+
+        function renderRunningLab() {
+            const mount = document.getElementById('specialized-lab-mount');
+            const splits = computeRunningSplits();
+            const cfg = RUN_DISTANCES[runState.distance] || RUN_DISTANCES['10K'];
+            const avgPace = formatPace((runState.targetMinutes * 60) / cfg.totalKm);
+
+            mount.innerHTML = `
+                <div class="bento-grid">
+                    <div class="col-7">
+                        <div class="kinet-panel" id="export-stage-card">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+                                <div>
+                                    <div style="font-family:'Orbitron';font-size:0.86rem;font-weight:900;color:#FFF;">PISTA OLÍMPICA 400M & ESTRATEGIA DE RITMO</div>
+                                    <div style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);">OBJETIVO: ${runState.distance} EN ${runState.targetMinutes} MIN • RITMO MEDIO: ${avgPace}</div>
+                                </div>
+                                <span class="verified-badge">${runState.pacerActive ? '🏃 LIEBRE / DRAFTING ON' : '🏃 CARRERA INDIVIDUAL'}</span>
+                            </div>
+
+                            <div class="stage-viewport">
+                                <svg class="stage-svg" viewBox="0 0 600 420" preserveAspectRatio="xMidYMid meet">
+                                    <rect width="600" height="420" fill="#090D16" rx="14"/>
+                                    <rect x="28" y="24" width="544" height="372" rx="180" fill="#6E1D1B" stroke="rgba(255,255,255,0.85)" stroke-width="2.5"/>
+                                    <rect x="52" y="48" width="496" height="324" rx="156" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.8" stroke-dasharray="10 6"/>
+                                    <rect x="78" y="74" width="444" height="272" rx="130" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.6" stroke-dasharray="10 6"/>
+                                    <rect x="104" y="100" width="392" height="220" rx="105" fill="#0A1F17" stroke="#00FF88" stroke-width="2.5"/>
+                                    <line x1="420" y1="24" x2="420" y2="100" stroke="#FFFFFF" stroke-width="5"/>
+                                    <text x="420" y="18" fill="#FFFFFF" font-family="JetBrains Mono" font-size="10" text-anchor="middle">META / SALIDA</text>
+                                    <text x="300" y="195" fill="#00FF88" font-family="Orbitron" font-size="18" font-weight="900" text-anchor="middle">${runState.distance} • ${avgPace}</text>
+                                    <text x="300" y="220" fill="#94A3B8" font-family="JetBrains Mono" font-size="11" text-anchor="middle">ESTRATEGIA: ${runState.strategy.toUpperCase()}</text>
+                                    ${runState.pacerActive ? `
+                                        <circle cx="385" cy="60" r="14" fill="#0A1422" stroke="#F59E0B" stroke-width="2.5"/>
+                                        <text x="385" y="64" fill="#F59E0B" font-family="Orbitron" font-size="8" font-weight="900" text-anchor="middle">PAC</text>
+                                        <line x1="340" y1="60" x2="368" y2="60" stroke="#00FF88" stroke-width="2.5" stroke-dasharray="4 3"/>
+                                    ` : ''}
+                                    <circle cx="325" cy="60" r="15" fill="#041810" stroke="#00FF88" stroke-width="2.5"/>
+                                    <text x="325" y="64" fill="#FFFFFF" font-family="Orbitron" font-size="8" font-weight="900" text-anchor="middle">TÚ</text>
+                                </svg>
+                            </div>
+
+                            <div style="overflow-x:auto;">
+                                <table class="splits-table">
+                                    <thead>
+                                        <tr><th>Tramo</th><th>Ritmo Objetivo</th><th>Tiempo Acum.</th><th>Zona</th><th>Consigna Táctica</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        ${splits.map(s => `
+                                            <tr>
+                                                <td><strong>${s.label}</strong></td>
+                                                <td style="font-family:'JetBrains Mono';color:var(--role-color);font-weight:700;">${s.pace}</td>
+                                                <td style="font-family:'JetBrains Mono';">${s.cumTime}</td>
+                                                <td><span class="zone-pill ${s.zone.toLowerCase()}">${s.zone}</span></td>
+                                                <td style="font-size:0.68rem;color:#CBD5E1;">${s.cue}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-5">
+                        <div class="kinet-panel" style="display:flex;flex-direction:column;gap:12px;">
+                            <div style="font-family:'Orbitron';font-size:0.84rem;font-weight:900;color:var(--role-color);">⚙️ CONFIGURADOR DE CARRERA</div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                                <div>
+                                    <label class="field-lbl">Distancia / Prueba</label>
+                                    <select class="kinet-select-native" onchange="runState.distance=this.value; renderRunningLab();">
+                                        ${Object.keys(RUN_DISTANCES).map(d => `<option value="${d}" ${runState.distance === d ? 'selected' : ''}>${d}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="field-lbl">Marca Objetivo (Minutos)</label>
+                                    <input type="number" min="1" max="360" step="0.5" class="kinet-input" value="${runState.targetMinutes}" oninput="runState.targetMinutes=parseFloat(this.value)||40; renderRunningLab();">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="field-lbl">Estrategia de Ritmo</label>
+                                <select class="kinet-select-native" onchange="runState.strategy=this.value; renderRunningLab();">
+                                    <option value="negative" ${runState.strategy==='negative'?'selected':''}>⚡ Negative Split (De menos a más)</option>
+                                    <option value="even" ${runState.strategy==='even'?'selected':''}>⚙️ Crucero Constante (Even Splits)</option>
+                                    <option value="drafting" ${runState.strategy==='drafting'?'selected':''}>🎯 Drafting / Tren de Liebres</option>
+                                    <option value="aggressive" ${runState.strategy==='aggressive'?'selected':''}>🔥 Salida Explosiva</option>
+                                    <option value="kick" ${runState.strategy==='kick'?'selected':''}>🛡️ Conservador + Sprint Final</option>
+                                </select>
+                            </div>
+
+                            <div style="display:flex;gap:8px;">
+                                <button type="button" class="pill-btn ${runState.pacerActive ? 'active' : ''}" style="flex:1;" onclick="runState.pacerActive=!runState.pacerActive; renderRunningLab();">
+                                    🏃 Liebre / Drafting: ${runState.pacerActive ? 'ON' : 'OFF'}
+                                </button>
+                            </div>
+
+                            <div style="border-top:1px solid var(--border-subtle);padding-top:10px;">
+                                <label class="field-lbl">Guardar Plan en tu Biblioteca</label>
+                                <div style="display:flex;gap:6px;">
+                                    <input type="text" id="spec-plan-title" class="kinet-input" value="${runState.planTitle}" placeholder="Nombre del plan...">
+                                    <button type="button" class="btn-primary" onclick="saveCurrentSpecializedPlan()">💾 Guardar</button>
+                                </div>
+                            </div>
+
+                            <div id="saved-plans-list"></div>
+
+                            <button type="button" class="btn-primary" style="width:100%;" onclick="sendSpecializedPlanToCoach()">
+                                ⚡ Analizar este Plan con mi Entrenador IA →
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            renderSavedPlansList();
+        }
+
+        // =========================================================================
+        // 2. LABORATORIO DE PÁDEL / TENIS (PATRONES DE 3 GOLPES Y ZONAS DE PISTA)
+        // =========================================================================
+        let racketState = {
+            patternName: 'Australiana + Bandeja al Rincón',
+            formation: 'Australiana en Saque',
+            shot1: { from: [180, 355], to: [410, 125], label: '1. Saque cortado a la T' },
+            shot2: { from: [410, 125], to: [220, 150], label: '2. Resto cruzado bajo' },
+            shot3: { from: [220, 150], to: [460, 75], label: '3. Bandeja profunda al rincón' }
+        };
+
+        const RACKET_PRESETS = {
+            'australiana': {
+                patternName: 'Australiana + Bandeja al Rincón',
+                formation: 'Australiana en Saque',
+                shot1: { from: [230, 355], to: [410, 130], label: '1. Saque al cristal lateral' },
+                shot2: { from: [410, 130], to: [240, 165], label: '2. Globo defensivo rival' },
+                shot3: { from: [240, 165], to: [470, 65], label: '3. Bandeja profunda al rincón' }
+            },
+            'chiquita': {
+                patternName: 'Defensa Doble Pared + Chiquita',
+                formation: 'Transición Fondo → Red',
+                shot1: { from: [150, 340], to: [290, 225], label: '1. Chiquita baja a los pies' },
+                shot2: { from: [290, 225], to: [180, 155], label: '2. Volea forzada del rival' },
+                shot3: { from: [180, 155], to: [440, 95], label: '3. Contrapared / Volea ganadora' }
+            },
+            'nevera': {
+                patternName: 'Nevera Táctica + Remate X3',
+                formation: 'Presión en Red',
+                shot1: { from: [210, 245], to: [450, 110], label: '1. Volea profunda sobre el Drive' },
+                shot2: { from: [450, 110], to: [210, 250], label: '2. Globo corto del rival' },
+                shot3: { from: [210, 250], to: [490, 55], label: '3. Remate por 3 (X3) ganador' }
+            }
+        };
+
+        function renderRacketLab() {
+            const mount = document.getElementById('specialized-lab-mount');
+            const s1 = racketState.shot1, s2 = racketState.shot2, s3 = racketState.shot3;
+            mount.innerHTML = `
+                <div class="bento-grid">
+                    <div class="col-7">
+                        <div class="kinet-panel" id="export-stage-card">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <div>
+                                    <div style="font-family:'Orbitron';font-size:0.86rem;font-weight:900;color:#FFF;">PIZARRA DE PATRONES DE 3 GOLPES</div>
+                                    <div style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);">${racketState.patternName.toUpperCase()} • ${racketState.formation.toUpperCase()}</div>
+                                </div>
+                                <span class="verified-badge">🎾 SECUENCIA 1 → 2 → 3</span>
+                            </div>
+
+                            <div class="stage-viewport">
+                                <svg class="stage-svg" viewBox="0 0 600 420" preserveAspectRatio="xMidYMid meet">
+                                    <defs>
+                                        <marker id="rkG" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#00FF88"/></marker>
+                                        <marker id="rkA" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#F59E0B"/></marker>
+                                        <marker id="rkB" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#38BDF8"/></marker>
+                                    </defs>
+                                    <rect width="600" height="420" fill="#071B30" rx="12"/>
+                                    <rect x="60" y="24" width="480" height="372" fill="#0B2847" stroke="#38BDF8" stroke-width="3"/>
+                                    <line x1="60" y1="88" x2="540" y2="88" stroke="rgba(255,255,255,0.75)" stroke-width="2"/>
+                                    <line x1="60" y1="332" x2="540" y2="332" stroke="rgba(255,255,255,0.75)" stroke-width="2"/>
+                                    <line x1="300" y1="88" x2="300" y2="332" stroke="rgba(255,255,255,0.75)" stroke-width="2"/>
+                                    <line x1="50" y1="210" x2="550" y2="210" stroke="#00FF88" stroke-width="5"/>
+
+                                    <line x1="${s1.from[0]}" y1="${s1.from[1]}" x2="${s1.to[0]}" y2="${s1.to[1]}" stroke="#00FF88" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#rkG)"/>
+                                    <line x1="${s2.from[0]}" y1="${s2.from[1]}" x2="${s2.to[0]}" y2="${s2.to[1]}" stroke="#38BDF8" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#rkB)"/>
+                                    <line x1="${s3.from[0]}" y1="${s3.from[1]}" x2="${s3.to[0]}" y2="${s3.to[1]}" stroke="#F59E0B" stroke-width="3.2" marker-end="url(#rkA)"/>
+
+                                    <circle cx="${s1.from[0]}" cy="${s1.from[1]}" r="12" fill="#041810" stroke="#00FF88" stroke-width="2.5"/>
+                                    <text x="${s1.from[0]}" y="${s1.from[1]+4}" fill="#FFF" font-family="Orbitron" font-size="9" text-anchor="middle">1</text>
+                                    <circle cx="${s2.from[0]}" cy="${s2.from[1]}" r="12" fill="#081C2E" stroke="#38BDF8" stroke-width="2.5"/>
+                                    <text x="${s2.from[0]}" y="${s2.from[1]+4}" fill="#FFF" font-family="Orbitron" font-size="9" text-anchor="middle">2</text>
+                                    <circle cx="${s3.to[0]}" cy="${s3.to[1]}" r="13" fill="#2A1704" stroke="#F59E0B" stroke-width="2.5"/>
+                                    <text x="${s3.to[0]}" y="${s3.to[1]+4}" fill="#F59E0B" font-family="Orbitron" font-size="9" text-anchor="middle">★</text>
+                                </svg>
+                            </div>
+
+                            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+                                <div class="round-card" style="margin:0;border-left-color:#00FF88;"><div style="font-family:'JetBrains Mono';font-size:0.56rem;color:#00FF88;">GOLPE 1</div><div style="font-size:0.72rem;font-weight:700;">${s1.label}</div></div>
+                                <div class="round-card" style="margin:0;border-left-color:#38BDF8;"><div style="font-family:'JetBrains Mono';font-size:0.56rem;color:#38BDF8;">GOLPE 2</div><div style="font-size:0.72rem;font-weight:700;">${s2.label}</div></div>
+                                <div class="round-card" style="margin:0;border-left-color:#F59E0B;"><div style="font-family:'JetBrains Mono';font-size:0.56rem;color:#F59E0B;">GOLPE 3</div><div style="font-size:0.72rem;font-weight:700;">${s3.label}</div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-5">
+                        <div class="kinet-panel" style="display:flex;flex-direction:column;gap:11px;">
+                            <div style="font-family:'Orbitron';font-size:0.84rem;font-weight:900;color:var(--role-color);">🎾 PATRONES PROFESIONALES</div>
+                            <div style="display:flex;flex-direction:column;gap:6px;">
+                                <button type="button" class="pill-btn" onclick="racketState=JSON.parse(JSON.stringify(RACKET_PRESETS.australiana)); renderRacketLab();">1. Australiana + Bandeja al Rincón</button>
+                                <button type="button" class="pill-btn" onclick="racketState=JSON.parse(JSON.stringify(RACKET_PRESETS.chiquita)); renderRacketLab();">2. Defensa Doble Pared + Chiquita</button>
+                                <button type="button" class="pill-btn" onclick="racketState=JSON.parse(JSON.stringify(RACKET_PRESETS.nevera)); renderRacketLab();">3. Nevera Táctica + Remate X3</button>
+                            </div>
+
+                            <div>
+                                <label class="field-lbl">Personalizar Golpe 1 / 2 / 3</label>
+                                <input type="text" class="kinet-input" style="margin-bottom:5px;" value="${s1.label}" oninput="racketState.shot1.label=this.value;">
+                                <input type="text" class="kinet-input" style="margin-bottom:5px;" value="${s2.label}" oninput="racketState.shot2.label=this.value;">
+                                <input type="text" class="kinet-input" value="${s3.label}" oninput="racketState.shot3.label=this.value;">
+                            </div>
+
+                            <div style="display:flex;gap:6px;">
+                                <input type="text" id="spec-plan-title" class="kinet-input" value="${racketState.patternName}">
+                                <button type="button" class="btn-primary" onclick="saveCurrentSpecializedPlan()">💾 Guardar</button>
+                            </div>
+
+                            <div id="saved-plans-list"></div>
+
+                            <button type="button" class="btn-primary" style="width:100%;" onclick="sendSpecializedPlanToCoach()">
+                                ⚡ Analizar Patrón con Entrenador IA →
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            renderSavedPlansList();
+        }
+
+        // =========================================================================
+        // 3. LABORATORIO DE BOXEO / MMA (PLAN POR ASALTOS, DISTANCIAS Y COMBINACIONES)
+        // =========================================================================
+        let combatState = {
+            planTitle: 'Plan Combate 6 Asaltos — Corte de Ring',
+            distance: 'media',
+            rounds: [
+                { num: 1, focus: 'Lectura & Jab de Medida', combo: '1 - 1 - 2 + Paso Lateral', note: 'Controlar centro del ring y medir su mano adelantada.' },
+                { num: 2, focus: 'Trabajo al Cuerpo', combo: '1 - 2 - Gancho Hígado', note: 'Bajar su guardia atacando abajo tras finta alta.' },
+                { num: 3, focus: 'Esquiva & Contragolpe', combo: 'Slip Izq + Cross + Hook', note: 'Castigar cuando entre en línea recta.' }
+            ]
+        };
+
+        function renderCombatLab() {
+            const mount = document.getElementById('specialized-lab-mount');
+            const distRadius = combatState.distance === 'larga' ? 140 : (combatState.distance === 'media' ? 95 : 52);
+            mount.innerHTML = `
+                <div class="bento-grid">
+                    <div class="col-7">
+                        <div class="kinet-panel" id="export-stage-card">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <div>
+                                    <div style="font-family:'Orbitron';font-size:0.86rem;font-weight:900;color:#FFF;">RING / OCTÁGONO & ZONAS DE DISTANCIA</div>
+                                    <div style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);">DISTANCIA ACTIVA: ${combatState.distance.toUpperCase()} • ${combatState.rounds.length} ASALTOS PLANIFICADOS</div>
+                                </div>
+                                <span class="verified-badge">🥊 PLAN DE ESQUINA</span>
+                            </div>
+
+                            <div class="stage-viewport">
+                                <svg class="stage-svg" viewBox="0 0 600 420" preserveAspectRatio="xMidYMid meet">
+                                    <rect width="600" height="420" fill="#070A12" rx="12"/>
+                                    <polygon points="175,20 425,20 560,125 560,295 425,400 175,400 40,295 40,125" fill="#0D1320" stroke="rgba(255,255,255,0.4)" stroke-width="3"/>
+                                    <circle cx="300" cy="210" r="145" fill="none" stroke="rgba(56,189,248,0.28)" stroke-width="1.8" stroke-dasharray="8 6"/>
+                                    <circle cx="300" cy="210" r="95" fill="none" stroke="rgba(245,158,11,0.38)" stroke-width="1.8" stroke-dasharray="6 4"/>
+                                    <circle cx="300" cy="210" r="${distRadius}" fill="rgba(0,255,136,0.08)" stroke="#00FF88" stroke-width="2.5"/>
+                                    <circle cx="${300 - distRadius/2}" cy="210" r="18" fill="#041810" stroke="#00FF88" stroke-width="2.5"/>
+                                    <text x="${300 - distRadius/2}" y="214" fill="#FFF" font-family="Orbitron" font-size="9" font-weight="900" text-anchor="middle">TÚ</text>
+                                    <circle cx="${300 + distRadius/2}" cy="210" r="18" fill="#2A080C" stroke="#EF4444" stroke-width="2.5"/>
+                                    <text x="${300 + distRadius/2}" y="214" fill="#FCA5A5" font-family="Orbitron" font-size="9" font-weight="900" text-anchor="middle">RIV</text>
+                                </svg>
+                            </div>
+
+                            <div style="max-height:220px;overflow-y:auto;">
+                                ${combatState.rounds.map((r, i) => `
+                                    <div class="round-card">
+                                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+                                            <strong style="font-family:'Orbitron';font-size:0.74rem;color:var(--role-color);">ASALTO ${r.num} • ${r.focus}</strong>
+                                            <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:#F59E0B;font-weight:700;">${r.combo}</span>
+                                        </div>
+                                        <div style="font-size:0.7rem;color:#CBD5E1;">${r.note}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-5">
+                        <div class="kinet-panel" style="display:flex;flex-direction:column;gap:11px;">
+                            <div style="font-family:'Orbitron';font-size:0.84rem;font-weight:900;color:var(--role-color);">🥊 CONSTRUCTOR DE ASALTOS</div>
+                            <div>
+                                <label class="field-lbl">Distancia de Combate</label>
+                                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+                                    <button type="button" class="pill-btn ${combatState.distance==='larga'?'active':''}" onclick="combatState.distance='larga'; renderCombatLab();">Larga (Jab)</button>
+                                    <button type="button" class="pill-btn ${combatState.distance==='media'?'active':''}" onclick="combatState.distance='media'; renderCombatLab();">Media (Series)</button>
+                                    <button type="button" class="pill-btn ${combatState.distance==='corta'?'active':''}" onclick="combatState.distance='corta'; renderCombatLab();">Corta / Clinch</button>
+                                </div>
+                            </div>
+
+                            <div style="background:rgba(4,6,10,0.75);border:1px solid var(--border-subtle);border-radius:12px;padding:10px;">
+                                <label class="field-lbl">Añadir Nuevo Asalto</label>
+                                <input type="text" id="new-rd-focus" class="kinet-input" style="margin-bottom:6px;" placeholder="Objetivo (Ej: Presión en cuerdas / Takedown)">
+                                <input type="text" id="new-rd-combo" class="kinet-input" style="margin-bottom:6px;" placeholder="Combinación (Ej: 1-2-3 + Low Kick)">
+                                <input type="text" id="new-rd-note" class="kinet-input" style="margin-bottom:7px;" placeholder="Consigna de esquina...">
+                                <button type="button" class="btn-secondary" style="width:100%;border-color:var(--role-color);color:var(--role-color);" onclick="addCombatRound()">+ Añadir Asalto ${combatState.rounds.length + 1}</button>
+                            </div>
+
+                            <div style="display:flex;gap:6px;">
+                                <input type="text" id="spec-plan-title" class="kinet-input" value="${combatState.planTitle}">
+                                <button type="button" class="btn-primary" onclick="saveCurrentSpecializedPlan()">💾 Guardar</button>
+                            </div>
+
+                            <div id="saved-plans-list"></div>
+
+                            <button type="button" class="btn-primary" style="width:100%;" onclick="sendSpecializedPlanToCoach()">
+                                ⚡ Enviar Plan de Combate a Esquina IA →
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            renderSavedPlansList();
+        }
+
+        function addCombatRound() {
+            const focus = (document.getElementById('new-rd-focus')?.value || '').trim() || 'Ritmo & Presión';
+            const combo = (document.getElementById('new-rd-combo')?.value || '').trim() || '1 - 2 - Hook';
+            const note = (document.getElementById('new-rd-note')?.value || '').trim() || 'Mantener guardia alta al salir.';
+            combatState.rounds.push({ num: combatState.rounds.length + 1, focus, combo, note });
+            renderCombatLab();
+        }
+
+        // =========================================================================
+        // GUARDADO, PDF Y ENVÍO AL ENTRENADOR IA (COMÚN A LOS 3 LABS)
+        // =========================================================================
+        function saveCurrentSpecializedPlan() {
+            const title = (document.getElementById('spec-plan-title')?.value || '').trim() || `Plan ${activeArenaSport}`;
+            const payload = activeArenaSport === 'Running' ? JSON.parse(JSON.stringify(runState))
+                : (activeArenaSport === 'Pádel / Tenis' ? JSON.parse(JSON.stringify(racketState))
+                    : JSON.parse(JSON.stringify(combatState)));
+            savedPlans.unshift({ id: 'sp_' + Date.now(), title, sport: activeArenaSport, payload, date: new Date().toLocaleDateString('es-ES') });
+            persistSavedPlans();
+            renderSavedPlansList();
+        }
+
+        function renderSavedPlansList() {
+            const box = document.getElementById('saved-plans-list');
+            if (!box) return;
+            if (savedPlans.length === 0) {
+                box.innerHTML = `<div style="font-size:0.68rem;color:var(--text-secondary);text-align:center;padding:8px;border:1px dashed var(--border-subtle);border-radius:10px;">Sin planes guardados aún en ${activeArenaSport}.</div>`;
+                return;
+            }
+            box.innerHTML = savedPlans.slice(0, 4).map(p => `
+                <div class="saved-item-card">
+                    <div style="min-width:0;">
+                        <div style="font-family:'Orbitron';font-size:0.68rem;font-weight:800;color:#FFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.title}</div>
+                        <div style="font-family:'JetBrains Mono';font-size:0.54rem;color:var(--role-color);">${p.date} • ☁️ Nube</div>
+                    </div>
+                    <div style="display:flex;gap:5px;flex-shrink:0;">
+                        <button type="button" class="btn-secondary" style="padding:4px 8px;font-size:0.55rem;" onclick="loadSpecializedPlan('${p.id}')">Cargar</button>
+                        <button type="button" class="btn-secondary" style="padding:4px 7px;font-size:0.55rem;color:#FCA5A5;" onclick="deleteSpecializedPlan('${p.id}')">✕</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function loadSpecializedPlan(id) {
+            const item = savedPlans.find(x => x.id === id);
+            if (!item) return;
+            if (activeArenaSport === 'Running') { runState = JSON.parse(JSON.stringify(item.payload)); renderRunningLab(); }
+            else if (activeArenaSport === 'Pádel / Tenis') { racketState = JSON.parse(JSON.stringify(item.payload)); renderRacketLab(); }
+            else { combatState = JSON.parse(JSON.stringify(item.payload)); renderCombatLab(); }
+        }
+
+        function deleteSpecializedPlan(id) {
+            savedPlans = savedPlans.filter(x => x.id !== id);
+            persistSavedPlans();
+            renderSavedPlansList();
+        }
+
+        async function exportSpecializedPDF() {
+            const target = document.getElementById('export-stage-card');
+            if (!target) return;
+            const canvas = await html2canvas(target, { scale: 2, backgroundColor: '#050811', useCORS: true, logging: false });
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+            pdf.setFillColor(5, 8, 15);
+            pdf.rect(0, 0, 297, 210, 'F');
+            pdf.setTextColor(0, 255, 136);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(13);
+            pdf.text(`KINET OS // LABORATORIO ESPECIALIZADO (${activeArenaSport.toUpperCase()})`, 15, 16);
+            pdf.addImage(imgData, 'PNG', 15, 22, 267, 172);
+            pdf.save(`KINET_Plan_${activeArenaSport.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
+        }
+
+        function sendSpecializedPlanToCoach() {
+            let summary = '';
+            if (activeArenaSport === 'Running') {
+                summary = `Plan de Carrera ${runState.distance} en ${runState.targetMinutes} min con estrategia ${runState.strategy} (Liebre: ${runState.pacerActive ? 'Sí' : 'No'}).`;
+            } else if (activeArenaSport === 'Pádel / Tenis') {
+                summary = `Patrón de 3 golpes (${racketState.patternName}): ${racketState.shot1.label} -> ${racketState.shot2.label} -> ${racketState.shot3.label}.`;
+            } else {
+                summary = `Plan de Combate (${combatState.distance}): ` + combatState.rounds.map(r => `R${r.num} ${r.focus} (${r.combo})`).join(' | ');
+            }
+            localStorage.setItem('kinet_pending_question', `🎯 [Laboratorio Especializado ${activeArenaSport}]: ${summary} Analiza este plan y dame recomendaciones concretas para perfeccionarlo.`);
+            localStorage.setItem('kinet_target_agent', 'tecnico_video');
+            window.location.href = `cuerpo-tecnico.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}&agent=tecnico_video`;
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const storedRole = normalizeRole(localStorage.getItem('kinet_active_role')) || normalizeRole(localStorage.getItem('kinet_role'));
+            activeRoleKey = storedRole || normalizeRole(urlParams.get('role')) || 'athlete';
+            document.body.setAttribute('data-role', activeRoleKey);
+
+            const roleLabels = { athlete: 'ATLETA PRO', staff: 'ENTRENADOR / STAFF', scout: 'DIRECTOR DEPORTIVO / SCOUT' };
+            document.getElementById('topbar-role-title').textContent = roleLabels[activeRoleKey] || 'ATLETA PRO';
+
+            activeArenaSport = normalizeSport(urlParams.get('sport') || localStorage.getItem('kinet_sport') || 'Running');
+            // Si alguien abre analizador3.html con Fútbol o Baloncesto, redirigir a analizador2.html
+            if (activeArenaSport === 'Fútbol' || activeArenaSport === 'Baloncesto') {
+                window.location.replace(`analizador2.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`);
+                return;
+            }
+
+            document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${activeArenaSport.toUpperCase()}`;
+            document.getElementById('topbar-sport-tag').textContent = `● ${activeArenaSport.toUpperCase()}`;
+
+            const queryParams = `?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`;
+            ['brand-logo-desktop','nav-vestuario','nav-cuerpo-tecnico','nav-ficha-pro','nav-ojeador-live','nav-analizador','nav-comunidad','nav-media-studio','nav-perfil','nav-despacho'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.href = el.getAttribute('href').split('?')[0] + queryParams;
+            });
+
+            loadSavedPlans();
+
+            if (activeArenaSport === 'Pádel / Tenis') {
+                document.getElementById('header-icon').textContent = '🎾';
+                document.getElementById('header-tag-text').textContent = 'LABORATORIO ESPECIALIZADO • PÁDEL / TENIS';
+                document.getElementById('header-main-title').textContent = 'Patrones de Golpeo & Red';
+                renderRacketLab();
+            } else if (activeArenaSport === 'Boxeo / MMA') {
+                document.getElementById('header-icon').textContent = '🥊';
+                document.getElementById('header-tag-text').textContent = 'LABORATORIO ESPECIALIZADO • BOXEO / MMA';
+                document.getElementById('header-main-title').textContent = 'Plan de Combate & Asaltos';
+                renderCombatLab();
+            } else {
+                document.getElementById('header-icon').textContent = '⏱️';
+                document.getElementById('header-tag-text').textContent = 'LABORATORIO ESPECIALIZADO • RUNNING / ATLETISMO';
+                document.getElementById('header-main-title').textContent = 'Estrategia de Carrera & Parciales';
+                renderRunningLab();
+            }
+        });
+    </script>
+</body>
+</html>
