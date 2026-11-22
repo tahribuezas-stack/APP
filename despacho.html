@@ -3,6 +3,7 @@
 <head>
 <script src="kinet-guard.js"></script>
 <script src="kinet-sport.js"></script>
+<script src="kinet-select.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
@@ -714,6 +715,7 @@
                                         <option value="Pádel / Tenis">Pádel / Tenis</option>
                                         <option value="Boxeo / MMA">Boxeo / MMA</option>
                                         <option value="Running">Running / Atletismo</option>
+                                        <option value="Otros Deportes">Otros Deportes</option>
                                     </select>
                                 </div>
                                 <div class="setting-row">
@@ -732,9 +734,9 @@
                                         <span>Lenguaje de voz y texto del Cuerpo Técnico IA</span>
                                     </div>
                                     <select id="setting-lang" class="setting-select" onchange="stageSimplePref('lang', this.value)">
-                                        <option value="es" selected>Español (Oficial RFEF / PRO)</option>
-                                        <option value="en">English (Premier League / NBA)</option>
-                                        <option value="pt">Português (Élite)</option>
+                                        <option value="es" selected>Español</option>
+                                        <option value="en">English</option>
+                                        <option value="pt">Português</option>
                                     </select>
                                 </div>
                             </div>
@@ -1645,10 +1647,14 @@
 
             const sportSelect = document.getElementById('setting-sport');
             if (sportSelect) {
+                const wantKey = window.KinetSport ? window.KinetSport.key(draftSettings.sport) : null;
+                let matched = false;
                 for (let opt of sportSelect.options) {
-                    if (opt.value.toLowerCase() === draftSettings.sport.toLowerCase()) {
-                        opt.selected = true;
-                        break;
+                    if (opt.value.toLowerCase() === draftSettings.sport.toLowerCase()) { sportSelect.value = opt.value; matched = true; break; }
+                }
+                if (!matched && wantKey) {
+                    for (let opt of sportSelect.options) {
+                        if (window.KinetSport.key(opt.value) === wantKey) { sportSelect.value = opt.value; break; }
                     }
                 }
             }

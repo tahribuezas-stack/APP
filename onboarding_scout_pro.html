@@ -112,6 +112,7 @@
       box-shadow: 0 0 18px #3B82F6; animation: scoutScanBeam 1.8s infinite linear; pointer-events: none;
     }
   </style>
+<script src="kinet-sport.js"></script>
 </head>
 <body style="--spotlight-color: rgba(59, 130, 246, 0.25);" class="bg-cyber-pattern text-slate-100 font-sans min-h-screen flex items-center justify-center p-2 sm:p-4">
 
@@ -898,6 +899,21 @@
       };
 
       localStorage.setItem('kinet_profiles_db', JSON.stringify(profilesDB));
+      // Plan de personalización (lo que leen los entrenadores IA)
+      try {
+        const answers = (scoutState.chatHistory || []).filter(m => m.role === 'user').map(m => String(m.content || '').slice(0, 260));
+        const plan = {
+          sport: scoutState.sport, scoutRole: scoutState.role, category: scoutState.category, priority: scoutState.priority,
+          maxAge: scoutState.maxAge, budget: scoutState.budget, minGrl: scoutState.minGrl,
+          market: String(scoutState.extracted.marketZone || '').slice(0, 240), targetProfile: String(scoutState.extracted.targetProfile || '').slice(0, 240),
+          redFlags: String(scoutState.extracted.redFlags || '').slice(0, 200),
+          agency: scoutState.extracted.clubOrAgency || '', city: scoutState.extracted.city || '', rawAnswers: answers,
+          coachDirective: `Búsqueda activa: ${String(scoutState.extracted.targetProfile || scoutState.priority).slice(0, 80)} · máx. ${scoutState.maxAge} · ${scoutState.budget} · GRL mín. ${scoutState.minGrl}`
+        };
+        if (window.KinetSport && window.KinetSport.savePlan) window.KinetSport.savePlan('scout', plan);
+        else localStorage.setItem('kinet_ai_personalization_plan', JSON.stringify(Object.assign({ role: 'scout' }, plan)));
+      } catch (e) {}
+
       localStorage.setItem('kinet_role', 'scout');
       localStorage.setItem('kinet_active_role', 'scout');
       localStorage.setItem('kinet_sport', scoutState.sport);

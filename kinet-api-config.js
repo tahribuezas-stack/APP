@@ -272,6 +272,46 @@ REGLA DE CONVERSACIÓN: Si el usuario saluda o hace una pregunta casual ("hola",
     }
   };
 
+  // Plan de personalización del onboarding (entrevista final) -> líneas compactas para el prompt.
+  // Se guarda por rol (kinet_ai_plans) y se ignora si es de otro deporte distinto al activo.
+  function getActivePlan(role) {
+    let plan = null;
+    try { const all = JSON.parse(localStorage.getItem('kinet_ai_plans') || 'null'); if (all && all[role]) plan = all[role]; } catch (e) {}
+    if (!plan) { try { const p = JSON.parse(localStorage.getItem('kinet_ai_personalization_plan') || 'null'); if (p && (!p.role || p.role === role)) plan = p; } catch (e) {} }
+    return plan;
+  }
+  function formatPersonalizationPlan(role) {
+    const p = getActivePlan(role);
+    if (!p) return '';
+    const cut = (v, n) => String(v || '').replace(/\s+/g, ' ').trim().slice(0, n);
+    const sameSport = !p.sport || canonicalSportName(p.sport) === canonicalSportName(localStorage.getItem('kinet_sport') || '');
+    const L = [];
+    const add = (lbl, v, n) => { const t = cut(v, n || 180); if (t) L.push(`  · ${lbl}: ${t}`); };
+    if (role === 'athlete') {
+      add('Objetivo / motivación', p.goal, 200);
+      add('Fortaleza que declara', p.strength);
+      add('Lo que quiere mejorar', p.weakness);
+      add('Lesiones / molestias previas', p.injuries, 200);
+      if (p.sleepHours) add('Sueño habitual', p.sleepHours + ' h', 20);
+      if (p.week) add('Semana tipo', `${p.week.field ? 'campo/pista ' + p.week.field : ''}${p.week.gym ? ' · gimnasio ' + p.week.gym : ''}${p.week.competition ? ' · competición ' + p.week.competition : ''}${p.week.rest ? ' · descanso ' + p.week.rest : ''}`, 200);
+    } else if (role === 'staff') {
+      add('Función en el cuerpo técnico', p.staffRole, 80);
+      add('Metodología', p.methodology, 120);
+      if (p.squadSize) add('Efectivos a su cargo', p.squadSize, 12);
+      add('Foco principal', p.focus, 200);
+      add('Calendario', p.schedule, 160);
+    } else if (role === 'scout') {
+      add('Función', p.scoutRole, 80);
+      add('Prioridad de fichaje', p.priority, 100);
+      add('Edad máxima / presupuesto / GRL mínimo', `${p.maxAge || ''} / ${p.budget || ''} / ${p.minGrl || ''}`, 100);
+      add('Mercado / zona', p.market, 160);
+      add('Perfil objetivo', p.targetProfile, 180);
+      add('Alertas (red flags)', p.redFlags, 140);
+    }
+    if (!L.length) return '';
+    return (sameSport ? '' : '(OJO: este plan se hizo en otro deporte; úsalo solo como contexto general)\n') + L.join('\n');
+  }
+
   function gatherFullUserContextSnapshot() {
     const sport = localStorage.getItem('kinet_sport') || 'Fútbol';
     const role = localStorage.getItem('kinet_active_role') || 'athlete';
@@ -346,8 +386,7 @@ REGLA DE CONVERSACIÓN: Si el usuario saluda o hace una pregunta casual ("hola",
       const mem = JSON.parse(localStorage.getItem('kinet_ai_shared_memory') || '[]');
       if (Array.isArray(mem) && mem.length) memory = mem.slice(-10).map(m => `- (${m.agent}) ${m.text}`).join('\n');
     } catch (e) {}
-    let planNote = '';
-    try { const p = JSON.parse(localStorage.getItem('kinet_ai_personalization_plan') || 'null'); if (p) planNote = JSON.stringify(p).slice(0, 500); } catch (e) {}
+    const planNote = formatPersonalizationPlan(role);
     const tier = getCurrentTier();
     const xp = localStorage.getItem('kinet_user_xp') || '0';
     const bio = (localStorage.getItem('kinet_user_bio') || '').slice(0, 300);
@@ -477,6 +516,14 @@ REGLA DE CONVERSACIÓN: Si el usuario saluda o hace una pregunta casual ("hola",
 - PROHIBIDO usar términos de OTROS deportes (p. ej. microciclos MD-x, balón parado, isquios o penaltis si no es fútbol; sparring o asaltos si no es combate; pick & roll si no es baloncesto; etc.) salvo que el propio usuario los mencione.`;
   }
 
+  const PLAN_FOCUS_BY_AGENT = {
+    fisico_nutri: '- Parte de sus lesiones/molestias previas, su sueño, su semana tipo y su biometría: ajusta cargas, prevención y nutrición a SU calendario (día de competición, gimnasio, descanso), no a uno genérico.',
+    psicologia: '- Parte de su objetivo/motivación y de lo que quiere mejorar: trabaja foco, confianza y gestión de la presión de SU competición con sus propias palabras como punto de partida.',
+    tecnico_video: '- Parte de su fortaleza declarada y de lo que quiere mejorar, y de su KINET Card: propón trabajo técnico-táctico concreto para ESA carencia en su disciplina y demarcación.',
+    agente_marketing: '- Parte de su objetivo, club, categoría y ciudad: orienta marca personal, dossier y contactos a ese objetivo y a su nivel real, sin prometer fichajes.',
+    group: '- Tienes el plan completo: responde como el coordinador que conoce todo y deriva al especialista adecuado cuando la pregunta sea de un área concreta.'
+  };
+
   function buildMasterTrainedSystemPrompt(agentKey) {
     const ctx = gatherFullUserContextSnapshot();
     const persona = KINET_TRAINED_PERSONAS[agentKey] || KINET_TRAINED_PERSONAS.group;
@@ -495,12 +542,12 @@ EXPEDIENTE BIOMÉTRICO Y TÁCTICO EN TIEMPO REAL DEL USUARIO:
 - Última auditoría en Vision Lab™: ${ctx.lastClipInfo}
 - Informe de la Ficha verificada: ${ctx.verifiedReport || 'sin verificar todavía'}
 - CHECK-IN DE HOY: ${ctx.dailyLog}
-- Plan de suscripción: ${ctx.tier} | XP: ${ctx.xp}${ctx.bio ? `\n- Bio del usuario: ${ctx.bio}` : ''}${ctx.planNote ? `\n- Plan de personalización guardado: ${ctx.planNote}` : ''}
+- Plan de suscripción: ${ctx.tier} | XP: ${ctx.xp}${ctx.bio ? `\n- Bio del usuario: ${ctx.bio}` : ''}${ctx.planNote ? `\n- PLAN DE PERSONALIZACIÓN (lo que el usuario te contó en su entrevista de bienvenida; es tu brújula):\n${ctx.planNote}` : ''}
 
 LO QUE EL USUARIO HA CONTADO RECIENTEMENTE A TU CUERPO TÉCNICO (memoria compartida entre los 4 especialistas):
 ${ctx.memory || '- (aún nada)'}
 
-REGLAS DE VERACIDAD Y ROL:
+${PLAN_FOCUS_BY_AGENT[agentKey] ? 'CÓMO USAR EL PLAN SEGÚN TU ESPECIALIDAD:\n' + PLAN_FOCUS_BY_AGENT[agentKey] + '\n\n' : ''}REGLAS DE VERACIDAD Y ROL:
 - Usa SOLO los datos del expediente. Si un dato figura como "no registrada", dilo y pídeselo; NUNCA inventes medidas, estadísticas ni resultados del usuario.
 - Adapta el enfoque al rol "${ctx.role}": atleta = mejora personal; entrenador = gestión de grupo y planificación; ojeador/scout = análisis y detección de talento.
 - Si algo del expediente de otra área es relevante para tu respuesta (p. ej. sueño, RPE o riesgo de lesión), tenlo en cuenta.

@@ -103,6 +103,7 @@
       box-shadow: 0 0 18px #F59E0B; animation: staffScanBeam 1.8s infinite linear; pointer-events: none;
     }
   </style>
+<script src="kinet-sport.js"></script>
 </head>
 <body style="--spotlight-color: rgba(245, 158, 11, 0.25);" class="bg-cyber-pattern text-slate-100 font-sans min-h-screen flex items-center justify-center p-2 sm:p-4">
   <div class="relative w-full max-w-4xl h-auto max-h-[96vh] card-liquid-transition bg-[#0A0C0E] sm:rounded-[32px] border border-slate-800/80 shadow-[0_0_90px_rgba(0,0,0,0.95)] p-5 sm:p-8 flex flex-col justify-between space-y-4 overflow-y-auto">
@@ -836,6 +837,19 @@
       };
 
       localStorage.setItem('kinet_profiles_db', JSON.stringify(profilesDB));
+      // Plan de personalización (lo que leen los entrenadores IA)
+      try {
+        const answers = (coachState.chatHistory || []).filter(m => m.role === 'user').map(m => String(m.content || '').slice(0, 260));
+        const plan = {
+          sport: coachState.sport, staffRole: coachState.role, methodology: coachState.methodology, category: coachState.category, squadSize: coachState.squadSize,
+          focus: String(coachState.extracted.specificFocus || '').slice(0, 260), schedule: String(coachState.extracted.scheduleText || '').slice(0, 220),
+          club: coachState.extracted.club || '', city: coachState.extracted.city || '', rawAnswers: answers,
+          coachDirective: `Plan operativo para ${coachState.squadSize} deportistas (${coachState.category}). Prioridad: ${String(focusSummary || coachState.role).slice(0, 90)}`
+        };
+        if (window.KinetSport && window.KinetSport.savePlan) window.KinetSport.savePlan('staff', plan);
+        else localStorage.setItem('kinet_ai_personalization_plan', JSON.stringify(Object.assign({ role: 'staff' }, plan)));
+      } catch (e) {}
+
       localStorage.setItem('kinet_role', 'staff');
       localStorage.setItem('kinet_active_role', 'staff');
       localStorage.setItem('kinet_sport', coachState.sport);

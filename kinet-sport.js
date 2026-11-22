@@ -105,11 +105,12 @@
     var k = key(raw);
     if (k === 'futbol' || k === 'baloncesto') return;
     var V = T[k];
+    var W = k === 'padel' ? 'Equipo' : 'Grupo';
     var rules = [
-      [/\bPlantilla ampliada\b/g, 'Grupo ampliado'],
+      [/\bPlantilla ampliada\b/g, W + ' ampliado'],
       [/AUDITORÍA DE JUGADORES/g, 'AUDITORÍA DE ' + V.athletes.toUpperCase()],
       [/clips de partido/g, 'clips de ' + V.comp],
-      [/\bPLANTILLA\b/g, 'GRUPO'], [/\bPlantilla\b/g, 'Grupo'], [/\bplantilla\b/g, 'grupo'],
+      [/\bPLANTILLA\b/g, W.toUpperCase()], [/\bPlantilla\b/g, W], [/\bplantilla\b/g, W.toLowerCase()],
       [/Cartel Oficial de Partido \(11 \/ Convocatoria\)/g, 'Cartel Oficial de ' + V.compCap],
       [/\bJugadas & Estrategias IA\b/g, 'Estrategias IA'],
       [/\bAsigna jugadores\b/g, 'Asigna ' + V.athletes],
@@ -146,5 +147,75 @@
       window.__kinetRelabelObs.observe(document.body, { childList: true, subtree: true, characterData: true });
     }
   }
-  window.KinetSport = { key: key, terms: terms, current: current, all: T, relabel: relabel };
+  /* ----------------------------------------------------------
+     Datos del deportista ligados a SU deporte (posición + stats de la KINET Card).
+     Si el usuario cambia de deporte (Despacho), la posición y las stats del deporte
+     anterior no deben aparecer en el nuevo (ni llegar a los entrenadores IA).
+     Se guardan aparte por deporte y se restauran al volver.
+     ---------------------------------------------------------- */
+  function inferSportFromPosition(pos) {
+    var p = String(pos || '').toLowerCase();
+    if (!p) return null;
+    if (/portero|defensa central|lateral|centrocampista|mediocentro|mediapunta|extremo|delantero|carrilero|\((dc|por|mcd|mc|ei|ed)\)/.test(p)) return 'futbol';
+    if (/striker|grappler|peso (pluma|ligero|medio|pesado|welter|gallo|mosca|supe)|boxead|peleador|luchador|kickbox|ortodoxo/.test(p)) return 'boxeo';
+    if (/velocista|fondista|mediofondo|marat[oó]n|corredor|vallista|trail|ultra|\b(100|200|400|800|1500|5000|10000) ?m\b/.test(p)) return 'running';
+    if (/rev[eé]s|\bdrive\b|derecha \(|p[aá]del|tenis|fondo de pista/.test(p)) return 'padel';
+    if (/escolta|alero|ala-?\s?p[ií]vot|\bp[ií]vot\b|point guard|base \(|\((pg|sg|sf|pf|c)\)/.test(p)) return 'baloncesto';
+    return null;
+  }
+  function reconcileAthleteData() {
+    try {
+      var ls = window.localStorage;
+      var sportRaw = ls.getItem('kinet_sport');
+      if (!sportRaw) return;
+      var role = (ls.getItem('kinet_active_role') || ls.getItem('kinet_role') || 'athlete').toLowerCase();
+      if (role !== 'athlete') return;
+      var cur = key(sportRaw);
+      var dataKey = ls.getItem('kinet_data_sport_key');
+      var pos = ls.getItem('kinet_position') || '';
+      var stats = ls.getItem('kinet_custom_card_stats');
+      var inferred = inferSportFromPosition(pos);
+      var stale;
+      if (inferred) stale = inferred !== cur;
+      else if (dataKey) stale = dataKey !== cur && (pos || stats);
+      else stale = false;
+      if (!stale) { if (dataKey !== cur) ls.setItem('kinet_data_sport_key', cur); return; }
+      var oldKey = inferred || dataKey || 'futbol';
+      if (pos || stats) ls.setItem('kinet_sport_profile_' + oldKey, JSON.stringify({ pos: pos, stats: stats }));
+      var saved = null; try { saved = JSON.parse(ls.getItem('kinet_sport_profile_' + cur) || 'null'); } catch (e) {}
+      if (saved && saved.pos && inferSportFromPosition(saved.pos) !== null && inferSportFromPosition(saved.pos) !== cur) saved = null;
+      if (saved && saved.pos) ls.setItem('kinet_position', saved.pos); else ls.removeItem('kinet_position');
+      if (saved && saved.stats) ls.setItem('kinet_custom_card_stats', saved.stats); else ls.removeItem('kinet_custom_card_stats');
+      ls.setItem('kinet_data_sport_key', cur);
+    } catch (e) {}
+  }
+  // Al guardar posición o stats, quedan marcadas como del deporte activo
+  try {
+    var _set = Storage.prototype.setItem;
+    if (!Storage.prototype.__kinetSportHook) {
+      Storage.prototype.setItem = function (k, v) {
+        _set.call(this, k, v);
+        if (this === window.localStorage && (k === 'kinet_position' || k === 'kinet_custom_card_stats')) {
+          try { var sp = this.getItem('kinet_sport'); if (sp) _set.call(this, 'kinet_data_sport_key', key(sp)); } catch (e) {}
+        }
+      };
+      Storage.prototype.__kinetSportHook = true;
+    }
+  } catch (e) {}
+  reconcileAthleteData();
+
+  /* Plan de personalización: lo que el usuario cuenta en la entrevista final del onboarding.
+     Lo leen los 4 especialistas IA (kinet-api-config.js) y el Vestuario (coachDirective). */
+  function savePlan(role, plan) {
+    try {
+      plan = plan || {};
+      plan.role = role; plan.sport = plan.sport || localStorage.getItem('kinet_sport') || '';
+      plan.updatedAt = new Date().toISOString();
+      var all = {}; try { all = JSON.parse(localStorage.getItem('kinet_ai_plans') || '{}') || {}; } catch (e) {}
+      all[role] = plan;
+      localStorage.setItem('kinet_ai_plans', JSON.stringify(all));
+      localStorage.setItem('kinet_ai_personalization_plan', JSON.stringify(plan));
+    } catch (e) {}
+  }
+  window.KinetSport = { key: key, terms: terms, current: current, all: T, relabel: relabel, reconcile: reconcileAthleteData, inferFromPosition: inferSportFromPosition, savePlan: savePlan };
 })();
