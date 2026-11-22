@@ -110,6 +110,8 @@
       [/\bPlantilla ampliada\b/g, W + ' ampliado'],
       [/AUDITORÍA DE JUGADORES/g, 'AUDITORÍA DE ' + V.athletes.toUpperCase()],
       [/clips de partido/g, 'clips de ' + V.comp],
+      [/\bD[íi]a de Partido\b/g, 'Día de ' + V.compCap],
+      [/\bDÍA DE PARTIDO\b/g, 'DÍA DE ' + V.compUp],
       [/\bPLANTILLA\b/g, W.toUpperCase()], [/\bPlantilla\b/g, W], [/\bplantilla\b/g, W.toLowerCase()],
       [/Cartel Oficial de Partido \(11 \/ Convocatoria\)/g, 'Cartel Oficial de ' + V.compCap],
       [/\bJugadas & Estrategias IA\b/g, 'Estrategias IA'],

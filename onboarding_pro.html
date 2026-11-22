@@ -787,33 +787,47 @@
     }
 
     function parseScheduleFromText(txt) {
-      const lower = txt.toLowerCase();
+      const lower = String(txt || '').toLowerCase();
       const dayMap = [
-        { idx: 1, regex: /lunes/i }, { idx: 2, regex: /martes/i }, { idx: 3, regex: /mi[eé]rcoles/i },
-        { idx: 4, regex: /jueves/i }, { idx: 5, regex: /viernes/i }, { idx: 6, regex: /s[aá]bado/i }, { idx: 0, regex: /domingo/i }
+        { idx: 1, regex: /lunes/g }, { idx: 2, regex: /martes/g }, { idx: 3, regex: /mi[eé]rcoles/g },
+        { idx: 4, regex: /jueves/g }, { idx: 5, regex: /viernes/g }, { idx: 6, regex: /s[aá]bado/g }, { idx: 0, regex: /domingo/g }
       ];
-      const tDays = new Set(), gDays = new Set();
+      const GYM = /\bgym\b|\bgimnasio\b|\bpesas\b|\bfuerza\b/;
+      const MATCH = /\bpartido\b|\bcompetici[oó]n\b|\bjornada\b|\btorneo\b|\bcombate\b|\bpelea\b|\bcarrera\b|\bcampeonato\b|\bprueba\b/;
+      const REST = /\bdescanso\b|\blibre\b/;
+      const FIELD = /\bpista\b|\bcampo\b|\bcancha\b|\bring\b|\bruta\b|\brodaje\b|\bsparring\b|\bt[eé]cnica\b|\bterreno\b|\bentreno\b/;
+      const tDays = new Set(), gDays = new Set(), rDays = new Set();
       let mDay = null;
-      lower.split(/[•·.;+,]|(?=\bgym\b|\bgimnasio\b|\bpartido\b)/i).forEach(cl => {
-        const isGym = /\bgym\b|\bgimnasio\b|\bpesas\b/i.test(cl);
-        const isMatch = /\bpartido\b|\bcompetici[oó]n\b|\bjornada\b/i.test(cl);
-        dayMap.forEach(d => {
-          if (d.regex.test(cl)) {
-            if (isMatch) mDay = d.idx;
-            else if (isGym) gDays.add(d.idx);
-            else tDays.add(d.idx);
-          }
+      // Cada cláusula (separada por coma, punto, «;», «+», «•»): cada día toma el tipo de la palabra que le sigue
+      // («martes gym»); si no la tiene, hereda la del siguiente día o la que lo precede («partido el sábado»).
+      lower.split(/[•·.;+,\n]+/).forEach(cl => {
+        const hits = [];
+        dayMap.forEach(d => { let m; d.regex.lastIndex = 0; while ((m = d.regex.exec(cl))) hits.push({ idx: d.idx, pos: m.index, end: m.index + m[0].length }); });
+        if (!hits.length) return;
+        hits.sort((a, b) => a.pos - b.pos);
+        const prefix = cl.slice(0, hits[0].pos);
+        const typeOf = (t) => MATCH.test(t) ? 'match' : GYM.test(t) ? 'gym' : REST.test(t) ? 'rest' : FIELD.test(t) ? 'field' : null;
+        const types = hits.map((h, k) => typeOf(cl.slice(h.end, k + 1 < hits.length ? hits[k + 1].pos : cl.length)));
+        for (let k = hits.length - 1; k >= 0; k--) if (!types[k]) types[k] = (k + 1 < hits.length ? types[k + 1] : null);
+        hits.forEach((h, k) => {
+          const t = types[k] || typeOf(prefix) || 'field';
+          if (t === 'match') mDay = h.idx; else if (t === 'gym') gDays.add(h.idx); else if (t === 'rest') rDays.add(h.idx); else tDays.add(h.idx);
         });
       });
       if (tDays.size) state.extracted.trainingDays = Array.from(tDays);
       if (gDays.size) state.extracted.gymDays = Array.from(gDays);
-      if (mDay !== null) state.extracted.matchDay = mDay;
+      if (rDays.size) state.extracted.restDays = Array.from(rDays);
+      if (mDay !== null) { state.extracted.matchDay = mDay; state.extracted.restDays = (state.extracted.restDays || []).filter(d => d !== mDay); }
     }
 
     function processUserAnswer(stepIdx, txt) {
       state.chatHistory.push({ role: 'user', content: txt });
-      if (/\bzurdo\b|\bizquierda\b/i.test(txt)) state.laterality = 'Zurdo';
-      else if (/\bdiestro\b|\bderecha\b/i.test(txt)) state.laterality = 'Diestro';
+      // La lateralidad solo se lee en la respuesta que la pregunta (paso 2), no en las demás («mi derecha es potente»)
+      if (stepIdx === 1) {
+        if (/\bzurd[oa]\b/i.test(txt)) state.laterality = 'Zurdo';
+        else if (/\bdiestr[oa]\b/i.test(txt)) state.laterality = 'Diestro';
+        else if (/\bambidiestro\b/i.test(txt)) state.laterality = 'Ambidiestro';
+      }
 
       if (stepIdx === 0) {
         state.extracted.motivation = txt;
@@ -827,9 +841,15 @@
         if (cityM) state.extracted.city = cityM[1].trim();
         if (bornM) state.extracted.hometown = bornM[1].trim();
       } else if (stepIdx === 2) {
-        const parts = txt.split(/pero|mejorar|falta|cuesta/i);
-        state.extracted.strength = (parts[0] || txt).trim();
-        state.extracted.weakness = (parts[1] || txt).trim();
+        const m = txt.match(/^(.*?)\b(?:pero|aunque|sin embargo)\b\s*(.*)$/is);
+        if (m && m[2].trim()) {
+          state.extracted.strength = m[1].replace(/[,;.\s]+$/, '').trim() || txt.trim();
+          state.extracted.weakness = m[2].trim();
+        } else {
+          const w = txt.match(/(?:quiero mejorar|mejorar|me falta|me cuesta|d[eé]bil(?:es)?|flojo en)\s+(.*)$/is);
+          state.extracted.strength = txt.trim();
+          state.extracted.weakness = (w && w[1].trim()) ? w[1].trim() : txt.trim();
+        }
       } else if (stepIdx === 3) {
         parseScheduleFromText(txt);
       } else if (stepIdx === 4) {

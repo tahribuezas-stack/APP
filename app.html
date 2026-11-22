@@ -1607,6 +1607,15 @@
         }
 
         // ---------- REGISTRO DIARIO DEL VESTUARIO ----------
+        // Las marcas manuales del calendario se guardan por día del mes: solo valen en el mes en que se hicieron.
+        (function () {
+            try {
+                const n = new Date(); const ym = n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0');
+                const saved = localStorage.getItem('kinet_calendar_overrides_ym');
+                if (saved && saved !== ym) localStorage.removeItem('kinet_calendar_day_overrides');
+                localStorage.setItem('kinet_calendar_overrides_ym', ym);
+            } catch (e) {}
+        })();
         function kinetToday() {
             const d = new Date();
             return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
