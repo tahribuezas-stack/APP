@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <script src="kinet-guard.js"></script>
+<script src="kinet-sport.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
@@ -561,6 +562,7 @@
         .m-nav-btn { background: transparent; border: none; color: var(--text-secondary); font-family: 'Inter', sans-serif; font-size: 0.62rem; font-weight: 700; padding: 6px 8px; border-radius: 14px; display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; cursor: pointer; }
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
+    <link rel="stylesheet" href="kinet-mobile-fix.css">
 </head>
 <body data-role="athlete">
 
@@ -1222,8 +1224,8 @@
                                 </div>
                                 <div class="setting-row">
                                     <div class="setting-info">
-                                        <label>⚽ Enlace con BeSoccer / Ficha Federativa Oficial</label>
-                                        <span>Importa partidos jugados, minutos y goles oficiales verificados</span>
+                                        <label id="setting-fed-label">⚽ Enlace con BeSoccer / Ficha Federativa Oficial</label>
+                                        <span id="setting-fed-desc">Importa partidos jugados, minutos y goles oficiales verificados</span>
                                     </div>
                                     <input type="text" id="setting-besoccer-url" class="setting-input" placeholder="https://es.besoccer.com/jugador/..." oninput="markPendingChanges()">
                                 </div>
@@ -1488,7 +1490,7 @@
                 <h4>4. Jurisdicción, Arbitraje y Contratación Electrónica (LSSI-CE)</h4>
                 <p>Los contratos de suscripción digital y bonos Pay-As-You-Go firmados electrónicamente en KINET OS tienen plena validez jurídica conforme al Art. 23 de la Ley 34/2002 (LSSI-CE).</p>
             </div>
-            <div style="display:flex; justify-content: flex-end; gap:10px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
+            <div style="display:flex; flex-wrap:wrap; justify-content: flex-end; gap:10px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
                 <button class="btn-secondary" onclick="downloadContractReportPDF()">📜 Descargar Contrato PDF</button>
                 <button class="btn-primary" onclick="closeModal()">Entendido y Conforme</button>
             </div>
@@ -3044,6 +3046,30 @@ function stageResetRoleColor() {
             if (k) { var box = k.closest('div'); if (box) box.style.display = 'none'; }
             if (new URLSearchParams(location.search).get('checkout') === 'success') setTimeout(function () { confirmCheckoutActivation(); }, 700);
         } catch (e) {}
+    })();
+</script>
+<script>
+    // Enlace federativo / ficha oficial adaptado al deporte activo
+    (function () {
+        var META = {
+            futbol: { icon: '⚽', label: 'Enlace con BeSoccer / Ficha Federativa Oficial', desc: 'Importa partidos jugados, minutos y goles oficiales verificados', ph: 'https://es.besoccer.com/jugador/...' },
+            baloncesto: { icon: '🏀', label: 'Enlace con FEB / FIBA / Ficha Federativa Oficial', desc: 'Importa partidos, minutos y estadísticas oficiales verificadas', ph: 'https://www.feb.es/... o https://www.fiba.basketball/...' },
+            padel: { icon: '🎾', label: 'Enlace con FIP / ATP / WTA / Federación', desc: 'Importa ranking, torneos y partidos oficiales verificados', ph: 'https://www.padelfip.com/... o https://www.atptour.com/...' },
+            boxeo: { icon: '🥊', label: 'Enlace con BoxRec / Tapology / Sherdog', desc: 'Importa récord de combates, victorias y KO oficiales verificados', ph: 'https://boxrec.com/... o https://www.tapology.com/...' },
+            running: { icon: '🏃', label: 'Enlace con Strava / RFEA / Athletic Ranking', desc: 'Importa marcas, carreras y distancias oficiales verificadas', ph: 'https://www.strava.com/athletes/... o https://www.rfea.es/...' },
+            otros: { icon: '🏅', label: 'Enlace con tu Federación / Ficha Oficial', desc: 'Importa competiciones y resultados oficiales verificados', ph: 'https://...' }
+        };
+        function apply() {
+            try {
+                var raw = new URLSearchParams(location.search).get('sport') || localStorage.getItem('kinet_sport') || '';
+                var k = window.KinetSport ? window.KinetSport.key(raw) : 'futbol';
+                var m = META[k] || META.otros;
+                var l = document.getElementById('setting-fed-label'); if (l) l.textContent = m.icon + ' ' + m.label;
+                var d = document.getElementById('setting-fed-desc'); if (d) d.textContent = m.desc;
+                var i = document.getElementById('setting-besoccer-url'); if (i) i.placeholder = m.ph;
+            } catch (e) {}
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply); else apply();
     })();
 </script>
 </body>

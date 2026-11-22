@@ -583,8 +583,9 @@
             font-size: 0.71rem; color: #F8FAFC;
         }
     </style>
+    <link rel="stylesheet" href="kinet-mobile-fix.css">
 </head>
-<body data-role="athlete">
+<body data-role="athlete" class="lab-page">
 
     <!-- CORTINA DE TRANSICIÓN CON AUTO-OCULTACIÓN CSS -->
     <div id="kinet-funny-curtain" onclick="this.classList.add('curtain-hidden')">
@@ -854,7 +855,7 @@
             </div>
 
             <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border-subtle);padding-top:10px;">
-                <button type="button" class="btn-secondary" onclick="resetBoardToCleanBase(); renderCustomizePlayersModalContent();">↺ Restaurar 11 vs 11 Base</button>
+                <button type="button" class="btn-secondary" id="btn-restore-base" onclick="resetBoardToCleanBase(); renderCustomizePlayersModalContent();">↺ Restaurar 11 vs 11 Base</button>
                 <button type="button" class="btn-primary" onclick="closeCustomizePlayersModal()">✓ Aplicar en Pizarra</button>
             </div>
         </div>
@@ -1289,11 +1290,37 @@
 
             const aiInp = document.getElementById('ai-tactical-input');
             if (aiInp) aiInp.placeholder = prof.aiPlaceholder;
+            const rb = document.getElementById('btn-restore-base');
+            if (rb) rb.textContent = activeArenaSport === 'Baloncesto' ? '↺ Restaurar Quinteto Base' : '↺ Restaurar 11 vs 11 Base';
         }
 
         let activeArenaSport = 'Fútbol';
         let activeRoleKey = 'athlete';
         let currentPresetName = '4-3-3 Ofensivo (11vs11)';
+        // Formación/sistema base según deporte (baloncesto = quinteto de 5, fútbol = 11)
+        function defaultBoardForSport(sp) {
+            if (sp === 'Baloncesto') {
+                return {
+                    name: 'Quinteto Base 1-2-2 (5vs5)',
+                    slots: [
+                        { pos: 'PG', x: 50, y: 60, player: null }, { pos: 'SG', x: 80, y: 42, player: null },
+                        { pos: 'SF', x: 20, y: 42, player: null }, { pos: 'PF', x: 36, y: 24, player: null },
+                        { pos: 'C', x: 64, y: 24, player: null }
+                    ]
+                };
+            }
+            return {
+                name: '4-3-3 Ofensivo (11vs11)',
+                slots: [
+                    { pos: 'POR', x: 50, y: 90, player: null }, { pos: 'LI', x: 14, y: 64, player: null },
+                    { pos: 'DFC', x: 37, y: 67, player: null }, { pos: 'DFC', x: 63, y: 67, player: null },
+                    { pos: 'LD', x: 86, y: 64, player: null }, { pos: 'MCD', x: 50, y: 54, player: null },
+                    { pos: 'MC', x: 29, y: 41, player: null }, { pos: 'MC', x: 71, y: 41, player: null },
+                    { pos: 'EI', x: 19, y: 20, player: null }, { pos: 'DC', x: 50, y: 15, player: null },
+                    { pos: 'ED', x: 81, y: 20, player: null }
+                ]
+            };
+        }
         let currentRivalPresetName = '';
         let activeSection = 'train';
         let activeRightSubTab = 'create';
@@ -1979,6 +2006,11 @@
                 const roleTitleEl = document.getElementById('topbar-role-title');
                 if (roleTitleEl) roleTitleEl.textContent = roleLabels[activeRoleKey] || 'ATLETA PRO';
                 activeArenaSport = normalizeArenaSport(urlParams.get('sport') || localStorage.getItem('kinet_sport') || 'Fútbol');
+                // Coherencia multideporte: el laboratorio de balón (campo/cancha) solo sirve a Fútbol y Baloncesto.
+                if (activeArenaSport !== 'Fútbol' && activeArenaSport !== 'Baloncesto') {
+                    window.location.replace(`analizador3.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`);
+                    return;
+                }
 
                 document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${activeArenaSport.toUpperCase()}`;
                 document.getElementById('topbar-sport-tag').textContent = `● ${activeArenaSport.toUpperCase()}`;
@@ -2000,8 +2032,8 @@
                     savedBoard = JSON.parse(localStorage.getItem(`kinet_full_board_state_${spKey}`) || 'null');
                 } catch (e) {}
 
-                if (savedBoard && Array.isArray(savedBoard.boardSlots) && savedBoard.boardSlots.length > 0) {
-                    currentPresetName = savedBoard.presetName || '4-3-3 Ofensivo (11vs11)';
+                if (savedBoard && Array.isArray(savedBoard.boardSlots) && savedBoard.boardSlots.length > 0 && !(activeArenaSport === 'Baloncesto' && savedBoard.boardSlots.length !== 5) && !(activeArenaSport === 'Fútbol' && savedBoard.boardSlots.length < 7)) {
+                    currentPresetName = savedBoard.presetName || defaultBoardForSport(activeArenaSport).name;
                     baseVerticalSlots = savedBoard.boardSlots.map(s => {
                         const normPos = window.KinetPositions ? window.KinetPositions.toScreenFormat(s.pos, 'analizador2') : s.pos;
                         return {
@@ -2012,15 +2044,9 @@
                         };
                     });
                 } else {
-                    currentPresetName = '4-3-3 Ofensivo (11vs11)';
-                    baseVerticalSlots = [
-                        { pos: 'POR', x: 50, y: 90, player: null }, { pos: 'LI', x: 14, y: 64, player: null },
-                        { pos: 'DFC', x: 37, y: 67, player: null }, { pos: 'DFC', x: 63, y: 67, player: null },
-                        { pos: 'LD', x: 86, y: 64, player: null }, { pos: 'MCD', x: 50, y: 54, player: null },
-                        { pos: 'MC', x: 29, y: 41, player: null }, { pos: 'MC', x: 71, y: 41, player: null },
-                        { pos: 'EI', x: 19, y: 20, player: null }, { pos: 'DC', x: 50, y: 15, player: null },
-                        { pos: 'ED', x: 81, y: 20, player: null }
-                    ];
+                    const defBoard = defaultBoardForSport(activeArenaSport);
+                    currentPresetName = defBoard.name;
+                    baseVerticalSlots = defBoard.slots;
                 }
 
                 document.getElementById('active-formation-pill').textContent = `📐 MI FORMACIÓN: ${currentPresetName.toUpperCase()}`;
@@ -2111,7 +2137,7 @@
             rawHoriz.forEach((s, i) => { if (s.x > rawHoriz[maxXIdx].x) maxXIdx = i; });
 
             boardHorizontalSlots = rawHoriz.map((s, idx) => {
-                if (idx === 0 || s.pos === 'POR') return { ...s, x: 7, y: 50 };
+                if ((idx === 0 && activeArenaSport === 'Fútbol') || s.pos === 'POR') return { ...s, x: 7, y: 50 };
                 const compressedX = Math.min(46, Math.max(17, Math.round(14 + (s.x * 0.38))));
                 return { ...s, x: compressedX, y: s.y };
             });
@@ -2142,7 +2168,7 @@
             hasUnsavedChanges = false;
             updatePhaseButtonsUI();
             renderHorizontalArena();
-            document.getElementById('live-tactical-teleprompter').innerHTML = `⚽ <strong>Saque Inicial (Centro del Campo):</strong> Tu once en campo propio y el rival en el suyo sin solaparse.`;
+            document.getElementById('live-tactical-teleprompter').innerHTML = (activeArenaSport === 'Baloncesto' ? `🏀 <strong>Salto Inicial (Centro de Pista):</strong> Tu quinteto en su mitad de pista y el rival en la suya, sin solaparse.` : `⚽ <strong>Saque Inicial (Centro del Campo):</strong> Tu once en campo propio y el rival en el suyo sin solaparse.`);
         }
 
         function resetBoardToCleanBase(skipUndo) {
@@ -3337,5 +3363,28 @@
             } catch (e) {}
         });
     </script>
+<style>
+#club-gate{position:fixed;inset:0;z-index:99998;background:rgba(4,6,10,.9);backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;padding:20px}
+.club-gate-box{max-width:460px;text-align:center;background:var(--bg-panel,#0D111A);border:1px solid #F59E0B;border-radius:20px;padding:26px}
+</style>
+<script>
+/* Acceso Club & Scout Pro (mismo criterio que analizador3). Es solo UX: la seguridad real va en Supabase. */
+(function () {
+    function applyClubGate() {
+        var tier = 'free'; try { tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase().trim(); } catch (e) {}
+        var g = document.getElementById('club-gate');
+        if (tier === 'club') { if (g) g.remove(); return; }
+        if (g) return;
+        var u = new URLSearchParams(location.search);
+        var qp = '?role=' + encodeURIComponent(u.get('role') || 'athlete') + '&sport=' + encodeURIComponent(u.get('sport') || localStorage.getItem('kinet_sport') || 'Fútbol');
+        g = document.createElement('div'); g.id = 'club-gate';
+        g.innerHTML = '<div class="club-gate-box"><div style="font-size:2rem;">🔒</div><div style="font-family:Orbitron,sans-serif;font-size:1rem;font-weight:900;color:#FFF;margin:8px 0;">PIZARRA & ESTRATEGIAS IA · CLUB & SCOUT PRO</div><p style="font-size:.78rem;color:#CBD5E1;line-height:1.55;margin-bottom:14px;">La pizarra de jugadas multifase está incluida en la licencia <b>Club & Scout Pro (29,99 €/mes)</b>.</p><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;"><a class="btn-secondary" style="text-decoration:none;" href="analizador.html' + qp + '">← Volver a la plantilla</a><a class="btn-primary" style="text-decoration:none;background:linear-gradient(135deg,#F59E0B,#D97706);color:#04060A;" href="despacho.html' + qp + '&tab=subscription">Desbloquear (29,99 €) →</a></div></div>';
+        document.body.appendChild(g);
+    }
+    document.addEventListener('DOMContentLoaded', applyClubGate);
+    window.addEventListener('kinet:cloud-synced', applyClubGate);
+})();
+</script>
+<script src="kinet-mobile-nav.js" defer></script>
 </body>
 </html>

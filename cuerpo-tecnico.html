@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <script src="kinet-guard.js"></script>
+<script src="kinet-sport.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
@@ -996,6 +997,7 @@
 
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
+    <link rel="stylesheet" href="kinet-mobile-fix.css">
 </head>
 <body data-role="athlete">
 
@@ -1596,6 +1598,7 @@
         // Construcción dinámica de los 4 Especialistas leyendo también los datos guardados en el Onboarding
         function buildSportAwareChats(roleKey, sportName) {
             const sp = sportName || 'Fútbol';
+            const V = window.KinetSport ? window.KinetSport.terms(sp) : { comp: 'partido', preComp: 'Pre-Partido', injury: 'isquios', athletes: 'jugadores', player: 'jugador', coach: 'Míster', squad: 'plantilla', lastMin: 'en los últimos minutos', roster: 'del equipo' };
             const userName = localStorage.getItem('kinet_user_name') || 'Atleta';
             const userPos = localStorage.getItem('kinet_position') || 'PRO';
             const userClub = localStorage.getItem('kinet_user_club') || '';
@@ -1632,17 +1635,17 @@
                         group: [
                             `⚡ Plan completo pre-competición de ${sp}`,
                             `📊 ¿Qué atributo debo mejorar primero para subir mi GRL?`,
-                            `🔋 Tengo sobrecarga muscular y partido este fin de semana`
+                            `🔋 Tengo sobrecarga muscular y ${V.comp} este fin de semana`
                         ],
                         fisico_nutri: [
                             `🏋️ Genérame una rutina de fuerza explosiva y prevención en plantilla PDF`,
                             `🥗 ¿Qué debo comer e hidratar antes de competir en ${sp}?`,
-                            `🩹 Noto sobrecarga en isquios/gemelos, ¿cómo descargo hoy?`
+                            `🩹 Noto sobrecarga en ${V.injury}, ¿cómo descargo hoy?`
                         ],
                         psicologia: [
                             `🧠 Cómo mantener la calma tras fallar una acción clave`,
                             `🔥 Rutina de visualización de 5 min antes de salir a competir`,
-                            `🎯 Cómo evitar perder la concentración en los últimos minutos`
+                            `🎯 Cómo evitar perder la concentración ${V.lastMin}`
                         ],
                         tecnico_video: [
                             `🎬 ¿Qué 3 bloques de vídeo (3-5 min) debo subir en ${sp}?`,
@@ -1671,7 +1674,7 @@
                                 },
                                 {
                                     sender: "Psicología & Mind Coach IA",
-                                    text: "Desde Psicología Deportiva monitorizo tu foco mental, gestión del estrés competitivo y rutinas pre-partido.",
+                                    text: `Desde Psicología Deportiva monitorizo tu foco mental, gestión del estrés competitivo y rutinas ${V.preComp.toLowerCase()}.`,
                                     time: "09:01",
                                     incoming: true
                                 },
@@ -1752,11 +1755,11 @@
                 staff: {
                     roleLabel: "ENTRENADOR / STAFF",
                     tipTitle: `Mesa Técnica // ${sp.toUpperCase()}`,
-                    tipContent: `Gestión de cargas de plantilla, pizarra táctica y psicología de grupo en ${sp}.`,
+                    tipContent: `Gestión de cargas ${V.roster}, pizarra táctica y psicología de grupo en ${sp}.`,
                     agentsMeta: {
                         fisico_nutri: {
                             name: "Readaptador, Físico & Nutrición IA",
-                            sub: `Cargas de Plantilla y Prevención (${sp})`
+                            sub: `Cargas ${V.roster} y Prevención (${sp})`
                         },
                         psicologia: {
                             name: "Psicólogo de Vestuario & Liderazgo IA",
@@ -1773,18 +1776,18 @@
                     },
                     prompts: {
                         group: [
-                            `📋 Planificar microciclo semanal para la plantilla de ${sp}`,
+                            `📋 Planificar el microciclo semanal ${V.roster} de ${sp}`,
                             `⚠️ Cómo ajustar el entrenamiento con 3 bajas por sobrecarga`,
-                            `🏟️ Preparar plan de partido contra un rival de bloque alto`
+                            `🏟️ Preparar el plan de ${V.comp} contra un rival exigente`
                         ],
                         fisico_nutri: [
                             `⚡ Distribución de cargas MD-4, MD-3, MD-2 y MD-1 en ${sp}`,
                             `🩹 Protocolo de retorno al juego tras rotura fibrilar leve`,
-                            `🥗 Pauta de recuperación post-partido para todo el equipo`
+                            `🥗 Pauta de recuperación post-${V.comp.split(' ')[0]} para todo el grupo`
                         ],
                         psicologia: [
-                            `🧠 Charla pre-partido tras dos derrotas seguidas`,
-                            `🤝 Cómo gestionar la frustración de los jugadores con menos minutos`,
+                            `🧠 Charla ${V.preComp.toLowerCase()} tras dos derrotas seguidas`,
+                            `🤝 Cómo gestionar la frustración de los ${V.athletes} con menos protagonismo`,
                             `🔥 Dinámica de activación mental antes de salir al calentamiento`
                         ],
                         tecnico_video: [
@@ -1794,19 +1797,19 @@
                         ],
                         agente_marketing: [
                             `🎨 Generar prompt de cartel Matchday para Media Studio`,
-                            `💼 Qué perfil de jugador nos falta fichar en KINET Radar`,
+                            `💼 Qué perfil de ${V.player} nos falta fichar en KINET Radar`,
                             `📢 Cómo redactar una convocatoria de pruebas para captar talento`
                         ]
                     },
                     chats: {
                         group: {
                             title: `Sala de Juntas Staff (${sp})`,
-                            status: `Coordinación Técnica y Biométrica de Plantilla`,
+                            status: `Coordinación Técnica y Biométrica ${V.roster}`,
                             icon: "👥",
                             messages: [
                                 {
                                     sender: "Readaptador, Físico & Nutrición IA",
-                                    text: `Míster, tenemos el control de cargas, prevención de lesiones y nutrición del grupo de ${sp} listo para ajustar el microciclo.`,
+                                    text: `${V.coach}, tenemos el control de cargas, prevención de lesiones y nutrición del grupo de ${sp} listo para ajustar el microciclo.`,
                                     time: "09:00",
                                     incoming: true
                                 },
@@ -1838,7 +1841,7 @@
                             messages: [
                                 {
                                     sender: "Psicólogo de Vestuario & Liderazgo IA",
-                                    text: "Hola Míster. Trabajemos el mensaje al vestuario, la gestión de roles en la plantilla y el foco competitivo del grupo.",
+                                    text: `Hola ${V.coach}. Trabajemos el mensaje al grupo, la gestión de roles en ${V.squad === 'plantilla' ? 'la plantilla' : 'el ' + V.squad} y el foco competitivo.`,
                                     time: "09:00",
                                     incoming: true
                                 }
@@ -1918,7 +1921,7 @@
                         agente_marketing: [
                             `🎨 Generar prompt de póster de fichaje para Media Studio`,
                             `📈 Estimación de revalorización de un talento joven en 18 meses`,
-                            `🤝 Primer mensaje profesional de contacto para un jugador en Radar`
+                            `🤝 Primer mensaje profesional de contacto para un ${V.player} en Radar`
                         ]
                     },
                     chats: {

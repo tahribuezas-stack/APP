@@ -324,12 +324,12 @@
     const guestHandle = localStorage.getItem('kinet_social_handle') || '@invitado_kinet';
 
     document.querySelectorAll('#my-social-name, #modal-composer-name, [data-kinet-user-name], #sidebar-user-name').forEach((el) => {
-      if (el.textContent && (el.textContent.toUpperCase().includes('NAIM') || el.textContent.trim() === '')) {
+      if (el.textContent && (el.textContent.toUpperCase().includes('NAIM') || el.textContent.trim().toUpperCase() === 'ATLETA KINET' || el.textContent.trim() === '')) {
         el.textContent = guestName.toUpperCase();
       }
     });
     document.querySelectorAll('#my-social-handle, [data-kinet-user-handle], #sidebar-user-handle').forEach((el) => {
-      if (el.textContent && (el.textContent.toLowerCase().includes('naim') || el.textContent.trim() === '')) {
+      if (el.textContent && (el.textContent.toLowerCase().includes('naim') || el.textContent.trim() === '@usuario' || el.textContent.trim() === '')) {
         el.textContent = guestHandle;
       }
     });

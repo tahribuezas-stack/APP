@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <script src="kinet-guard.js"></script>
+<script src="kinet-sport.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
@@ -1504,6 +1505,7 @@
         }
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
+    <link rel="stylesheet" href="kinet-mobile-fix.css">
 </head>
 <body data-role="athlete">
 
@@ -2963,6 +2965,8 @@
         };
 
         function populateSportStylesSelector() {
+            const traitsInp0 = document.getElementById('custom-p-traits');
+            if (traitsInp0) traitsInp0.placeholder = SPORT_TRAIT_PLACEHOLDERS[activeArenaSport] || SPORT_TRAIT_PLACEHOLDERS['Fútbol'];
             const styleSel = document.getElementById('tactical-style-selector');
             if (!styleSel) return;
             const list = SPORT_TACTICAL_STYLES[activeArenaSport] || SPORT_TACTICAL_STYLES['Fútbol'];
@@ -2981,6 +2985,8 @@
 
         function initAnalyzerByRoleAndSport() {
             const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
+            try { populateSportStylesSelector(); } catch (e) {}
+            try { if (window.KinetSport) window.KinetSport.relabel(document.body, activeArenaSport); } catch (e) {}
 
             document.getElementById('tab-arena-label').textContent = 'Plantilla';
             document.getElementById('tab-duel-label').textContent = 'Comparador 1vs1';

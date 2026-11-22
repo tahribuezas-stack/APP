@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <script src="kinet-guard.js"></script>
+<script src="kinet-sport.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
@@ -961,6 +962,7 @@
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
     <script src="kinet-backend.js"></script>
+    <link rel="stylesheet" href="kinet-mobile-fix.css">
 </head>
 <body data-role="athlete">
 
@@ -1070,8 +1072,8 @@
                         <h1 class="context-title" id="header-title">Vestuario & Control Diario</h1>
                     </div>
                     <div class="header-badges-group">
-                        <div class="verified-badge" id="streak-badge">🔥 RACHA: 5 DÍAS CUMPLIDOS</div>
-                        <div class="verified-badge" id="countdown-badge">⏱️ PRÓX. CITA: SÁB 18:00</div>
+                        <div class="verified-badge" id="streak-badge">🔥 RACHA: —</div>
+                        <div class="verified-badge" id="countdown-badge">⏱️ PRÓX. CITA: —</div>
                     </div>
                 </div>
 
@@ -1240,7 +1242,7 @@
             </div>
 
             <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-family:'JetBrains Mono';font-size:0.62rem;color:#94A3B8;">
-                <span>⚽ Pista / Campo</span>
+                <span><span class="sport-field-icon">⚽</span> <span class="sport-field-label">Pista / Campo</span></span>
                 <span>🏋️ Gimnasio / Fuerza</span>
                 <span>🩹 Recuperación / Fisio</span>
                 <span>🏆 Competición</span>
@@ -1252,11 +1254,11 @@
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
                     <strong id="selected-month-day-label" style="font-family:'Orbitron';font-size:0.76rem;color:var(--role-color);">DÍA SELECCIONADO: HOY</strong>
                     <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                        <button type="button" class="mini-action-pill" onclick="setDayTypeQuick('field')">⚽ Pista</button>
+                        <button type="button" class="mini-action-pill" onclick="setDayTypeQuick('field')"><span class="sport-field-icon">⚽</span> <span class="sport-field-short">Pista</span></button>
                         <button type="button" class="mini-action-pill" onclick="setDayTypeQuick('gym')">🏋️ Gimnasio</button>
-                        <button type="button" class="mini-action-pill" onclick="setDayTypeQuick('double')">⚽+🏋️ Doble</button>
+                        <button type="button" class="mini-action-pill" onclick="setDayTypeQuick('double')"><span class="sport-field-icon">⚽</span>+🏋️ Doble</button>
                         <button type="button" class="mini-action-pill" onclick="setDayTypeQuick('rest')">🩹 Recuperación</button>
-                        <button type="button" class="mini-action-pill" onclick="setDayTypeQuick('match')">🏆 Partido</button>
+                        <button type="button" class="mini-action-pill" onclick="setDayTypeQuick('match')">🏆 <span class="sport-comp-cap">Partido</span></button>
                     </div>
                 </div>
 
@@ -1346,7 +1348,7 @@
                 </div>
                 <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
                     <strong style="color:white;display:block;margin-bottom:2px;">2. Calendario Semanal y Mensual con Iconos Inteligentes</strong>
-                    Cada día muestra un icono según tu sesión: <strong>⚽ Pista</strong>, <strong>🏋️ Gimnasio</strong>, <strong>🩹 Recuperación</strong> o <strong>🏆 Partido</strong>. Pulsa <em>📅 Calendario / Ajustar</em> para ver el mes completo o derivar cambios a tu Entrenador IA / Grupo de DMs.
+                    Cada día muestra un icono según tu sesión: <strong><span class="sport-field-icon">⚽</span> <span class="sport-field-short">Pista</span></strong>, <strong>🏋️ Gimnasio</strong>, <strong>🩹 Recuperación</strong> o <strong>🏆 <span class="sport-comp-cap">Partido</span></strong>. Pulsa <em>📅 Calendario / Ajustar</em> para ver el mes completo o derivar cambios a tu Entrenador IA / Grupo de DMs.
                 </div>
                 <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
                     <strong style="color:white;display:block;margin-bottom:2px;">3. Objetivo Diario (+50 XP) & Línea Directa IA</strong>
@@ -1609,6 +1611,47 @@
             const d = new Date();
             return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
         }
+        // Racha real: días consecutivos con registro diario (guardada en kinet_streak_*)
+        function kinetDayKey(offset) {
+            const d = new Date(); d.setDate(d.getDate() + (offset || 0));
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+        function kinetTouchStreak() {
+            try {
+                const last = localStorage.getItem('kinet_streak_last');
+                const today = kinetToday();
+                if (last === today) return;
+                const cur = parseInt(localStorage.getItem('kinet_streak_days') || '0', 10) || 0;
+                localStorage.setItem('kinet_streak_days', String(last === kinetDayKey(-1) ? cur + 1 : 1));
+                localStorage.setItem('kinet_streak_last', today);
+            } catch (e) {}
+        }
+        function kinetCurrentStreak() {
+            const last = localStorage.getItem('kinet_streak_last');
+            if (last !== kinetToday() && last !== kinetDayKey(-1)) return 0;
+            return parseInt(localStorage.getItem('kinet_streak_days') || '0', 10) || 0;
+        }
+        function renderStreakBadge() {
+            const el = document.getElementById('streak-badge');
+            if (!el) return;
+            const n = kinetCurrentStreak();
+            el.textContent = n > 0 ? `🔥 RACHA: ${n} ${n === 1 ? 'DÍA' : 'DÍAS'}` : '🔥 RACHA: HAZ TU CHECK-IN';
+        }
+        // Próxima cita real: primer día marcado como "match" en tu calendario (próximos 31 días)
+        function renderCountdownBadge(prefix) {
+            const el = document.getElementById('countdown-badge');
+            if (!el) return;
+            let ov = {};
+            try { ov = JSON.parse(localStorage.getItem('kinet_calendar_day_overrides') || '{}'); } catch (e) {}
+            const names = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
+            let found = '';
+            for (let i = 0; i < 31 && !found; i++) {
+                const d = new Date(); d.setDate(d.getDate() + i);
+                if (ov[d.getDate()] === 'match') found = (i === 0 ? 'HOY' : (i === 1 ? 'MAÑANA' : names[d.getDay()] + ' ' + d.getDate()));
+            }
+            el.textContent = `⏱️ ${prefix}: ${found || 'SIN FIJAR'}`;
+            el.title = found ? '' : 'Marca un día como competición en tu calendario semanal';
+        }
         function kinetDailyVal(k) {
             if (localStorage.getItem('kinet_daily_log_date') !== kinetToday()) return null;
             const v = parseFloat(localStorage.getItem(k));
@@ -1646,6 +1689,7 @@
             if (_dailyRisk) { localStorage.setItem('kinet_injury_risk', _dailyRisk); saved++; }
             if (!saved) { alert('Rellena al menos un dato para guardar tu registro de hoy.'); return; }
             localStorage.setItem('kinet_daily_log_date', kinetToday());
+            kinetTouchStreak();
             closeMetricsCustomizerModal();
             location.reload();
         }
@@ -1701,18 +1745,32 @@
         let selectedWeekDayOffset = 0;
         let selectedMonthDateNum = new Date().getDate();
 
+        function sportTerms() {
+            return window.KinetSport ? window.KinetSport.current() : { icon: '⚽', compCap: 'Partido', fieldShort: 'Pista', fieldLabel: 'Pista / Campo', name: 'Fútbol' };
+        }
+        function sportFieldIcon() { return sportTerms().icon; }
+        function applySportCalendarLabels() {
+            const T = sportTerms();
+            document.querySelectorAll('.sport-field-icon').forEach(e => { e.textContent = T.icon; });
+            document.querySelectorAll('.sport-field-label').forEach(e => { e.textContent = T.fieldLabel; });
+            document.querySelectorAll('.sport-field-short').forEach(e => { e.textContent = T.fieldShort; });
+            document.querySelectorAll('.sport-comp-cap').forEach(e => { e.textContent = T.compCap; });
+        }
+
         function getDayIconAndSessionsMap() {
             let savedMap = null;
             try {
                 savedMap = JSON.parse(localStorage.getItem('kinet_weekly_schedule_map') || 'null');
             } catch (e) {}
 
+            const KT = window.KinetSport ? window.KinetSport.current() : { icon: '⚽', week: { field: ['Sesión de pista / campo', 'Sesión táctica', 'Activación Pre-Competición'], gym: ['Gimnasio: Fuerza & Prevención', 'Gimnasio Reactivo'] }, compCap: 'Partido' };
+            const FI = KT.icon;
             const defaultByJsDay = {
-                1: { icon: '⚽', type: 'field', sessions: [{ time: '18:30 H', title: 'Sesión de Pista / Campo: Técnica & Transiciones', done: true }] },
-                2: { icon: '🏋️', type: 'gym', sessions: [{ time: '17:30 H', title: 'Gimnasio: Fuerza Explosiva & Prevención Isquios (45m)', done: false }] },
-                3: { icon: '⚽', type: 'field', sessions: [{ time: '18:30 H', title: 'Sesión Táctica MD-3: Presión y Finalización', done: false }] },
-                4: { icon: '🏋️', type: 'gym', sessions: [{ time: '17:30 H', title: 'Gimnasio Reactivo + Sesión de Campo MD-2', done: false }] },
-                5: { icon: '⚽', type: 'field', sessions: [{ time: '18:00 H', title: 'Activación Pre-Partido & Balón Parado (MD-1)', done: false }] },
+                1: { icon: FI, type: 'field', sessions: [{ time: '18:30 H', title: KT.week.field[0], done: true }] },
+                2: { icon: '🏋️', type: 'gym', sessions: [{ time: '17:30 H', title: KT.week.gym[0], done: false }] },
+                3: { icon: FI, type: 'field', sessions: [{ time: '18:30 H', title: KT.week.field[1], done: false }] },
+                4: { icon: '🏋️', type: 'gym', sessions: [{ time: '17:30 H', title: KT.week.gym[1], done: false }] },
+                5: { icon: FI, type: 'field', sessions: [{ time: '18:00 H', title: KT.week.field[2], done: false }] },
                 6: { icon: '🏆', type: 'match', sessions: [{ time: '18:00 H', title: 'Día de Competición Oficial • Máximo Foco', done: false }] },
                 0: { icon: '🩹', type: 'rest', sessions: [{ time: 'DÍA COMPLETO', title: 'Recuperación Activa, Descarga Muscular & Fisio', done: false }] }
             };
@@ -1728,9 +1786,9 @@
                     const hasField = row.sessions.some(s => s.type === 'field');
                     let icon = '🩹';
                     if (hasMatch) icon = '🏆';
-                    else if (hasGym && hasField) icon = '⚽🏋️';
+                    else if (hasGym && hasField) icon = FI + '🏋️';
                     else if (hasGym) icon = '🏋️';
-                    else if (hasField) icon = '⚽';
+                    else if (hasField) icon = FI;
 
                     merged[d] = {
                         icon,
@@ -1765,11 +1823,11 @@
                 const dayNumber = dateObj.getDate();
                 const jsDay = jsDayOrder[idx];
                 const overrideType = customDayOverrides[dayNumber];
-                let dayInfo = scheduleMap[jsDay] || { icon: '⚽', sessions: [] };
+                let dayInfo = scheduleMap[jsDay] || { icon: sportFieldIcon(), sessions: [] };
 
                 if (overrideType) {
-                    const iconByType = { field: '⚽', gym: '🏋️', double: '⚽🏋️', rest: '🩹', match: '🏆' };
-                    dayInfo = { ...dayInfo, icon: iconByType[overrideType] || '⚽' };
+                    const iconByType = { field: sportFieldIcon(), gym: '🏋️', double: sportFieldIcon() + '🏋️', rest: '🩹', match: '🏆' };
+                    dayInfo = { ...dayInfo, icon: iconByType[overrideType] || sportFieldIcon() };
                 }
 
                 const isSelected = idx === selectedWeekDayOffset;
@@ -1795,14 +1853,14 @@
             let daySessions = (scheduleMap[jsDay] && scheduleMap[jsDay].sessions) ? scheduleMap[jsDay].sessions : [];
             if (overrideType) {
                 const customTitles = {
-                    field: [{ time: '18:30 H', title: 'Sesión de Pista / Campo: Técnica & Táctica', done: false }],
+                    field: [{ time: '18:30 H', title: 'Sesión de ' + sportTerms().fieldLabel + ': Técnica & Táctica', done: false }],
                     gym: [{ time: '17:30 H', title: 'Gimnasio: Fuerza Explosiva & Prevención (45m)', done: false }],
                     double: [
                         { time: '10:30 H', title: 'Gimnasio: Fuerza & Prevención Muscular', done: false },
-                        { time: '18:30 H', title: 'Sesión de Pista / Campo: Transiciones', done: false }
+                        { time: '18:30 H', title: 'Sesión de ' + sportTerms().fieldLabel + ': Trabajo específico', done: false }
                     ],
                     rest: [{ time: 'DÍA COMPLETO', title: 'Recuperación Activa, Descarga Muscular & Fisio', done: false }],
-                    match: [{ time: '18:00 H', title: 'Competición Oficial • Día de Partido', done: false }]
+                    match: [{ time: '18:00 H', title: 'Competición Oficial • Día de ' + sportTerms().compCap, done: false }]
                 };
                 daySessions = customTitles[overrideType] || daySessions;
             }
@@ -1827,8 +1885,8 @@
                 const dateObj = new Date(now.getFullYear(), now.getMonth(), d);
                 const jsDay = dateObj.getDay();
                 const overrideType = customDayOverrides[d];
-                const iconByType = { field: '⚽', gym: '🏋️', double: '⚽🏋️', rest: '🩹', match: '🏆' };
-                const icon = overrideType ? iconByType[overrideType] : ((scheduleMap[jsDay] && scheduleMap[jsDay].icon) || '⚽');
+                const iconByType = { field: sportFieldIcon(), gym: '🏋️', double: sportFieldIcon() + '🏋️', rest: '🩹', match: '🏆' };
+                const icon = overrideType ? iconByType[overrideType] : ((scheduleMap[jsDay] && scheduleMap[jsDay].icon) || sportFieldIcon());
                 const isSel = d === selectedMonthDateNum;
 
                 html += `
@@ -1838,7 +1896,7 @@
                             <span style="font-size:0.75rem;">${icon}</span>
                         </div>
                         <span style="font-family:'JetBrains Mono';font-size:0.54rem;color:var(--text-secondary);">
-                            ${icon === '🩹' ? 'Descanso' : (icon === '🏆' ? 'Partido' : (icon.includes('🏋️') ? 'Gym' : 'Pista'))}
+                            ${icon === '🩹' ? 'Descanso' : (icon === '🏆' ? sportTerms().compCap : (icon.includes('🏋️') ? 'Gym' : sportTerms().fieldShort))}
                         </span>
                     </div>
                 `;
@@ -1861,6 +1919,7 @@
             const customDayOverrides = JSON.parse(localStorage.getItem('kinet_calendar_day_overrides') || '{}');
             customDayOverrides[selectedMonthDateNum] = typeKey;
             localStorage.setItem('kinet_calendar_day_overrides', JSON.stringify(customDayOverrides));
+            try { renderCountdownBadge((document.getElementById('countdown-badge').textContent.replace(/^[^A-ZÁÉÍÓÚ]*/, '').split(':')[0] || 'PRÓX. CITA').trim()); } catch (e) {}
             openMonthCalendarModal();
             selectWeekStripDay(selectedWeekDayOffset, selectedMonthDateNum);
         }
@@ -1884,11 +1943,7 @@
 
         function buildSportRoleVestuarioConfig(sportRaw, roleKey) {
             const s = (sportRaw || 'Fútbol').toLowerCase();
-            let sportKey = 'futbol';
-            if (s.includes('running') || s.includes('atletismo') || s.includes('carrera')) sportKey = 'running';
-            else if (s.includes('boxeo') || s.includes('mma') || s.includes('combate')) sportKey = 'boxeo';
-            else if (s.includes('baloncesto') || s.includes('basket')) sportKey = 'baloncesto';
-            else if (s.includes('pádel') || s.includes('padel') || s.includes('tenis')) sportKey = 'padel';
+            const sportKey = (window.KinetSport ? window.KinetSport.key(sportRaw) : 'futbol');
 
             const ROLE_NAMES = {
                 athlete: 'ATLETA PRO',
@@ -2046,10 +2101,40 @@
                         readiness: 'RADAR CIRCUITO ACTIVO (95%)',
                         advice: '"El Radar detecta que 2 de tus jugadores Sub-21 disputan hoy octavos de final. El Analista IA registrará su ratio de winners / errores no forzados."'
                     }
+                },
+                otros: {
+                    countdown: '⏱️ PRÓX. COMPETICIÓN: SÁB 11:00',
+                    placeholder: 'Ej: Noto sobrecarga en la zona que más trabajo en mi disciplina...',
+                    quickTags: [
+                        { agent: 'physical', label: '⚡ Sobrecarga Muscular', q: 'Tengo sobrecarga muscular tras el entreno, ¿cómo descargo hoy?' },
+                        { agent: 'nutrition', label: '🥗 Nutrición Pre-Competición', q: '¿Qué como e hidrato antes de mi próxima competición?' },
+                        { agent: 'mental', label: '🧘‍♂️ Foco Pre-Competición', q: 'Rutina de activación mental antes de competir' }
+                    ],
+                    athlete: {
+                        tagText: 'VESTUARIO DEL DEPORTISTA • DÍA A DÍA',
+                        title: 'Vestuario & Control Diario',
+                        panel1Title: 'ESTADO FÍSICO & DISPONIBILIDAD DE HOY',
+                        readiness: 'LISTO PARA COMPETIR (90%)',
+                        advice: '"Haz tu check-in y tu Cuerpo Técnico adaptará la carga de hoy a las exigencias de tu disciplina."'
+                    },
+                    staff: {
+                        tagText: 'DESPACHO DEL ENTRENADOR • GESTIÓN DE DEPORTISTAS',
+                        title: 'Pizarra & Control de Grupo',
+                        panel1Title: 'DISPONIBILIDAD DEL GRUPO & CARGAS',
+                        readiness: 'GRUPO LISTO (90%)',
+                        advice: '"Revisa la carga acumulada de cada deportista y ajusta la sesión de hoy a su estado."'
+                    },
+                    scout: {
+                        tagText: 'DIRECCIÓN DEPORTIVA • AGENDA DE SEGUIMIENTO',
+                        title: 'Central de Scouting & Mercado',
+                        panel1Title: 'CARTERA DE TALENTOS & SEGUIMIENTO',
+                        readiness: 'RADAR ACTIVO (90%)',
+                        advice: '"Sigue la evolución de tus objetivos y prioriza las pruebas de la semana."'
+                    }
                 }
             };
 
-            const sportData = MATRIX[sportKey] || MATRIX.futbol;
+            const sportData = MATRIX[sportKey] || MATRIX.otros;
             const roleData = sportData[roleKey] || sportData.athlete;
 
             return {
@@ -2098,6 +2183,7 @@
 
             const sportChosen = localStorage.getItem('kinet_sport') || localStorage.getItem('sport') || 'Fútbol';
             const cfg = buildSportRoleVestuarioConfig(sportChosen, activeRoleKey);
+            applySportCalendarLabels();
 
             document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${sportChosen.toUpperCase()}`;
             document.getElementById('topbar-sport-tag').textContent = `● ${sportChosen.toUpperCase()}`;
@@ -2153,7 +2239,8 @@
 
             document.getElementById('header-tag-text').textContent = `${cfg.tagText} • ${sportChosen.toUpperCase()}`;
             document.getElementById('header-title').textContent = cfg.title;
-            document.getElementById('countdown-badge').textContent = cfg.countdown;
+            renderCountdownBadge(String(cfg.countdown || '⏱️ PRÓX. CITA: ').replace(/^[^A-ZÁÉÍÓÚ]*/, '').split(':')[0].trim() || 'PRÓX. CITA');
+            renderStreakBadge();
             document.getElementById('bio-panel-title').textContent = cfg.panel1Title;
             window._readinessBase = String(cfg.readiness || 'LISTO PARA COMPETIR').replace(/\s*\(\d+%\)\s*$/, '');
             window._customAdvice = (customPlan && customPlan.coachDirective) ? `"${customPlan.coachDirective}"` : '';
@@ -2273,6 +2360,7 @@
             const map = { high: 90, medium: 70, low: 40 };
             localStorage.setItem('kinet_energy_pct', String(map[level] || 70));
             localStorage.setItem('kinet_daily_log_date', kinetToday());
+            kinetTouchStreak(); renderStreakBadge();
             if (btn) btn.classList.add('selected');
             updateSidebarAiTip(level);
             renderSelectedKpisAndBars();

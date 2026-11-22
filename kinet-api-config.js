@@ -284,7 +284,7 @@ REGLA DE CONVERSACIÓN: Si el usuario saluda o hace una pregunta casual ("hola",
     const _h = localStorage.getItem('kinet_height'), _w = localStorage.getItem('kinet_weight');
     const anthro = localStorage.getItem('kinet_user_anthropometry') || ((_h || _w) ? [_h, _w].filter(Boolean).join(' • ') : 'no registrada');
     const laterality = localStorage.getItem('kinet_user_laterality') || 'no registrada';
-    const schema = SPORT_AI_SCHEMA[sport] || SPORT_AI_SCHEMA['Fútbol'];
+    const schema = SPORT_AI_SCHEMA[canonicalSportName(sport)] || SPORT_AI_SCHEMA['Fútbol'];
 
     let cardStats = null;
     let grl = null;
@@ -402,11 +402,88 @@ REGLA DE CONVERSACIÓN: Si el usuario saluda o hace una pregunta casual ("hola",
     return history;
   }
 
+  // ==========================================================================
+  // ADAPTACIÓN DE LENGUAJE POR DEPORTE (evita jerga de fútbol en otros deportes)
+  // ==========================================================================
+  const SPORT_PROMPT_ADAPT = {
+    'Fútbol': {
+      comp: 'partido', train: 'sesiones de campo y microciclo semanal (MD-4 a MD+1)',
+      body: 'isquiotibiales, aductores, tobillo y rodilla; sprints repetidos y cambios de dirección',
+      mental: 'presión en penaltis, errores bajo presión y liderazgo de vestuario',
+      tactic: 'fases ofensiva/defensiva, transiciones, balón parado, líneas y superioridades posicionales',
+      nutri: 'carga de carbohidratos en MD-1, recarga post-partido',
+      agent: 'representante / agente de futbolistas'
+    },
+    'Baloncesto': {
+      comp: 'partido', train: 'sesiones de pista, tiro y fuerza; semana con partido',
+      body: 'tobillos, rodillas, tendón rotuliano y espalda baja; saltos y frenadas',
+      mental: 'confianza en el tiro, rachas, tiros libres decisivos y manejo del último cuarto',
+      tactic: 'pick & roll, ayudas, transición, rotaciones, spacing y defensa individual/zona',
+      nutri: 'carbohidratos en días de partido, hidratación y electrolitos',
+      agent: 'agente de jugadores de baloncesto'
+    },
+    'Pádel / Tenis': {
+      comp: 'partido o torneo', train: 'sesiones de pista, golpeo y movilidad; semana de torneo',
+      body: 'codo, hombro, muñeca, lumbares y rodillas; desplazamientos laterales y remates',
+      mental: 'puntos de oro / tie-break, gestión de errores no forzados y comunicación en pareja',
+      tactic: 'posición en red y fondo, voleas, bandeja, víbora, globo, salida de pared y subida en bloque',
+      nutri: 'hidratación con sales en torneos de varios partidos, carbohidratos entre partidos',
+      agent: 'representante de jugadores de pádel/tenis'
+    },
+    'Boxeo / MMA': {
+      comp: 'combate', train: 'campamento de combate (fight camp), sparring, saco, manoplas y acondicionamiento',
+      body: 'manos y muñecas, hombros, cuello, costillas y rodillas; control de peso y corte de peso',
+      mental: 'gestión del miedo y de los nervios previos, calma bajo castigo y confianza en el plan de combate',
+      tactic: 'guardia, distancia, combinaciones, esquivas, contragolpes, control de ring/jaula, clinch y grappling',
+      nutri: 'control de peso, déficit controlado en campamento, rehidratación tras el pesaje',
+      agent: 'manager / matchmaker de peleadores'
+    },
+    'Running': {
+      comp: 'carrera', train: 'semanas de carga y descarga: rodajes, series, tempo/umbral y tirada larga',
+      body: 'gemelos, periostio (espinilla), tendón de Aquiles, rodilla del corredor, fascia plantar e isquios; cadencia y pisada',
+      mental: 'gestión del ritmo, el muro del maratón, el último kilómetro y la ansiedad pre-carrera',
+      tactic: 'estrategia de ritmo (negative split), pelotón y liebres, perfil del recorrido, hidratación y avituallamiento',
+      nutri: 'carga de carbohidratos 2-3 días antes, geles y electrolitos durante la prueba (g/h), recuperación post-carrera',
+      agent: 'representante de atletas y corredores'
+    },
+    'Otros Deportes': {
+      comp: 'competición', train: 'microciclos de carga, descarga y competición propios de su disciplina',
+      body: 'las zonas de mayor sobrecarga de su disciplina concreta',
+      mental: 'gestión de la presión competitiva y rutinas pre-competición',
+      tactic: 'los fundamentos técnicos y tácticos de la disciplina que el usuario indique',
+      nutri: 'energía y recuperación adaptadas a la duración e intensidad de su competición',
+      agent: 'representante deportivo'
+    }
+  };
+
+  function canonicalSportName(raw) {
+    const t = String(raw || '').toLowerCase();
+    if (!t) return 'Fútbol';
+    if (t.includes('running') || t.includes('atletismo') || t.includes('carrera')) return 'Running';
+    if (t.includes('boxeo') || t.includes('mma') || t.includes('combate')) return 'Boxeo / MMA';
+    if (t.includes('baloncesto') || t.includes('basket')) return 'Baloncesto';
+    if (t.includes('pádel') || t.includes('padel') || t.includes('tenis')) return 'Pádel / Tenis';
+    if (t.includes('fútbol') || t.includes('futbol') || t.includes('futsal')) return 'Fútbol';
+    return 'Otros Deportes';
+  }
+
+  function buildSportAdaptBlock(sportRaw) {
+    const sport = canonicalSportName(sportRaw);
+    const a = SPORT_PROMPT_ADAPT[sport] || SPORT_PROMPT_ADAPT['Otros Deportes'];
+    return `ADAPTACIÓN OBLIGATORIA AL DEPORTE DEL USUARIO (${sport}):
+- Todo lo anterior son ejemplos genéricos: traduce SIEMPRE tu jerga al deporte del usuario. Su evento se llama "${a.comp}".
+- Planificación: ${a.train}. Zonas de riesgo habituales: ${a.body}.
+- Mente: ${a.mental}. Táctica/técnica: ${a.tactic}. Nutrición: ${a.nutri}. Representación: ${a.agent}.
+- PROHIBIDO usar términos de OTROS deportes (p. ej. microciclos MD-x, balón parado, isquios o penaltis si no es fútbol; sparring o asaltos si no es combate; pick & roll si no es baloncesto; etc.) salvo que el propio usuario los mencione.`;
+  }
+
   function buildMasterTrainedSystemPrompt(agentKey) {
     const ctx = gatherFullUserContextSnapshot();
     const persona = KINET_TRAINED_PERSONAS[agentKey] || KINET_TRAINED_PERSONAS.group;
 
     return `${persona.methodology}
+
+${buildSportAdaptBlock(ctx.sport)}
 
 EXPEDIENTE BIOMÉTRICO Y TÁCTICO EN TIEMPO REAL DEL USUARIO:
 - Nombre: ${ctx.userName} (Llámalo "${ctx.firstName}") | Rol activo: ${ctx.role.toUpperCase()}
@@ -877,7 +954,7 @@ INSTRUCCIONES DE FORMATO Y NATURALIDAD:
   // ==========================================================================
   const KinetAPIs = {
     getSportSchema(sportName) {
-      return SPORT_AI_SCHEMA[sportName] || SPORT_AI_SCHEMA['Fútbol'];
+      return SPORT_AI_SCHEMA[sportName] || SPORT_AI_SCHEMA[canonicalSportName(sportName)] || SPORT_AI_SCHEMA['Fútbol'];
     },
 
     getPlanLimits(tierOverride) {

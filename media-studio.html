@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <script src="kinet-guard.js"></script>
+<script src="kinet-sport.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
@@ -994,6 +995,7 @@
         }
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
+    <link rel="stylesheet" href="kinet-mobile-fix.css">
 </head>
 <body data-role="athlete">
 
@@ -1136,11 +1138,11 @@
 
                         <div class="preset-pills-strip">
                             <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--text-secondary);margin-right:2px;">PRESET HUD:</span>
-                            <button class="preset-pill-btn active" onclick="applyTemplate('Match Day', 'MATCH DAY // TELEMETRÍA OFICIAL', 'trk_1', this)">Match Day</button>
+                            <button class="preset-pill-btn active" onclick="applyTemplate('Match Day', 'MATCH DAY // TELEMETRÍA OFICIAL', 'trk_1', this)" id="preset-btn-matchday">Match Day</button>
                             <button class="preset-pill-btn" onclick="applyTemplate('Biometric Beat', 'BIOMETRIC BEAT // SYNC 128 BPM', 'trk_2', this)">Biometric Beat</button>
                             <button class="preset-pill-btn" onclick="applyTemplate('Hologram Card', 'HOLOGRAM CARD // KINET 92 GRL', 'trk_3', this)">Hologram Card</button>
                             <button class="preset-pill-btn" onclick="applyTemplate('Scout Graphic', 'SCOUT REPORT // PERCENTIL TOP 3%', 'trk_4', this)">Scout Graphic</button>
-                            <button class="preset-pill-btn" onclick="applyTemplate('Post-Match', 'STATS BREAKDOWN // INFORME 30 FPS', 'trk_5', this)">Post-Match</button>
+                            <button class="preset-pill-btn" onclick="applyTemplate('Post-Match', 'STATS BREAKDOWN // INFORME 30 FPS', 'trk_5', this)" id="preset-btn-postmatch">Post-Match</button>
                         </div>
                     </div>
 
@@ -2353,5 +2355,31 @@
             window.addEventListener('kinet:cloud-synced', applyDespachoThemeSettings);
         })();
     </script>
+<script>
+    // Textos de ejemplo y presets adaptados al deporte activo (evita ejemplos de fútbol en otros deportes)
+    (function () {
+        var X = {
+            futbol:     { md: 'Match Day', pm: 'Post-Match', poster: 'Póster Match Day con estadio iluminado y 34.2 KM/H', video: 'Edit de mis mejores goles con cámara lenta en el remate y ritmo rápido' },
+            baloncesto: { md: 'Game Day', pm: 'Post-Game', poster: 'Póster Game Day con pabellón iluminado y mis puntos y rebotes', video: 'Edit de mis mejores jugadas con cámara lenta en el tiro y ritmo rápido' },
+            padel:      { md: 'Match Day', pm: 'Post-Match', poster: 'Póster Match Day con pista iluminada y mi velocidad de remate', video: 'Edit de mis mejores puntos con cámara lenta en la bandeja y ritmo rápido' },
+            boxeo:      { md: 'Fight Night', pm: 'Post-Fight', poster: 'Póster Fight Night con ring iluminado y mi récord de combates', video: 'Edit de mis mejores combinaciones con cámara lenta en el impacto y ritmo rápido' },
+            running:    { md: 'Race Day', pm: 'Post-Race', poster: 'Póster Race Day con pista iluminada y mi ritmo medio por km', video: 'Edit de mis mejores tramos con cámara lenta en la zancada y ritmo rápido' },
+            otros:      { md: 'Día de competición', pm: 'Post-Competición', poster: 'Póster de competición con mis marcas y resultados', video: 'Edit de mis mejores momentos con cámara lenta en la técnica y ritmo rápido' }
+        };
+        function apply() {
+            try {
+                var raw = new URLSearchParams(location.search).get('sport') || localStorage.getItem('kinet_sport') || '';
+                var k = window.KinetSport ? window.KinetSport.key(raw) : 'futbol';
+                var m = X[k] || X.otros;
+                var a = document.getElementById('preset-btn-matchday'); if (a) a.textContent = m.md;
+                var b = document.getElementById('preset-btn-postmatch'); if (b) b.textContent = m.pm;
+                var p = document.getElementById('ai-prompt-input');
+                if (p) p.placeholder = 'Describe el póster o ajuste visual para generar en el chat (ej: ' + m.poster + ')...';
+                var v = document.getElementById('ve-prompt'); if (v) v.placeholder = 'Ej: ' + m.video;
+            } catch (e) {}
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply); else apply();
+    })();
+</script>
 </body>
 </html>

@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <script src="kinet-guard.js"></script>
+<script src="kinet-sport.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
@@ -835,6 +836,7 @@
         }
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
+    <link rel="stylesheet" href="kinet-mobile-fix.css">
 </head>
 <body data-role="athlete">
 
@@ -973,10 +975,10 @@
                                     </div>
                                     <div style="min-width:0;flex:1;">
                                         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                                            <h2 style="font-family:'Orbitron';font-size:1.12rem;font-weight:900;color:white;" id="display-full-name">NAIM TAHRI BUEZAS</h2>
-                                            <span class="verified-badge" style="padding:2px 8px;font-size:0.55rem;" id="display-age-badge">22 AÑOS</span>
+                                            <h2 style="font-family:'Orbitron';font-size:1.12rem;font-weight:900;color:white;" id="display-full-name">USUARIO KINET</h2>
+                                            <span class="verified-badge" style="padding:2px 8px;font-size:0.55rem;" id="display-age-badge">— AÑOS</span>
                                         </div>
-                                        <span style="font-family:'JetBrains Mono';font-size:0.66rem;color:var(--role-color);display:block;margin-top:2px;" id="display-handle-role">@naimtahri // ATLETA PRO</span>
+                                        <span style="font-family:'JetBrains Mono';font-size:0.66rem;color:var(--role-color);display:block;margin-top:2px;" id="display-handle-role">@usuario // ATLETA PRO</span>
                                         <span style="font-size:0.72rem;color:var(--text-secondary);display:block;margin-top:3px;" id="display-sport-pos">Fútbol • Delantero Centro / Nueve (DC)</span>
                                     </div>
                                 </div>
@@ -985,11 +987,11 @@
                                 <div class="form-grid-2">
                                     <div>
                                         <label class="field-label">NOMBRE Y APELLIDOS</label>
-                                        <input type="text" id="prof-input-name" class="kinet-input" placeholder="Ej: Naim Tahri Buezas">
+                                        <input type="text" id="prof-input-name" class="kinet-input" placeholder="Ej: Alex García Ruiz">
                                     </div>
                                     <div>
                                         <label class="field-label">USUARIO (@HANDLE)</label>
-                                        <input type="text" id="prof-input-handle" class="kinet-input" placeholder="@naimtahri">
+                                        <input type="text" id="prof-input-handle" class="kinet-input" placeholder="@alexgarcia">
                                     </div>
                                 </div>
 
@@ -1001,11 +1003,11 @@
                                     </div>
                                     <div>
                                         <label class="field-label">📍 CIUDAD ACTUAL</label>
-                                        <input type="text" id="prof-input-city" class="kinet-input" placeholder="Ej: Melilla / Madrid">
+                                        <input type="text" id="prof-input-city" class="kinet-input" placeholder="Ej: Madrid / Sevilla">
                                     </div>
                                     <div>
                                         <label class="field-label">🏠 CIUDAD NATAL</label>
-                                        <input type="text" id="prof-input-hometown" class="kinet-input" placeholder="Ej: Melilla / Tánger">
+                                        <input type="text" id="prof-input-hometown" class="kinet-input" placeholder="Ej: Valencia / Lisboa">
                                     </div>
                                 </div>
 
@@ -1341,6 +1343,90 @@
             }
         };
 
+        SPORT_SPECIFIC_POSITIONS_CATALOG['Otros Deportes'] = {
+            posLabel: '🏅 ESPECIALIDAD / MODALIDAD',
+            positions: [
+                'Competidor Individual',
+                'Equipo / Relevos',
+                'Especialista Técnico',
+                'Especialista de Resistencia',
+                'Especialista de Potencia',
+                'Polivalente / Multidisciplina'
+            ],
+            latLabel: '🖐️ LATERALIDAD / DOMINANCIA',
+            lateralities: ['Diestro', 'Zurdo', 'Ambidiestro']
+        };
+
+        // Cargos de staff y scout adaptados al deporte (antes eran solo de fútbol: UEFA, porteros, agente FIFA...)
+        const STAFF_BY_SPORT = {
+            'Baloncesto': {
+                positions: ['Primer Entrenador / Head Coach', 'Segundo Entrenador / Asistente', 'Analista Táctico y de Vídeo', 'Preparador Físico / Readaptador', 'Entrenador de Tiro / Especialistas', 'Fisioterapeuta / Médico Deportivo', 'Nutricionista / Psicólogo Deportivo'],
+                lateralities: ['Entrenador Superior FEB / Nivel 3', 'Nivel 2', 'Nivel 1', 'CAFYD / Ciencias del Deporte', 'Especialista Certificado']
+            },
+            'Pádel / Tenis': {
+                positions: ['Director de Academia / Head Coach', 'Entrenador de Pista', 'Analista Técnico y de Vídeo', 'Preparador Físico / Readaptador', 'Entrenador de Pareja / Especialista', 'Fisioterapeuta / Médico Deportivo', 'Nutricionista / Psicólogo Deportivo'],
+                lateralities: ['Entrenador Nacional (Federación)', 'Monitor / Nivel 2', 'Nivel 1', 'CAFYD / Ciencias del Deporte', 'Especialista Certificado']
+            },
+            'Boxeo / MMA': {
+                positions: ['Entrenador Jefe / Head Coach', 'Segundo de Esquina / Cutman', 'Analista Técnico y de Vídeo', 'Preparador Físico / Control de Peso', 'Entrenador de Especialidad (Striking / Grappling)', 'Fisioterapeuta / Médico Deportivo', 'Nutricionista / Psicólogo Deportivo'],
+                lateralities: ['Entrenador Nacional (Federación)', 'Nivel 2', 'Nivel 1', 'CAFYD / Ciencias del Deporte', 'Especialista Certificado']
+            },
+            'Running': {
+                positions: ['Entrenador Jefe / Head Coach', 'Entrenador de Grupo', 'Analista de Datos y Biomecánica', 'Preparador Físico / Readaptador', 'Entrenador de Especialidad (Fondo / Velocidad)', 'Fisioterapeuta / Médico Deportivo', 'Nutricionista / Psicólogo Deportivo'],
+                lateralities: ['Entrenador Nacional (RFEA)', 'Nivel 2', 'Nivel 1', 'CAFYD / Ciencias del Deporte', 'Especialista Certificado']
+            },
+            'Otros Deportes': {
+                positions: ['Entrenador Jefe / Head Coach', 'Entrenador Asistente', 'Analista Técnico y de Vídeo', 'Preparador Físico / Readaptador', 'Entrenador de Especialidad', 'Fisioterapeuta / Médico Deportivo', 'Nutricionista / Psicólogo Deportivo'],
+                lateralities: ['Titulación Federativa Nacional', 'Nivel 2', 'Nivel 1', 'CAFYD / Ciencias del Deporte', 'Especialista Certificado']
+            }
+        };
+        const SCOUT_BY_SPORT = {
+            'Baloncesto': {
+                positions: ['Director Deportivo General', 'Secretario Técnico / Responsable de Área', 'Chief Scout Internacional', 'Scout de Cantera y Formación', 'Analista de Datos y Estadística Avanzada', 'Agente / Representante Oficial'],
+                lateralities: ['Nacional + Internacional', 'Profesional (ACB / Euroliga)', 'Cantera y Juvenil', 'Europa y Américas', 'Multideporte B2B']
+            },
+            'Pádel / Tenis': {
+                positions: ['Director Deportivo General', 'Responsable de Circuito', 'Chief Scout Internacional', 'Scout de Promesas y Formación', 'Analista de Datos y Ranking', 'Agente / Representante Oficial'],
+                lateralities: ['Nacional + Internacional', 'Circuito Profesional (FIP / ATP / WTA)', 'Cantera y Juvenil', 'Europa y Américas', 'Multideporte B2B']
+            },
+            'Boxeo / MMA': {
+                positions: ['Director Deportivo / Promotor', 'Matchmaker', 'Chief Scout Internacional', 'Scout de Amateur y Promesas', 'Analista de Datos y Vídeo', 'Manager / Representante Oficial'],
+                lateralities: ['Nacional + Internacional', 'Profesional', 'Amateur y Promesas', 'Europa y Américas', 'Multideporte B2B']
+            },
+            'Running': {
+                positions: ['Director Deportivo General', 'Responsable Técnico de Club', 'Chief Scout Internacional', 'Scout de Cantera y Promesas', 'Analista de Datos y Marcas', 'Agente / Representante Oficial'],
+                lateralities: ['Nacional + Internacional', 'Élite / Profesional', 'Cantera y Juvenil', 'Europa y Américas', 'Multideporte B2B']
+            },
+            'Otros Deportes': {
+                positions: ['Director Deportivo General', 'Responsable Técnico', 'Chief Scout Internacional', 'Scout de Cantera y Promesas', 'Analista de Datos', 'Agente / Representante Oficial'],
+                lateralities: ['Nacional + Internacional', 'Profesional', 'Cantera y Juvenil', 'Europa y Américas', 'Multideporte B2B']
+            }
+        };
+        function resolveProfileCatalog() {
+            const base = activeRoleKey === 'staff'
+                ? SPORT_SPECIFIC_POSITIONS_CATALOG['STAFF']
+                : (activeRoleKey === 'scout' ? SPORT_SPECIFIC_POSITIONS_CATALOG['SCOUT']
+                    : (SPORT_SPECIFIC_POSITIONS_CATALOG[activeSportName] || SPORT_SPECIFIC_POSITIONS_CATALOG['Otros Deportes']));
+            const over = activeRoleKey === 'staff' ? STAFF_BY_SPORT[activeSportName] : (activeRoleKey === 'scout' ? SCOUT_BY_SPORT[activeSportName] : null);
+            return over ? Object.assign({}, base, over) : base;
+        }
+
+        // Textos de "enlaces oficiales" según deporte (antes siempre Transfermarkt/BeSoccer)
+        const SPORT_LINK_META = {
+            'Fútbol': { label: '🔗 PERFIL TRANSFERMARKT / BESOCCER / FED.', ph: 'https://www.transfermarkt.es/...', title: '2. ENLACES OFICIALES (TRANSFERMARKT / VÍDEO) & MÉTRICAS REALES' },
+            'Baloncesto': { label: '🔗 PERFIL FIBA / FEB / FED.', ph: 'https://www.fiba.basketball/...', title: '2. ENLACES OFICIALES (FIBA / FEB / VÍDEO) & MÉTRICAS REALES' },
+            'Pádel / Tenis': { label: '🔗 RANKING FIP / ATP / WTA / FED.', ph: 'https://www.padelfip.com/...', title: '2. ENLACES OFICIALES (RANKING / VÍDEO) & MÉTRICAS REALES' },
+            'Boxeo / MMA': { label: '🔗 PERFIL BOXREC / TAPOLOGY / SHERDOG / FED.', ph: 'https://boxrec.com/...', title: '2. ENLACES OFICIALES (BOXREC / VÍDEO) & MÉTRICAS REALES' },
+            'Running': { label: '🔗 PERFIL STRAVA / RFEA / ATHLETIC RESULTS', ph: 'https://www.strava.com/athletes/...', title: '2. ENLACES OFICIALES (STRAVA / RFEA / VÍDEO) & MÉTRICAS REALES' },
+            'Otros Deportes': { label: '🔗 PERFIL FEDERATIVO / ENLACE OFICIAL', ph: 'https://...', title: '2. ENLACES OFICIALES (FEDERACIÓN / VÍDEO) & MÉTRICAS REALES' }
+        };
+        function applySportLinkLabels() {
+            const m = SPORT_LINK_META[activeSportName] || SPORT_LINK_META['Otros Deportes'];
+            const l = document.getElementById('lbl-dynamic-tm'); if (l) l.textContent = m.label;
+            const i = document.getElementById('prof-input-transfermarkt'); if (i) i.placeholder = m.ph;
+            const t = document.getElementById('cv-metrics-title'); if (t) t.textContent = m.title;
+        }
+
         function toggleMobileDrawer() {
             const drawer = document.getElementById('mobile-menu-drawer');
             if (drawer.style.transform === 'translateY(0px)') {
@@ -1422,7 +1508,7 @@
                 return age;
             }
 
-            const directAge = parseInt(localStorage.getItem('kinet_age_years_direct') || localStorage.getItem('kinet_age') || '22', 10);
+            const directAge = parseInt(localStorage.getItem('kinet_age_years_direct') || localStorage.getItem('kinet_age') || '0', 10);
             if (directAge >= 6 && directAge <= 90) {
                 if (badgeEl) badgeEl.textContent = `${directAge} AÑOS`;
                 if (inlineEl) inlineEl.textContent = `(${directAge} años)`;
@@ -1510,10 +1596,7 @@
         }
 
         function cleanAndMatchCatalogPosition(rawPos) {
-            const catalogKey = activeRoleKey === 'staff'
-                ? 'STAFF'
-                : (activeRoleKey === 'scout' ? 'SCOUT' : (SPORT_SPECIFIC_POSITIONS_CATALOG[activeSportName] ? activeSportName : 'Fútbol'));
-            const catalog = SPORT_SPECIFIC_POSITIONS_CATALOG[catalogKey] || SPORT_SPECIFIC_POSITIONS_CATALOG['Fútbol'];
+            const catalog = resolveProfileCatalog();
             const list = catalog.positions;
             const r = String(rawPos || '').trim();
             if (!r || r === 'PRO') {
@@ -1701,35 +1784,21 @@
         }
 
         function loadProfileFields() {
-            const curName = localStorage.getItem('kinet_user_name') || '';
-            const curHandle = localStorage.getItem('kinet_social_handle') || '';
-            if (!curName || curName === 'NAIM T' || curName === 'Usuario KINET' || curHandle === '@naimt_pro') {
-                localStorage.setItem('kinet_user_name', 'Naim Tahri Buezas');
-                localStorage.setItem('kinet_social_handle', '@naimtahri');
-                localStorage.setItem('kinet_username', '@naimtahri');
-                localStorage.setItem('kinet_logged_in', 'true');
-            }
-            if (!localStorage.getItem('kinet_user_city')) localStorage.setItem('kinet_user_city', 'Melilla');
+            // Nota: ya no se inyectan datos personales de ejemplo (nombre, ciudad, medidas, estadísticas):
+            // cada usuario ve solo sus propios datos y los campos vacíos se muestran como pendientes.
             if (!localStorage.getItem('kinet_user_category')) localStorage.setItem('kinet_user_category', 'Senior');
-            if (!localStorage.getItem('kinet_height')) localStorage.setItem('kinet_height', '178 cm');
-            if (!localStorage.getItem('kinet_weight')) localStorage.setItem('kinet_weight', '72.5 kg');
-            if (!localStorage.getItem('kinet_age_years_direct')) localStorage.setItem('kinet_age_years_direct', '22');
-            if (!localStorage.getItem('kinet_custom_card_stats')) {
-                localStorage.setItem('kinet_custom_card_stats', JSON.stringify([99, 99, 81, 88, 99, 87]));
-            }
 
             hydrateProfileFromOnboardingKeys();
             window.KinetOnboardingAIBridge.scanExistingOnboardingChatHistory();
 
-            const catalogKey = activeRoleKey === 'staff'
-                ? 'STAFF'
-                : (activeRoleKey === 'scout' ? 'SCOUT' : (SPORT_SPECIFIC_POSITIONS_CATALOG[activeSportName] ? activeSportName : 'Fútbol'));
-            const catalog = SPORT_SPECIFIC_POSITIONS_CATALOG[catalogKey] || SPORT_SPECIFIC_POSITIONS_CATALOG['Fútbol'];
+            const catalog = resolveProfileCatalog();
 
             const posLbl = document.getElementById('lbl-dynamic-pos');
             const latLbl = document.getElementById('lbl-dynamic-laterality');
             if (posLbl) posLbl.textContent = catalog.posLabel;
             if (latLbl) latLbl.textContent = catalog.latLabel;
+            applySportLinkLabels();
+            try { if (window.KinetSport) window.KinetSport.relabel(document.body, localStorage.getItem('kinet_sport') || ''); } catch (e) {}
 
             populateProfileCustomDropdown(catalog.positions, 'prof-input-pos', 'trigger-txt-pos', 'menu-select-pos', 'wrap-select-pos');
             populateProfileCustomDropdown(catalog.lateralities, 'prof-input-laterality', 'trigger-txt-lat', 'menu-select-lat', 'wrap-select-lat');
@@ -1740,10 +1809,10 @@
                 scout: 'DIRECTOR DEPORTIVO / SCOUT'
             };
 
-            const userName = localStorage.getItem('kinet_user_name') || 'Naim Tahri Buezas';
-            const handle = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_user_handle') || localStorage.getItem('kinet_username') || '@naimtahri';
+            const userName = localStorage.getItem('kinet_user_name') || 'Usuario KINET';
+            const handle = localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_user_handle') || localStorage.getItem('kinet_username') || '@usuario';
             const birthdate = localStorage.getItem('kinet_user_birthdate') || '';
-            const city = localStorage.getItem('kinet_user_city') || localStorage.getItem('kinet_user_city_current') || 'Melilla';
+            const city = localStorage.getItem('kinet_user_city') || localStorage.getItem('kinet_user_city_current') || '';
             const hometown = localStorage.getItem('kinet_user_hometown') || localStorage.getItem('kinet_user_city_birth') || '';
             const club = localStorage.getItem('kinet_user_club') || 'Sin club';
             const category = localStorage.getItem('kinet_user_category') || 'Senior';
@@ -1752,8 +1821,8 @@
             const cleanPos = cleanAndMatchCatalogPosition(rawSavedPos);
             localStorage.setItem('kinet_position', cleanPos);
 
-            let savedHeight = localStorage.getItem('kinet_height') || '178 cm';
-            let savedWeight = localStorage.getItem('kinet_weight') || '72.5 kg';
+            let savedHeight = localStorage.getItem('kinet_height') || '';
+            let savedWeight = localStorage.getItem('kinet_weight') || '';
             const combinedAnthro = localStorage.getItem('kinet_user_anthropometry') || '';
 
             if ((!savedHeight || !savedWeight) && combinedAnthro) {
@@ -2002,15 +2071,15 @@
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-            const userName = (localStorage.getItem('kinet_user_name') || 'NAIM TAHRI BUEZAS').toUpperCase();
-            const handle = localStorage.getItem('kinet_social_handle') || '@naimtahri';
+            const userName = (localStorage.getItem('kinet_user_name') || 'USUARIO KINET').toUpperCase();
+            const handle = localStorage.getItem('kinet_social_handle') || '@usuario';
             const age = updateCalculatedAgeUI();
-            const city = localStorage.getItem('kinet_user_city') || 'Melilla';
+            const city = localStorage.getItem('kinet_user_city') || 'No especificada';
             const hometown = localStorage.getItem('kinet_user_hometown') || 'No especificada';
             const club = localStorage.getItem('kinet_user_club') || 'Sin club';
             const category = localStorage.getItem('kinet_user_category') || activeSportName;
             const pos = localStorage.getItem('kinet_position') || 'PRO';
-            const anthro = localStorage.getItem('kinet_user_anthropometry') || '178 cm • 72.5 kg';
+            const anthro = localStorage.getItem('kinet_user_anthropometry') || 'Sin datos';
             const laterality = localStorage.getItem('kinet_user_laterality') || 'Estándar';
             const bio = localStorage.getItem('kinet_social_bio') || 'Perfil Oficial KINET OS';
             const tmUrl = localStorage.getItem('kinet_user_transfermarkt') || 'No adjuntado';
@@ -2133,7 +2202,7 @@
             };
             document.getElementById('topbar-role-title').textContent = roleLabels[activeRoleKey] || 'ATLETA PRO';
 
-            activeSportName = localStorage.getItem('kinet_sport') || localStorage.getItem('sport') || 'Fútbol';
+            activeSportName = (window.KinetSport ? window.KinetSport.terms(localStorage.getItem('kinet_sport') || localStorage.getItem('sport') || 'Fútbol').name : (localStorage.getItem('kinet_sport') || 'Fútbol'));
             document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${activeSportName.toUpperCase()}`;
             document.getElementById('topbar-sport-tag').textContent = `● ${activeSportName.toUpperCase()}`;
             document.getElementById('header-tag-text').textContent = `PASAPORTE DEPORTIVO VERIFICADO & CV B2B • ${activeSportName.toUpperCase()}`;
