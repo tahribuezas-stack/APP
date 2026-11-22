@@ -4420,7 +4420,16 @@
         // =========================================================================
         // MOTOR GLOBAL DE PERSONALIZACIÓN DE DESPACHO (COLOR NEÓN, ARCOÍRIS, FONDO Y BORDES)
         // =========================================================================
-       function applyDespachoThemeSettings() {
+       function forceUpdateTabFavicon(hexColor) {
+           try {
+               const clean = String(hexColor || '#00FF88').replace('#', '');
+               const svgHref = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%23${clean}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`;
+               let fav = document.getElementById('dynamic-favicon');
+               if (!fav) { fav = document.createElement('link'); fav.id = 'dynamic-favicon'; fav.rel = 'icon'; document.head.appendChild(fav); }
+               fav.href = svgHref;
+           } catch (e) { /* favicon opcional */ }
+       }
+              function applyDespachoThemeSettings() {
                 const scanlinesOn = localStorage.getItem('kinet_scanlines') === 'true';
                 document.body.classList.toggle('scanlines-active', scanlinesOn);
 
@@ -5779,7 +5788,8 @@
                     ? '📣 ¡EL MÍSTER SACA EL ROTULADOR!'
                     : (activeArenaSport === 'Running' ? '⏱️ ¡CRONÓMETRO Y PARCIALES LISTOS!'
                         : (activeArenaSport === 'Pádel / Tenis' ? '🎾 ¡PISTA Y PATRONES DE GOLPEO!'
-                            : '🥊 ¡CAMPANA! PLAN DE ASALTOS LISTO'));
+                            : (activeArenaSport === 'Otros Deportes' ? '🏅 ¡PIZARRA LIBRE Y SESIONES LISTAS!'
+                                : '🥊 ¡CAMPANA! PLAN DE ASALTOS LISTO')));
                 const curtainSub = isTeamBallSport
                     ? 'Girando el estadio en horizontal y colocando los conos...'
                     : `Abriendo Laboratorio Especializado de ${activeArenaSport}...`;

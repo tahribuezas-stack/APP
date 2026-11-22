@@ -3485,7 +3485,7 @@
             if (!currentShortsPlaylist.length) return;
             const item = currentShortsPlaylist[currentShortIndex];
             openDmModal(
-                item.handle === '@kinet_official' ? 'KINET OS Oficial (Noticias & Actualizaciones)' : `${item.author} (${(item.headline || 'PRO').split('•')[0].trim()})`,
+                item.handle === '@kinet_official' ? 'KINET OS Oficial (Noticias & Actualizaciones)' : `${kinetEsc(item.author)} (${(item.headline || 'PRO').split('•')[0].trim()})`,
                 item.initials,
                 item.handle
             );
@@ -3610,7 +3610,7 @@
                 const sportDisplay = p.sport === 'ALL' ? 'Todos los Deportes' : (p.sport || 'Fútbol');
                 const dmTargetName = isOfficial
                     ? 'KINET OS Oficial (Noticias & Actualizaciones)'
-                    : `${p.author} (${(p.headline || 'PRO').split('•')[0].trim()})`;
+                    : `${kinetEsc(p.author)} (${(p.headline || 'PRO').split('•')[0].trim()})`;
 
                 const avatarUrl = getAvatarForHandle(p.handle, p.avatarUrl || p.author_avatar, p.author);
                 const avatarStyle = buildAvatarStyle(avatarUrl, roleTagColor);
@@ -3635,7 +3635,7 @@
                     } else if (resolvedAttachment.type === 'badge') {
                         mediaHtml = `
                             <div style="margin-bottom:10px;padding:8px 12px;border-radius:10px;background:rgba(var(--role-rgb),0.1);border:1px solid var(--role-color);font-family:'JetBrains Mono';font-size:0.68rem;color:var(--role-color);font-weight:700;display:inline-flex;align-items:center;gap:6px;">
-                                <span>${resolvedAttachment.label}</span>
+                                <span>${kinetEsc(resolvedAttachment.label)}</span>
                             </div>
                         `;
                     }
@@ -3654,7 +3654,7 @@
                         <button type="button" class="social-action-btn" style="padding:3px 9px;font-size:0.58rem;border-color:#EF4444;color:#FCA5A5;" onclick="deleteOwnPost('${p.id}', event)">🗑️ Borrar</button>
                       `
                     : `
-                        <button type="button" class="kinet-follow-btn ${following ? 'following' : ''}" onclick="toggleFollowUser('${p.handle}', event)">
+                        <button type="button" class="kinet-follow-btn ${following ? 'following' : ''}" onclick="toggleFollowUser('${kinetHandle(p.handle)}', event)">
                             ${getFollowActionText(following)}
                         </button>
                       `;
@@ -3663,15 +3663,15 @@
                     <div class="social-post-card" style="${isOfficial ? 'border-color:rgba(var(--role-rgb),0.38);background:rgba(var(--role-rgb),0.04);' : ''}">
                         <div class="post-author-bar">
                             <div style="display:flex; align-items:center; gap:10px;">
-                                <div class="post-avatar" style="cursor:pointer;${avatarStyle}" title="Ver perfil de ${p.author}" onclick="openUserProfileInspector('${p.handle}', '${safeAuthor}', '${p.initials}')">
+                                <div class="post-avatar" style="cursor:pointer;${avatarStyle}" title="Ver perfil de ${kinetEsc(p.author)}" onclick="openUserProfileInspector('${kinetHandle(p.handle)}', '${safeAuthor}', '${p.initials}')">
                                     ${getAvatarInnerText(avatarUrl, p.initials)}
                                 </div>
                                 <div>
                                     <div style="font-weight:800; font-size:0.84rem; color:white; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                                        <span style="cursor:pointer;text-decoration:underline;text-decoration-color:rgba(255,255,255,0.2);display:inline-flex;align-items:center;gap:5px;" onclick="openUserProfileInspector('${p.handle}', '${safeAuthor}', '${p.initials}')">
-                                            <span>${p.author}</span>${isOfficial ? '<span class="kinet-verified-check" title="Cuenta Oficial Verificada KINET OS">✓</span>' : ''}
+                                        <span style="cursor:pointer;text-decoration:underline;text-decoration-color:rgba(255,255,255,0.2);display:inline-flex;align-items:center;gap:5px;" onclick="openUserProfileInspector('${kinetHandle(p.handle)}', '${safeAuthor}', '${p.initials}')">
+                                            <span>${kinetEsc(p.author)}</span>${isOfficial ? '<span class="kinet-verified-check" title="Cuenta Oficial Verificada KINET OS">✓</span>' : ''}
                                         </span>
-                                        <span style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--text-secondary);cursor:pointer;" onclick="openUserProfileInspector('${p.handle}', '${safeAuthor}', '${p.initials}')">${p.handle}</span>
+                                        <span style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--text-secondary);cursor:pointer;" onclick="openUserProfileInspector('${kinetHandle(p.handle)}', '${safeAuthor}', '${p.initials}')">${kinetHandle(p.handle)}</span>
                                         <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:${roleTagColor};">${roleTagLabel}</span>
                                         ${headerActionButtonsHtml}
                                     </div>
@@ -3683,12 +3683,12 @@
                             </div>
                             <span class="verified-badge" style="padding:4px 8px; font-size:0.58rem;">${p.badge || 'KINET PULSE'}</span>
                         </div>
-                        <p style="font-size:0.81rem; color:#E2E8F0; line-height:1.48; margin-bottom:10px;">${p.text}</p>
+                        <p style="font-size:0.81rem; color:#E2E8F0; line-height:1.48; margin-bottom:10px;">${kinetEsc(p.text)}</p>
                         ${mediaHtml}
                         <div class="post-actions-row">
                             <button class="social-action-btn ${p._liked ? 'liked' : ''}" onclick="toggleLikePost('${p.id}', this)">🔥 ${p.likes || 0} Respetos</button>
-                            ${!isOwn ? `<button class="social-action-btn" onclick="openDmInTabOrModal('${dmTargetName}', '${p.initials}', '${p.handle}')">💬 Mensaje Directo (DM)</button>` : ''}
-                            <button class="social-action-btn" onclick="openUserProfileInspector('${p.handle}', '${safeAuthor}', '${p.initials}')">👤 ${isOwn ? 'Ver Mi Perfil' : 'Ver Perfil Completo'}</button>
+                            ${!isOwn ? `<button class="social-action-btn" onclick="openDmInTabOrModal('${dmTargetName}', '${p.initials}', '${kinetHandle(p.handle)}')">💬 Mensaje Directo (DM)</button>` : ''}
+                            <button class="social-action-btn" onclick="openUserProfileInspector('${kinetHandle(p.handle)}', '${safeAuthor}', '${p.initials}')">👤 ${isOwn ? 'Ver Mi Perfil' : 'Ver Perfil Completo'}</button>
                             ${reelPreviewBtn}
                         </div>
                     </div>
@@ -3750,7 +3750,7 @@
                 }
                 document.getElementById('new-post-type').value = 'reels';
                 const videoUrl = URL.createObjectURL(file);
-                pendingComposerAttachment = { type: 'video', url: videoUrl, label: `${file.name} (HD)` };
+                pendingComposerAttachment = { type: 'video', url: videoUrl, label: `${kinetEsc(file.name)} (HD)` };
                 rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
             } else {
                 const reader = new FileReader();
@@ -3787,16 +3787,16 @@
             wrap.style.display = 'block';
             if (pendingComposerAttachment.type === 'image') {
                 box.innerHTML = `
-                    <div style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);margin-bottom:6px;">🖼️ IMAGEN ADJUNTA: ${pendingComposerAttachment.label || 'Imagen'}</div>
+                    <div style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);margin-bottom:6px;">🖼️ IMAGEN ADJUNTA: ${kinetEsc(pendingComposerAttachment.label || 'Imagen')}</div>
                     <img src="${pendingComposerAttachment.url}" style="max-height:170px;border-radius:10px;display:block;">
                 `;
             } else if (pendingComposerAttachment.type === 'video') {
                 box.innerHTML = `
-                    <div style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);margin-bottom:6px;">🎬 VÍDEO HD ADJUNTO: ${pendingComposerAttachment.label}</div>
+                    <div style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);margin-bottom:6px;">🎬 VÍDEO HD ADJUNTO: ${kinetEsc(pendingComposerAttachment.label)}</div>
                     <video src="${pendingComposerAttachment.url}" controls style="max-height:170px;border-radius:10px;display:block;"></video>
                 `;
             } else {
-                box.innerHTML = `<div style="font-family:'JetBrains Mono';font-size:0.7rem;color:var(--role-color);font-weight:700;">${pendingComposerAttachment.label}</div>`;
+                box.innerHTML = `<div style="font-family:'JetBrains Mono';font-size:0.7rem;color:var(--role-color);font-weight:700;">${kinetEsc(pendingComposerAttachment.label)}</div>`;
             }
         }
 
@@ -3929,7 +3929,7 @@
                     roleBadge: '✓ TU PERFIL',
                     sport: localStorage.getItem('kinet_sport') || 'Fútbol',
                     position: localStorage.getItem('kinet_position') || 'PRO',
-                    club: localStorage.getItem('kinet_user_club') || 'KINET Performance',
+                    club: localStorage.getItem('kinet_user_club') || 'Sin club',
                     headline: localStorage.getItem('kinet_social_bio') || 'Perfil Verificado KINET OS',
                     isPrivate: localStorage.getItem('kinet_private_account') === 'true',
                     marketOpen: localStorage.getItem('kinet_market_open') !== 'false'
@@ -4028,7 +4028,7 @@
                         <div style="font-size:1.8rem;margin-bottom:6px;">🔒</div>
                         <div style="font-family:'Orbitron';font-size:0.88rem;font-weight:900;color:white;margin-bottom:4px;">Esta cuenta de KINET Network™ es privada</div>
                         <p style="font-size:0.75rem;color:#94A3B8;max-width:420px;margin:0 auto 12px auto;">
-                            Conecta con <strong>${p.handle}</strong> para ver sus publicaciones biométricas, vídeos en HD y su dossier deportivo completo.
+                            Conecta con <strong>${kinetHandle(p.handle)}</strong> para ver sus publicaciones biométricas, vídeos en HD y su dossier deportivo completo.
                         </p>
                         <button type="button" class="btn-primary" onclick="toggleFollowFromInspector()">${getFollowActionText(false)} a ${p.shortName}</button>
                     </div>
@@ -4055,7 +4055,7 @@
                                         ${isMe ? `<button type="button" class="social-action-btn" style="padding:2px 7px;font-size:0.55rem;color:#FCA5A5;border-color:#EF4444;" onclick="deleteOwnPost('${up.id}', event)">🗑️</button>` : ''}
                                     </div>
                                 </div>
-                                <div style="font-size:0.78rem;color:#E2E8F0;line-height:1.45;">${up.text}</div>
+                                <div style="font-size:0.78rem;color:#E2E8F0;line-height:1.45;">${kinetEsc(up.text)}</div>
                                 ${imgHtml}
                             </div>
                         `;
@@ -4070,7 +4070,7 @@
                         <div style="background:rgba(var(--role-rgb),0.06);border:1px solid rgba(var(--role-rgb),0.35);border-radius:14px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
                             <div>
                                 <div style="font-family:'Orbitron';font-size:0.78rem;font-weight:800;color:white;">🎬 ${vp.reelData ? vp.reelData.title : 'KINET Short HD'}</div>
-                                <div style="font-size:0.72rem;color:#CBD5E1;margin-top:3px;">${vp.text}</div>
+                                <div style="font-size:0.72rem;color:#CBD5E1;margin-top:3px;">${kinetEsc(vp.text)}</div>
                             </div>
                             <button type="button" class="btn-secondary" style="padding:6px 10px;font-size:0.62rem;" onclick="closeUserProfileInspector(); openSpecificShortInTheater('${vp.id}')">▶ Reproducir</button>
                         </div>
@@ -4085,11 +4085,11 @@
                         </div>
                         <div>
                             <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--text-secondary);display:block;">DEMARCACIÓN / ESPECIALIDAD</span>
-                            <strong style="font-size:0.8rem;color:var(--role-color);">${p.position || 'PRO'}</strong>
+                            <strong style="font-size:0.8rem;color:var(--role-color);">${kinetEsc(p.position || 'PRO')}</strong>
                         </div>
                         <div>
                             <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--text-secondary);display:block;">CLUB / CIUDAD</span>
-                            <strong style="font-size:0.8rem;color:white;">${p.club || 'KINET Performance'} ${p.city ? '• ' + p.city : ''}</strong>
+                            <strong style="font-size:0.8rem;color:white;">${kinetEsc(p.club || 'Sin club')} ${p.city ? '• ' + p.city : ''}</strong>
                         </div>
                         <div>
                             <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--text-secondary);display:block;">ESTADO DE MERCADO</span>
@@ -4283,7 +4283,7 @@
             }
             if (myPos && ((window.KinetPositions && window.KinetPositions.samePosition(myPos, person.position)) || (person.position || '').toLowerCase().includes(myPos))) {
                 score += 20;
-                reasons.push(`🎯 ${person.position}`);
+                reasons.push(`🎯 ${kinetEsc(person.position)}`);
             }
             if (person.marketOpen) {
                 score += 10;
@@ -4333,7 +4333,7 @@
                     const safeName = u.name.replace(/'/g, "\\'");
 
                     return `
-                        <div class="dm-contact-item ${isActive ? 'active-chat' : ''}" onclick="${clickHandlerName}('${safeName}', '${u.initials}', '${u.handle}', true)">
+                        <div class="dm-contact-item ${isActive ? 'active-chat' : ''}" onclick="${clickHandlerName}('${safeName}', '${u.initials}', '${kinetHandle(u.handle)}', true)">
                             <div style="display:flex;align-items:center;gap:10px;min-width:0;">
                                 <div class="post-avatar" style="width:36px;height:36px;font-size:0.95rem;${avStyle}">
                                     ${getAvatarInnerText(avUrl, u.initials)}
@@ -4385,9 +4385,9 @@
                     const safeFull = u.name.replace(/'/g, "\\'");
 
                     return `
-                        <div class="dm-contact-item" onclick="${clickHandlerName}('${safeFull}', '${u.initials}', '${u.handle}', true)">
+                        <div class="dm-contact-item" onclick="${clickHandlerName}('${safeFull}', '${u.initials}', '${kinetHandle(u.handle)}', true)">
                             <div style="display:flex;align-items:center;gap:9px;min-width:0;">
-                                <div class="post-avatar" style="width:36px;height:36px;font-size:0.92rem;${avStyle}" onclick="event.stopPropagation(); openUserProfileInspector('${u.handle}', '${safeShort}', '${u.initials}')" title="Ver Perfil">
+                                <div class="post-avatar" style="width:36px;height:36px;font-size:0.92rem;${avStyle}" onclick="event.stopPropagation(); openUserProfileInspector('${kinetHandle(u.handle)}', '${safeShort}', '${u.initials}')" title="Ver Perfil">
                                     ${getAvatarInnerText(avUrl, u.initials)}
                                 </div>
                                 <div style="min-width:0;">
@@ -4396,8 +4396,8 @@
                                 </div>
                             </div>
                             <div style="display:flex;gap:4px;align-items:center;flex-shrink:0;">
-                                <button type="button" class="social-action-btn" style="padding:3px 7px;font-size:0.6rem;" title="Ver Perfil" onclick="event.stopPropagation(); openUserProfileInspector('${u.handle}', '${safeShort}', '${u.initials}')">👤</button>
-                                <button type="button" class="kinet-follow-btn ${following ? 'following' : ''}" onclick="toggleFollowUser('${u.handle}', event)">
+                                <button type="button" class="social-action-btn" style="padding:3px 7px;font-size:0.6rem;" title="Ver Perfil" onclick="event.stopPropagation(); openUserProfileInspector('${kinetHandle(u.handle)}', '${safeShort}', '${u.initials}')">👤</button>
+                                <button type="button" class="kinet-follow-btn ${following ? 'following' : ''}" onclick="toggleFollowUser('${kinetHandle(u.handle)}', event)">
                                     ${getFollowActionText(following)}
                                 </button>
                             </div>
@@ -4499,7 +4499,7 @@
 
             ['dm-active-sub', 'inline-dm-active-sub'].forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.textContent = `● ${person.handle} • ${person.sport || 'KINET OS'} (Pulsa para ver perfil)`;
+                if (el) el.textContent = `● ${kinetHandle(person.handle)} • ${person.sport || 'KINET OS'} (Pulsa para ver perfil)`;
             });
 
             const muteLbl = document.getElementById('dm-mute-opt-label');
@@ -4552,7 +4552,7 @@
             if (alreadyBlocked) {
                 list = list.filter(h => cleanHandleNormalized(h) !== norm);
             } else {
-                if (!confirm(`¿Seguro que deseas bloquear a ${person.shortName} (${person.handle})?\nNo podrá enviarte mensajes ni verás sus publicaciones.`)) return;
+                if (!confirm(`¿Seguro que deseas bloquear a ${person.shortName} (${kinetHandle(person.handle)})?\nNo podrá enviarte mensajes ni verás sus publicaciones.`)) return;
                 list.push(person.handle);
             }
             localStorage.setItem('kinet_blocked_handles', JSON.stringify(list));
@@ -4568,9 +4568,9 @@
             const person = findDirectoryPerson(currentDmContact);
             if (!person) return;
             document.getElementById('dm-safety-dd')?.classList.remove('open');
-            const reason = prompt(`🚩 Denunciar a ${person.shortName} (${person.handle})\nIndica brevemente el motivo para el equipo de moderación de KINET OS:`, 'Spam o comportamiento inapropiado');
+            const reason = prompt(`🚩 Denunciar a ${person.shortName} (${kinetHandle(person.handle)})\nIndica brevemente el motivo para el equipo de moderación de KINET OS:`, 'Spam o comportamiento inapropiado');
             if (reason) {
-                alert(`✓ Reporte enviado al Centro de Seguridad de KINET OS sobre ${person.handle}. Si lo deseas, también puedes bloquearlo desde el menú ⋮.`);
+                alert(`✓ Reporte enviado al Centro de Seguridad de KINET OS sobre ${kinetHandle(person.handle)}. Si lo deseas, también puedes bloquearlo desde el menú ⋮.`);
             }
         }
 
@@ -4642,7 +4642,7 @@
             if (person && isBlockedHandle(person.handle)) {
                 const blockedHtml = `
                     <div style="text-align:center;color:#FCA5A5;font-size:0.76rem;margin:auto;padding:20px;background:rgba(239,68,68,0.08);border:1px dashed #EF4444;border-radius:14px;">
-                        🚫 Has bloqueado a <strong>${person.shortName} (${person.handle})</strong>.<br>
+                        🚫 Has bloqueado a <strong>${person.shortName} (${kinetHandle(person.handle)})</strong>.<br>
                         <button type="button" class="btn-secondary" style="margin-top:10px;border-color:#EF4444;color:#FCA5A5;" onclick="toggleBlockActiveDmContact()">🔓 Desbloquear para ver o enviar mensajes</button>
                     </div>
                 `;
@@ -4677,7 +4677,7 @@
 
                 return `
                     <div class="chat-bubble ${m.from} ${animClass}">
-                        <div>${m.text}</div>
+                        <div>${kinetEsc(m.text)}</div>
                         <div class="chat-bubble-meta">
                             <span>${timeClock}</span>
                         </div>
@@ -4869,7 +4869,7 @@
                             roleBadge: roleBadge,
                             sport: normalizeSportOption(prof.active_sport || 'Fútbol'),
                             position: posLabel,
-                            club: prof.club || 'KINET Performance',
+                            club: prof.club || 'Sin club',
                             city: cityVal,
                             headline: prof.bio || `${posLabel} • ${prof.club || 'KINET OS'}`,
                             unread: false,
@@ -5435,7 +5435,7 @@
                     type: 'video',
                     url: videoUrl,
                     posterThumb: posterThumb,
-                    label: `${file.name} (Optimizado en HD • ~${Math.min(3.8, sizeMb)} MB)`
+                    label: `${kinetEsc(file.name)} (Optimizado en HD • ~${Math.min(3.8, sizeMb)} MB)`
                 };
                 rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
             } else {
@@ -5444,7 +5444,7 @@
                 pendingComposerAttachment = {
                     type: 'image',
                     url: compressedDataUrl,
-                    label: `${file.name} (Comprimida WebP • ${approxKb} KB)`
+                    label: `${kinetEsc(file.name)} (Comprimida WebP • ${approxKb} KB)`
                 };
                 rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
             }
@@ -6253,17 +6253,17 @@
                                 </div>
                             </div>
                             <div style="text-align:right;font-family:'JetBrains Mono';font-size:0.7rem;color:#94A3B8;">
-                                ID: ${p.handle}<br>${new Date().toLocaleDateString('es-ES')}
+                                ID: ${kinetHandle(p.handle)}<br>${new Date().toLocaleDateString('es-ES')}
                             </div>
                         </div>
                         <h1 style="font-family:'Orbitron';font-size:1.6rem;margin:0 0 4px 0;">${p.shortName || p.name}</h1>
-                        <div style="color:#00FF88;font-family:'JetBrains Mono';font-size:0.8rem;margin-bottom:10px;">${(p.sport || 'Fútbol').toUpperCase()} • ${p.position || 'PRO'} • ${p.club || 'KINET Performance'}</div>
+                        <div style="color:#00FF88;font-family:'JetBrains Mono';font-size:0.8rem;margin-bottom:10px;">${(p.sport || 'Fútbol').toUpperCase()} • ${kinetEsc(p.position || 'PRO')} • ${kinetEsc(p.club || 'Sin club')}</div>
                         <p style="font-size:0.86rem;color:#CBD5E1;line-height:1.5;">${p.headline || 'Perfil Deportivo Verificado en KINET OS.'}</p>
                         <div class="grid">
-                            <div class="cell"><span>DEMARCACIÓN / CARGO</span><strong>${p.position || 'PRO'}</strong></div>
-                            <div class="cell"><span>CLUB / ENTIDAD</span><strong>${p.club || 'KINET Performance'}</strong></div>
+                            <div class="cell"><span>DEMARCACIÓN / CARGO</span><strong>${kinetEsc(p.position || 'PRO')}</strong></div>
+                            <div class="cell"><span>CLUB / ENTIDAD</span><strong>${kinetEsc(p.club || 'Sin club')}</strong></div>
                             <div class="cell"><span>CATEGORÍA / NIVEL</span><strong>${p.category || p.sport || 'Senior'}</strong></div>
-                            <div class="cell"><span>CIUDAD ACTUAL</span><strong>${p.city || 'Registrada'}</strong></div>
+                            <div class="cell"><span>CIUDAD ACTUAL</span><strong>${kinetEsc(p.city || 'Registrada')}</strong></div>
                             <div class="cell"><span>CIUDAD NATAL</span><strong>${p.hometown || p.city || 'Registrada'}</strong></div>
                             <div class="cell"><span>EDAD</span><strong>${ageVal ? ageVal + ' años' : 'Senior'}</strong></div>
                             <div class="cell"><span>BIOMETRÍA</span><strong>${p.anthropometry || 'Calibrada'}</strong></div>
@@ -6294,7 +6294,7 @@
                 currentInspectedPerson.birthdate = localStorage.getItem('kinet_user_birthdate') || localStorage.getItem('kinet_birth_date') || '';
                 currentInspectedPerson.city = localStorage.getItem('kinet_user_city') || localStorage.getItem('kinet_city') || '';
                 currentInspectedPerson.hometown = localStorage.getItem('kinet_user_hometown') || '';
-                currentInspectedPerson.club = localStorage.getItem('kinet_user_club') || 'KINET Performance';
+                currentInspectedPerson.club = localStorage.getItem('kinet_user_club') || 'Sin club';
                 currentInspectedPerson.category = localStorage.getItem('kinet_user_category') || localStorage.getItem('kinet_category') || '';
                 currentInspectedPerson.position = localStorage.getItem('kinet_position') || 'PRO';
                 currentInspectedPerson.anthropometry = combinedBio;
@@ -6323,10 +6323,10 @@
             if (bioEl) {
                 const quickTags = [];
                 if (ageVal) quickTags.push(`🎂 ${ageVal} años`);
-                if (p.position) quickTags.push(`🎯 ${p.position}`);
-                if (p.club) quickTags.push(`🏟️ ${p.club}`);
+                if (p.position) quickTags.push(`🎯 ${kinetEsc(p.position)}`);
+                if (p.club) quickTags.push(`🏟️ ${kinetEsc(p.club)}`);
                 if (p.category) quickTags.push(`🏆 ${p.category}`);
-                if (p.city) quickTags.push(`📍 ${p.city}`);
+                if (p.city) quickTags.push(`📍 ${kinetEsc(p.city)}`);
                 if (p.anthropometry) quickTags.push(`📏 ${p.anthropometry}`);
 
                 const linksRow = [];
@@ -6381,7 +6381,7 @@
                                             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                                                 <strong style="font-size:0.86rem;color:#FFF;">${p.shortName || p.name}</strong>
                                                 <span class="kinet-verified-check">✓</span>
-                                                <span style="font-family:'JetBrains Mono';font-size:0.66rem;color:#94A3B8;">${p.handle} · ${up.time || 'Hoy'}</span>
+                                                <span style="font-family:'JetBrains Mono';font-size:0.66rem;color:#94A3B8;">${kinetHandle(p.handle)} · ${up.time || 'Hoy'}</span>
                                             </div>
                                             <div style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);margin-top:1px;">
                                                 ${up.badge || 'KINET PULSE'} • ${up.sport || p.sport || 'Fútbol'}
@@ -6396,14 +6396,14 @@
                                     ` : ''}
                                 </div>
 
-                                <div style="font-size:0.84rem;color:#F1F5F9;line-height:1.52;white-space:pre-line;">${up.text}</div>
+                                <div style="font-size:0.84rem;color:#F1F5F9;line-height:1.52;white-space:pre-line;">${kinetEsc(up.text)}</div>
                                 ${imgHtml}
 
                                 <div class="x-post-metrics-bar">
                                     <span class="x-metric-item" onclick="openDmFromInspector()">💬 Responder</span>
                                     <span class="x-metric-item" onclick="toggleLikePost('${up.id}', null); renderUserProfileInspectorContent();">🔥 ${up.likes || 0} Respetos</span>
                                     <span class="x-metric-item">📊 ${viewsNum} Alcance</span>
-                                    <span class="x-metric-item" onclick="sendCommunityAthleteToVisionLab('${(p.shortName || p.name).replace(/'/g, "\\'")}', '${p.handle}', '${p.sport || 'Fútbol'}', '${(up.text || '').slice(0,50).replace(/'/g, "\\'")}', event)">🔬 Auditar Clip</span>
+                                    <span class="x-metric-item" onclick="sendCommunityAthleteToVisionLab('${(p.shortName || p.name).replace(/'/g, "\\'")}', '${kinetHandle(p.handle)}', '${p.sport || 'Fútbol'}', '${(up.text || '').slice(0,50).replace(/'/g, "\\'")}', event)">🔬 Auditar Clip</span>
                                 </div>
                             </article>
                         `;
@@ -6421,27 +6421,27 @@
                 if (roleType === 'staff') {
                     roleSpecificCellsHtml = `
                         <div class="ig-passport-cell"><span>🧠 CARGO EN CUERPO TÉCNICO</span><strong style="color:var(--role-color);">${p.position || staffData.roleName || 'Entrenador / Staff'}</strong></div>
-                        <div class="ig-passport-cell"><span>🏟️ CLUB / EQUIPO ACTUAL</span><strong>${p.club || 'KINET Performance'}</strong></div>
+                        <div class="ig-passport-cell"><span>🏟️ CLUB / EQUIPO ACTUAL</span><strong>${kinetEsc(p.club || 'Sin club')}</strong></div>
                         <div class="ig-passport-cell"><span>🏆 CATEGORÍA QUE DIRIGE</span><strong>${p.category || staffData.category || 'Senior'}</strong></div>
                         <div class="ig-passport-cell"><span>👥 TAMAÑO DE PLANTILLA</span><strong>${(staffData.squadSize || 22) + ' Deportistas'}</strong></div>
                         <div class="ig-passport-cell"><span>📐 ENFOQUE / ESPECIALIDAD</span><strong>${staffData.style || 'Metodología de Alto Rendimiento'}</strong></div>
-                        <div class="ig-passport-cell"><span>📍 CIUDAD OPERATIVA</span><strong>${p.city || 'Confirmada en Perfil'}</strong></div>
+                        <div class="ig-passport-cell"><span>📍 CIUDAD OPERATIVA</span><strong>${kinetEsc(p.city || 'Confirmada en Perfil')}</strong></div>
                     `;
                 } else if (roleType === 'scout') {
                     roleSpecificCellsHtml = `
                         <div class="ig-passport-cell"><span>📡 CARGO EN SCOUTING B2B</span><strong style="color:var(--role-color);">${p.position || scoutData.roleName || 'Director Deportivo / Scout'}</strong></div>
-                        <div class="ig-passport-cell"><span>🏟️ ENTIDAD / AGENCIA</span><strong>${p.club || 'KINET Scouting Network'}</strong></div>
+                        <div class="ig-passport-cell"><span>🏟️ ENTIDAD / AGENCIA</span><strong>${kinetEsc(p.club || 'KINET Scouting Network')}</strong></div>
                         <div class="ig-passport-cell"><span>🏆 MERCADO QUE MONITORIZA</span><strong>${p.category || scoutData.category || 'Nacional & Internacional'}</strong></div>
                         <div class="ig-passport-cell"><span>📊 CORTE MÍNIMO GRL</span><strong>${scoutData.minGrl || '78.0 GRL'}</strong></div>
                         <div class="ig-passport-cell"><span>💰 LÍMITE OPERATIVO</span><strong>${scoutData.budget || '50 k €'}</strong></div>
-                        <div class="ig-passport-cell"><span>📍 SEDE OPERATIVA</span><strong>${p.city || 'Confirmada en Perfil'}</strong></div>
+                        <div class="ig-passport-cell"><span>📍 SEDE OPERATIVA</span><strong>${kinetEsc(p.city || 'Confirmada en Perfil')}</strong></div>
                     `;
                 } else {
                     roleSpecificCellsHtml = `
-                        <div class="ig-passport-cell"><span>🎯 DEMARCACIÓN / ESPECIALIDAD</span><strong style="color:var(--role-color);">${p.position || 'Delantero Centro (DC)'}</strong></div>
-                        <div class="ig-passport-cell"><span>🏟️ CLUB / EQUIPO ACTUAL</span><strong>${p.club || 'KINET Performance'}</strong></div>
+                        <div class="ig-passport-cell"><span>🎯 DEMARCACIÓN / ESPECIALIDAD</span><strong style="color:var(--role-color);">${kinetEsc(p.position || 'Delantero Centro (DC)')}</strong></div>
+                        <div class="ig-passport-cell"><span>🏟️ CLUB / EQUIPO ACTUAL</span><strong>${kinetEsc(p.club || 'Sin club')}</strong></div>
                         <div class="ig-passport-cell"><span>🏆 CATEGORÍA / DIVISIÓN</span><strong>${p.category || p.sport || 'Senior'}</strong></div>
-                        <div class="ig-passport-cell"><span>📍 CIUDAD DE RESIDENCIA</span><strong>${p.city || 'Confirmar en Mi Perfil'}</strong></div>
+                        <div class="ig-passport-cell"><span>📍 CIUDAD DE RESIDENCIA</span><strong>${kinetEsc(p.city || 'Confirmar en Mi Perfil')}</strong></div>
                         <div class="ig-passport-cell"><span>🏠 CIUDAD NATAL / ORIGEN</span><strong>${p.hometown || p.city || 'Confirmar en Mi Perfil'}</strong></div>
                         <div class="ig-passport-cell"><span>📅 EDAD / NACIMIENTO</span><strong>${ageVal ? ageVal + ' años' : 'Confirmar en Mi Perfil'}</strong></div>
                         <div class="ig-passport-cell"><span>📏 ALTURA (CM) & PESO (KG)</span><strong>${p.anthropometry || 'Calibrar en Mi Perfil'}</strong></div>

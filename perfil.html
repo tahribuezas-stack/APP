@@ -1710,7 +1710,6 @@
                 localStorage.setItem('kinet_logged_in', 'true');
             }
             if (!localStorage.getItem('kinet_user_city')) localStorage.setItem('kinet_user_city', 'Melilla');
-            if (!localStorage.getItem('kinet_user_club')) localStorage.setItem('kinet_user_club', 'KINET Performance');
             if (!localStorage.getItem('kinet_user_category')) localStorage.setItem('kinet_user_category', 'Senior');
             if (!localStorage.getItem('kinet_height')) localStorage.setItem('kinet_height', '178 cm');
             if (!localStorage.getItem('kinet_weight')) localStorage.setItem('kinet_weight', '72.5 kg');
@@ -1746,7 +1745,7 @@
             const birthdate = localStorage.getItem('kinet_user_birthdate') || '';
             const city = localStorage.getItem('kinet_user_city') || localStorage.getItem('kinet_user_city_current') || 'Melilla';
             const hometown = localStorage.getItem('kinet_user_hometown') || localStorage.getItem('kinet_user_city_birth') || '';
-            const club = localStorage.getItem('kinet_user_club') || 'KINET Performance';
+            const club = localStorage.getItem('kinet_user_club') || 'Sin club';
             const category = localStorage.getItem('kinet_user_category') || 'Senior';
 
             const rawSavedPos = localStorage.getItem('kinet_position') || '';
@@ -2008,7 +2007,7 @@
             const age = updateCalculatedAgeUI();
             const city = localStorage.getItem('kinet_user_city') || 'Melilla';
             const hometown = localStorage.getItem('kinet_user_hometown') || 'No especificada';
-            const club = localStorage.getItem('kinet_user_club') || 'KINET Performance';
+            const club = localStorage.getItem('kinet_user_club') || 'Sin club';
             const category = localStorage.getItem('kinet_user_category') || activeSportName;
             const pos = localStorage.getItem('kinet_position') || 'PRO';
             const anthro = localStorage.getItem('kinet_user_anthropometry') || '178 cm • 72.5 kg';
@@ -2188,7 +2187,16 @@
         // =========================================================================
         // MOTOR GLOBAL DE PERSONALIZACIÓN DE DESPACHO (SOPORTA ROSA, NEÓN, ARCOÍRIS, FONDO Y BORDES)
         // =========================================================================
-      function applyDespachoThemeSettings() {
+      function forceUpdateTabFavicon(hexColor) {
+          try {
+              const clean = String(hexColor || '#00FF88').replace('#', '');
+              const svgHref = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%23${clean}%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>`;
+              let fav = document.getElementById('dynamic-favicon');
+              if (!fav) { fav = document.createElement('link'); fav.id = 'dynamic-favicon'; fav.rel = 'icon'; document.head.appendChild(fav); }
+              fav.href = svgHref;
+          } catch (e) { /* favicon opcional */ }
+      }
+            function applyDespachoThemeSettings() {
                 const scanlinesOn = localStorage.getItem('kinet_scanlines') === 'true';
                 document.body.classList.toggle('scanlines-active', scanlinesOn);
 

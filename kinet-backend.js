@@ -238,6 +238,17 @@
   }
   window.addEventListener('load', () => setTimeout(() => { syncPrivilegedFromServer(); }, 900));
 
+  // Escape de HTML para todo contenido escrito por usuarios (evita XSS almacenado)
+  window.kinetEsc = function (v) {
+    return String(v === null || v === undefined ? '' : v).replace(/[&<>"'`]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;' }[c];
+    });
+  };
+  // Los @usuarios solo pueden contener letras, números, _ . - y @ (seguro también dentro de onclick)
+  window.kinetHandle = function (v) {
+    return String(v === null || v === undefined ? '' : v).replace(/[^\w@.\-]/g, '');
+  };
+
   function initSupabase() {
     if (sbClient) return sbClient;
     if (window.supabase && typeof window.supabase.createClient === 'function') {
@@ -1081,7 +1092,7 @@
           active_sport: localStorage.getItem('kinet_sport') || (existingRow && existingRow.active_sport) || 'Fútbol',
           position: localStorage.getItem('kinet_position') || (existingRow && existingRow.position) || 'Por asignar',
           category: localStorage.getItem('kinet_user_category') || localStorage.getItem('kinet_category') || (existingRow && existingRow.category) || 'Senior',
-          club: localStorage.getItem('kinet_user_club') || (existingRow && existingRow.club) || 'KINET Performance',
+          club: localStorage.getItem('kinet_user_club') || (existingRow && existingRow.club) || '',
           account_tier: localStorage.getItem('kinet_account_tier') || (existingRow && existingRow.account_tier) || 'free',
           video_mins_used: parseFloat(localStorage.getItem('kinet_video_mins_used') || '0'),
           bonus_video_mins: parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0'),

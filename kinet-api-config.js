@@ -1288,6 +1288,33 @@ Devuelve ESTRICTAMENTE un JSON válido:
         needsConfig: true,
         message: 'Configura la Edge Function "kinet-stripe-checkout" o pega tus URLs de Stripe Payment Links en kinet-api-config.js.'
       };
+    },
+
+    // ------------------------------------------------------------------------
+    // MOTOR 6: LABORATORIO ESPECIALIZADO (analizador3) — genera planes como JSON
+    // Consume 1 mensaje del cupo diario de chat (igual que el resto de la IA).
+    // ------------------------------------------------------------------------
+    async generateLabPlan({ sport = 'Running', promptText = '', schemaHint = '', currentState = null }) {
+      const quota = this.getQuotaStatus();
+      if (quota.chatRemaining <= 0) {
+        return { ok: false, limitReached: true, error: `Has alcanzado tu límite diario de ${quota.chatLimit} consultas de IA en el ${quota.tierName}.` };
+      }
+      const sys = `Eres el planificador táctico de KINET OS para ${sport}. Atleta: ${buildAthleteContextLine()}.
+Respondes SOLO con un JSON válido (sin texto extra ni markdown) que respete exactamente este esquema:
+${schemaHint}
+Reglas: usa valores realistas para el deporte, no inventes datos personales del atleta y adapta el plan a su contexto si está registrado.`;
+      try {
+        const raw = await callDirectLLMProvider({
+          systemPrompt: sys,
+          userPrompt: `Petición: "${String(promptText).slice(0, 600)}"\nEstado actual del laboratorio (resumido): ${JSON.stringify(currentState || {}).slice(0, 1800)}`,
+          responseMimeType: 'application/json'
+        });
+        const parsed = JSON.parse(String(raw).replace(/```json|```/g, '').trim());
+        incrementDailyChatUsage();
+        return { ok: true, plan: parsed, remaining: Math.max(0, quota.chatRemaining - 1) };
+      } catch (err) {
+        return { ok: false, error: (err && err.message) ? err.message : 'No se pudo generar el plan.' };
+      }
     }
   };
 

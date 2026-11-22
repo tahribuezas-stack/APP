@@ -1949,10 +1949,6 @@
                 input.value = '';
                 return;
             }
-            consumeVideoMinutes(opt.dur);
-            if (window.KinetBackend) window.KinetBackend.pushLocalStateToCloud();
-            refreshVideoQuotaUI();
-
             const myName = localStorage.getItem('kinet_user_name') || 'Atleta KINET';
             const rawMyPos = localStorage.getItem('kinet_position') || (opt.id.includes('gk') ? 'POR' : 'PRO');
             const myPos = window.KinetPositions ? window.KinetPositions.toCode(rawMyPos) : rawMyPos;
@@ -1970,13 +1966,11 @@
             const actionNotes = (document.getElementById('wizard-action-notes')?.value || '').trim() || opt.title;
             const slotRole = document.getElementById('wizard-roster-slot-role')?.value || 'starter';
 
-            if (/km\/h/i.test(opt.metrics[1])) {
-                localStorage.setItem('kinet_verified_gps_speed', opt.metrics[1]);
-            }
-
             let finalMetrics = opt.metrics;
             let finalBars = opt.bars;
             let finalGrl = 89;
+            let aiOk = false;
+            let aiErr = '';
             let aiPersonalizedVerdict = (activeRoleKey === 'athlete')
                 ? `✓ [Análisis en 1ª Persona sobre "${matchCtx}"]: En tu bloque "${opt.title}" donde destacas "${actionNotes}", el motor KINET Vision AI confirma una precisión biomecánica del ${opt.metrics[0]} y un registro de ${opt.metrics[1]}. Sello AI Verified actualizado (${opt.metrics[3]}).`
                 : `✓ [Informe Técnico en 3ª Persona — ${evaluatedPerson} (${evaluatedPos})]: Evaluando "${matchCtx}" (${opt.title}) bajo la observación "${actionNotes}", el deportista registra ${opt.metrics[0]} de eficacia cinemática y ${opt.metrics[1]} (${opt.metrics[2]} de su categoría). Listo para transferir al Analizador 3D.`;
@@ -1999,15 +1993,36 @@
                         durationMinutes: opt.dur,
                         alreadyDeductedQuota: true
                     });
-                    if (aiRes && aiRes.ok) {
-                        if (Array.isArray(aiRes.metrics) && aiRes.metrics.length === 4) finalMetrics = aiRes.metrics;
-                        if (Array.isArray(aiRes.bars) && aiRes.bars.length > 0) finalBars = aiRes.bars;
-                        if (aiRes.estimatedGrl) finalGrl = Number(aiRes.estimatedGrl) || 89;
-                        if (aiRes.aiVerdict) aiPersonalizedVerdict = aiRes.aiVerdict;
+                    if (aiRes && aiRes.ok && Array.isArray(aiRes.metrics) && aiRes.metrics.length === 4 && Array.isArray(aiRes.bars) && aiRes.bars.length > 0 && isFinite(Number(aiRes.estimatedGrl)) && aiRes.aiVerdict) {
+                        finalMetrics = aiRes.metrics;
+                        finalBars = aiRes.bars;
+                        finalGrl = Math.max(1, Math.min(99, Math.round(Number(aiRes.estimatedGrl))));
+                        aiPersonalizedVerdict = aiRes.aiVerdict;
+                        aiOk = true;
+                    } else {
+                        aiErr = (aiRes && (aiRes.error || aiRes.message)) || 'La IA no devolvió un análisis completo.';
                     }
                 } catch (e) {
-                    console.warn('Vision Lab AI fallback:', e);
+                    aiErr = (e && e.message) ? e.message : 'Error de conexión con la IA.';
                 }
+            } else {
+                aiErr = 'El motor de IA no está cargado. Recarga la página.';
+            }
+
+            if (!aiOk) {
+                const stT = document.getElementById('vision-status-title');
+                const stD = document.getElementById('vision-status-desc');
+                if (stT) stT.textContent = '⚠️ No se pudo analizar el vídeo';
+                if (stD) stD.textContent = aiErr + ' No se ha descontado ningún minuto. (Revisa tu clave en el botón "API IA" del Cuerpo Técnico.)';
+                input.value = '';
+                return;
+            }
+
+            consumeVideoMinutes(opt.dur);
+            if (window.KinetBackend) window.KinetBackend.pushLocalStateToCloud();
+            refreshVideoQuotaUI();
+            if (/km\/h/i.test(String(finalMetrics[1]))) {
+                localStorage.setItem('kinet_verified_gps_speed', finalMetrics[1]);
             }
 
             const newSession = {
@@ -2044,7 +2059,7 @@
             document.getElementById('vision-status-title').textContent = `${session.optionLabel} — ${session.matchContext}`;
             document.getElementById('vision-status-desc').textContent = `${session.subjectPos} — "${session.userNotes}" (Sello KINET AI Verified activo)`;
             document.getElementById('hud-bottom-left').textContent = 'SELLO: AI VERIFIED';
-            document.getElementById('hud-bottom-right').textContent = `RIESGO LESIONAL: BAJO (4%)`;
+            document.getElementById('hud-bottom-right').textContent = `GRL ESTIMADO IA: ${session.estimatedGrl}`;
 
             document.getElementById('t-val-1').textContent = session.metrics[0];
             document.getElementById('t-val-2').textContent = session.metrics[1];
