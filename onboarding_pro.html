@@ -11,6 +11,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="kinet-sport.js"></script>
+  <script src="kinet-text.js"></script>
+  <script src="kinet-onboarding.js"></script>
 <script src="kinet-backend.js"></script>
   <script src="kinet-api-config.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -340,15 +342,27 @@
         </div>
       </div>
 
-      <div class="glass-card p-4 rounded-2xl border border-slate-800 flex flex-col justify-between h-[285px]">
-        <div class="space-y-3 overflow-y-auto pr-1 flex-1" id="chat-messages-container"></div>
-
-        <div class="flex space-x-2 pt-3 border-t border-slate-800/80 mt-2">
-          <input type="text" id="ai-chat-input" onkeydown="if(event.key==='Enter'){event.preventDefault();sendAiResponse();}" placeholder="Escribe tu respuesta aquí..." class="flex-1 bg-[#12161C] border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
-          <button type="button" id="btn-send-ai-chat" onclick="sendAiResponse()" class="px-5 py-2.5 rounded-xl bg-kinet-neon text-black font-display font-bold text-xs hover:bg-emerald-400 transition">
-            Enviar
-          </button>
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div class="md:col-span-3 glass-card p-4 rounded-2xl border border-slate-800 flex flex-col h-[460px] md:h-[520px]">
+          <div class="space-y-3 overflow-y-auto pr-1 flex-1 kx-smooth-scroll" id="chat-messages-container"></div>
+          <div id="chat-chips" class="flex flex-wrap gap-1.5 pt-2"></div>
+          <div class="flex space-x-2 pt-3 border-t border-slate-800/80 mt-2">
+            <input type="text" id="ai-chat-input" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();sendAiResponse();}" placeholder="Escribe tu respuesta aquí..." class="flex-1 bg-[#12161C] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+            <button type="button" id="btn-send-ai-chat" onclick="sendAiResponse()" class="px-5 py-2.5 rounded-xl bg-kinet-neon text-black font-display font-bold text-xs hover:bg-emerald-400 transition">
+              Enviar
+            </button>
+          </div>
         </div>
+        <aside class="md:col-span-2 glass-card p-4 rounded-2xl border border-slate-800 md:h-[520px] overflow-y-auto no-scrollbar">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-display font-bold text-[11px] text-white tracking-wide">TU CONFIGURACIÓN</h3>
+            <span id="cfg-pct" class="text-[10px] font-mono text-kinet-neon">0%</span>
+          </div>
+          <div class="h-1.5 rounded-full bg-slate-800 overflow-hidden mb-2"><div id="cfg-bar" class="h-full bg-kinet-neon rounded-full transition-all duration-700" style="width:0%"></div></div>
+          <p class="text-[10px] text-slate-500 mb-2">Se rellena sola mientras hablas con la IA.</p>
+          <div id="cfg-rows"></div>
+          <div id="cfg-week" class="mt-3"></div>
+        </aside>
       </div>
 
       <div id="ai-incomplete-alert" class="hidden p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 flex justify-between items-center">
@@ -439,10 +453,10 @@
         laterality: '',
         strength: '',
         weakness: '',
-        trainingDays: [1, 3, 5],
-        gymDays: [2, 4],
-        matchDay: 6,
-        restDays: [0],
+        trainingDays: [],
+        gymDays: [],
+        matchDay: null,
+        restDays: [],
         injuryHistory: '',
         sleepHours: '7.5',
         seasonGoal: '',
@@ -746,137 +760,130 @@
       });
     }
 
-    // CHAT IA CONVERSACIONAL LIMPIO (PREGUNTA TAMBIÉN DIESTRO/ZURDO, CLUB, CIUDADES Y DÍAS DE ENTRENO)
-    function getAthleteChatQuestions() {
-      const firstName = (localStorage.getItem('kinet_user_name') || 'crack').split(' ')[0];
-      const injHint = ({ 'Fútbol': 'isquios, tobillo, rodilla', 'Baloncesto': 'tobillos, rodillas, espalda', 'Pádel / Tenis': 'codo, hombro, muñeca', 'Boxeo / MMA': 'manos, hombros, cuello', 'Running': 'gemelos, periostio, Aquiles' })[state.sport] || 'las zonas de más sobrecarga de tu disciplina';
-      const latWord = state.sport === 'Fútbol' ? 'diestro o zurdo de pierna' : (state.sport === 'Boxeo / MMA' ? 'diestro (ortodoxo) o zurdo' : 'diestro o zurdo');
-      return [
-        `¡Qué pasa ${firstName}! Ya he registrado que compites en **${state.sport}** (${state.category}) como **${state.position}**. Cuéntame en confianza como a un colega: **¿qué te ha traído hoy a KINET y cuál es tu objetivo principal esta temporada?**`,
-        `¡Vamos a por ello! Para dejarte rellenas las casillas de tu Perfil: **¿en qué club o gimnasio entrenas ahora mismo, en qué ciudad vives, cuál es tu ciudad natal y eres ${latWord}?** *(Ej: Entreno en el Club Deportivo Norte, vivo en Sevilla, nací en Cádiz y soy diestro).*`,
-        `Anotado en tu ficha. Hablemos de tu juego como **${state.position}**: **¿cuál es tu mejor virtud en pista y qué punto débil físico o técnico quieres que mejoremos primero en el Vestuario?**`,
-        `Clave eso que dices. Para dejarte montado tu **Calendario Semanal y Mensual en el Vestuario**: **¿qué días de la semana entrenas en campo/pista, qué días haces gimnasio y qué día sueles tener partido o competición?**`,
-        `Calendario listo. **Última pregunta:** **¿tienes alguna molestia o lesión previa que nuestro Fisioterapeuta IA deba vigilar (${injHint}) y cuántas horas sueles dormir?**`
-      ];
-    }
+    // =========================================================================
+    // ENTREVISTA IA (motor compartido: kinet-onboarding.js). Chat con tiempos naturales, preguntas por deporte/puesto,
+    // panel «Tu configuración» en vivo y calendario creado a partir de lo que cuenta el usuario.
+    // =========================================================================
+    let interview = null;
+    const escHtml = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
     function appendChatBubble(sender, text) {
       const box = document.getElementById('chat-messages-container');
       if (!box) return;
       const div = document.createElement('div');
       if (sender === 'ai') {
-        div.className = "flex items-start space-x-2.5";
+        div.className = "kx-msg-ai flex items-start space-x-2.5";
         div.innerHTML = `
-          <div class="w-6 h-6 rounded-lg bg-kinet-neon/20 text-kinet-neon flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">AI</div>
-          <div class="bg-slate-900 border border-slate-800 p-3 rounded-2xl text-xs text-slate-200 leading-relaxed max-w-[88%]">${text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-kinet-neon">$1</strong>')}</div>
+          <div class="w-7 h-7 rounded-lg bg-kinet-neon/20 text-kinet-neon flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">AI</div>
+          <div class="bg-slate-900 border border-slate-800 p-3 rounded-2xl rounded-tl-md text-[13px] text-slate-200 leading-relaxed max-w-[88%]">${escHtml(text).replace(/\*\*(.*?)\*\*/g, '<strong class="text-kinet-neon">$1</strong>')}</div>
         `;
       } else {
-        div.className = "flex justify-end";
-        div.innerHTML = `<div class="bg-kinet-neon/15 border border-kinet-neon/50 text-white p-2.5 px-3.5 rounded-2xl text-xs max-w-[85%] font-medium">${text}</div>`;
+        div.className = "kx-msg-me flex justify-end";
+        div.innerHTML = `<div class="bg-kinet-neon/15 border border-kinet-neon/50 text-white p-2.5 px-3.5 rounded-2xl rounded-tr-md text-[13px] max-w-[85%] font-medium">${escHtml(text)}</div>`;
       }
       box.appendChild(div);
-      box.scrollTop = box.scrollHeight;
+      try { box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' }); } catch (e) { box.scrollTop = box.scrollHeight; }
+    }
+
+    function setTypingIndicator(on) {
+      const box = document.getElementById('chat-messages-container');
+      if (!box) return;
+      let el = document.getElementById('chat-typing-row');
+      if (on && !el) {
+        el = document.createElement('div');
+        el.id = 'chat-typing-row';
+        el.className = 'kx-msg-ai flex items-start space-x-2.5';
+        el.innerHTML = '<div class="w-7 h-7 rounded-lg bg-kinet-neon/20 text-kinet-neon flex items-center justify-center text-[10px] font-bold shrink-0">AI</div><div class="bg-slate-900 border border-slate-800 px-3 py-2.5 rounded-2xl rounded-tl-md"><span class="kx-typing"><i></i><i></i><i></i></span></div>';
+        box.appendChild(el);
+        try { box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' }); } catch (e) { box.scrollTop = box.scrollHeight; }
+      } else if (!on && el) el.remove();
+    }
+
+    function renderChips(list) {
+      const c = document.getElementById('chat-chips');
+      if (!c) return;
+      c.innerHTML = '';
+      (list || []).forEach(label => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'kx-msg-me px-3 py-1.5 rounded-full bg-[#12161C] hover:bg-kinet-neon hover:text-black border border-slate-700/80 text-[11px] text-slate-200 transition';
+        b.textContent = label;
+        b.onclick = () => sendAiResponse(label);
+        c.appendChild(b);
+      });
+    }
+
+    const CFG_ROWS = [
+      ['goal', '🎯 Objetivo', S => S.goal], ['club', '🏟️ Club / equipo', S => S.club || (S.noClub ? 'Sin equipo' : '')], ['city', '📍 Ciudad actual', S => S.city], ['hometown', '🏠 Ciudad natal', S => S.hometown],
+      ['laterality', '✋ Lateralidad', S => S.laterality], ['strength', '💪 Punto fuerte', S => S.strength], ['weakness', '🔧 A mejorar', S => S.weakness],
+      ['field', '🗓️ Sesiones específicas', S => S.fieldCount != null ? (S.fieldCount + (S.fieldCount === 1 ? ' día' : ' días')) : ''], ['gym', '🏋️ Gimnasio', S => S.gymCount != null ? (S.gymCount ? S.gymCount + (S.gymCount === 1 ? ' día' : ' días') : 'No') : ''],
+      ['time', '⏰ Horario', S => S.prefTime ? (/^\d/.test(S.prefTime) ? S.prefTime + ' h' : S.prefTime.charAt(0).toUpperCase() + S.prefTime.slice(1)) : ''],
+      ['match', '🏆 Competición', S => S.matchDays.length ? S.matchDays.map(d => KinetOnboarding.DAYS_UP[d]).join(', ') : (S.noMatches ? 'Sin competición ahora' : '')],
+      ['inj', '🩹 Molestias', S => S.injAsked ? (S.injuries || 'Ninguna') : ''], ['sleep', '😴 Sueño', S => S.sleepHours != null ? S.sleepHours + ' h' : '']
+    ];
+    function renderConfig(S, pct, plan) {
+      const rows = document.getElementById('cfg-rows'), bar = document.getElementById('cfg-bar'), pc = document.getElementById('cfg-pct'), wk = document.getElementById('cfg-week');
+      if (!rows) return;
+      rows.innerHTML = CFG_ROWS.map(([k, label, fn]) => {
+        const v = fn(S);
+        return `<div class="flex items-start justify-between gap-3 py-1.5 border-b border-slate-800/60 last:border-0 ${v ? 'kx-msg-ai' : ''}"><span class="text-[11px] text-slate-400 shrink-0">${label}</span><span class="text-[11px] text-right ${v ? 'text-white font-semibold' : 'text-slate-600'}">${v ? escHtml(String(v).slice(0, 60)) : '—'}</span></div>`;
+      }).join('');
+      if (bar) bar.style.width = (pct || 0) + '%';
+      if (pc) pc.textContent = (pct || 0) + '%';
+      if (wk) {
+        if (plan) {
+          const rowsW = KinetOnboarding.weekSummary(plan);
+          wk.innerHTML = '<div class="text-[10px] font-mono text-kinet-neon uppercase tracking-wider mb-1.5">Tu semana tipo</div><div class="grid grid-cols-7 gap-1">' + rowsW.map(r => {
+            const ic = r.items.map(i => i.icon).join('') || '·';
+            const tp = r.items.some(i => i.type === 'match') ? 'border-amber-500/60 bg-amber-500/10' : r.items.length ? 'border-kinet-neon/40 bg-kinet-neon/5' : 'border-slate-800 bg-slate-900/40';
+            const tm = r.items[0] ? r.items[0].time.replace(' H', '') : '';
+            return `<div class="kx-msg-ai rounded-lg border ${tp} py-1.5 text-center"><div class="text-[8px] text-slate-400 uppercase">${r.short}</div><div class="text-[12px] leading-tight">${ic}</div><div class="text-[8px] text-slate-400 font-mono">${tm}</div></div>`;
+          }).join('') + '</div>';
+        } else wk.innerHTML = '';
+      }
+    }
+
+    function syncInterviewToState() {
+      if (!interview) return;
+      const S = interview.S, ex = state.extracted, plan = interview.plan;
+      ex.club = S.club || ''; ex.city = S.city || ''; ex.hometown = S.hometown || '';
+      ex.strength = S.strength || ''; ex.weakness = S.weakness || '';
+      ex.motivation = S.goal || ''; ex.seasonGoal = S.goal || '';
+      ex.injuryHistory = S.injuries || ''; ex.sleepHours = S.sleepHours != null ? String(S.sleepHours) : '';
+      if (S.laterality) state.laterality = S.laterality;
+      if (plan) { ex.trainingDays = plan.fieldDays.slice(); ex.gymDays = plan.gymDays.slice(); ex.matchDay = plan.matchDays.length ? plan.matchDays[0] : null; ex.restDays = []; }
+      state.aiCompleted = !!(S.goal);
     }
 
     function setupAiChatGreeting() {
       const box = document.getElementById('chat-messages-container');
-      if (box && box.children.length === 0) {
-        const qs = getAthleteChatQuestions();
-        appendChatBubble('ai', qs[0]);
-      }
-    }
-
-    function parseScheduleFromText(txt) {
-      const lower = String(txt || '').toLowerCase();
-      const dayMap = [
-        { idx: 1, regex: /lunes/g }, { idx: 2, regex: /martes/g }, { idx: 3, regex: /mi[eé]rcoles/g },
-        { idx: 4, regex: /jueves/g }, { idx: 5, regex: /viernes/g }, { idx: 6, regex: /s[aá]bado/g }, { idx: 0, regex: /domingo/g }
-      ];
-      const GYM = /\bgym\b|\bgimnasio\b|\bpesas\b|\bfuerza\b/;
-      const MATCH = /\bpartido\b|\bcompetici[oó]n\b|\bjornada\b|\btorneo\b|\bcombate\b|\bpelea\b|\bcarrera\b|\bcampeonato\b|\bprueba\b/;
-      const REST = /\bdescanso\b|\blibre\b/;
-      const FIELD = /\bpista\b|\bcampo\b|\bcancha\b|\bring\b|\bruta\b|\brodaje\b|\bsparring\b|\bt[eé]cnica\b|\bterreno\b|\bentreno\b/;
-      const tDays = new Set(), gDays = new Set(), rDays = new Set();
-      let mDay = null;
-      // Cada cláusula (separada por coma, punto, «;», «+», «•»): cada día toma el tipo de la palabra que le sigue
-      // («martes gym»); si no la tiene, hereda la del siguiente día o la que lo precede («partido el sábado»).
-      lower.split(/[•·.;+,\n]+/).forEach(cl => {
-        const hits = [];
-        dayMap.forEach(d => { let m; d.regex.lastIndex = 0; while ((m = d.regex.exec(cl))) hits.push({ idx: d.idx, pos: m.index, end: m.index + m[0].length }); });
-        if (!hits.length) return;
-        hits.sort((a, b) => a.pos - b.pos);
-        const prefix = cl.slice(0, hits[0].pos);
-        const typeOf = (t) => MATCH.test(t) ? 'match' : GYM.test(t) ? 'gym' : REST.test(t) ? 'rest' : FIELD.test(t) ? 'field' : null;
-        const types = hits.map((h, k) => typeOf(cl.slice(h.end, k + 1 < hits.length ? hits[k + 1].pos : cl.length)));
-        for (let k = hits.length - 1; k >= 0; k--) if (!types[k]) types[k] = (k + 1 < hits.length ? types[k + 1] : null);
-        hits.forEach((h, k) => {
-          const t = types[k] || typeOf(prefix) || 'field';
-          if (t === 'match') mDay = h.idx; else if (t === 'gym') gDays.add(h.idx); else if (t === 'rest') rDays.add(h.idx); else tDays.add(h.idx);
-        });
+      if (!box || interview) return;
+      const firstName = (localStorage.getItem('kinet_user_name') || '').split(' ')[0].replace(/invitado/i, '');
+      interview = KinetOnboarding.create({
+        role: 'athlete', sport: state.sport, position: state.position, category: state.category, firstName,
+        ui: {
+          typing: setTypingIndicator,
+          say: (text, chips) => { appendChatBubble('ai', text); renderChips(chips); },
+          summary: (S, pct, plan) => { renderConfig(S, pct, plan); syncInterviewToState(); },
+          plan: () => {},
+          done: () => { syncInterviewToState(); const b = document.getElementById('btn-finish-onboarding'); if (b) { b.classList.add('animate-pulse'); setTimeout(() => b.classList.remove('animate-pulse'), 3000); } }
+        }
       });
-      if (tDays.size) state.extracted.trainingDays = Array.from(tDays);
-      if (gDays.size) state.extracted.gymDays = Array.from(gDays);
-      if (rDays.size) state.extracted.restDays = Array.from(rDays);
-      if (mDay !== null) { state.extracted.matchDay = mDay; state.extracted.restDays = (state.extracted.restDays || []).filter(d => d !== mDay); }
+      renderConfig(interview.S, 0, null);
+      interview.start();
     }
 
-    function processUserAnswer(stepIdx, txt) {
-      state.chatHistory.push({ role: 'user', content: txt });
-      // La lateralidad solo se lee en la respuesta que la pregunta (paso 2), no en las demás («mi derecha es potente»)
-      if (stepIdx === 1) {
-        if (/\bzurd[oa]\b/i.test(txt)) state.laterality = 'Zurdo';
-        else if (/\bdiestr[oa]\b/i.test(txt)) state.laterality = 'Diestro';
-        else if (/\bambidiestro\b/i.test(txt)) state.laterality = 'Ambidiestro';
-      }
-
-      if (stepIdx === 0) {
-        state.extracted.motivation = txt;
-        state.extracted.seasonGoal = txt;
-      } else if (stepIdx === 1) {
-        const cityM = txt.match(/(?:vivo en|resido en)\s+([A-ZÁÉÍÓÚÑa-záéíóúñ\s]{2,20}?)(?:,|\sy\s|\.|$)/i);
-        const bornM = txt.match(/(?:nac[ií] en|natural de|soy de)\s+([A-ZÁÉÍÓÚÑa-záéíóúñ\s]{2,20}?)(?:,|\sy\s|\.|$)/i);
-        const clubM = txt.match(/(?:juego en el|juego en|entreno en el|entreno en|club)\s+([A-ZÁÉÍÓÚÑa-záéíóúñ0-9\s]{2,28}?)(?:,|\svivo|\.|$)/i);
-        if (clubM) state.extracted.club = clubM[1].trim();
-        else state.extracted.club = txt.split(',')[0].trim().slice(0, 30);
-        if (cityM) state.extracted.city = cityM[1].trim();
-        if (bornM) state.extracted.hometown = bornM[1].trim();
-      } else if (stepIdx === 2) {
-        const m = txt.match(/^(.*?)\b(?:pero|aunque|sin embargo)\b\s*(.*)$/is);
-        if (m && m[2].trim()) {
-          state.extracted.strength = m[1].replace(/[,;.\s]+$/, '').trim() || txt.trim();
-          state.extracted.weakness = m[2].trim();
-        } else {
-          const w = txt.match(/(?:quiero mejorar|mejorar|me falta|me cuesta|d[eé]bil(?:es)?|flojo en)\s+(.*)$/is);
-          state.extracted.strength = txt.trim();
-          state.extracted.weakness = (w && w[1].trim()) ? w[1].trim() : txt.trim();
-        }
-      } else if (stepIdx === 3) {
-        parseScheduleFromText(txt);
-      } else if (stepIdx === 4) {
-        state.extracted.injuryHistory = txt;
-      }
-    }
-
-    async function sendAiResponse() {
+    async function sendAiResponse(preset) {
       const input = document.getElementById('ai-chat-input');
-      const val = (input?.value || '').trim();
-      if (!val) return;
-
+      const val = String(preset != null ? preset : (input?.value || '')).trim();
+      if (!val || !interview || interview.busy || interview.finished) return;
       appendChatBubble('user', val);
-      input.value = '';
-      processUserAnswer(state.chatStepIndex, val);
-      state.chatStepIndex++;
-      state.aiCompleted = true;
+      if (input) input.value = '';
+      renderChips([]);
+      state.chatHistory.push({ role: 'user', content: val });
       document.getElementById('ai-incomplete-alert').classList.add('hidden');
-
-      const qs = getAthleteChatQuestions();
-      setTimeout(() => {
-        if (state.chatStepIndex < qs.length) {
-          appendChatBubble('ai', qs[state.chatStepIndex]);
-        } else {
-          appendChatBubble('ai', `✅ **¡Todo listo!** He guardado tus datos en el Perfil, he programado tu Calendario Semanal y Mensual en el Vestuario y he informado a los 4 especialistas del Cuerpo Técnico IA. Pulsa abajo en **FINALIZAR REGISTRO & ACTIVAR PERFIL**.`);
-        }
-      }, 240);
+      await interview.handle(val);
+      syncInterviewToState();
     }
 
     function skipAiSetup() {
@@ -961,6 +968,7 @@
 
     // La IA interpreta las respuestas libres (si hay IA disponible); si falla, se mantiene la lectura local.
     async function enrichWithAI() {
+      if (interview && interview.S && interview.S.goal) return; // la entrevista ya interpretó las respuestas
       const answers = (state.chatHistory || []).filter(m => m.role === 'user').map(m => String(m.content || ''));
       if (!answers.length || !window.KinetAPIs || typeof KinetAPIs.extractOnboardingProfile !== 'function') return;
       const btn = document.querySelector('button[onclick^="finishOnboarding"]');
@@ -1007,28 +1015,21 @@
       localStorage.setItem('kinet_age', String(state.edad));
       localStorage.setItem('kinet_age_years_direct', String(state.edad));
       if (state.laterality) localStorage.setItem('kinet_user_laterality', state.laterality);
+      const KT = window.KinetText;
+      if (KT) { const e = state.extracted; if (e.club) e.club = KT.club ? KT.club(e.club) : e.club; if (e.city) e.city = KT.city ? KT.city(e.city) : e.city; if (e.hometown) e.hometown = KT.city ? KT.city(e.hometown) : e.hometown; }
       if (state.extracted.club) localStorage.setItem('kinet_user_club', state.extracted.club);
       if (state.extracted.city) localStorage.setItem('kinet_user_city', state.extracted.city);
       if (state.extracted.hometown) localStorage.setItem('kinet_user_hometown', state.extracted.hometown);
 
-      // Construir el mapa del calendario semanal/mensual para app.html
-      const dayLabels = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-      const weeklyScheduleMap = {};
-      for (let d = 0; d <= 6; d++) {
-        const isMatch = d === state.extracted.matchDay;
-        const isField = state.extracted.trainingDays.includes(d);
-        const isGym = state.extracted.gymDays.includes(d);
-        const sessions = [];
-        if (isMatch) {
-          sessions.push({ type: 'match', icon: '🏆', time: '18:00 H', title: `Competición Oficial (${state.sport} • ${state.category})`, agentTarget: 'tactical' });
-        } else {
-          if (isGym) sessions.push({ type: 'gym', icon: '🏋️', time: '17:30 H', title: `Gimnasio: Fuerza Explosiva & Prevención (${state.extracted.injuryHistory ? state.extracted.injuryHistory.slice(0,22) : 'Tren Inferior'})`, agentTarget: 'physical' });
-          if (isField) sessions.push({ type: 'field', icon: '⚽', time: '19:30 H', title: `Sesión de Pista (${state.position}): ${(state.extracted.weakness || 'Finalización & Transiciones').slice(0,36)}`, agentTarget: 'tactical' });
-          if (!isGym && !isField) sessions.push({ type: 'rest', icon: '🩹', time: 'DESCANSO', title: `Recuperación Activa & Descarga Muscular`, agentTarget: 'physio' });
+      // Calendario: lo programa la entrevista de la IA (días, horarios y partidos que dijo el usuario)
+      try {
+        if (interview) {
+          let plan = interview.plan;
+          if (!plan) plan = KinetOnboarding.buildWeek(interview.S, state.sport, { position: state.position, category: state.category });
+          if (plan && plan.weekly) KinetOnboarding.persistPlan(plan);
+          syncInterviewToState();
         }
-        weeklyScheduleMap[d] = { dayIndex: d, dayName: dayLabels[d], sessions };
-      }
-      localStorage.setItem('kinet_weekly_schedule_map', JSON.stringify(weeklyScheduleMap));
+      } catch (e) { console.warn('Calendario onboarding', e); }
 
       const profilesDB = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');
       profilesDB.athlete = {

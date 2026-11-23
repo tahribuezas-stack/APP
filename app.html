@@ -1688,6 +1688,35 @@
             el.textContent = `⏱️ ${prefix}: ${found || 'SIN FIJAR'}`;
             el.title = found ? '' : 'Marca un día como competición en tu calendario semanal';
         }
+        // Check-in diario: cada día empieza en blanco. Se limpia lo de días anteriores y se vigila el cambio de día
+        // (medianoche con la app abierta, o volver a la pestaña al día siguiente).
+        const DAILY_KEYS = ['kinet_sleep_hours', 'kinet_energy_pct', 'kinet_hydration_l', 'kinet_rpe', 'kinet_focus_pct', 'kinet_plan_pct', 'kinet_injury_risk'];
+        function purgeStaleDailyLog() {
+            try {
+                const d = localStorage.getItem('kinet_daily_log_date');
+                if (d && d !== kinetToday()) {
+                    DAILY_KEYS.forEach(k => localStorage.removeItem(k));
+                    localStorage.removeItem('kinet_daily_log_date');
+                    return true;
+                }
+            } catch (e) {}
+            return false;
+        }
+        let _dailyStamp = kinetToday();
+        function onDayRollover() {
+            const t = kinetToday();
+            if (t === _dailyStamp) return;
+            _dailyStamp = t;
+            purgeStaleDailyLog();
+            try { if (typeof renderSelectedKpisAndBars === 'function') renderSelectedKpisAndBars(); } catch (e) {}
+            try { if (typeof refreshReadiness === 'function') refreshReadiness(); } catch (e) {}
+            try { if (typeof renderStreakBadge === 'function') renderStreakBadge(); } catch (e) {}
+            try { if (typeof prefillDailyLog === 'function') prefillDailyLog(); } catch (e) {}
+        }
+        purgeStaleDailyLog();
+        setInterval(onDayRollover, 30000);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) onDayRollover(); });
+        window.addEventListener('focus', onDayRollover);
         function kinetDailyVal(k) {
             if (localStorage.getItem('kinet_daily_log_date') !== kinetToday()) return null;
             const v = parseFloat(localStorage.getItem(k));

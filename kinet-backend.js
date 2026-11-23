@@ -881,7 +881,7 @@
       originalSetItem.call(localStorage, 'kinet_social_handle', '@invitado_kinet');
     },
 
-    async registerUser({ firstName, lastName, handle, email, phone, password, birthDate, fromSession, authUserId }) {
+    async registerUser({ firstName, lastName, handle, email, phone, password, birthDate, fromSession, authUserId, consents }) {
       localStorage.removeItem('kinet_is_guest');
       localStorage.removeItem('kinet_guest_session');
       originalSetItem.call(localStorage, 'kinet_mode', 'pro');
@@ -899,7 +899,7 @@
       } else {
         let authData = null;
         try {
-          const meta = { full_name: fullName, handle: cleanHandle, phone: phone || '', birth_date: birthDate || '' };
+          const meta = { full_name: fullName, handle: cleanHandle, phone: phone || '', birth_date: birthDate || '', consents: consents || null };
           const sbs = initSupabase();
           if (sbs && sbs.auth) {
             const r = await sbs.auth.signUp({ email: cleanEmail, password: password, options: { data: meta } });
@@ -915,6 +915,7 @@
         if (!userId) throw new Error('No se pudo crear la cuenta (el servidor no devolvió usuario).');
       }
 
+      if (consents) { try { originalSetItem.call(localStorage, 'kinet_consents', JSON.stringify(consents)); } catch (e) {} }
       originalSetItem.call(localStorage, 'kinet_user_id', userId);
       originalSetItem.call(localStorage, 'kinet_auth_session_token', 'auth_' + userId + '_' + Date.now());
       originalSetItem.call(localStorage, 'kinet_user_name', fullName);

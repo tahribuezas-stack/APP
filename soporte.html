@@ -9,6 +9,7 @@
 
   <link rel="stylesheet" href="kinet-motion.css">
   <script src="kinet-spotlight.js" defer></script>
+  <script src="kinet-motion.js" defer></script>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@0.469.0"></script>
@@ -230,7 +231,7 @@
       <div class="space-y-8">
         
         <!-- 1. NUEVO CHAT RÁPIDO DE DUDAS E INCIDENCIAS IA -->
-        <div class="glass-card p-6 sm:p-7 rounded-3xl border-slate-800 space-y-4">
+        <div class="glass-card p-5 sm:p-6 rounded-3xl border-slate-800 space-y-3">
           <div class="flex items-center justify-between">
             <h3 class="font-display font-bold text-lg text-white flex items-center space-x-2">
               <i data-lucide="bot" class="w-5 h-5 text-kinet-neon"></i>
@@ -238,11 +239,11 @@
             </h3>
             <span id="support-ai-status" class="px-2.5 py-1 rounded-full bg-kinet-neon/10 border border-kinet-neon/30 text-kinet-neon text-[10px] font-mono font-bold">● IA</span>
           </div>
-          <p class="text-xs text-slate-400">Pregunta una duda sobre la app o describe un problema. El asistente no ve tu cuenta ni tus pagos: para eso usa el formulario de abajo.</p>
+          <p class="text-[11px] text-slate-500 leading-snug">Pregunta una duda o describe un problema. No ve tu cuenta ni tus pagos: para eso usa el formulario.</p>
 
           <!-- Caja de mensajes del chat IA -->
-          <div id="ai-quick-chat-box" class="bg-[#0B0E12] border border-slate-800/90 rounded-2xl p-4 h-64 overflow-y-auto no-scrollbar space-y-3 text-xs">
-            <div class="bg-[#141921] border border-slate-800 rounded-xl p-3 text-slate-200 max-w-[92%]">
+          <div id="ai-quick-chat-box" class="kx-smooth-scroll bg-[#0B0E12] border border-slate-800/90 rounded-2xl p-4 h-[22rem] sm:h-[26rem] overflow-y-auto no-scrollbar space-y-3 text-[13px] leading-relaxed">
+            <div class="kx-msg-ai bg-[#141921] border border-slate-800 rounded-xl p-3 text-slate-200 max-w-[92%]">
               <span class="font-mono text-[10px] text-kinet-neon font-bold block mb-1">KINET SUPPORT // ASISTENTE TÉCNICO</span>
               Hola. Cuéntame qué te ocurre o elige un tema:
               <div id="support-greeting-chips" class="flex flex-wrap gap-1.5 mt-2"></div>
@@ -392,14 +393,14 @@
       const box = document.getElementById('ai-quick-chat-box');
       const d = document.createElement('div');
       if (isUser) {
-        d.className = 'bg-kinet-neon/15 border border-kinet-neon/40 rounded-xl p-3 text-white ml-auto max-w-[85%] text-right';
+        d.className = 'kx-msg-me bg-kinet-neon/15 border border-kinet-neon/40 rounded-xl p-3 text-white ml-auto max-w-[85%] text-right';
         d.textContent = html;
       } else {
-        d.className = 'bg-[#141921] border border-slate-800 rounded-xl p-3 text-slate-200 max-w-[92%]';
+        d.className = 'kx-msg-ai bg-[#141921] border border-slate-800 rounded-xl p-3 text-slate-200 max-w-[92%]';
         d.innerHTML = '<span class="font-mono text-[10px] text-kinet-neon font-bold block mb-1">' + (label || 'KINET SUPPORT IA') + '</span>' + html;
       }
       box.appendChild(d);
-      box.scrollTop = box.scrollHeight;
+      try { box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' }); } catch (e) { box.scrollTop = box.scrollHeight; }
       return d;
     }
 
@@ -455,7 +456,7 @@
       }
 
       supportBusy = true;
-      const typing = appendSupportBubble('<span class="text-slate-400">Escribiendo…</span>', false);
+      const typing = appendSupportBubble('<span class="kx-typing" aria-label="Escribiendo"><i></i><i></i><i></i></span>', false);
       let replyHtml = null;
       try {
         const guest = window.KinetBackend && KinetBackend.isGuest && KinetBackend.isGuest();

@@ -102,3 +102,32 @@ html {
   scroll-behavior: smooth;
   scroll-padding-top: 100px; /* Esto evita que la barra superior tape los cuadros */
 }
+
+/* ==========================================
+   APARICIÓN AL HACER SCROLL, BARRA DE PROGRESO Y MENSAJES (kinet-motion.js)
+   ========================================== */
+.kx-pre { opacity: 0; transform: translateY(26px); }
+.kx-in { animation: kxUp .75s cubic-bezier(.16, 1, .3, 1) both; }
+@keyframes kxUp {
+  from { opacity: 0; transform: translateY(26px) scale(.985); }
+  to   { opacity: 1; transform: none; }
+}
+.kx-progress {
+  position: fixed; left: 0; top: 0; right: 0; height: 2px; z-index: 9999; pointer-events: none;
+  background: linear-gradient(90deg, #00FF66, #38BDF8); transform-origin: 0 50%; transform: scaleX(0);
+  box-shadow: 0 0 10px rgba(0, 255, 102, .6);
+}
+/* mensajes de chat: entrada suave, desde la izquierda (IA) o la derecha (usuario) */
+@keyframes kxMsgL { from { opacity: 0; transform: translateX(-14px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes kxMsgR { from { opacity: 0; transform: translateX(14px) scale(.97); } to { opacity: 1; transform: none; } }
+.kx-msg-ai { animation: kxMsgL .45s cubic-bezier(.16, 1, .3, 1) both; }
+.kx-msg-me { animation: kxMsgR .4s cubic-bezier(.16, 1, .3, 1) both; }
+@keyframes kxDot { 0%, 100% { opacity: .25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
+.kx-typing { display: inline-flex; gap: 4px; padding: 4px 2px; }
+.kx-typing i { width: 6px; height: 6px; border-radius: 99px; background: #00FF66; animation: kxDot 1s infinite; }
+.kx-typing i:nth-child(2) { animation-delay: .15s; } .kx-typing i:nth-child(3) { animation-delay: .3s; }
+.kx-smooth-scroll { scroll-behavior: smooth; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+@media (prefers-reduced-motion: reduce) {
+  .kx-pre { opacity: 1; transform: none; }
+  .kx-in, .kx-msg-ai, .kx-msg-me { animation: none; }
+}

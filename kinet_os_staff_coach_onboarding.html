@@ -104,6 +104,8 @@
     }
   </style>
 <script src="kinet-sport.js"></script>
+  <script src="kinet-text.js"></script>
+  <script src="kinet-onboarding.js"></script>
 </head>
 <body style="--spotlight-color: rgba(245, 158, 11, 0.25);" class="bg-cyber-pattern text-slate-100 font-sans min-h-screen flex items-center justify-center p-2 sm:p-4">
   <div class="relative w-full max-w-4xl h-auto max-h-[96vh] card-liquid-transition bg-[#0A0C0E] sm:rounded-[32px] border border-slate-800/80 shadow-[0_0_90px_rgba(0,0,0,0.95)] p-5 sm:p-8 flex flex-col justify-between space-y-4 overflow-y-auto">
@@ -334,8 +336,8 @@
         </div>
       </div>
 
-      <div class="glass-card p-4 rounded-2xl border border-slate-800 flex flex-col justify-between h-[285px]">
-        <div class="space-y-3 overflow-y-auto pr-1 flex-1" id="coach-chat-messages-container"></div>
+      <div class="glass-card p-4 rounded-2xl border border-slate-800 flex flex-col justify-between h-[430px] sm:h-[470px]">
+        <div class="space-y-3 overflow-y-auto pr-1 flex-1 kx-smooth-scroll" id="coach-chat-messages-container"></div>
 
         <div class="flex space-x-2 pt-3 border-t border-slate-800/80 mt-2">
           <input type="text" id="ai-coach-chat-input" onkeydown="if(event.key==='Enter'){event.preventDefault();sendCoachAiResponse();}" placeholder="Escribe tu respuesta aquí..." class="flex-1 bg-[#12161C] border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 transition">
@@ -701,17 +703,23 @@
       if (!box) return;
       const div = document.createElement('div');
       if (sender === 'ai') {
-        div.className = "flex items-start space-x-2.5";
+        div.className = "kx-msg-ai flex items-start space-x-2.5";
         div.innerHTML = `
           <div class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">AI</div>
-          <div class="bg-slate-900 border border-slate-800 p-3 rounded-2xl text-xs text-slate-200 leading-relaxed max-w-[88%]">${text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-amber-400">$1</strong>')}</div>
+          <div class="bg-slate-900 border border-slate-800 p-3 rounded-2xl text-[13px] text-slate-200 leading-relaxed max-w-[88%]">${text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-amber-400">$1</strong>')}</div>
         `;
       } else {
-        div.className = "flex justify-end";
-        div.innerHTML = `<div class="bg-amber-500/15 border border-amber-500/50 text-white p-2.5 px-3.5 rounded-2xl text-xs max-w-[85%] font-medium">${text}</div>`;
+        div.className = "kx-msg-me flex justify-end";
+        div.innerHTML = `<div class="bg-amber-500/15 border border-amber-500/50 text-white p-2.5 px-3.5 rounded-2xl text-[13px] max-w-[85%] font-medium">${String(text).replace(/&/g,"&amp;").replace(/</g,"&lt;")}</div>`;
       }
       box.appendChild(div);
-      box.scrollTop = box.scrollHeight;
+      try { box.scrollTo({ top: box.scrollHeight, behavior: "smooth" }); } catch (e) { box.scrollTop = box.scrollHeight; }
+    }
+    function coachTyping(on) {
+      const box = document.getElementById("coach-chat-messages-container"); if (!box) return;
+      let el = document.getElementById("typing-row");
+      if (on && !el) { el = document.createElement("div"); el.id = "typing-row"; el.className = "kx-msg-ai flex items-start space-x-2.5"; el.innerHTML = '<div class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-[10px] font-bold shrink-0">AI</div><div class="bg-slate-900 border border-slate-800 px-3 py-2.5 rounded-2xl"><span class="kx-typing"><i></i><i></i><i></i></span></div>'; box.appendChild(el); try { box.scrollTo({ top: box.scrollHeight, behavior: "smooth" }); } catch (e) {} }
+      else if (!on && el) el.remove();
     }
 
     function setupCoachAiGreeting() {
@@ -722,7 +730,8 @@
         box.innerHTML = '';
         coachState.chatStepIndex = 0;
         const qs = getStaffChatQuestionsByProfession();
-        appendCoachBubble('ai', qs[0]);
+        coachTyping(true);
+        setTimeout(() => { coachTyping(false); appendCoachBubble('ai', qs[0]); }, 650);
       }
     }
 
@@ -745,18 +754,41 @@
         coachState.extracted.scheduleText = val;
       }
 
+      const KT = window.KinetText;
+      if (KT && coachState.chatStepIndex === 0) {
+        const pr = KT.parse(val, 'work');
+        if (pr.city) coachState.extracted.city = pr.city;
+        if (pr.club) coachState.extracted.club = pr.club;
+      }
+      if (KT) {
+        if (coachState.extracted.city) coachState.extracted.city = KT.city(coachState.extracted.city);
+        if (coachState.extracted.club) coachState.extracted.club = KT.club(coachState.extracted.club);
+      }
+
       coachState.chatStepIndex++;
       coachState.aiCompleted = true;
       document.getElementById('ai-coach-incomplete-alert').classList.add('hidden');
 
       const qs = getStaffChatQuestionsByProfession();
+      const idx = coachState.chatStepIndex;
+      coachTyping(true);
       setTimeout(() => {
-        if (coachState.chatStepIndex < qs.length) {
-          appendCoachBubble('ai', qs[coachState.chatStepIndex]);
+        coachTyping(false);
+        if (idx < qs.length) {
+          appendCoachBubble('ai', qs[idx]);
         } else {
-          appendCoachBubble('ai', `✅ **¡Configuración de ${coachState.role} completada!** He guardado tus datos en el Perfil y he dejado programado tu Calendario del Vestuario y tus especialistas de IA. Pulsa abajo en **FINALIZAR REGISTRO & ACTIVAR PANEL STAFF**.`);
+          let extra = '';
+          try {
+            const plan = window.KinetOnboarding && KinetOnboarding.planFromText(coachState.extracted.scheduleText, coachState.sport, { category: coachState.category });
+            if (plan) {
+              coachState.plan = plan;
+              const rows = KinetOnboarding.weekSummary(plan).filter(r => r.items.length).map(r => r.label + ': ' + r.items.map(i => i.icon + ' ' + i.time.replace(' H', '')).join(' + '));
+              extra = '\n\nTu semana en el Vestuario:\n' + rows.join('\n');
+            } else extra = '\n\nNo he podido leer los días con claridad: podrás ajustar el calendario directamente en el Vestuario.';
+          } catch (e) {}
+          appendCoachBubble('ai', `✅ **¡Configuración de ${coachState.role} completada!** He guardado tus datos en el Perfil y he dejado programado tu Calendario del Vestuario y tus especialistas de IA.${extra.replace(/\n/g, '<br>')} Pulsa abajo en **FINALIZAR REGISTRO & ACTIVAR PANEL STAFF**.`);
         }
-      }, 240);
+      }, window.KinetOnboarding ? KinetOnboarding.thinkDelay(val) : 700);
     }
 
     function skipCoachAiSetup() {
@@ -842,6 +874,7 @@
       await enrichWithAI();
       if (coachState.extracted.club) localStorage.setItem('kinet_user_club', coachState.extracted.club);
       if (coachState.extracted.city) localStorage.setItem('kinet_user_city', coachState.extracted.city);
+      try { if (coachState.plan && window.KinetOnboarding) KinetOnboarding.persistPlan(coachState.plan); } catch (e) {}
 
       const focusSummary = coachState.extracted.specificFocus || coachState.methodology || coachState.role;
       const profilesDB = JSON.parse(localStorage.getItem('kinet_profiles_db') || '{}');

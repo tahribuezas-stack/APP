@@ -17,6 +17,7 @@
   <!-- SOPORTE DE MOTION Y SPOTLIGHT -->
   <link rel="stylesheet" href="kinet-motion.css">
   <script src="kinet-spotlight.js" defer></script>
+  <script src="kinet-motion.js" defer></script>
 
   <!-- Tailwind CSS y Librerías -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -232,17 +233,125 @@
       transform-origin: center;
       animation: pulseTacticalZone 2s ease-in-out infinite;
     }
-    .sim-token-card {
-      position: absolute;
-      transform: translate(-50%, -50%);
-      transition: left 1.15s cubic-bezier(0.22, 1, 0.36, 1), top 1.15s cubic-bezier(0.22, 1, 0.36, 1), transform 0.3s ease;
-      background: rgba(7, 15, 24, 0.94);
-      border-radius: 10px;
-      padding: 3px 7px;
-      text-align: center;
-      box-shadow: 0 8px 18px rgba(0,0,0,0.85);
-      white-space: nowrap;
-    }
+    /* ===== Réplica del Media Studio real (landing) ===== */
+    .ms-app { background: #070B12; border: 1px solid rgba(255,255,255,.1); border-radius: 22px; padding: 14px; box-shadow: 0 20px 50px rgba(0,0,0,.7); display: flex; flex-direction: column; gap: 12px; }
+    .ms-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; background: rgba(10,14,23,.92); border: 1px solid rgba(0,255,102,.2); border-radius: 16px; padding: 10px 12px; }
+    .ms-seg { display: inline-flex; gap: 4px; padding: 4px; background: #05070c; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; }
+    .ms-seg-b { font: 700 10.5px Inter, sans-serif; color: #94a3b8; padding: 7px 14px; border-radius: 9px; border: 0; background: transparent; cursor: pointer; transition: all .25s ease; }
+    .ms-seg-b small { font-size: 8px; margin-left: 3px; opacity: .75; }
+    .ms-seg-b.is-on { background: linear-gradient(135deg, #00FF66, #00c853); color: #04120a; box-shadow: 0 0 14px rgba(0,255,102,.35); }
+    .ms-meter { font: 500 10px 'JetBrains Mono', monospace; color: #94a3b8; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .ms-meter strong { color: #fff; }
+    .ms-pill { font: 700 9px Inter, sans-serif; color: #e2e8f0; padding: 5px 10px; border-radius: 9px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.15); }
+    .ms-grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 4fr); gap: 12px; }
+    @media (max-width: 900px) { .ms-grid { grid-template-columns: 1fr; } }
+    .ms-panel { background: rgba(10,14,23,.92); border: 1px solid rgba(255,255,255,.08); border-radius: 18px; padding: 12px; }
+    .ms-chat { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+    .ms-chat-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .ms-dot { width: 7px; height: 7px; border-radius: 99px; background: #00FF66; box-shadow: 0 0 8px #00FF66; }
+    .ms-lbl { font: 600 9.5px 'JetBrains Mono', monospace; letter-spacing: .12em; color: #94a3b8; }
+    .ms-actions { margin-left: auto; display: flex; flex-wrap: wrap; gap: 6px; }
+    .ms-btn { font: 700 9px Inter, sans-serif; color: #e2e8f0; padding: 6px 10px; border-radius: 99px; background: #05080F; border: 1px solid rgba(255,255,255,.15); white-space: nowrap; }
+    .ms-btn-neon { color: #00FF66; border-color: rgba(0,255,102,.5); background: rgba(0,255,102,.1); }
+    .ms-feed { height: 250px; overflow: hidden; background: #03060a; border: 1px solid rgba(255,255,255,.06); border-radius: 14px; padding: 10px; display: flex; flex-direction: column; gap: 8px; justify-content: flex-end; }
+    .ms-msg { max-width: 88%; width: fit-content; font: 400 11px/1.5 Inter, sans-serif; color: #cbd5e1; padding: 9px 12px; border-radius: 14px; animation: msIn .45s cubic-bezier(.22,1,.36,1) both; }
+    .ms-msg b.who { display: block; font: 700 8.5px 'JetBrains Mono', monospace; color: #00FF66; letter-spacing: .08em; margin-bottom: 2px; }
+    .ms-msg.ai { background: #0E1522; border: 1px solid rgba(255,255,255,.08); align-self: flex-start; }
+    .ms-msg.me { background: rgba(0,255,102,.12); border: 1px solid rgba(0,255,102,.35); color: #e2e8f0; align-self: flex-end; }
+    @keyframes msIn { from { opacity: 0; transform: translateY(10px) scale(.97); } to { opacity: 1; transform: none; } }
+    .ms-typing { display: inline-flex; gap: 4px; padding: 3px 0; }
+    .ms-typing i { width: 6px; height: 6px; border-radius: 99px; background: #00FF66; opacity: .4; animation: msDot 1s infinite; }
+    .ms-typing i:nth-child(2) { animation-delay: .15s; } .ms-typing i:nth-child(3) { animation-delay: .3s; }
+    @keyframes msDot { 0%, 100% { opacity: .25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
+    .ms-result { width: 96px; aspect-ratio: 4/5; border-radius: 12px; border: 1px solid rgba(255,255,255,.12); position: relative; overflow: hidden; background: radial-gradient(circle at 50% 34%, rgba(255,214,120,.9) 0 6%, transparent 7%), radial-gradient(ellipse at 50% 100%, #0c3b24 0 40%, transparent 41%), linear-gradient(180deg, #0a1730, #1d3b66 55%, #0b2a1b); }
+    .ms-result.v { aspect-ratio: 9/16; width: 76px; background: linear-gradient(180deg, #1a0b30, #3b1b6b 50%, #0b2a1b); }
+    .ms-result::after { content: ''; position: absolute; inset: 0; background: linear-gradient(115deg, transparent 40%, rgba(255,255,255,.18) 50%, transparent 60%); transform: translateX(-100%); animation: msShine 2.4s .4s ease-out 1 both; }
+    @keyframes msShine { to { transform: translateX(100%); } }
+    .ms-tpl-lbl { font: 600 9px 'JetBrains Mono', monospace; letter-spacing: .12em; color: #64748b; }
+    .ms-tpls { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+    .ms-tpls::-webkit-scrollbar { display: none; }
+    .ms-tpl { flex: none; width: 150px; padding: 9px 10px; border-radius: 12px; background: #0b111c; border: 1px solid rgba(255,255,255,.1); cursor: pointer; transition: all .25s ease; text-align: left; }
+    .ms-tpl:hover { border-color: #00FF66; transform: translateY(-2px); }
+    .ms-tpl b { display: block; font: 700 10.5px Inter, sans-serif; color: #fff; line-height: 1.25; }
+    .ms-tpl span { font: 600 8px 'JetBrains Mono', monospace; color: #64748b; letter-spacing: .06em; }
+    .ms-input { display: flex; align-items: center; gap: 8px; background: #05080F; border: 1px solid rgba(0,255,102,.4); border-radius: 14px; padding: 7px; }
+    .ms-up { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; background: rgba(0,255,102,.1); border: 1px solid rgba(0,255,102,.4); color: #00FF66; font-size: 12px; flex: none; }
+    .ms-ph { flex: 1; min-width: 0; font: 400 11px Inter, sans-serif; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ms-ph::after { content: '|'; color: #00FF66; margin-left: 1px; animation: msCaret 1s steps(1) infinite; }
+    @keyframes msCaret { 50% { opacity: 0; } }
+    .ms-go { flex: none; font: 800 9px Inter, sans-serif; color: #04120a; background: linear-gradient(135deg, #00FF66, #00c853); padding: 8px 11px; border-radius: 10px; letter-spacing: .04em; }
+    @media (max-width: 560px) { .ms-go + .ms-go { display: none; } }
+    .ms-side { display: flex; flex-direction: column; gap: 8px; }
+    .ms-side-head { display: flex; justify-content: space-between; gap: 8px; font: 600 9.5px 'JetBrains Mono', monospace; letter-spacing: .1em; color: #94a3b8; }
+    .ms-neon { color: #00FF66; font-weight: 700; }
+    .ms-box { background: #060911; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 9px; display: flex; flex-direction: column; gap: 6px; }
+    .ms-box > b, .ms-row b { font: 700 10.5px Inter, sans-serif; color: #e2e8f0; }
+    .ms-row { display: flex; justify-content: space-between; align-items: center; font: 700 8.5px 'JetBrains Mono', monospace; }
+    .ms-field { display: flex; justify-content: space-between; align-items: center; gap: 8px; background: #0B101B; border: 1px solid rgba(255,255,255,.1); border-radius: 10px; padding: 8px 10px; font: 600 10.5px Inter, sans-serif; color: #e2e8f0; transition: opacity .3s ease; }
+    .ms-field em { font-style: normal; font: 700 8.5px Inter, sans-serif; color: #00FF66; padding: 3px 7px; border-radius: 6px; border: 1px solid rgba(0,255,102,.4); background: rgba(0,255,102,.1); }
+    .ms-field i { font-style: normal; color: #00FF66; }
+    .ms-field-neon { color: #00FF66; border-color: rgba(0,255,102,.4); background: rgba(0,255,102,.07); justify-content: center; font-size: 9.5px; }
+    .ms-ta { color: #64748b; min-height: 40px; align-items: flex-start; }
+    .ms-publish { text-align: center; font: 800 10px Inter, sans-serif; letter-spacing: .05em; color: #04120a; padding: 11px; border-radius: 12px; background: linear-gradient(135deg, #00FF66, #00c853); box-shadow: 0 0 20px rgba(0,255,102,.3); }
+    .ms-two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .ms-two span { text-align: center; font: 700 9.5px Inter, sans-serif; color: #e2e8f0; padding: 9px 6px; border-radius: 11px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); }
+    /* ===== Réplica del Analizador real (landing) ===== */
+    .analyzer-sport-btn { padding: 8px 12px; border-radius: 12px; background: rgba(15,23,42,.9); border: 1px solid #334155; color: #e2e8f0; font: 700 10.5px 'JetBrains Mono', monospace; cursor: pointer; transition: all .25s ease; }
+    .analyzer-sport-btn:hover { border-color: #00FF66; transform: translateY(-1px); }
+    .analyzer-sport-btn.is-on { background: #00FF66; color: #000; border-color: #00FF66; font-weight: 900; box-shadow: 0 0 15px rgba(0,255,102,.3); }
+    .an-app { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+    .an-tag { font: 700 9.5px 'JetBrains Mono', monospace; letter-spacing: .12em; color: #00FF66; text-transform: uppercase; }
+    .an-title { font: 800 clamp(1.25rem, 2.6vw, 1.75rem) Inter, sans-serif; color: #fff; margin: 2px 0 8px; letter-spacing: -.01em; }
+    .an-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .an-chip { font: 700 9.5px Inter, sans-serif; padding: 6px 10px; border-radius: 10px; background: #0b111c; border: 1px solid rgba(255,255,255,.1); color: #e2e8f0; white-space: nowrap; }
+    .an-chip-neon { font-family: 'JetBrains Mono', monospace; color: #00FF66; border-color: rgba(0,255,102,.4); background: rgba(0,255,102,.07); }
+    .an-chip-cta { background: linear-gradient(135deg, #00FF66, #00c853); color: #04120a; border: 0; box-shadow: 0 0 18px rgba(0,255,102,.35); }
+    .an-panel { background: rgba(10,14,23,.92); border: 1px solid rgba(0,255,102,.22); border-radius: 18px; padding: 12px; }
+    .an-main { padding: 12px 12px 10px; }
+    .an-tabs { display: inline-flex; gap: 4px; padding: 4px; border-radius: 12px; background: #05070c; border: 1px solid rgba(255,255,255,.08); max-width: 100%; overflow-x: auto; }
+    .an-tab { font: 700 10px Inter, sans-serif; color: #94a3b8; padding: 7px 11px; border-radius: 9px; white-space: nowrap; }
+    .an-tab.is-on { background: #00FF66; color: #04120a; }
+    .an-selects { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .an-select { font: 700 10.5px Inter, sans-serif; color: #e2e8f0; padding: 8px 12px; border-radius: 12px; background: #0b111c; border: 1px solid rgba(255,255,255,.1); display: inline-flex; gap: 10px; align-items: center; transition: opacity .35s ease, transform .35s ease; }
+    .an-select i { font-style: normal; color: #00FF66; font-size: 9px; }
+    .an-select-neon { border-color: rgba(0,255,102,.45); }
+    .an-modes { display: inline-flex; gap: 4px; padding: 4px; border-radius: 12px; background: #05070c; border: 1px solid rgba(255,255,255,.08); margin-bottom: 8px; flex-wrap: wrap; }
+    .an-mode { font: 700 10px Inter, sans-serif; color: #94a3b8; padding: 7px 11px; border-radius: 9px; cursor: pointer; background: transparent; border: 0; transition: all .25s ease; }
+    .an-mode small { font-size: 9px; color: #00FF66; }
+    .an-mode.is-on { background: linear-gradient(135deg, #00FF66, #00c853); color: #04120a; }
+    .an-mode.is-on small { color: #04120a; }
+    .an-playtabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 8px; min-height: 30px; }
+    .an-playtab { font: 700 9.5px Inter, sans-serif; padding: 6px 10px; border-radius: 9px; cursor: pointer; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); color: #e2e8f0; transition: all .25s ease; }
+    .an-playtab:hover { border-color: #00FF66; }
+    .an-playtab.is-on { background: #00FF66; color: #04120a; border-color: #00FF66; }
+    .an-viewport { position: relative; width: 100%; height: clamp(260px, 38vw, 400px); border-radius: 16px; overflow: hidden; display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(ellipse at 50% 8%, rgba(0,255,102,.26), transparent 62%), radial-gradient(circle at 15% 20%, rgba(56,189,248,.12), transparent 45%), linear-gradient(180deg, #030509 0%, #070C16 100%);
+      border: 1px solid rgba(0,255,102,.42); box-shadow: inset 0 0 65px rgba(0,0,0,.9), 0 16px 36px rgba(0,0,0,.55); }
+    .an-surface { width: 90%; height: 84%; position: relative; transform: perspective(980px) rotateX(24deg) scale(.95); border-radius: 14px; border: 2px solid rgba(0,255,102,.55);
+      box-shadow: 0 12px 0 #05120D, 0 14px 0 rgba(0,255,102,.45), 0 30px 50px rgba(0,0,0,.95), 0 0 34px rgba(0,255,102,.22); }
+    .an-court, .an-court svg { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 12px; display: block; pointer-events: none; }
+    .an-vectors { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+    .an-tokens { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
+    .an-token { position: absolute; transform: translate(-50%, -50%); width: clamp(54px, 8.2vw, 76px); padding: 3px 4px 4px; border-radius: 10px; text-align: center; background: rgba(5,10,16,.94); box-shadow: 0 8px 16px rgba(0,0,0,.85);
+      transition: left 1.15s cubic-bezier(.22,1,.36,1), top 1.15s cubic-bezier(.22,1,.36,1), opacity .4s ease, transform .4s ease; animation: anTokenIn .5s ease both; }
+    .an-token .t-pos { display: inline-block; font: 800 7px 'JetBrains Mono', monospace; background: #111827; color: #cbd5e1; border-radius: 4px; padding: 1px 4px; letter-spacing: .04em; }
+    .an-token .t-name { font: 700 clamp(7px, 1.1vw, 9.5px) Inter, sans-serif; color: #fff; line-height: 1.15; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .an-token .t-grl { font: 900 clamp(9px, 1.4vw, 12px) Orbitron, sans-serif; line-height: 1; }
+    .an-token.rival { background: rgba(30,7,7,.92); }
+    @keyframes anTokenIn { from { opacity: 0; transform: translate(-50%, -30%) scale(.8); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+    .an-hud { display: flex; align-items: center; gap: 8px; margin-top: 10px; background: #04060A; border: 1px solid rgba(0,255,102,.35); border-radius: 12px; padding: 8px 10px; }
+    .an-ping { width: 8px; height: 8px; border-radius: 99px; background: #00FF66; flex: none; animation: anPing 1.4s ease-out infinite; }
+    @keyframes anPing { 0% { box-shadow: 0 0 0 0 rgba(0,255,102,.6); } 100% { box-shadow: 0 0 0 9px rgba(0,255,102,0); } }
+    .an-directive { flex: 1; min-width: 0; font: 600 10px 'JetBrains Mono', monospace; color: #e2e8f0; line-height: 1.45; }
+    .an-replay { flex: none; font: 700 9px 'JetBrains Mono', monospace; color: #00FF66; background: rgba(0,255,102,.12); border: 1px solid rgba(0,255,102,.4); padding: 5px 9px; border-radius: 9px; cursor: pointer; transition: all .2s ease; }
+    .an-replay:hover { background: #00FF66; color: #000; }
+    .an-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; font: 500 10px 'JetBrains Mono', monospace; }
+    .an-stat { background: #04060A; border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; gap: 3px; }
+    .an-stat span { color: #94a3b8; font-size: 8.5px; letter-spacing: .06em; }
+    .an-stat strong { color: #00FF66; font-size: 10.5px; transition: opacity .3s ease; }
+    @media (max-width: 640px) { .an-stats { grid-template-columns: 1fr; } .an-viewport { height: 300px; } .an-surface { width: 96%; } }
+    .an-fade { animation: anFade .5s ease both; }
+    @keyframes anFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
   </style>
 </head>
 <body style="--spotlight-color: rgba(0, 255, 102, 0.25);" class="bg-cyber-pattern text-slate-100 font-sans min-h-screen flex flex-col selection:bg-kinet-neon selection:text-black opacity-0 transition-opacity duration-300">
@@ -605,247 +714,155 @@
       </div>
     </section>
 
-    <!-- PUNTO APARTE 2.5: ANALIZADOR TÁCTICO, PIZARRA 3D ANIMADA POR IA & SIMULADOR MULTIDEPORTE -->
+    <!-- PUNTO APARTE 2.5: ANALIZADOR & PLANTILLA 3D (RÉPLICA FIEL DE LA APP, CADA DEPORTE CON SUS PROPIOS CONCEPTOS) -->
     <section id="analizador-section" class="w-full max-w-7xl mx-auto px-3 sm:px-4 py-8 sm:py-12 border-t border-slate-800/60">
-      <div class="glass-card p-4 sm:p-8 md:p-14 rounded-[26px] sm:rounded-[32px] grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-12 items-center border-kinet-neon/40 shadow-[0_0_45px_rgba(0,255,102,0.09)] relative overflow-hidden">
-        
-        <!-- Columna Izquierda: Explicación + Selector Interactivo de los 5 Deportes -->
-        <div class="lg:col-span-5 space-y-5">
+      <div class="glass-card p-4 sm:p-8 md:p-12 rounded-[26px] sm:rounded-[32px] grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 items-start border-kinet-neon/40 shadow-[0_0_45px_rgba(0,255,102,0.09)] relative overflow-hidden">
+
+        <!-- Columna izquierda -->
+        <div class="lg:col-span-4 space-y-5" data-reveal>
           <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-kinet-neon/15 border border-kinet-neon/40 text-kinet-neon text-[10px] sm:text-xs font-mono uppercase font-bold">
-            <span>🏟️ PIZARRA 3D ANIMADA IA // SIMULADOR MULTIDEPORTE</span>
+            <span>🏟️ ANALIZADOR & PLANTILLA 3D</span>
           </div>
-          <h3 class="font-display font-black text-2xl sm:text-4xl text-white">Analizador & Simulador Táctico 3D</h3>
+          <h3 class="font-display font-black text-2xl sm:text-3xl text-white leading-tight">Analizador & Plantilla 3D</h3>
           <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
-            La IA genera y anima jugadas completas en tiempo real sobre el terreno de juego. En <strong>Pro Player (8,99€)</strong> el bot táctico entrena tu posición individual; en <strong>Club & Scout (29,99€)</strong> desbloqueas <strong>estrategias grupales animadas, choque de pizarras contra el rival, gestión multi-plantilla</strong> conectada al chat IA y enlaces a perfiles externos (<strong>BeSoccer, OneFootball, Transfermarkt</strong>).
+            Monta tu plantilla sobre la pizarra 3D de <strong>tu deporte</strong>, con sus formaciones, posiciones y estilos propios. En <strong>Pro Player (8,99€)</strong> el bot táctico entrena tu posición; en <strong>Club &amp; Scout (29,99€)</strong> desbloqueas las <strong>jugadas animadas por IA</strong>, el comparador 1vs1 y la gestión de <strong>varios equipos</strong> conectada al chat IA.
           </p>
 
-          <!-- Selector interactivo de Deporte para cambiar la pista y las animaciones en vivo -->
           <div class="space-y-2 pt-1">
-            <span class="font-mono text-[10px] text-kinet-neon uppercase tracking-wider block font-bold">👇 SELECCIONA UN DEPORTE PARA VER SU PIZARRA Y ANIMACIÓN IA:</span>
+            <span class="font-mono text-[10px] text-kinet-neon uppercase tracking-wider block font-bold">👇 Elige tu deporte para ver su pizarra:</span>
             <div class="flex flex-wrap gap-2" id="analyzer-sport-pills">
-              <button type="button" onclick="setAnalyzerPreviewSport('futbol', this)" class="analyzer-sport-btn px-3 py-2 rounded-xl bg-kinet-neon text-black font-mono text-[10.5px] font-black cursor-pointer transition shadow-[0_0_15px_rgba(0,255,102,0.3)]">
-                ⚽ Fútbol 11 / Sala
-              </button>
-              <button type="button" onclick="setAnalyzerPreviewSport('basket', this)" class="analyzer-sport-btn px-3 py-2 rounded-xl bg-slate-900/90 border border-slate-700 hover:border-kinet-neon text-slate-200 font-mono text-[10.5px] font-bold cursor-pointer transition">
-                🏀 Baloncesto
-              </button>
-              <button type="button" onclick="setAnalyzerPreviewSport('boxeo', this)" class="analyzer-sport-btn px-3 py-2 rounded-xl bg-slate-900/90 border border-slate-700 hover:border-kinet-neon text-slate-200 font-mono text-[10.5px] font-bold cursor-pointer transition">
-                🥊 Ring Boxeo / MMA
-              </button>
-              <button type="button" onclick="setAnalyzerPreviewSport('tenis', this)" class="analyzer-sport-btn px-3 py-2 rounded-xl bg-slate-900/90 border border-slate-700 hover:border-kinet-neon text-slate-200 font-mono text-[10.5px] font-bold cursor-pointer transition">
-                🎾 Pista Tenis / Pádel
-              </button>
-              <button type="button" onclick="setAnalyzerPreviewSport('running', this)" class="analyzer-sport-btn px-3 py-2 rounded-xl bg-slate-900/90 border border-slate-700 hover:border-kinet-neon text-slate-200 font-mono text-[10.5px] font-bold cursor-pointer transition">
-                🏃 Pista Running
-              </button>
+              <button type="button" data-sport="futbol" onclick="setAnalyzerPreviewSport('futbol')" class="analyzer-sport-btn is-on">⚽ Fútbol</button>
+              <button type="button" data-sport="basket" onclick="setAnalyzerPreviewSport('basket')" class="analyzer-sport-btn">🏀 Baloncesto</button>
+              <button type="button" data-sport="padel" onclick="setAnalyzerPreviewSport('padel')" class="analyzer-sport-btn">🎾 Pádel / Tenis</button>
+              <button type="button" data-sport="boxeo" onclick="setAnalyzerPreviewSport('boxeo')" class="analyzer-sport-btn">🥊 Boxeo / MMA</button>
+              <button type="button" data-sport="running" onclick="setAnalyzerPreviewSport('running')" class="analyzer-sport-btn">🏃 Running</button>
             </div>
           </div>
 
           <ul class="space-y-2 text-xs text-slate-300 pt-1">
-            <li class="flex items-start space-x-2.5"><i data-lucide="check" class="w-4 h-4 text-kinet-neon shrink-0 mt-0.5"></i><span><strong>Jugadas Animadas por IA:</strong> Salidas de balón, presión alta, repliegues, balón parado, bloqueos en parquet, corte de ring o estrategia en curva.</span></li>
-            <li class="flex items-start space-x-2.5"><i data-lucide="check" class="w-4 h-4 text-kinet-neon shrink-0 mt-0.5"></i><span><strong>Simulador Choque de Pizarras (Exclusivo Club/Scout):</strong> Enfrenta tu sistema contra el del rival para detectar superioridades antes del partido.</span></li>
-            <li class="flex items-start space-x-2.5"><i data-lucide="check" class="w-4 h-4 text-kinet-neon shrink-0 mt-0.5"></i><span><strong>Perfiles Externos & Multi-Equipo:</strong> Enlaza la ficha de cada jugador con BeSoccer / OneFootball / Transfermarkt y gestiona varias plantillas conectadas al chat IA.</span></li>
+            <li class="flex items-start space-x-2.5"><i data-lucide="check" class="w-4 h-4 text-kinet-neon shrink-0 mt-0.5"></i><span><strong>Cada deporte, su pizarra:</strong> campo, parqué, pista, ring o tartán, con formaciones y posiciones propias.</span></li>
+            <li class="flex items-start space-x-2.5"><i data-lucide="check" class="w-4 h-4 text-kinet-neon shrink-0 mt-0.5"></i><span><strong>Jugadas &amp; Estrategias IA</strong> <span class="text-amber-300">(Club &amp; Scout)</span>: la IA dibuja y anima la jugada que le pidas, con el vocabulario de tu deporte.</span></li>
+            <li class="flex items-start space-x-2.5"><i data-lucide="check" class="w-4 h-4 text-kinet-neon shrink-0 mt-0.5"></i><span><strong>Comparador 1vs1 y Sinergia &amp; Nivel</strong> para ver quién encaja mejor en cada puesto.</span></li>
           </ul>
         </div>
 
-        <!-- Columna Derecha: SIMULADOR TÁCTICO 3D ANIMADO EN VIVO (CAMBIA DE CAMPO, FLECHAS Y MOVIMIENTO POR DEPORTE) -->
-        <div class="lg:col-span-7 bg-[#070B12] p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-kinet-neon/40 shadow-[0_0_40px_rgba(0,255,102,0.14)] space-y-3.5 w-full">
-          <!-- Cabecera de jugadas animadas IA -->
-          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
-            <div class="flex flex-wrap gap-1.5" id="analyzer-play-tabs">
-              <button type="button" onclick="triggerTacticalPlayAnimation(0)" id="play-tab-0" class="px-2.5 py-1.5 rounded-lg bg-kinet-neon text-black font-display font-black text-[9.5px] cursor-pointer transition">
-                ▶ 1. Jugada Ofensiva IA
-              </button>
-              <button type="button" onclick="triggerTacticalPlayAnimation(1)" id="play-tab-1" class="px-2.5 py-1.5 rounded-lg bg-white/[0.05] border border-white/10 hover:border-kinet-neon text-slate-200 font-display font-bold text-[9.5px] cursor-pointer transition">
-                🛡️ 2. Repliegue / Defensa
-              </button>
-              <button type="button" onclick="triggerTacticalPlayAnimation(2)" id="play-tab-2" class="px-2.5 py-1.5 rounded-lg bg-white/[0.05] border border-white/10 hover:border-amber-400 text-amber-300 font-display font-bold text-[9.5px] cursor-pointer transition">
-                ⚔️ 3. Choque vs Rival / ABP
-              </button>
+        <!-- Columna derecha: réplica del Analizador real -->
+        <div class="lg:col-span-8 an-app w-full" data-reveal>
+          <div class="an-head">
+            <div class="an-tag" id="an-tag">🏟️ PIZARRA TÁCTICA 3D, MINI KINET CARDS &amp; CARTELERA • FÚTBOL</div>
+            <div class="an-title">Analizador &amp; Plantilla 3D</div>
+            <div class="an-chips">
+              <span class="an-chip an-chip-neon" id="an-count">⚡ TITULARES: 11 / 11 • MEDIA: 89</span>
+              <span class="an-chip">📊 Ver Stats Plantilla</span>
+              <span class="an-chip an-chip-cta">🚀 Compartir &amp; Matchday ▾</span>
             </div>
-            <span id="analyzer-arena-badge" class="font-mono text-[9px] text-kinet-neon bg-kinet-neon/10 border border-kinet-neon/30 px-2.5 py-1 rounded-md font-bold">
-              ⚽ ESTADIO 3D // 4-3-3 ANIMADO
-            </span>
           </div>
 
-          <!-- Escenario 3D Dinámico con SVG del deporte + Vectores Animados + Fichas en Movimiento -->
-          <div id="analyzer-3d-stage" class="relative rounded-2xl border border-emerald-500/40 overflow-hidden min-h-[275px] sm:min-h-[300px] select-none" style="background: radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.20), rgba(4, 9, 15, 0.98)); box-shadow: inset 0 0 45px rgba(0,255,102,0.1);">
-            <!-- Capa 1: Dibujo SVG de la Pista / Campo / Ring / Tartán según el deporte -->
-            <div id="analyzer-court-svg-layer" class="absolute inset-0 pointer-events-none"></div>
+          <div class="an-panel">
+            <div class="an-tabs">
+              <span class="an-tab is-on">🏟️ Plantilla</span>
+              <span class="an-tab">⚔️ Comparador 1vs1</span>
+              <span class="an-tab">📊 Sinergia &amp; Nivel</span>
+            </div>
+            <div class="an-selects">
+              <span class="an-select an-select-neon" id="an-formation">4-3-3 Ofensivo (11vs11) <i>▾</i></span>
+              <span class="an-select an-select-neon" id="an-style">⚙️ Estilo: Equilibrado <i>▾</i></span>
+              <span class="an-select">📐 Vista: 3D Pro</span>
+            </div>
+          </div>
 
-            <!-- Capa 2: Flechas Tácticas Animadas por IA (SVG con flujo láser) -->
-            <svg id="analyzer-vectors-svg-layer" viewBox="0 0 600 360" preserveAspectRatio="none" class="absolute inset-0 w-full h-full pointer-events-none z-10"></svg>
+          <div class="an-panel an-main">
+            <div class="an-modes">
+              <button type="button" class="an-mode" id="an-mode-squad" onclick="setAnalyzerMode('squad')">👥 Gestionar Plantilla</button>
+              <button type="button" class="an-mode is-on" id="an-mode-plays" onclick="setAnalyzerMode('plays')">🎬 Jugadas &amp; Estrategias IA <small>✓</small></button>
+            </div>
 
-            <!-- Capa 3: Fichas Mini KINET Cards animadas en tiempo real -->
-            <div id="analyzer-tokens-layer" class="absolute inset-0 z-20 pointer-events-none"></div>
+            <div id="an-play-tabs" class="an-playtabs"></div>
 
-            <!-- HUD flotante inferior con explicación de la jugada IA en curso -->
-            <div class="absolute bottom-2.5 left-3 right-3 z-30 bg-[#04060A]/92 backdrop-blur-md border border-kinet-neon/40 rounded-xl px-3 py-2 flex flex-wrap items-center justify-between gap-2">
-              <div class="flex items-center gap-2 min-w-0">
-                <span class="w-2 h-2 rounded-full bg-kinet-neon animate-ping shrink-0"></span>
-                <span id="analyzer-live-directive" class="font-mono text-[9.5px] sm:text-[10px] text-slate-100 truncate">
-                  IA TÁCTICA: Ruptura interior de Extremo + Pase filtrado a zona 14 (Prob. Gol: 89%)
-                </span>
+            <div class="an-viewport" id="an-viewport">
+              <div class="an-surface" id="an-surface">
+                <div id="an-court" class="an-court"></div>
+                <svg id="an-vectors" viewBox="0 0 600 420" preserveAspectRatio="none" class="an-vectors"></svg>
+                <div id="an-tokens" class="an-tokens"></div>
               </div>
-              <button type="button" onclick="replayCurrentTacticalAnimation()" class="font-mono text-[9px] font-bold text-kinet-neon bg-kinet-neon/15 border border-kinet-neon/40 px-2.5 py-1 rounded-lg hover:bg-kinet-neon hover:text-black transition cursor-pointer shrink-0">
-                ↻ Repetir Animación
-              </button>
             </div>
-          </div>
 
-          <!-- Barra inferior de métricas del Simulador & Tracking Externo -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 font-mono text-[10px]">
-            <div class="bg-[#04060A] border border-white/10 rounded-xl p-2.5 flex items-center justify-between">
-              <span class="text-slate-400">SINERGIA TÁCTICA:</span>
-              <strong id="analyzer-stat-1" class="text-kinet-neon">96% ÓPTIMA</strong>
+            <div class="an-hud">
+              <span class="an-ping"></span>
+              <span id="an-directive" class="an-directive"></span>
+              <button type="button" onclick="replayAnalyzerPlay()" class="an-replay">↻ Repetir</button>
             </div>
-            <div class="bg-[#04060A] border border-white/10 rounded-xl p-2.5 flex items-center justify-between">
-              <span class="text-slate-400">VENTAJA VS RIVAL:</span>
-              <strong id="analyzer-stat-2" class="text-amber-400">+18% BANDA IZQ</strong>
-            </div>
-            <div class="bg-[#04060A] border border-blue-500/30 rounded-xl p-2.5 flex items-center justify-between">
-              <span class="text-slate-400">PERFIL EXT.:</span>
-              <strong class="text-blue-400">BESOCCER / ONEFOOTBALL</strong>
-            </div>
+
+            <div class="an-stats" id="an-stats"></div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- PUNTO APARTE 3: KINET MEDIA STUDIO™ (ACTUALIZADO CON LA INTERFAZ REAL DEL ESTUDIO ACTUAL) -->
+    <!-- PUNTO APARTE 3: KINET MEDIA STUDIO™ (RÉPLICA DE LA INTERFAZ ACTUAL: IMAGEN / VÍDEO, PLANTILLAS Y AJUSTES DE SALIDA) -->
     <section id="media-section" class="w-full max-w-7xl mx-auto px-3 sm:px-4 py-8 sm:py-12 border-t border-slate-800/60">
-      <div class="glass-card p-4 sm:p-8 md:p-14 rounded-[26px] sm:rounded-[32px] space-y-8 border-slate-800">
-        <!-- Cabecera descriptiva de Media Studio -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+      <div class="glass-card p-4 sm:p-8 md:p-12 rounded-[26px] sm:rounded-[32px] space-y-8 border-slate-800">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center" data-reveal>
           <div class="lg:col-span-7 space-y-3.5">
             <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] sm:text-xs font-mono uppercase">
               <i data-lucide="film" class="w-3.5 h-3.5 shrink-0"></i>
-              <span>Chat Creador IA, Presets HUD & Masterización Pro</span>
+              <span>Estudio creativo IA · Imagen &amp; Vídeo</span>
             </div>
             <h3 class="font-display font-black text-2xl sm:text-4xl text-white">KINET Media Studio™</h3>
             <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Estudio de producción deportiva con <strong>Chat Creador de Imágenes y Vídeo IA</strong> integrado. Alterna entre <strong>🎬 Modo Vídeo (HD)</strong> y <strong>🖼️ Modo Imagen (Póster IA)</strong>, elige un <strong>Preset HUD</strong>, sincroniza tu pista de audio y publica directamente en <strong>KINET Network™</strong> o exporta en PNG/PDF.
+              Crea imágenes con aspecto de fotógrafo profesional describiéndolas en el chat, o elige una <strong>plantilla</strong>. Sube tu foto para retocarla, edita tus <strong>vídeos al ritmo de la música</strong> y publica directamente en <strong>KINET Network™</strong> o descarga el resultado.
             </p>
           </div>
           <div class="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono text-[11px]">
             <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
               <span class="text-slate-400 block mb-0.5">Plan Gratuito:</span>
-              <strong class="text-white">Modo Imagen (Póster IA) + Audio</strong>
+              <strong class="text-white">3 imágenes al día + 15 mensajes IA</strong>
             </div>
             <div class="p-3.5 rounded-xl bg-slate-900/90 border border-kinet-neon/40">
-              <span class="text-kinet-neon block mb-0.5">Planes Pro, Club & Bonos:</span>
-              <strong class="text-white">Modo Vídeo HD + Shorts + Pósters IA</strong>
+              <span class="text-kinet-neon block mb-0.5">Pro Player &amp; Club:</span>
+              <strong class="text-white">Vídeo (90 min/mes) + más imágenes</strong>
             </div>
           </div>
         </div>
 
-        <!-- RÉPLICA FIEL DE LA INTERFAZ ACTUAL DE MEDIA-STUDIO.HTML -->
-        <div class="bg-[#070B12] p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.85)] space-y-4">
-          <!-- Barra Superior de Modo + Presets HUD + Cuota -->
-          <div class="bg-[#0B101B] border border-white/10 rounded-2xl p-3 space-y-2.5">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div class="inline-flex bg-[#05070C] p-1 rounded-xl border border-white/10 gap-1">
-                <span class="px-3 py-1.5 rounded-lg bg-kinet-neon text-black font-display font-black text-[10px]">📹 Modo Vídeo (HD)</span>
-                <span class="px-3 py-1.5 rounded-lg text-slate-300 font-display font-bold text-[10px]">🖼️ Modo Imagen (Póster IA)</span>
-              </div>
-              <div class="flex flex-wrap items-center gap-1.5 font-mono text-[9px]">
-                <span class="text-slate-400 mr-1">PRESET HUD:</span>
-                <span class="px-2.5 py-1 rounded-lg bg-kinet-neon/15 border border-kinet-neon text-kinet-neon font-bold">MATCH DAY</span>
-                <span class="px-2.5 py-1 rounded-lg bg-white/[0.03] border border-white/10 text-slate-300">BIOMETRIC BEAT</span>
-                <span class="px-2.5 py-1 rounded-lg bg-white/[0.03] border border-white/10 text-slate-300">HOLOGRAM CARD</span>
-                <span class="px-2.5 py-1 rounded-lg bg-white/[0.03] border border-white/10 text-slate-300 hidden sm:inline-block">SCOUT GRAPHIC</span>
-              </div>
+        <div class="ms-app" data-reveal>
+          <div class="ms-bar">
+            <div class="ms-seg">
+              <button type="button" id="ms-m-img" class="ms-seg-b is-on" onclick="setMediaMode('img')">🖼️ Imagen</button>
+              <button type="button" id="ms-m-vid" class="ms-seg-b" onclick="setMediaMode('vid')">🎬 Vídeo <small>PRO</small></button>
             </div>
-            <div class="flex items-center gap-2.5 font-mono text-[10px] text-slate-300 pt-1 border-t border-white/5">
-              <span>Cuota Vídeo: <strong class="text-white">90 min disp.</strong></span>
-              <span class="px-2.5 py-0.5 rounded-md bg-white/[0.05] border border-white/15 text-white font-bold text-[9px]">+ BONO EXTRA</span>
-            </div>
+            <div class="ms-meter">Imágenes hoy <strong id="ms-count">0/3</strong> · IA del mes <strong>0 %</strong> <span class="ms-pill">+ Bono extra</span></div>
           </div>
 
-          <!-- Cuerpo dividido: Izquierda Chat Creador IA (7 cols) | Derecha Parámetros de Masterización (5 cols) -->
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            <!-- Columna Izquierda: Chat Creador de Imágenes IA -->
-            <div class="lg:col-span-7 bg-[#0A0E17] border border-white/10 rounded-2xl p-3.5 flex flex-col justify-between min-h-[250px] space-y-4">
-              <div class="space-y-3">
-                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2.5">
-                  <div class="flex items-center gap-2 font-mono text-[10px] text-slate-200 tracking-wider uppercase">
-                    <span class="w-2 h-2 rounded-full bg-kinet-neon"></span>
-                    <span>CHAT CREADOR DE IMÁGENES IA</span>
-                  </div>
-                  <div class="flex flex-wrap items-center gap-1.5">
-                    <span class="px-2.5 py-1 rounded-full bg-[#05080F] border border-white/15 font-mono text-[9px] text-white">🎵 + Añadir canción</span>
-                    <span class="px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/15 font-mono text-[9px] text-white font-bold">↑ SUBIR ARCHIVO</span>
-                    <span class="px-2.5 py-1 rounded-lg bg-kinet-neon/15 border border-kinet-neon/50 font-mono text-[9px] text-kinet-neon font-bold">MODO VÍDEO // PRO HD</span>
-                  </div>
-                </div>
-
-                <!-- Burbuja de bienvenida del motor -->
-                <div class="bg-[#0E1522] border border-white/10 rounded-xl p-3.5 max-w-lg space-y-1">
-                  <div class="font-mono text-[9.5px] font-bold text-kinet-neon">KINET VISION ENGINE // READY</div>
-                  <p class="text-[11px] text-slate-300 leading-relaxed">
-                    Escribe abajo el diseño que quieres generar, selecciona un <strong class="text-white">Preset HUD</strong> arriba o sube tu foto/vídeo. Todas las piezas generadas aparecerán directamente aquí en el chat listas para exportar o publicar.
-                  </p>
-                </div>
+          <div class="ms-grid">
+            <div class="ms-panel ms-chat">
+              <div class="ms-chat-head">
+                <span class="ms-dot"></span><span class="ms-lbl">ESTUDIO CREATIVO IA</span>
+                <span class="ms-actions"><span class="ms-btn">🎵 + Añadir canción</span><span class="ms-btn">⬆ Subir foto o vídeo</span><span class="ms-btn ms-btn-neon" id="ms-modechip">MODO IMAGEN</span></span>
               </div>
-
-              <!-- Barra inferior de prompt del Chat Creador -->
-              <div class="bg-[#05080F] border border-kinet-neon/40 rounded-xl p-2 flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2 min-w-0 flex-1">
-                  <span class="w-7 h-7 rounded-lg bg-kinet-neon/10 border border-kinet-neon/40 text-kinet-neon flex items-center justify-center font-mono text-xs shrink-0">↑</span>
-                  <span class="text-[11px] text-slate-400 truncate">Describe el póster o ajuste visual para generar en el chat (ej: Póster Match Day con estadio iluminado...)</span>
-                </div>
-                <span class="px-3.5 py-2 rounded-lg bg-kinet-neon text-black font-display font-black text-[9.5px] uppercase shrink-0">GENERAR IMAGEN</span>
+              <div class="ms-feed" id="ms-feed"></div>
+              <div class="ms-tpl-lbl" id="ms-tpl-lbl">PLANTILLAS DE IMAGEN</div>
+              <div class="ms-tpls" id="ms-tpls"></div>
+              <div class="ms-input">
+                <span class="ms-up">⬆</span>
+                <span class="ms-ph" id="ms-ph"></span>
+                <span class="ms-go" id="ms-go1">CREAR IMAGEN</span>
+                <span class="ms-go" id="ms-go2">EDITAR VÍDEO</span>
               </div>
             </div>
 
-            <!-- Columna Derecha: Parámetros de Masterización -->
-            <div class="lg:col-span-5 bg-[#0A0E17] border border-white/10 rounded-2xl p-3.5 flex flex-col justify-between space-y-3">
-              <div class="space-y-2.5">
-                <div class="flex items-center justify-between border-b border-white/10 pb-2">
-                  <span class="font-mono text-[10px] text-slate-300 uppercase tracking-wider">PARÁMETROS DE MASTERIZACIÓN</span>
-                  <span class="font-mono text-[9px] text-kinet-neon font-bold">PRO HD UNLOCKED</span>
-                </div>
-
-                <div class="bg-[#060911] border border-white/10 rounded-xl p-2.5 space-y-1.5">
-                  <div class="flex justify-between font-mono text-[9px]">
-                    <span class="text-white font-bold">Sincronía de Audio (Isla Superior)</span>
-                    <span class="text-kinet-neon">LISTO</span>
-                  </div>
-                  <div class="flex items-center justify-between bg-[#0B101B] border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-[9.5px] text-slate-300">
-                    <span class="truncate">Elige antes de subir o sube archivo</span>
-                    <span class="px-2 py-0.5 rounded bg-kinet-neon/15 border border-kinet-neon/40 text-kinet-neon text-[8.5px]">Cambiar</span>
-                  </div>
-                </div>
-
-                <div class="bg-[#060911] border border-white/10 rounded-xl p-2.5 space-y-1">
-                  <span class="text-[9.5px] font-bold text-slate-300 block">Capa de Certificación Biométrica</span>
-                  <div class="bg-[#0B101B] border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-[10px] text-white font-bold flex justify-between items-center">
-                    <span>VERIFIED ATHLETE (Holograma Rol)</span><span>▾</span>
-                  </div>
-                </div>
-
-                <div class="bg-[#060911] border border-white/10 rounded-xl p-2.5 space-y-1">
-                  <span class="text-[9.5px] font-bold text-slate-300 block">Relación de Aspecto & Salida</span>
-                  <div class="bg-[#0B101B] border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-[10px] text-white font-bold flex justify-between items-center">
-                    <span>Vertical Shorts / Reels (9:16 • PRO HD)</span><span>▾</span>
-                  </div>
-                </div>
+            <div class="ms-panel ms-side">
+              <div class="ms-side-head"><span>AJUSTES DE SALIDA</span><span class="ms-neon" id="ms-side-mode">MODO IMAGEN FREE</span></div>
+              <div class="ms-box">
+                <div class="ms-row"><b>Música de la publicación</b><span class="ms-neon">SIN PISTA</span></div>
+                <div class="ms-field"><span>Elige antes de subir o sube archivo</span><em>Cambiar</em></div>
+                <div class="ms-field ms-field-neon">Elegir música automáticamente</div>
               </div>
-
-              <!-- Botones de Publicación y Exportación -->
-              <div class="space-y-2 pt-1">
-                <div class="w-full py-2.5 rounded-xl bg-kinet-neon text-black font-display font-black text-[10px] text-center uppercase tracking-wider shadow-[0_0_20px_rgba(0,255,102,0.3)]">
-                  ↑ PUBLICAR EN KINET NETWORK™
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                  <div class="py-2 rounded-xl bg-white/[0.04] border border-white/10 font-display font-bold text-[9.5px] text-slate-200 text-center">
-                    ↓ EXPORTAR PNG
-                  </div>
-                  <div class="py-2 rounded-xl bg-white/[0.04] border border-white/10 font-display font-bold text-[9.5px] text-slate-200 text-center">
-                    📄 EXPORTAR PDF
-                  </div>
-                </div>
-              </div>
+              <div class="ms-box"><b>Marca de agua (al exportar o publicar)</b><div class="ms-field">Sin marca de agua <i>▾</i></div></div>
+              <div class="ms-box"><b id="ms-format-lbl">Formato de la imagen</b><div class="ms-field" id="ms-format">Feed 4:5 (póster) <i>▾</i></div></div>
+              <div class="ms-box"><b>Texto de la publicación (opcional)</b><div class="ms-field ms-ta">Qué quieres contar con esta imagen…</div></div>
+              <div class="ms-publish">⬆ PUBLICAR EN KINET NETWORK™</div>
+              <div class="ms-two"><span>⬇ DESCARGAR</span><span>📄 EXPORTAR PDF</span></div>
             </div>
           </div>
         </div>
@@ -862,20 +879,20 @@
         <p class="text-xs sm:text-sm text-slate-400">Pulsa sobre cualquiera de las 3 tarjetas para desplegar todas las ventajas, modelos de IA y diferencias entre el plan individual y la suite de entrenadores/scouts.</p>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto items-start">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto items-stretch">
         
         <!-- PLAN 1: GRATUITO (0€) -->
         <div onclick="togglePlanDetail('plan-free')" class="glass-card plan-card-zoom p-5 sm:p-8 rounded-3xl flex flex-col justify-between space-y-5 border-slate-800 cursor-pointer relative group" id="plan-free">
           <div class="space-y-3">
-            <div class="flex justify-between items-center gap-2">
+            <div class="flex justify-between items-center gap-2 min-h-[30px]">
               <span class="text-[10px] font-mono text-slate-300 uppercase bg-slate-800 px-3 py-1 rounded-full border border-slate-700">Iniciación</span>
               <span class="text-[10px] text-kinet-neon font-mono flex items-center space-x-1 font-bold">
-                <span>Ver qué incluye</span>
+                <span class="whitespace-nowrap">Ver qué incluye</span>
                 <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform duration-300 icon-plan"></i>
               </span>
             </div>
             <h3 class="font-display font-bold text-xl text-white">Plan Gratuito</h3>
-            <p class="text-xs text-slate-400 leading-relaxed">Para explorar el vestuario, la red social y diseñar tu carta manual básica.</p>
+            <p class="text-xs text-slate-400 leading-relaxed md:min-h-[4.1rem]">Para explorar el vestuario, la red social y diseñar tu carta manual básica.</p>
             <div class="pt-2 pb-1">
               <span class="font-display font-black text-4xl text-white">0€</span>
               <span class="text-xs text-slate-500 font-mono"> / siempre</span>
@@ -902,15 +919,15 @@
         <!-- PLAN 2: PRO PLAYER (8,99€ — ENFOQUE 100% INDIVIDUAL) -->
         <div onclick="togglePlanDetail('plan-pro')" class="glass-card plan-card-zoom p-5 sm:p-8 rounded-3xl flex flex-col justify-between space-y-5 border-kinet-neon/50 cursor-pointer relative group shadow-[0_0_30px_rgba(0,255,102,0.12)]" id="plan-pro">
           <div class="space-y-3">
-            <div class="flex justify-between items-center gap-2">
-              <span class="text-[10px] font-mono text-kinet-neon uppercase bg-kinet-neon/10 px-3 py-1 rounded-full border border-kinet-neon/30 font-bold">Individual // Deportista</span>
+            <div class="flex justify-between items-center gap-2 min-h-[30px]">
+              <span class="text-[10px] font-mono text-kinet-neon uppercase bg-kinet-neon/10 px-3 py-1 rounded-full border border-kinet-neon/30 font-bold">Individual</span>
               <span class="text-[10px] text-kinet-neon font-mono flex items-center space-x-1 font-bold">
-                <span>Ver qué incluye</span>
+                <span class="whitespace-nowrap">Ver qué incluye</span>
                 <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform duration-300 icon-plan"></i>
               </span>
             </div>
             <h3 class="font-display font-bold text-xl text-white">Pro Player</h3>
-            <p class="text-xs text-slate-400 leading-relaxed">Para 1 deportista que busca auditar su posición por vídeo IA y verificar su KINET Card.</p>
+            <p class="text-xs text-slate-400 leading-relaxed md:min-h-[4.1rem]">Para 1 deportista que busca auditar su posición por vídeo IA y verificar su KINET Card.</p>
             <div class="pt-2 pb-1">
               <span class="font-display font-black text-4xl text-white">8,99€</span>
               <span class="text-xs text-slate-500 font-mono"> / mes</span>
@@ -937,15 +954,15 @@
         <!-- PLAN 3: CLUB & SCOUT PRO (29,99€ — MULTIEQUIPO, PIZARRA ANIMADA IA & SCOUTING EXTERNO) -->
         <div onclick="togglePlanDetail('plan-club')" class="glass-card plan-card-zoom p-5 sm:p-8 rounded-3xl flex flex-col justify-between space-y-5 border-amber-500/50 cursor-pointer relative shadow-[0_0_35px_rgba(245,158,11,0.14)] group" id="plan-club">
           <div class="space-y-3">
-            <div class="flex justify-between items-center gap-2">
-              <span class="text-[10px] font-mono text-amber-400 uppercase bg-amber-500/15 px-3 py-1 rounded-full border border-amber-500/40 font-bold">Entrenadores, Clubes & Scouts</span>
+            <div class="flex justify-between items-center gap-2 min-h-[30px]">
+              <span class="text-[10px] font-mono text-amber-400 uppercase bg-amber-500/15 px-3 py-1 rounded-full border border-amber-500/40 font-bold">Clubes &amp; Scouts</span>
               <span class="text-[10px] text-amber-400 font-mono flex items-center space-x-1 font-bold">
-                <span>Ver qué incluye</span>
+                <span class="whitespace-nowrap">Ver qué incluye</span>
                 <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform duration-300 icon-plan"></i>
               </span>
             </div>
             <h3 class="font-display font-bold text-xl text-white">Club & Scout Pro</h3>
-            <p class="text-xs text-slate-400 leading-relaxed">Pizarra 3D animada por IA, gestión de múltiples plantillas, tácticas grupales y radar externo.</p>
+            <p class="text-xs text-slate-400 leading-relaxed md:min-h-[4.1rem]">Pizarra 3D animada por IA, gestión de múltiples plantillas, tácticas grupales y radar externo.</p>
             <div class="pt-2 pb-1">
               <span class="font-display font-black text-4xl text-white">29,99€</span>
               <span class="text-xs text-slate-500 font-mono"> / mes</span>
@@ -1130,401 +1147,273 @@
 
     document.addEventListener("DOMContentLoaded", function() {
       document.body.style.opacity = '1';
-      renderAnalyzerSimulatorStage(true);
     });
 
     // =========================================================================
-    // SIMULADOR TÁCTICO 3D ANIMADO POR IA (5 DEPORTES + 3 JUGADAS ANIMADAS CADA UNO)
+    // ANALIZADOR & PLANTILLA 3D (réplica de la app). Cada deporte con su propio vocabulario.
+    // Posiciones en % del campo; flechas en % (x1,y1,x2,y2,color).
     // =========================================================================
-    let currentAnalyzerSportKey = 'futbol';
-    let currentAnalyzerPlayIndex = 0;
-    let tacticalAnimTimer = null;
+    const AN_COURTS = {
+      futbol: `<svg viewBox="0 0 600 420" preserveAspectRatio="none"><defs><pattern id="anTurf" width="600" height="42" patternUnits="userSpaceOnUse"><rect width="600" height="21" fill="#06160F"/><rect y="21" width="600" height="21" fill="#0A2217"/></pattern><radialGradient id="anGlow" cx="50%" cy="50%" r="60%"><stop offset="0%" stop-color="rgba(0,255,136,0.16)"/><stop offset="100%" stop-color="rgba(0,0,0,0)"/></radialGradient></defs><rect width="600" height="420" fill="url(#anTurf)"/><rect width="600" height="420" fill="url(#anGlow)"/><g stroke="rgba(255,255,255,0.72)" stroke-width="2.2" fill="none"><rect x="24" y="16" width="552" height="388" rx="4"/><line x1="24" y1="210" x2="576" y2="210"/><circle cx="300" cy="210" r="52"/><circle cx="300" cy="210" r="3.5" fill="#00FF88"/><rect x="165" y="16" width="270" height="78"/><rect x="225" y="16" width="150" height="30"/><path d="M 245 94 A 45 45 0 0 0 355 94"/><rect x="165" y="326" width="270" height="78"/><rect x="225" y="374" width="150" height="30"/><path d="M 245 326 A 45 45 0 0 1 355 326"/></g></svg>`,
+      basket: `<svg viewBox="0 0 600 420" preserveAspectRatio="none"><defs><pattern id="anWood" width="40" height="20" patternUnits="userSpaceOnUse"><rect width="40" height="10" fill="#17130E"/><rect y="10" width="40" height="10" fill="#1E1812"/></pattern></defs><rect width="600" height="420" fill="url(#anWood)"/><rect x="215" y="16" width="170" height="155" fill="rgba(245,158,11,0.16)" stroke="#F59E0B" stroke-width="2.2"/><g stroke="rgba(255,255,255,0.78)" stroke-width="2.2" fill="none"><rect x="24" y="16" width="552" height="388"/><line x1="66" y1="16" x2="66" y2="130"/><line x1="534" y1="16" x2="534" y2="130"/><path d="M 66 130 A 238 215 0 0 0 534 130" stroke="#00FF88" stroke-width="2.6"/><circle cx="300" cy="171" r="54"/><line x1="270" y1="36" x2="330" y2="36" stroke="#FFFFFF" stroke-width="4"/><circle cx="300" cy="48" r="11" stroke="#F59E0B" stroke-width="3"/><path d="M 220 404 A 80 80 0 0 1 380 404"/></g></svg>`,
+      padel: `<svg viewBox="0 0 600 420" preserveAspectRatio="none"><rect width="600" height="420" fill="#071B30"/><rect x="48" y="20" width="504" height="380" fill="#0B2847" stroke="#38BDF8" stroke-width="3"/><rect x="42" y="14" width="516" height="392" fill="none" stroke="rgba(56,189,248,0.48)" stroke-width="6" stroke-dasharray="28 6"/><g stroke="rgba(255,255,255,0.85)" stroke-width="2.2" fill="none"><line x1="48" y1="82" x2="552" y2="82"/><line x1="48" y1="338" x2="552" y2="338"/><line x1="300" y1="82" x2="300" y2="338"/></g><line x1="40" y1="210" x2="560" y2="210" stroke="#00FF88" stroke-width="5"/></svg>`,
+      boxeo: `<svg viewBox="0 0 600 420" preserveAspectRatio="none"><rect width="600" height="420" fill="#070A12"/><polygon points="175,20 425,20 560,125 560,295 425,400 175,400 40,295 40,125" fill="#0D1320" stroke="rgba(255,255,255,0.38)" stroke-width="3"/><rect x="110" y="52" width="380" height="316" fill="rgba(16,23,38,0.88)" stroke="rgba(255,255,255,0.78)" stroke-width="3"/><circle cx="300" cy="210" r="115" fill="none" stroke="rgba(0,255,136,0.3)" stroke-width="2" stroke-dasharray="8 6"/><circle cx="300" cy="210" r="58" fill="rgba(0,255,136,0.08)" stroke="#00FF88" stroke-width="2"/><polygon points="110,52 165,52 110,107" fill="#EF4444"/><polygon points="490,368 435,368 490,313" fill="#3B82F6"/></svg>`,
+      running: `<svg viewBox="0 0 600 420" preserveAspectRatio="none"><rect width="600" height="420" fill="#090D16"/><rect x="28" y="24" width="544" height="372" rx="180" fill="#6E1D1B" stroke="rgba(255,255,255,0.85)" stroke-width="2.5"/><rect x="52" y="48" width="496" height="324" rx="156" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.8" stroke-dasharray="10 6"/><rect x="78" y="74" width="444" height="272" rx="130" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.6" stroke-dasharray="10 6"/><rect x="104" y="100" width="392" height="220" rx="105" fill="#0A1F17" stroke="#00FF88" stroke-width="2.5"/><line x1="420" y1="24" x2="420" y2="100" stroke="#FFFFFF" stroke-width="5"/></svg>`
+    };
 
-    const ANALYZER_SPORTS_SIM_DATA = {
+    const AN_G = '#00FF66', AN_A = '#F59E0B', AN_B = '#38BDF8', AN_R = '#EF4444';
+    const AN_SPORTS = {
       futbol: {
-        badge: '⚽ ESTADIO 3D // 4-3-3 ANIMADO',
-        bgStyle: 'radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.22), rgba(4, 10, 15, 0.98))',
-        stat1: '96% ÓPTIMA',
-        stat2: '+18% BANDA IZQ',
-        courtSvg: `
-          <svg viewBox="0 0 600 360" preserveAspectRatio="none" class="w-full h-full opacity-55">
-            <rect x="20" y="16" width="560" height="328" rx="14" fill="none" stroke="#10B981" stroke-width="2"/>
-            <line x1="20" y1="180" x2="580" y2="180" stroke="#10B981" stroke-width="1.5" stroke-dasharray="6 4"/>
-            <circle cx="300" cy="180" r="46" fill="none" stroke="#10B981" stroke-width="1.5"/>
-            <rect x="175" y="16" width="250" height="68" fill="none" stroke="#10B981" stroke-width="1.5"/>
-            <rect x="235" y="16" width="130" height="26" fill="none" stroke="#10B981" stroke-width="1.5"/>
-            <rect x="175" y="276" width="250" height="68" fill="none" stroke="#10B981" stroke-width="1.5"/>
-          </svg>
-        `,
+        tag: 'FÚTBOL', formation: '4-3-3 Ofensivo (11vs11)', style: '⚙️ Estilo: Equilibrado', media: 89,
+        slots: [
+          ['POR', 50, 88, 'J. Ortega', 86, AN_G], ['LI', 14, 70, 'D. Lema', 87, AN_G], ['DFC', 37, 73, 'M. Silva', 90, AN_A], ['DFC', 63, 73, 'R. Peña', 88, AN_G], ['LD', 86, 70, 'C. Ibarra', 87, AN_G],
+          ['MCD', 50, 54, 'L. Torres', 91, AN_G], ['MC', 29, 41, 'K. Ruiz', 88, AN_B], ['MC', 71, 41, 'T. Navas', 87, AN_G],
+          ['EI', 19, 20, 'A. Vance', 92, AN_G], ['DC', 50, 15, 'S. Moral', 90, AN_A], ['ED', 81, 20, 'D. Costa', 89, AN_G]
+        ],
         plays: [
-          {
-            directive: 'IA TÁCTICA (SALIDA + RUPTURA): Interior atrae marca, pase filtrado a Zona 14 y diagonal del Extremo (89% xG)',
-            zone: { cx: 300, cy: 62, r: 44, color: '#00FF66' },
-            arrows: [
-              { x1: 300, y1: 235, x2: 210, y2: 145, color: '#00FF66' },
-              { x1: 210, y1: 145, x2: 295, y2: 68, color: '#00FF66' },
-              { x1: 135, y1: 120, x2: 255, y2: 64, color: '#F59E0B' },
-              { x1: 465, y1: 125, x2: 355, y2: 74, color: '#38BDF8' }
-            ],
-            tokens: [
-              { name: 'A. VANCE', pos: 'EI', grl: 92, color: '#00FF66', x0: 22, y0: 34, x1: 42, y1: 18 },
-              { name: 'M. SILVA', pos: 'DC', grl: 90, color: '#F59E0B', x0: 50, y0: 24, x1: 50, y1: 15 },
-              { name: 'D. COSTA', pos: 'ED', grl: 89, color: '#00FF66', x0: 78, y0: 35, x1: 60, y1: 21 },
-              { name: 'K. RUIZ', pos: 'MCO', grl: 88, color: '#38BDF8', x0: 35, y0: 54, x1: 35, y1: 40 },
-              { name: 'L. TORRES', pos: 'MCD', grl: 91, color: '#00FF66', x0: 50, y0: 66, x1: 50, y1: 58 },
-              { name: 'RIVAL #4', pos: 'DFC', grl: 84, color: '#EF4444', x0: 48, y0: 29, x1: 44, y1: 26 }
-            ]
-          },
-          {
-            directive: 'IA TÁCTICA (REPLIEGUE 4-4-2): Basculación intensiva tras pérdida cerrando pasillos interiores en 3.4s',
-            zone: { cx: 300, cy: 195, r: 58, color: '#38BDF8' },
-            arrows: [
-              { x1: 135, y1: 85, x2: 175, y2: 185, color: '#38BDF8' },
-              { x1: 465, y1: 85, x2: 425, y2: 185, color: '#38BDF8' },
-              { x1: 300, y1: 140, x2: 300, y2: 215, color: '#00FF66' }
-            ],
-            tokens: [
-              { name: 'A. VANCE', pos: 'MI', grl: 92, color: '#00FF66', x0: 22, y0: 24, x1: 28, y1: 52 },
-              { name: 'M. SILVA', pos: 'DC', grl: 90, color: '#F59E0B', x0: 50, y0: 20, x1: 45, y1: 40 },
-              { name: 'D. COSTA', pos: 'MD', grl: 89, color: '#00FF66', x0: 78, y0: 24, x1: 72, y1: 52 },
-              { name: 'K. RUIZ', pos: 'MC', grl: 88, color: '#38BDF8', x0: 38, y0: 44, x1: 42, y1: 60 },
-              { name: 'L. TORRES', pos: 'MCD', grl: 91, color: '#00FF66', x0: 52, y0: 48, x1: 56, y1: 62 }
-            ]
-          },
-          {
-            directive: 'IA TÁCTICA (BALÓN PARADO / CHOQUE RIVAL): Bloqueo en primer palo + entrada libre al segundo palo',
-            zone: { cx: 345, cy: 52, r: 38, color: '#F59E0B' },
-            arrows: [
-              { x1: 545, y1: 24, x2: 345, y2: 52, color: '#F59E0B' },
-              { x1: 260, y1: 115, x2: 265, y2: 48, color: '#00FF66' },
-              { x1: 375, y1: 130, x2: 348, y2: 54, color: '#00FF66' }
-            ],
-            tokens: [
-              { name: 'K. RUIZ (CÓRNER)', pos: 'MC', grl: 88, color: '#F59E0B', x0: 91, y0: 8, x1: 91, y1: 8 },
-              { name: 'M. SILVA', pos: 'DC', grl: 90, color: '#00FF66', x0: 43, y0: 33, x1: 44, y1: 14 },
-              { name: 'L. TORRES', pos: 'MCD', grl: 91, color: '#00FF66', x0: 62, y0: 37, x1: 58, y1: 15 },
-              { name: 'A. VANCE', pos: 'EI', grl: 92, color: '#38BDF8', x0: 50, y0: 52, x1: 50, y1: 34 },
-              { name: 'RIVAL GK', pos: 'POR', grl: 85, color: '#EF4444', x0: 50, y0: 10, x1: 48, y1: 12 }
-            ]
-          }
+          { tab: '▶ Salida y ruptura', directive: 'IA TÁCTICA · SALIDA DE BALÓN: el mediocentro atrae la presión, pase filtrado entre líneas y diagonal del extremo al espacio (xG 0,31).',
+            moves: { 5: [44, 50], 6: [36, 34], 8: [30, 14], 9: [50, 10], 10: [70, 16], 4: [88, 50] }, arrows: [[29, 41, 30, 17, AN_G], [50, 54, 36, 36, AN_G], [81, 20, 62, 15, AN_B]], zone: [50, 13, 9, AN_G], rivals: [[34, 27, 'DFC'], [58, 24, 'DFC']],
+            stats: [['SINERGIA TÁCTICA', '96% ÓPTIMA'], ['VENTAJA VS RIVAL', '+18% BANDA IZQ.'], ['PERFIL EXT.', 'BESOCCER · ONEFOOTBALL']] },
+          { tab: '🛡️ Repliegue 4-4-2', directive: 'IA TÁCTICA · REPLIEGUE: tras pérdida, los extremos bajan a línea de medios y el bloque se cierra por dentro en 3,4 s.',
+            moves: { 8: [16, 46], 10: [84, 46], 9: [40, 38], 6: [39, 52], 7: [61, 52], 5: [58, 38] }, arrows: [[19, 20, 16, 44, AN_B], [81, 20, 84, 44, AN_B], [50, 15, 41, 36, AN_B]], zone: [50, 58, 12, AN_B], rivals: [[50, 30, 'MCO']],
+            stats: [['SINERGIA TÁCTICA', '91% SÓLIDA'], ['PASILLOS CERRADOS', '+24% INTERIOR'], ['PERFIL EXT.', 'BESOCCER · ONEFOOTBALL']] },
+          { tab: '🚩 Córner (balón parado)', directive: 'IA TÁCTICA · CÓRNER: bloqueo en primer palo, entrada libre del central al segundo palo y mediocentro en la frontal para el rechace.',
+            moves: { 10: [92, 7], 3: [58, 17], 2: [44, 22], 9: [50, 13], 6: [42, 30], 7: [62, 32], 5: [50, 40] }, arrows: [[92, 7, 56, 15, AN_A], [42, 32, 46, 16, AN_G], [62, 30, 58, 18, AN_G]], zone: [55, 14, 8, AN_A], rivals: [[47, 12, 'POR']],
+            stats: [['SINERGIA TÁCTICA', '94% ÓPTIMA'], ['ABP · PROB. GOL', '12% POR CÓRNER'], ['PERFIL EXT.', 'BESOCCER · ONEFOOTBALL']] }
         ]
       },
       basket: {
-        badge: '🏀 PARQUET 3D // HORNS & PICK&ROLL IA',
-        bgStyle: 'radial-gradient(circle at 50% 45%, rgba(245, 158, 11, 0.22), rgba(10, 12, 18, 0.98))',
-        stat1: '1.24 PPP (ÉLITE)',
-        stat2: '+22% TRIPLE ESQUINA',
-        courtSvg: `
-          <svg viewBox="0 0 600 360" preserveAspectRatio="none" class="w-full h-full opacity-60">
-            <rect x="20" y="16" width="560" height="328" rx="12" fill="none" stroke="#F59E0B" stroke-width="2"/>
-            <rect x="215" y="16" width="170" height="145" fill="rgba(245,158,11,0.08)" stroke="#F59E0B" stroke-width="1.8"/>
-            <circle cx="300" cy="161" r="46" fill="none" stroke="#F59E0B" stroke-width="1.5"/>
-            <path d="M 70 16 L 70 115 A 235 210 0 0 0 530 115 L 530 16" fill="none" stroke="#00FF66" stroke-width="2"/>
-          </svg>
-        `,
+        tag: 'BALONCESTO', formation: 'Quinteto 5-Out Spacing', style: '🎯 Estilo: 5-Out & Pick and Roll', media: 90,
+        slots: [['PG', 50, 74, 'J. Vance', 93, AN_G], ['SG', 18, 54, 'K. Holloway', 90, AN_B], ['SF', 82, 54, 'M. Brandt', 88, AN_G], ['PF', 24, 24, 'T. Okafor', 89, AN_G], ['C', 64, 26, 'D. Morrow', 91, AN_A]],
         plays: [
-          {
-            directive: 'IA TÁCTICA (SPAIN PICK & ROLL): Bloqueo directo en cabecera + Back-screen para triple liberado',
-            zone: { cx: 495, cy: 55, r: 36, color: '#00FF66' },
-            arrows: [
-              { x1: 235, y1: 115, x2: 285, y2: 185, color: '#F59E0B' },
-              { x1: 300, y1: 215, x2: 365, y2: 120, color: '#00FF66' },
-              { x1: 365, y1: 120, x2: 495, y2: 55, color: '#38BDF8' }
-            ],
-            tokens: [
-              { name: 'J. VANCE', pos: 'PG', grl: 93, color: '#00FF66', x0: 50, y0: 62, x1: 61, y1: 34 },
-              { name: 'D. MORROW', pos: 'C', grl: 91, color: '#F59E0B', x0: 38, y0: 32, x1: 48, y1: 18 },
-              { name: 'K. HOLLOWAY', pos: 'SG', grl: 90, color: '#38BDF8', x0: 84, y0: 36, x1: 83, y1: 16 },
-              { name: 'M. BRANDT', pos: 'SF', grl: 88, color: '#00FF66', x0: 16, y0: 22, x1: 18, y1: 18 },
-              { name: 'RIVAL C', pos: 'DEF', grl: 85, color: '#EF4444', x0: 50, y0: 24, x1: 56, y1: 28 }
-            ]
-          },
-          {
-            directive: 'IA TÁCTICA (ZONA PRESS 2-2-1): Trampa en banda tras saque de fondo y rotación al pase interior',
-            zone: { cx: 130, cy: 130, r: 42, color: '#38BDF8' },
-            arrows: [
-              { x1: 220, y1: 160, x2: 135, y2: 130, color: '#38BDF8' },
-              { x1: 160, y1: 215, x2: 125, y2: 145, color: '#00FF66' }
-            ],
-            tokens: [
-              { name: 'J. VANCE', pos: 'PG', grl: 93, color: '#00FF66', x0: 36, y0: 45, x1: 23, y1: 36 },
-              { name: 'K. HOLLOWAY', pos: 'SG', grl: 90, color: '#38BDF8', x0: 26, y0: 60, x1: 21, y1: 42 },
-              { name: 'D. MORROW', pos: 'C', grl: 91, color: '#F59E0B', x0: 50, y0: 35, x1: 44, y1: 26 }
-            ]
-          },
-          {
-            directive: 'IA TÁCTICA (ATO SIDELINE / CLUTCH): Doble pantalla Stagger en poste alto para tiro ganador',
-            zone: { cx: 300, cy: 195, r: 40, color: '#F59E0B' },
-            arrows: [
-              { x1: 150, y1: 80, x2: 300, y2: 195, color: '#00FF66' },
-              { x1: 560, y1: 160, x2: 305, y2: 195, color: '#F59E0B' }
-            ],
-            tokens: [
-              { name: 'J. VANCE', pos: 'PG', grl: 93, color: '#00FF66', x0: 25, y0: 22, x1: 50, y1: 54 },
-              { name: 'K. HOLLOWAY (SAQUE)', pos: 'SG', grl: 90, color: '#F59E0B', x0: 93, y0: 44, x1: 93, y1: 44 },
-              { name: 'D. MORROW', pos: 'C', grl: 91, color: '#38BDF8', x0: 38, y0: 38, x1: 42, y1: 42 }
-            ]
-          }
+          { tab: '▶ Pick & Roll', directive: 'IA TÁCTICA · PICK & ROLL: bloqueo directo en cabecera, el pívot hace el roll y el alero de esquina queda liberado para el triple.',
+            moves: { 0: [60, 44], 4: [62, 24], 2: [88, 30], 1: [14, 56] }, arrows: [[50, 74, 62, 46, AN_G], [66, 46, 60, 22, AN_A], [60, 44, 86, 30, AN_B]], zone: [86, 30, 8, AN_G], rivals: [[56, 34, 'DEF']],
+            stats: [['EFICIENCIA (PPP)', '1,24 ÉLITE'], ['VENTAJA VS RIVAL', '+22% TRIPLE ESQ.'], ['SISTEMA', '5-OUT']] },
+          { tab: '🛡️ Defensa zona 2-3', directive: 'IA TÁCTICA · ZONA 2-3: dos exteriores presionan la cabecera y tres hombres cierran la pintura; rebote asegurado por el pívot.',
+            moves: { 0: [38, 50], 1: [62, 50], 2: [78, 26], 3: [24, 26], 4: [50, 22] }, arrows: [[38, 50, 30, 38, AN_B], [62, 50, 70, 38, AN_B], [50, 22, 50, 36, AN_G]], zone: [50, 28, 12, AN_B], rivals: [[50, 62, 'BASE']],
+            stats: [['REBOTE DEFENSIVO', '+14%'], ['PUNTOS EN PINTURA', '-19% RIVAL'], ['SISTEMA', 'ZONA 2-3']] },
+          { tab: '⏱️ Jugada ATO (saque de banda)', directive: 'IA TÁCTICA · ATO: saque de banda con doble pantalla en el poste alto para un tiro liberado a falta de 3 segundos.',
+            moves: { 1: [94, 46], 0: [50, 52], 3: [40, 32], 4: [60, 40], 2: [82, 22] }, arrows: [[94, 46, 56, 50, AN_A], [40, 32, 50, 50, AN_G], [60, 40, 52, 52, AN_G]], zone: [52, 52, 8, AN_A], rivals: [[48, 44, 'DEF']],
+            stats: [['PROB. CANASTA', '58%'], ['VENTAJA VS RIVAL', '+31% SALIDA PANT.'], ['SISTEMA', 'ATO']] }
+        ]
+      },
+      padel: {
+        tag: 'PÁDEL / TENIS', formation: 'Pareja en Red (Drive + Revés)', style: '⚡ Estilo: Pegada & Red Agresiva', media: 92,
+        slots: [['REVÉS', 32, 72, 'L. Garrido', 93, AN_G], ['DRIVE', 68, 72, 'P. Salas', 91, AN_B]],
+        plays: [
+          { tab: '▶ Subida a la red', directive: 'IA TÁCTICA · PAREJA EN RED: tras globo corto del rival, subida en bloque y bandeja cruzada a la reja para cerrar el punto.',
+            moves: { 0: [32, 56], 1: [66, 56] }, arrows: [[32, 74, 33, 58, AN_G], [68, 74, 66, 58, AN_G], [66, 56, 36, 24, AN_A]], zone: [34, 24, 8, AN_A], rivals: [[34, 14, 'FONDO'], [66, 16, 'FONDO']],
+            stats: [['PUNTOS EN RED', '95% GANADOS'], ['VENTAJA VS RIVAL', '+27% RINCÓN REVÉS'], ['PAREJA', 'DRIVE + REVÉS']] },
+          { tab: '🛡️ Defensa de pared + globo', directive: 'IA TÁCTICA · DEFENSA: el revés sale de la pared con globo cruzado para recuperar la red en bloque.',
+            moves: { 0: [22, 86], 1: [64, 70] }, arrows: [[22, 86, 80, 18, AN_B], [64, 70, 60, 58, AN_G]], zone: [80, 18, 9, AN_B], rivals: [[34, 40, 'RED'], [66, 40, 'RED']],
+            stats: [['GLOBOS GANADORES', '+19%'], ['ERRORES NO FORZADOS', '-12%'], ['PAREJA', 'DRIVE + REVÉS']] },
+          { tab: '↔️ Australiana en saque', directive: 'IA TÁCTICA · AUSTRALIANA: el compañero se coloca en la misma mitad que el sacador para tapar la volea y forzar el error.',
+            moves: { 0: [66, 56], 1: [56, 90] }, arrows: [[56, 90, 30, 24, AN_A], [66, 56, 40, 40, AN_G]], zone: [30, 24, 8, AN_A], rivals: [[34, 22, 'RESTO'], [66, 14, 'RESTO']],
+            stats: [['1.º SAQUE', '71% PUNTO'], ['VENTAJA VS RIVAL', '+16% RESTO DÉBIL'], ['PAREJA', 'DRIVE + REVÉS']] }
         ]
       },
       boxeo: {
-        badge: '🥊 OCTÁGONO & RING 3D // FIGHT IQ SIMULATOR',
-        bgStyle: 'radial-gradient(circle at 50% 50%, rgba(239, 68, 68, 0.22), rgba(8, 10, 16, 0.98))',
-        stat1: '94% PRECISIÓN KO',
-        stat2: '+31% ÁNGULO CIEGO',
-        courtSvg: `
-          <svg viewBox="0 0 600 360" preserveAspectRatio="none" class="w-full h-full opacity-65">
-            <polygon points="180,20 420,20 550,110 550,250 420,340 180,340 50,250 50,110" fill="none" stroke="#EF4444" stroke-width="2.5"/>
-            <rect x="135" y="48" width="330" height="264" rx="10" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1.5" stroke-dasharray="6 4"/>
-            <circle cx="300" cy="180" r="55" fill="none" stroke="#00FF66" stroke-width="1.5"/>
-          </svg>
-        `,
+        tag: 'BOXEO / MMA', formation: 'Duelo Central en Ring', style: '🎯 Estilo: Estilista & Control Distancia', media: 94,
+        slots: [['ESTILISTA', 44, 66, 'Tu peleador', 94, AN_G]],
         plays: [
-          {
-            directive: 'IA TÁCTICA (CORTE DE RING + PIVOTE 45°): Finta de Jab, paso lateral al ángulo muerto y Cross al mentón',
-            zone: { cx: 345, cy: 145, r: 40, color: '#00FF66' },
-            arrows: [
-              { x1: 245, y1: 215, x2: 285, y2: 145, color: '#00FF66' },
-              { x1: 285, y1: 145, x2: 345, y2: 145, color: '#F59E0B' }
-            ],
-            tokens: [
-              { name: 'TU PELEADOR', pos: 'STRIKER', grl: 94, color: '#00FF66', x0: 41, y0: 62, x1: 47, y1: 40 },
-              { name: 'RIVAL (GUARDIA ALTA)', pos: 'ORTHODOX', grl: 88, color: '#EF4444', x0: 58, y0: 42, x1: 58, y1: 40 }
-            ]
-          },
-          {
-            directive: 'IA TÁCTICA (PULL-COUNTER & SALIDA DE CUERDAS): Paso atrás milimétrico + giro de cintura y gancho',
-            zone: { cx: 300, cy: 180, r: 44, color: '#38BDF8' },
-            arrows: [
-              { x1: 300, y1: 240, x2: 380, y2: 175, color: '#38BDF8' }
-            ],
-            tokens: [
-              { name: 'TU PELEADOR', pos: 'COUNTER', grl: 94, color: '#38BDF8', x0: 50, y0: 68, x1: 63, y1: 48 },
-              { name: 'RIVAL AGRESIVO', pos: 'SWARMER', grl: 88, color: '#EF4444', x0: 50, y0: 45, x1: 50, y1: 56 }
-            ]
-          },
-          {
-            directive: 'IA TÁCTICA (SPRAWL & TAKEDOWN DEFENSE): Cierre de distancia y derribo al centro de la jaula',
-            zone: { cx: 300, cy: 165, r: 42, color: '#F59E0B' },
-            arrows: [
-              { x1: 250, y1: 205, x2: 300, y2: 165, color: '#F59E0B' }
-            ],
-            tokens: [
-              { name: 'TU PELEADOR', pos: 'MMA PRO', grl: 94, color: '#F59E0B', x0: 40, y0: 58, x1: 50, y1: 46 },
-              { name: 'RIVAL', pos: 'WRESTLER', grl: 87, color: '#EF4444', x0: 56, y0: 42, x1: 52, y1: 44 }
-            ]
-          }
-        ]
-      },
-      tenis: {
-        badge: '🎾 PISTA 20x10 & TENIS 3D // VOLEA & BANDEJA IA',
-        bgStyle: 'radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.24), rgba(6, 12, 22, 0.98))',
-        stat1: '95% RED GANADA',
-        stat2: '+27% RINCÓN REVÉS',
-        courtSvg: `
-          <svg viewBox="0 0 600 360" preserveAspectRatio="none" class="w-full h-full opacity-65">
-            <rect x="45" y="18" width="510" height="324" rx="8" fill="none" stroke="#38BDF8" stroke-width="2.2"/>
-            <line x1="45" y1="180" x2="555" y2="180" stroke="#00FF66" stroke-width="3"/>
-            <line x1="45" y1="78" x2="555" y2="78" stroke="#38BDF8" stroke-width="1.5"/>
-            <line x1="45" y1="282" x2="555" y2="282" stroke="#38BDF8" stroke-width="1.5"/>
-            <line x1="300" y1="78" x2="300" y2="282" stroke="#38BDF8" stroke-width="1.5"/>
-          </svg>
-        `,
-        plays: [
-          {
-            directive: 'IA TÁCTICA (ATAQUE EN RED + VÍBORA A LA REJA): Globo rival corto, ajuste de pies y definición X3',
-            zone: { cx: 145, cy: 62, r: 36, color: '#00FF66' },
-            arrows: [
-              { x1: 210, y1: 235, x2: 195, y2: 135, color: '#00FF66' },
-              { x1: 195, y1: 135, x2: 145, y2: 62, color: '#F59E0B' }
-            ],
-            tokens: [
-              { name: 'REVÉS PRO', pos: 'REVÉS', grl: 93, color: '#00FF66', x0: 34, y0: 66, x1: 32, y1: 38 },
-              { name: 'DRIVE PRO', pos: 'DRIVE', grl: 91, color: '#38BDF8', x0: 66, y0: 66, x1: 64, y1: 40 },
-              { name: 'RIVAL 1', pos: 'FONDO', grl: 86, color: '#EF4444', x0: 32, y0: 18, x1: 24, y1: 16 },
-              { name: 'RIVAL 2', pos: 'FONDO', grl: 85, color: '#EF4444', x0: 68, y0: 18, x1: 72, y1: 20 }
-            ]
-          },
-          {
-            directive: 'IA TÁCTICA (DEFENSA DOBLE PARED + GLOBO CRUZADO): Salida del rincón y recuperación de la red en bloque',
-            zone: { cx: 460, cy: 55, r: 38, color: '#38BDF8' },
-            arrows: [
-              { x1: 140, y1: 305, x2: 460, y2: 55, color: '#38BDF8' },
-              { x1: 210, y1: 290, x2: 220, y2: 215, color: '#00FF66' }
-            ],
-            tokens: [
-              { name: 'REVÉS PRO', pos: 'REVÉS', grl: 93, color: '#00FF66', x0: 25, y0: 84, x1: 35, y1: 58 },
-              { name: 'DRIVE PRO', pos: 'DRIVE', grl: 91, color: '#38BDF8', x0: 68, y0: 82, x1: 65, y1: 58 }
-            ]
-          },
-          {
-            directive: 'IA TÁCTICA (AUSTRALIANA EN SAQUE + PUNTO DE ORO): Saque al cristal y cruce explosivo en red',
-            zone: { cx: 440, cy: 110, r: 36, color: '#F59E0B' },
-            arrows: [
-              { x1: 340, y1: 295, x2: 220, y2: 205, color: '#00FF66' },
-              { x1: 260, y1: 215, x2: 410, y2: 205, color: '#F59E0B' }
-            ],
-            tokens: [
-              { name: 'SACADOR', pos: 'DRIVE', grl: 91, color: '#00FF66', x0: 58, y0: 82, x1: 36, y1: 56 },
-              { name: 'COMPAÑERO RED', pos: 'REVÉS', grl: 93, color: '#F59E0B', x0: 44, y0: 58, x1: 68, y1: 56 }
-            ]
-          }
+          { tab: '▶ Corte de ring', directive: 'IA TÁCTICA · CORTE DE RING: finta de jab, paso lateral al ángulo muerto y cross al mentón antes de que el rival pivote.',
+            moves: { 0: [48, 48] }, arrows: [[44, 66, 50, 52, AN_G], [50, 52, 54, 40, AN_A]], zone: [54, 40, 8, AN_G], rivals: [[56, 36, 'ORTODOXO']],
+            stats: [['PRECISIÓN DE GOLPEO', '94%'], ['VENTAJA VS RIVAL', '+31% ÁNGULO CIEGO'], ['ESTILO', 'ESTILISTA']] },
+          { tab: '🛡️ Contra y esquiva', directive: 'IA TÁCTICA · CONTRAGOLPE: paso atrás de medio metro, esquiva de cintura y gancho al hígado cuando el rival se descubre.',
+            moves: { 0: [58, 62] }, arrows: [[44, 66, 58, 62, AN_B], [58, 62, 52, 46, AN_A]], zone: [52, 46, 9, AN_B], rivals: [[50, 44, 'AGRESIVO']],
+            stats: [['CONTRAS CONECTADOS', '+23%'], ['GOLPES RECIBIDOS', '-18%'], ['ESTILO', 'CONTRAATACANTE']] },
+          { tab: '🤼 Defensa de derribo (MMA)', directive: 'IA TÁCTICA · SPRAWL: lectura del nivel de cadera, sprawl y recuperación de la posición de pie en el centro de la jaula.',
+            moves: { 0: [50, 54] }, arrows: [[44, 66, 50, 54, AN_A]], zone: [52, 48, 9, AN_A], rivals: [[54, 42, 'LUCHADOR']],
+            stats: [['DERRIBOS DEFENDIDOS', '82%'], ['TIEMPO EN SUELO', '-34%'], ['ESTILO', 'GRAPPLER / MMA']] }
         ]
       },
       running: {
-        badge: '🏃 TARTÁN OLÍMPICO 400M 3D // PACING & DRAFTING IA',
-        bgStyle: 'radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.22), rgba(8, 10, 18, 0.98))',
-        stat1: '186 SPM ÓPTIMO',
-        stat2: '-7.4% GASTO AERODIN.',
-        courtSvg: `
-          <svg viewBox="0 0 600 360" preserveAspectRatio="none" class="w-full h-full opacity-65">
-            <rect x="28" y="24" width="544" height="312" rx="150" fill="none" stroke="#EF4444" stroke-width="14" stroke-opacity="0.35"/>
-            <rect x="28" y="24" width="544" height="312" rx="150" fill="none" stroke="#F59E0B" stroke-width="2"/>
-            <rect x="52" y="48" width="496" height="264" rx="126" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="8 6"/>
-            <line x1="420" y1="16" x2="420" y2="62" stroke="#00FF66" stroke-width="3"/>
-          </svg>
-        `,
+        tag: 'RUNNING', formation: 'Tren de Liebres (Formación en Cuña)', style: '🎯 Ritmo: Drafting / Tren de Liebres', media: 93,
+        slots: [['LIEBRE', 48, 12, 'Liebre', 91, AN_B], ['FONDO', 34, 12, 'Tu corredor', 95, AN_G], ['FONDO', 22, 20, 'Rival directo', 90, AN_R]],
         plays: [
-          {
-            directive: 'IA TÁCTICA (TREN DE LIEBRES / DRAFTING EN CUÑA): Ahorro del 7.4% de VO2 Max antes del cambio de ritmo',
-            zone: { cx: 430, cy: 42, r: 36, color: '#00FF66' },
-            arrows: [
-              { x1: 185, y1: 42, x2: 415, y2: 42, color: '#00FF66' }
-            ],
-            tokens: [
-              { name: 'LIEBRE 1 (PACER)', pos: '2:55/KM', grl: 91, color: '#38BDF8', x0: 42, y0: 14, x1: 68, y1: 14 },
-              { name: 'TU CORREDOR', pos: 'FONDO PRO', grl: 95, color: '#00FF66', x0: 31, y0: 14, x1: 58, y1: 14 },
-              { name: 'RIVAL DIRECTO', pos: ' SUB-14:00', grl: 90, color: '#EF4444', x0: 23, y0: 18, x1: 47, y1: 17 }
-            ]
-          },
-          {
-            directive: 'IA TÁCTICA (TRAZADA EN CURVA + ESTABILIDAD DE CADERA): Paso por cuerda interior sin pérdida de cadencia',
-            zone: { cx: 85, cy: 180, r: 44, color: '#38BDF8' },
-            arrows: [
-              { x1: 175, y1: 310, x2: 65, y2: 180, color: '#38BDF8' },
-              { x1: 65, y1: 180, x2: 180, y2: 45, color: '#00FF66' }
-            ],
-            tokens: [
-              { name: 'TU CORREDOR', pos: '188 SPM', grl: 95, color: '#00FF66', x0: 28, y0: 84, x1: 14, y1: 42 },
-              { name: 'RIVAL EXTERIOR', pos: 'CARRIL 2', grl: 89, color: '#EF4444', x0: 32, y0: 88, x1: 20, y1: 54 }
-            ]
-          },
-          {
-            directive: 'IA TÁCTICA (KICK FINAL ÚLTIMOS 200M): Incremento a 202 SPM y ataque por carril 2 en recta de meta',
-            zone: { cx: 420, cy: 40, r: 38, color: '#F59E0B' },
-            arrows: [
-              { x1: 150, y1: 42, x2: 420, y2: 42, color: '#F59E0B' }
-            ],
-            tokens: [
-              { name: 'TU SPRINT FINAL', pos: '202 SPM', grl: 95, color: '#F59E0B', x0: 26, y0: 14, x1: 71, y1: 13 },
-              { name: 'LIEBRE', pos: 'PACER', grl: 90, color: '#38BDF8', x0: 44, y0: 16, x1: 56, y1: 20 },
-              { name: 'RIVAL', pos: 'FONDO', grl: 91, color: '#EF4444', x0: 36, y0: 14, x1: 61, y1: 15 }
-            ]
-          }
+          { tab: '▶ Tren de liebres', directive: 'IA TÁCTICA · DRAFTING EN CUÑA: resguardado tras la liebre ahorras un 7,4% de VO2 antes del cambio de ritmo.',
+            moves: { 0: [82, 12], 1: [68, 12], 2: [56, 20] }, arrows: [[34, 12, 66, 12, AN_G]], zone: [68, 12, 9, AN_G],
+            stats: [['CADENCIA', '186 SPM ÓPTIMA'], ['AHORRO AERODINÁMICO', '-7,4% GASTO'], ['RITMO OBJETIVO', '2:55 / KM']] },
+          { tab: '↺ Trazada en curva', directive: 'IA TÁCTICA · CURVA: pasa por la cuerda interior sin perder cadencia y mantén la cadera estable para no regalar metros.',
+            moves: { 0: [9, 36], 1: [10, 52], 2: [20, 62] }, arrows: [[34, 12, 11, 40, AN_B], [11, 40, 12, 58, AN_G]], zone: [10, 48, 9, AN_B],
+            stats: [['CADENCIA', '188 SPM'], ['METROS AHORRADOS', '4,2 M / VUELTA'], ['RITMO OBJETIVO', '2:55 / KM']] },
+          { tab: '⚡ Kick final (200 m)', directive: 'IA TÁCTICA · KICK FINAL: sube a 202 SPM a falta de 200 m y ataca por el carril 2 en la recta de meta.',
+            moves: { 0: [60, 20], 1: [84, 12], 2: [70, 20] }, arrows: [[34, 12, 84, 12, AN_A]], zone: [84, 12, 9, AN_A],
+            stats: [['CADENCIA', '202 SPM'], ['GANANCIA FINAL', '+1,8 S'], ['RITMO OBJETIVO', '2:48 / KM']] }
         ]
       }
     };
 
-    function setAnalyzerPreviewSport(sportKey, btnEl) {
-      currentAnalyzerSportKey = sportKey;
-      currentAnalyzerPlayIndex = 0;
+    let anSport = 'futbol', anPlay = 0, anMode = 'plays', anTimer = null, anAuto = null, anUser = false;
 
-      document.querySelectorAll('.analyzer-sport-btn').forEach(b => {
-        b.className = 'analyzer-sport-btn px-3 py-2 rounded-xl bg-slate-900/90 border border-slate-700 hover:border-kinet-neon text-slate-200 font-mono text-[10.5px] font-bold cursor-pointer transition';
-      });
-      if (btnEl) {
-        btnEl.className = 'analyzer-sport-btn px-3 py-2 rounded-xl bg-kinet-neon text-black font-mono text-[10.5px] font-black cursor-pointer transition shadow-[0_0_15px_rgba(0,255,102,0.3)]';
-      }
-
-      renderAnalyzerSimulatorStage(true);
+    function anTokenHtml(s, i, rival) {
+      const color = rival ? AN_R : s[5];
+      return `<div class="an-token ${rival ? 'rival' : ''}" id="an-t-${rival ? 'r' : ''}${i}" style="left:${s[1]}%;top:${s[2]}%;border:1.5px solid ${color};${rival ? '' : 'animation-delay:' + (i * 45) + 'ms'}">
+        <span class="t-pos">${s[0]}</span>
+        ${rival ? '' : `<div class="t-grl" style="color:${color}">${s[4]}</div>`}
+        <div class="t-name">${rival ? 'RIVAL' : s[3]}</div></div>`;
     }
 
-    function triggerTacticalPlayAnimation(playIdx) {
-      currentAnalyzerPlayIndex = playIdx;
-      [0, 1, 2].forEach(i => {
-        const tab = document.getElementById(`play-tab-${i}`);
-        if (!tab) return;
-        if (i === playIdx) {
-          tab.className = 'px-2.5 py-1.5 rounded-lg bg-kinet-neon text-black font-display font-black text-[9.5px] cursor-pointer transition';
+    function setAnalyzerPreviewSport(key) {
+      if (!AN_SPORTS[key]) return;
+      anSport = key; anPlay = 0;
+      document.querySelectorAll('.analyzer-sport-btn').forEach(b => b.classList.toggle('is-on', b.dataset.sport === key));
+      const cfg = AN_SPORTS[key];
+      document.getElementById('an-tag').textContent = '🏟️ PIZARRA TÁCTICA 3D, MINI KINET CARDS & CARTELERA • ' + cfg.tag;
+      const f = document.getElementById('an-formation'), st = document.getElementById('an-style');
+      f.innerHTML = cfg.formation + ' <i>▾</i>'; st.innerHTML = cfg.style + ' <i>▾</i>';
+      document.getElementById('an-count').textContent = `⚡ ${cfg.slots.length === 1 ? 'TITULAR' : 'TITULARES'}: ${cfg.slots.length} / ${cfg.slots.length} • MEDIA: ${cfg.media}`;
+      document.getElementById('an-court').innerHTML = AN_COURTS[key];
+      [f, st].forEach(el => { el.classList.remove('an-fade'); void el.offsetWidth; el.classList.add('an-fade'); });
+      const tabs = document.getElementById('an-play-tabs');
+      tabs.innerHTML = cfg.plays.map((p, i) => `<button type="button" class="an-playtab ${i === 0 ? 'is-on' : ''}" onclick="anUser=true;triggerTacticalPlayAnimation(${i})">${p.tab}</button>`).join('');
+      renderAnalyzerStage();
+    }
+
+    function setAnalyzerMode(mode) {
+      anMode = mode; anUser = true;
+      document.getElementById('an-mode-squad').classList.toggle('is-on', mode === 'squad');
+      document.getElementById('an-mode-plays').classList.toggle('is-on', mode === 'plays');
+      document.getElementById('an-play-tabs').style.display = mode === 'plays' ? 'flex' : 'none';
+      renderAnalyzerStage();
+    }
+
+    function triggerTacticalPlayAnimation(i) {
+      anPlay = i; anMode = 'plays';
+      document.getElementById('an-mode-squad').classList.remove('is-on');
+      document.getElementById('an-mode-plays').classList.add('is-on');
+      document.getElementById('an-play-tabs').style.display = 'flex';
+      document.querySelectorAll('#an-play-tabs .an-playtab').forEach((b, k) => b.classList.toggle('is-on', k === i));
+      renderAnalyzerStage();
+    }
+    function replayAnalyzerPlay() { anUser = true; renderAnalyzerStage(); }
+
+    function renderAnalyzerStage() {
+      const cfg = AN_SPORTS[anSport], play = cfg.plays[anPlay] || cfg.plays[0];
+      const tok = document.getElementById('an-tokens'), vec = document.getElementById('an-vectors');
+      if (!tok || !vec) return;
+      const dir = document.getElementById('an-directive'), stats = document.getElementById('an-stats');
+      const playing = anMode === 'plays';
+      dir.textContent = playing ? play.directive : `Toca cualquier puesto del campo, banquillo o staff para asignar un perfil. Formación activa: ${cfg.formation}.`;
+      const sdata = playing ? play.stats : [['SINERGIA TÁCTICA', cfg.media + ' / 100'], ['FORMACIÓN', cfg.formation.split(' (')[0].toUpperCase()], ['PLANTILLA', cfg.slots.length + ' ' + (cfg.slots.length === 1 ? 'TITULAR' : 'TITULARES')]];
+      stats.innerHTML = sdata.map((s, i) => `<div class="an-stat an-fade" style="animation-delay:${i * 60}ms"><span>${s[0]}</span><strong>${s[1]}</strong></div>`).join('');
+
+      const X = x => Math.round(x * 6), Y = y => Math.round(y * 4.2);
+      let svg = `<defs>${[[AN_G, 'g'], [AN_A, 'a'], [AN_B, 'b']].map(([c, n]) => `<marker id="anA-${n}" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1L10 5L0 9z" fill="${c}"/></marker>`).join('')}</defs>`;
+      if (playing) {
+        if (play.zone) { const [zx, zy, zr, zc] = play.zone; svg += `<circle cx="${X(zx)}" cy="${Y(zy)}" r="${zr * 5}" fill="${zc}" class="tactical-zone-pulse"/><circle cx="${X(zx)}" cy="${Y(zy)}" r="${zr * 2.8}" fill="none" stroke="${zc}" stroke-width="1.5" stroke-dasharray="4 3"/>`; }
+        svg += (play.arrows || []).map(a => `<line x1="${X(a[0])}" y1="${Y(a[1])}" x2="${X(a[2])}" y2="${Y(a[3])}" stroke="${a[4]}" stroke-width="3" class="tactical-arrow-flow" marker-end="url(#anA-${a[4] === AN_A ? 'a' : a[4] === AN_B ? 'b' : 'g'})"/>`).join('');
+      }
+      vec.innerHTML = svg;
+
+      tok.innerHTML = cfg.slots.map((s, i) => anTokenHtml(s, i, false)).join('') +
+        (playing ? (play.rivals || []).map((r, i) => anTokenHtml([r[2], r[0], r[1], '', 0, AN_R], i, true)).join('') : '');
+      if (playing) {
+        clearTimeout(anTimer);
+        anTimer = setTimeout(() => {
+          Object.keys(play.moves || {}).forEach(k => {
+            const el = document.getElementById('an-t-' + k), m = play.moves[k];
+            if (el) { el.style.left = m[0] + '%'; el.style.top = m[1] + '%'; }
+          });
+        }, 350);
+      }
+    }
+
+    function startAnalyzerAutoplay() {
+      const sec = document.getElementById('analizador-section');
+      if (!sec || !('IntersectionObserver' in window)) return;
+      let visible = false;
+      new IntersectionObserver(es => { visible = es[0].isIntersecting; if (visible && !anUser) renderAnalyzerStage(); }, { threshold: 0.35 }).observe(sec);
+      anAuto = setInterval(() => {
+        if (!visible || anUser || anMode !== 'plays') return;
+        triggerTacticalPlayAnimation((anPlay + 1) % AN_SPORTS[anSport].plays.length);
+      }, 7000);
+    }
+    document.addEventListener('DOMContentLoaded', () => { setAnalyzerPreviewSport('futbol'); startAnalyzerAutoplay(); });
+
+
+    // =========================================================================
+    // MEDIA STUDIO (réplica): conversación demo animada, modo Imagen / Vídeo
+    // =========================================================================
+    const MS_MODES = {
+      img: {
+        chip: 'MODO IMAGEN', side: 'MODO IMAGEN FREE', fmt: 'Feed 4:5 (póster) <i>▾</i>', tplLbl: 'PLANTILLAS DE IMAGEN',
+        tpls: [['Foto de prensa Primera División', 'CREA CON IA'], ['Póster épico cinematográfico', 'CREA CON IA'], ['Objeto en estudio (producto)', 'CREA CON IA'], ['Imagen viral para Reels', 'CREA CON IA'], ['Túnel de vestuarios', 'CREA CON IA'], ['Retoque de fotógrafo pro', 'EDITA TU FOTO'], ['Hora dorada', 'EDITA TU FOTO']],
+        ph: 'Describe la imagen que quieres (ej: un balón de fútbol en el césped al amanecer)', go1: 'CREAR IMAGEN', go2: 'EDITAR VÍDEO',
+        welcome: 'Describe la imagen que quieres crear, elige una plantilla o sube tu foto para editarla como un fotógrafo profesional. Las imágenes salen limpias, sin textos encima.',
+        script: [['me', 'Foto de prensa de un delantero celebrando un gol bajo los focos del estadio'], ['typing'], ['ai', 'Lista. Imagen 4:5 sin textos encima. Puedes pedirme cambios («más luz», «fondo de estadio») o publicarla.', 'result']]
+      },
+      vid: {
+        chip: 'MODO VÍDEO // PRO', side: 'MODO VÍDEO PRO', fmt: 'Vertical 9:16 (Reels) <i>▾</i>', tplLbl: 'ESTILOS DE EDICIÓN DE VÍDEO',
+        tpls: [['Highlight clásico', '30 S · VERTICAL'], ['Viral rápido', '15 S · REELS'], ['Cinematográfico', '30 S · HORIZONTAL'], ['Resumen de partido', '60 S · CRONOLÓGICO'], ['Mejores jugadas (cámara lenta)', '30 S · VERTICAL']],
+        ph: 'Cuéntame cómo quieres tu vídeo (ej: highlight de 20 s con la mejor jugada al final)', go1: 'CREAR IMAGEN', go2: 'EDITAR VÍDEO',
+        welcome: 'Sube tus clips (hasta 20 s cada uno), elige un estilo y la música. Corto los planos al ritmo de la canción y añado cámara lenta en las jugadas clave.',
+        script: [['me', 'Highlight de 20 segundos con mis 3 mejores jugadas, la mejor al final'], ['typing'], ['ai', 'Hecho: 3 clips cortados al ritmo (124 BPM), cámara lenta en la última jugada y cierre con tu KINET Card.', 'resultv']]
+      }
+    };
+    let msMode = 'img', msTimers = [], msCount = 0;
+
+    function msClear() { msTimers.forEach(clearTimeout); msTimers = []; }
+    function msAt(ms, fn) { msTimers.push(setTimeout(fn, ms)); }
+
+    function setMediaMode(m) {
+      if (!MS_MODES[m]) return;
+      msMode = m; msClear();
+      const cfg = MS_MODES[m];
+      document.getElementById('ms-m-img').classList.toggle('is-on', m === 'img');
+      document.getElementById('ms-m-vid').classList.toggle('is-on', m === 'vid');
+      document.getElementById('ms-modechip').textContent = cfg.chip;
+      document.getElementById('ms-side-mode').textContent = cfg.side;
+      document.getElementById('ms-format').innerHTML = cfg.fmt; document.getElementById('ms-format-lbl').textContent = m === 'vid' ? 'Formato del vídeo' : 'Formato de la imagen';
+      document.getElementById('ms-tpl-lbl').textContent = cfg.tplLbl;
+      document.getElementById('ms-tpls').innerHTML = cfg.tpls.map(t => `<button type="button" class="ms-tpl"><b>${t[0]}</b><span>${t[1]}</span></button>`).join('');
+      document.getElementById('ms-go1').textContent = cfg.go1; document.getElementById('ms-go2').textContent = cfg.go2;
+      const feed = document.getElementById('ms-feed'), ph = document.getElementById('ms-ph');
+      feed.innerHTML = `<div class="ms-msg ai"><b class="who">KINET STUDIO</b>${cfg.welcome}</div>`;
+      ph.textContent = cfg.ph;
+      msPlay(cfg);
+    }
+
+    function msPlay(cfg) {
+      const feed = document.getElementById('ms-feed'), ph = document.getElementById('ms-ph');
+      const push = html => { feed.insertAdjacentHTML('beforeend', html); while (feed.children.length > 4) feed.removeChild(feed.firstElementChild); };
+      let t = 1400;
+      cfg.script.forEach(step => {
+        if (step[0] === 'me') {
+          // el texto se "escribe" en la barra y luego sube al chat
+          const txt = step[1];
+          for (let i = 1; i <= txt.length; i += 2) msAt(t + i * 18, () => { ph.textContent = txt.slice(0, i); });
+          t += txt.length * 18 + 500;
+          msAt(t, () => { ph.textContent = cfg.ph; push(`<div class="ms-msg me">${txt}</div>`); });
+          t += 500;
+        } else if (step[0] === 'typing') {
+          msAt(t, () => push('<div class="ms-msg ai" id="ms-typing"><span class="ms-typing"><i></i><i></i><i></i></span></div>'));
+          t += 1700;
         } else {
-          tab.className = 'px-2.5 py-1.5 rounded-lg bg-white/[0.05] border border-white/10 hover:border-kinet-neon text-slate-200 font-display font-bold text-[9.5px] cursor-pointer transition';
+          const [, txt, res] = step;
+          msAt(t, () => {
+            const ty = document.getElementById('ms-typing'); if (ty) ty.remove();
+            push(`<div class="ms-msg ai"><b class="who">KINET STUDIO</b>${txt}${res ? `<div style="margin-top:8px"><div class="ms-result ${res === 'resultv' ? 'v' : ''}"></div></div>` : ''}</div>`);
+            if (msMode === 'img') { msCount = Math.min(3, msCount + 1); const c = document.getElementById('ms-count'); if (c) c.textContent = msCount + '/3'; }
+          });
+          t += 600;
         }
       });
-      renderAnalyzerSimulatorStage(true);
+      msAt(t + 5500, () => { if (msMode === 'img' && msCount >= 3) msCount = 0; const c = document.getElementById('ms-count'); if (c) c.textContent = msCount + '/3'; setMediaMode(msMode === 'img' ? 'vid' : 'img'); });
     }
 
-    function replayCurrentTacticalAnimation() {
-      renderAnalyzerSimulatorStage(true);
-    }
+    document.addEventListener('DOMContentLoaded', () => {
+      const sec = document.getElementById('media-section');
+      if (!sec) return;
+      setMediaMode('img'); msClear();
+      if (!('IntersectionObserver' in window)) { setMediaMode('img'); return; }
+      let started = false;
+      new IntersectionObserver(es => {
+        if (es[0].isIntersecting) { if (!started) { started = true; setMediaMode('img'); } }
+        else if (started) { msClear(); started = false; }
+      }, { threshold: 0.3 }).observe(sec);
+    });
 
-    function renderAnalyzerSimulatorStage(animateMovement) {
-      const cfg = ANALYZER_SPORTS_SIM_DATA[currentAnalyzerSportKey] || ANALYZER_SPORTS_SIM_DATA.futbol;
-      const play = cfg.plays[currentAnalyzerPlayIndex] || cfg.plays[0];
-
-      const stageEl = document.getElementById('analyzer-3d-stage');
-      const courtLayer = document.getElementById('analyzer-court-svg-layer');
-      const vectorsLayer = document.getElementById('analyzer-vectors-svg-layer');
-      const tokensLayer = document.getElementById('analyzer-tokens-layer');
-      const badgeEl = document.getElementById('analyzer-arena-badge');
-      const directiveEl = document.getElementById('analyzer-live-directive');
-      const st1 = document.getElementById('analyzer-stat-1');
-      const st2 = document.getElementById('analyzer-stat-2');
-
-      if (!stageEl || !courtLayer || !vectorsLayer || !tokensLayer) return;
-
-      stageEl.style.background = cfg.bgStyle;
-      courtLayer.innerHTML = cfg.courtSvg;
-      if (badgeEl) badgeEl.textContent = cfg.badge;
-      if (directiveEl) directiveEl.textContent = play.directive;
-      if (st1) st1.textContent = cfg.stat1;
-      if (st2) st2.textContent = cfg.stat2;
-
-      const defsHtml = `
-        <defs>
-          <marker id="arrowGreen" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1 L 10 5 L 0 9 z" fill="#00FF66"/>
-          </marker>
-          <marker id="arrowAmber" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1 L 10 5 L 0 9 z" fill="#F59E0B"/>
-          </marker>
-          <marker id="arrowBlue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1 L 10 5 L 0 9 z" fill="#38BDF8"/>
-          </marker>
-        </defs>
-      `;
-
-      const zoneHtml = play.zone
-        ? `<circle cx="${play.zone.cx}" cy="${play.zone.cy}" r="${play.zone.r}" fill="${play.zone.color}" class="tactical-zone-pulse"/>
-           <circle cx="${play.zone.cx}" cy="${play.zone.cy}" r="${Math.round(play.zone.r * 0.55)}" fill="none" stroke="${play.zone.color}" stroke-width="1.5" stroke-dasharray="4 3"/>`
-        : '';
-
-      const arrowsHtml = (play.arrows || []).map(a => {
-        const markerId = a.color === '#F59E0B' ? 'arrowAmber' : (a.color === '#38BDF8' ? 'arrowBlue' : 'arrowGreen');
-        return `<line x1="${a.x1}" y1="${a.y1}" x2="${a.x2}" y2="${a.y2}" stroke="${a.color}" stroke-width="2.6" class="tactical-arrow-flow" marker-end="url(#${markerId})"/>`;
-      }).join('');
-
-      vectorsLayer.innerHTML = defsHtml + zoneHtml + arrowsHtml;
-
-      tokensLayer.innerHTML = (play.tokens || []).map((t, idx) => `
-        <div id="sim-token-${idx}" class="sim-token-card" style="left:${t.x0}%; top:${t.y0}%; border: 1.5px solid ${t.color};">
-          <div class="font-display font-black text-[10.5px] leading-none" style="color:${t.color};">${t.grl} <span class="text-[7.5px] font-mono text-white">${t.pos}</span></div>
-          <div class="font-display font-bold text-[8.5px] text-white mt-0.5">${t.name}</div>
-        </div>
-      `).join('');
-
-      if (tacticalAnimTimer) clearTimeout(tacticalAnimTimer);
-      if (animateMovement) {
-        tacticalAnimTimer = setTimeout(() => {
-          (play.tokens || []).forEach((t, idx) => {
-            const el = document.getElementById(`sim-token-${idx}`);
-            if (el) {
-              el.style.left = `${t.x1}%`;
-              el.style.top = `${t.y1}%`;
-            }
-          });
-        }, 120);
-      }
-    }
 
     function setPreviewRarity(rarity, subTxt, divTxt, rankTxt) {
       const card = document.getElementById('index-preview-card');

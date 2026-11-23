@@ -109,7 +109,7 @@
       monthlyVideoMinutes: 0,
       maxVideoEditSeconds: 0,
       maxVideoEditClips: 0,
-      dailyLiteMessages: 10,
+      dailyLiteMessages: 0,        // gratis: 15 consultas y luego cuenta atrás hasta las 00:00
       bonusDiscountPct: 0,
       canUploadVideoShorts: false,
       canUseMediaStudioVideo: false,
@@ -155,7 +155,7 @@
       canUseMediaStudioVideo: true,
       canVerifyKinetCardAI: true,
       canUseStrategyBoard3D: true,
-      maxSavedProfiles: 3
+      maxSavedProfiles: 25         // plantillas: gestiona un club completo (varios equipos)
     }
   };
 
@@ -407,7 +407,8 @@ REGLA DE CONVERSACIÓN: Si el usuario saluda ("hola", "qué tal"), devuelve el s
     const dv = (k, suf) => { const v = localStorage.getItem(k); return (dayOk && v) ? v + suf : null; };
     const dlParts = [['Sueño', dv('kinet_sleep_hours', ' h')], ['Energía', dv('kinet_energy_pct', '%')], ['Hidratación', dv('kinet_hydration_l', ' L')], ['RPE', dv('kinet_rpe', '/10')], ['Foco', dv('kinet_focus_pct', '%')], ['Cumplimiento del plan', dv('kinet_plan_pct', '%')], ['Riesgo de lesión', dayOk ? localStorage.getItem('kinet_injury_risk') : null]]
       .filter(x => x[1]).map(x => `${x[0]}: ${x[1]}`).join(' | ');
-    const dailyLog = dlParts || 'el usuario NO ha hecho su check-in de hoy (no inventes sus datos de hoy; invítale a registrarlo en el Vestuario)';
+    let dailyLog = dlParts || 'el usuario NO ha hecho su check-in de hoy (no inventes sus datos de hoy; invítale a registrarlo en el Vestuario)';
+    try { const sens = window.KinetSensors && window.KinetSensors.aiSummary(); if (sens) dailyLog += ' || Sensores: ' + sens; } catch (e) {}
     let verifiedReport = '';
     try {
       const vr = JSON.parse(localStorage.getItem('kinet_verified_report_' + sport.toLowerCase()) || 'null');
@@ -742,8 +743,38 @@ ${HUMAN_STYLE_BLOCK}
   function chatLimitMessage(q) {
     const l = PLAN_LIMITS[getCurrentTier()] || PLAN_LIMITS.free;
     if (getBudgetStatus().exhausted && getCurrentTier() !== 'free') return 'Has agotado el presupuesto de IA potente de este mes y el cupo del motor básico de hoy. Se renueva el día 1 y a las 00:00 h.';
-    if (getCurrentTier() === 'free') return `Has usado tus **${l.dailyChatMessages} consultas** con el motor potente y las **${l.dailyLiteMessages}** del motor básico de hoy. Se renuevan a las 00:00 h. Con **Pro** tienes el motor potente durante todo el día.`;
+    if (getCurrentTier() === 'free') return `Has usado tus **${l.dailyChatMessages} consultas** gratuitas de hoy. ⏳ Se renuevan a las **00:00 h** (mira la cuenta atrás abajo a la derecha). Con **Pro** tienes ${PLAN_LIMITS.pro.dailyChatMessages} al día y el motor potente.`;
     return `Has alcanzado tu límite diario de **${l.dailyChatMessages} consultas** en el ${l.tierName}. Se reinicia a las 00:00 h.`;
+  }
+
+
+  // ---- Cuenta atrás visual hasta las 00:00 cuando se agota un cupo diario ----
+  function msUntilMidnight() { const n = new Date(), m = new Date(n); m.setHours(24, 0, 0, 0); return m - n; }
+  function fmtHMS(ms) { const t = Math.max(0, Math.floor(ms / 1000)), h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), sec = t % 60; return [h, m, sec].map(v => String(v).padStart(2, '0')).join(':'); }
+  function showLimitCountdown(label) {
+    if (typeof document === 'undefined' || !document.body) return;
+    try {
+      const old = document.getElementById('kinet-limit-toast'); if (old) { if (old._t) clearInterval(old._t); old.remove(); }
+      const tier = getCurrentTier();
+      const el = document.createElement('div');
+      el.id = 'kinet-limit-toast';
+      el.setAttribute('role', 'status');
+      el.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:99999;max-width:min(92vw,330px);background:rgba(8,11,16,.96);border:1px solid var(--role-color,#00FF88);border-radius:16px;padding:14px 16px;color:#E2E8F0;font-family:Inter,system-ui,sans-serif;box-shadow:0 0 28px rgba(0,255,136,.18);animation:kxLimIn .45s cubic-bezier(.2,.8,.2,1) both';
+      const upsell = tier === 'free' ? '<a href="despacho.html" style="color:var(--role-color,#00FF88);font-weight:700;text-decoration:underline;">Pasa a Pro</a> para tener 100 al día.' : 'Es un límite anti-abuso: se renueva solo.';
+      el.innerHTML = '<style>@keyframes kxLimIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}</style>' +
+        '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--role-color,#00FF88);font-weight:800">⏳ ' + (label || 'Cupo diario agotado') + '</div><button type="button" aria-label="Cerrar" style="background:none;border:0;color:#94A3B8;font-size:16px;line-height:1;cursor:pointer">×</button></div>' +
+        '<div style="font:800 30px/1.1 \'JetBrains Mono\',ui-monospace,monospace;color:#fff;margin:8px 0 4px;letter-spacing:.04em" data-t>--:--:--</div>' +
+        '<div style="font-size:11.5px;color:#94A3B8;line-height:1.4">Tu cupo se renueva a las <strong style="color:#fff">00:00 h</strong>. ' + upsell + '</div>';
+      document.body.appendChild(el);
+      const t = el.querySelector('[data-t]');
+      const tick = () => { const ms = msUntilMidnight(); t.textContent = fmtHMS(ms); if (ms < 1000) { t.textContent = '¡Ya disponible!'; clearInterval(el._t); setTimeout(() => el.remove(), 4000); } };
+      tick(); el._t = setInterval(tick, 1000);
+      el.querySelector('button').onclick = () => { clearInterval(el._t); el.remove(); };
+    } catch (e) {}
+  }
+  function limitHit(res, label) {
+    try { if (res && !/presupuesto|d[ií]a 1|este mes/i.test(String(res.error || res.reply || ''))) showLimitCountdown(label); } catch (e) {}
+    return res;
   }
 
   // Memoria compartida: lo que el usuario cuenta a un especialista lo conocen los demás.
@@ -1208,12 +1239,12 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
     return out;
   }
 
-  async function _callProviderRaw({ systemPrompt, userPrompt, chatHistory = [], imagesBase64 = [], responseMimeType = 'text/plain', maxTokens = 0 }, engine) {
+  async function _callProviderRaw({ systemPrompt, userPrompt, chatHistory = [], imagesBase64 = [], responseMimeType = 'text/plain', maxTokens = 0, grounded = false }, engine) {
     const tier = getCurrentTier();
     const baseCfg = KINET_API_CONFIG.modelsByTier[tier] || KINET_API_CONFIG.modelsByTier.free;
     const modelCfg = engine === 'lite' ? Object.assign({}, baseCfg, KINET_API_CONFIG.liteModel) : baseCfg;
     const geminiKey = (localStorage.getItem('kinet_gemini_api_key') || KINET_API_CONFIG.GEMINI_API_KEY || DEFAULT_INSTALLED_API_KEY).trim();
-    const groqKey = (localStorage.getItem('kinet_groq_api_key') || KINET_API_CONFIG.GROQ_API_KEY || '').trim();
+    const groqKey = grounded ? '' : (localStorage.getItem('kinet_groq_api_key') || KINET_API_CONFIG.GROQ_API_KEY || '').trim();
     const openaiKey = (localStorage.getItem('kinet_ai_api_key') || KINET_API_CONFIG.OPENAI_API_KEY || '').trim();
 
     // 1. Groq Llama 3.3 70B Versatile (si el usuario configuró clave gsk_...)
@@ -1315,11 +1346,11 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
       if (responseMimeType === 'application/json') {
         genConfig.responseMimeType = 'application/json';
       }
-      const buildGeminiBody = (cfg) => JSON.stringify({
+      const buildGeminiBody = (cfg) => JSON.stringify(Object.assign({
         systemInstruction: { parts: [{ text: String(systemPrompt || '') }] },
         contents: geminiTurns,
         generationConfig: cfg
-      });
+      }, grounded ? { tools: [{ google_search: {} }] } : {}));
       // Une todas las partes de texto (sin pensamientos internos). Si se cortó por límite de tokens, recorta a la última frase completa.
       const readGeminiText = (data) => {
         const cand = data?.candidates?.[0];
@@ -1464,7 +1495,7 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
       if (consumeQuota) {
         slot = peekChatSlot();
         if (!slot) {
-          return { ok: false, limitReached: true, remainingAfter: 0, reply: chatLimitMessage(quota) };
+          return limitHit({ ok: false, limitReached: true, remainingAfter: 0, reply: chatLimitMessage(quota) }, 'Consultas de hoy agotadas');
         }
         commitChatSlot(slot);
       }
@@ -1569,10 +1600,10 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
       const q = String(question || '').trim().slice(0, 800);
       if (!q) return { ok: false, remaining: Math.max(0, limit - used), limit, reply: 'Escribe tu pregunta y te ayudo.' };
       if (used >= limit) {
-        return {
+        return limitHit({
           ok: false, limitReached: true, remaining: 0, limit,
           reply: `Has usado tus **${limit} preguntas diarias** al asistente de la comunidad (${limits.tierName}). Se reinician a las 00:00h. Con **Pro** tienes ${PLAN_LIMITS.pro.dailyCommunityBotMessages} al día y con **Club & Scout** ${PLAN_LIMITS.club.dailyCommunityBotMessages}. Para tu caso personal, tu **Cuerpo Técnico IA** tiene su propio cupo.`
-        };
+        }, 'Asistente de comunidad: cupo agotado');
       }
       const hist = (Array.isArray(history) ? history : []).slice(-6).map(m => ({
         role: m.role === 'user' ? 'user' : 'assistant',
@@ -1600,6 +1631,23 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
     // ------------------------------------------------------------------------
     // ASISTENTE DE SOPORTE (página Soporte y chat @kinet_support): hechos oficiales + cupo diario propio
     // ------------------------------------------------------------------------
+    // Club & Scout: seguimiento de deportistas fuera de la app con información PÚBLICA y deportiva (búsqueda web de Gemini).
+    async trackPublicAthlete({ name = '', sport = '', club = '', extra = '' } = {}) {
+      const tier = getCurrentTier();
+      if (tier !== 'club') return { ok: false, error: 'El seguimiento externo es una función del plan Club & Scout Pro.' };
+      const n = String(name || '').trim().slice(0, 80);
+      if (n.length < 3) return { ok: false, error: 'Escribe el nombre del deportista.' };
+      const slot = peekChatSlot();
+      if (!slot) return limitHit({ ok: false, limitReached: true, error: chatLimitMessage(this.getQuotaStatus()).replace(/\*\*/g, '') }, 'Consultas de hoy agotadas');
+      const sys = 'Eres un analista de scouting deportivo. Buscas en la web SOLO información pública y deportiva sobre un deportista profesional o semiprofesional: club actual, categoría, minutos/partidos, estadísticas publicadas, resultados recientes, lesiones publicadas por su club o la prensa deportiva, y noticias de traspasos. NO busques ni incluyas domicilio, familia, redes personales, contacto, salud privada ni datos de menores de edad: si el deportista parece menor, responde únicamente "Menor de edad: seguimiento no disponible". Si no estás seguro de que sea la misma persona, dilo. Responde en español, en viñetas breves (máx. 8), y termina con una línea «Fiabilidad: alta/media/baja» y las fuentes con su dominio.';
+      const usr = `Deportista: ${n}${sport ? ' · Deporte: ' + sport : ''}${club ? ' · Club: ' + club : ''}${extra ? ' · Dato extra: ' + String(extra).slice(0, 120) : ''}. Dame lo más reciente (últimos 30-60 días) útil para un ojeador.`;
+      try {
+        const text = await callDirectLLMProvider({ systemPrompt: sys, userPrompt: usr, maxTokens: 900, grounded: true });
+        commitChatSlot(slot);
+        return { ok: !!text, text: text || '', error: text ? '' : 'No se obtuvo información.' };
+      } catch (e) { return { ok: false, error: 'No se pudo consultar la web ahora mismo. Prueba más tarde.' }; }
+    },
+
     async askSupportBot({ question = '', history = [] } = {}) {
       const limits = PLAN_LIMITS[getCurrentTier()] || PLAN_LIMITS.free;
       const limit = limits.dailySupportBotMessages || 10;
@@ -1607,7 +1655,7 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
       const q = String(question || '').trim().slice(0, 700);
       if (!q) return { ok: false, remaining: Math.max(0, limit - used), limit, reply: 'Cuéntame qué necesitas y te ayudo.' };
       if (used >= limit) {
-        return { ok: false, limitReached: true, remaining: 0, limit, reply: `Has llegado al límite diario del asistente de soporte (${limit} mensajes). Vuelve mañana o escríbenos desde el formulario de **Contacto directo con Soporte**.` };
+        return limitHit({ ok: false, limitReached: true, remaining: 0, limit, reply: `Has llegado al límite diario del asistente de soporte (${limit} mensajes). Se renueva a las 00:00 h, o escríbenos desde el formulario de **Contacto directo con Soporte**.` }, 'Soporte: cupo agotado');
       }
       const hist = (Array.isArray(history) ? history : []).slice(-6).map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: String(m.content || '').slice(0, 500) }));
       const systemPrompt = buildSupportBotPrompt();
@@ -1646,7 +1694,7 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
       const limit = limits.dailyTacticalAI || 3;
       const used = getTacticalAIUsage();
       if (used >= limit) {
-        return { ok: false, limitReached: true, remaining: 0, limit, error: `Has agotado tus ${limit} generaciones tácticas de hoy. Se reinician a las 00:00h.` };
+        return limitHit({ ok: false, limitReached: true, remaining: 0, limit, error: `Has agotado tus ${limit} generaciones tácticas de hoy. Se reinician a las 00:00h.` }, 'Jugadas de hoy agotadas');
       }
       const mode = ['play', 'training', 'match'].includes(ctx.mode) ? ctx.mode : 'play';
       const c = Object.assign({}, ctx, { mode });
@@ -1713,6 +1761,45 @@ Reglas: los días se codifican 0=domingo,1=lunes,2=martes,3=miércoles,4=jueves,
         const blob = clean.join(' \n ').toLowerCase();
         ['club', 'city', 'hometown'].forEach(k => { if (prof[k] && !blob.includes(prof[k].toLowerCase())) prof[k] = ''; });
         return prof;
+      } catch (e) {
+        return null;
+      }
+    },
+
+    // ------------------------------------------------------------------------
+    // ENTREVISTA DE BIENVENIDA CON IA (un turno). El guion (qué falta por preguntar) lo decide el cliente;
+    // la IA lo redacta de forma natural, reconoce lo que el usuario acaba de decir y extrae datos.
+    // Devuelve { reply, fields } o null si no hay IA / límite / fallo (el onboarding usa entonces su guion local).
+    // Máx. 16 turnos al día por dispositivo; no gasta cuota de chat y usa el motor ligero.
+    // ------------------------------------------------------------------------
+    async onboardingTurn({ role = 'athlete', sport = '', position = '', category = '', firstName = '', known = {}, history = [], lastUser = '', nextTopic = '', bankQuestion = '', closing = false } = {}) {
+      try {
+        if (!hasAnyConfiguredApiKey() && !String(DEFAULT_INSTALLED_API_KEY || '').trim()) return null;
+        const today = getTodayLocalKey();
+        if (localStorage.getItem('kinet_onb_turn_date') !== today) { localStorage.setItem('kinet_onb_turn_date', today); localStorage.setItem('kinet_onb_turn_n', '0'); }
+        const n = parseInt(localStorage.getItem('kinet_onb_turn_n') || '0', 10) || 0;
+        if (n >= 16) return null;
+        localStorage.setItem('kinet_onb_turn_n', String(n + 1));
+        const systemPrompt = `Eres el entrevistador de bienvenida de KINET OS, una app de rendimiento deportivo. Hablas en español de España, cercano y profesional, como un preparador que conoce el deporte. Reglas: 1) Responde SOLO con un JSON válido. 2) "reply": máximo 2 frases cortas (350 caracteres): primero reconoce con concreción algo de lo que el usuario acaba de decir (sin repetirlo literal ni adular) y después hace UNA sola pregunta, la del tema indicado, adaptada a su deporte (${sport}) y puesto (${position || 'general'}). No uses listas, ni emojis en exceso (como mucho uno), ni negritas salvo **una palabra clave**. Evita preguntas genéricas y no inventes datos. 3) "fields": datos que el usuario ha dado EXPLÍCITAMENTE en su último mensaje: {"club": string|null, "city": string|null, "hometown": string|null, "laterality": "Diestro"|"Zurdo"|"Ambidiestro"|null, "goal": string|null, "strength": string|null, "weakness": string|null, "injuries": string|null, "sleepHours": number|null, "fieldDays": number[], "gymDays": number[], "matchDays": number[], "fieldCount": number|null, "gymCount": number|null, "prefTime": "mañana"|"tarde"|"noche"|"HH:MM"|null, "noMatches": boolean|null}. Días: 0=domingo,1=lunes,…,6=sábado. "club" y "city" son solo el nombre propio (p. ej. "Real Madrid", "Madrid"), nunca frases. Si no lo dijo, null o []. Formato: {"reply": "...", "fields": {...}}. ${closing ? 'Esta es la última pregunta: tras recoger la respuesta cierra con una frase breve de ánimo, sin hacer más preguntas.' : ''}`;
+        const userPrompt = `Usuario: ${firstName || 'atleta'}. Categoría: ${category || '-'}. Lo que ya sabemos: ${JSON.stringify(known).slice(0, 700)}.\nÚltimo mensaje del usuario: "${String(lastUser || '').slice(0, 500)}"\nTema de la siguiente pregunta: ${nextTopic}.\nPregunta base (puedes reformularla con tu estilo, sin perder su sentido): ${bankQuestion}`;
+        const hist = (Array.isArray(history) ? history : []).slice(-8).map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: String(m.content || '').slice(0, 400) }));
+        const run = callDirectLLMProvider({ systemPrompt, userPrompt, chatHistory: hist, responseMimeType: 'application/json' });
+        const txt = await Promise.race([run, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 9000))]);
+        const m = String(txt || '').match(/\{[\s\S]*\}/);
+        if (!m) return null;
+        const raw = JSON.parse(m[0]);
+        let reply = typeof raw.reply === 'string' ? raw.reply.trim() : '';
+        if (!reply || reply.length > 420) return null;
+        const fields = sanitizeOnboardingProfile(raw.fields || {});
+        const o = raw.fields || {};
+        const extra = {
+          fieldCount: Number.isInteger(o.fieldCount) && o.fieldCount >= 0 && o.fieldCount <= 7 ? o.fieldCount : null,
+          gymCount: Number.isInteger(o.gymCount) && o.gymCount >= 0 && o.gymCount <= 7 ? o.gymCount : null,
+          matchDays: Array.isArray(o.matchDays) ? Array.from(new Set(o.matchDays.map(x => parseInt(x, 10)).filter(x => x >= 0 && x <= 6))) : [],
+          prefTime: typeof o.prefTime === 'string' && /^(mañana|tarde|noche|\d{1,2}:\d{2})$/i.test(o.prefTime.trim()) ? o.prefTime.trim().toLowerCase() : '',
+          noMatches: o.noMatches === true
+        };
+        return { reply, fields: Object.assign({}, fields, extra), userText: String(lastUser || '') };
       } catch (e) {
         return null;
       }
@@ -1886,7 +1973,7 @@ Devuelve ESTRICTAMENTE un JSON válido con:
     async generateMediaStudioDesign({ promptText = '', formatMode = 'image', sport = 'Fútbol', presetName = 'Match Day' }) {
       const _q = this.getQuotaStatus();
       if (_q.imageRemaining <= 0) {
-        return { ok: false, limitReached: true, error: `Has alcanzado tu límite diario de ${_q.imageLimit} imágenes en el ${_q.tierName}.` };
+        return limitHit({ ok: false, limitReached: true, error: `Has alcanzado tu límite diario de ${_q.imageLimit} imágenes en el ${_q.tierName}.` }, 'Imágenes de hoy agotadas');
       }
       const edgeStudio = await invokeSupabaseEdgeFunction('kinet-media-studio', {
         promptText,
@@ -1931,7 +2018,7 @@ Devuelve ESTRICTAMENTE JSON:
       const isEdit = !!imageDataUrl;
       const cost = isEdit ? AI_COST_EUR.imageEdit : AI_COST_EUR.image;
       const q = this.getQuotaStatus();
-      if (q.imageRemaining <= 0) return { ok: false, limitReached: true, error: `Has alcanzado tu límite de ${q.imageLimit} imágenes al día en el ${q.tierName}. Se renueva a las 00:00 h.` };
+      if (q.imageRemaining <= 0) return limitHit({ ok: false, limitReached: true, error: `Has alcanzado tu límite de ${q.imageLimit} imágenes al día en el ${q.tierName}. Se renueva a las 00:00 h.` }, 'Imágenes de hoy agotadas');
       if (!imageBudgetOk(cost)) return { ok: false, limitReached: true, error: 'Has alcanzado el presupuesto de imágenes IA de este mes. Se renueva el día 1.' };
       const key = (localStorage.getItem('kinet_gemini_api_key') || KINET_API_CONFIG.GEMINI_API_KEY || DEFAULT_INSTALLED_API_KEY || '').trim();
       if (!key) return { ok: false, error: 'No hay clave de Google AI Studio configurada (botón "API IA" del Cuerpo Técnico).' };
@@ -2067,7 +2154,7 @@ Devuelve ESTRICTAMENTE un JSON válido:
       const quota = this.getQuotaStatus();
       const slot = peekChatSlot();
       if (!slot) {
-        return { ok: false, limitReached: true, error: chatLimitMessage(quota).replace(/\*\*/g, '') };
+        return limitHit({ ok: false, limitReached: true, error: chatLimitMessage(quota).replace(/\*\*/g, '') }, 'Consultas de hoy agotadas');
       }
       const sys = `Eres el planificador táctico de KINET OS para ${sport}. Atleta: ${buildAthleteContextLine()}.
 Respondes SOLO con un JSON válido (sin texto extra ni markdown) que respete exactamente este esquema:

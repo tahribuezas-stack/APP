@@ -48,6 +48,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="kinet-backend.js"></script>
     <script src="kinet-api-config.js"></script>
+    <script src="kinet-sensors.js"></script>
 
     <style>
         :root {
@@ -788,10 +789,17 @@
                                 </div>
                                 <div class="setting-row">
                                     <div class="setting-info">
-                                        <label>Sincronización de Sensores & Pasarelas Externas</label>
-                                        <span>Chaleco GPS, Apple Watch, Garmin, Strava & BeSoccer Sync</span>
+                                        <label>Sensores, pasos y actividad</label>
+                                        <span>Contador de pasos, GPS, pulsómetro Bluetooth e importar Garmin / Strava / Apple Watch (.GPX · .TCX)</span>
                                     </div>
-                                    <button class="btn-secondary" onclick="openInfoModal('📡 SINCRONIZACIÓN DE SENSORES ACTIVA', 'Se ha verificado el enlace con tus pasarelas deportivas (Garmin Connect, Apple Health, Strava y BeSoccer Sync).')">📡 Sincronizar GPS</button>
+                                    <button class="btn-secondary" onclick="KinetSensors.open()">📡 Configurar sensores</button>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>Seguimiento externo de deportistas <span style="font-size:.6rem;color:#F59E0B;font-family:'JetBrains Mono';">CLUB & SCOUT</span></label>
+                                        <span>Sigue por internet a jugadores fuera de la app: club, minutos, resultados y noticias públicas</span>
+                                    </div>
+                                    <button class="btn-secondary" onclick="KinetSensors.openTracking()">🌐 Abrir seguimiento</button>
                                 </div>
                                 <div class="setting-row">
                                     <div class="setting-info">
@@ -1060,11 +1068,11 @@
                                 <p class="plan-desc">Acceso base para gestionar el vestuario, compartir contenido en la red social y usar la Pizarra Táctica 3D.</p>
                                 <div class="plan-price">0€<span>/ siempre</span></div>
                                 <ul class="plan-features">
-                                    <li>Cuerpo Técnico IA (Estándar Diario)</li>
-                                    <li>KINET Pulse (Publicación de Fotos y Texto)</li>
-                                    <li>Analizador & Pizarra 3D + Duelo 1vs1</li>
+                                    <li>Cuerpo Técnico IA: <strong>15 consultas/día</strong></li>
+                                    <li><strong>3 imágenes IA/día</strong> · publicidad discreta</li>
+                                    <li>KINET Pulse, Analizador & Pizarra 3D + Duelo 1vs1</li>
                                     <li>KINET Card Custom (Bronce y Plata)</li>
-                                    <li>Capacidad máx. monedero bonos: 595 min</li>
+                                    <li>Vídeo IA con bonos de minutos (monedero máx. 595 min)</li>
                                 </ul>
                             </div>
                             <button class="btn-pricing btn-select-free" id="btn-tier-free" onclick="promptCancelPlan('Plan de Pago')">PLAN BÁSICO ACTIVO</button>
@@ -1079,11 +1087,11 @@
                                 <p class="plan-desc">Para deportistas que quieren subir vídeos y KINET Shorts en alta definición, auditar partidos y verificar su carta.</p>
                                 <div class="plan-price">8,99€<span>/ mes</span></div>
                                 <ul class="plan-features">
+                                    <li><strong>100 consultas/día</strong> · 30 imágenes IA/día</li>
+                                    <li><strong>90 min/mes</strong> de vídeo IA (se recargan cada mes)</li>
                                     <li>Subida de Vídeos HD y KINET Shorts</li>
-                                    <li>90 min/mes incluidos en Vision Lab™</li>
                                     <li>KINET Card ✓ AI Verified (Oro 24K & Holo)</li>
-                                    <li><strong>50% de descuento</strong> en todos los Bonos Extra</li>
-                                    <li>Cuerpo Técnico IA de Alta Capacidad + 0 Anuncios</li>
+                                    <li><strong>-50%</strong> en Bonos Extra · 0 anuncios</li>
                                 </ul>
                             </div>
                             <button class="btn-pricing btn-select-pro" id="btn-tier-pro" onclick="requestPlanUpgrade('pro')">CAMBIAR A PRO PLAYER (8,99€)</button>
@@ -1098,11 +1106,11 @@
                                 <p class="plan-desc">Solución integral para entrenadores, preparadores físicos, directores deportivos y agencias de representación.</p>
                                 <div class="plan-price">29,99€<span>/ mes</span></div>
                                 <ul class="plan-features">
-                                    <li>300 min/mes de Auditoría de Vídeo Táctico</li>
-                                    <li>Cuerpo Técnico IA Corporativo de Alta Capacidad</li>
-                                    <li>Acceso Total a KINET Radar B2B y Plantillas</li>
-                                    <li><strong>Tarifa Pro bonificada (-50%)</strong> en Bonos Extra</li>
-                                    <li>Gestión Multiequipo + 3 Perfiles Simultáneos</li>
+                                    <li><strong>300 consultas/día</strong> · 100 imágenes/día · motor de IA superior</li>
+                                    <li><strong>300 min/mes</strong> de Auditoría de Vídeo Táctico</li>
+                                    <li>KINET Radar B2B + <strong>seguimiento externo</strong> de deportistas</li>
+                                    <li>Gestión <strong>multiequipo</strong> (plantillas ampliadas en camino)</li>
+                                    <li><strong>-50%</strong> en Bonos Extra · 0 anuncios</li>
                                 </ul>
                             </div>
                             <button class="btn-pricing btn-select-club" id="btn-tier-club" onclick="requestPlanUpgrade('club')">CAMBIAR A CLUB & SCOUT (29,99€)</button>
@@ -1405,21 +1413,16 @@
                 </label>
 
                 <div style="background:rgba(4,6,10,0.9); border:1px solid rgba(var(--role-rgb),0.4); border-radius:14px; padding:14px; margin-bottom:12px;">
-                    <label style="font-family:'JetBrains Mono'; font-size:0.65rem; color:var(--role-color); display:block; margin-bottom:6px; font-weight:700;">MÉTODO 1: PAGO SEGURO CON TARJETA / APPLE PAY / GOOGLE PAY (STRIPE)</label>
+                    <label style="font-family:'JetBrains Mono'; font-size:0.65rem; color:var(--role-color); display:block; margin-bottom:6px; font-weight:700;">PAGO SEGURO CON TARJETA / APPLE PAY / GOOGLE PAY (STRIPE)</label>
                     <p style="font-size:0.74rem; color:#94A3B8; margin-bottom:10px; line-height:1.4;">
                         Por seguridad bancaria <strong>PCI-DSS Nivel 1</strong>, KINET OS jamás solicita números de tarjeta dentro de esta ventana. Pulsa debajo para abrir la pasarela cifrada oficial de <strong>Stripe Checkout</strong>:
                     </p>
                     <button type="button" class="btn-primary" style="width:100%; padding:11px;" onclick="launchOfficialStripeCheckout()">💳 Pagar Ahora en Pasarela Oficial Stripe →</button>
                 </div>
 
-                <div style="background:rgba(4,6,10,0.85); border:1px solid var(--border-subtle); border-radius:14px; padding:12px 14px;">
-                    <label style="font-family:'JetBrains Mono'; font-size:0.63rem; color:#94A3B8; display:block; margin-bottom:6px;">MÉTODO 2: CANJEAR CÓDIGO CORPORATIVO O TOKEN DE COMPRA VERIFICADO</label>
-                    <input type="password" id="license-key-input" class="setting-input" style="width:100%; font-family:'JetBrains Mono';" placeholder="Introduce tu clave firmada KINET OS...">
-                </div>
             </div>
             <div class="kinet-modal-footer">
                 <button class="btn-secondary" onclick="cancelCheckoutModal()">Cancelar</button>
-                <button class="btn-secondary" style="border-color:var(--role-color);color:var(--role-color);" onclick="confirmCheckoutActivation()">🔑 Validar Código Oficial</button>
             </div>
         </div>
     </div>
@@ -2395,7 +2398,20 @@ function stageResetRoleColor() {
             }
         }
 
+        // Un invitado no puede pagar: primero tiene que crear su cuenta (el plan y los minutos se asocian a ella)
+        function requireAccountBeforePay() {
+            let guest = false;
+            try { guest = !!(window.KinetBackend && window.KinetBackend.isGuest && window.KinetBackend.isGuest()); } catch (e) {}
+            if (!guest) return false;
+            openInfoModal('👤 CREA TU CUENTA PARA CONTINUAR',
+                'Estás usando KINET OS como <strong>invitado</strong>. Para pagar necesitamos una cuenta: así tu plan, tus minutos y tus datos quedan guardados y los recuperas en cualquier dispositivo.<br><br>' +
+                '<button type="button" class="btn-primary" style="width:100%;padding:11px;margin-top:4px;" onclick="window.location.href=\'login.html?mode=register&reason=checkout\'">Crear mi cuenta gratis →</button>' +
+                '<div style="font-size:0.68rem;color:#94A3B8;margin-top:8px;text-align:center;">Tarda menos de un minuto. No se te cobra nada al registrarte.</div>');
+            return true;
+        }
+
         function requestPlanUpgrade(targetTier) {
+            if (requireAccountBeforePay()) return;
             // Si la cuenta tiene staff_role en Supabase, cambia de plan al instante SIN pasarela de pago
             if (isStaffSandboxAccount()) {
                 staffInstantSwitchTier(targetTier);
@@ -2431,13 +2447,13 @@ function stageResetRoleColor() {
                 if (sumItem) sumItem.textContent = `Producto: Licencia Pro Player (90 min/mes + Carta AI Verified + Bonos al -50%)${boostNote}`;
                 if (sumPrice) sumPrice.textContent = 'Importe mensual (IVA incl.): 8,99 € / mes';
             }
-            document.getElementById('license-key-input').value = '';
             document.getElementById('checkout-upgrade-modal').classList.add('open');
         }
 
         function requestBonusCheckout(packKey) {
             const pack = KINET_BONUS_CATALOG[packKey];
             if (!pack) return;
+            if (requireAccountBeforePay()) return;
             // Si la cuenta tiene staff_role en Supabase, recarga el bono gratis al instante SIN pasarela de pago
             if (isStaffSandboxAccount()) {
                 const prev = Math.min(MAX_BONUS_WALLET_MINS, Math.max(0, parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0')));
@@ -2482,7 +2498,6 @@ function stageResetRoleColor() {
                     : `Importe Tarifa Estándar Free: ${finalPrice} (Con PRO cuesta ${pack.pricePro} y tus minutos suben hasta 595 min al pasar a PRO)`;
             }
 
-            document.getElementById('license-key-input').value = '';
             document.getElementById('checkout-upgrade-modal').classList.add('open');
         }
 
@@ -2494,6 +2509,7 @@ function stageResetRoleColor() {
         }
 
         function launchOfficialStripeCheckout() {
+            if (requireAccountBeforePay()) { closeKinetModal('checkout-upgrade-modal'); return; }
             const consentBox = document.getElementById('legal-checkout-consent');
             if (!consentBox || !consentBox.checked) {
                 alert('Por favor, marca la casilla de aceptación del Contrato Legal y del Art. 103.m (TRLGDCU) antes de continuar hacia la pasarela de pago.');
@@ -2516,7 +2532,7 @@ function stageResetRoleColor() {
                 sessionStorage.setItem('kinet_pending_stripe_item', itemKey);
                 window.location.href = stripeUrl;
             } else {
-                alert('Pasarela Stripe lista para producción: configura tus URLs de Stripe Payment Links en kinet-api-config.js (window.KINET_STRIPE_LINKS) o utiliza tu clave firmada de administrador debajo.');
+                alert('Pasarela Stripe lista para producción: configura tus URLs de Stripe Payment Links en kinet-api-config.js (window.KINET_STRIPE_LINKS)');
             }
         }
 
@@ -3048,8 +3064,6 @@ function stageResetRoleColor() {
 <script>
     (function () {
         try {
-            var k = document.getElementById('license-key-input');
-            if (k) { var box = k.closest('div'); if (box) box.style.display = 'none'; }
             if (new URLSearchParams(location.search).get('checkout') === 'success') setTimeout(function () { confirmCheckoutActivation(); }, 700);
         } catch (e) {}
     })();

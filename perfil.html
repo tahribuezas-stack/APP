@@ -3,6 +3,7 @@
 <head>
 <script src="kinet-guard.js"></script>
 <script src="kinet-sport.js"></script>
+<script src="kinet-text.js"></script>
 <script src="kinet-cv.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1838,7 +1839,7 @@
             const matchedLat = catalog.lateralities.find(l => l.toLowerCase().includes(savedLat.toLowerCase()) && savedLat.length > 2) || savedLat || '';
 
             let bio = localStorage.getItem('kinet_social_bio') || localStorage.getItem('kinet_user_bio') || '';
-            if (/^Perfil Verificado KINET OS/i.test(bio)) bio = '';
+            if (/^Perfil Verificado KINET OS/i.test(bio)) { bio = ''; localStorage.removeItem('kinet_social_bio'); localStorage.removeItem('kinet_user_bio'); }
             let bundleBackup = {};
             try { bundleBackup = JSON.parse(localStorage.getItem('kinet_passport_cv_bundle') || '{}') || {}; } catch (e) {}
             let dbBackup = {};
@@ -1862,7 +1863,20 @@
             const avatar = localStorage.getItem('kinet_user_avatar');
 
             document.getElementById('prof-input-name').value = userName;
-            document.getElementById('prof-input-handle').value = handle;
+            const handleEl = document.getElementById('prof-input-handle');
+            handleEl.value = handle;
+            if (window.KinetBackend && KinetBackend.isGuest && KinetBackend.isGuest()) {
+                handleEl.readOnly = true; handleEl.setAttribute('aria-readonly', 'true');
+                handleEl.title = 'Crea tu cuenta para elegir tu @usuario';
+                handleEl.style.opacity = '0.6'; handleEl.style.cursor = 'not-allowed';
+                if (!document.getElementById('handle-guest-note')) {
+                    const note = document.createElement('div');
+                    note.id = 'handle-guest-note';
+                    note.style.cssText = "font-family:'JetBrains Mono';font-size:0.58rem;color:#F59E0B;margin-top:4px;";
+                    note.textContent = '🔒 Modo invitado: crea tu cuenta para elegir tu @usuario.';
+                    handleEl.parentNode.appendChild(note);
+                }
+            }
             document.getElementById('prof-input-birthdate').value = birthdate;
             document.getElementById('prof-input-city').value = city;
             document.getElementById('prof-input-hometown').value = hometown;
@@ -1960,15 +1974,20 @@
         }
 
         async function saveProfileChanges() {
-            localStorage.setItem('kinet_logged_in', 'true');
-            localStorage.removeItem('kinet_is_guest');
+            // Un invitado sigue siendo invitado al guardar: solo una cuenta real (login/registro) quita ese estado.
+            const wasGuest = !!(window.KinetBackend && KinetBackend.isGuest && KinetBackend.isGuest());
+            if (!wasGuest) {
+                localStorage.setItem('kinet_logged_in', 'true');
+                localStorage.removeItem('kinet_is_guest');
+            }
 
             const nameVal = document.getElementById('prof-input-name')?.value.trim() || '';
             const handleVal = document.getElementById('prof-input-handle')?.value.trim() || '';
             const birthVal = document.getElementById('prof-input-birthdate')?.value.trim() || '';
-            const cityVal = document.getElementById('prof-input-city')?.value.trim() || '';
-            const hometownVal = document.getElementById('prof-input-hometown')?.value.trim() || '';
-            const clubVal = document.getElementById('prof-input-club')?.value.trim() || '';
+            const KT = window.KinetText || { city: v => v, club: v => v, person: v => v };
+            const cityVal = KT.city(document.getElementById('prof-input-city')?.value || '');
+            const hometownVal = KT.city(document.getElementById('prof-input-hometown')?.value || '');
+            const clubVal = KT.club(document.getElementById('prof-input-club')?.value || '');
             const catVal = document.getElementById('prof-input-category')?.value.trim() || '';
             const posVal = document.getElementById('prof-input-pos')?.value.trim() || '';
 
@@ -1984,7 +2003,7 @@
             const vidVal = document.getElementById('prof-input-videolink')?.value.trim() || '';
 
             if (nameVal) localStorage.setItem('kinet_user_name', nameVal);
-            if (handleVal) {
+            if (handleVal && !wasGuest) {
                 const cleanH = handleVal.startsWith('@') ? handleVal : '@' + handleVal;
                 localStorage.setItem('kinet_social_handle', cleanH);
                 localStorage.setItem('kinet_user_handle', cleanH);
@@ -2004,7 +2023,9 @@
             localStorage.setItem('kinet_user_anthropometry', combinedAnthro);
 
             if (latVal) localStorage.setItem('kinet_user_laterality', latVal);
-            if (bioVal) {
+            if (/^Perfil Verificado KINET OS/i.test(bioVal)) {
+                localStorage.removeItem('kinet_social_bio'); localStorage.removeItem('kinet_user_bio');
+            } else if (bioVal) {
                 localStorage.setItem('kinet_social_bio', bioVal);
                 localStorage.setItem('kinet_user_bio', bioVal);
             }

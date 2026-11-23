@@ -186,6 +186,7 @@
           </svg>
           <span id="google-btn-label">Iniciar sesión con Google</span>
         </button>
+        <p class="text-[9px] text-slate-500 text-center leading-snug -mt-1">Al continuar con Google aceptas las <a href="legal.html#terminos" target="_blank" class="underline">Condiciones</a> y la <a href="legal.html#privacidad" target="_blank" class="underline">Privacidad</a>, y confirmas que tienes 14 años o más (los menores de 18 necesitan autorización de su tutor).</p>
 
         <div class="relative flex py-0.5 items-center">
           <div class="flex-grow border-t border-slate-800"></div>
@@ -293,6 +294,22 @@
                     <i data-lucide="eye" class="w-4 h-4"></i>
                   </button>
                 </div>
+              </div>
+
+              <div id="reg-consents" class="rounded-xl border border-slate-800 bg-[#0d1117] p-3 space-y-2">
+                <label class="flex items-start gap-2 text-[11px] text-slate-300 leading-snug cursor-pointer"><input type="checkbox" id="reg-terms" class="mt-0.5 accent-[#00FF88] shrink-0"> <span>He leído y acepto las <a href="legal.html#terminos" target="_blank" class="text-kinet-neon underline">Condiciones de uso</a> y la <a href="legal.html#privacidad" target="_blank" class="text-kinet-neon underline">Política de privacidad</a>. <em class="text-slate-500 not-italic">(obligatorio)</em></span></label>
+                <label class="flex items-start gap-2 text-[11px] text-slate-300 leading-snug cursor-pointer"><input type="checkbox" id="reg-ai" class="mt-0.5 accent-[#00FF88] shrink-0"> <span>Entiendo que los entrenadores IA dan orientación general y <strong>no sustituyen a un médico, fisio o entrenador titulado</strong>, y consiento que los datos físicos y de salud que yo escriba se usen para personalizar mis consejos. <em class="text-slate-500 not-italic">(obligatorio)</em></span></label>
+                <label class="flex items-start gap-2 text-[11px] text-slate-300 leading-snug cursor-pointer"><input type="checkbox" id="reg-age" class="mt-0.5 accent-[#00FF88] shrink-0"> <span>Confirmo que tengo <strong>14 años o más</strong> y que los datos que facilito son verdaderos. <em class="text-slate-500 not-italic">(obligatorio)</em></span></label>
+                <div id="reg-guardian-box" class="hidden space-y-2 rounded-lg border border-amber-500/40 bg-amber-500/5 p-2.5">
+                  <p class="text-[10px] font-mono text-amber-400 uppercase tracking-wider">Menor de 18 años · autorización de madre, padre o tutor</p>
+                  <label class="flex items-start gap-2 text-[11px] text-slate-300 leading-snug cursor-pointer"><input type="checkbox" id="reg-guardian-ok" class="mt-0.5 accent-[#F59E0B] shrink-0"> <span>Mi padre, madre o tutor legal ha leído y <strong>autoriza</strong> el uso de KINET OS, las condiciones y la privacidad. Los pagos solo con su autorización. <em class="text-slate-500 not-italic">(obligatorio)</em></span></label>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <input type="text" id="reg-guardian-name" placeholder="Nombre del tutor/a" class="w-full bg-[#12161C] border border-slate-800 rounded-lg px-3 py-1.5 text-[11px] text-white focus:outline-none focus:border-amber-500">
+                    <input type="email" id="reg-guardian-email" placeholder="Correo del tutor/a" class="w-full bg-[#12161C] border border-slate-800 rounded-lg px-3 py-1.5 text-[11px] text-white focus:outline-none focus:border-amber-500">
+                  </div>
+                </div>
+                <label class="flex items-start gap-2 text-[11px] text-slate-400 leading-snug cursor-pointer"><input type="checkbox" id="reg-anon" class="mt-0.5 accent-[#00FF88] shrink-0"> <span>(Opcional) Permito usar datos <strong>anonimizados y agregados</strong> para mejorar KINET OS y mantener el plan gratuito. Puedo retirarlo cuando quiera.</span></label>
+                <label class="flex items-start gap-2 text-[11px] text-slate-400 leading-snug cursor-pointer"><input type="checkbox" id="reg-news" class="mt-0.5 accent-[#00FF88] shrink-0"> <span>(Opcional) Quiero recibir novedades y ofertas por correo.</span></label>
               </div>
 
               <button type="submit" id="btn-submit-register" class="w-full py-2.5 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-wider uppercase hover:bg-emerald-400 transition shadow-[0_0_15px_rgba(0,255,102,0.2)]">
@@ -709,6 +726,19 @@
       }
     }
 
+    function ageFromBirth(v) {
+      if (!v) return null;
+      const b = new Date(v); if (isNaN(b)) return null;
+      const n = new Date(); let a = n.getFullYear() - b.getFullYear();
+      const m = n.getMonth() - b.getMonth(); if (m < 0 || (m === 0 && n.getDate() < b.getDate())) a--;
+      return a;
+    }
+    function refreshGuardianBox() {
+      const a = ageFromBirth(document.getElementById('reg-birthdate').value);
+      const box = document.getElementById('reg-guardian-box');
+      if (box) box.classList.toggle('hidden', !(a !== null && a >= 0 && a < 18));
+    }
+
     async function handleRegisterSubmit(e) {
       e.preventDefault();
       const btn = document.getElementById('btn-submit-register');
@@ -720,13 +750,27 @@
       const phone = document.getElementById('reg-phone').value.trim();
       const password = document.getElementById('reg-password').value;
 
+      const age = ageFromBirth(birthDate);
+      const isMinor = age !== null && age < 18;
+      if (age === null || age < 0 || age > 110) { showNotification('Revisa tu fecha de nacimiento.'); return; }
+      if (age < 14) { showNotification('Para crear una cuenta necesitas tener 14 años o más. Pide a tu familia que te acompañe cuando los cumplas.'); return; }
+      const need = [['reg-terms', 'Debes aceptar las Condiciones de uso y la Política de privacidad.'], ['reg-ai', 'Debes aceptar el aviso sobre el uso de la IA y de tus datos de salud.'], ['reg-age', 'Debes confirmar que tienes 14 años o más.']];
+      for (const [id, msg] of need) { if (!document.getElementById(id).checked) { showNotification(msg); document.getElementById(id).focus(); return; } }
+      let guardian = null;
+      if (isMinor) {
+        const gName = document.getElementById('reg-guardian-name').value.trim(), gMail = document.getElementById('reg-guardian-email').value.trim();
+        if (!document.getElementById('reg-guardian-ok').checked || gName.length < 3 || !/^\S+@\S+\.\S+$/.test(gMail)) { showNotification('Por ser menor de 18 años necesitamos la autorización de tu madre, padre o tutor: marca la casilla e indica su nombre y correo.'); return; }
+        guardian = { name: gName, email: gMail };
+      }
+      const consents = { terms: true, privacy: true, ai_health: true, age14: true, minor: isMinor, guardian: guardian, anon_data: document.getElementById('reg-anon').checked, marketing: document.getElementById('reg-news').checked, version: '2026-11', ts: new Date().toISOString() };
+
       btn.textContent = 'CREANDO CUENTA EN KINET OS...';
       btn.disabled = true;
 
       try {
         localStorage.removeItem('kinet_is_guest');
         if (window.KinetBackend) {
-          await window.KinetBackend.registerUser({ firstName, lastName, handle, email, phone, password, birthDate });
+          await window.KinetBackend.registerUser({ firstName, lastName, handle, email, phone, password, birthDate, consents });
         } else {
           saveUnifiedIdentity(`${firstName} ${lastName}`.trim(), '@' + handle, email, false, birthDate);
         }
@@ -819,6 +863,9 @@
       checkOfficialGoogleOAuthCallback();
 
       const urlParams = new URLSearchParams(window.location.search);
+      const bd = document.getElementById('reg-birthdate');
+      if (bd) { bd.max = new Date().toISOString().slice(0, 10); bd.addEventListener('change', refreshGuardianBox); bd.addEventListener('input', refreshGuardianBox); }
+      if (urlParams.get('mode') === 'register') { try { switchMainTab('register'); if (urlParams.get('reason') === 'checkout') showNotification('Crea tu cuenta para poder contratar un plan.'); } catch (e) {} }
       if (urlParams.get('logout') === 'true') {
         clearExistingSessionHere();
         return;

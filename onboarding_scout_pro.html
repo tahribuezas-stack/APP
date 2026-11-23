@@ -113,6 +113,8 @@
     }
   </style>
 <script src="kinet-sport.js"></script>
+  <script src="kinet-text.js"></script>
+  <script src="kinet-onboarding.js"></script>
 </head>
 <body style="--spotlight-color: rgba(59, 130, 246, 0.25);" class="bg-cyber-pattern text-slate-100 font-sans min-h-screen flex items-center justify-center p-2 sm:p-4">
 
@@ -373,8 +375,8 @@
         </div>
       </div>
 
-      <div class="glass-card p-4 rounded-2xl border border-slate-800 flex flex-col justify-between h-[285px]">
-        <div class="space-y-3 overflow-y-auto pr-1 flex-1" id="scout-chat-messages-container"></div>
+      <div class="glass-card p-4 rounded-2xl border border-slate-800 flex flex-col justify-between h-[430px] sm:h-[470px]">
+        <div class="space-y-3 overflow-y-auto pr-1 flex-1 kx-smooth-scroll" id="scout-chat-messages-container"></div>
 
         <div class="flex space-x-2 pt-3 border-t border-slate-800/80 mt-2">
           <input type="text" id="ai-chat-input" onkeydown="if(event.key==='Enter'){event.preventDefault();sendAiResponse();}" placeholder="Escribe tu respuesta aquí..." class="flex-1 bg-[#12161C] border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500 transition">
@@ -762,17 +764,23 @@
       if (!box) return;
       const div = document.createElement('div');
       if (sender === 'ai') {
-        div.className = "flex items-start space-x-2.5";
+        div.className = "kx-msg-ai flex items-start space-x-2.5";
         div.innerHTML = `
           <div class="w-6 h-6 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">AI</div>
-          <div class="bg-slate-900 border border-slate-800 p-3 rounded-2xl text-xs text-slate-200 leading-relaxed max-w-[88%]">${text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-blue-400">$1</strong>')}</div>
+          <div class="bg-slate-900 border border-slate-800 p-3 rounded-2xl text-[13px] text-slate-200 leading-relaxed max-w-[88%]">${text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-blue-400">$1</strong>')}</div>
         `;
       } else {
-        div.className = "flex justify-end";
-        div.innerHTML = `<div class="bg-blue-500/15 border border-blue-500/50 text-white p-2.5 px-3.5 rounded-2xl text-xs max-w-[85%] font-medium">${text}</div>`;
+        div.className = "kx-msg-me flex justify-end";
+        div.innerHTML = `<div class="bg-blue-500/15 border border-blue-500/50 text-white p-2.5 px-3.5 rounded-2xl text-[13px] max-w-[85%] font-medium">${String(text).replace(/&/g,"&amp;").replace(/</g,"&lt;")}</div>`;
       }
       box.appendChild(div);
-      box.scrollTop = box.scrollHeight;
+      try { box.scrollTo({ top: box.scrollHeight, behavior: "smooth" }); } catch (e) { box.scrollTop = box.scrollHeight; }
+    }
+    function scoutTyping(on) {
+      const box = document.getElementById("scout-chat-messages-container"); if (!box) return;
+      let el = document.getElementById("typing-row");
+      if (on && !el) { el = document.createElement("div"); el.id = "typing-row"; el.className = "kx-msg-ai flex items-start space-x-2.5"; el.innerHTML = '<div class="w-6 h-6 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-[10px] font-bold shrink-0">AI</div><div class="bg-slate-900 border border-slate-800 px-3 py-2.5 rounded-2xl"><span class="kx-typing"><i></i><i></i><i></i></span></div>'; box.appendChild(el); try { box.scrollTo({ top: box.scrollHeight, behavior: "smooth" }); } catch (e) {} }
+      else if (!on && el) el.remove();
     }
 
     function setupAiScoutGreeting() {
@@ -781,7 +789,8 @@
         box.innerHTML = '';
         scoutState.chatStepIndex = 0;
         const qs = getScoutChatQuestionsByProfession();
-        appendScoutBubble('ai', qs[0]);
+        scoutTyping(true);
+        setTimeout(() => { scoutTyping(false); appendScoutBubble('ai', qs[0]); }, 650);
       }
     }
 
@@ -803,18 +812,33 @@
         scoutState.extracted.targetProfile = val;
       }
 
+      const KT = window.KinetText;
+      if (KT && scoutState.chatStepIndex === 0) {
+        const pr = KT.parse(val, 'work');
+        if (pr.city) scoutState.extracted.city = pr.city;
+        if (pr.club) scoutState.extracted.clubOrAgency = pr.club;
+      }
+      if (scoutState.chatStepIndex === 2) scoutState.extracted.scheduleText = val;
+      if (KT) {
+        if (scoutState.extracted.city) scoutState.extracted.city = KT.city(scoutState.extracted.city);
+        if (scoutState.extracted.clubOrAgency) scoutState.extracted.clubOrAgency = KT.club(scoutState.extracted.clubOrAgency);
+      }
+
       scoutState.chatStepIndex++;
       scoutState.aiCompleted = true;
       document.getElementById('ai-incomplete-alert').classList.add('hidden');
 
       const qs = getScoutChatQuestionsByProfession();
+      const idx = scoutState.chatStepIndex;
+      scoutTyping(true);
       setTimeout(() => {
-        if (scoutState.chatStepIndex < qs.length) {
-          appendScoutBubble('ai', qs[scoutState.chatStepIndex]);
+        scoutTyping(false);
+        if (idx < qs.length) {
+          appendScoutBubble('ai', qs[idx]);
         } else {
           appendScoutBubble('ai', `✅ **¡Radar B2B y Agenda configurados!** He guardado tus criterios en Scout Matrix, en tu Perfil y en los 4 Analistas IA. Pulsa abajo en **FINALIZAR REGISTRO & ACTIVAR RADAR SCOUT**.`);
         }
-      }, 240);
+      }, window.KinetOnboarding ? KinetOnboarding.thinkDelay(val) : 700);
     }
 
     function skipAiSetup() {
