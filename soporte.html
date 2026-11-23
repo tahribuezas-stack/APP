@@ -15,6 +15,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="kinet-backend.js"></script>
   <script src="kinet-api-config.js"></script>
+  <script src="kinet-support-kb.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
@@ -240,32 +241,24 @@
           <p class="text-xs text-slate-400">Pregunta una duda sobre la app o describe un problema. El asistente no ve tu cuenta ni tus pagos: para eso usa el formulario de abajo.</p>
 
           <!-- Caja de mensajes del chat IA -->
-          <div id="ai-quick-chat-box" class="bg-[#0B0E12] border border-slate-800/90 rounded-2xl p-4 h-48 overflow-y-auto no-scrollbar space-y-3 text-xs">
-            <div class="bg-[#141921] border border-slate-800 rounded-xl p-3 text-slate-200 max-w-[90%]">
-              <span class="font-mono text-[10px] text-kinet-neon font-bold block mb-1">KINET SUPPORT IA // ASISTENTE TÉCNICO</span>
-              ¡Hola! Soy el asistente técnico de <strong>KINET OS</strong>. Toca uno de los botones rápidos de abajo o escríbeme tu duda o incidencia:
+          <div id="ai-quick-chat-box" class="bg-[#0B0E12] border border-slate-800/90 rounded-2xl p-4 h-64 overflow-y-auto no-scrollbar space-y-3 text-xs">
+            <div class="bg-[#141921] border border-slate-800 rounded-xl p-3 text-slate-200 max-w-[92%]">
+              <span class="font-mono text-[10px] text-kinet-neon font-bold block mb-1">KINET SUPPORT // ASISTENTE TÉCNICO</span>
+              Hola. Cuéntame qué te ocurre o elige un tema:
+              <div id="support-greeting-chips" class="flex flex-wrap gap-1.5 mt-2"></div>
             </div>
           </div>
 
-          <!-- Botones rápidos de consulta / incidencia -->
+          <!-- Incidencia rápida -->
           <div class="flex flex-wrap gap-1.5">
-            <button type="button" onclick="askSupportAI('¿Cómo desbloqueo mi KINET Card con ???')" class="px-2.5 py-1 rounded-lg bg-[#12161C] hover:bg-kinet-neon hover:text-black border border-slate-700/80 text-[11px] font-mono text-slate-300 transition">
-              🎴 Desbloquear KINET Card (??)
-            </button>
-            <button type="button" onclick="askSupportAI('¿Cómo funcionan los minutos de vídeo y bonos?')" class="px-2.5 py-1 rounded-lg bg-[#12161C] hover:bg-kinet-neon hover:text-black border border-slate-700/80 text-[11px] font-mono text-slate-300 transition">
-              🎥 Cuota Vídeo & Bonos
-            </button>
-            <button type="button" onclick="askSupportAI('¿Cómo descargo mi CV Deportivo o Carta en PDF?')" class="px-2.5 py-1 rounded-lg bg-[#12161C] hover:bg-kinet-neon hover:text-black border border-slate-700/80 text-[11px] font-mono text-slate-300 transition">
-              📄 Descargar PDF / CV
-            </button>
             <button type="button" onclick="askSupportAI('Quiero reportar una incidencia técnica en la app')" class="px-2.5 py-1 rounded-lg bg-[#12161C] hover:bg-amber-400 hover:text-black border border-amber-500/40 text-[11px] font-mono text-amber-300 transition">
-              🛠️ Reportar Incidencia Rápida
+              🛠️ Reportar incidencia
             </button>
           </div>
 
           <!-- Input del Chat IA -->
           <div class="flex gap-2">
-            <input type="text" id="ai-chat-input" onkeydown="if(event.key==='Enter') sendMessageToSupportAI()" placeholder="Escribe tu duda o incidencia a la IA..." class="flex-1 bg-[#12161C] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
+            <input type="text" id="ai-chat-input" autocomplete="off" autocorrect="off" spellcheck="false" name="kinet-support-msg" onkeydown="if(event.key==='Enter') sendMessageToSupportAI()" placeholder="Escribe tu duda o incidencia a la IA..." class="flex-1 bg-[#12161C] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-kinet-neon transition">
             <button type="button" onclick="sendMessageToSupportAI()" class="px-4 py-2.5 rounded-xl bg-kinet-neon text-black font-display font-black text-xs hover:bg-emerald-400 transition shrink-0">
               Enviar
             </button>
@@ -410,6 +403,21 @@
       return d;
     }
 
+    function kbHtml(t) {
+      return '<div class="font-bold text-white mb-1">' + t.icon + ' ' + escapeHtml(t.label) + '</div>' +
+        '<div class="text-slate-300 mb-2">' + escapeHtml(t.lead) + '</div>' +
+        '<ol class="list-decimal pl-5 space-y-1 text-slate-200">' + t.steps.map(x => '<li>' + escapeHtml(x) + '</li>').join('') + '</ol>' +
+        '<div class="mt-2 pt-2 border-t border-slate-800 text-slate-400"><span class="text-kinet-neon font-mono text-[10px] font-bold">SI PERSISTE</span><br>' + escapeHtml(t.persist.charAt(0).toUpperCase() + t.persist.slice(1)) + '</div>';
+    }
+    function chipsHtml() {
+      return '<div class="flex flex-wrap gap-1.5 mt-2">' + window.KinetSupportKB.chips().map(c =>
+        '<button type="button" data-ask="' + escapeHtml(c.ask) + '" onclick="askSupportAI(this.dataset.ask)" class="px-2.5 py-1 rounded-lg bg-[#12161C] hover:bg-kinet-neon hover:text-black border border-slate-700/80 text-[11px] text-slate-300 transition">' + escapeHtml(c.label) + '</button>').join('') + '</div>';
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+      const g = document.getElementById('support-greeting-chips');
+      if (g && window.KinetSupportKB) g.outerHTML = chipsHtml();
+    });
+
     function prepareIncidentForm() {
       const msgInput = document.getElementById('contact-msg');
       if (!msgInput) return;
@@ -427,10 +435,23 @@
       appendSupportBubble(text, true);
       input.value = '';
 
-      if (/incidencia|reportar|fallo|bug/i.test(text) && text.length < 60) {
+      if (/incidencia|reportar/i.test(text) && text.length < 60) {
         prepareIncidentForm();
         appendSupportBubble('Te he llevado al formulario de abajo con el motivo <strong>Soporte Técnico / Incidencia</strong>. Cuéntanos el módulo, tu dispositivo/navegador y qué ocurrió, y lo recibirá el equipo.', false, 'KINET SUPPORT IA // INCIDENCIA');
         return;
+      }
+
+      const KB = window.KinetSupportKB;
+      if (KB) {
+        if (KB.isVague(text)) {
+          appendSupportBubble(escapeHtml(KB.vagueIntro) + chipsHtml(), false, 'KINET SUPPORT // ACCESO RÁPIDO');
+          return;
+        }
+        const topic = KB.match(text);
+        if (topic) {
+          appendSupportBubble(kbHtml(topic), false, 'KINET SUPPORT // SOLUCIÓN');
+          return;
+        }
       }
 
       supportBusy = true;

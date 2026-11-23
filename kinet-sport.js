@@ -35,7 +35,7 @@
     padel: {
       athletes: 'jugadores', player: 'jugador', coach: 'Coach', squad: 'academia', lastMin: 'en los puntos decisivos', roster: 'del grupo',
       name: 'Pádel / Tenis', icon: '🎾',
-      comp: 'partido de torneo', compUp: 'PARTIDO', compCap: 'Partido', compPl: 'partidos',
+      comp: 'partido', compUp: 'PARTIDO', compCap: 'Partido', compPl: 'partidos',
       preComp: 'Pre-Partido', venue: 'pista', venueCap: 'Pista', fieldLabel: 'Pista', fieldShort: 'Pista',
       trainLoad: 'desplazamientos y remates', injury: 'codo, hombro y muñeca', nutriPre: 'Hidratación y carbohidratos pre-partido',
       micro: 'D-3 · D-2 · D-1', teamSport: false,
@@ -121,7 +121,14 @@
     ];
     function fix(str) {
       var out = str;
-      for (var i = 0; i < rules.length; i++) out = out.replace(rules[i][0], rules[i][1]);
+      for (var i = 0; i < rules.length; i++) {
+        var before = out, after = out.replace(rules[i][0], rules[i][1]);
+        // si el resultado vuelve a casar con la misma regla (p. ej. "clips de partido" -> "clips de partido de X"),
+        // no se aplica: así el observador no puede multiplicar el texto en bucle
+        rules[i][0].lastIndex = 0;
+        if (after !== before && !rules[i][0].test(after)) out = after;
+        rules[i][0].lastIndex = 0;
+      }
       return out;
     }
     function walk(node) {

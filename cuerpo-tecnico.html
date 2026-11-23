@@ -996,7 +996,14 @@
         }
 
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
-    </style>
+    
+        .msg-p{margin:0 0 7px;line-height:1.5}
+        .msg-p:last-child{margin-bottom:0}
+        .msg-list{margin:2px 0 8px;padding-left:18px;line-height:1.5}
+        .msg-list li{margin-bottom:3px}
+        .chat-input:-webkit-autofill,.chat-input:-webkit-autofill:hover,.chat-input:-webkit-autofill:focus,.quick-input:-webkit-autofill,.kinet-input:-webkit-autofill{
+            -webkit-box-shadow:0 0 0 1000px #0A0E16 inset !important;-webkit-text-fill-color:#F1F5F9 !important;caret-color:#F1F5F9;transition:background-color 99999s ease-in-out 0s}
+</style>
     <link rel="stylesheet" href="kinet-mobile-fix.css">
 </head>
 <body data-role="athlete">
@@ -1200,7 +1207,7 @@
                             <button type="button" class="upload-img-btn" onclick="document.getElementById('chat-image-upload-input').click()" title="Subir imagen al especialista IA (compresión automática ligera)">
                                 🖼️
                             </button>
-                            <input type="text" id="chat-user-input" class="chat-input" placeholder="Escribe tu consulta o sube una foto (ej: hazme una rutina o un edit para Media Studio)..." onkeydown="if(event.key==='Enter') sendUserMessage()">
+                            <input type="text" id="chat-user-input" class="chat-input" name="kinet-chat-msg" autocomplete="off" autocapitalize="sentences" data-lpignore="true" data-1p-ignore="true" placeholder="Escribe tu consulta o sube una foto (ej: hazme una rutina o un edit para Media Studio)..." onkeydown="if(event.key==='Enter') sendUserMessage()">
                             <button class="send-btn" id="chat-send-btn" onclick="sendUserMessage()">→</button>
                         </div>
 
@@ -1666,29 +1673,25 @@
                             messages: [
                                 {
                                     sender: "Físico, Fisio & Nutrición IA",
-                                    text: (preprogrammed && preprogrammed.physical && preprogrammed.physical.welcomeMessage)
-                                        ? preprogrammed.physical.welcomeMessage
-                                        : `¡Hola ${userName}! En mi área unificamos tu preparación física de ${sp}, fisioterapia preventiva y nutrición de competición. Pídeme cualquier rutina y te la generaré en plantilla visual o PDF.`,
+                                    text: `Hola, ${(userName||'').split(' ')[0] || userName}. Soy el responsable de preparación física, fisioterapia y nutrición. Dime qué necesitas.`,
                                     time: "09:00",
                                     incoming: true
                                 },
                                 {
                                     sender: "Psicología & Mind Coach IA",
-                                    text: `Desde Psicología Deportiva monitorizo tu foco mental, gestión del estrés competitivo y rutinas ${V.preComp.toLowerCase()}.`,
+                                    text: `Psicología deportiva: foco, confianza y gestión de la presión.`,
                                     time: "09:01",
                                     incoming: true
                                 },
                                 {
                                     sender: "Entrenador Técnico & Vídeo IA",
-                                    text: (preprogrammed && preprogrammed.tactical && preprogrammed.tactical.welcomeMessage)
-                                        ? preprogrammed.tactical.welcomeMessage
-                                        : `Yo audito tus bloques tácticos de vídeo en alta precisión en ${sp} como ${userPos} y te doy correcciones técnicas exactas para subir tu KINET Card.`,
+                                    text: `Táctica y análisis de vídeo: corrección técnica y lectura de juego.`,
                                     time: "09:02",
                                     incoming: true
                                 },
                                 {
                                     sender: "Agente de Carrera & Marketing IA",
-                                    text: "Y desde Representación & Marketing te ayudo a potenciar tu visibilidad ante Scouts y a crear pósters con IA: pídeme un edit para tu foto y te configuraré el prompt directo para KINET Media Studio™.",
+                                    text: "Carrera y marca personal: visibilidad ante ojeadores, dossier y contenido.",
                                     time: "09:03",
                                     incoming: true
                                 }
@@ -1701,9 +1704,7 @@
                             messages: [
                                 {
                                     sender: "Físico, Fisio & Nutrición IA",
-                                    text: (preprogrammed && preprogrammed.physio && preprogrammed.physio.welcomeMessage)
-                                        ? preprogrammed.physio.welcomeMessage
-                                        : `Hola ${userName}. Soy tu especialista en Rendimiento Físico, Fisioterapia y Nutrición aplicado a ${sp}. Puedes subir una foto de tu comida o zona cargada con el botón 🖼️ o pedirme que te genere tu rutina en plantilla PDF/Imagen.`,
+                                    text: `Hola, ${(userName||'').split(' ')[0] || userName}. Soy tu especialista en preparación física, fisioterapia y nutrición. ¿En qué te ayudo?`,
                                     time: "09:00",
                                     incoming: true
                                 }
@@ -1716,7 +1717,7 @@
                             messages: [
                                 {
                                     sender: "Psicología & Mind Coach IA",
-                                    text: `Hola ${userName}. Aquí trabajamos tu fortaleza mental en ${sp}: control de nervios antes de competir, confianza tras el error y foco bajo fatiga. ¿Cómo te sientes de cara a tu próximo reto?`,
+                                    text: `Hola, ${(userName||'').split(' ')[0] || userName}. Soy tu psicólogo deportivo. ¿Qué quieres trabajar hoy?`,
                                     time: "09:00",
                                     incoming: true
                                 }
@@ -1729,9 +1730,7 @@
                             messages: [
                                 {
                                     sender: "Entrenador Técnico & Vídeo IA",
-                                    text: (preprogrammed && preprogrammed.tactical && preprogrammed.tactical.welcomeMessage)
-                                        ? preprogrammed.tactical.welcomeMessage
-                                        : `¡Listo en pizarra, ${userName}! Soy tu Entrenador Técnico de ${sp}. Puedo ayudarte a corregir gestos técnicos, lectura táctica o analizar capturas de tu Pizarra 3D.`,
+                                    text: `Hola, ${(userName||'').split(' ')[0] || userName}. Soy tu entrenador técnico. ¿Qué gesto, jugada o clip quieres revisar?`,
                                     time: "09:00",
                                     incoming: true
                                 }
@@ -1744,7 +1743,7 @@
                             messages: [
                                 {
                                     sender: "Agente de Carrera & Marketing IA",
-                                    text: `Hola ${userName}. Como tu Agente de Carrera y Marketing en ${sp}, te ayudo a destacar en KINET Radar y a diseñar contenido profesional. Si quieres subir una foto con un edit brutal, dime cómo la quieres y te prepararé el prompt automático para **KINET Media Studio™**.`,
+                                    text: `Hola, ${(userName||'').split(' ')[0] || userName}. Soy tu agente de carrera y marca personal. ¿Qué necesitas?`,
                                     time: "09:00",
                                     incoming: true
                                 }
@@ -2022,7 +2021,7 @@
         function getHiddenDailyChatState() {
             const tier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
             const isProOrClub = (tier === 'pro' || tier === 'club');
-            const dailyLimit = tier === 'club' ? 600 : (tier === 'pro' ? 250 : 15);
+            const dailyLimit = (window.KinetAPIs && KinetAPIs.getPlanLimits) ? KinetAPIs.getPlanLimits(tier).dailyChatMessages : (tier === 'club' ? 300 : (tier === 'pro' ? 100 : 15));
 
             const now = new Date();
             const localDayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -2288,9 +2287,26 @@ Responde siempre en español con naturalidad y precisión técnica.`;
         }
 
         function formatMessageMarkdown(rawText) {
-            return String(rawText || '')
-                .replace(/\*\*(.*?)\*\*/g, '<strong style="color:white;">$1</strong>')
-                .replace(/\n/g, '<br>');
+            // Texto limpio y legible: se escapa el HTML, se normaliza el formato de la IA y se dibujan párrafos, listas y negritas
+            let t = String(rawText || '');
+            try { if (window.KinetAPIs && KinetAPIs.cleanReply) t = KinetAPIs.cleanReply(t) || t; } catch (e) {}
+            const esc = t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/\*\*(.+?)\*\*/g, '<strong style="color:white;">$1</strong>');
+            const out = []; let list = null;
+            const flush = () => { if (list) { out.push('<' + list.tag + ' class="msg-list">' + list.items.map(i => '<li>' + i + '</li>').join('') + '</' + list.tag + '>'); list = null; } };
+            esc.split('\n').forEach(line => {
+                const mUl = line.match(/^\s*-\s+(.*)$/), mOl = line.match(/^\s*\d+[.)]\s+(.*)$/);
+                if (mUl || mOl) {
+                    const tag = mOl ? 'ol' : 'ul';
+                    if (!list || list.tag !== tag) { flush(); list = { tag, items: [] }; }
+                    list.items.push((mUl || mOl)[1]);
+                } else {
+                    flush();
+                    if (line.trim()) out.push('<p class="msg-p">' + line.trim() + '</p>');
+                }
+            });
+            flush();
+            return out.join('');
         }
 
         function renderCurrentChat() {
@@ -2341,7 +2357,7 @@ Responde siempre en español con naturalidad y precisión técnica.`;
                 }
 
                 let inlineToolsHtml = '';
-                if (m.incoming) {
+                if (m.incoming && (String(m.text || '').length > 260 || /^\s*(\d+[.)]|-)\s/m.test(String(m.text || '')))) {
                     const tplType = currentChatKey === 'fisico_nutri' ? 'workout' : (currentChatKey === 'tecnico_video' ? 'tactical' : 'workout');
                     inlineToolsHtml = `
                         <div class="msg-inline-actions">
@@ -2602,7 +2618,10 @@ Responde siempre en español con naturalidad y precisión técnica.`;
             const userPos = localStorage.getItem('kinet_position') || 'PRO';
 
             const stBefore = getHiddenDailyChatState();
-            if (stBefore.dailyRemaining <= 0) {
+            const apiOn = !!(window.KinetAPIs && typeof window.KinetAPIs.askSpecialistAI === 'function');
+            // Con el motor de IA cargado, los cupos (15 potentes + básicos en gratis, 100/300 en Pro/Club) los gestiona kinet-api-config.js
+            const locked = apiOn ? (KinetAPIs.getQuotaStatus().engine === 'locked') : (stBefore.dailyRemaining <= 0);
+            if (locked) {
                 const tLeft = formatTimeUntilMidnight();
                 activeChatsState[currentChatKey].messages.push({
                     sender: "🏟️ Vestuario KINET OS // Descanso Táctico",
@@ -2616,14 +2635,17 @@ Responde siempre en español con naturalidad y precisión técnica.`;
                 return;
             }
 
-            // Descontar 1 mensaje del límite diario
-            localStorage.setItem('kinet_ai_daily_used', String(stBefore.dailyUsed + 1));
-            localStorage.setItem('kinet_ai_chat_count', String(stBefore.dailyUsed + 1));
-            const remainingAfter = stBefore.dailyRemaining - 1;
+            const handoffObj = detectCrossSpecialistHandoff(userText, currentChatKey);
+            // Descontar 1 mensaje del límite diario (si responde la IA, lo descuenta el motor al llamar)
+            if (!apiOn || handoffObj) {
+                localStorage.setItem('kinet_ai_daily_used', String(stBefore.dailyUsed + 1));
+                localStorage.setItem('kinet_ai_chat_count', String(stBefore.dailyUsed + 1));
+            }
+            let remainingAfter = stBefore.dailyRemaining - 1;
+            let engineUsed = 'strong';
 
             showThinkingEtaIndicator();
 
-            const handoffObj = detectCrossSpecialistHandoff(userText, currentChatKey);
             const senderName = currentChatKey === 'group'
                 ? `Sala de Juntas IA (${sportChosen})`
                 : activeChatsState[currentChatKey].title;
@@ -2643,9 +2665,11 @@ Responde siempre en español con naturalidad y precisión técnica.`;
                         userMessage: userText,
                         imageDataUrl: attachedImageUrl,
                         chatHistory: recentHistory,
-                        consumeQuota: false
+                        consumeQuota: true
                     });
                     if (apiRes && apiRes.reply) externalReply = apiRes.reply;
+                    if (apiRes && typeof apiRes.remainingAfter === 'number') remainingAfter = apiRes.remainingAfter;
+                    if (apiRes && apiRes.engine) engineUsed = apiRes.engine;
                 } else if (window.KINET_STAFF_AI_ENGINE && typeof window.KINET_STAFF_AI_ENGINE.callExternalLLM === 'function') {
                     externalReply = await window.KINET_STAFF_AI_ENGINE.callExternalLLM(sysPrompt, userText, attachedImageUrl, recentHistory);
                 }
@@ -2656,7 +2680,13 @@ Responde siempre en español con naturalidad y precisión técnica.`;
             setTimeout(() => {
                 removeThinkingEtaIndicator();
                 let finalReplyText = externalReply || localReplyObj.text;
-                if (remainingAfter > 0 && remainingAfter <= 3) {
+                if (engineUsed === 'lite') {
+                    const dk = new Date().toDateString();
+                    if (localStorage.getItem('kinet_lite_notice') !== dk) {
+                        localStorage.setItem('kinet_lite_notice', dk);
+                        finalReplyText += `\n\nℹ️ *Has usado tus consultas con el motor potente de hoy. Ahora responde el motor básico (más breve) hasta las 00:00 h${stBefore.isProOrClub ? '' : '. Con KINET PRO tienes el motor potente todo el día'}.*`;
+                    }
+                } else if (remainingAfter > 0 && remainingAfter <= 3) {
                     finalReplyText += `\n\n⚡ *[Aviso de Vestuario: Te quedan **${remainingAfter} consulta(s)** antes del descanso nocturno de las 00:00h${stBefore.isProOrClub ? '' : ' • Pásate a KINET PRO para ampliar tu sesión'}]*`;
                 }
                 activeChatsState[currentChatKey].messages.push({

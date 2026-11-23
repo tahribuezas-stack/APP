@@ -50,6 +50,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="kinet-backend.js"></script>
     <script src="kinet-api-config.js"></script>
+    <script src="kinet-moderation.js"></script>
     <script src="kinet-video-edit.js"></script>
 
     <style>
@@ -572,13 +573,15 @@
         /* =========================================================================
            VENTANA COMPLETA DE CHAT IA GENERATIVO (ESTILO CHATGPT / GEMINI IMAGES)
            ========================================================================= */
+        .ve-label{font-family:"JetBrains Mono",monospace;font-size:0.58rem;color:var(--role-color);letter-spacing:0.1em;}
+        .ve-label{font-family:"JetBrains Mono",monospace;font-size:0.58rem;color:var(--role-color);letter-spacing:0.1em;}
         .ai-image-chat-feed {
             background: rgba(4, 6, 10, 0.85);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 16px;
             padding: 16px;
-            min-height: 350px;
-            max-height: 410px;
+            min-height: 380px;
+            max-height: 560px;
             flex: 1;
             overflow-y: auto;
             display: flex;
@@ -1127,27 +1130,21 @@
                 <div class="kinet-command-deck">
                     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                         <div class="media-toggle-pills">
-                            <button class="media-mode-btn" id="btn-mode-video" onclick="selectStudioFormatMode('video')">
-                                <svg class="svg-ic" viewBox="0 0 24 24"><rect x="2" y="4" width="15" height="16" rx="2"/><path d="m17 9 5-3v12l-5-3"/></svg>
-                                <span id="lbl-mode-video">Modo Vídeo (30 FPS)</span>
-                            </button>
                             <button class="media-mode-btn active" id="btn-mode-image" onclick="selectStudioFormatMode('image')">
                                 <svg class="svg-ic" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-                                <span>Modo Imagen (Póster IA)</span>
+                                <span>Imagen</span>
+                            </button>
+                            <button class="media-mode-btn" id="btn-mode-video" onclick="selectStudioFormatMode('video')">
+                                <svg class="svg-ic" viewBox="0 0 24 24"><rect x="2" y="4" width="15" height="16" rx="2"/><path d="m17 9 5-3v12l-5-3"/></svg>
+                                <span id="lbl-mode-video">Vídeo (edición)</span>
                             </button>
                         </div>
 
-                        <div class="preset-pills-strip">
-                            <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--text-secondary);margin-right:2px;">PRESET HUD:</span>
-                            <button class="preset-pill-btn active" onclick="applyTemplate('Match Day', 'MATCH DAY // TELEMETRÍA OFICIAL', 'trk_1', this)" id="preset-btn-matchday">Match Day</button>
-                            <button class="preset-pill-btn" onclick="applyTemplate('Biometric Beat', 'BIOMETRIC BEAT // SYNC 128 BPM', 'trk_2', this)">Biometric Beat</button>
-                            <button class="preset-pill-btn" onclick="applyTemplate('Hologram Card', 'HOLOGRAM CARD // KINET 92 GRL', 'trk_3', this)">Hologram Card</button>
-                            <button class="preset-pill-btn" onclick="applyTemplate('Scout Graphic', 'SCOUT REPORT // PERCENTIL TOP 3%', 'trk_4', this)">Scout Graphic</button>
-                            <button class="preset-pill-btn" onclick="applyTemplate('Post-Match', 'STATS BREAKDOWN // INFORME 30 FPS', 'trk_5', this)" id="preset-btn-postmatch">Post-Match</button>
-                        </div>
+                        
                     </div>
 
                     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                        <span id="studio-usage-meter"></span>
                         <span style="font-family:'JetBrains Mono';font-size:0.64rem;color:#CBD5E1;" id="video-minutes-counter">Cuota Vídeo: 90 min disp.</span>
                         <button class="btn-secondary" style="padding:5px 10px;font-size:0.6rem;" onclick="openPayAsYouGoModal()">+ Bono Extra</button>
                     </div>
@@ -1165,7 +1162,7 @@
                                 <div class="panel-head">
                                     <span class="panel-label">
                                         <span class="status-dot-led"></span>
-                                        <span>CHAT CREADOR DE IMÁGENES IA</span>
+                                        <span>ESTUDIO CREATIVO IA</span>
                                     </span>
 
                                     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -1199,30 +1196,37 @@
 
                                         <button type="button" class="btn-secondary" style="padding:5px 11px;font-size:0.61rem;" onclick="triggerFileSelect()">
                                             <svg class="svg-ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                                            <span>Subir Archivo</span>
+                                            <span>Subir foto o vídeo</span>
                                         </button>
-                                        <span class="verified-badge" id="studio-mode-pill">MODO IMAGEN // RAW</span>
+                                        <span class="verified-badge" id="studio-mode-pill">MODO IMAGEN</span>
                                     </div>
                                 </div>
 
                                 <!-- VENTANA PRINCIPAL DE CHAT IA (DONDE SALEN LAS IMÁGENES GENERADAS ESTILO CHATGPT IMAGES) -->
                                 <div class="ai-image-chat-feed" id="studio-ai-chat-feed">
                                     <div class="studio-chat-msg incoming">
-                                        <strong style="color:var(--role-color);font-family:'JetBrains Mono';font-size:0.63rem;display:block;margin-bottom:3px;letter-spacing:0.06em;">KINET VISION ENGINE // READY</strong>
-                                        Escribe abajo el diseño que quieres generar, selecciona un <strong>Preset HUD</strong> arriba o sube tu foto/vídeo. Todas las piezas generadas aparecerán directamente aquí en el chat listas para exportar o publicar.
+                                        <strong style="color:var(--role-color);font-family:'JetBrains Mono';font-size:0.63rem;display:block;margin-bottom:3px;letter-spacing:0.06em;">KINET STUDIO</strong>
+                                        Describe la imagen que quieres crear, elige una plantilla o sube tu foto para editarla como un fotógrafo profesional. Las imágenes salen limpias, sin textos encima.
                                     </div>
                                 </div>
 
                             </div>
 
+                            <div style="margin-top:10px;">
+                                <span id="ks-template-label" class="panel-label" style="font-size:0.56rem;">PLANTILLAS DE IMAGEN</span>
+                                <div class="ks-strip" id="ks-template-strip"></div>
+                                <div id="ks-template-hint"></div>
+                                <div id="ks-source-chip"></div>
+                            </div>
+
                             <!-- BARRA DE COMANDO DE PROMPT IA SIN EMOJIS -->
                             <div class="floating-command-bar">
-                                <button type="button" onclick="triggerFileSelect()" style="background:rgba(var(--role-rgb),0.12);border:1px solid rgba(var(--role-rgb),0.38);color:var(--role-color);border-radius:8px;padding:7px 10px;cursor:pointer;display:inline-flex;align-items:center;" title="Cargar archivo multimedia">
+                                <button type="button" onclick="triggerFileSelect()" style="background:rgba(var(--role-rgb),0.12);border:1px solid rgba(var(--role-rgb),0.38);color:var(--role-color);border-radius:8px;padding:7px 10px;cursor:pointer;display:inline-flex;align-items:center;" title="Subir foto o vídeo">
                                     <svg class="svg-ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                                 </button>
-                                <input type="text" id="ai-prompt-input" placeholder="Describe el póster o ajuste visual para generar en el chat (ej: Póster Match Day con estadio iluminado y 34.2 KM/H)..." onkeydown="if(event.key==='Enter') generateAiEdit()">
-                                <button class="btn-primary" id="btn-generate-image" onclick="generateAiEdit()" style="padding:8px 14px;font-size:0.64rem;">Generar Imagen</button>
-                                <button class="btn-primary" type="button" onclick="openVideoEditModal()" style="padding:8px 14px;font-size:0.64rem;">Edit IA de Vídeo</button>
+                                <input type="text" id="ai-prompt-input" autocomplete="off" maxlength="500" placeholder="Describe la imagen que quieres crear..." onkeydown="if(event.key==='Enter') KinetStudio.send()">
+                                <button class="btn-primary" id="btn-generate-image" onclick="KinetStudio.send()" style="padding:8px 14px;font-size:0.64rem;">Crear imagen</button>
+                                <button class="btn-primary" type="button" onclick="KinetStudio.openVideoEditModal()" style="padding:8px 14px;font-size:0.64rem;">Editar vídeo</button>
                             </div>
                         </div>
                     </div>
@@ -1232,7 +1236,7 @@
                         <div class="kinet-panel" style="height:100%; display:flex; flex-direction:column; justify-content:space-between;">
                             <div>
                                 <div class="panel-head">
-                                    <span class="panel-label">PARÁMETROS DE MASTERIZACIÓN</span>
+                                    <span class="panel-label">AJUSTES DE SALIDA</span>
                                     <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);" id="quality-status-tag">30 FPS PRO UNLOCKED</span>
                                 </div>
 
@@ -1241,33 +1245,41 @@
                                     <!-- BLOQUE 1: ESTADO DE AUDIO VINCULADO A LA ISLA SUPERIOR -->
                                     <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:12px; padding:10px 12px;">
                                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
-                                            <label style="font-size:0.71rem; font-weight:700; color:#E2E8F0;">Sincronía de Audio (Isla Superior)</label>
+                                            <label style="font-size:0.71rem; font-weight:700; color:#E2E8F0;">Música de la publicación</label>
                                             <span style="font-family:'JetBrains Mono';font-size:0.56rem;color:var(--role-color);" id="side-audio-lock-status">SIN PISTA</span>
                                         </div>
                                         <div style="display:flex;justify-content:space-between;align-items:center;background:#04060A;border:1px solid rgba(255,255,255,0.12);border-radius:9px;padding:8px 10px;">
                                             <span style="font-family:'JetBrains Mono';font-size:0.68rem;color:#CBD5E1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="side-audio-summary-txt">Pulsa la isla superior para elegir</span>
                                             <button type="button" onclick="toggleAudioIslandPopover(event)" style="background:rgba(var(--role-rgb),0.14);border:1px solid rgba(var(--role-rgb),0.4);color:var(--role-color);border-radius:6px;padding:3px 8px;font-family:'JetBrains Mono';font-size:0.58rem;font-weight:700;cursor:pointer;flex-shrink:0;">Cambiar</button>
                                         </div>
+                                        <button type="button" onclick="KinetStudio.autoTrack()" style="margin-top:6px;width:100%;background:rgba(var(--role-rgb),0.1);border:1px solid rgba(var(--role-rgb),0.35);color:var(--role-color);border-radius:8px;padding:6px;font-family:'JetBrains Mono';font-size:0.6rem;font-weight:700;cursor:pointer;">Elegir música automáticamente</button>
                                     </div>
 
-                                    <!-- BLOQUE 2: CAPA DE CERTIFICACIÓN BIOMÉTRICA -->
+                                    <!-- BLOQUE 2: MARCA DE AGUA (opcional) -->
                                     <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:12px; padding:10px 12px;">
-                                        <label style="font-size:0.71rem; font-weight:700; color:#E2E8F0; display:block; margin-bottom:5px;">Capa de Certificación Biométrica</label>
-                                        <select data-kinet-select id="watermark-select" onchange="updateCanvasFromControls()" style="width:100%; font-size:0.74rem; background:#04060A; border:1px solid rgba(255,255,255,0.14); border-radius:9px; padding:8px 10px; color:white; outline:none; font-family:'Inter',sans-serif;">
-                                            <option value="VERIFIED ATHLETE // KINET PERFORMANCE">VERIFIED ATHLETE (Holograma Rol)</option>
-                                            <option value="KINET TELEMETRY // 30 FPS VERIFIED">KINET TELEMETRY (30 FPS)</option>
-                                            <option value="TACTICAL SCOUT BADGE // TOP 3% ELITE">TACTICAL SCOUT BADGE (Élite)</option>
+                                        <label style="font-size:0.71rem; font-weight:700; color:#E2E8F0; display:block; margin-bottom:5px;">Marca de agua (al exportar o publicar)</label>
+                                        <select data-kinet-select id="watermark-select" style="width:100%; font-size:0.74rem; background:#04060A; border:1px solid rgba(255,255,255,0.14); border-radius:9px; padding:8px 10px; color:white; outline:none; font-family:'Inter',sans-serif;">
+                                            <option value="">Sin marca de agua</option>
+                                            <option value="KINET OS">KINET OS (discreta)</option>
+                                            <option value="VERIFIED ATHLETE // KINET">Verified Athlete // KINET</option>
                                         </select>
                                     </div>
 
                                     <!-- BLOQUE 3: RELACIÓN DE ASPECTO & SALIDA -->
                                     <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:12px; padding:10px 12px;">
-                                        <label style="font-size:0.71rem; font-weight:700; color:#E2E8F0; display:block; margin-bottom:5px;">Relación de Aspecto & Salida</label>
+                                        <label style="font-size:0.71rem; font-weight:700; color:#E2E8F0; display:block; margin-bottom:5px;">Formato de la imagen</label>
                                         <select data-kinet-select id="aspect-ratio-select" style="width:100%; font-size:0.74rem; background:#04060A; border:1px solid rgba(255,255,255,0.14); border-radius:9px; padding:8px 10px; color:white; outline:none; font-family:'Inter',sans-serif;">
-                                            <option>Vertical Shorts / Reels (9:16 • 30 FPS HD)</option>
-                                            <option>Póster Oficial Feed (4:5 • Alta Res)</option>
-                                            <option>Monitor Ojeador Widescreen (16:9 • HD)</option>
+                                            <option value="4:5">Feed 4:5 (póster)</option>
+                                            <option value="9:16">Vertical 9:16 (Reels / Stories)</option>
+                                            <option value="1:1">Cuadrado 1:1</option>
+                                            <option value="16:9">Horizontal 16:9</option>
                                         </select>
+                                    </div>
+
+                                    <!-- BLOQUE 4: TEXTO DE LA PUBLICACIÓN -->
+                                    <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:12px; padding:10px 12px;">
+                                        <label style="font-size:0.71rem; font-weight:700; color:#E2E8F0; display:block; margin-bottom:5px;">Texto de la publicación (opcional)</label>
+                                        <textarea id="studio-caption" rows="2" maxlength="280" autocomplete="off" placeholder="Qué quieres contar con esta imagen..." style="width:100%;background:#04060A;border:1px solid rgba(255,255,255,0.14);border-radius:9px;padding:8px 10px;color:white;font-size:0.74rem;resize:none;outline:none;font-family:'Inter',sans-serif;"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -1280,7 +1292,7 @@
                                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
                                     <button class="btn-secondary" onclick="downloadStudioCreationPNG()">
                                         <svg class="svg-ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                                        <span>Exportar PNG</span>
+                                        <span>Descargar</span>
                                     </button>
                                     <button class="btn-secondary" id="btn-download-studio-pdf" onclick="downloadStudioCreationPDF()">
                                         <svg class="svg-ic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -1300,38 +1312,44 @@
 
     <!-- MODAL 1: UPGRADE PRO PARA MODO VÍDEO -->
 
-    <!-- MODAL: EDIT IA DE VÍDEO -->
-    <div id="video-edit-modal" class="kinet-modal-overlay" onclick="if(event.target===this)closeVideoEditModal()">
-        <div class="kinet-modal-box" style="max-width:560px;max-height:90vh;overflow-y:auto;">
+    <!-- MODAL: EDICIÓN DE VÍDEO CON IA -->
+    <div id="video-edit-modal" class="kinet-modal-overlay" onclick="if(event.target===this)document.getElementById('video-edit-modal').classList.remove('open')">
+        <div class="kinet-modal-box" style="max-width:600px;max-height:92vh;overflow-y:auto;">
             <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:12px;margin-bottom:14px;">
                 <div>
-                    <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);letter-spacing:0.1em;">KINET MEDIA STUDIO // EDIT IA</span>
-                    <h3 style="font-family:'Orbitron';font-size:1rem;font-weight:900;color:white;margin-top:2px;">Crea tu edit con IA</h3>
+                    <span style="font-family:'JetBrains Mono';font-size:0.62rem;color:var(--role-color);letter-spacing:0.1em;">KINET MEDIA STUDIO // EDICIÓN DE VÍDEO</span>
+                    <h3 style="font-family:'Orbitron';font-size:1rem;font-weight:900;color:white;margin-top:2px;">Crea tu highlight</h3>
                 </div>
-                <button type="button" onclick="closeVideoEditModal()" style="background:none;border:none;color:white;font-size:1.2rem;cursor:pointer;">✕</button>
+                <button type="button" onclick="document.getElementById('video-edit-modal').classList.remove('open')" style="background:none;border:none;color:white;font-size:1.2rem;cursor:pointer;">✕</button>
             </div>
-            <p style="font-size:0.74rem;color:var(--text-secondary);margin-bottom:10px;">Sube hasta 4 clips tuyos (máx. 3 min cada uno). La IA elige las mejores jugadas según lo que pidas y monta el edit con rótulos, zoom y cámara lenta.</p>
-            <button type="button" class="btn-primary" style="padding:9px 14px;font-size:0.68rem;" onclick="document.getElementById('ve-files').click()">Elegir vídeos</button>
-            <input type="file" id="ve-files" accept="video/*" multiple style="display:none;" onchange="onVideoEditFiles(this)">
+            <p style="font-size:0.74rem;color:var(--text-secondary);margin-bottom:10px;">Sube tus clips y la IA los edita como un highlight profesional: elige los mejores momentos, corta al ritmo de la música y añade zoom, cámara lenta y rótulos.</p>
+            <button type="button" class="btn-primary" style="padding:9px 14px;font-size:0.68rem;" onclick="document.getElementById('ve-files').click()">1 · Elegir vídeos</button>
+            <input type="file" id="ve-files" accept="video/*" multiple style="display:none;" onchange="KinetStudio.onVideoEditFiles(this)">
             <div id="ve-file-list" style="font-family:'JetBrains Mono';font-size:0.62rem;color:#94A3B8;margin:8px 0 12px;">Ningún vídeo seleccionado</div>
-            <textarea id="ve-prompt" rows="3" placeholder="Ej: Edit de mis mejores goles con cámara lenta en el remate y ritmo rápido" style="width:100%;background:#060911;border:1px solid rgba(var(--role-rgb),0.35);border-radius:12px;padding:10px 12px;color:white;font-size:0.8rem;resize:vertical;"></textarea>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">
-                <button type="button" class="preset-pill-btn" onclick="setVeOption('seconds',15,this)">15 s</button>
-                <button type="button" class="preset-pill-btn active" onclick="setVeOption('seconds',30,this)">30 s</button>
-                <button type="button" class="preset-pill-btn" onclick="setVeOption('seconds',60,this)">60 s</button>
+            <span class="ve-label">2 · ESTILO</span>
+            <div id="ve-styles" style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 12px;"></div>
+            <span class="ve-label">3 · INSTRUCCIONES</span>
+            <textarea id="ve-prompt" rows="2" autocomplete="off" maxlength="400" placeholder="Ej: Edit de mis mejores goles con cámara lenta en el remate" style="width:100%;background:#060911;border:1px solid rgba(var(--role-rgb),0.35);border-radius:12px;padding:10px 12px;color:white;font-size:0.8rem;resize:vertical;margin:6px 0 12px;min-height:58px;"></textarea>
+            <span class="ve-label">4 · DURACIÓN Y FORMATO</span>
+            <div id="ve-seconds" style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0;"></div>
+            <div id="ve-format" style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px;"></div>
+            <span class="ve-label">5 · MÚSICA</span>
+            <div id="ve-music" style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0;"></div>
+            <div id="ve-bpm-row" style="display:none;align-items:center;gap:8px;margin:6px 0;font-size:0.7rem;color:#CBD5E1;">Ritmo (BPM) <input type="number" id="ve-bpm" min="70" max="180" style="width:80px;background:#060911;border:1px solid rgba(255,255,255,0.18);border-radius:8px;padding:5px 8px;color:white;"></div>
+            <div id="ve-audio-row" style="display:none;align-items:center;gap:8px;margin:6px 0;">
+                <button type="button" class="btn-secondary" style="padding:6px 10px;font-size:0.62rem;" onclick="document.getElementById('ve-audio-file').click()">Elegir canción</button>
+                <input type="file" id="ve-audio-file" accept="audio/*" style="display:none;" onchange="KinetStudio.onVideoEditAudio(this)">
+                <span id="ve-audio-name" style="font-family:'JetBrains Mono';font-size:0.62rem;color:#94A3B8;">Sube tu MP3, WAV o M4A: la IA detecta el ritmo y corta sobre él.</span>
             </div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">
-                <button type="button" class="preset-pill-btn active" onclick="setVeOption('format','vertical',this)">Vertical 9:16</button>
-                <button type="button" class="preset-pill-btn" onclick="setVeOption('format','horizontal',this)">Horizontal 16:9</button>
-            </div>
-            <button type="button" class="btn-primary" id="ve-run" style="width:100%;margin-top:14px;padding:11px;" onclick="runVideoEdit()">Generar edit</button>
+            <p id="ve-music-note" style="font-size:0.62rem;color:var(--text-secondary);margin:4px 0 12px;"></p>
+            <button type="button" class="btn-primary" id="ve-run" style="width:100%;margin-top:6px;padding:11px;" onclick="KinetStudio.runVideoEdit()">Crear highlight</button>
             <div style="height:5px;background:rgba(255,255,255,0.08);border-radius:99px;margin-top:12px;overflow:hidden;"><div id="ve-bar" style="height:100%;width:0%;background:var(--role-color);transition:width 0.3s ease;"></div></div>
             <div id="ve-status" style="font-family:'JetBrains Mono';font-size:0.64rem;color:#CBD5E1;margin-top:8px;min-height:1.2em;"></div>
             <div id="ve-result" style="display:none;margin-top:12px;">
                 <video id="ve-video" controls playsinline style="width:100%;max-height:50vh;border-radius:14px;background:#000;"></video>
-                <a id="ve-download" class="btn-primary" style="display:block;text-align:center;margin-top:10px;padding:10px;text-decoration:none;">Descargar edit</a>
+                <a id="ve-download" class="btn-primary" style="display:block;text-align:center;margin-top:10px;padding:10px;text-decoration:none;">Descargar highlight</a>
             </div>
-            <p style="font-size:0.62rem;color:var(--text-secondary);margin-top:10px;">Coste: 0,5 min de tu cuota de vídeo por cada 30 s de edit. El audio original no se incluye. Mantén esta pestaña abierta mientras se monta.</p>
+            <p id="ve-limits" style="font-size:0.62rem;color:var(--text-secondary);margin-top:10px;"></p>
         </div>
     </div>
 
@@ -1619,67 +1637,6 @@
         }
 
         // RENDERIZA BURBUJA DE TEXTO O BURBUJA CON TARJETA DE IMAGEN GENERADA DENTRO DEL CHAT
-        function pushStudioChatBubble(text, isIncoming = true, artConfig = null) {
-            const feed = document.getElementById('studio-ai-chat-feed');
-            if (!feed) return;
-            const msg = document.createElement('div');
-            msg.className = `studio-chat-msg ${isIncoming ? 'incoming' : 'outgoing'}`;
-
-            if (!isIncoming) {
-                msg.textContent = text;
-            } else {
-                let cardHtml = '';
-                if (artConfig) {
-                    const prevLatest = document.getElementById('latest-exportable-art-card');
-                    if (prevLatest) prevLatest.removeAttribute('id');
-
-                    const sportChosen = (localStorage.getItem('kinet_sport') || 'Fútbol').toUpperCase();
-                    const wm = document.getElementById('watermark-select')?.value || 'VERIFIED ATHLETE // KINET PERFORMANCE';
-                    const syncTxt = activeSpotifyTrack
-                        ? `AUDIO: ${activeSpotifyTrack.title.toUpperCase()} (${activeSpotifyTrack.bpm})`
-                        : 'SYNC: STANDBY';
-                    const bgStyle = artConfig.bgUrl
-                        ? `background-image: linear-gradient(rgba(6,8,14,0.48), rgba(6,8,14,0.84)), url('${artConfig.bgUrl}');`
-                        : '';
-
-                    cardHtml = `
-                        <div class="chat-generated-art-card">
-                            <div class="chat-art-canvas" id="latest-exportable-art-card" style="${bgStyle}">
-                                <div class="chat-art-top-hud">
-                                    <span style="display:inline-flex;align-items:center;gap:6px;">
-                                        <strong style="background:var(--role-gradient);color:#04060A;padding:1px 5px;border-radius:4px;font-family:'Orbitron';font-weight:900;">K</strong>
-                                        <span>KINET STUDIO // ${currentStudioFormat === 'video' ? '30 FPS HUD' : 'POSTER IA'}</span>
-                                    </span>
-                                    <span class="art-sync-tag">${syncTxt}</span>
-                                </div>
-                                <div style="font-family:'Orbitron';font-size:0.94rem;font-weight:900;color:white;text-align:center;letter-spacing:0.04em;margin-bottom:4px;z-index:2;" class="art-headline-txt">
-                                    ${artConfig.headline}
-                                </div>
-                                <span style="font-size:0.68rem;color:#CBD5E1;font-family:'JetBrains Mono';text-align:center;padding:0 10px;z-index:2;" class="art-sub-txt">
-                                    ${artConfig.subtext}
-                                </span>
-                                <div class="chat-art-watermark">
-                                    <span class="art-wm-left">${wm}</span>
-                                    <span>${sportChosen} • 92 GRL</span>
-                                </div>
-                            </div>
-                            <div class="chat-art-actions-bar">
-                                <span style="font-family:'JetBrains Mono';font-size:0.56rem;color:var(--role-color);">ARTE GENERADO EN EL CHAT</span>
-                                <div style="display:flex;gap:6px;">
-                                    <button type="button" class="btn-secondary" style="padding:5px 10px;font-size:0.58rem;" onclick="downloadStudioCreationPNG()">PNG</button>
-                                    <button type="button" class="btn-secondary" style="padding:5px 10px;font-size:0.58rem;" onclick="downloadStudioCreationPDF()">PDF</button>
-                                    <button type="button" class="btn-primary" style="padding:5px 11px;font-size:0.58rem;" onclick="exportAndShareCreation()">Publicar</button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-                msg.innerHTML = `<strong style="color:var(--role-color);font-family:'JetBrains Mono';font-size:0.63rem;display:block;margin-bottom:3px;letter-spacing:0.06em;">KINET VISION ENGINE</strong>${text}${cardHtml}`;
-            }
-
-            feed.appendChild(msg);
-            feed.scrollTop = feed.scrollHeight;
-        }
 
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
@@ -1754,28 +1711,16 @@
             }
 
             syncStudioAccountPermissions();
+            selectStudioFormatMode('image', true);
             updateAudioIslandUI();
 
             // RECEPCIÓN AUTOMÁTICA DEL PROMPT ENVIADO POR EL AGENTE DE MARKETING IA
             const autoPrompt = localStorage.getItem('kinet_media_studio_auto_prompt');
             if (autoPrompt) {
                 localStorage.removeItem('kinet_media_studio_auto_prompt');
-                hasUploadedPublicationMedia = true;
-                if (!userManuallyLockedTrack) recommendTrackIfAllowed('trk_1');
-
-                currentHeadlineTitle = `MATCH DAY PRO // ${sportChosen.toUpperCase()}`;
-                currentSubStatusText = `[ Prompt IA Aplicado: ${autoPrompt} ]`;
-
-                pushStudioChatBubble(autoPrompt, false);
-                pushStudioChatBubble(
-                    `He recibido tu prompt desde el Agente de Marketing IA y he generado la tarjeta visual aquí mismo en el chat:`,
-                    true,
-                    {
-                        headline: currentHeadlineTitle,
-                        subtext: currentSubStatusText,
-                        bgUrl: currentCompressedMediaUrl
-                    }
-                );
+                const pin = document.getElementById('ai-prompt-input');
+                if (pin) pin.value = String(autoPrompt).slice(0, 500);
+                pushStudioChatBubble('He recibido tu prompt del Agente de Marketing IA y lo he dejado escrito abajo. Revísalo y pulsa «Crear imagen».', true);
             }
 
             document.querySelectorAll('.kinet-panel, .side-link').forEach(el => {
@@ -1803,22 +1748,20 @@
                 badgeLabel.textContent = tier === 'club' ? 'LICENCIA CLUB & SCOUT (30 FPS)' : 'LICENCIA KINET PRO (VÍDEO 30 FPS + IMAGEN)';
                 if (unlockBtn) unlockBtn.style.display = 'none';
                 if (videoCounter) videoCounter.textContent = `Cuota Vídeo: ${avail} min disp.`;
-                if (lblModeVideo) lblModeVideo.textContent = 'Modo Vídeo (30 FPS)';
+                if (lblModeVideo) lblModeVideo.textContent = 'Vídeo (edición)';
                 if (qualityTag) qualityTag.textContent = '30 FPS PRO UNLOCKED';
-                selectStudioFormatMode('video', true);
             } else if (bonusMins > 0) {
                 const avail = Math.max(0, +(bonusMins - usedMins).toFixed(1));
                 badgeLabel.textContent = `BONO VÍDEO ACTIVO (${avail} MIN DISP.)`;
                 if (unlockBtn) unlockBtn.style.display = 'none';
                 if (videoCounter) videoCounter.textContent = `Bono Vídeo: ${avail} min disp.`;
-                if (lblModeVideo) lblModeVideo.textContent = 'Modo Vídeo (Bono)';
+                if (lblModeVideo) lblModeVideo.textContent = 'Vídeo (bono)';
                 if (qualityTag) qualityTag.textContent = '30 FPS BONO ACTIVO';
-                selectStudioFormatMode('video', true);
             } else {
                 badgeLabel.textContent = 'PLAN GRATUITO (IMÁGENES + AUDIO)';
                 if (unlockBtn) unlockBtn.style.display = 'inline-flex';
                 if (videoCounter) videoCounter.textContent = 'Cuota Vídeo: 0 min (Free)';
-                if (lblModeVideo) lblModeVideo.textContent = 'Modo Vídeo (PRO)';
+                if (lblModeVideo) lblModeVideo.textContent = 'Vídeo (PRO)';
                 if (qualityTag) qualityTag.textContent = 'MODO IMAGEN FREE';
                 selectStudioFormatMode('image', true);
             }
@@ -1841,14 +1784,15 @@
             if (mode === 'video') {
                 btnVideo.classList.add('active');
                 btnImage.classList.remove('active');
-                studioPill.textContent = 'MODO VÍDEO // 30 FPS';
+                studioPill.textContent = 'MODO VÍDEO';
                 if (fileInput) fileInput.setAttribute('accept', 'video/*,image/*');
             } else {
                 btnImage.classList.add('active');
                 btnVideo.classList.remove('active');
-                studioPill.textContent = 'MODO IMAGEN // RAW';
-                if (fileInput) fileInput.setAttribute('accept', 'image/*');
+                studioPill.textContent = 'MODO IMAGEN';
+                if (fileInput) fileInput.setAttribute('accept', 'image/*,video/*');
             }
+            if (window.KinetStudio) KinetStudio.onModeChange(mode);
         }
 
         function triggerFileSelect() {
@@ -1856,237 +1800,12 @@
             if (fileInput) fileInput.click();
         }
 
-        function handleStudioFileSelected(input) {
-            if (!input.files || !input.files[0]) return;
-            const file = input.files[0];
-            const isVideoFile = file.type.startsWith('video/');
 
-            if (isVideoFile && !isPaidOrBonusAccount()) {
-                document.getElementById('upgrade-tier-modal').classList.add('open');
-                input.value = '';
-                return;
-            }
 
-            // Marcamos que ya se ha subido una publicación
-            hasUploadedPublicationMedia = true;
 
-            // Si el usuario NO había elegido canción manualmente antes de subir, recomendamos una automáticamente en la isla
-            if (!userManuallyLockedTrack) {
-                recommendTrackIfAllowed('trk_1');
-            } else {
-                updateAudioIslandUI();
-            }
 
-            currentHeadlineTitle = `${isVideoFile ? 'VÍDEO 30 FPS //' : 'PÓSTER IA //'} ${file.name.toUpperCase()}`;
-            currentSubStatusText = `Archivo "${file.name}" masterizado con telemetría KINET.`;
 
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = new Image();
-                    img.onload = function() {
-                        let w = img.width || 800, h = img.height || 800;
-                        const maxD = 960;
-                        if (w > h && w > maxD) { h = Math.round((h * maxD) / w); w = maxD; }
-                        else if (h >= w && h > maxD) { w = Math.round((w * maxD) / h); h = maxD; }
-                        const c = document.createElement('canvas');
-                        c.width = w; c.height = h;
-                        c.getContext('2d').drawImage(img, 0, 0, w, h);
-                        let compressed = c.toDataURL('image/webp', 0.76);
-                        if (!compressed.startsWith('data:image/webp')) compressed = c.toDataURL('image/jpeg', 0.76);
-                        currentCompressedMediaUrl = compressed;
 
-                        const audioNote = userManuallyLockedTrack
-                            ? `Conservando tu pista fijada manualmente: "${activeSpotifyTrack.title}".`
-                            : `Se ha activado la recomendación musical "${activeSpotifyTrack ? activeSpotifyTrack.title : ''}" en la isla superior.`;
-
-                        pushStudioChatBubble(
-                            `Imagen "${file.name}" procesada en el chat. ${audioNote}`,
-                            true,
-                            {
-                                headline: currentHeadlineTitle,
-                                subtext: currentSubStatusText,
-                                bgUrl: currentCompressedMediaUrl
-                            }
-                        );
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            } else {
-                pushStudioChatBubble(
-                    `Clip de vídeo "${file.name}" sincronizado a 30 FPS en el chat:`,
-                    true,
-                    {
-                        headline: currentHeadlineTitle,
-                        subtext: currentSubStatusText,
-                        bgUrl: currentCompressedMediaUrl
-                    }
-                );
-            }
-            input.value = '';
-        }
-
-        function applyTemplate(name, headlineText, recommendedTrackId, btnEl) {
-            document.querySelectorAll('.preset-pill-btn').forEach(c => c.classList.remove('active'));
-            if (btnEl) btnEl.classList.add('active');
-
-            hasUploadedPublicationMedia = true;
-            if (!userManuallyLockedTrack && recommendedTrackId) {
-                recommendTrackIfAllowed(recommendedTrackId);
-            }
-
-            currentHeadlineTitle = headlineText;
-            currentSubStatusText = `[ Preset "${name}" activo en modo ${currentStudioFormat === 'video' ? 'Vídeo 30 FPS' : 'Imagen Pro'} ]`;
-
-            pushStudioChatBubble(
-                `He generado la vista previa con el preset "${name}" directamente en el chat:`,
-                true,
-                {
-                    headline: currentHeadlineTitle,
-                    subtext: currentSubStatusText,
-                    bgUrl: currentCompressedMediaUrl
-                }
-            );
-        }
-
-        function updateCanvasFromControls() {
-            const wm = document.getElementById('watermark-select').value;
-            const latestWm = document.querySelector('#latest-exportable-art-card .art-wm-left');
-            if (latestWm) latestWm.textContent = wm;
-        }
-
-        let lastAiBgUrl = null;
-
-        function compressDataUrl(dataUrl, maxW, q) {
-            return new Promise((res) => {
-                const im = new Image();
-                im.onload = () => {
-                    const s = Math.min(1, maxW / im.width);
-                    const c = document.createElement('canvas');
-                    c.width = Math.round(im.width * s); c.height = Math.round(im.height * s);
-                    c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
-                    res(c.toDataURL('image/jpeg', q));
-                };
-                im.onerror = () => res(dataUrl);
-                im.src = dataUrl;
-            });
-        }
-
-        async function generateAiEdit() {
-            const inputEl = document.getElementById('ai-prompt-input');
-            const prompt = inputEl.value.trim();
-            if (!prompt) return;
-            if (!window.KinetAPIs) { pushStudioChatBubble('El motor de IA no está cargado. Recarga la página.', true); return; }
-
-            const q = window.KinetAPIs.getQuotaStatus();
-            if (q.imageRemaining <= 0) {
-                pushStudioChatBubble(`Has alcanzado tu límite de ${q.imageLimit} imágenes al día en el ${q.tierName}. Se renueva mañana.`, true);
-                if (!isPaidOrBonusAccount()) document.getElementById('upgrade-tier-modal').classList.add('open');
-                return;
-            }
-
-            const btn = document.getElementById('btn-generate-image');
-            if (btn) btn.disabled = true;
-            hasUploadedPublicationMedia = true;
-            pushStudioChatBubble(prompt, false);
-            inputEl.value = '';
-            pushStudioChatBubble('Dirigiendo la pieza con IA...', true);
-
-            try {
-                const design = await window.KinetAPIs.generateMediaStudioDesign({
-                    promptText: prompt,
-                    formatMode: currentStudioFormat,
-                    sport: localStorage.getItem('kinet_sport') || 'Fútbol'
-                });
-                if (!design || !design.ok) {
-                    pushStudioChatBubble('No se pudo generar la pieza: ' + ((design && design.error) || 'error desconocido') + '\n(Revisa tu clave en el botón "API IA" del Cuerpo Técnico.)', true);
-                    return;
-                }
-                currentHeadlineTitle = String(design.headline || prompt).slice(0, 42).toUpperCase();
-                currentSubStatusText = design.subtext || `[ ${currentStudioFormat.toUpperCase()} · ${prompt.slice(0, 50)} ]`;
-                if (!userManuallyLockedTrack) recommendTrackIfAllowed(design.recommendedTrackId || 'trk_1');
-
-                // Imagen real con IA, salvo que el usuario haya subido su propia foto/vídeo.
-                let note = '';
-                const userOwnsMedia = currentCompressedMediaUrl && currentCompressedMediaUrl !== lastAiBgUrl;
-                if (!userOwnsMedia) {
-                    const img = await window.KinetAPIs.generateStudioImageAI({ prompt: design.imagePrompt || prompt });
-                    if (img && img.ok) {
-                        currentCompressedMediaUrl = await compressDataUrl(img.dataUrl, 1080, 0.82);
-                        lastAiBgUrl = currentCompressedMediaUrl;
-                    } else {
-                        note = '\nNo pude generar la imagen con IA (' + String((img && img.error) || '').split('\n')[0].slice(0, 140) + '). Te dejo el diseño base; puedes subir tu propia foto.';
-                    }
-                }
-                pushStudioChatBubble((design.replyText || `Aquí tienes la pieza para "${prompt}":`) + note, true, {
-                    headline: currentHeadlineTitle,
-                    subtext: currentSubStatusText,
-                    bgUrl: currentCompressedMediaUrl
-                });
-                if (design.caption) pushStudioChatBubble('Texto sugerido para publicar: ' + design.caption, true);
-            } catch (err) {
-                pushStudioChatBubble('Error al generar: ' + (err && err.message ? err.message : err), true);
-            } finally {
-                if (btn) btn.disabled = false;
-            }
-        }
-
-        // ---------- EDIT IA DE VÍDEO ----------
-        let _veFiles = [];
-        let _veFormat = 'vertical';
-        let _veSeconds = 30;
-        function openVideoEditModal() {
-            if (!isPaidOrBonusAccount()) { document.getElementById('upgrade-tier-modal').classList.add('open'); return; }
-            document.getElementById('video-edit-modal').classList.add('open');
-        }
-        function closeVideoEditModal() { document.getElementById('video-edit-modal').classList.remove('open'); }
-        function setVeOption(kind, val, btnEl) {
-            if (kind === 'format') _veFormat = val; else _veSeconds = val;
-            btnEl.parentElement.querySelectorAll('.preset-pill-btn').forEach(b => b.classList.remove('active'));
-            btnEl.classList.add('active');
-        }
-        function onVideoEditFiles(inp) {
-            _veFiles = Array.from(inp.files).slice(0, 4);
-            document.getElementById('ve-file-list').textContent = _veFiles.length ? _veFiles.map(f => f.name).join(' · ') : 'Ningún vídeo seleccionado';
-        }
-        function setVeStatus(txt, pct) {
-            document.getElementById('ve-status').textContent = txt;
-            if (typeof pct === 'number') document.getElementById('ve-bar').style.width = pct + '%';
-        }
-        async function runVideoEdit() {
-            const runBtn = document.getElementById('ve-run');
-            if (!_veFiles.length) { setVeStatus('Sube al menos un vídeo (máx. 4).', 0); return; }
-            const cost = Math.max(0.5, Math.ceil(_veSeconds / 30) * 0.5);
-            const q = window.KinetAPIs.getQuotaStatus();
-            if (q.videoRemaining < cost) {
-                setVeStatus(`Te quedan ${q.videoRemaining} min de vídeo y este edit cuesta ${cost} min. Consigue más en Despacho.`, 0);
-                return;
-            }
-            runBtn.disabled = true;
-            document.getElementById('ve-result').style.display = 'none';
-            try {
-                const res = await window.KinetVideoEdit.create({
-                    files: _veFiles,
-                    prompt: document.getElementById('ve-prompt').value.trim(),
-                    targetSeconds: _veSeconds,
-                    format: _veFormat,
-                    onProgress: (p, t) => setVeStatus(t, p)
-                });
-                const d = window.KinetAPIs.deductVideoMinutes(cost);
-                const url = URL.createObjectURL(res.blob);
-                const vid = document.getElementById('ve-video');
-                vid.src = url;
-                const dl = document.getElementById('ve-download');
-                dl.href = url; dl.download = `kinet-edit-${Date.now()}.${res.ext}`;
-                document.getElementById('ve-result').style.display = 'block';
-                setVeStatus(`Edit listo (${cost} min descontados). Se ha creado en tu dispositivo; no se sube a ningún servidor.`, 100);
-            } catch (e) {
-                setVeStatus('⚠️ ' + (e && e.message ? e.message : e) + ' No se ha descontado ningún minuto.', 0);
-            } finally {
-                runBtn.disabled = false;
-            }
-        }
 
         function checkTierUpgradePrompt() {
             if (!isPaidOrBonusAccount()) {
@@ -2102,121 +1821,9 @@
             window.location.href = `despacho.html?role=${roleNow}&sport=${encodeURIComponent(sportNow)}&tab=subscription#payg-bonuses-section`;
         }
 
-        function ensureExportableArtExists() {
-            let target = document.getElementById('latest-exportable-art-card');
-            if (!target) {
-                pushStudioChatBubble(
-                    `Pieza generada automáticamente para exportación:`,
-                    true,
-                    {
-                        headline: currentHeadlineTitle,
-                        subtext: currentSubStatusText,
-                        bgUrl: currentCompressedMediaUrl
-                    }
-                );
-                target = document.getElementById('latest-exportable-art-card');
-            }
-            return target;
-        }
 
-        async function exportAndShareCreation() {
-            const trackLabel = activeSpotifyTrack ? `${activeSpotifyTrack.title} - ${activeSpotifyTrack.artist}` : 'Sin audio adjunto';
-            const wm = document.getElementById('watermark-select').value;
 
-            if (window.KinetBackend && typeof window.KinetBackend.createCloudPost === 'function') {
-                const isReel = currentStudioFormat === 'video' && isPaidOrBonusAccount();
-                await window.KinetBackend.createCloudPost({
-                    id: 'studio_' + Date.now(),
-                    mode: isReel ? 'reels' : 'post',
-                    text: `[${currentHeadlineTitle}] Masterizado en KINET Media Studio™ • Audio: ${trackLabel} • ${wm}`,
-                    imageUrl: currentCompressedMediaUrl || null,
-                    badge: isReel ? 'KINET SHORT 30 FPS' : 'MEDIA STUDIO',
-                    reelData: isReel ? {
-                        title: currentHeadlineTitle,
-                        metric: wm,
-                        track: trackLabel
-                    } : null,
-                    likes: 0
-                });
-            }
-            pushStudioChatBubble(`Publicación enviada al feed de KINET Network™ con éxito.`, true);
-        }
 
-        async function downloadStudioCreationPNG() {
-            const pop = document.getElementById('ig-audio-popover');
-            if (pop) pop.classList.remove('open');
-            try {
-                const target = ensureExportableArtExists();
-                const canvas = await html2canvas(target, { scale: 2.5, backgroundColor: '#06080E', useCORS: true, logging: false });
-                canvas.toBlob((blob) => {
-                    if (!blob) return;
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `KINET_Studio_${Date.now()}.png`;
-                    document.body.appendChild(a);
-                    a.click();
-                    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1200);
-                }, 'image/png');
-            } catch (e) {}
-        }
-
-        async function downloadStudioCreationPDF() {
-            const pop = document.getElementById('ig-audio-popover');
-            if (pop) pop.classList.remove('open');
-            const btn = document.getElementById('btn-download-studio-pdf');
-            const prevTxt = btn.innerHTML;
-            btn.innerHTML = 'Generando...';
-            btn.disabled = true;
-
-            try {
-                const target = ensureExportableArtExists();
-                const canvas = await html2canvas(target, {
-                    scale: 3,
-                    backgroundColor: '#06080E',
-                    useCORS: true,
-                    logging: false
-                });
-
-                const imgData = canvas.toDataURL('image/png');
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-
-                pdf.setFillColor(6, 8, 14);
-                pdf.rect(0, 0, 297, 210, 'F');
-
-                // LOGO OFICIAL KINET OS ARRIBA A LA IZQUIERDA
-                pdf.setFillColor(0, 255, 136);
-                pdf.roundedRect(14, 10, 12, 12, 3, 3, 'F');
-                pdf.setTextColor(4, 6, 10);
-                pdf.setFont('helvetica', 'bold');
-                pdf.setFontSize(11);
-                pdf.text('K', 18.3, 18.2);
-
-                pdf.setTextColor(0, 255, 136);
-                pdf.setFontSize(13.5);
-                pdf.text('KINET MEDIA STUDIO™ // EXPORTACION OFICIAL DE MARCA PERSONAL', 30, 16);
-
-                const sportChosen = (localStorage.getItem('kinet_sport') || 'Fútbol').toUpperCase();
-                const userName = (localStorage.getItem('kinet_user_name') || 'ATLETA KINET').toUpperCase();
-                pdf.setTextColor(203, 213, 225);
-                pdf.setFontSize(9.2);
-                pdf.text(`TITULAR: ${userName}   |   DEPORTE: ${sportChosen}   |   MODO: ${currentStudioFormat.toUpperCase()}`, 30, 23);
-
-                pdf.addImage(imgData, 'PNG', 14, 30, 269, 156);
-
-                pdf.setTextColor(148, 163, 184);
-                pdf.setFontSize(8);
-                pdf.text('Creado y auditado con KINET Media Studio™ & Spotify Sync • jkinetos.es', 14, 198);
-
-                pdf.save(`KINET_Studio_${userName.replace(/\s+/g, '_')}.pdf`);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                btn.innerHTML = prevTxt;
-                btn.disabled = false;
-            }
-        }
 
         // =========================================================================
         // MOTOR GLOBAL DE COLOR DE ROL Y REEMPLAZO FORZADO DE FAVICON
@@ -2356,6 +1963,7 @@
             window.addEventListener('kinet:cloud-synced', applyDespachoThemeSettings);
         })();
     </script>
+<script src="kinet-studio.js"></script>
 <script>
     // Textos de ejemplo y presets adaptados al deporte activo (evita ejemplos de fútbol en otros deportes)
     (function () {
@@ -2374,8 +1982,6 @@
                 var m = X[k] || X.otros;
                 var a = document.getElementById('preset-btn-matchday'); if (a) a.textContent = m.md;
                 var b = document.getElementById('preset-btn-postmatch'); if (b) b.textContent = m.pm;
-                var p = document.getElementById('ai-prompt-input');
-                if (p) p.placeholder = 'Describe el póster o ajuste visual para generar en el chat (ej: ' + m.poster + ')...';
                 var v = document.getElementById('ve-prompt'); if (v) v.placeholder = 'Ej: ' + m.video;
             } catch (e) {}
         }

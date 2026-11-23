@@ -3,6 +3,7 @@
 <head>
 <script src="kinet-guard.js"></script>
 <script src="kinet-sport.js"></script>
+<script src="kinet-cv.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -24,6 +25,10 @@
     <script src="kinet-backend.js"></script>
     <script src="kinet-positions.js"></script>
     <script src="kinet-api-config.js"></script>
+    <script src="kinet-support-kb.js"></script>
+    <script src="kinet-moderation.js"></script>
+    <script src="kinet-video-store.js"></script>
+    <script src="kinet-typing.js"></script>
     <script src="kinet-community-bot.js" defer></script>
 
     <style>
@@ -1922,7 +1927,8 @@
                                     <div style="flex:1;min-width:0;">
                                         <div style="font-family:'Orbitron';font-weight:900;font-size:0.88rem;color:white;cursor:pointer;" id="my-social-name" data-kinet-user-name onclick="openMyOwnPublicProfilePreview()">ATLETA KINET</div>
                                         <div style="font-family:'JetBrains Mono';font-size:0.65rem;color:var(--role-color);" id="my-social-handle" data-kinet-user-handle>@usuario</div>
-                                        <div style="font-size:0.7rem;color:#CBD5E1;margin-top:2px;" id="my-social-bio">Perfil Verificado KINET OS • Telemetría & Vídeo HD</div>
+                                        <div style="font-size:0.7rem;color:#CBD5E1;margin-top:2px;" id="my-social-bio"></div>
+                                        <div style="font-family:'JetBrains Mono';font-size:0.58rem;color:#94A3B8;margin-top:3px;" id="my-social-meta"></div>
                                     </div>
                                 </div>
 
@@ -1933,12 +1939,12 @@
                                         <div style="font-family:'JetBrains Mono';font-size:0.55rem;color:var(--text-secondary);">SEGUIDORES</div>
                                     </div>
                                     <div style="border-left:1px solid var(--border-subtle);border-right:1px solid var(--border-subtle);">
-                                        <div style="font-family:'Orbitron';font-weight:900;font-size:0.82rem;color:var(--role-color);" id="my-following-count">1</div>
+                                        <div style="font-family:'Orbitron';font-weight:900;font-size:0.82rem;color:var(--role-color);" id="my-following-count">0</div>
                                         <div style="font-family:'JetBrains Mono';font-size:0.55rem;color:var(--text-secondary);" id="my-following-lbl">SIGUIENDO</div>
                                     </div>
                                     <div>
-                                        <div style="font-family:'Orbitron';font-weight:900;font-size:0.82rem;color:white;">ACTIVA</div>
-                                        <div style="font-family:'JetBrains Mono';font-size:0.55rem;color:var(--text-secondary);">KINET CARD</div>
+                                        <div style="font-family:'Orbitron';font-weight:900;font-size:0.82rem;color:white;" id="my-posts-count">0</div>
+                                        <div style="font-family:'JetBrains Mono';font-size:0.55rem;color:var(--text-secondary);">PUBLICACIONES</div>
                                     </div>
                                 </div>
 
@@ -2300,6 +2306,7 @@
             </div>
 
             <input type="file" id="composer-file-input" accept="image/*,video/*" style="display:none;" onchange="handleComposerMediaSelect(this)">
+            <div id="composer-media-note" style="display:none;font-family:'JetBrains Mono',monospace;font-size:.62rem;color:#F59E0B;margin:6px 0;"></div>
 
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;border-top:1px solid var(--border-subtle);padding-top:12px;">
                 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
@@ -2330,7 +2337,7 @@
                             <span class="market-open-tag" id="insp-privacy-pill">🌍 CUENTA PÚBLICA</span>
                         </div>
                         <div style="font-family:'JetBrains Mono';font-size:0.7rem;color:var(--role-color);margin-top:2px;" id="insp-handle">@usuario_pro</div>
-                        <div style="font-size:0.76rem;color:#CBD5E1;margin-top:4px;" id="insp-bio">Perfil Verificado KINET OS</div>
+                        <div style="font-size:0.76rem;color:#CBD5E1;margin-top:4px;" id="insp-bio"></div>
                     </div>
                 </div>
                 <button type="button" onclick="closeUserProfileInspector()" style="background:none;border:none;color:white;font-size:1.2rem;cursor:pointer;">✕</button>
@@ -2792,6 +2799,26 @@
                 .replace(/(pro)+$/, '');
         }
 
+        // El texto "Perfil Verificado KINET OS" era un valor por defecto que hacía pasar por verificado a cualquiera: ya no se muestra.
+        function cleanHeadline(h, fb) {
+            const t = String(h == null ? '' : h).trim();
+            if (!t || /^Perfil Verificado KINET OS/i.test(t)) return fb || '';
+            return t;
+        }
+        function ownHeadlineFallback() {
+            const pos = (localStorage.getItem('kinet_position') || '').trim();
+            const sp = (localStorage.getItem('kinet_sport') || '').trim();
+            const role = (localStorage.getItem('kinet_active_role') || 'athlete');
+            const rl = role === 'staff' ? 'Entrenador' : (role === 'scout' ? 'Ojeador' : 'Atleta');
+            return [(pos && !/^pro$|por asignar/i.test(pos)) ? pos : rl, sp].filter(Boolean).join(' · ');
+        }
+        function countMyPosts() {
+            try {
+                const deletedMap = getDeletedPostIdsMap();
+                return (allSocialPosts || []).filter(post => !deletedMap[post.id] && isMyOwnPostOrHandle(post)).length;
+            } catch (e) { return 0; }
+        }
+
         function getFollowedHandles() {
             try {
                 const raw = localStorage.getItem('kinet_followed_handles');
@@ -2936,6 +2963,8 @@
             const folLbl = document.getElementById('my-following-lbl');
             if (folLbl) folLbl.textContent = isScoutOrStaffRole() ? 'OJEANDO' : 'SIGUIENDO';
 
+            const postsEl = document.getElementById('my-posts-count');
+            if (postsEl) postsEl.textContent = countMyPosts();
             const myHandle = (localStorage.getItem('kinet_social_handle') || '').toLowerCase();
             const myFollowersEl = document.getElementById('my-followers-count');
             if (myFollowersEl) {
@@ -3232,7 +3261,7 @@
             if (!savedHandle || (savedHandle === '@alexvance_pro' && userName.toLowerCase() !== 'alex vance')) {
                 savedHandle = `@${userName.toLowerCase().replace(/[^a-z0-9]/g, '')}_pro`;
             }
-            const bio = localStorage.getItem('kinet_social_bio') || 'Perfil Verificado KINET OS • Telemetría & Vídeo HD';
+            const bio = cleanHeadline(localStorage.getItem('kinet_social_bio'), '');
             const avatarUrl = localStorage.getItem('kinet_user_avatar');
 
             if (avatarUrl) registerHandleAvatar(savedHandle, avatarUrl);
@@ -3243,6 +3272,8 @@
             document.getElementById('my-social-name').textContent = userName.toUpperCase();
             document.getElementById('my-social-handle').textContent = savedHandle;
             document.getElementById('my-social-bio').textContent = bio;
+            const metaEl = document.getElementById('my-social-meta');
+            if (metaEl) metaEl.textContent = ownHeadlineFallback() + ((localStorage.getItem('kinet_user_city') || '') ? ' · ' + localStorage.getItem('kinet_user_city') : '');
 
             const modCompName = document.getElementById('modal-composer-name');
             if (modCompName) modCompName.textContent = userName.toUpperCase();
@@ -3685,7 +3716,7 @@
                                         ${headerActionButtonsHtml}
                                     </div>
                                     <div class="kinet-headline-tag">
-                                        <span>${p.headline || 'Perfil Verificado KINET OS'}</span> • <span>${sportDisplay}</span> • <span>${p.time || 'Hoy'}</span>
+                                        <span>${kinetEsc(cleanHeadline(p.headline, p.role === 'scout' ? 'Ojeador' : (p.role === 'staff' ? 'Entrenador' : 'Atleta')))}</span> • <span>${sportDisplay}</span> • <span>${p.time || 'Hoy'}</span>
                                         ${marketBadgeHtml}
                                     </div>
                                 </div>
@@ -3700,6 +3731,7 @@
                             <button class="social-action-btn" onclick="openUserProfileInspector('${kinetHandle(p.handle)}', '${safeAuthor}', '${p.initials}')">👤 ${isOwn ? 'Ver Mi Perfil' : 'Ver Perfil Completo'}</button>
                             ${reelPreviewBtn}
                             <button type="button" class="social-action-btn" title="Pregunta a KINET AI sobre esta publicación" onclick="window.KinetCommunityBot && KinetCommunityBot.askAboutPost(this)">🤖 Preguntar a la IA</button>
+                            ${!isOwn && !isOfficial ? `<button type="button" class="social-action-btn" title="Reportar contenido" onclick="reportPostById('${p.id}', event)">🚩 Reportar</button>` : ''}
                         </div>
                     </div>
                 `;
@@ -3810,11 +3842,21 @@
             }
         }
 
-        function publishSocialPost() {
+        async function publishSocialPost() {
             const editingId = document.getElementById('editing-post-id')?.value || '';
             const input = document.getElementById('new-post-input');
             const text = input.value.trim();
             if (!text && !pendingComposerAttachment) return;
+
+            // Moderación del texto y control de tráfico antes de publicar
+            if (window.KinetModeration) {
+                const mod = KinetModeration.checkText(text);
+                if (!mod.ok) { alert('🚫 ' + mod.message); return; }
+                if (!editingId) {
+                    const rl = KinetModeration.rate('post');
+                    if (!rl.ok) { alert('⏳ ' + rl.message); return; }
+                }
+            }
 
             // Si estamos EDITANDO un post propio existente
             if (editingId) {
@@ -3849,7 +3891,7 @@
             const visibility = document.getElementById('modal-post-visibility')?.value || 'public';
             const userName = localStorage.getItem('kinet_user_name') || 'Atleta KINET';
             const handle = localStorage.getItem('kinet_social_handle') || `@${userName.toLowerCase().replace(/[^a-z0-9]/g, '')}_pro`;
-            const bio = localStorage.getItem('kinet_social_bio') || 'Perfil Verificado KINET OS';
+            const bio = cleanHeadline(localStorage.getItem('kinet_social_bio'), ownHeadlineFallback());
             const avatarUrl = localStorage.getItem('kinet_user_avatar') || null;
             const activeSport = normalizeSportOption(localStorage.getItem('kinet_sport') || 'Fútbol');
             const activeRole = localStorage.getItem('kinet_active_role') || 'athlete';
@@ -3858,6 +3900,19 @@
             const initials = parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : userName.slice(0,2).toUpperCase();
 
             const imgAttachUrl = (pendingComposerAttachment && pendingComposerAttachment.type === 'image') ? pendingComposerAttachment.url : null;
+
+            // Vídeo: se sube al almacenamiento configurado (R2 / Supabase). Sin proveedor, queda solo en este dispositivo.
+            if (pendingComposerAttachment && pendingComposerAttachment.type === 'video' && pendingComposerAttachment.blob && window.KinetVideo) {
+                const up = await KinetVideo.upload(pendingComposerAttachment.blob, {});
+                if (up.ok) { pendingComposerAttachment.url = up.url; pendingComposerAttachment.remote = true; }
+                else {
+                    pendingComposerAttachment.localOnly = true;
+                    alert(up.reason === 'sin-almacenamiento'
+                        ? 'Tu vídeo se ha publicado solo en este dispositivo: el almacenamiento de vídeo aún no está activado en KINET OS.'
+                        : 'No se pudo subir el vídeo al servidor (' + up.reason + '). Se muestra solo en este dispositivo.');
+                }
+                delete pendingComposerAttachment.blob;
+            }
 
             const newPost = {
                 id: 'u_' + Date.now(),
@@ -3881,7 +3936,9 @@
                 reelData: postMode === 'reels' ? {
                     title: text ? text.slice(0, 48) : 'Highlight Subido desde KINET OS (HD)',
                     metric: 'TELEMETRÍA VERIFICADA • HD',
-                    track: 'Spotify Sync: Active Track'
+                    track: 'Spotify Sync: Active Track',
+                    videoUrl: (pendingComposerAttachment && pendingComposerAttachment.remote) ? pendingComposerAttachment.url : null,
+                    posterImage: (pendingComposerAttachment && pendingComposerAttachment.posterThumb && pendingComposerAttachment.posterThumb.length < 60000) ? pendingComposerAttachment.posterThumb : null
                 } : (imgAttachUrl ? { posterImage: imgAttachUrl } : null),
                 likes: 0,
                 isOwnPost: true
@@ -3940,7 +3997,7 @@
                     sport: localStorage.getItem('kinet_sport') || 'Fútbol',
                     position: localStorage.getItem('kinet_position') || 'PRO',
                     club: localStorage.getItem('kinet_user_club') || 'Sin club',
-                    headline: localStorage.getItem('kinet_social_bio') || 'Perfil Verificado KINET OS',
+                    headline: cleanHeadline(localStorage.getItem('kinet_social_bio'), ''),
                     isPrivate: localStorage.getItem('kinet_private_account') === 'true',
                     marketOpen: localStorage.getItem('kinet_market_open') !== 'false'
                 };
@@ -4002,7 +4059,7 @@
                     : (p.shortName || p.name);
             }
             document.getElementById('insp-handle').textContent = p.handle;
-            document.getElementById('insp-bio').textContent = p.headline || 'Perfil Verificado KINET OS';
+            document.getElementById('insp-bio').textContent = cleanHeadline(p.headline, '');
             document.getElementById('insp-role-badge').textContent = isOfficialAcc ? '✓ CUENTA OFICIAL VERIFICADA' : (p.roleBadge || '✓ KINET PRO');
             document.getElementById('insp-sport-label').textContent = (p.sport || 'Fútbol').toUpperCase();
 
@@ -4681,13 +4738,15 @@
                 return;
             }
 
-            let html = msgs.map((m) => {
+            let html = msgs.map((m, mi) => {
                 const animClass = m._justSent ? 'anim-send' : (m._justReceived ? 'anim-receive' : '');
                 const timeClock = formatClockTime(m.ts);
+                const chipsHtml = (mi === msgs.length - 1 && Array.isArray(m.chips) && m.chips.length)
+                    ? `<div class="dm-chips">${m.chips.map(c => `<button type="button" class="dm-chip" data-q="${kinetEsc(c.ask)}" onclick="dmQuickChip(this)">${kinetEsc(c.label)}</button>`).join('')}</div>` : '';
 
                 return `
                     <div class="chat-bubble ${m.from} ${animClass}">
-                        <div>${kinetEsc(m.text)}</div>
+                        <div class="dm-rich">${dmRich(m.text)}</div>${chipsHtml}
                         <div class="chat-bubble-meta">
                             <span>${timeClock}</span>
                         </div>
@@ -4718,14 +4777,10 @@
         }
 
         function buildOfficialSupportReply(userText) {
-            const q = (userText || '').toLowerCase();
-            if (q.includes('card') || q.includes('carta') || q.includes('??')) {
-                return '🛠️ [Soporte KINET]: Para calibrar tu KINET Card (quitar las ??), entra en "Ficha & KINET Card" o en el Analizador 3D ("🛠️ Crear / Editar") y asigna tus barras de 50 a 99.';
-            }
-            if (q.includes('radar') || q.includes('scout') || q.includes('fichaje')) {
-                return '🛠️ [Soporte KINET]: En la pestaña "💼 KINET Radar" puedes ver y publicar convocatorias de clubes y scouts.';
-            }
-            return '🛠️ [Soporte KINET]: Ahora mismo no puedo responderte con la IA (límite diario alcanzado o sin conexión). Mira las Preguntas Frecuentes o escríbenos desde el formulario de la página de Soporte y el equipo lo revisará.';
+            const KB = window.KinetSupportKB;
+            const t = KB && KB.match(userText);
+            if (t) return KB.format(t);
+            return 'Ahora mismo no puedo responderte con la IA (límite diario alcanzado o sin conexión).\n\nPasos:\n1. Consulta las Preguntas Frecuentes de la página de Soporte.\n2. Si no lo resuelve, escríbenos desde «Contacto directo con Soporte».';
         }
 
         function pushOutgoingMessageText(txt) {
@@ -4926,14 +4981,14 @@
                                 handle: cp.author_handle || '@kinet_pro',
                                 initials: initials,
                                 avatarUrl: getAvatarForHandle(cp.author_handle, null, authorName),
-                                headline: cp.author_headline || 'Perfil Verificado KINET OS',
+                                headline: cleanHeadline(cp.author_headline, ''),
                                 marketOpen: true,
                                 badge: cp.badge || 'KINET PULSE',
                                 time: `Hoy ${dateStr}`,
                                 createdAtMs: createdMs,
                                 text: cp.content || '',
                                 imageUrl: posterImg,
-                                mediaAttachment: posterImg ? { type: 'image', url: posterImg, label: cp.badge } : null,
+                                mediaAttachment: (cp.reel_data && cp.reel_data.videoUrl) ? { type: 'video', url: cp.reel_data.videoUrl, posterThumb: posterImg, label: cp.badge, remote: true } : (posterImg ? { type: 'image', url: posterImg, label: cp.badge } : null),
                                 reelData: cp.reel_data || null,
                                 likes: typeof cp.likes_count === 'number' ? cp.likes_count : 0,
                                 _liked: Boolean(getLikedPostIdsMap()[postId])
@@ -5430,35 +5485,40 @@
             if (!input.files || !input.files[0]) return;
             const file = input.files[0];
             const isVideo = file.type.startsWith('video/');
+            input.value = '';
+            const note = (t) => { const el = document.getElementById('composer-media-note'); if (el) { el.textContent = t || ''; el.style.display = t ? 'block' : 'none'; } };
 
             if (isVideo) {
-                if (!isPaidAccount()) {
-                    input.value = '';
-                    alert('⚡ La subida de vídeos está reservada para cuentas KINET PRO / Club.');
-                    return;
-                }
-                document.getElementById('new-post-type').value = 'reels';
-                const videoUrl = URL.createObjectURL(file);
-                const posterThumb = await window.KinetMediaCompressor.extractVideoThumbnailLight(videoUrl);
-                const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
-                pendingComposerAttachment = {
-                    type: 'video',
-                    url: videoUrl,
-                    posterThumb: posterThumb,
-                    label: `${kinetEsc(file.name)} (Optimizado en HD • ~${Math.min(3.8, sizeMb)} MB)`
-                };
-                rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+                if (!isPaidAccount()) { alert('⚡ La subida de vídeos está reservada para cuentas KINET PRO / Club.'); return; }
+                if (!window.KinetVideo) { alert('El compresor de vídeo no está disponible. Recarga la página.'); return; }
+                if (file.size > 400 * 1024 * 1024) { alert('El archivo es demasiado grande. Elige un clip de hasta 20 segundos.'); return; }
+                try {
+                    note('Comprimiendo vídeo… 0 %');
+                    const prep = await KinetVideo.prepare(file, { onProgress: p => note(`Comprimiendo vídeo… ${Math.round(p * 100)} %`) });
+                    note('Revisando el contenido…');
+                    const mod = window.KinetModeration ? await KinetModeration.checkVideoFrames(prep.blob) : { ok: true };
+                    if (!mod.ok) { note(''); alert('🚫 ' + mod.message); return; }
+                    document.getElementById('new-post-type').value = 'reels';
+                    const videoUrl = URL.createObjectURL(prep.blob);
+                    const posterThumb = await window.KinetMediaCompressor.extractVideoThumbnailLight(videoUrl);
+                    pendingComposerAttachment = {
+                        type: 'video', url: videoUrl, blob: prep.blob, posterThumb: posterThumb, unchecked: !!mod.unchecked,
+                        label: `${kinetEsc(file.name)} (${Math.round(prep.duration)} s • ${prep.sizeMB} MB${prep.trimmed ? ' • recortado a 20 s' : ''})`
+                    };
+                    note(prep.trimmed ? 'Tu vídeo duraba más de 20 s: se ha recortado a los primeros 20 segundos.' : '');
+                    rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+                } catch (e) { note(''); alert(String(e && e.message || 'No se pudo procesar el vídeo.')); }
             } else {
                 const compressedDataUrl = await window.KinetMediaCompressor.compressImageFileOrDataUrl(file, 960, 0.72);
+                const mod = window.KinetModeration ? await KinetModeration.checkImage(compressedDataUrl) : { ok: true };
+                if (!mod.ok) { alert('🚫 ' + mod.message); return; }
                 const approxKb = Math.round(((compressedDataUrl || '').length * 0.75) / 1024);
                 pendingComposerAttachment = {
-                    type: 'image',
-                    url: compressedDataUrl,
+                    type: 'image', url: compressedDataUrl, unchecked: !!mod.unchecked,
                     label: `${kinetEsc(file.name)} (Comprimida WebP • ${approxKb} KB)`
                 };
                 rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
             }
-            input.value = '';
         };
 
         // =========================================================================
@@ -5799,6 +5859,15 @@
             if (!DM_CONVERSATIONS[currentDmContact]) DM_CONVERSATIONS[currentDmContact] = [];
             const isBotSupport = targetPerson && (targetPerson.handle === '@kinet_support' || targetPerson.isSupportChannel);
 
+            // Moderación y control de tráfico (solo mensajes a personas)
+            if (!isBotSupport) {
+                const mod = window.KinetModeration ? KinetModeration.checkText(txt) : { ok: true };
+                if (!mod.ok) { alert('🚫 ' + mod.message); return; }
+                const rl = window.KinetModeration ? KinetModeration.rate('dm') : { ok: true };
+                if (!rl.ok) { alert('⏳ ' + rl.message); return; }
+            }
+            try { if (window.KinetTyping) KinetTyping.notify(false); } catch (e) {}
+
             const msgObj = {
                 from: 'outgoing',
                 text: txt,
@@ -5825,29 +5894,22 @@
             renderSideDmInboxList();
 
             if (isBotSupport) {
-                const subEl1 = document.getElementById('dm-active-sub');
-                const subEl2 = document.getElementById('inline-dm-active-sub');
-                if (subEl1) subEl1.textContent = '⚡ Agente IA de Soporte KINET escribiendo...';
-                if (subEl2) subEl2.textContent = '⚡ Agente IA de Soporte KINET escribiendo...';
-
+                setBotTyping(true);
+                const KB = window.KinetSupportKB;
+                const wait = ms => new Promise(r => setTimeout(r, ms));
+                let replyText = null, chips = null;
                 try {
-                    const aiReply = await window.KINET_SUPPORT_AI_BRIDGE.askSupportAPI(txt);
-                    msgObj.status = 'read';
-                    msgObj.seenAt = Date.now();
-                    DM_CONVERSATIONS[currentDmContact].push({
-                        from: 'incoming',
-                        text: aiReply,
-                        ts: Date.now(),
-                        _justReceived: true
-                    });
-                } catch (err) {
-                    DM_CONVERSATIONS[currentDmContact].push({
-                        from: 'incoming',
-                        text: buildOfficialSupportReply(txt),
-                        ts: Date.now(),
-                        _justReceived: true
-                    });
-                }
+                    const topic = KB && KB.match(txt);
+                    if (topic) { await wait(650); replyText = KB.format(topic); }
+                    else if (KB && KB.isVague(txt)) { await wait(500); replyText = KB.vagueIntro; chips = KB.chips(); }
+                    else { replyText = await window.KINET_SUPPORT_AI_BRIDGE.askSupportAPI(txt); }
+                } catch (err) { replyText = buildOfficialSupportReply(txt); }
+                setBotTyping(false);
+                msgObj.status = 'read';
+                msgObj.seenAt = Date.now();
+                const inc = { from: 'incoming', text: replyText, ts: Date.now(), _justReceived: true };
+                if (chips) inc.chips = chips;
+                DM_CONVERSATIONS[currentDmContact].push(inc);
 
                 syncActiveDmHeaderUI(targetPerson);
                 persistDmsToLocalCache();
@@ -6228,66 +6290,17 @@
         // Exportar el CV / Dossier Deportivo en PDF oficial directamente desde el modal de Comunidad
         window.downloadInspectorCvPdf = function () {
             const p = currentInspectedPerson;
-            if (!p) return;
-            const ageVal = computeInspectorAge(p.birthdate);
-            const w = window.open('', '_blank', 'width=880,height=960');
-            if (!w) return;
-            w.document.write(`
-                <!DOCTYPE html>
-                <html lang="es">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>CV Deportivo Oficial KINET OS - ${p.shortName || p.name}</title>
-                    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Orbitron:wght@700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-                    <style>
-                        body { background:#06080E; color:#F8FAFC; font-family:'Inter',sans-serif; padding:36px; margin:0; }
-                        .sheet { max-width:780px; margin:0 auto; background:#0B0F19; border:2px solid #00FF88; border-radius:24px; padding:32px; }
-                        .head { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.12); padding-bottom:18px; margin-bottom:22px; }
-                        .logo { display:flex; align-items:center; gap:12px; }
-                        .logo-k { width:42px; height:42px; border-radius:12px; background:#00FF88; color:#04060A; font-family:'Orbitron'; font-weight:900; font-size:1.3rem; display:flex; align-items:center; justify-content:center; }
-                        .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px; }
-                        .cell { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-left:3px solid #00FF88; border-radius:12px; padding:12px; }
-                        .cell span { font-family:'JetBrains Mono'; font-size:0.62rem; color:#94A3B8; display:block; margin-bottom:4px; text-transform:uppercase; }
-                        .cell strong { font-size:0.88rem; color:#FFF; }
-                        @media print { body { background:#06080E; -webkit-print-color-adjust:exact; print-color-adjust:exact; } }
-                    </style>
-                </head>
-                <body>
-                    <div class="sheet">
-                        <div class="head">
-                            <div class="logo">
-                                <div class="logo-k">K</div>
-                                <div>
-                                    <div style="font-family:'Orbitron';font-weight:900;font-size:1.1rem;letter-spacing:0.15em;">KINET OS</div>
-                                    <div style="font-family:'JetBrains Mono';font-size:0.65rem;color:#00FF88;">OFFICIAL VERIFIED SPORTS PASSPORT & CV</div>
-                                </div>
-                            </div>
-                            <div style="text-align:right;font-family:'JetBrains Mono';font-size:0.7rem;color:#94A3B8;">
-                                ID: ${kinetHandle(p.handle)}<br>${new Date().toLocaleDateString('es-ES')}
-                            </div>
-                        </div>
-                        <h1 style="font-family:'Orbitron';font-size:1.6rem;margin:0 0 4px 0;">${p.shortName || p.name}</h1>
-                        <div style="color:#00FF88;font-family:'JetBrains Mono';font-size:0.8rem;margin-bottom:10px;">${(p.sport || 'Fútbol').toUpperCase()} • ${kinetEsc(p.position || 'PRO')} • ${kinetEsc(p.club || 'Sin club')}</div>
-                        <p style="font-size:0.86rem;color:#CBD5E1;line-height:1.5;">${p.headline || 'Perfil Deportivo Verificado en KINET OS.'}</p>
-                        <div class="grid">
-                            <div class="cell"><span>DEMARCACIÓN / CARGO</span><strong>${kinetEsc(p.position || 'PRO')}</strong></div>
-                            <div class="cell"><span>CLUB / ENTIDAD</span><strong>${kinetEsc(p.club || 'Sin club')}</strong></div>
-                            <div class="cell"><span>CATEGORÍA / NIVEL</span><strong>${p.category || p.sport || 'Senior'}</strong></div>
-                            <div class="cell"><span>CIUDAD ACTUAL</span><strong>${kinetEsc(p.city || 'Registrada')}</strong></div>
-                            <div class="cell"><span>CIUDAD NATAL</span><strong>${p.hometown || p.city || 'Registrada'}</strong></div>
-                            <div class="cell"><span>EDAD</span><strong>${ageVal ? ageVal + ' años' : 'Senior'}</strong></div>
-                            <div class="cell"><span>BIOMETRÍA</span><strong>${p.anthropometry || 'Calibrada'}</strong></div>
-                            <div class="cell"><span>DOMINANCIA / ÁREA</span><strong>${p.laterality || 'Diestro'}</strong></div>
-                            <div class="cell"><span>ESTADO DE MERCADO</span><strong>${p.marketOpen !== false ? 'Abierto a Ofertas' : 'Contrato Cerrado'}</strong></div>
-                        </div>
-                        ${p.transfermarktUrl ? `<div style="margin-top:16px;font-family:'JetBrains Mono';font-size:0.74rem;color:#00FF88;">🔗 Ficha Oficial (Transfermarkt/BeSoccer): ${p.transfermarktUrl}</div>` : ''}
-                        ${p.videoUrl ? `<div style="margin-top:6px;font-family:'JetBrains Mono';font-size:0.74rem;color:#38BDF8;">🎬 Highlight Vídeo Oficial: ${p.videoUrl}</div>` : ''}
-                    </div>
-                    <script>setTimeout(() => window.print(), 400);<\/script>
-                </body>
-                </html>
-            `);
-            w.document.close();
+            if (!p || !window.KinetCV) return;
+            const isMe = isMyOwnPostOrHandle(p.handle, p.shortName);
+            if (isMe) { KinetCV.open(KinetCV.fromLocal()); return; }
+            const hl = cleanHeadline(p.headline, '');
+            KinetCV.open({
+                name: p.shortName || p.name, handle: kinetHandle(p.handle), sport: p.sport || 'Fútbol', role: p.role || 'athlete',
+                position: p.position || '', club: (p.club && !/^sin club$/i.test(p.club)) ? p.club : '', category: p.category || '',
+                city: p.city || '', hometown: p.hometown || '', age: computeInspectorAge(p.birthdate) || '',
+                anthro: p.anthropometry || '', laterality: p.laterality || '', bio: hl,
+                tmUrl: p.transfermarktUrl || '', vidUrl: p.videoUrl || '', avatar: p.avatarUrl || '', marketOpen: p.marketOpen !== false
+            });
         };
 
         const _baseOpenInspector = window.openUserProfileInspector;
@@ -6350,7 +6363,7 @@
                 }
 
                 bioEl.innerHTML = `
-                    <div style="color:#E2E8F0;font-size:0.8rem;margin-bottom:6px;">${p.headline || 'Perfil Verificado KINET OS'}</div>
+                    <div style="color:#E2E8F0;font-size:0.8rem;margin-bottom:6px;">${kinetEsc(cleanHeadline(p.headline, ''))}</div>
                     <div style="display:flex;flex-wrap:wrap;gap:6px;font-family:'JetBrains Mono';font-size:0.62rem;color:#94A3B8;margin-bottom:${linksRow.length ? '8px' : '0'};">
                         ${quickTags.map(t => `<span style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);padding:3px 8px;border-radius:6px;color:#CBD5E1;">${t}</span>`).join('')}
                     </div>
@@ -6807,6 +6820,90 @@
             } catch (e) {}
         }
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply); else apply();
+    })();
+</script>
+
+<style>
+    .dm-rich p{margin:0 0 6px;line-height:1.45}.dm-rich p:last-child{margin-bottom:0}
+    .dm-rich ol,.dm-rich ul{margin:2px 0 6px;padding-left:18px}.dm-rich li{margin-bottom:3px;line-height:1.4}
+    .dm-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+    .dm-chip{background:rgba(var(--role-rgb,168,85,247),.12);border:1px solid rgba(var(--role-rgb,168,85,247),.5);color:#fff;font-size:.7rem;font-weight:600;padding:6px 10px;border-radius:99px;cursor:pointer;font-family:inherit;transition:background .15s}
+    .dm-chip:hover{background:rgba(var(--role-rgb,168,85,247),.3)}
+    .kinet-typing-row{display:inline-flex;align-items:center;gap:4px;padding:10px 14px}
+    .kinet-typing-row i{width:6px;height:6px;border-radius:50%;background:#94A3B8;display:block;animation:kTyp 1.2s infinite ease-in-out}
+    .kinet-typing-row i:nth-child(2){animation-delay:.18s}.kinet-typing-row i:nth-child(3){animation-delay:.36s}
+    @keyframes kTyp{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+    .kinet-typing-label{font-size:.58rem;color:#94A3B8;margin:2px 0 0 4px;font-family:'JetBrains Mono',monospace}
+    input:-webkit-autofill{-webkit-box-shadow:0 0 0 1000px #0A0E16 inset !important;-webkit-text-fill-color:#F1F5F9 !important;caret-color:#F1F5F9}
+</style>
+<script>
+    // ---------- Texto enriquecido seguro para los mensajes (negrita, listas, párrafos) ----------
+    function dmRich(text) {
+        let t = String(text == null ? '' : text);
+        try { if (window.KinetAPIs && KinetAPIs.cleanReply) t = KinetAPIs.cleanReply(t) || t; } catch (e) {}
+        const esc = t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        const out = []; let list = null;
+        const flush = () => { if (list) { out.push('<' + list.tag + '>' + list.items.map(i => '<li>' + i + '</li>').join('') + '</' + list.tag + '>'); list = null; } };
+        esc.split('\n').forEach(line => {
+            const ul = line.match(/^\s*-\s+(.*)$/), ol = line.match(/^\s*\d+[.)]\s+(.*)$/);
+            if (ul || ol) { const tag = ol ? 'ol' : 'ul'; if (!list || list.tag !== tag) { flush(); list = { tag, items: [] }; } list.items.push((ul || ol)[1]); }
+            else { flush(); if (line.trim()) out.push('<p>' + line.trim() + '</p>'); }
+        });
+        flush();
+        return out.join('');
+    }
+    function reportPostById(id, ev) {
+        if (ev) ev.stopPropagation();
+        const p = (allSocialPosts || []).find(x => String(x.id) === String(id));
+        if (window.KinetModeration) KinetModeration.reportDialog({ type: 'post', targetId: id, handle: p ? p.handle : '', text: p ? p.text : '' });
+    }
+    function dmQuickChip(btn) {
+        const q = btn && btn.getAttribute('data-q');
+        if (q) window.pushOutgoingMessageText(q);
+    }
+
+    // ---------- "Escribiendo…" ----------
+    let _peerTyping = false, _botTyping = false;
+    function renderTypingIndicator() {
+        ['dm-messages-container', 'inline-dm-messages-container'].forEach(id => {
+            const box = document.getElementById(id); if (!box) return;
+            box.querySelectorAll('.kinet-typing-wrap').forEach(n => n.remove());
+            if (_peerTyping || _botTyping) {
+                const w = document.createElement('div'); w.className = 'kinet-typing-wrap';
+                w.innerHTML = '<div class="chat-bubble incoming kinet-typing-row"><i></i><i></i><i></i></div><div class="kinet-typing-label">escribiendo…</div>';
+                box.appendChild(w); box.scrollTop = box.scrollHeight;
+            }
+        });
+    }
+    function setBotTyping(on) { _botTyping = !!on; renderTypingIndicator(); }
+    function setPeerTyping(on) { _peerTyping = !!on; renderTypingIndicator(); }
+    (function wrapRender() {
+        const orig = renderDmMessages;
+        renderDmMessages = function (f) { orig(f); renderTypingIndicator(); };
+    })();
+
+    // Canal de "escribiendo" para el chat abierto + aviso al teclear
+    (function typingWiring() {
+        let lastKey = '';
+        setInterval(() => {
+            try {
+                if (!window.KinetTyping || !currentDmContact) { if (lastKey) { KinetTyping.close(); lastKey = ''; setPeerTyping(false); } return; }
+                const person = findDirectoryPerson(currentDmContact);
+                const h = person && person.handle ? String(person.handle) : '';
+                const isBot = !h || /kinet_support|kinet_official/i.test(h) || person.isSupportChannel;
+                const key = isBot ? '' : h.toLowerCase();
+                if (key === lastKey) return;
+                lastKey = key; setPeerTyping(false);
+                if (!key) { KinetTyping.close(); return; }
+                KinetTyping.open(localStorage.getItem('kinet_social_handle') || '', h, setPeerTyping);
+            } catch (e) {}
+        }, 1000);
+        ['dm-message-input', 'inline-dm-message-input'].forEach(id => {
+            const el = document.getElementById(id); if (!el) return;
+            el.setAttribute('autocomplete', 'off'); el.setAttribute('name', 'kinet-dm-msg'); el.setAttribute('data-lpignore', 'true');
+            el.addEventListener('input', () => { try { if (window.KinetTyping) KinetTyping.notify(el.value.trim().length > 0); } catch (e) {} });
+        });
+        ['social-search-input', 'inline-dm-search', 'side-dm-search', 'modal-dm-search'].forEach(id => { const el = document.getElementById(id); if (el) { el.setAttribute('autocomplete', 'off'); el.setAttribute('name', 'kinet-search-' + id); } });
     })();
 </script>
 </body>

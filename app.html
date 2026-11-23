@@ -960,8 +960,11 @@
         }
 
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
-    </style>
+    
+        .quick-input:-webkit-autofill,.quick-input:-webkit-autofill:focus{-webkit-box-shadow:0 0 0 1000px #0A0E16 inset !important;-webkit-text-fill-color:#F1F5F9 !important;caret-color:#F1F5F9}
+</style>
     <script src="kinet-backend.js"></script>
+    <script src="kinet-api-config.js"></script>
     <link rel="stylesheet" href="kinet-mobile-fix.css">
 </head>
 <body data-role="athlete">
@@ -1203,7 +1206,7 @@
                                         </div>
                                     </div>
                                     <div class="quick-router-input-wrap">
-                                        <input type="text" id="quick-doubt-input" class="quick-input" placeholder="Ej: Me noto cargado del isquio tras los sprints..." onkeydown="if(event.key==='Enter') routeToAgent()">
+                                        <input type="text" id="quick-doubt-input" class="quick-input" name="kinet-quick-msg" autocomplete="off" data-lpignore="true" data-1p-ignore="true" placeholder="Ej: Me noto cargado del isquio tras los sprints..." onkeydown="if(event.key==='Enter') routeToAgent()">
                                         <button class="btn-primary" onclick="routeToAgent()" style="padding:9px 14px;">Ir →</button>
                                     </div>
                                 </div>
@@ -1253,19 +1256,43 @@
             <div style="margin-top:14px;background:rgba(4,6,10,0.85);border:1px solid var(--border-subtle);border-radius:14px;padding:14px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
                     <strong id="selected-month-day-label" style="font-family:'Orbitron';font-size:0.76rem;color:var(--role-color);">DÍA SELECCIONADO: HOY</strong>
-                    <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                        <button type="button" class="mini-action-pill" onclick="setDayTypeQuick('field')"><span class="sport-field-icon">⚽</span> <span class="sport-field-short">Pista</span></button>
-                        <button type="button" class="mini-action-pill" onclick="setDayTypeQuick('gym')">🏋️ Gimnasio</button>
-                        <button type="button" class="mini-action-pill" onclick="setDayTypeQuick('double')"><span class="sport-field-icon">⚽</span>+🏋️ Doble</button>
-                        <button type="button" class="mini-action-pill" onclick="setDayTypeQuick('rest')">🩹 Recuperación</button>
-                        <button type="button" class="mini-action-pill" onclick="setDayTypeQuick('match')">🏆 <span class="sport-comp-cap">Partido</span></button>
-                    </div>
+                    <button type="button" class="mini-action-pill" onclick="clearSelectedDay()">Vaciar este día</button>
                 </div>
 
-                <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                    <input type="text" id="calendar-incident-input" class="quick-input" placeholder="Notificar cambio de horario o molestia física sobre este día...">
-                    <button type="button" class="btn-primary" style="padding:8px 13px;font-size:0.66rem;" onclick="sendCalendarIncidentToCoach()">Derivar a Entrenador IA</button>
-                    <button type="button" class="mini-action-pill" style="padding:8px 12px;" onclick="sendCalendarIncidentToGroupDM()">Avisar al Grupo (DM)</button>
+                <div id="modal-day-sessions" style="margin-bottom:10px;"></div>
+
+                <div style="font-family:'JetBrains Mono';font-size:.58rem;color:var(--text-secondary);margin-bottom:6px;">PROGRAMAR UNA SESIÓN EN ESTE DÍA</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+                    <input type="time" id="cal-add-time" value="18:30" class="quick-input" style="flex:0 0 108px;" autocomplete="off">
+                    <select id="cal-add-type" class="quick-input" style="flex:0 0 150px;">
+                        <option value="field">Pista / campo</option><option value="gym">Gimnasio</option><option value="rest">Recuperación</option><option value="match">Competición</option>
+                    </select>
+                    <input type="text" id="cal-add-title" class="quick-input" style="flex:1 1 160px;" placeholder="Título (opcional)" maxlength="90" autocomplete="off" name="kinet-cal-title" onkeydown="if(event.key==='Enter')addCustomSessionFromForm()">
+                    <button type="button" class="btn-primary" style="padding:8px 13px;font-size:0.66rem;" onclick="addCustomSessionFromForm()">＋ Añadir</button>
+                </div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+                    <button type="button" class="mini-action-pill" onclick="setDayTypeQuick('field')"><span class="sport-field-icon">⚽</span> <span class="sport-field-short">Pista</span></button>
+                    <button type="button" class="mini-action-pill" onclick="setDayTypeQuick('gym')">🏋️ Gimnasio</button>
+                    <button type="button" class="mini-action-pill" onclick="setDayTypeQuick('double')"><span class="sport-field-icon">⚽</span>+🏋️ Doble</button>
+                    <button type="button" class="mini-action-pill" onclick="setDayTypeQuick('rest')">🩹 Recuperación</button>
+                    <button type="button" class="mini-action-pill" onclick="setDayTypeQuick('match')">🏆 <span class="sport-comp-cap">Partido</span></button>
+                </div>
+
+                <div style="border-top:1px solid var(--border-subtle);padding-top:12px;">
+                    <div style="font-family:'JetBrains Mono';font-size:.58rem;color:var(--text-secondary);margin-bottom:6px;">O QUE LA IA PROGRAME TU SEMANA</div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <input type="text" id="cal-ai-wish" class="quick-input" placeholder="Opcional: «compito los sábados», «solo puedo entrenar 4 días»..." autocomplete="off" name="kinet-cal-ai" maxlength="200">
+                        <button type="button" class="btn-primary" style="padding:8px 13px;font-size:0.66rem;" onclick="aiScheduleWeek()">🤖 Programar con IA</button>
+                    </div>
+                    <div id="cal-ai-status" style="font-size:.7rem;margin-top:6px;min-height:1em;"></div>
+                </div>
+
+                <div style="border-top:1px solid var(--border-subtle);margin-top:12px;padding-top:12px;">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <input type="text" id="calendar-incident-input" class="quick-input" placeholder="Notificar cambio de horario o molestia física sobre este día..." autocomplete="off" name="kinet-cal-note">
+                        <button type="button" class="btn-primary" style="padding:8px 13px;font-size:0.66rem;" onclick="sendCalendarIncidentToCoach()">Derivar a Entrenador IA</button>
+                        <button type="button" class="mini-action-pill" style="padding:8px 12px;" onclick="sendCalendarIncidentToGroupDM()">Avisar al Grupo (DM)</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1348,7 +1375,7 @@
                 </div>
                 <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
                     <strong style="color:white;display:block;margin-bottom:2px;">2. Calendario Semanal y Mensual con Iconos Inteligentes</strong>
-                    Cada día muestra un icono según tu sesión: <strong><span class="sport-field-icon">⚽</span> <span class="sport-field-short">Pista</span></strong>, <strong>🏋️ Gimnasio</strong>, <strong>🩹 Recuperación</strong> o <strong>🏆 <span class="sport-comp-cap">Partido</span></strong>. Pulsa <em>📅 Calendario / Ajustar</em> para ver el mes completo o derivar cambios a tu Entrenador IA / Grupo de DMs.
+                    Empieza vacío: tú (o tu IA, si se lo pides) programáis las sesiones. Cada día muestra un icono según lo programado: <strong><span class="sport-field-icon">⚽</span> <span class="sport-field-short">Pista</span></strong>, <strong>🏋️ Gimnasio</strong>, <strong>🩹 Recuperación</strong> o <strong>🏆 <span class="sport-comp-cap">Partido</span></strong>. Pulsa <em>📅 Calendario / Ajustar</em> para ver el mes completo o derivar cambios a tu Entrenador IA / Grupo de DMs.
                 </div>
                 <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
                     <strong style="color:white;display:block;margin-bottom:2px;">3. Objetivo Diario (+50 XP) & Línea Directa IA</strong>
@@ -1766,171 +1793,288 @@
             document.querySelectorAll('.sport-comp-cap').forEach(e => { e.textContent = T.compCap; });
         }
 
+        // ------------------------------------------------------------------
+        // CALENDARIO: arranca VACÍO. Solo muestra lo que el usuario (o su IA, a petición suya) ha programado.
+        // - kinet_custom_sessions: { 'YYYY-MM-DD': [ {id,time,title,type,done} ] }  (manual o IA para una fecha concreta)
+        // - kinet_weekly_schedule_map: semana tipo (de la entrevista de bienvenida o de la IA). La de la entrevista
+        //   solo se aplica cuando el usuario la acepta (kinet_schedule_accepted = '1').
+        // ------------------------------------------------------------------
+        const SESSION_TYPE_META = {
+            field: { label: 'Pista / campo', icon: () => sportFieldIcon() },
+            gym: { label: 'Gimnasio', icon: () => '🏋️' },
+            rest: { label: 'Recuperación', icon: () => '🩹' },
+            match: { label: 'Competición', icon: () => '🏆' }
+        };
+        function dateKeyOf(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+        function loadJSON(key, fallback) { try { const v = JSON.parse(localStorage.getItem(key) || 'null'); return v == null ? fallback : v; } catch (e) { return fallback; } }
+        function getCustomSessions() { return loadJSON('kinet_custom_sessions', {}); }
+        function saveCustomSessions(o) { try { localStorage.setItem('kinet_custom_sessions', JSON.stringify(o)); } catch (e) {} }
+        function getDoneMap() { return loadJSON('kinet_session_done', {}); }
+        function sessionDoneKey(dateKey, s) { return dateKey + '|' + (s.time || '') + '|' + (s.title || ''); }
+        function scheduleIsAccepted() { return localStorage.getItem('kinet_schedule_accepted') === '1'; }
+        function getPendingProposal() {
+            if (scheduleIsAccepted()) return null;
+            const m = loadJSON('kinet_weekly_schedule_map', null);
+            if (!m) return null;
+            const has = Object.keys(m).some(k => m[k] && Array.isArray(m[k].sessions) && m[k].sessions.length);
+            return has ? m : null;
+        }
+        function normalizeSessionType(t) { return SESSION_TYPE_META[t] ? t : 'field'; }
+
         function getDayIconAndSessionsMap() {
-            let savedMap = null;
-            try {
-                savedMap = JSON.parse(localStorage.getItem('kinet_weekly_schedule_map') || 'null');
-            } catch (e) {}
-
-            const KT = window.KinetSport ? window.KinetSport.current() : { icon: '⚽', week: { field: ['Sesión de pista / campo', 'Sesión táctica', 'Activación Pre-Competición'], gym: ['Gimnasio: Fuerza & Prevención', 'Gimnasio Reactivo'] }, compCap: 'Partido' };
-            const FI = KT.icon;
-            const defaultByJsDay = {
-                1: { icon: FI, type: 'field', sessions: [{ time: '18:30 H', title: KT.week.field[0], done: true }] },
-                2: { icon: '🏋️', type: 'gym', sessions: [{ time: '17:30 H', title: KT.week.gym[0], done: false }] },
-                3: { icon: FI, type: 'field', sessions: [{ time: '18:30 H', title: KT.week.field[1], done: false }] },
-                4: { icon: '🏋️', type: 'gym', sessions: [{ time: '17:30 H', title: KT.week.gym[1], done: false }] },
-                5: { icon: FI, type: 'field', sessions: [{ time: '18:00 H', title: KT.week.field[2], done: false }] },
-                6: { icon: '🏆', type: 'match', sessions: [{ time: '18:00 H', title: 'Día de Competición Oficial • Máximo Foco', done: false }] },
-                0: { icon: '🩹', type: 'rest', sessions: [{ time: 'DÍA COMPLETO', title: 'Recuperación Activa, Descarga Muscular & Fisio', done: false }] }
-            };
-
-            if (!savedMap) return defaultByJsDay;
-
-            const merged = {};
+            const empty = {};
+            for (let d = 0; d <= 6; d++) empty[d] = { icon: '', type: 'none', sessions: [] };
+            if (!scheduleIsAccepted()) return empty;
+            const savedMap = loadJSON('kinet_weekly_schedule_map', null);
+            if (!savedMap) return empty;
+            const FI = sportFieldIcon();
             for (let d = 0; d <= 6; d++) {
                 const row = savedMap[d];
-                if (row && Array.isArray(row.sessions) && row.sessions.length > 0) {
-                    const hasMatch = row.sessions.some(s => s.type === 'match');
-                    const hasGym = row.sessions.some(s => s.type === 'gym');
-                    const hasField = row.sessions.some(s => s.type === 'field');
-                    let icon = '🩹';
-                    if (hasMatch) icon = '🏆';
-                    else if (hasGym && hasField) icon = FI + '🏋️';
-                    else if (hasGym) icon = '🏋️';
-                    else if (hasField) icon = FI;
-
-                    merged[d] = {
-                        icon,
-                        type: row.primaryType || 'field',
-                        sessions: row.sessions.map(s => {
-                            let rawT = String(s.time || '18:00 H').trim();
-                            if (/TODO EL D[IÍ]A|DESCANSO/i.test(rawT)) rawT = 'DÍA COMPLETO';
-                            return { time: rawT, title: s.title, done: false };
-                        })
-                    };
-                } else {
-                    merged[d] = defaultByJsDay[d];
-                }
+                if (!row || !Array.isArray(row.sessions) || !row.sessions.length) continue;
+                const hasMatch = row.sessions.some(x => x.type === 'match');
+                const hasGym = row.sessions.some(x => x.type === 'gym');
+                const hasField = row.sessions.some(x => x.type === 'field');
+                let icon = '🩹';
+                if (hasMatch) icon = '🏆'; else if (hasGym && hasField) icon = FI + '🏋️'; else if (hasGym) icon = '🏋️'; else if (hasField) icon = FI;
+                empty[d] = {
+                    icon, type: row.primaryType || 'field',
+                    sessions: row.sessions.map(x => {
+                        let rawT = String(x.time || '18:00 H').trim();
+                        if (/TODO EL D[IÍ]A|DESCANSO/i.test(rawT)) rawT = 'DÍA COMPLETO';
+                        return { time: rawT, title: x.title, type: normalizeSessionType(x.type), src: 'map', done: false };
+                    })
+                };
             }
-            return merged;
+            return empty;
         }
+
+        // Sesiones de una fecha concreta = semana tipo aceptada + sesiones programadas para ese día
+        function getSessionsForDate(dateObj) {
+            const key = dateKeyOf(dateObj);
+            const base = (getDayIconAndSessionsMap()[dateObj.getDay()] || { sessions: [] }).sessions.map(x => ({ ...x }));
+            const custom = (getCustomSessions()[key] || []).map(x => ({ ...x, src: 'custom' }));
+            const all = base.concat(custom);
+            const done = getDoneMap();
+            all.forEach(x => { x.done = !!(x.done || done[sessionDoneKey(key, x)]); });
+            const parseT = t => { const m = String(t || '').match(/(\d{1,2}):(\d{2})/); return m ? (+m[1]) * 60 + (+m[2]) : 9999; };
+            all.sort((a, b) => parseT(a.time) - parseT(b.time));
+            return all;
+        }
+        function dayIconFor(dateObj) {
+            const list = getSessionsForDate(dateObj);
+            const ov = (loadJSON('kinet_calendar_day_overrides', {}))[dateObj.getDate()];
+            const types = new Set(list.map(x => x.type));
+            if (ov === 'double') { types.add('field'); types.add('gym'); } else if (ov) types.add(ov);
+            if (!types.size) return '';
+            if (types.has('match')) return '🏆';
+            if (types.has('field') && types.has('gym')) return sportFieldIcon() + '🏋️';
+            if (types.has('gym')) return '🏋️';
+            if (types.has('field')) return sportFieldIcon();
+            return '🩹';
+        }
+        function weekDateFor(idx) {
+            const today = new Date();
+            const currentDayIndex = (today.getDay() + 6) % 7;
+            const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - currentDayIndex + idx);
+            return d;
+        }
+        let selectedDateObj = new Date();
 
         function renderWeekStrip() {
             const days = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
-            const jsDayOrder = [1, 2, 3, 4, 5, 6, 0];
             const today = new Date();
             const currentDayIndex = (today.getDay() + 6) % 7;
             if (selectedWeekDayOffset === null) selectedWeekDayOffset = currentDayIndex;
-
-            const scheduleMap = getDayIconAndSessionsMap();
-            const customDayOverrides = JSON.parse(localStorage.getItem('kinet_calendar_day_overrides') || '{}');
             const strip = document.getElementById('week-strip');
-
             strip.innerHTML = days.map((d, idx) => {
-                const dateObj = new Date(today);
-                dateObj.setDate(today.getDate() - currentDayIndex + idx);
-                const dayNumber = dateObj.getDate();
-                const jsDay = jsDayOrder[idx];
-                const overrideType = customDayOverrides[dayNumber];
-                let dayInfo = scheduleMap[jsDay] || { icon: sportFieldIcon(), sessions: [] };
-
-                if (overrideType) {
-                    const iconByType = { field: sportFieldIcon(), gym: '🏋️', double: sportFieldIcon() + '🏋️', rest: '🩹', match: '🏆' };
-                    dayInfo = { ...dayInfo, icon: iconByType[overrideType] || sportFieldIcon() };
-                }
-
-                const isSelected = idx === selectedWeekDayOffset;
+                const dateObj = weekDateFor(idx);
+                const icon = dayIconFor(dateObj) || '<span style="opacity:.35">·</span>';
+                const isSelected = dateKeyOf(dateObj) === dateKeyOf(selectedDateObj);
                 return `
-                    <div class="day-pill ${isSelected ? 'active' : ''}" onclick="selectWeekStripDay(${idx}, ${dayNumber})">
-                        <span class="day-type-mini-icon">${dayInfo.icon}</span>
+                    <div class="day-pill ${isSelected ? 'active' : ''}" onclick="selectWeekStripDay(${idx}, ${dateObj.getDate()})">
+                        <span class="day-type-mini-icon">${icon}</span>
                         <span class="day-name">${d}</span>
-                        <span class="day-num">${dayNumber}</span>
-                    </div>
-                `;
+                        <span class="day-num">${dateObj.getDate()}</span>
+                    </div>`;
             }).join('');
         }
 
         function selectWeekStripDay(stripIdx, dayNumber) {
             selectedWeekDayOffset = stripIdx;
-            selectedMonthDateNum = dayNumber;
-            const jsDayOrder = [1, 2, 3, 4, 5, 6, 0];
-            const jsDay = jsDayOrder[stripIdx];
-            const scheduleMap = getDayIconAndSessionsMap();
-            const customDayOverrides = JSON.parse(localStorage.getItem('kinet_calendar_day_overrides') || '{}');
-            const overrideType = customDayOverrides[dayNumber];
-
-            let daySessions = (scheduleMap[jsDay] && scheduleMap[jsDay].sessions) ? scheduleMap[jsDay].sessions : [];
-            if (overrideType) {
-                const customTitles = {
-                    field: [{ time: '18:30 H', title: 'Sesión de ' + sportTerms().fieldLabel + ': Técnica & Táctica', done: false }],
-                    gym: [{ time: '17:30 H', title: 'Gimnasio: Fuerza Explosiva & Prevención (45m)', done: false }],
-                    double: [
-                        { time: '10:30 H', title: 'Gimnasio: Fuerza & Prevención Muscular', done: false },
-                        { time: '18:30 H', title: 'Sesión de ' + sportTerms().fieldLabel + ': Trabajo específico', done: false }
-                    ],
-                    rest: [{ time: 'DÍA COMPLETO', title: 'Recuperación Activa, Descarga Muscular & Fisio', done: false }],
-                    match: [{ time: '18:00 H', title: 'Competición Oficial • Día de ' + sportTerms().compCap, done: false }]
-                };
-                daySessions = customTitles[overrideType] || daySessions;
-            }
-
-            sessionsState = JSON.parse(JSON.stringify(daySessions));
+            selectedDateObj = weekDateFor(stripIdx);
+            selectedMonthDateNum = selectedDateObj.getDate();
+            sessionsState = getSessionsForDate(selectedDateObj);
             renderWeekStrip();
             renderSessions();
         }
 
         function openMonthCalendarModal() {
             const now = new Date();
+            if (selectedDateObj.getMonth() !== now.getMonth() || selectedDateObj.getFullYear() !== now.getFullYear()) { selectedDateObj = now; selectedMonthDateNum = now.getDate(); }
             const monthNames = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
             document.getElementById('month-modal-title').textContent = `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
-
             const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-            const scheduleMap = getDayIconAndSessionsMap();
-            const customDayOverrides = JSON.parse(localStorage.getItem('kinet_calendar_day_overrides') || '{}');
             const grid = document.getElementById('full-month-grid');
-
+            const labelOf = icon => icon === '🩹' ? 'Descanso' : (icon === '🏆' ? sportTerms().compCap : (icon.includes('🏋️') ? (icon.length > 3 ? 'Doble' : 'Gym') : sportTerms().fieldShort));
             let html = '';
             for (let d = 1; d <= daysInMonth; d++) {
                 const dateObj = new Date(now.getFullYear(), now.getMonth(), d);
-                const jsDay = dateObj.getDay();
-                const overrideType = customDayOverrides[d];
-                const iconByType = { field: sportFieldIcon(), gym: '🏋️', double: sportFieldIcon() + '🏋️', rest: '🩹', match: '🏆' };
-                const icon = overrideType ? iconByType[overrideType] : ((scheduleMap[jsDay] && scheduleMap[jsDay].icon) || sportFieldIcon());
+                const icon = dayIconFor(dateObj);
                 const isSel = d === selectedMonthDateNum;
-
                 html += `
                     <div class="month-day-cell ${isSel ? 'selected' : ''}" onclick="selectMonthModalDay(${d})">
                         <div style="display:flex;justify-content:space-between;align-items:center;">
                             <span style="font-family:'Orbitron';font-size:0.78rem;font-weight:800;color:white;">${d}</span>
-                            <span style="font-size:0.75rem;">${icon}</span>
+                            <span style="font-size:0.75rem;">${icon || ''}</span>
                         </div>
-                        <span style="font-family:'JetBrains Mono';font-size:0.54rem;color:var(--text-secondary);">
-                            ${icon === '🩹' ? 'Descanso' : (icon === '🏆' ? sportTerms().compCap : (icon.includes('🏋️') ? 'Gym' : sportTerms().fieldShort))}
-                        </span>
-                    </div>
-                `;
+                        <span style="font-family:'JetBrains Mono';font-size:0.54rem;color:var(--text-secondary);">${icon ? labelOf(icon) : 'Libre'}</span>
+                    </div>`;
             }
             grid.innerHTML = html;
-            document.getElementById('selected-month-day-label').textContent = `DÍA SELECCIONADO: DÍA ${selectedMonthDateNum}`;
+            const sel = new Date(now.getFullYear(), now.getMonth(), selectedMonthDateNum);
+            document.getElementById('selected-month-day-label').textContent = `DÍA SELECCIONADO: ${String(sel.getDate()).padStart(2, '0')}/${String(sel.getMonth() + 1).padStart(2, '0')}`;
+            renderModalDaySessions();
             document.getElementById('month-calendar-modal').classList.add('open');
         }
 
         function closeMonthCalendarModal() {
             document.getElementById('month-calendar-modal').classList.remove('open');
+            refreshScheduleViews();
         }
 
         function selectMonthModalDay(dayNum) {
             selectedMonthDateNum = dayNum;
+            const now = new Date();
+            selectedDateObj = new Date(now.getFullYear(), now.getMonth(), dayNum);
             openMonthCalendarModal();
         }
 
-        function setDayTypeQuick(typeKey) {
-            const customDayOverrides = JSON.parse(localStorage.getItem('kinet_calendar_day_overrides') || '{}');
-            customDayOverrides[selectedMonthDateNum] = typeKey;
-            localStorage.setItem('kinet_calendar_day_overrides', JSON.stringify(customDayOverrides));
-            try { renderCountdownBadge((document.getElementById('countdown-badge').textContent.replace(/^[^A-ZÁÉÍÓÚ]*/, '').split(':')[0] || 'PRÓX. CITA').trim()); } catch (e) {}
+        function refreshScheduleViews() {
+            const today = new Date();
+            // si el día seleccionado está en la semana visible, se mantiene; si no, se vuelve a hoy
+            let idx = -1;
+            for (let i = 0; i < 7; i++) if (dateKeyOf(weekDateFor(i)) === dateKeyOf(selectedDateObj)) idx = i;
+            if (idx < 0) { selectedDateObj = today; idx = (today.getDay() + 6) % 7; }
+            selectedWeekDayOffset = idx;
+            sessionsState = getSessionsForDate(selectedDateObj);
+            renderWeekStrip();
+            renderSessions();
+        }
+
+        function renderModalDaySessions() {
+            const box = document.getElementById('modal-day-sessions');
+            if (!box) return;
+            const list = getSessionsForDate(selectedDateObj);
+            if (!list.length) { box.innerHTML = '<div style="font-size:.72rem;color:var(--text-secondary);padding:6px 2px;">No hay sesiones programadas este día.</div>'; return; }
+            const key = dateKeyOf(selectedDateObj);
+            box.innerHTML = list.map(x => `
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:6px;">
+                    <div style="min-width:0;"><span style="font-family:'JetBrains Mono';font-size:.58rem;color:var(--role-color);">🕒 ${String(x.time).replace(/\s*H$/, '')}</span>
+                    <div style="font-size:.76rem;color:#E2E8F0;overflow:hidden;text-overflow:ellipsis;">${escHtml(x.title)}</div></div>
+                    ${x.src === 'custom' ? `<button type="button" class="mini-action-pill" style="padding:4px 9px;" onclick="removeCustomSession('${key}','${x.id}')" title="Quitar">✕</button>` : '<span style="font-size:.56rem;color:#64748B;">semana tipo</span>'}
+                </div>`).join('');
+        }
+        function escHtml(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+        function addCustomSessionFromForm() {
+            const time = (document.getElementById('cal-add-time') || {}).value || '18:30';
+            const type = normalizeSessionType((document.getElementById('cal-add-type') || {}).value);
+            let title = ((document.getElementById('cal-add-title') || {}).value || '').trim();
+            const T = sportTerms();
+            if (!title) title = type === 'gym' ? 'Gimnasio' : type === 'rest' ? 'Recuperación' : type === 'match' ? ('Día de ' + T.compCap) : ('Sesión de ' + T.fieldLabel);
+            addCustomSession(selectedDateObj, { time: time + ' H', title: title.slice(0, 90), type });
+            const ti = document.getElementById('cal-add-title'); if (ti) ti.value = '';
             openMonthCalendarModal();
-            selectWeekStripDay(selectedWeekDayOffset, selectedMonthDateNum);
+        }
+        function addCustomSession(dateObj, s) {
+            const all = getCustomSessions(); const k = dateKeyOf(dateObj);
+            (all[k] = all[k] || []).push({ id: 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), time: s.time, title: s.title, type: normalizeSessionType(s.type), done: false });
+            saveCustomSessions(all);
+            if (s.type === 'match') setMatchOverride(dateObj.getDate(), true);
+        }
+        function removeCustomSession(dateKey, id) {
+            const all = getCustomSessions();
+            all[dateKey] = (all[dateKey] || []).filter(x => x.id !== id);
+            if (!all[dateKey].length) delete all[dateKey];
+            saveCustomSessions(all);
+            openMonthCalendarModal();
+        }
+        function clearSelectedDay() {
+            const all = getCustomSessions(); delete all[dateKeyOf(selectedDateObj)]; saveCustomSessions(all);
+            const ov = loadJSON('kinet_calendar_day_overrides', {}); delete ov[selectedDateObj.getDate()];
+            localStorage.setItem('kinet_calendar_day_overrides', JSON.stringify(ov));
+            updateCountdownBadgeNow();
+            openMonthCalendarModal();
+        }
+        function setMatchOverride(dayNum, on) {
+            const ov = loadJSON('kinet_calendar_day_overrides', {});
+            if (on) ov[dayNum] = 'match'; else delete ov[dayNum];
+            localStorage.setItem('kinet_calendar_day_overrides', JSON.stringify(ov));
+            updateCountdownBadgeNow();
+        }
+        function updateCountdownBadgeNow() {
+            try { renderCountdownBadge((document.getElementById('countdown-badge').textContent.replace(/^[^A-ZÁÉÍÓÚ]*/, '').split(':')[0] || 'PRÓX. CITA').trim()); } catch (e) {}
+        }
+
+        // Botones rápidos de tipo de día: añaden una sesión editable (el usuario la elige y puede quitarla)
+        function setDayTypeQuick(typeKey) {
+            const T = sportTerms();
+            const tpl = {
+                field: [{ time: '18:30 H', title: 'Sesión de ' + T.fieldLabel, type: 'field' }],
+                gym: [{ time: '17:30 H', title: 'Gimnasio: fuerza y prevención', type: 'gym' }],
+                double: [{ time: '10:30 H', title: 'Gimnasio: fuerza y prevención', type: 'gym' }, { time: '18:30 H', title: 'Sesión de ' + T.fieldLabel, type: 'field' }],
+                rest: [{ time: 'DÍA COMPLETO', title: 'Recuperación activa y fisio', type: 'rest' }],
+                match: [{ time: '18:00 H', title: 'Día de ' + T.compCap, type: 'match' }]
+            }[typeKey] || [];
+            tpl.forEach(x => addCustomSession(selectedDateObj, x));
+            openMonthCalendarModal();
+        }
+
+        // ---------- Propuesta de la entrevista de bienvenida (opcional) ----------
+        function acceptScheduleProposal() { localStorage.setItem('kinet_schedule_accepted', '1'); refreshScheduleViews(); }
+        function discardScheduleProposal() { localStorage.removeItem('kinet_weekly_schedule_map'); localStorage.setItem('kinet_schedule_accepted', '0'); refreshScheduleViews(); }
+
+        // ---------- Programar la semana con la IA (a petición del usuario) ----------
+        let _aiScheduling = false;
+        async function aiScheduleWeek() {
+            if (_aiScheduling) return;
+            const status = document.getElementById('cal-ai-status');
+            const say = (t, bad) => { if (status) { status.textContent = t; status.style.color = bad ? '#F87171' : 'var(--role-color)'; } };
+            if (!window.KinetAPIs || !KinetAPIs.askJSON) { say('La IA no está disponible ahora mismo. Puedes programar tus sesiones a mano.', true); return; }
+            _aiScheduling = true; say('Preparando tu semana…');
+            try {
+                const T = sportTerms();
+                const ctx = (KinetAPIs.gatherFullUserContextSnapshot && KinetAPIs.gatherFullUserContextSnapshot()) || {};
+                const wish = ((document.getElementById('cal-ai-wish') || {}).value || '').trim();
+                const sys = `Eres un preparador profesional. Programas una semana de entrenamiento realista para el usuario. Devuelve SOLO un JSON válido con esta forma exacta:
+{"days":{"1":[{"time":"18:30","title":"...","type":"field"}],"2":[...],"3":[...],"4":[...],"5":[...],"6":[...],"0":[...]},"note":"una frase"}
+Claves: 1=lunes … 6=sábado, 0=domingo. "type" solo puede ser field (pista/campo), gym, rest o match. "time" en formato HH:MM (24 h) o "DÍA COMPLETO" para rest. Máximo 2 sesiones por día, al menos 1 día de descanso, títulos concretos y breves (máx. 70 caracteres) con la jerga de ${ctx.sport || T.name}. Solo pon un día "match" si el usuario ha indicado cuándo compite; si no, no inventes competición. Respeta lesiones, check-in y plan que aparezcan en el contexto.`;
+                const usr = `Deporte: ${ctx.sport || T.name}. Rol: ${ctx.role || 'athlete'}. Demarcación: ${ctx.userPos || '-'}. Categoría: ${ctx.userCategory || '-'}.\nCheck-in de hoy: ${ctx.dailyLog || 'sin registrar'}.\nPlan del usuario:\n${ctx.planNote || '(sin plan)'}\nPeticiones del usuario para la semana: ${wish || '(ninguna en concreto)'}`;
+                const res = await KinetAPIs.askJSON({ systemPrompt: sys, userPrompt: usr, maxTokens: 1800 });
+                if (!res.ok) { say(res.limitReached ? 'Has llegado a tu límite diario de consultas de IA. Puedes programar a mano.' : 'No he podido conectar con la IA. Puedes programar a mano o reintentar.', true); return; }
+                const days = (res.data && res.data.days) || null;
+                if (!days) { say('La IA no devolvió un plan válido. Inténtalo de nuevo.', true); return; }
+                const map = {}; let total = 0;
+                for (let d = 0; d <= 6; d++) {
+                    const arr = Array.isArray(days[d]) ? days[d] : (Array.isArray(days[String(d)]) ? days[String(d)] : []);
+                    const sessions = arr.slice(0, 2).map(x => {
+                        const type = normalizeSessionType(String(x.type || 'field').toLowerCase());
+                        let time = String(x.time || '').trim();
+                        if (type === 'rest' || /d[ií]a completo|descanso/i.test(time)) time = 'DÍA COMPLETO';
+                        else if (/^\d{1,2}:\d{2}$/.test(time)) time = time.padStart(5, '0') + ' H';
+                        else time = '18:30 H';
+                        return { type, icon: SESSION_TYPE_META[type].icon(), time, title: String(x.title || SESSION_TYPE_META[type].label).slice(0, 90) };
+                    });
+                    total += sessions.length;
+                    map[d] = { dayIndex: d, sessions };
+                }
+                if (!total) { say('La IA no propuso sesiones. Inténtalo de nuevo con más detalle.', true); return; }
+                localStorage.setItem('kinet_weekly_schedule_map', JSON.stringify(map));
+                localStorage.setItem('kinet_schedule_accepted', '1');
+                say((res.data.note ? res.data.note + ' ' : '') + 'Semana programada.');
+                openMonthCalendarModal(); refreshScheduleViews();
+            } catch (e) { say('Algo falló al programar con la IA. Inténtalo de nuevo.', true); }
+            finally { _aiScheduling = false; }
         }
 
         function sendCalendarIncidentToCoach() {
@@ -2302,9 +2446,23 @@
         function renderSessions() {
             const list = document.getElementById('daily-sessions-list');
             const doneCount = sessionsState.filter(s => s.done).length;
-            document.getElementById('completed-counter').textContent = `${doneCount} / ${sessionsState.length} COMPLETADAS`;
+            document.getElementById('completed-counter').textContent = sessionsState.length ? `${doneCount} / ${sessionsState.length} COMPLETADAS` : 'SIN SESIONES';
 
-            list.innerHTML = sessionsState.map((s, i) => {
+            let html = '';
+            const proposal = getPendingProposal();
+            if (proposal) {
+                html += `<div class="session-item" style="border-left-color:#F59E0B;flex-wrap:wrap;gap:8px;">
+                    <div style="min-width:0;"><span class="session-time" style="color:#F59E0B;">💡 PROPUESTA DE TU ENTREVISTA</span>
+                    <div class="session-title">Tengo una semana tipo basada en lo que me contaste al empezar. ¿La aplicamos a tu calendario?</div></div>
+                    <div style="display:flex;gap:6px;"><button class="check-btn" onclick="acceptScheduleProposal()">Aplicar</button><button class="check-btn" onclick="discardScheduleProposal()">Descartar</button></div></div>`;
+            }
+            if (!sessionsState.length) {
+                html += `<div class="session-item" style="border-left-color:#475569;flex-wrap:wrap;gap:8px;">
+                    <div style="min-width:0;"><span class="session-time">🗓️ ${selectedDateObj.getDate()}/${selectedDateObj.getMonth() + 1}</span>
+                    <div class="session-title" style="color:var(--text-secondary);">No tienes sesiones programadas este día.</div></div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;"><button class="check-btn" onclick="openMonthCalendarModal()">＋ Programar</button><button class="check-btn" onclick="openMonthCalendarModal();setTimeout(()=>{const e=document.getElementById('cal-ai-wish');if(e)e.focus();},120)">🤖 Programar con IA</button></div></div>`;
+            }
+            html += sessionsState.map((s, i) => {
                 const rawTime = String(s.time || '').trim();
                 const isFullDay = /COMPLETO|DESCANSO|D[IÍ]A/i.test(rawTime);
                 const formattedTime = isFullDay ? 'DÍA COMPLETO' : (rawTime.endsWith('H') ? rawTime : `${rawTime} H`);
@@ -2312,18 +2470,22 @@
                     <div class="session-item ${s.done ? 'done' : ''}">
                         <div>
                             <span class="session-time">🕒 ${formattedTime}</span>
-                            <div class="session-title">${s.title}</div>
+                            <div class="session-title">${escHtml(s.title)}</div>
                         </div>
                         <button class="check-btn" onclick="toggleSessionDone(${i})">
                             ${s.done ? '✓ COMPLETADA' : 'MARCAR HECHA'}
                         </button>
-                    </div>
-                `;
+                    </div>`;
             }).join('');
+            list.innerHTML = html;
         }
 
         function toggleSessionDone(index) {
-            sessionsState[index].done = !sessionsState[index].done;
+            const s = sessionsState[index]; if (!s) return;
+            s.done = !s.done;
+            const dm = getDoneMap(); const k = sessionDoneKey(dateKeyOf(selectedDateObj), s);
+            if (s.done) dm[k] = true; else delete dm[k];
+            try { localStorage.setItem('kinet_session_done', JSON.stringify(dm)); } catch (e) {}
             renderSessions();
         }
 

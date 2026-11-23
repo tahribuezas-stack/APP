@@ -3,6 +3,7 @@
 <head>
 <script src="kinet-guard.js"></script>
 <script src="kinet-sport.js"></script>
+<script src="kinet-cv.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
@@ -1171,7 +1172,7 @@
                 </div>
                 <div style="background:rgba(255,255,255,0.03);border-left:3px solid var(--role-color);padding:10px 12px;border-radius:10px;">
                     <strong style="color:white;display:block;margin-bottom:2px;">📄 2. Dossier Ejecutivo en PDF con Sello Oficial</strong>
-                    Pulsa en <em>Descargar CV Deportivo PDF</em> para exportar un informe oficial con el logo <strong>K</strong> arriba a la izquierda, tus enlaces activos y el desglose de tu KINET Card.
+                    Pulsa en <em>Descargar CV Deportivo PDF</em> para exportar tu CV deportivo (una página, con tu foto, tus datos y tus enlaces).
                 </div>
             </div>
             <div style="display:flex;justify-content:flex-end;">
@@ -1836,7 +1837,8 @@
             const savedLat = localStorage.getItem('kinet_user_laterality') || '';
             const matchedLat = catalog.lateralities.find(l => l.toLowerCase().includes(savedLat.toLowerCase()) && savedLat.length > 2) || savedLat || '';
 
-            const bio = localStorage.getItem('kinet_social_bio') || localStorage.getItem('kinet_user_bio') || `Perfil Verificado KINET OS`;
+            let bio = localStorage.getItem('kinet_social_bio') || localStorage.getItem('kinet_user_bio') || '';
+            if (/^Perfil Verificado KINET OS/i.test(bio)) bio = '';
             let bundleBackup = {};
             try { bundleBackup = JSON.parse(localStorage.getItem('kinet_passport_cv_bundle') || '{}') || {}; } catch (e) {}
             let dbBackup = {};
@@ -2068,115 +2070,8 @@
 
         async function exportProfileCVPDF() {
             await saveProfileChanges();
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-            const userName = (localStorage.getItem('kinet_user_name') || 'USUARIO KINET').toUpperCase();
-            const handle = localStorage.getItem('kinet_social_handle') || '@usuario';
-            const age = updateCalculatedAgeUI();
-            const city = localStorage.getItem('kinet_user_city') || 'No especificada';
-            const hometown = localStorage.getItem('kinet_user_hometown') || 'No especificada';
-            const club = localStorage.getItem('kinet_user_club') || 'Sin club';
-            const category = localStorage.getItem('kinet_user_category') || activeSportName;
-            const pos = localStorage.getItem('kinet_position') || 'PRO';
-            const anthro = localStorage.getItem('kinet_user_anthropometry') || 'Sin datos';
-            const laterality = localStorage.getItem('kinet_user_laterality') || 'Estándar';
-            const bio = localStorage.getItem('kinet_social_bio') || 'Perfil Oficial KINET OS';
-            const tmUrl = localStorage.getItem('kinet_user_transfermarkt') || 'No adjuntado';
-            const vidUrl = localStorage.getItem('kinet_user_videolink') || 'No adjuntado';
-            const avatar = localStorage.getItem('kinet_user_avatar');
-            const perf = getRealUserPerformanceSummary();
-
-            pdf.setFillColor(6, 8, 14);
-            pdf.rect(0, 0, 210, 297, 'F');
-
-            pdf.setDrawColor(0, 255, 136);
-            pdf.setLineWidth(0.6);
-            pdf.roundedRect(10, 10, 190, 277, 4, 4, 'S');
-
-            pdf.setFillColor(13, 17, 26);
-            pdf.roundedRect(14, 14, 182, 34, 4, 4, 'F');
-
-            // LOGO OFICIAL KINET OS ARRIBA A LA IZQUIERDA
-            pdf.setFillColor(0, 255, 136);
-            pdf.roundedRect(18, 17, 11, 11, 2.5, 2.5, 'F');
-            pdf.setTextColor(4, 6, 10);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(10.5);
-            pdf.text('K', 21.8, 24.4);
-
-            let textLeftX = 33;
-            if (avatar && avatar.startsWith('data:image')) {
-                try {
-                    pdf.addImage(avatar, 'JPEG', 170, 17, 22, 22);
-                } catch (e) {}
-            }
-
-            pdf.setTextColor(0, 255, 136);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(11.8);
-            pdf.text('KINET OS // PASAPORTE BIOMETRICO & CV DEPORTIVO OFICIAL', textLeftX, 24);
-
-            pdf.setTextColor(255, 255, 255);
-            pdf.setFontSize(13.2);
-            pdf.text(`${userName}   (${handle})`, textLeftX, 33);
-
-            pdf.setTextColor(148, 163, 184);
-            pdf.setFontSize(8.8);
-            const ageTxt = age !== null ? `${age} AÑOS` : 'EDAD NO INDICADA';
-            pdf.text(`DISCIPLINA: ${activeSportName.toUpperCase()}   |   ${ageTxt}   |   CIUDAD ACTUAL: ${city.toUpperCase()}`, textLeftX, 41);
-
-            pdf.setFillColor(13, 17, 26);
-            pdf.roundedRect(14, 54, 182, 72, 4, 4, 'F');
-            pdf.setTextColor(0, 255, 136);
-            pdf.setFontSize(10.5);
-            pdf.text('1. FICHA TECNICA, UBICACION Y CATEGORIA COMPETITIVA', 20, 64);
-
-            pdf.setTextColor(241, 245, 249);
-            pdf.setFontSize(9.2);
-            pdf.text(`• Demarcacion / Especialidad: ${pos}`, 20, 74);
-            pdf.text(`• Club / Organizacion Actual: ${club}`, 20, 82);
-            pdf.text(`• Categoria / Division / Grupo: ${category}`, 20, 90);
-            pdf.text(`• Ciudad de Residencia: ${city}   |   Ciudad Natal: ${hometown}`, 20, 98);
-            pdf.text(`• Antropometria (Altura / Peso): ${anthro}   |   Lateralidad / Guardia: ${laterality}`, 20, 106);
-            const bioLines = pdf.splitTextToSize(`• Titular Profesional: "${bio}"`, 170);
-            pdf.text(bioLines, 20, 114);
-
-            pdf.setFillColor(13, 17, 26);
-            pdf.roundedRect(14, 132, 182, 38, 4, 4, 'F');
-            pdf.setTextColor(0, 255, 136);
-            pdf.setFontSize(10.5);
-            pdf.text('2. ENLACES OFICIALES Y REFERENCIAS DE VIDEO EXTERNAS', 20, 142);
-
-            pdf.setTextColor(226, 232, 240);
-            pdf.setFontSize(8.8);
-            pdf.text(`• Perfil Oficial (Transfermarkt / BeSoccer / Federacion): ${tmUrl.slice(0, 72)}`, 20, 152);
-            pdf.text(`• Highlight Reel / Video de Referencia: ${vidUrl.slice(0, 75)}`, 20, 161);
-
-            pdf.setFillColor(13, 17, 26);
-            pdf.roundedRect(14, 176, 182, 68, 4, 4, 'F');
-            pdf.setTextColor(0, 255, 136);
-            pdf.setFontSize(10.5);
-            pdf.text('3. AUDITORIA BIOMECANICA Y ATRIBUTOS KINET CARD', 20, 186);
-
-            pdf.setTextColor(248, 250, 252);
-            pdf.setFontSize(9.2);
-            const grlStr = perf.realGrl ? `${perf.realGrl} GRL (Calibrado en KINET OS)` : 'Pendiente de calibrar (?? GRL)';
-            pdf.text(`• Valoracion Media Oficial KINET Card: ${grlStr}`, 20, 196);
-            pdf.text(`• Bloques de Video Auditados a 24-30 FPS (Vision Lab™): ${perf.clipsCount} sesion(es)`, 20, 205);
-            pdf.text(`• Disponibilidad en Radar Scout Matrix B2B: ${localStorage.getItem('kinet_market_open') !== 'false' ? 'Abierto a Ofertas y Pruebas' : 'Contrato Cerrado'}`, 20, 214);
-
-            if (Array.isArray(perf.realStats) && perf.realStats.length === 6) {
-                pdf.setTextColor(0, 255, 136);
-                pdf.text(`• Desglose de Atributos (50-99):  [ ${perf.realStats.join('  |  ')} ]`, 20, 226);
-            }
-
-            pdf.setTextColor(148, 163, 184);
-            pdf.setFontSize(8);
-            pdf.text('Dossier oficial generado por KINET OS Biometric Passport • jkinetos.es', 105, 281, { align: 'center' });
-
-            const safeName = userName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]/g, '_');
-            pdf.save(`CV_Deportivo_KINET_${safeName}.pdf`);
+            if (!window.KinetCV) { alert('No se pudo cargar el generador de CV. Recarga la página.'); return; }
+            KinetCV.open(KinetCV.fromLocal());
         }
 
         window.addEventListener('DOMContentLoaded', () => {

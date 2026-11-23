@@ -1,19 +1,415 @@
 <!DOCTYPE html>
-<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tutorial · KINET OS</title>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#06080E">
+<title>Tutorial interactivo · KINET OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#06090F;--card:#0B0F17;--fg:#E5E7EB;--mute:#94A3B8;--neon:#00FF88}
-@media (prefers-color-scheme: light){:root{--bg:#F3F4F6;--card:#FFFFFF;--fg:#111827;--mute:#4B5563;--neon:#047857}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;padding:24px 16px}
-.w{max-width:720px;margin:0 auto}h1{font-size:1.4rem;margin:0 0 6px}p.s{color:var(--mute);margin:0 0 20px;font-size:.9rem}
-.c{background:var(--card);border:1px solid var(--neon);border-radius:16px;padding:16px;margin-bottom:12px}
-.c b{color:var(--neon)}.c span{display:block;color:var(--mute);font-size:.88rem;margin-top:4px}
-a.b{display:inline-block;margin-top:14px;padding:10px 16px;border-radius:12px;background:var(--neon);color:#001a0d;font-weight:700;text-decoration:none}
-</style></head><body><div class="w"><h1>🎓 Tutorial de KINET OS</h1><p class="s">Qué hace cada sección de la app</p>
-<div class="c"><b>⚡ Vestuario</b><span>Pantalla de inicio con tus datos rápidos y accesos directos.</span></div>
-<div class="c"><b>🧠 Cuerpo Técnico</b><span>Chat con 4 especialistas de IA: físico y nutrición, psicología, técnico y vídeo, y carrera y marketing.</span></div>
-<div class="c"><b>🪪 Ficha KINET</b><span>Tu carta. La versión gratuita es personalizable; la verificada (de pago) se calcula con IA a partir de 3 clips tuyos.</span></div>
-<div class="c"><b>🎬 Laboratorio</b><span>Sube un clip y la IA lo analiza a partir de fotogramas clave, sin guardar el vídeo.</span></div>
-<div class="c"><b>📐 Analizador</b><span>Crea tus plantillas y estrategias con ayuda de IA, con límites según tu suscripción, y compártelas en Comunidad.</span></div>
-<div class="c"><b>🎨 Media Studio</b><span>Creador de imágenes y edición de vídeo.</span></div>
-<div class="c"><b>👤 Mi Perfil y ⚙️ Despacho</b><span>Configura tu perfil en KINET y en Comunidad, y los ajustes generales de la cuenta.</span></div><a class="b" href="despacho.html">← Volver al Despacho</a></div></body></html>
+:root{--bg:#06080E;--panel:rgba(12,16,24,.92);--line:rgba(255,255,255,.1);--fg:#E5E7EB;--mute:#94A3B8;--acc:#00FF88;--acc-rgb:0,255,136}
+body[data-role="staff"]{--acc:#F59E0B;--acc-rgb:245,158,11}
+body[data-role="scout"]{--acc:#3B82F6;--acc-rgb:59,130,246}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:Inter,system-ui,sans-serif}
+body{min-height:100vh;background:radial-gradient(1200px 500px at 20% -10%,rgba(var(--acc-rgb),.08),transparent 60%),var(--bg)}
+button{font-family:inherit;cursor:pointer}
+.mono{font-family:'JetBrains Mono',monospace}
+.orb{font-family:Orbitron,Inter,sans-serif}
+
+/* barra superior */
+.top{position:sticky;top:0;z-index:30;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 16px;background:rgba(6,8,14,.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.demo-badge{font:700 .62rem 'JetBrains Mono',monospace;letter-spacing:.08em;color:#04060A;background:var(--acc);border-radius:999px;padding:4px 10px}
+.top h1{font:900 .95rem Orbitron,sans-serif;margin:0;letter-spacing:.04em}
+.top .sp{flex:1}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.seg button{background:transparent;border:0;color:var(--mute);padding:6px 12px;font:600 .68rem Inter,sans-serif}
+.seg button.on{background:rgba(var(--acc-rgb),.16);color:var(--acc)}
+.btn{background:rgba(var(--acc-rgb),.12);border:1px solid rgba(var(--acc-rgb),.45);color:var(--acc);border-radius:10px;padding:7px 12px;font:700 .7rem Inter,sans-serif;text-decoration:none;display:inline-block}
+.btn.solid{background:var(--acc);color:#04060A;border-color:var(--acc)}
+
+/* estructura */
+.shell{display:grid;grid-template-columns:230px minmax(0,1fr) 340px;gap:14px;padding:14px 16px;max-width:1500px;margin:0 auto}
+.side{display:flex;flex-direction:column;gap:7px;position:sticky;top:64px;align-self:start}
+.side button{display:flex;align-items:center;gap:10px;text-align:left;background:var(--panel);border:1px solid var(--line);color:var(--fg);border-radius:14px;padding:11px 12px;font:600 .8rem Inter,sans-serif;transition:all .15s}
+.side button:hover{border-color:rgba(var(--acc-rgb),.5)}
+.side button.on{border-color:var(--acc);background:rgba(var(--acc-rgb),.1);color:var(--acc)}
+.side .sep{height:1px;background:var(--line);margin:4px 0}
+.screen{background:rgba(8,11,17,.8);border:1px solid var(--line);border-radius:18px;padding:16px;min-height:600px;position:relative}
+.screen-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.screen-head h2{font:900 1.05rem Orbitron,sans-serif;margin:2px 0 0}
+.tag{font:700 .58rem 'JetBrains Mono',monospace;letter-spacing:.1em;color:var(--acc)}
+.tour{display:flex;gap:6px;align-items:center}
+.info{position:sticky;top:64px;align-self:start;background:var(--panel);border:1px solid rgba(var(--acc-rgb),.4);border-radius:18px;padding:16px;max-height:calc(100vh - 84px);overflow:auto}
+.info h3{font:900 .95rem Orbitron,sans-serif;margin:6px 0 10px}
+.info .lbl{font:700 .58rem 'JetBrains Mono',monospace;letter-spacing:.1em;color:var(--acc);margin:12px 0 4px}
+.info p{margin:0;font-size:.82rem;line-height:1.5;color:#CBD5E1}
+.info ol{margin:0;padding-left:18px;font-size:.82rem;line-height:1.5;color:#CBD5E1}
+.info li{margin-bottom:3px}
+.note{margin-top:12px;border:1px dashed rgba(var(--acc-rgb),.5);border-radius:10px;padding:8px 10px;font-size:.74rem;color:#CBD5E1}
+.close-sheet{display:none}
+
+/* elementos simulados (no funcionales) */
+.grid{display:grid;gap:12px}.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}
+.p{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
+.p-t{font:700 .6rem 'JetBrains Mono',monospace;letter-spacing:.08em;color:var(--acc);margin-bottom:8px;display:block}
+[data-tip]{cursor:pointer;transition:box-shadow .15s,border-color .15s,background .15s;position:relative}
+[data-tip]:hover{box-shadow:0 0 0 2px rgba(var(--acc-rgb),.55)}
+[data-tip].sel{box-shadow:0 0 0 2px var(--acc),0 0 18px rgba(var(--acc-rgb),.35)}
+.hint{display:flex;align-items:center;gap:8px;font-size:.74rem;color:var(--mute);margin-bottom:12px}
+.hint i{width:8px;height:8px;border-radius:50%;background:var(--acc);animation:pl 1.4s infinite}
+@keyframes pl{0%,100%{opacity:.3}50%{opacity:1}}
+.mb{background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--fg);border-radius:10px;padding:7px 11px;font:600 .72rem Inter,sans-serif;display:inline-flex;align-items:center;gap:6px}
+.mb.pri{background:var(--acc);color:#04060A;border-color:var(--acc)}
+.mb.lock{opacity:.7}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pill{font:700 .6rem 'JetBrains Mono',monospace;border:1px solid var(--line);border-radius:999px;padding:4px 9px;color:#CBD5E1;background:rgba(255,255,255,.03)}
+.pill.on{border-color:var(--acc);color:var(--acc);background:rgba(var(--acc-rgb),.1)}
+.field{background:#04060A;border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:8px 10px;font-size:.74rem;color:#94A3B8}
+.bub{max-width:82%;padding:9px 12px;border-radius:12px;font-size:.76rem;line-height:1.45}
+.bub.in{background:rgba(255,255,255,.05);border:1px solid var(--line);color:#CBD5E1;border-top-left-radius:4px}
+.bub.out{background:rgba(var(--acc-rgb),.16);border:1px solid rgba(var(--acc-rgb),.45);color:#fff;margin-left:auto;border-top-right-radius:4px}
+.card3d{width:150px;aspect-ratio:3/4.2;border-radius:14px;background:linear-gradient(160deg,rgba(var(--acc-rgb),.35),rgba(10,14,22,.95) 70%);border:2px solid var(--acc);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;margin:0 auto}
+.card3d b{font:900 2rem Orbitron,sans-serif}
+.stat{display:flex;justify-content:space-between;font:700 .64rem 'JetBrains Mono',monospace;color:#CBD5E1;width:80%}
+.pitch{aspect-ratio:16/9;border-radius:12px;background:repeating-linear-gradient(90deg,#0d3a22 0 8%,#0f4428 8% 16%);border:2px solid rgba(255,255,255,.25);position:relative}
+.dot{position:absolute;width:16px;height:16px;border-radius:50%;background:var(--acc);border:2px solid #04060A;transform:translate(-50%,-50%)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal span{aspect-ratio:1;border:1px solid var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;font:600 .66rem 'JetBrains Mono',monospace;color:#94A3B8}
+.cal span.has{border-color:var(--acc);color:var(--acc);background:rgba(var(--acc-rgb),.1)}
+.post-av{width:34px;height:34px;border-radius:50%;background:rgba(var(--acc-rgb),.2);border:1px solid var(--acc);display:flex;align-items:center;justify-content:center;font:900 .7rem Orbitron,sans-serif;color:var(--acc)}
+.bar{height:6px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden}.bar i{display:block;height:100%;background:var(--acc)}
+.tpl{min-width:140px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-size:.7rem}
+.tpl span{display:block;font:700 .5rem 'JetBrains Mono',monospace;color:var(--mute);margin-top:2px}
+
+@media (max-width:1100px){.shell{grid-template-columns:200px minmax(0,1fr)}.info{position:fixed;left:8px;right:8px;bottom:8px;top:auto;max-height:46vh;z-index:40;transform:translateY(130%);transition:transform .25s;box-shadow:0 -10px 40px rgba(0,0,0,.6)}.info.open{transform:none}.close-sheet{display:inline-block;float:right;background:none;border:0;color:#fff;font-size:1.1rem}}
+@media (max-width:760px){.grid{grid-template-columns:1fr !important}.shell{grid-template-columns:1fr;padding:10px}.side{position:static;flex-direction:row;overflow-x:auto;padding-bottom:4px}.side button{white-space:nowrap;flex:0 0 auto}.side .sep{display:none}.g2,.g3{grid-template-columns:1fr}.screen{padding:12px}}
+</style>
+</head>
+<body data-role="athlete">
+
+<div class="top">
+  <span class="demo-badge">MODO DEMOSTRACIÓN</span>
+  <h1>Tutorial de KINET OS</h1>
+  <span class="sp"></span>
+  <div class="seg" id="roleSeg" title="Ver la app según tu rol">
+    <button data-r="athlete" class="on">Atleta</button><button data-r="staff">Staff</button><button data-r="scout">Ojeador</button>
+  </div>
+  <a class="btn" href="despacho.html">← Volver al Despacho</a>
+</div>
+
+<div class="shell">
+  <nav class="side" id="side"></nav>
+  <main class="screen" id="screen"></main>
+  <aside class="info" id="info" aria-live="polite"></aside>
+</div>
+
+<script>
+/* =====================================================================
+   TUTORIAL INTERACTIVO — réplica NO funcional de la interfaz de KINET OS.
+   Pulsa cualquier elemento (botones, tarjetas, pestañas…) y aparece una explicación:
+   qué es, cómo se usa y para qué sirve. Nada de lo que veas aquí guarda datos ni gasta IA.
+   ===================================================================== */
+const ROLE_NAMES = { athlete: 'Atleta', staff: 'Entrenador / Staff', scout: 'Ojeador / Director deportivo' };
+
+/* ---------- TEXTOS DE AYUDA: id → { t: título, w: qué es, h: [pasos], p: para qué sirve, n: nota, r: {rol: nota} } ---------- */
+const TIPS = {
+/* ===== VESTUARIO ===== */
+'v-estado': { t: 'Estado físico y disponibilidad de hoy', w: 'Tu parte diario de forma: cómo llegas hoy a entrenar o competir.', h: ['Pulsa «Check-in» al empezar el día.', 'Indica cómo te sientes (energía, sueño, dolores).', 'La app guarda el registro y lo comparte con tu Cuerpo Técnico IA.'], p: 'Así las recomendaciones de la IA y tus cargas de entrenamiento parten de cómo estás de verdad, no de un plan genérico.' },
+'v-checkin': { t: 'Check-in', w: 'Botón para registrar tu estado de hoy en menos de 30 segundos.', h: ['Pulsa Check-in.', 'Rellena las preguntas rápidas.', 'Guarda: el consejo del día se actualiza.'], p: 'Un historial diario permite detectar sobrecargas y mejorar antes de lesionarte.' },
+'v-consejo': { t: 'Consejo directo del Cuerpo Técnico IA', w: 'Una recomendación corta y concreta para hoy, generada con tus datos.', h: ['Léelo al abrir el Vestuario.', '«↻ Cambiar» pide otro consejo.', '«Completar» lo marca como hecho.'], p: 'Convierte tus datos en una acción clara del día, sin tener que abrir el chat.', n: 'Cambiar el consejo gasta una consulta de tu cupo diario de IA.' },
+'v-cal': { t: 'Calendario / Ajustar', w: 'Tu calendario de entrenamientos y partidos. Empieza vacío: solo aparece lo que programes tú o lo que programe la IA.', h: ['Pulsa «Calendario / Ajustar» para ver el mes.', 'Toca un día para ver sus sesiones.', 'Añade, edita o borra sesiones; márcalas como hechas.'], p: 'Organiza tu semana y deja que el Cuerpo Técnico IA tenga en cuenta tus cargas reales.' },
+'v-prog': { t: 'Programar (manual)', w: 'Crea tú mismo una sesión: día, hora, tipo y título.', h: ['Pulsa «＋ Programar».', 'Elige día, hora y tipo (fuerza, técnica, partido, descanso…).', 'Guarda: aparece en el calendario y en «Sesiones de hoy» si es hoy.'], p: 'Control total: tú decides qué hay en tu agenda.' },
+'v-ia': { t: 'Programar con IA', w: 'La IA propone una semana completa según tu deporte, posición, estado y objetivo.', h: ['Pulsa «🤖 Programar con IA».', 'Revisa la propuesta que aparece en un aviso.', 'Acéptala entera o descártala; puedes editar cualquier sesión después.'], p: 'Ahorra tiempo planificando y adapta la carga a tu momento de forma.', n: 'Nada se añade al calendario sin que tú aceptes la propuesta. Gasta una consulta de IA.' },
+'v-energia': { t: 'A tope · Normal · Cargado', w: 'Selector rápido de cómo llegas hoy: con energía, normal o cargado de fatiga.', h: ['Toca el estado que mejor te describe.', 'La IA ajusta intensidad y recomendaciones del día.'], p: 'Dos segundos de información que evitan entrenar a ciegas.' },
+'v-sesiones': { t: 'Sesiones de hoy', w: 'Lista de lo programado para hoy.', h: ['Aparece solo lo que programaste tú o aceptaste de la IA.', 'Marca cada sesión como hecha al terminar.'], p: 'Tu hoja de ruta del día; si está vacía es porque no hay nada programado.' },
+'v-chat': { t: 'Línea directa con tu Cuerpo Técnico IA', w: 'Acceso rápido al chat de los especialistas con consultas frecuentes ya preparadas.', h: ['Toca un atajo (por ejemplo «Sobrecarga isquios»).', 'Se abre el Cuerpo Técnico con la consulta escrita.', 'O pulsa «Ir →» para entrar sin pregunta.'], p: 'Llegar a la respuesta con un toque.' },
+/* ===== CUERPO TÉCNICO ===== */
+'c-junta': { t: 'Sala de Juntas', w: 'Los 4 especialistas IA (físico y nutrición, psicología, técnico y vídeo, carrera y marketing) trabajando juntos.', h: ['Elige «Sala de Juntas» para consultas que cruzan varias áreas.', 'O elige un especialista para una duda concreta.', 'Escribe tu consulta como se la dirías a un profesional.'], p: 'Respuestas de nivel profesional que conocen tu perfil, tu deporte y tu momento.', r: { staff: 'Como Staff, las respuestas se orientan a gestionar plantilla, cargas del grupo y planificación.', scout: 'Como Ojeador, se orientan a evaluación de talento, informes y mercado.' } },
+'c-especialista': { t: 'Especialistas', w: 'Cada pestaña es un experto distinto con su propia memoria de la conversación.', h: ['Toca el especialista que necesitas.', 'Lo que cuentes a uno lo conocen los demás (memoria compartida).'], p: 'No repetir tus datos: todos trabajan con tu expediente.' },
+'c-motor': { t: 'Motor IA', w: 'Ajustes de las claves de IA (Google, Groq, OpenAI) que usa tu chat.', h: ['Pulsa «🔑 Motor IA».', 'Pega tu clave y guarda.', 'Solo necesario si usas una clave propia.'], p: 'Permite usar tu propio proveedor de IA.', n: 'Tu clave se guarda en tu dispositivo.' },
+'c-rutina': { t: 'Generar rutina / plantilla', w: 'Convierte la conversación en una rutina o plantilla de entrenamiento estructurada.', h: ['Pulsa «📋 Generar Rutina / Plantilla».', 'Elige el tipo.', 'Revisa el resultado y guárdalo o expórtalo.'], p: 'Pasas de hablar a tener un plan listo para ejecutar.' },
+'c-pdf': { t: 'Exportar informe PDF', w: 'Descarga la conversación o el acta de la Sala de Juntas en PDF.', h: ['Pulsa «📄 Exportar Informe PDF».', 'Se descarga un documento ordenado y listo para compartir.'], p: 'Para entregar a tu entrenador, club o guardarlo.' },
+'c-atajos': { t: 'Atajos de consulta', w: 'Preguntas frecuentes ya redactadas.', h: ['Toca un atajo.', 'Se envía como si lo hubieras escrito.'], p: 'Empezar rápido con las dudas más habituales.' },
+'c-adjuntar': { t: 'Adjuntar imagen', w: 'Sube una foto (técnica, postura, análisis, comida) para que la IA la tenga en cuenta.', h: ['Pulsa 🖼️.', 'Elige la imagen.', 'Escribe qué quieres saber y envía.'], p: 'La IA responde sobre algo que ve, no solo sobre lo que cuentas.' },
+'c-cupo': { t: 'Tu cupo de consultas', w: 'Contador de consultas con motor potente. El plan gratuito incluye 15 al día; después pasa a un motor básico limitado. Pro y Club tienen cupos mucho más amplios.', h: ['Mira el contador junto al chat.', 'Se reinicia cada día a las 00:00 h.'], p: 'Probar la IA potente gratis y mejorar de plan solo si la necesitas.', n: 'En Pro y Club, el uso de IA potente tiene también un tope mensual; al agotarse la IA sigue con el motor básico.' },
+'c-input': { t: 'Escribe tu consulta', w: 'Campo de mensaje. Responde como un profesional: breve, concreto y sin información que no pediste.', h: ['Escribe con tus palabras.', 'Pulsa Enter o la flecha para enviar.'], p: 'Cuanto más concreta la pregunta, más útil la respuesta.' },
+/* ===== FICHA ===== */
+'f-carta': { t: 'Carta KINET interactiva', w: 'Tu carta de jugador con 6 atributos y una nota global (GRL). Muestra «??» hasta que esté calibrada.', h: ['Pasa el cursor (o desliza en móvil) para verla en 3D.', 'Elige el nivel de carta: Bronce, Plata, Oro 24K, Holo Élite.'], p: 'Tu identidad de rendimiento, lista para compartir.' },
+'f-nivel': { t: 'Nivel de carta', w: 'Diseño de la carta según tu GRL: Bronce, Plata, Oro 24K y Holo Élite.', h: ['Toca un nivel para previsualizarlo.'], p: 'Solo cambia el aspecto; los niveles superiores se alcanzan con mejor rendimiento verificado.' },
+'f-descubrir': { t: 'Descubrir tu KINET Card (auditoría IA)', w: 'La IA calcula tus atributos a partir de 3 micro-clips de tu posición. Tarda ~1,5 min.', h: ['Pulsa el botón.', 'Sube los 3 clips que pide para tu deporte y posición.', 'La IA devuelve tus 6 atributos y tu GRL.'], p: 'Carta verificada con IA (sello AI Verified) frente a la manual.', n: 'Consume minutos de vídeo de tu plan (Pro/Club) o de tus bonos.' },
+'f-pdf-carta': { t: 'Descargar carta en PDF', w: 'Tu carta lista para imprimir o enviar.', h: ['Pulsa «Descargar Carta PDF».'], p: 'Para tu dossier o redes.' },
+'f-cv': { t: 'Exportar CV + informe PDF', w: 'Tu CV deportivo profesional (con foto y datos) junto a tu informe de tendencias.', h: ['Pulsa «Exportar CV + Informe PDF».', 'Se abre una vista lista para guardar como PDF.'], p: 'Un documento serio para clubes y ojeadores.' },
+'f-audit': { t: 'Auditoría biomecánica IA', w: 'Edición manual de atributos bloqueada hasta que verifiques tu carta, para que los valores sean fiables.', h: ['Pulsa «Descubrir ahora».', 'Completa la auditoría con tus clips.'], p: 'Garantiza que los datos que ve un ojeador no están inflados.', n: 'Este bloqueo es intencionado.' },
+'f-informe': { t: 'Informe completo de tendencias', w: 'Evolución de tus métricas y puntos de mejora según la IA.', h: ['Despliega el informe.', 'Pulsa «Ver requisitos de vídeo» para saber qué grabar en tu deporte y posición.'], p: 'Saber en qué mejorar y cómo grabarlo bien.' },
+/* ===== LABORATORIO VÍDEO ===== */
+'l-subir': { t: 'Subir vídeo a Vision IA', w: 'La IA analiza un clip a partir de fotogramas clave. El vídeo no se guarda en servidores.', h: ['Pulsa «Subir Vídeo a Vision IA».', 'Elige un clip de tu deporte.', 'Espera el análisis y revisa las métricas.'], p: 'Feedback técnico objetivo de tus jugadas.', n: 'Gasta minutos de vídeo de tu plan o bonos.', r: { scout: 'Como Ojeador, úsalo para evaluar clips de jugadores que sigues.' } },
+'l-resultados': { t: 'Resultados y métricas del clip', w: 'Lectura de la IA sobre técnica, movimientos y puntos a corregir.', h: ['Revisa cada métrica.', 'Compara con tus sesiones anteriores.'], p: 'Detectar fallos y confirmar mejoras.' },
+'l-sesiones': { t: 'Sesiones auditadas recientemente', w: 'Historial de tus últimos análisis.', h: ['Toca una sesión para reabrirla.'], p: 'Ver tu progreso en el tiempo.' },
+'l-guardar': { t: 'Guardar en Analizador y Pizarra 3D', w: 'Envía el resultado al Analizador para usarlo en tu plantilla o estrategia.', h: ['Pulsa el botón al terminar un análisis.'], p: 'Conecta el vídeo con la planificación táctica.' },
+'l-pdf': { t: 'Exportar informe PDF', w: 'Informe del análisis para compartir.', h: ['Pulsa «Exportar Informe PDF».'], p: 'Entregar pruebas objetivas a tu club o a un ojeador.' },
+'l-bono': { t: 'Bono de minutos extra', w: 'Compra minutos de vídeo IA sueltos, sin suscribirte. No caducan.', h: ['Pulsa «Bono Minutos Extra».', 'Elige el pack en Despacho → Planes & Bonos.'], p: 'Pro incluye 90 min/mes y Club 300; los bonos amplían lo que necesites.' },
+/* ===== ANALIZADOR ===== */
+'a-tabs': { t: 'Plantilla · Comparador 1vs1 · Sinergia y nivel', w: 'Tres vistas: tu once y banquillo, comparar dos jugadores, y la química/nivel del equipo.', h: ['Cambia de pestaña según lo que quieras analizar.'], p: 'Pasar de montar el equipo a evaluarlo.', r: { staff: 'Es tu herramienta central como entrenador: montar once, rotar y comparar.', scout: 'Úsalo para comparar candidatos con tu plantilla ideal.' } },
+'a-pizarra': { t: 'Pizarra 3D', w: 'Campo interactivo con tu once. Arrastra jugadores a sus posiciones.', h: ['Elige formación y estilo arriba.', 'Arrastra o asigna jugadores a cada puesto.', 'Cambia la vista (3D Pro) si quieres.'], p: 'Visualizar el sistema de juego antes del partido.' },
+'a-formacion': { t: 'Formación, estilo, ficha y vista', w: 'Controles para el sistema (4-3-3…), estilo de juego, tipo de ficha y modo de vista.', h: ['Abre cada desplegable y elige.'], p: 'Adaptar la pizarra a tu forma de jugar.' },
+'a-banquillo': { t: 'Banquillo, reserva y cuerpo técnico', w: 'Listas de suplentes, convocados y staff.', h: ['Añade o mueve personas a cada lista.'], p: 'Tener toda la convocatoria en un sitio.' },
+'a-gestionar': { t: 'Gestionar plantilla', w: 'Alta, baja y edición de jugadores.', h: ['Pulsa «Gestionar Plantilla».', 'Añade o edita fichas.'], p: 'Mantener la plantilla al día.' },
+'a-jugadas': { t: 'Jugadas y estrategias IA', w: 'Generador de jugadas de balón parado y estrategias con IA. Función de pago (🔒).', h: ['Describe la jugada que quieres.', 'La IA la dibuja en la pizarra.'], p: 'Ideas tácticas listas para entrenar.', n: 'Bloqueada a propósito en el plan gratuito.' },
+'a-compartir': { t: 'Compartir y Matchday', w: 'Publica tu once o tu plantilla en Comunidad o expórtala.', h: ['Pulsa «Compartir & Matchday ▾».', 'Elige destino.'], p: 'Presentar tu alineación como un profesional.' },
+'a-perfiles': { t: 'Perfiles y cartelera', w: 'Buscar jugadores de la Red KINET y ver lo que has creado.', h: ['Cambia entre Cartelera, Red KINET y Mis creados.', 'Filtra por posición.'], p: 'Encontrar fichajes o compañeros.' },
+'a-enviar': { t: 'Enviar al entrenador IA', w: 'Manda tu plantilla, banquillo y rasgos al Cuerpo Técnico IA para recibir recomendaciones.', h: ['Pulsa el botón inferior.'], p: 'Que la IA opine con tu equipo delante.' },
+/* ===== COMUNIDAD ===== */
+'m-pulse': { t: 'KINET Pulse · Shorts · Radar', w: 'Tres secciones: publicaciones, vídeos cortos (máx. 20 s) y convocatorias/oportunidades.', h: ['Cambia de pestaña arriba.'], p: 'Red social deportiva con foco profesional.', r: { scout: 'Radar es tu zona: convocatorias, talentos y oportunidades.', staff: 'Radar te permite publicar convocatorias y buscar jugadores.' } },
+'m-filtros': { t: 'Filtros de deporte y rol', w: 'Ver solo tu deporte o todos, y solo ciertos roles.', h: ['Abre cada desplegable y elige.'], p: 'Un feed sin ruido.' },
+'m-feedtabs': { t: 'Para ti · Siguiendo · Recientes', w: 'Cómo ordena la app tu feed.', h: ['«Siguiendo» muestra solo a quien sigues.'], p: 'Controlar lo que ves.' },
+'m-composer': { t: 'Crear publicación', w: 'Comparte texto, fotos, telemetría o una convocatoria.', h: ['Pulsa el recuadro.', 'Elige tipo: vídeo HD (PRO), foto/telemetría o convocatoria.', 'Publica.'], p: 'Dar visibilidad a tu trabajo.', n: 'No se permite pornografía, insultos, acoso ni contenido lesivo: se filtra y se puede denunciar. Los vídeos duran máx. 20 s y se comprimen solos.' },
+'m-video': { t: 'Vídeo HD (PRO)', w: 'Sube un clip de hasta 20 s; la app lo comprime en tu dispositivo.', h: ['Pulsa «Vídeo HD» y elige el archivo.', 'Espera a que se recorte y comprima.'], p: 'Vídeos ligeros que cargan rápido.' },
+'m-post': { t: 'Tarjeta de publicación', w: 'Cada publicación con las acciones sobre ella.', h: ['Toca los botones inferiores.'], p: 'Interactuar con la comunidad.' },
+'m-seguir': { t: 'Seguir', w: 'Seguir a un usuario para ver sus publicaciones en «Siguiendo».', h: ['Pulsa Seguir; vuelve a pulsarlo para dejar de seguir.'], p: 'Tu red de contactos.' },
+'m-respetos': { t: 'Respetos', w: 'Tu «me gusta» deportivo.', h: ['Pulsa 🔥.'], p: 'Reconocer el trabajo de otros.' },
+'m-dm': { t: 'Mensaje directo (DM)', w: 'Chat privado. Verás «escribiendo…» cuando la otra persona teclea, como en Instagram.', h: ['Pulsa 💬 en una publicación o abre «Mis chats».', 'Escribe y envía.'], p: 'Conversar con compañeros, clubes y ojeadores.' },
+'m-perfil': { t: 'Ver perfil completo', w: 'Ficha pública: datos, publicaciones, seguidores y seguidos.', h: ['Pulsa el nombre o «Ver Perfil».'], p: 'Conocer a alguien antes de contactar.' },
+'m-ia': { t: 'Preguntar a la IA', w: 'El asistente de la comunidad responde dudas sobre la publicación o el deporte.', h: ['Pulsa el botón y escribe.'], p: 'Entender una táctica o un dato al momento.', n: 'Tiene un cupo diario propio.' },
+'m-reportar': { t: 'Reportar', w: 'Denuncia una publicación ajena que incumpla las normas.', h: ['Pulsa 🚩 Reportar.', 'Elige el motivo.'], p: 'Mantener la comunidad segura. Los reportes llegan al equipo de moderación.' },
+'m-identidad': { t: 'Tu identidad en KINET Network', w: 'Resumen de tu perfil social con seguidores y seguidos.', h: ['Pulsa «Foto, Bio & CV» para editarlo.', 'Tu CV se genera de aquí.'], p: 'Tu tarjeta de presentación ante la red.' },
+'m-bandeja': { t: 'KINET Direct y conexiones', w: 'Bandeja de mensajes y descubrimiento de personas.', h: ['«Abrir Bandeja» muestra tus chats.', '«Explorar» sugiere perfiles.'], p: 'Tu centro de contactos.' },
+'m-soporte': { t: 'Chat de soporte', w: 'El canal @kinet_support responde tus problemas con soluciones rápidas paso a paso.', h: ['Abre «@kinet_support».', 'Elige el tema o describe tu problema.'], p: 'Resolver dudas sin esperar a un correo.' },
+/* ===== MEDIA STUDIO ===== */
+'s-modo': { t: 'Imagen · Vídeo', w: 'El estudio abre siempre en Imagen. Vídeo (edición) es de pago.', h: ['Cambia de modo arriba.', 'Puedes crear imágenes desde cualquiera de los dos modos.'], p: 'Crear fotos virales y highlights en un solo sitio.' },
+'s-uso': { t: 'Uso del día y del mes', w: 'Imágenes usadas hoy y porcentaje del presupuesto de IA del mes.', h: ['Míralo antes de crear.'], p: 'Saber cuánto te queda.', n: 'Los filtros gratis no gastan nada.' },
+'s-plantillas': { t: 'Plantillas de imagen', w: 'Estilos profesionales: foto de prensa de Primera División, póster épico, producto, viral para Reels, túnel de vestuarios, neón… y ediciones de tu foto (retoque pro, fondo de estadio, portada de revista).', h: ['Pulsa una plantilla.', 'Describe el sujeto («un balón de fútbol») o sube tu foto si edita.', 'Pulsa «Crear imagen».'], p: 'Resultados de fotógrafo profesional sin saber de diseño.' },
+'s-chat': { t: 'Chat creativo', w: 'Escribe lo que quieres, como en ChatGPT o Gemini. La imagen sale limpia, sin textos encima.', h: ['Escribe tu idea.', 'Pulsa «Crear imagen».', 'Pide cambios con «Editar con IA».'], p: 'Iterar hasta que quede perfecta.' },
+'s-subir': { t: 'Subir foto o vídeo', w: 'Carga tu foto para editarla, o un vídeo para abrir el editor de highlights.', h: ['Pulsa el icono de subida.', 'Elige una foto o un clip.'], p: 'Trabajar sobre tu material.' },
+'s-filtros': { t: 'Filtros gratis', w: 'Cine, B/N dramático, Neón, Cálido, Alto contraste y Película. Se aplican en tu dispositivo.', h: ['Pulsa un filtro bajo la imagen.'], p: 'Retoque instantáneo sin gastar IA.' },
+'s-texto': { t: '+ Texto', w: 'Añade un rótulo (arriba, centro o abajo) sobre la imagen cuando tú lo pidas.', h: ['Pulsa «+ Texto» y escríbelo.'], p: 'Carteles y portadas con título, sin que la IA invente letras.' },
+'s-editia': { t: 'Editar con IA', w: 'Pide a la IA cambiar tu imagen: fondo, luz, estilo.', h: ['Pulsa «Editar con IA».', 'Describe el cambio.'], p: 'Retoque profesional por conversación.' },
+'s-musica': { t: 'Música', w: 'Elige canción en la isla superior o deja que se elija automáticamente según la plantilla.', h: ['Pulsa la isla o «Elegir música automáticamente».'], p: 'Tu publicación o edit con la canción adecuada.', n: 'Por derechos de autor, el vídeo exportado lleva el beat KINET al mismo ritmo, o tu propio audio.' },
+'s-publicar': { t: 'Publicar', w: 'Envía la imagen a la Comunidad con tu texto.', h: ['Escribe el texto opcional.', 'Pulsa «Publicar en KINET Network».'], p: 'Compartir directamente desde el estudio.' },
+'s-ajustes': { t: 'Ajustes de salida', w: 'Marca de agua opcional (por defecto ninguna) y formato: 4:5, 9:16, 1:1 o 16:9.', h: ['Elige formato antes de crear.'], p: 'Imágenes del tamaño exacto para cada red.' },
+'s-video': { t: 'Editar vídeo (highlights)', w: 'Sube tus clips y la IA monta un highlight profesional con música sincronizada.', h: ['Elige vídeos.', 'Escoge estilo: Highlight, Viral, Cinematográfico, Resumen o Cámara lenta.', 'Elige duración, formato y música (beat KINET o tu canción).', 'Pulsa «Crear highlight».'], p: 'Videos de nivel profesional sin editor.', n: 'Duración y clips según tu plan; descuenta minutos de vídeo. Se crea en tu dispositivo.' },
+/* ===== PERFIL ===== */
+'p-identidad': { t: 'Identidad oficial', w: 'Nombre, @usuario, fechas, ciudad, club y categoría.', h: ['Rellena tus datos.', 'Pulsa «Guardar Ficha y Sincronizar».'], p: 'Base de tu CV, tu ficha y tu perfil social.' },
+'p-deporte': { t: 'Datos de tu deporte', w: 'Demarcación, altura, peso y pierna/mano hábil. Los campos cambian según tu deporte.', h: ['Elige tu demarcación.', 'Completa medidas.'], p: 'Alimentan a la IA y a la carta.' },
+'p-bio': { t: 'Titular bio profesional', w: 'Frase corta que aparece en tu CV y en la red social.', h: ['Escribe una línea sobre ti.'], p: 'Tu presentación en una frase.' },
+'p-enlaces': { t: 'Enlaces oficiales', w: 'Transfermarkt/BeSoccer/federación y tu vídeo highlight.', h: ['Pega los enlaces.'], p: 'Dar pruebas externas a quien te evalúe.' },
+'p-guardar': { t: 'Guardar ficha y sincronizar', w: 'Guarda y sincroniza con tu cuenta.', h: ['Pulsa el botón al terminar.'], p: 'Tus datos disponibles en cualquier dispositivo.' },
+'p-cv': { t: 'Descargar CV deportivo PDF', w: 'CV profesional con tu foto, datos y trayectoria.', h: ['Pulsa el botón.', 'Guárdalo como PDF.'], p: 'Un CV serio listo para enviar.' },
+'p-pasaporte': { t: 'Pasaporte y certificaciones', w: 'Estado de verificación de tu perfil.', h: ['Revisa qué te falta.'], p: 'A más verificación, más confianza.' },
+/* ===== DESPACHO ===== */
+'d-tabs': { t: 'Pestañas de Despacho', w: 'General, Tema, Planes & Bonos, Privacidad y Términos.', h: ['Cambia de pestaña.'], p: 'Todo lo de tu cuenta en un sitio.' },
+'d-cuenta': { t: 'Configuración de la cuenta', w: 'Nombre, correo, deporte, unidades e idioma.', h: ['Edita y pulsa «Guardar Cambios».'], p: 'Que la app hable tu idioma y tu deporte.' },
+'d-rol': { t: 'Cambiar rol', w: 'Alterna entre atleta, staff y ojeador (hasta 3 perfiles).', h: ['Pulsa «Cambiar Rol».'], p: 'Usar la app con distintos enfoques.' },
+'d-plan': { t: 'Tipo de cuenta y planes', w: 'Gratis, Pro Player (8,99 €/mes) y Club & Scout Pro (29,99 €/mes).', h: ['Abre «Planes & Bonos».', 'Elige y paga con Stripe.'], p: 'Más IA, más vídeo y funciones avanzadas.' },
+'d-minutos': { t: 'Minutos de vídeo IA', w: 'Suma de los minutos de tu plan y tus bonos.', h: ['«Desglose» detalla cada parte.', '«Bonos» abre la tienda.'], p: 'Controlar tu consumo.' },
+'d-tema': { t: 'Tema y personalización', w: 'Color de acento, fondo, estilo de paneles y modo arcoíris.', h: ['Cambia los ajustes y guarda.'], p: 'La app a tu gusto.' },
+'d-privacidad': { t: 'Privacidad y redes', w: 'Qué ven los demás y qué datos compartes.', h: ['Ajusta los interruptores.'], p: 'Tu control sobre tus datos.' },
+'d-tutorial': { t: 'Tutorial interactivo', w: 'Esta misma réplica explicada.', h: ['Pulsa cualquier elemento.'], p: 'Aprender sin miedo a romper nada.' },
+'d-soporte': { t: 'Soporte técnico', w: 'Solución rápida por temas y formulario de contacto.', h: ['Elige tu problema o escribe.'], p: 'Ayuda con respuestas paso a paso.' },
+'d-sesion': { t: 'Cerrar sesión', w: 'Sale de tu cuenta en este dispositivo.', h: ['Pulsa «Cerrar Sesión».'], p: 'Seguridad en dispositivos compartidos.' }
+};
+
+/* ---------- helpers para construir la réplica ---------- */
+const T = (id, inner, cls = '', tag = 'div', style = '') => `<${tag} class="${cls}" data-tip="${id}" style="${style}">${inner}</${tag}>`;
+const MB = (id, label, cls = '') => `<button type="button" class="mb ${cls}" data-tip="${id}">${label}</button>`;
+const PN = (title, inner, id, cls = '') => T(id || '', `<span class="p-t">${title}</span>${inner}`, 'p ' + cls);
+const PILL = (label, on, id) => `<span class="pill ${on ? 'on' : ''}" ${id ? `data-tip="${id}"` : ''}>${label}</span>`;
+const F = (label) => `<div class="field">${label}</div>`;
+
+/* ---------- pantallas ---------- */
+const SCREENS = {
+vestuario: { icon: '⚡', name: 'Vestuario', title: 'Vestuario & Control Diario', html: () => `
+  <div class="grid g2">
+    ${PN('ESTADO FÍSICO & DISPONIBILIDAD DE HOY', `<div class="row" style="justify-content:space-between"><div><b style="font-size:1.4rem" class="orb">—</b><div style="font-size:.72rem;color:var(--mute)">Sin check-in todavía</div></div>${MB('v-checkin', 'Check-in', 'pri')}</div>`, 'v-estado')}
+    ${PN('CONSEJO DIRECTO DEL CUERPO TÉCNICO IA', `<p style="font-size:.78rem;color:#CBD5E1;margin:0 0 10px">Hoy prioriza la movilidad de cadera antes de la sesión de velocidad.</p><div class="row">${MB('v-consejo', '↻ Cambiar')} ${MB('v-consejo', 'Completar')}</div>`, 'v-consejo')}
+  </div>
+  <div style="height:12px"></div>
+  ${PN('PLANIFICACIÓN SEMANAL & SESIONES DE HOY', `
+    <div class="row" style="margin-bottom:10px">${MB('v-cal', '📅 Calendario / Ajustar')} ${MB('v-prog', '＋ Programar')} ${MB('v-ia', '🤖 Programar con IA', 'pri')}</div>
+    <div class="row" style="margin-bottom:10px"><span style="font-size:.7rem;color:var(--mute)">¿Cómo llegas hoy?</span>${MB('v-energia', '⚡ A Tope')} ${MB('v-energia', '🔥 Normal')} ${MB('v-energia', '🪫 Cargado')}</div>
+    ${T('v-cal', `<div class="cal">${['L','M','X','J','V','S','D'].map(d=>`<span style="border:0">${d}</span>`).join('')}${Array.from({length:14},(_,i)=>`<span class="${[2,4,9].includes(i)?'has':''}">${i+1}</span>`).join('')}</div>`, '', 'div', 'margin-bottom:10px')}
+    ${T('v-sesiones', `<div style="font-size:.74rem;color:var(--mute);border:1px dashed var(--line);border-radius:10px;padding:12px;text-align:center">No hay sesiones programadas para hoy. Programa una tú o pídele a la IA que planifique tu semana.</div>`)}
+  `, '')}
+  <div style="height:12px"></div>
+  ${PN('LÍNEA DIRECTA CON TU CUERPO TÉCNICO IA', `<div class="row">${MB('v-chat', '⚡ Sobrecarga isquios')} ${MB('v-chat', '🥗 Carga glucógeno MD-1')} ${MB('v-chat', '🧘‍♂️ Foco pre-partido')} ${MB('v-chat', 'Ir →', 'pri')}</div>`, 'v-chat')}
+`},
+cuerpo: { icon: '🧠', name: 'Cuerpo Técnico IA', title: 'Sala de Juntas KINET', html: () => `
+  <div class="row" style="margin-bottom:10px">${T('c-junta', '<b>👥 Sala de Juntas</b>', 'pill on')} ${T('c-especialista', '💪 Físico & Nutrición', 'pill')} ${T('c-especialista', '🧠 Psicología', 'pill')} ${T('c-especialista', '🎯 Técnico & Vídeo', 'pill')} ${T('c-especialista', '📈 Carrera & Marketing', 'pill')}</div>
+  <div class="row" style="margin-bottom:12px">${MB('c-motor', '🔑 Motor IA')} ${MB('c-rutina', '📋 Generar Rutina / Plantilla')} ${MB('c-pdf', '📄 Exportar Informe PDF')} ${T('c-cupo', '<span class="mono" style="font-size:.64rem">Consultas hoy: 3/15</span>', 'pill')}</div>
+  <div class="p" style="display:flex;flex-direction:column;gap:8px;min-height:230px">
+    <div class="bub in">Cuéntame cómo estás y qué tienes esta semana; lo miro con los cuatro especialistas.</div>
+    <div class="bub out">Tengo sobrecarga muscular y partido el sábado.</div>
+    <div class="bub in">Entonces: viernes sesión activa de 20 min y movilidad. ¿Cuándo notas la molestia, al correr o al frenar?</div>
+  </div>
+  <div class="row" style="margin:10px 0">${MB('c-atajos', '⚡ Plan completo pre-competición')} ${MB('c-atajos', '📊 ¿Qué atributo mejoro primero?')} ${MB('c-atajos', '🔋 Sobrecarga y partido este fin de semana')}</div>
+  <div class="row">${MB('c-adjuntar', '🖼️')} ${T('c-input', 'Escribe tu consulta…', 'field', 'div', 'flex:1;min-width:160px')} ${MB('c-input', '→', 'pri')}</div>
+`},
+ficha: { icon: '🪪', name: 'Ficha & KINET Card', title: 'Ficha & KINET Athlete Card™', html: () => `
+  <div class="grid g2">
+    ${PN('CARTA INTERACTIVA 3D', `${T('f-carta', `<div class="card3d"><b>??</b><span class="mono" style="font-size:.62rem">TU POSICIÓN</span><div class="stat"><span>RIT</span><span>??</span></div><div class="stat"><span>TIR</span><span>??</span></div><div class="stat"><span>PAS</span><span>??</span></div></div>`)}
+      <div class="row" style="margin-top:10px;justify-content:center">${PILL('🥉 Bronce', 1, 'f-nivel')}${PILL('🥈 Plata', 0, 'f-nivel')}${PILL('🥇 Oro 24K', 0, 'f-nivel')}${PILL('💎 Holo Élite', 0, 'f-nivel')}</div>`)}
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${MB('f-descubrir', '🔍 Descubrir tu KINET Card (Auditoría IA ~1.5 min)', 'pri')}
+      ${MB('f-pdf-carta', '📥 Descargar Carta PDF')}
+      ${MB('f-cv', '📄 Exportar CV + Informe PDF')}
+      ${PN('AUDITORÍA BIOMECÁNICA IA (EDICIÓN MANUAL BLOQUEADA)', `<div class="bar"><i style="width:20%"></i></div><div style="margin-top:8px">${MB('f-audit', '🔍 Descubrir ahora', 'lock')}</div>`, 'f-audit')}
+    </div>
+  </div>
+  <div style="height:12px"></div>
+  ${PN('📊 INFORME COMPLETO DE TENDENCIAS & BIOMECÁNICA IA', `<div class="grid g3" style="margin-bottom:10px"><div class="bar"><i style="width:60%"></i></div><div class="bar"><i style="width:40%"></i></div><div class="bar"><i style="width:75%"></i></div></div>${MB('f-informe', '📹 Ver requisitos de vídeo de mi deporte y posición →')}`, 'f-informe')}
+`},
+lab: { icon: '🎬', name: 'Laboratorio Vídeo', title: 'Laboratorio Vision Analytics™', html: () => `
+  <div class="row" style="justify-content:space-between;margin-bottom:12px"><span class="tag">LABORATORIO KINET VISION ANALYTICS™</span>${MB('l-bono', '➕ Bono minutos extra')}</div>
+  <div class="grid g2">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${T('l-subir', '<div style="border:2px dashed rgba(var(--acc-rgb),.5);border-radius:14px;padding:28px;text-align:center"><div style="font-size:1.6rem">🎥</div><b style="font-size:.82rem">Subir vídeo a Vision IA</b><div style="font-size:.7rem;color:var(--mute);margin-top:4px">Un clip de tu deporte, hasta 3 min</div></div>')}
+      ${MB('l-pdf', '📥 Exportar informe PDF')}
+    </div>
+    ${PN('RESULTADOS PERSONALIZADOS & MÉTRICAS DEL CLIP', `<div class="stat" style="width:100%"><span>Técnica de golpeo</span><span>78</span></div><div class="bar" style="margin:4px 0 8px"><i style="width:78%"></i></div><div class="stat" style="width:100%"><span>Posición corporal</span><span>64</span></div><div class="bar" style="margin:4px 0"><i style="width:64%"></i></div>`, 'l-resultados')}
+  </div>
+  <div style="height:12px"></div>
+  ${PN('SESIONES AUDITADAS RECIENTEMENTE', `<div class="row"><span class="pill">Sesión 12 · 21 nov</span><span class="pill">Sesión 11 · 18 nov</span><span class="pill">Sesión 10 · 14 nov</span></div>`, 'l-sesiones')}
+  <div style="margin-top:12px">${MB('l-guardar', '💾 Guardar en Analizador & Pizarra 3D →', 'pri')}</div>
+`},
+analizador: { icon: '📐', name: 'Analizador & Pizarra 3D', title: 'Analizador & Plantilla 3D', html: () => `
+  <div class="row" style="margin-bottom:10px">${MB('a-gestionar', '📊 Ver stats plantilla')} ${MB('a-gestionar', '🧹 Vaciar')} ${MB('a-compartir', '🚀 Compartir & Matchday ▾', 'pri')}</div>
+  <div class="row" style="margin-bottom:10px">${T('a-tabs', '🏟️ Plantilla', 'pill on')} ${T('a-tabs', '⚔️ Comparador 1vs1', 'pill')} ${T('a-tabs', '📊 Sinergia & Nivel', 'pill')} <span style="flex:1"></span>${MB('a-formacion', '4-3-3 Ofensivo ▾')} ${MB('a-formacion', '⚙️ Estilo ▾')} ${MB('a-formacion', '📐 Vista: 3D Pro')}</div>
+  ${T('a-pizarra', `<div class="pitch">${[[50,88],[20,70],[40,72],[60,72],[80,70],[30,48],[50,52],[70,48],[22,24],[50,18],[78,24]].map(([x,y])=>`<span class="dot" style="left:${x}%;top:${y}%"></span>`).join('')}</div>`)}
+  <div class="row" style="margin:10px 0">${MB('a-gestionar', '👥 Gestionar plantilla')} ${MB('a-jugadas', '🎬 Jugadas & Estrategias IA 🔒', 'lock')}</div>
+  <div class="grid g3">${PN('🪑 BANQUILLO (7)', `<div class="pill">7 suplentes</div>`, 'a-banquillo')}${PN('📋 RESERVA (5)', `<div class="pill">5 convocados</div>`, 'a-banquillo')}${PN('👔 CUERPO TÉCNICO (6)', `<div class="pill">6 miembros</div>`, 'a-banquillo')}</div>
+  <div class="row" style="margin-top:12px">${T('a-perfiles', '🌐 Perfiles', 'pill on')} ${T('a-perfiles', '🛠️ Crear / Editar', 'pill')} ${T('a-perfiles', '📋 Cartelera', 'pill')} ${T('a-perfiles', '🌐 Red KINET', 'pill')} ${T('a-perfiles', '📍 Posición: todas ▾', 'pill')}</div>
+  <div style="margin-top:12px">${MB('a-enviar', '⚡ Enviar plantilla, banquillo y rasgos al entrenador IA →', 'pri')}</div>
+`},
+comunidad: { icon: '🌐', name: 'Comunidad / Red Social', title: 'Comunidad & KINET Network™', html: () => `
+  <div class="row" style="margin-bottom:10px">${T('m-pulse', '⚡ KINET Pulse', 'pill on')} ${T('m-pulse', '🎬 KINET Shorts', 'pill')} ${T('m-pulse', '💼 KINET Radar', 'pill')} <span style="flex:1"></span>${T('m-filtros', '⚽ Fútbol ▾', 'pill')} ${T('m-filtros', '👥 Todos los roles ▾', 'pill')}</div>
+  <div class="grid" style="grid-template-columns:minmax(0,1fr) 250px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="row">${T('m-feedtabs', '🔥 Para ti', 'pill on')} ${T('m-feedtabs', '👥 Siguiendo', 'pill')} ${T('m-feedtabs', '⚡ Recientes', 'pill')}</div>
+      ${T('m-composer', `<div class="row"><div class="post-av">NT</div><div class="field" style="flex:1">Crear publicación, compartir foto o lanzar convocatoria…</div>${MB('m-composer', 'Publicar', 'pri')}</div><div class="row" style="margin-top:8px">${MB('m-video', '🎬 Vídeo HD (PRO)')} ${MB('m-composer', '🖼️ Foto / Telemetría')} ${MB('m-composer', '💼 Convocatoria / Artículo')}</div>`, 'p')}
+      ${T('m-post', `<div class="row"><div class="post-av">LM</div><div><b style="font-size:.8rem">Lucas M.</b> ${MB('m-seguir', '✓ Siguiendo')}<div class="mono" style="font-size:.56rem;color:var(--mute)">@lucasm · Fútbol</div></div></div><p style="font-size:.78rem;color:#CBD5E1;margin:8px 0">Doblete hoy y primera titularidad. A seguir trabajando.</p><div class="row">${MB('m-respetos', '🔥 12 Respetos')} ${MB('m-dm', '💬 Mensaje directo')} ${MB('m-perfil', '👤 Ver perfil')} ${MB('m-ia', '🤖 Preguntar a la IA')} ${MB('m-reportar', '🚩 Reportar')}</div>`, 'p')}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${PN('👤 TU IDENTIDAD EN KINET NETWORK™', `<div class="row"><div class="post-av">NT</div><div><b style="font-size:.8rem">Naim Tahri</b><div class="mono" style="font-size:.56rem;color:var(--mute)">0 seguidores · 0 seguidos</div></div></div><div style="margin-top:8px">${MB('m-identidad', '🖼️ Foto, Bio & CV')}</div>`, 'm-identidad')}
+      ${PN('💬 KINET DIRECT & CONEXIONES', `<div class="row">${MB('m-bandeja', 'Abrir bandeja →')} ${MB('m-bandeja', '💬 Mis chats')}</div><div class="row" style="margin-top:8px">${T('m-soporte', '🛠️ @kinet_support', 'pill')}</div>`, 'm-bandeja')}
+    </div>
+  </div>
+`},
+studio: { icon: '🎵', name: 'KINET Media Studio', title: 'KINET Media Studio™', html: () => `
+  <div class="row" style="justify-content:space-between;margin-bottom:10px"><div class="row">${T('s-modo', '🖼️ Imagen', 'pill on')} ${T('s-modo', '🎥 Vídeo (edición)', 'pill')}</div>${T('s-uso', '<span class="mono" style="font-size:.62rem">Imágenes hoy 1/3 · IA del mes 4 %</span>', 'pill')}</div>
+  <div class="grid" style="grid-template-columns:minmax(0,1fr) 230px">
+    <div>
+      <div class="row" style="margin-bottom:8px">${MB('s-musica', '♪ + Añadir canción')} ${MB('s-subir', '⬆ Subir foto o vídeo')}</div>
+      ${T('s-chat', `<div class="p" style="min-height:190px;display:flex;flex-direction:column;gap:8px"><div class="bub out">un balón de fútbol en estudio con luz neón</div><div class="bub in">Aquí tienes tu imagen.<div style="margin-top:6px;border-radius:10px;background:linear-gradient(160deg,#0d3a22,#04060A);height:90px;display:flex;align-items:center;justify-content:center;font-size:2rem">⚽</div><div class="row" style="margin-top:6px">${MB('s-filtros', 'Cine')} ${MB('s-filtros', 'B/N')} ${MB('s-filtros', 'Neón')} ${MB('s-texto', '+ Texto')} ${MB('s-editia', 'Editar con IA')}</div></div></div>`)}
+      <div style="margin-top:8px"><span class="tag">PLANTILLAS DE IMAGEN</span></div>
+      ${T('s-plantillas', `<div class="row" style="flex-wrap:nowrap;overflow:hidden"><div class="tpl"><b>Foto de prensa Primera</b><span>CREA CON IA</span></div><div class="tpl"><b>Póster épico</b><span>CREA CON IA</span></div><div class="tpl"><b>Retoque de fotógrafo pro</b><span>EDITA TU FOTO</span></div><div class="tpl"><b>Fondo de estadio</b><span>EDITA TU FOTO</span></div></div>`)}
+      <div class="row" style="margin-top:8px">${T('s-chat', 'Describe la imagen que quieres crear…', 'field', 'div', 'flex:1')} ${MB('s-chat', 'Crear imagen', 'pri')} ${MB('s-video', 'Editar vídeo', 'pri')}</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${PN('AJUSTES DE SALIDA', `${F('Sin marca de agua')}<div style="height:6px"></div>${F('Feed 4:5 (póster)')}`, 's-ajustes')}
+      ${PN('TEXTO DE LA PUBLICACIÓN', F('Qué quieres contar…'), 's-publicar')}
+      ${MB('s-publicar', 'Publicar en KINET Network™', 'pri')}
+    </div>
+  </div>
+`},
+perfil: { icon: '👤', name: 'Mi Perfil', title: 'Mi Perfil & Dossier Deportivo', html: () => `
+  <div class="row" style="justify-content:flex-end;margin-bottom:10px">${MB('p-cv', '📄 Descargar CV deportivo PDF', 'pri')}</div>
+  ${PN('1. IDENTIDAD OFICIAL, UBICACIÓN & COMPETICIÓN', `<div class="grid g2"><div>${F('Nombre y apellidos')}</div><div>${F('@usuario')}</div><div>${F('📅 Fecha de nacimiento')}</div><div>${F('📍 Ciudad actual')}</div><div>${F('🏟️ Club / equipo')}</div><div>${F('🏆 Categoría / división')}</div></div>`, 'p-identidad')}
+  <div style="height:12px"></div>
+  ${PN('DATOS DE TU DEPORTE', `<div class="grid g3"><div>${F('⚽ Demarcación')}</div><div>${F('📏 Altura (cm)')}</div><div>${F('⚖️ Peso (kg)')}</div></div><div style="height:8px"></div>${F('🦶 Pierna hábil')}`, 'p-deporte')}
+  <div style="height:12px"></div>
+  ${PN('🧠 TITULAR BIO PROFESIONAL', F('Una línea sobre ti (aparece en tu CV y en la red)'), 'p-bio')}
+  <div style="height:12px"></div>
+  ${PN('2. ENLACES OFICIALES & MÉTRICAS', `<div class="grid g2">${F('🔗 Transfermarkt / BeSoccer / federación')}${F('🎬 Enlace a tu vídeo highlight')}</div>`, 'p-enlaces')}
+  <div class="row" style="margin-top:12px;justify-content:space-between">${T('p-pasaporte', '<span class="pill on">PASAPORTE KINET · Perfil sin verificar</span>')}${MB('p-guardar', '✓ Guardar ficha y sincronizar', 'pri')}</div>
+`},
+despacho: { icon: '⚙️', name: 'Despacho & Ajustes', title: 'Despacho & Ajustes', html: () => `
+  <div class="row" style="margin-bottom:12px">${T('d-tabs', '⚙️ General & Cuenta', 'pill on')} ${T('d-tema', '🎨 Tema & Personalización', 'pill')} ${T('d-plan', '⚡ KINET PRO, Planes & Bonos', 'pill')} ${T('d-privacidad', '🔒 Privacidad & Redes', 'pill')} ${T('d-tabs', '📜 Términos & Condiciones', 'pill')} <span style="flex:1"></span>${MB('d-cuenta', '💾 Guardar cambios', 'pri')}</div>
+  <div class="grid g2">
+    ${PN('👤 CONFIGURACIÓN DE LA CUENTA', `${F('Nombre de usuario / titular')}<div style="height:6px"></div>${F('Correo electrónico')}<div style="height:6px"></div>${F('Disciplina deportiva: Fútbol ▾')}<div style="height:6px"></div>${F('Unidades: Métrico europeo ▾')}<div style="height:6px"></div>${F('Idioma: Español ▾')}`, 'd-cuenta')}
+    ${PN('⚡ ACCIONES RÁPIDAS DE SESIÓN & CUOTAS', `<div class="row" style="margin-bottom:8px">${MB('d-tutorial', '🎓 Tutorial interactivo')} ${MB('d-rol', '🔄 Cambiar rol')}</div><div class="row" style="margin-bottom:8px">${T('d-plan', '<span class="pill on">Pro Player · 8,99 €</span>')}</div><div class="row" style="margin-bottom:8px">${T('d-minutos', '<span class="pill">Minutos vídeo IA: 90</span>')} ${MB('d-minutos', '📊 Desglose')} ${MB('d-minutos', '➕ Bonos')}</div><div class="row">${MB('d-soporte', '🛟 Soporte')} ${MB('d-sesion', 'Cerrar sesión')}</div>`)}
+  </div>
+`}
+};
+const ORDER = ['vestuario', 'cuerpo', 'ficha', 'lab', 'analizador', 'comunidad', 'studio', 'perfil', 'despacho'];
+
+/* ---------- motor del tutorial ---------- */
+let current = 'vestuario', tourIdx = -1, tourList = [], selectedId = null;
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
+function renderSide() {
+  $('#side').innerHTML = ORDER.map((k, i) => {
+    const s = SCREENS[k];
+    const sep = (k === 'perfil') ? '<div class="sep"></div>' : '';
+    return `${sep}<button type="button" data-s="${k}" class="${k === current ? 'on' : ''}"><span>${s.icon}</span><span>${s.name}</span></button>`;
+  }).join('');
+}
+function renderScreen() {
+  const s = SCREENS[current];
+  $('#screen').innerHTML = `
+    <div class="screen-head"><div><span class="tag">VISTA SIMULADA · ${esc(ROLE_NAMES[document.body.dataset.role].toUpperCase())}</span><h2>${esc(s.title)}</h2></div>
+      <div class="tour"><button class="btn" type="button" id="tourPrev" style="display:none">‹</button><button class="btn solid" type="button" id="tourGo">▶ Visita guiada</button><button class="btn" type="button" id="tourNext" style="display:none">›</button></div></div>
+    <div class="hint"><i></i><span>Todo lo de esta pantalla es de muestra. <b>Toca cualquier botón, tarjeta o campo</b> y te explico qué hace, cómo se usa y para qué sirve.</span></div>
+    ${s.html()}`;
+  tourList = [...new Set([...document.querySelectorAll('#screen [data-tip]')].map(e => e.dataset.tip).filter(id => TIPS[id]))];
+  tourIdx = -1; selectedId = null;
+  document.querySelectorAll('#screen [data-tip]').forEach(e => { if (!TIPS[e.dataset.tip]) e.removeAttribute('data-tip'); });
+  showWelcome();
+}
+function showWelcome() {
+  $('#info').innerHTML = `<button class="close-sheet" type="button" data-close>✕</button><span class="tag">QUÉ HAGO AQUÍ</span><h3>${esc(SCREENS[current].name)}</h3>
+    <p>Pulsa cualquier elemento de la pantalla para ver su explicación. También puedes usar la <b>visita guiada</b> (▶) para recorrerlos en orden.</p>
+    <div class="note">Esto es una réplica: nada de lo que pulses guarda datos, usa IA o te cobra.</div>`;
+  $('#info').classList.remove('open');
+}
+function showTip(id) {
+  const t = TIPS[id]; if (!t) return;
+  selectedId = id;
+  document.querySelectorAll('#screen .sel').forEach(e => e.classList.remove('sel'));
+  document.querySelectorAll(`#screen [data-tip="${id}"]`).forEach(e => e.classList.add('sel'));
+  const role = document.body.dataset.role;
+  const rn = t.r && t.r[role];
+  $('#info').innerHTML = `<button class="close-sheet" type="button" data-close>✕</button><span class="tag">${esc(SCREENS[current].name.toUpperCase())}</span><h3>${esc(t.t)}</h3>
+    <div class="lbl">QUÉ ES</div><p>${esc(t.w)}</p>
+    <div class="lbl">CÓMO SE USA</div><ol>${t.h.map(h => `<li>${esc(h)}</li>`).join('')}</ol>
+    <div class="lbl">PARA QUÉ SIRVE</div><p>${esc(t.p)}</p>
+    ${rn ? `<div class="note"><b>Con tu rol (${esc(ROLE_NAMES[role])}):</b> ${esc(rn)}</div>` : ''}
+    ${t.n ? `<div class="note">${esc(t.n)}</div>` : ''}`;
+  $('#info').classList.add('open');
+  const i = tourList.indexOf(id); if (i >= 0) tourIdx = i;
+}
+function tourStep(d) {
+  if (!tourList.length) return;
+  tourIdx = d === 0 ? 0 : (tourIdx + d + tourList.length) % tourList.length;
+  const id = tourList[tourIdx];
+  showTip(id);
+  const el = document.querySelector(`#screen [data-tip="${id}"]`);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  $('#tourPrev').style.display = $('#tourNext').style.display = 'inline-block';
+  $('#tourGo').textContent = `${tourIdx + 1} / ${tourList.length}`;
+}
+
+document.addEventListener('click', (e) => {
+  const sb = e.target.closest('#side button[data-s]');
+  if (sb) { current = sb.dataset.s; renderSide(); renderScreen(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+  if (e.target.closest('[data-close]')) { $('#info').classList.remove('open'); return; }
+  if (e.target.closest('#tourGo')) { tourStep(tourIdx < 0 ? 0 : 1); return; }
+  if (e.target.closest('#tourPrev')) { tourStep(-1); return; }
+  if (e.target.closest('#tourNext')) { tourStep(1); return; }
+  const rb = e.target.closest('#roleSeg button');
+  if (rb) {
+    document.body.dataset.role = rb.dataset.r;
+    document.querySelectorAll('#roleSeg button').forEach(b => b.classList.toggle('on', b === rb));
+    const keep = selectedId; renderScreen(); if (keep && tourList.includes(keep)) showTip(keep); return;
+  }
+  const tipEl = e.target.closest('#screen [data-tip]');
+  if (tipEl) { e.preventDefault(); showTip(tipEl.dataset.tip); }
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') tourStep(1); if (e.key === 'ArrowLeft') tourStep(-1); if (e.key === 'Escape') $('#info').classList.remove('open'); });
+
+try { const r = localStorage.getItem('kinet_active_role'); if (['athlete', 'staff', 'scout'].includes(r)) { document.body.dataset.role = r; document.querySelectorAll('#roleSeg button').forEach(b => b.classList.toggle('on', b.dataset.r === r)); } } catch (e) {}
+renderSide(); renderScreen();
+</script>
+</body>
+</html>
