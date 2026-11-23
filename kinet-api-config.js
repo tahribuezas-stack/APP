@@ -91,14 +91,14 @@
 
     // Enlaces Oficiales de Stripe Payment Links (rellena tus URLs de buy.stripe.com)
     stripeLinks: {
-      plan_pro: '',          // Suscripción Pro Player (8,99€/mes)
-      plan_club: '',         // Suscripción Club & Scout (29,99€/mes)
-      pack_45_free: '',      // Bono +45 min Tarifa Estándar Free (3,98€)
-      pack_45_pro: '',       // Bono +45 min Tarifa Miembro PRO -50% (1,99€)
-      pack_150_free: '',     // Bono +150 min Tarifa Estándar Free (7,98€)
-      pack_150_pro: '',      // Bono +150 min Tarifa Miembro PRO -50% (3,99€)
-      pack_400_free: '',     // Bono +400 min Tarifa Estándar Free (15,98€)
-      pack_400_pro: ''       // Bono +400 min Tarifa Miembro PRO/Club -50% (7,99€)
+      plan_pro: 'https://buy.stripe.com/test_eVqeVeb14dKGd5odfl6Zy07',          // Suscripción Pro Player (8,99€/mes)
+      plan_club: 'https://buy.stripe.com/test_eVqdRafhk0XU8P88Z56Zy06',         // Suscripción Club & Scout (29,99€/mes)
+      pack_45_free: 'https://buy.stripe.com/test_6oUeVe6KOeOK6H07V16Zy04',      // Bono +45 min Tarifa Estándar Free (3,98€)
+      pack_45_pro: 'https://buy.stripe.com/test_00wdRa6KOdKGe9s7V16Zy02',       // Bono +45 min Tarifa Miembro PRO -50% (1,99€)
+      pack_150_free: 'https://buy.stripe.com/test_14A7sM7OS21Y5CWfnt6Zy05',     // Bono +150 min Tarifa Estándar Free (7,98€)
+      pack_150_pro: 'https://buy.stripe.com/test_14AcN6fhkgWSghA8Z56Zy01',      // Bono +150 min Tarifa Miembro PRO -50% (3,99€)
+      pack_400_free: 'https://buy.stripe.com/test_9B600kgloayughA8Z56Zy03',     // Bono +400 min Tarifa Estándar Free (15,98€)
+      pack_400_pro: 'https://buy.stripe.com/test_cNifZic588qmd5o3EL6Zy00'       // Bono +400 min Tarifa Miembro PRO/Club -50% (7,99€)
     }
   };
 
