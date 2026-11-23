@@ -34,7 +34,7 @@
     // Pon true tras desplegar 'guardian-consent': se envía un correo al tutor de cada menor para confirmar su autorización.
     guardianVerification: false,
     // Spotify: pega aquí el Client ID de tu app de developer.spotify.com (ver supabase/LEEME_PASOS_PARA_TI.md §6). Es público, no es un secreto.
-    SPOTIFY_CLIENT_ID: '',
+    SPOTIFY_CLIENT_ID: '72b432b6a45241958fbfceeea8a7be8b',
 
     GEMINI_API_KEY: DEFAULT_INSTALLED_API_KEY,
     GROQ_API_KEY: localStorage.getItem('kinet_groq_api_key') || '',
