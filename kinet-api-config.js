@@ -32,7 +32,7 @@
     // Pon true cuando hayas desplegado la Edge Function 'kinet-ai-chat' (supabase/LEEME_IA_Y_MENORES.md): la IA, los límites y el tope del 33 % pasan al servidor.
     edgeFunctionsDeployed: true,
     // Pon true tras desplegar 'guardian-consent': se envía un correo al tutor de cada menor para confirmar su autorización.
-    guardianVerification: true,
+    guardianVerification: false,
     // Spotify: pega aquí el Client ID de tu app de developer.spotify.com (ver supabase/LEEME_PASOS_PARA_TI.md §6). Es público, no es un secreto.
     SPOTIFY_CLIENT_ID: '',
 
@@ -49,8 +49,8 @@
     // Ajusta costEur con la factura real de tu proveedor. maxTokens incluye el "pensamiento" interno del modelo.
     modelsByTier: {
       free: {
-        gemini: 'gemini-3.5-flash',          // motor equilibrado y barato: con el prompt de preparador rinde mucho
-        geminiFallback: 'gemini-3.5-flash-lite',
+        gemini: 'gemini-3.5-flash-lite',     // motor barato (modelo vigente en la doc de Google): con el prompt de preparador rinde bien
+        geminiFallback: 'gemini-3.1-flash-lite',
         openai: 'gpt-4o-mini',
         groq: 'llama-3.3-70b-versatile',
         maxTokens: 1800,
@@ -59,7 +59,7 @@
       },
       pro: {
         gemini: 'gemini-3.8-flash',          // motor potente
-        geminiFallback: 'gemini-3.5-flash',
+        geminiFallback: 'gemini-3.6-flash',
         openai: 'gpt-4o-mini',
         groq: 'llama-3.3-70b-versatile',
         maxTokens: 2600,
@@ -68,7 +68,7 @@
       },
       club: {
         gemini: 'gemini-3.8-flash',
-        geminiFallback: 'gemini-3.5-flash',
+        geminiFallback: 'gemini-3.6-flash',
         openai: 'gpt-4o',
         groq: 'llama-3.3-70b-versatile',
         maxTokens: 3400,
@@ -81,7 +81,7 @@
     // y en los planes de pago cuando se agota su presupuesto mensual de IA (33 % de lo que pagan).
     liteModel: {
       gemini: 'gemini-3.5-flash-lite',
-      geminiFallback: 'gemini-3.5-flash',
+      geminiFallback: 'gemini-3.1-flash-lite',
       openai: 'gpt-4o-mini',
       groq: 'llama-3.1-8b-instant',
       maxTokens: 1100,
@@ -91,14 +91,14 @@
 
     // Enlaces Oficiales de Stripe Payment Links (rellena tus URLs de buy.stripe.com)
     stripeLinks: {
-      plan_pro: 'https://buy.stripe.com/test_eVqeVeb14dKGd5odfl6Zy07',          // Suscripción Pro Player (8,99€/mes)
-      plan_club: 'https://buy.stripe.com/test_eVqdRafhk0XU8P88Z56Zy06',         // Suscripción Club & Scout (29,99€/mes)
-      pack_45_free: 'https://buy.stripe.com/test_6oUeVe6KOeOK6H07V16Zy04',      // Bono +45 min Tarifa Estándar Free (3,98€)
-      pack_45_pro: 'https://buy.stripe.com/test_00wdRa6KOdKGe9s7V16Zy02',       // Bono +45 min Tarifa Miembro PRO -50% (1,99€)
-      pack_150_free: 'https://buy.stripe.com/test_14A7sM7OS21Y5CWfnt6Zy05',     // Bono +150 min Tarifa Estándar Free (7,98€)
-      pack_150_pro: 'https://buy.stripe.com/test_14AcN6fhkgWSghA8Z56Zy01',      // Bono +150 min Tarifa Miembro PRO -50% (3,99€)
-      pack_400_free: 'https://buy.stripe.com/test_9B600kgloayughA8Z56Zy03',     // Bono +400 min Tarifa Estándar Free (15,98€)
-      pack_400_pro: 'https://buy.stripe.com/test_cNifZic588qmd5o3EL6Zy00'       // Bono +400 min Tarifa Miembro PRO/Club -50% (7,99€)
+      plan_pro: '',          // Suscripción Pro Player (8,99€/mes)
+      plan_club: '',         // Suscripción Club & Scout (29,99€/mes)
+      pack_45_free: '',      // Bono +45 min Tarifa Estándar Free (3,98€)
+      pack_45_pro: '',       // Bono +45 min Tarifa Miembro PRO -50% (1,99€)
+      pack_150_free: '',     // Bono +150 min Tarifa Estándar Free (7,98€)
+      pack_150_pro: '',      // Bono +150 min Tarifa Miembro PRO -50% (3,99€)
+      pack_400_free: '',     // Bono +400 min Tarifa Estándar Free (15,98€)
+      pack_400_pro: ''       // Bono +400 min Tarifa Miembro PRO/Club -50% (7,99€)
     }
   };
 
@@ -1528,7 +1528,7 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
         return cut > t.length * 0.55 ? t.slice(0, cut + 1).trim() : t;
       };
 
-      const geminiModelsToTry = [modelCfg.gemini, modelCfg.geminiFallback || 'gemini-3.5-flash'];
+      const geminiModelsToTry = [modelCfg.gemini, modelCfg.geminiFallback || 'gemini-3.6-flash'];
       const errorsLog = [];
       let _partialText = '';
       const isAuthKey = geminiKey.startsWith('AQ.');
