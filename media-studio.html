@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
-    <title>KINET OS // KINET Media Studio™ & Spotify Sync</title>
+    <title>KINET OS // KINET Media Studio™ & Spotify</title>
     
     <!-- Favicon Corporativo Dinámico por JavaScript -->
     <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
@@ -50,6 +50,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="kinet-backend.js"></script>
     <script src="kinet-api-config.js"></script>
+    <script src="kinet-spotify.js"></script>
     <script src="kinet-moderation.js"></script>
     <script src="kinet-video-edit.js"></script>
 
@@ -1058,7 +1059,7 @@
                         <span>//</span> <span id="tip-title">Broadcast Suite // 30 FPS</span>
                     </div>
                     <div class="sidebar-ai-tip-text" id="tip-content">
-                        Elige pista desde la isla superior antes de subir tu archivo o deja que el motor sugiera el BPM óptimo.
+                        Añade una canción de Spotify desde la isla superior: se publica con tu foto o vídeo y suena con el reproductor oficial.
                     </div>
                 </div>
 
@@ -1113,14 +1114,14 @@
                     <div>
                         <span class="context-tag">
                             <span class="status-dot-led"></span>
-                            <span id="header-tag-text">ESTUDIO GENERATIVO DE IMÁGENES IA, TELEMETRÍA HUD & SPOTIFY SYNC • FÚTBOL</span>
+                            <span id="header-tag-text">ESTUDIO GENERATIVO DE IMÁGENES IA, TELEMETRÍA HUD & SPOTIFY • FÚTBOL</span>
                         </span>
-                        <h1 class="context-title">KINET Media Studio™ & Spotify Sync</h1>
+                        <h1 class="context-title">KINET Media Studio™ & Spotify</h1>
                     </div>
                     <div class="header-badges-group">
                         <div class="verified-badge">
                             <span class="status-dot-led"></span>
-                            <span id="spotify-api-badge-txt">SPOTIFY API: READY</span>
+                            <span id="spotify-api-badge-txt">SPOTIFY: SIN CONECTAR</span>
                         </div>
                         <div class="verified-badge" id="tier-indicator-badge">LICENCIA KINET PRO</div>
                     </div>
@@ -1179,17 +1180,22 @@
                                                 </span>
                                             </button>
 
-                                            <!-- POPOVER SELECTOR DE CANCIONES (SPOTIFY API BRIDGE SIN CORTES) -->
+                                            <!-- POPOVER SPOTIFY REAL: conectar cuenta, buscar, guardadas o pegar enlace -->
                                             <div class="ig-audio-picker-popover" id="ig-audio-popover" onclick="event.stopPropagation()">
                                                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
-                                                    <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);letter-spacing:0.08em;font-weight:700;">SPOTIFY SYNC // SELECCIÓN DE PISTA</span>
-                                                    <span style="font-family:'JetBrains Mono';font-size:0.55rem;color:#94A3B8;" id="ig-picker-mode-hint">PRE-SELECCIÓN</span>
+                                                    <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);letter-spacing:0.08em;font-weight:700;">SPOTIFY // MÚSICA DE LA PUBLICACIÓN</span>
+                                                    <span style="font-family:'JetBrains Mono';font-size:0.55rem;color:#94A3B8;" id="ig-picker-mode-hint">SIN CONECTAR</span>
                                                 </div>
-                                                <input type="text" class="ig-picker-search" id="spotify-search-input" placeholder="Buscar pista, artista o BPM en Spotify..." oninput="filterSpotifyCatalog(this.value)">
+                                                <div id="sp-connect-area" style="margin-bottom:7px;"></div>
+                                                <input data-lpignore="true" data-1p-ignore="true" autocomplete="off" type="text" class="ig-picker-search" id="spotify-search-input" placeholder="Buscar canción o artista en Spotify..." oninput="filterSpotifyCatalog(this.value)">
                                                 <div class="ig-track-list" id="ig-spotify-track-list"></div>
-                                                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:7px;border-top:1px solid rgba(255,255,255,0.07);">
-                                                    <span style="font-family:'JetBrains Mono';font-size:0.54rem;color:#64748B;" id="spotify-lock-footnote">Al elegir pista manual no se sobreescribirá</span>
-                                                    <button type="button" onclick="clearSelectedTrack(event)" style="background:none;border:none;color:#94A3B8;font-family:'JetBrains Mono';font-size:0.56rem;cursor:pointer;text-decoration:underline;">Quitar pista</button>
+                                                <div style="margin-top:8px;padding-top:7px;border-top:1px solid rgba(255,255,255,0.07);">
+                                                    <div style="font-family:'JetBrains Mono';font-size:0.54rem;color:#94A3B8;margin-bottom:4px;">O PEGA EL ENLACE DE UNA CANCIÓN DE SPOTIFY</div>
+                                                    <div style="display:flex;gap:6px;"><input data-lpignore="true" data-1p-ignore="true" autocomplete="off" type="text" class="ig-picker-search" id="sp-link-input" placeholder="https://open.spotify.com/track/..." style="margin:0;flex:1;"><button type="button" onclick="addSpotifyFromLink(event)" style="background:rgba(var(--role-rgb),0.16);border:1px solid rgba(var(--role-rgb),0.45);color:var(--role-color);border-radius:8px;padding:0 10px;font-family:'JetBrains Mono';font-size:0.6rem;font-weight:700;cursor:pointer;">Añadir</button></div>
+                                                    <div id="sp-link-msg" style="font-size:0.6rem;color:#F59E0B;margin-top:4px;"></div>
+                                                </div>
+                                                <div style="display:flex;justify-content:flex-end;align-items:center;margin-top:6px;">
+                                                    <button type="button" onclick="clearSelectedTrack(event)" style="background:none;border:none;color:#94A3B8;font-family:'JetBrains Mono';font-size:0.56rem;cursor:pointer;text-decoration:underline;">Quitar canción</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -1224,7 +1230,7 @@
                                 <button type="button" onclick="triggerFileSelect()" style="background:rgba(var(--role-rgb),0.12);border:1px solid rgba(var(--role-rgb),0.38);color:var(--role-color);border-radius:8px;padding:7px 10px;cursor:pointer;display:inline-flex;align-items:center;" title="Subir foto o vídeo">
                                     <svg class="svg-ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                                 </button>
-                                <input type="text" id="ai-prompt-input" autocomplete="off" maxlength="500" placeholder="Describe la imagen que quieres crear..." onkeydown="if(event.key==='Enter') KinetStudio.send()">
+                                <input data-lpignore="true" data-1p-ignore="true" type="text" id="ai-prompt-input" autocomplete="off" maxlength="500" placeholder="Describe la imagen que quieres crear..." onkeydown="if(event.key==='Enter') KinetStudio.send()">
                                 <button class="btn-primary" id="btn-generate-image" onclick="KinetStudio.send()" style="padding:8px 14px;font-size:0.64rem;">Crear imagen</button>
                                 <button class="btn-primary" type="button" onclick="KinetStudio.openVideoEditModal()" style="padding:8px 14px;font-size:0.64rem;">Editar vídeo</button>
                             </div>
@@ -1242,17 +1248,18 @@
 
                                 <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:14px;">
                                     
-                                    <!-- BLOQUE 1: ESTADO DE AUDIO VINCULADO A LA ISLA SUPERIOR -->
+                                    <!-- BLOQUE 1: MÚSICA = SPOTIFY (como en Instagram: suena Spotify dentro de la app) -->
                                     <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:12px; padding:10px 12px;">
                                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
                                             <label style="font-size:0.71rem; font-weight:700; color:#E2E8F0;">Música de la publicación</label>
-                                            <span style="font-family:'JetBrains Mono';font-size:0.56rem;color:var(--role-color);" id="side-audio-lock-status">SIN PISTA</span>
+                                            <span style="font-family:'JetBrains Mono';font-size:0.56rem;color:var(--role-color);" id="side-audio-lock-status">SIN CANCIÓN</span>
                                         </div>
                                         <div style="display:flex;justify-content:space-between;align-items:center;background:#04060A;border:1px solid rgba(255,255,255,0.12);border-radius:9px;padding:8px 10px;">
-                                            <span style="font-family:'JetBrains Mono';font-size:0.68rem;color:#CBD5E1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="side-audio-summary-txt">Pulsa la isla superior para elegir</span>
-                                            <button type="button" onclick="toggleAudioIslandPopover(event)" style="background:rgba(var(--role-rgb),0.14);border:1px solid rgba(var(--role-rgb),0.4);color:var(--role-color);border-radius:6px;padding:3px 8px;font-family:'JetBrains Mono';font-size:0.58rem;font-weight:700;cursor:pointer;flex-shrink:0;">Cambiar</button>
+                                            <span style="font-family:'JetBrains Mono';font-size:0.68rem;color:#CBD5E1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="side-audio-summary-txt">Elige una canción de Spotify</span>
+                                            <button type="button" onclick="toggleAudioIslandPopover(event)" style="background:rgba(var(--role-rgb),0.14);border:1px solid rgba(var(--role-rgb),0.4);color:var(--role-color);border-radius:6px;padding:3px 8px;font-family:'JetBrains Mono';font-size:0.58rem;font-weight:700;cursor:pointer;flex-shrink:0;">Elegir</button>
                                         </div>
-                                        <button type="button" onclick="KinetStudio.autoTrack()" style="margin-top:6px;width:100%;background:rgba(var(--role-rgb),0.1);border:1px solid rgba(var(--role-rgb),0.35);color:var(--role-color);border-radius:8px;padding:6px;font-family:'JetBrains Mono';font-size:0.6rem;font-weight:700;cursor:pointer;">Elegir música automáticamente</button>
+                                        <div id="side-audio-player" style="margin-top:8px;"></div>
+                                        <p style="font-size:0.58rem;color:#64748B;margin:6px 0 0;line-height:1.4;">Se publica con tu canción de Spotify y suena con el reproductor oficial. Conecta tu cuenta para ver tus canciones guardadas.</p>
                                     </div>
 
                                     <!-- BLOQUE 2: MARCA DE AGUA (opcional) -->
@@ -1359,7 +1366,7 @@
                 <span>DESBLOQUEAR MODO VÍDEO 30 FPS (PRO)</span>
             </div>
             <div class="kinet-modal-body">
-                Tu cuenta actual está en el <strong>Plan Gratuito</strong> (con Modo Imagen IA y Spotify Sync habilitados).<br><br>
+                Tu cuenta actual está en el <strong>Plan Gratuito</strong> (con Modo Imagen IA y música de Spotify habilitados).<br><br>
                 Para activar el <strong>Modo Vídeo (KINET Shorts 9:16 a 24-30 FPS, cortes al ritmo de la música y telemetría sin marca de agua)</strong>, pásate a <strong>Pro Player (8,99€/mes)</strong> o adquiere un <strong>Bono de Minutos (*Pay-As-You-Go* desde 1,99€)</strong>.
             </div>
             <div class="kinet-modal-footer">
@@ -1455,44 +1462,16 @@
         let userManuallyLockedTrack = false;
         let activeSpotifyTrack = null;
 
-        const KINET_SPOTIFY_CATALOG = [
-            { id: 'trk_1', title: 'High Performance (KINET Edit)', artist: 'KINET Audio Lab', bpm: '128 BPM', presetTag: 'Match Day' },
-            { id: 'trk_2', title: 'Tunnel Vision — Matchday Mix', artist: 'B2B Athletics', bpm: '132 BPM', presetTag: 'Biometric Beat' },
-            { id: 'trk_3', title: 'Sub-Zero Telemetry', artist: 'Apex Synth', bpm: '124 BPM', presetTag: 'Hologram Card' },
-            { id: 'trk_4', title: 'Precision Radar (Instrumental)', artist: 'Nordic Pulse', bpm: '118 BPM', presetTag: 'Scout Graphic' },
-            { id: 'trk_5', title: 'Post-Match Overtime', artist: 'Kinetic Beats', bpm: '110 BPM', presetTag: 'Post-Match' },
-            { id: 'trk_6', title: 'Sprint Threshold 34 KM/H', artist: 'Dark Phonk Unit', bpm: '140 BPM', presetTag: 'High Intensity' },
-            { id: 'trk_7', title: 'Locked In (Warmup Cut)', artist: 'Stadia Sound', bpm: '126 BPM', presetTag: 'Match Day' }
-        ];
-
+        // La música es Spotify de verdad (kinet-spotify.js): sin catálogo propio ni pistas inventadas.
+        let _spTracks = [];
         window.KinetSpotifyBridge = {
-            searchTracks: async function(query) {
-                const q = String(query || '').trim().toLowerCase();
-                const cfgToken = (window.KINET_API_CONFIG && window.KINET_API_CONFIG.spotifyAccessToken) || localStorage.getItem('kinet_spotify_access_token');
-                if (cfgToken && q.length > 2) {
-                    try {
-                        const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=6`, {
-                            headers: { 'Authorization': `Bearer ${cfgToken}` }
-                        });
-                        if (res.ok) {
-                            const data = await res.json();
-                            if (data.tracks && Array.isArray(data.tracks.items) && data.tracks.items.length > 0) {
-                                return data.tracks.items.map(t => ({
-                                    id: t.id,
-                                    title: t.name,
-                                    artist: (t.artists && t.artists[0] ? t.artists[0].name : 'Spotify Artist'),
-                                    bpm: 'SPOTIFY API'
-                                }));
-                            }
-                        }
-                    } catch (e) {}
-                }
-                if (!q) return KINET_SPOTIFY_CATALOG;
-                return KINET_SPOTIFY_CATALOG.filter(t =>
-                    t.title.toLowerCase().includes(q) ||
-                    t.artist.toLowerCase().includes(q) ||
-                    t.bpm.toLowerCase().includes(q)
-                );
+            async list(query) {
+                const q = String(query || '').trim();
+                if (!KinetSpotify.isConnected()) return { tracks: [], note: 'connect' };
+                try {
+                    if (q.length >= 2) return { tracks: await KinetSpotify.search(q), note: 'search' };
+                    return { tracks: await KinetSpotify.saved(), note: 'saved' };
+                } catch (e) { return { tracks: [], note: e && e.message === 'no-token' ? 'connect' : 'error' }; }
             }
         };
 
@@ -1504,49 +1483,67 @@
             const sideStatus = document.getElementById('side-audio-lock-status');
             const sideSummary = document.getElementById('side-audio-summary-txt');
             const pickerHint = document.getElementById('ig-picker-mode-hint');
+            const player = document.getElementById('side-audio-player');
+            const badge = document.getElementById('spotify-api-badge-txt');
+            const conn = window.KinetSpotify && KinetSpotify.isConnected();
+            if (badge) badge.textContent = conn ? 'SPOTIFY: CONECTADO' : 'SPOTIFY: SIN CONECTAR';
+            if (pickerHint) pickerHint.textContent = conn ? 'CONECTADO' : 'SIN CONECTAR';
 
             if (!activeSpotifyTrack) {
                 pillBtn.classList.remove('active-track');
                 stateTag.style.display = 'none';
                 labelEl.textContent = '+ Añadir canción';
                 waveEl.style.display = 'none';
-                if (sideStatus) sideStatus.textContent = 'SIN PISTA';
-                if (sideSummary) sideSummary.textContent = hasUploadedPublicationMedia ? 'Sin música seleccionada' : 'Elige antes de subir o sube archivo';
-                if (pickerHint) pickerHint.textContent = hasUploadedPublicationMedia ? 'ARCHIVO CARGADO' : 'PRE-SELECCIÓN';
+                if (sideStatus) sideStatus.textContent = 'SIN CANCIÓN';
+                if (sideSummary) sideSummary.textContent = 'Elige una canción de Spotify';
+                if (player) player.innerHTML = '';
             } else {
                 pillBtn.classList.add('active-track');
                 stateTag.style.display = 'inline';
-                stateTag.textContent = userManuallyLockedTrack ? 'PISTA FIJADA' : 'RECOMENDADA';
-                labelEl.textContent = `${activeSpotifyTrack.title} · ${activeSpotifyTrack.artist}`;
+                stateTag.textContent = 'SPOTIFY';
+                labelEl.textContent = `${activeSpotifyTrack.title}${activeSpotifyTrack.artist ? ' · ' + activeSpotifyTrack.artist : ''}`;
                 waveEl.style.display = 'inline-flex';
-
-                if (sideStatus) sideStatus.textContent = userManuallyLockedTrack ? 'MANUAL LOCKED' : 'AUTO SUGGESTED';
-                if (sideSummary) sideSummary.textContent = `${activeSpotifyTrack.title} (${activeSpotifyTrack.bpm})`;
-                if (pickerHint) pickerHint.textContent = userManuallyLockedTrack ? 'FIJADA POR USUARIO' : 'SUGERENCIA IA';
+                if (sideStatus) sideStatus.textContent = 'EN LA PUBLICACIÓN';
+                if (sideSummary) sideSummary.textContent = `${activeSpotifyTrack.title}${activeSpotifyTrack.artist ? ' · ' + activeSpotifyTrack.artist : ''}`;
+                if (player) player.innerHTML = KinetSpotify.embed(activeSpotifyTrack.id, true);
             }
-
-            // Actualizar etiqueta de sincronía en la última tarjeta generada en el chat
             const latestSyncEl = document.querySelector('#latest-exportable-art-card .art-sync-tag');
-            if (latestSyncEl) {
-                latestSyncEl.textContent = activeSpotifyTrack ? `AUDIO: ${activeSpotifyTrack.title.toUpperCase()} (${activeSpotifyTrack.bpm})` : 'SYNC: STANDBY';
-            }
+            if (latestSyncEl) latestSyncEl.textContent = activeSpotifyTrack ? `SPOTIFY: ${activeSpotifyTrack.title.toUpperCase()}` : 'SYNC: STANDBY';
         }
+
+        function renderSpotifyConnectArea() {
+            const box = document.getElementById('sp-connect-area');
+            if (!box) return;
+            const conn = KinetSpotify.isConnected();
+            if (conn) { box.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;font-size:0.62rem;color:#94A3B8;"><span>✓ Cuenta de Spotify conectada · tus canciones guardadas</span><button type="button" onclick="disconnectSpotify(event)" style="background:none;border:none;color:#94A3B8;text-decoration:underline;cursor:pointer;font-size:0.58rem;">Desconectar</button></div>'; return; }
+            if (KinetSpotify.clientId()) { box.innerHTML = '<button type="button" onclick="connectSpotify(event)" style="width:100%;background:#1DB954;color:#04060A;border:none;border-radius:9px;padding:8px;font-weight:800;font-size:0.7rem;cursor:pointer;">Conectar mi cuenta de Spotify</button><div style="font-size:0.58rem;color:#64748B;margin-top:4px;">Verás tus canciones guardadas y podrás buscar cualquier tema.</div>'; return; }
+            const staff = ['superadmin','subadmin','moderator','scout_verifier','marketing','admin'].includes((localStorage.getItem('kinet_staff_admin_role') || '').toLowerCase().trim());
+            box.innerHTML = '<div style="font-size:0.6rem;color:#94A3B8;line-height:1.4;">La conexión de cuentas de Spotify se activará pronto. Mientras tanto, pega el enlace de tu canción abajo.</div>' + (staff ? '<div style="margin-top:6px;font-size:0.56rem;color:#F59E0B;">Equipo: pega el Client ID de tu app de Spotify <input id="sp-cid" data-lpignore="true" data-1p-ignore="true" autocomplete="off" class="ig-picker-search" style="margin:4px 0;" placeholder="Client ID"><button type="button" onclick="saveSpotifyClientId(event)" style="background:rgba(var(--role-rgb),0.16);border:1px solid rgba(var(--role-rgb),0.45);color:var(--role-color);border-radius:8px;padding:4px 10px;font-size:0.6rem;cursor:pointer;">Guardar</button><div style="color:#64748B;margin-top:3px;">Redirect URI a registrar: <code>' + KinetSpotify.redirectUri() + '</code></div></div>' : '');
+        }
+        async function connectSpotify(ev) { if (ev) ev.stopPropagation(); try { await KinetSpotify.connect(); } catch (e) { document.getElementById('sp-link-msg').textContent = 'No se pudo iniciar la conexión.'; } }
+        function disconnectSpotify(ev) { if (ev) ev.stopPropagation(); KinetSpotify.disconnect(); renderSpotifyPopoverList(''); updateAudioIslandUI(); }
+        function saveSpotifyClientId(ev) { if (ev) ev.stopPropagation(); const v = (document.getElementById('sp-cid').value || '').trim(); if (v.length > 10) { localStorage.setItem('kinet_spotify_client_id', v); renderSpotifyPopoverList(''); } }
 
         async function renderSpotifyPopoverList(query = '') {
             const listEl = document.getElementById('ig-spotify-track-list');
             if (!listEl) return;
-            const tracks = await window.KinetSpotifyBridge.searchTracks(query);
-            listEl.innerHTML = tracks.map(t => {
+            renderSpotifyConnectArea(); updateAudioIslandUI();
+            const searchEl = document.getElementById('spotify-search-input');
+            const conn = KinetSpotify.isConnected();
+            if (searchEl) searchEl.style.display = conn ? '' : 'none';
+            if (!conn) { listEl.innerHTML = ''; return; }
+            listEl.innerHTML = '<div style="padding:8px;font-size:0.62rem;color:#94A3B8;">Cargando…</div>';
+            const res = await window.KinetSpotifyBridge.list(query);
+            _spTracks = res.tracks;
+            if (res.note === 'connect') { renderSpotifyConnectArea(); listEl.innerHTML = ''; return; }
+            if (res.note === 'error') { listEl.innerHTML = '<div style="padding:8px;font-size:0.62rem;color:#F59E0B;">Spotify no responde ahora mismo. Pega un enlace mientras tanto.</div>'; return; }
+            if (!_spTracks.length) { listEl.innerHTML = '<div style="padding:8px;font-size:0.62rem;color:#94A3B8;">' + (res.note === 'saved' ? 'Aún no tienes canciones guardadas. Busca arriba.' : 'Sin resultados.') + '</div>'; return; }
+            listEl.innerHTML = (res.note === 'saved' ? '<div style="padding:2px 4px 4px;font-family:\'JetBrains Mono\';font-size:0.54rem;color:var(--role-color);">TUS CANCIONES GUARDADAS</div>' : '') + _spTracks.map((t, i) => {
                 const isSel = activeSpotifyTrack && activeSpotifyTrack.id === t.id;
-                return `
-                    <div class="ig-track-item ${isSel ? 'selected' : ''}" onclick="selectTrackFromIsland('${t.id}', '${t.title.replace(/'/g, "\\'")}', '${t.artist.replace(/'/g, "\\'")}', '${t.bpm}', event)">
-                        <div class="ig-track-meta">
-                            <span class="ig-track-name">${t.title}</span>
-                            <span class="ig-track-artist">${t.artist}</span>
-                        </div>
-                        <span class="ig-track-bpm">${t.bpm}</span>
-                    </div>
-                `;
+                return `<div class="ig-track-item ${isSel ? 'selected' : ''}" onclick="selectSpotifyTrack(${i}, event)">
+                    ${t.cover ? `<img src="${KinetSpotify.esc(t.cover)}" alt="" style="width:32px;height:32px;border-radius:6px;object-fit:cover;flex-shrink:0;">` : ''}
+                    <div class="ig-track-meta"><span class="ig-track-name">${KinetSpotify.esc(t.title)}</span><span class="ig-track-artist">${KinetSpotify.esc(t.artist)}</span></div>
+                </div>`;
             }).join('');
         }
 
@@ -1555,12 +1552,8 @@
             const pop = document.getElementById('ig-audio-popover');
             if (!pop) return;
             const willOpen = !pop.classList.contains('open');
-            if (willOpen) {
-                renderSpotifyPopoverList(document.getElementById('spotify-search-input')?.value || '');
-                pop.classList.add('open');
-            } else {
-                pop.classList.remove('open');
-            }
+            if (willOpen) { pop.classList.add('open'); renderSpotifyPopoverList(document.getElementById('spotify-search-input')?.value || ''); }
+            else pop.classList.remove('open');
         }
 
         document.addEventListener('click', () => {
@@ -1568,18 +1561,25 @@
             if (pop) pop.classList.remove('open');
         });
 
-        function filterSpotifyCatalog(val) {
-            renderSpotifyPopoverList(val);
-        }
+        let _spTimer = null;
+        function filterSpotifyCatalog(val) { clearTimeout(_spTimer); _spTimer = setTimeout(() => renderSpotifyPopoverList(val), 350); }
 
-        function selectTrackFromIsland(id, title, artist, bpm, ev) {
+        function selectSpotifyTrack(i, ev) {
             if (ev) ev.stopPropagation();
-            activeSpotifyTrack = { id, title, artist, bpm };
-            // Al elegir manualmente antes o después de subir, bloqueamos para no recomendar encima
+            const t = _spTracks[i]; if (!t) return;
+            activeSpotifyTrack = { id: t.id, title: t.title, artist: t.artist, cover: t.cover, url: t.url };
             userManuallyLockedTrack = true;
             updateAudioIslandUI();
-            const pop = document.getElementById('ig-audio-popover');
-            if (pop) pop.classList.remove('open');
+            const pop = document.getElementById('ig-audio-popover'); if (pop) pop.classList.remove('open');
+        }
+        async function addSpotifyFromLink(ev) {
+            if (ev) ev.stopPropagation();
+            const inp = document.getElementById('sp-link-input'), msg = document.getElementById('sp-link-msg');
+            const t = await KinetSpotify.fromLink(inp.value);
+            if (!t) { msg.textContent = 'Ese enlace no es de una canción de Spotify (open.spotify.com/track/…).'; return; }
+            msg.textContent = ''; inp.value = '';
+            activeSpotifyTrack = t; userManuallyLockedTrack = true; updateAudioIslandUI();
+            const pop = document.getElementById('ig-audio-popover'); if (pop) pop.classList.remove('open');
         }
 
         function clearSelectedTrack(ev) {
@@ -1591,14 +1591,17 @@
             if (pop) pop.classList.remove('open');
         }
 
-        function recommendTrackIfAllowed(preferredTrackId) {
-            if (userManuallyLockedTrack) return;
-            if (!hasUploadedPublicationMedia) return;
+        // Ya no se "recomienda" música inventada: la elige el usuario en Spotify
+        function recommendTrackIfAllowed() {}
 
-            const found = KINET_SPOTIFY_CATALOG.find(t => t.id === preferredTrackId) || KINET_SPOTIFY_CATALOG[0];
-            activeSpotifyTrack = found;
-            updateAudioIslandUI();
-        }
+        // Vuelta del login de Spotify
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const r = await KinetSpotify.handleCallback();
+                updateAudioIslandUI();
+                if (r && r.ok) { setTimeout(() => { const pop = document.getElementById('ig-audio-popover'); if (pop) { pop.classList.add('open'); renderSpotifyPopoverList(''); } }, 300); }
+            } catch (e) {}
+        });
 
         function toggleMobileDrawer() {
             const drawer = document.getElementById('mobile-menu-drawer');
@@ -1664,7 +1667,7 @@
             const sportChosen = localStorage.getItem('kinet_sport') || localStorage.getItem('sport') || 'Fútbol';
             document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${sportChosen.toUpperCase()}`;
             document.getElementById('topbar-sport-tag').textContent = `● ${sportChosen.toUpperCase()}`;
-            document.getElementById('header-tag-text').textContent = `ESTUDIO GENERATIVO DE IMÁGENES IA, TELEMETRÍA HUD & SPOTIFY SYNC • ${sportChosen.toUpperCase()}`;
+            document.getElementById('header-tag-text').textContent = `ESTUDIO GENERATIVO DE IMÁGENES IA, TELEMETRÍA HUD & SPOTIFY • ${sportChosen.toUpperCase()}`;
 
             const queryParams = `?role=${activeRoleKey}&sport=${encodeURIComponent(sportChosen)}`;
             const navMap = {

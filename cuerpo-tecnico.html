@@ -1238,17 +1238,17 @@
 
             <div>
                 <label style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);font-weight:700;display:block;margin-bottom:4px;">1. GOOGLE GEMINI API KEY (GEMINI 2.5 FLASH + VISIÓN MULTIMODAL)</label>
-                <input type="password" id="cfg-gemini-key-input" class="kinet-input" placeholder="AIzaSy...">
+                <input type="text" id="cfg-gemini-key-input" class="kinet-input" style="-webkit-text-security:disc;text-security:disc;" autocomplete="off" autocapitalize="off" spellcheck="false" name="cfg-gemini-key-input-nofill" data-lpignore="true" data-1p-ignore="true" data-form-type="other" placeholder="AIzaSy...">
             </div>
 
             <div>
                 <label style="font-family:'JetBrains Mono';font-size:0.58rem;color:#38BDF8;font-weight:700;display:block;margin-bottom:4px;">2. GROQ API KEY (LLAMA 3.3 70B ULTRARRÁPIDO)</label>
-                <input type="password" id="cfg-groq-key-input" class="kinet-input" placeholder="gsk_...">
+                <input type="text" id="cfg-groq-key-input" class="kinet-input" style="-webkit-text-security:disc;text-security:disc;" autocomplete="off" autocapitalize="off" spellcheck="false" name="cfg-groq-key-input-nofill" data-lpignore="true" data-1p-ignore="true" data-form-type="other" placeholder="gsk_...">
             </div>
 
             <div>
                 <label style="font-family:'JetBrains Mono';font-size:0.58rem;color:#F59E0B;font-weight:700;display:block;margin-bottom:4px;">3. OPENAI API KEY (GPT-4O-MINI / GPT-4O)</label>
-                <input type="password" id="cfg-openai-key-input" class="kinet-input" placeholder="sk-...">
+                <input type="text" id="cfg-openai-key-input" class="kinet-input" style="-webkit-text-security:disc;text-security:disc;" autocomplete="off" autocapitalize="off" spellcheck="false" name="cfg-openai-key-input-nofill" data-lpignore="true" data-1p-ignore="true" data-form-type="other" placeholder="sk-...">
             </div>
 
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid var(--border-subtle);padding-top:12px;">
@@ -1442,7 +1442,12 @@
             }
             if (btn) {
                 btn.innerHTML = hasKey ? '🟢 IA Live: ON' : '🔑 Motor IA';
+                // La clave la gestiona el equipo: los usuarios normales no ven el botón (staff, o abrir con ?config=1)
+                const staff = ['superadmin','subadmin','moderator','scout_verifier','marketing','admin'].includes((localStorage.getItem('kinet_staff_admin_role') || '').toLowerCase().trim());
+                const force = /[?&]config=1/.test(location.search);
+                btn.style.display = (staff || force) ? '' : 'none';
             }
+            if (pill && !hasKey) pill.style.display = 'none';
         }
 
         function openAiEngineConfigModal() {

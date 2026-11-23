@@ -5,7 +5,7 @@
    - Filtros locales gratuitos (sin gastar IA): cine, blanco y negro, neón…
    - Editar vídeo: highlights con música sincronizada (ver kinet-video-edit.js).
    Depende de: kinet-api-config.js (KinetAPIs), kinet-video-edit.js y de las variables de página
-   currentStudioFormat, activeSpotifyTrack, userManuallyLockedTrack, KINET_SPOTIFY_CATALOG, updateAudioIslandUI.
+   currentStudioFormat, activeSpotifyTrack, userManuallyLockedTrack, updateAudioIslandUI.
    ========================================================== */
 (function () {
   'use strict';
@@ -110,11 +110,11 @@
     var it = KS.items[id] = { id: id, url: url, w: meta.w, h: meta.h, prompt: meta.prompt || '', note: meta.note || '' };
     KS.last = id;
     var ratio = meta.w && meta.h ? meta.w + ' / ' + meta.h : '4 / 5';
-    var filters = FILTERS.map(function (f) { return '<button type="button" class="ks-chip" onclick="KinetStudio.applyFilter(\'' + id + '\',\'' + f.id + '\')">' + esc(f.name) + '</button>'; }).join('');
+    var filters = '<button type="button" class="ks-chip on" data-f="orig" onclick="KinetStudio.applyFilter(\'' + id + '\',\'orig\')">Original</button>' + FILTERS.map(function (f) { return '<button type="button" class="ks-chip" data-f="' + f.id + '" onclick="KinetStudio.applyFilter(\'' + id + '\',\'' + f.id + '\')">' + esc(f.name) + '</button>'; }).join('');
     var m = bubble(
       (meta.text ? '<div style="margin-bottom:8px;">' + esc(meta.text) + '</div>' : '') +
       '<div class="ks-card" data-id="' + id + '">' +
-        '<div class="ks-img-wrap" style="aspect-ratio:' + ratio + ';"><img src="' + url + '" alt="Imagen creada en KINET Media Studio" draggable="false"></div>' +
+        '<div class="ks-img-wrap"><img src="' + url + '" alt="Imagen creada en KINET Media Studio" draggable="false"></div>' +
         '<div class="ks-tools"><span class="ks-tools-label">FILTROS GRATIS</span>' + filters + '</div>' +
         '<div class="chat-art-actions-bar">' +
           '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
@@ -192,7 +192,7 @@
       }
       var f = await fit(res.dataUrl, 1536, 0.92);
       var track = '';
-      if (tpl && tpl.track && !userManuallyLockedTrack) { hasUploadedPublicationMedia = true; recommendTrackIfAllowed(tpl.track); track = activeSpotifyTrack ? ' Música sugerida: ' + activeSpotifyTrack.title + '.' : ''; }
+      
       addImageCard(f.url, { w: f.w, h: f.h, prompt: text, text: (editing ? 'Foto editada.' : 'Aquí tienes tu imagen.') + track });
       KS.source = null; KS.template = null;
       var hint = $('ks-template-hint'); if (hint) hint.style.display = 'none';
@@ -224,7 +224,6 @@
         }
         KS.source = { url: f.url, name: file.name };
         hasUploadedPublicationMedia = true;
-        if (!userManuallyLockedTrack) recommendTrackIfAllowed('trk_1');
         addImageCard(f.url, { w: f.w, h: f.h, text: 'Foto cargada. Elige una plantilla de edición, aplica un filtro gratis o dime qué quieres cambiar.' });
         renderSourceChip();
         buildTemplates();
@@ -291,8 +290,19 @@
   // ───────────── filtros locales ─────────────
   function clamp(v) { return v < 0 ? 0 : v > 255 ? 255 : v; }
   async function applyFilter(id, fid) {
-    var it = KS.items[id]; var f = FILTERS.filter(function (x) { return x.id === fid; })[0]; if (!it || !f) return;
-    var im = await loadImg(it.url);
+    var it = KS.items[id]; if (!it) return;
+    if (!it.base) it.base = it.url;                       // la foto original: los filtros NUNCA se apilan unos sobre otros
+    var card = document.querySelector('.ks-card[data-id="' + id + '"]');
+    var mark = function (k) { if (card) Array.prototype.forEach.call(card.querySelectorAll('.ks-chip'), function (c) { c.classList.toggle('on', c.getAttribute('data-f') === k); }); };
+    var setImg = function (url, w, h) {
+      var old = it.url; it.url = url; if (w) { it.w = w; it.h = h; }
+      var im2 = card && card.querySelector('img'); if (im2) im2.src = url;
+      if (KS.source && KS.source.url === old) KS.source = { url: url, name: KS.source.name };
+      renderSourceChip();
+    };
+    if (fid === 'orig') { setImg(it.base); mark('orig'); return; }
+    var f = FILTERS.filter(function (x) { return x.id === fid; })[0]; if (!f) return;
+    var im = await loadImg(it.base);
     var c = document.createElement('canvas'); c.width = im.width; c.height = im.height;
     var g = c.getContext('2d'); g.drawImage(im, 0, 0);
     var d = g.getImageData(0, 0, c.width, c.height), p = d.data;
@@ -321,10 +331,7 @@
       g.globalAlpha = f.grain; g.globalCompositeOperation = 'overlay'; g.fillStyle = g.createPattern(n, 'repeat'); g.fillRect(0, 0, c.width, c.height);
       g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
     }
-    var url = c.toDataURL('image/jpeg', 0.92);
-    if (KS.source && KS.source.url === it.url) KS.source = { url: url, name: KS.source.name };
-    addImageCard(url, { w: c.width, h: c.height, prompt: it.prompt, text: 'Filtro «' + f.name + '» aplicado (gratis, sin gastar IA).' });
-    renderSourceChip();
+    setImg(c.toDataURL('image/jpeg', 0.92), c.width, c.height); mark(fid);
   }
 
   // ───────────── composición: marca de agua y texto ─────────────
@@ -449,26 +456,17 @@
     }
     var c = await compose(it, { wm: wmValue() });
     var f = await fit(c.toDataURL('image/jpeg', 0.9), 1080, 0.82);
-    var track = activeSpotifyTrack ? '\n♪ ' + activeSpotifyTrack.title + ' · ' + activeSpotifyTrack.artist : '';
+    var track = activeSpotifyTrack ? '\n♪ ' + activeSpotifyTrack.title + (activeSpotifyTrack.artist ? ' · ' + activeSpotifyTrack.artist : '') : '';
     var text = (caption || it.prompt || 'Creado en KINET Media Studio') + track;
     try {
-      await KinetBackend.createCloudPost({ id: 'studio_' + Date.now(), mode: 'post', text: text, imageUrl: f.url, badge: 'MEDIA STUDIO', reelData: null, likes: 0 });
+      await KinetBackend.createCloudPost({ id: 'studio_' + Date.now(), mode: 'post', text: text, imageUrl: f.url, badge: 'MEDIA STUDIO', reelData: activeSpotifyTrack ? { spotify: { id: activeSpotifyTrack.id, title: activeSpotifyTrack.title, artist: activeSpotifyTrack.artist || '', cover: activeSpotifyTrack.cover || '' }, track: activeSpotifyTrack.title } : null, likes: 0 });
       bubble('Publicado en KINET Network™. Puedes verlo en Comunidad.', true);
       if (capEl) capEl.value = '';
     } catch (e) { bubble('No se pudo publicar ahora mismo. Inténtalo de nuevo.', true); }
   }
 
   // ───────────── música automática ─────────────
-  function autoTrack() {
-    var tpl = KS.template;
-    var pick = (tpl && tpl.track) || ((typeof currentStudioFormat !== 'undefined' && currentStudioFormat === 'video') ? 'trk_6' : 'trk_1');
-    userManuallyLockedTrack = false;
-    hasUploadedPublicationMedia = true;
-    recommendTrackIfAllowed(pick);
-    updateAudioIslandUI();
-    var bpm = parseInt(String((activeSpotifyTrack && activeSpotifyTrack.bpm) || '').replace(/\D/g, ''), 10);
-    if (bpm) KS.veBpm = bpm;
-  }
+  function autoTrack() { if (typeof toggleAudioIslandPopover === 'function') toggleAudioIslandPopover(); }
 
   // ───────────── uso / límites ─────────────
   function refreshUsage() {
@@ -506,7 +504,7 @@
     $('ve-bpm').value = KS.veBpm;
     var q = KinetAPIs.getQuotaStatus();
     $('ve-limits').textContent = 'Tu plan: hasta ' + maxClips() + ' clips (máx. 3 min cada uno) y ediciones de hasta ' + mx + ' s · Esta edición cuesta ' + veCost() + ' min de ' + q.videoRemaining + ' disponibles.';
-    var sp = activeSpotifyTrack ? 'Tu pista elegida («' + activeSpotifyTrack.title + '») marca el ritmo (' + (activeSpotifyTrack.bpm || '') + '). Por derechos de autor, el vídeo lleva el beat KINET al mismo BPM o tu propio archivo de audio.' : 'Elige una pista en la isla superior y su BPM marcará el ritmo, o ajusta el BPM a mano.';
+    var sp = activeSpotifyTrack ? 'Tu canción de Spotify («' + activeSpotifyTrack.title + '») se adjuntará a la publicación y sonará con el reproductor oficial de Spotify. Por derechos de autor, no se puede incrustar dentro del archivo de vídeo: este lleva el beat KINET libre de derechos o tu propio audio.' : 'Puedes adjuntar una canción de Spotify a la publicación desde la isla superior. El vídeo lleva el beat KINET libre de derechos o tu propio audio.';
     $('ve-music-note').textContent = sp;
   }
   function veSet(kind, val) {
@@ -519,8 +517,6 @@
   }
   function openVideoEditModal(file) {
     if (!isPaidOrBonusAccount()) { $('upgrade-tier-modal').classList.add('open'); return; }
-    var bpm = activeSpotifyTrack && parseInt(String(activeSpotifyTrack.bpm || '').replace(/\D/g, ''), 10);
-    if (bpm) KS.veBpm = bpm;
     if (file && file.type && file.type.indexOf('video/') === 0) { KS.veFiles = [file]; $('ve-file-list').textContent = file.name; }
     if (!$('ve-prompt').value) $('ve-prompt').value = videoStyles()[KS.veStyle].prompt;
     renderVeOptions();
@@ -573,8 +569,9 @@
   var css = document.createElement('style');
   css.textContent =
     '.ks-card{margin-top:4px;border:1px solid rgba(var(--role-rgb),0.4);border-radius:14px;overflow:hidden;background:rgba(6,9,15,0.97);max-width:min(100%,420px);}' +
-    '.ks-img-wrap{width:100%;background:#000;max-height:520px;display:flex;align-items:center;justify-content:center;overflow:hidden;}' +
-    '.ks-img-wrap img{width:100%;height:100%;object-fit:contain;display:block;user-select:none;}' +
+    '.ks-img-wrap{width:100%;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;padding:6px;}' +
+    '.ks-img-wrap img{max-width:100%;width:auto;height:auto;max-height:min(30vh,250px);object-fit:contain;display:block;user-select:none;border-radius:10px;}' +
+    '.ks-chip.on{background:rgba(var(--role-rgb),0.22)!important;border-color:var(--role-color)!important;color:#fff!important;}' +
     '.ks-tools{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:8px 10px;border-top:1px solid rgba(255,255,255,0.08);}' +
     '.ks-tools-label{font-family:"JetBrains Mono",monospace;font-size:0.54rem;color:var(--role-color);letter-spacing:0.08em;margin-right:2px;}' +
     '.ks-chip{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.14);color:#CBD5E1;border-radius:999px;padding:3px 10px;font-size:0.62rem;cursor:pointer;font-family:Inter,sans-serif;transition:all .15s;}' +

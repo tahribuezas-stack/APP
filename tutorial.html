@@ -50,6 +50,10 @@ button{font-family:inherit;cursor:pointer}
 .note{margin-top:12px;border:1px dashed rgba(var(--acc-rgb),.5);border-radius:10px;padding:8px 10px;font-size:.74rem;color:#CBD5E1}
 .close-sheet{display:none}
 
+/* marco con la pantalla real */
+.frame-wrap{position:relative;height:calc(100vh - 230px);min-height:520px;overflow:hidden;border-radius:12px;border:1px solid var(--line);background:#04060A}
+#frame{border:0;transform-origin:0 0;display:block;background:#04060A}
+.screen{padding:14px}
 /* elementos simulados (no funcionales) */
 .grid{display:grid;gap:12px}.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}
 .p{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
@@ -128,7 +132,7 @@ const TIPS = {
 /* ===== CUERPO TÉCNICO ===== */
 'c-junta': { t: 'Sala de Juntas', w: 'Los 4 especialistas IA (físico y nutrición, psicología, técnico y vídeo, carrera y marketing) trabajando juntos.', h: ['Elige «Sala de Juntas» para consultas que cruzan varias áreas.', 'O elige un especialista para una duda concreta.', 'Escribe tu consulta como se la dirías a un profesional.'], p: 'Respuestas de nivel profesional que conocen tu perfil, tu deporte y tu momento.', r: { staff: 'Como Staff, las respuestas se orientan a gestionar plantilla, cargas del grupo y planificación.', scout: 'Como Ojeador, se orientan a evaluación de talento, informes y mercado.' } },
 'c-especialista': { t: 'Especialistas', w: 'Cada pestaña es un experto distinto con su propia memoria de la conversación.', h: ['Toca el especialista que necesitas.', 'Lo que cuentes a uno lo conocen los demás (memoria compartida).'], p: 'No repetir tus datos: todos trabajan con tu expediente.' },
-'c-motor': { t: 'Motor IA', w: 'Ajustes de las claves de IA (Google, Groq, OpenAI) que usa tu chat.', h: ['Pulsa «🔑 Motor IA».', 'Pega tu clave y guarda.', 'Solo necesario si usas una clave propia.'], p: 'Permite usar tu propio proveedor de IA.', n: 'Tu clave se guarda en tu dispositivo.' },
+'c-motor': { t: 'API IA (solo equipo)', w: 'Ajustes técnicos de las claves de IA. Solo lo ve el equipo de KINET; los usuarios no necesitan configurar nada.', h: ['Los usuarios simplemente escriben en el chat.', 'Si la IA no está disponible, verás un aviso claro y podrás reintentarlo.'], p: 'Que la IA funcione sin que tengas que tocar claves.', n: 'Tus consultas diarias dependen de tu plan.' },
 'c-rutina': { t: 'Generar rutina / plantilla', w: 'Convierte la conversación en una rutina o plantilla de entrenamiento estructurada.', h: ['Pulsa «📋 Generar Rutina / Plantilla».', 'Elige el tipo.', 'Revisa el resultado y guárdalo o expórtalo.'], p: 'Pasas de hablar a tener un plan listo para ejecutar.' },
 'c-pdf': { t: 'Exportar informe PDF', w: 'Descarga la conversación o el acta de la Sala de Juntas en PDF.', h: ['Pulsa «📄 Exportar Informe PDF».', 'Se descarga un documento ordenado y listo para compartir.'], p: 'Para entregar a tu entrenador, club o guardarlo.' },
 'c-atajos': { t: 'Atajos de consulta', w: 'Preguntas frecuentes ya redactadas.', h: ['Toca un atajo.', 'Se envía como si lo hubieras escrito.'], p: 'Empezar rápido con las dudas más habituales.' },
@@ -185,7 +189,7 @@ const TIPS = {
 's-filtros': { t: 'Filtros gratis', w: 'Cine, B/N dramático, Neón, Cálido, Alto contraste y Película. Se aplican en tu dispositivo.', h: ['Pulsa un filtro bajo la imagen.'], p: 'Retoque instantáneo sin gastar IA.' },
 's-texto': { t: '+ Texto', w: 'Añade un rótulo (arriba, centro o abajo) sobre la imagen cuando tú lo pidas.', h: ['Pulsa «+ Texto» y escríbelo.'], p: 'Carteles y portadas con título, sin que la IA invente letras.' },
 's-editia': { t: 'Editar con IA', w: 'Pide a la IA cambiar tu imagen: fondo, luz, estilo.', h: ['Pulsa «Editar con IA».', 'Describe el cambio.'], p: 'Retoque profesional por conversación.' },
-'s-musica': { t: 'Música', w: 'Elige canción en la isla superior o deja que se elija automáticamente según la plantilla.', h: ['Pulsa la isla o «Elegir música automáticamente».'], p: 'Tu publicación o edit con la canción adecuada.', n: 'Por derechos de autor, el vídeo exportado lleva el beat KINET al mismo ritmo, o tu propio audio.' },
+'s-musica': { t: 'Música de Spotify', w: 'Funciona como en Instagram: eliges una canción real de Spotify y suena con el reproductor oficial de Spotify dentro de tu publicación.', h: ['Pulsa «+ Añadir canción».', 'Conecta tu cuenta de Spotify para buscar y ver tus canciones guardadas, o pega el enlace de una canción.', 'Elige la canción: aparece en tu publicación y quien la vea la reproduce con Spotify.'], p: 'Publicaciones con la canción que quieres, sin inventar audios.', n: 'Por derechos de autor, el vídeo exportado no puede incluir el audio de Spotify: usa el beat KINET o tu propio audio.' },
 's-publicar': { t: 'Publicar', w: 'Envía la imagen a la Comunidad con tu texto.', h: ['Escribe el texto opcional.', 'Pulsa «Publicar en KINET Network».'], p: 'Compartir directamente desde el estudio.' },
 's-ajustes': { t: 'Ajustes de salida', w: 'Marca de agua opcional (por defecto ninguna) y formato: 4:5, 9:16, 1:1 o 16:9.', h: ['Elige formato antes de crear.'], p: 'Imágenes del tamaño exacto para cada red.' },
 's-video': { t: 'Editar vídeo (highlights)', w: 'Sube tus clips y la IA monta un highlight profesional con música sincronizada.', h: ['Elige vídeos.', 'Escoge estilo: Highlight, Viral, Cinematográfico, Resumen o Cámara lenta.', 'Elige duración, formato y música (beat KINET o tu canción).', 'Pulsa «Crear highlight».'], p: 'Videos de nivel profesional sin editor.', n: 'Duración y clips según tu plan; descuenta minutos de vídeo. Se crea en tu dispositivo.' },
@@ -210,181 +214,175 @@ const TIPS = {
 'd-sesion': { t: 'Cerrar sesión', w: 'Sale de tu cuenta en este dispositivo.', h: ['Pulsa «Cerrar Sesión».'], p: 'Seguridad en dispositivos compartidos.' }
 };
 
-/* ---------- helpers para construir la réplica ---------- */
-const T = (id, inner, cls = '', tag = 'div', style = '') => `<${tag} class="${cls}" data-tip="${id}" style="${style}">${inner}</${tag}>`;
-const MB = (id, label, cls = '') => `<button type="button" class="mb ${cls}" data-tip="${id}">${label}</button>`;
-const PN = (title, inner, id, cls = '') => T(id || '', `<span class="p-t">${title}</span>${inner}`, 'p ' + cls);
-const PILL = (label, on, id) => `<span class="pill ${on ? 'on' : ''}" ${id ? `data-tip="${id}"` : ''}>${label}</span>`;
-const F = (label) => `<div class="field">${label}</div>`;
-
-/* ---------- pantallas ---------- */
+/* ---------- pantallas: ahora se muestran las PÁGINAS REALES de la app (no una maqueta) ---------- */
 const SCREENS = {
-vestuario: { icon: '⚡', name: 'Vestuario', title: 'Vestuario & Control Diario', html: () => `
-  <div class="grid g2">
-    ${PN('ESTADO FÍSICO & DISPONIBILIDAD DE HOY', `<div class="row" style="justify-content:space-between"><div><b style="font-size:1.4rem" class="orb">—</b><div style="font-size:.72rem;color:var(--mute)">Sin check-in todavía</div></div>${MB('v-checkin', 'Check-in', 'pri')}</div>`, 'v-estado')}
-    ${PN('CONSEJO DIRECTO DEL CUERPO TÉCNICO IA', `<p style="font-size:.78rem;color:#CBD5E1;margin:0 0 10px">Hoy prioriza la movilidad de cadera antes de la sesión de velocidad.</p><div class="row">${MB('v-consejo', '↻ Cambiar')} ${MB('v-consejo', 'Completar')}</div>`, 'v-consejo')}
-  </div>
-  <div style="height:12px"></div>
-  ${PN('PLANIFICACIÓN SEMANAL & SESIONES DE HOY', `
-    <div class="row" style="margin-bottom:10px">${MB('v-cal', '📅 Calendario / Ajustar')} ${MB('v-prog', '＋ Programar')} ${MB('v-ia', '🤖 Programar con IA', 'pri')}</div>
-    <div class="row" style="margin-bottom:10px"><span style="font-size:.7rem;color:var(--mute)">¿Cómo llegas hoy?</span>${MB('v-energia', '⚡ A Tope')} ${MB('v-energia', '🔥 Normal')} ${MB('v-energia', '🪫 Cargado')}</div>
-    ${T('v-cal', `<div class="cal">${['L','M','X','J','V','S','D'].map(d=>`<span style="border:0">${d}</span>`).join('')}${Array.from({length:14},(_,i)=>`<span class="${[2,4,9].includes(i)?'has':''}">${i+1}</span>`).join('')}</div>`, '', 'div', 'margin-bottom:10px')}
-    ${T('v-sesiones', `<div style="font-size:.74rem;color:var(--mute);border:1px dashed var(--line);border-radius:10px;padding:12px;text-align:center">No hay sesiones programadas para hoy. Programa una tú o pídele a la IA que planifique tu semana.</div>`)}
-  `, '')}
-  <div style="height:12px"></div>
-  ${PN('LÍNEA DIRECTA CON TU CUERPO TÉCNICO IA', `<div class="row">${MB('v-chat', '⚡ Sobrecarga isquios')} ${MB('v-chat', '🥗 Carga glucógeno MD-1')} ${MB('v-chat', '🧘‍♂️ Foco pre-partido')} ${MB('v-chat', 'Ir →', 'pri')}</div>`, 'v-chat')}
-`},
-cuerpo: { icon: '🧠', name: 'Cuerpo Técnico IA', title: 'Sala de Juntas KINET', html: () => `
-  <div class="row" style="margin-bottom:10px">${T('c-junta', '<b>👥 Sala de Juntas</b>', 'pill on')} ${T('c-especialista', '💪 Físico & Nutrición', 'pill')} ${T('c-especialista', '🧠 Psicología', 'pill')} ${T('c-especialista', '🎯 Técnico & Vídeo', 'pill')} ${T('c-especialista', '📈 Carrera & Marketing', 'pill')}</div>
-  <div class="row" style="margin-bottom:12px">${MB('c-motor', '🔑 Motor IA')} ${MB('c-rutina', '📋 Generar Rutina / Plantilla')} ${MB('c-pdf', '📄 Exportar Informe PDF')} ${T('c-cupo', '<span class="mono" style="font-size:.64rem">Consultas hoy: 3/15</span>', 'pill')}</div>
-  <div class="p" style="display:flex;flex-direction:column;gap:8px;min-height:230px">
-    <div class="bub in">Cuéntame cómo estás y qué tienes esta semana; lo miro con los cuatro especialistas.</div>
-    <div class="bub out">Tengo sobrecarga muscular y partido el sábado.</div>
-    <div class="bub in">Entonces: viernes sesión activa de 20 min y movilidad. ¿Cuándo notas la molestia, al correr o al frenar?</div>
-  </div>
-  <div class="row" style="margin:10px 0">${MB('c-atajos', '⚡ Plan completo pre-competición')} ${MB('c-atajos', '📊 ¿Qué atributo mejoro primero?')} ${MB('c-atajos', '🔋 Sobrecarga y partido este fin de semana')}</div>
-  <div class="row">${MB('c-adjuntar', '🖼️')} ${T('c-input', 'Escribe tu consulta…', 'field', 'div', 'flex:1;min-width:160px')} ${MB('c-input', '→', 'pri')}</div>
-`},
-ficha: { icon: '🪪', name: 'Ficha & KINET Card', title: 'Ficha & KINET Athlete Card™', html: () => `
-  <div class="grid g2">
-    ${PN('CARTA INTERACTIVA 3D', `${T('f-carta', `<div class="card3d"><b>??</b><span class="mono" style="font-size:.62rem">TU POSICIÓN</span><div class="stat"><span>RIT</span><span>??</span></div><div class="stat"><span>TIR</span><span>??</span></div><div class="stat"><span>PAS</span><span>??</span></div></div>`)}
-      <div class="row" style="margin-top:10px;justify-content:center">${PILL('🥉 Bronce', 1, 'f-nivel')}${PILL('🥈 Plata', 0, 'f-nivel')}${PILL('🥇 Oro 24K', 0, 'f-nivel')}${PILL('💎 Holo Élite', 0, 'f-nivel')}</div>`)}
-    <div style="display:flex;flex-direction:column;gap:10px">
-      ${MB('f-descubrir', '🔍 Descubrir tu KINET Card (Auditoría IA ~1.5 min)', 'pri')}
-      ${MB('f-pdf-carta', '📥 Descargar Carta PDF')}
-      ${MB('f-cv', '📄 Exportar CV + Informe PDF')}
-      ${PN('AUDITORÍA BIOMECÁNICA IA (EDICIÓN MANUAL BLOQUEADA)', `<div class="bar"><i style="width:20%"></i></div><div style="margin-top:8px">${MB('f-audit', '🔍 Descubrir ahora', 'lock')}</div>`, 'f-audit')}
-    </div>
-  </div>
-  <div style="height:12px"></div>
-  ${PN('📊 INFORME COMPLETO DE TENDENCIAS & BIOMECÁNICA IA', `<div class="grid g3" style="margin-bottom:10px"><div class="bar"><i style="width:60%"></i></div><div class="bar"><i style="width:40%"></i></div><div class="bar"><i style="width:75%"></i></div></div>${MB('f-informe', '📹 Ver requisitos de vídeo de mi deporte y posición →')}`, 'f-informe')}
-`},
-lab: { icon: '🎬', name: 'Laboratorio Vídeo', title: 'Laboratorio Vision Analytics™', html: () => `
-  <div class="row" style="justify-content:space-between;margin-bottom:12px"><span class="tag">LABORATORIO KINET VISION ANALYTICS™</span>${MB('l-bono', '➕ Bono minutos extra')}</div>
-  <div class="grid g2">
-    <div style="display:flex;flex-direction:column;gap:10px">
-      ${T('l-subir', '<div style="border:2px dashed rgba(var(--acc-rgb),.5);border-radius:14px;padding:28px;text-align:center"><div style="font-size:1.6rem">🎥</div><b style="font-size:.82rem">Subir vídeo a Vision IA</b><div style="font-size:.7rem;color:var(--mute);margin-top:4px">Un clip de tu deporte, hasta 3 min</div></div>')}
-      ${MB('l-pdf', '📥 Exportar informe PDF')}
-    </div>
-    ${PN('RESULTADOS PERSONALIZADOS & MÉTRICAS DEL CLIP', `<div class="stat" style="width:100%"><span>Técnica de golpeo</span><span>78</span></div><div class="bar" style="margin:4px 0 8px"><i style="width:78%"></i></div><div class="stat" style="width:100%"><span>Posición corporal</span><span>64</span></div><div class="bar" style="margin:4px 0"><i style="width:64%"></i></div>`, 'l-resultados')}
-  </div>
-  <div style="height:12px"></div>
-  ${PN('SESIONES AUDITADAS RECIENTEMENTE', `<div class="row"><span class="pill">Sesión 12 · 21 nov</span><span class="pill">Sesión 11 · 18 nov</span><span class="pill">Sesión 10 · 14 nov</span></div>`, 'l-sesiones')}
-  <div style="margin-top:12px">${MB('l-guardar', '💾 Guardar en Analizador & Pizarra 3D →', 'pri')}</div>
-`},
-analizador: { icon: '📐', name: 'Analizador & Pizarra 3D', title: 'Analizador & Plantilla 3D', html: () => `
-  <div class="row" style="margin-bottom:10px">${MB('a-gestionar', '📊 Ver stats plantilla')} ${MB('a-gestionar', '🧹 Vaciar')} ${MB('a-compartir', '🚀 Compartir & Matchday ▾', 'pri')}</div>
-  <div class="row" style="margin-bottom:10px">${T('a-tabs', '🏟️ Plantilla', 'pill on')} ${T('a-tabs', '⚔️ Comparador 1vs1', 'pill')} ${T('a-tabs', '📊 Sinergia & Nivel', 'pill')} <span style="flex:1"></span>${MB('a-formacion', '4-3-3 Ofensivo ▾')} ${MB('a-formacion', '⚙️ Estilo ▾')} ${MB('a-formacion', '📐 Vista: 3D Pro')}</div>
-  ${T('a-pizarra', `<div class="pitch">${[[50,88],[20,70],[40,72],[60,72],[80,70],[30,48],[50,52],[70,48],[22,24],[50,18],[78,24]].map(([x,y])=>`<span class="dot" style="left:${x}%;top:${y}%"></span>`).join('')}</div>`)}
-  <div class="row" style="margin:10px 0">${MB('a-gestionar', '👥 Gestionar plantilla')} ${MB('a-jugadas', '🎬 Jugadas & Estrategias IA 🔒', 'lock')}</div>
-  <div class="grid g3">${PN('🪑 BANQUILLO (7)', `<div class="pill">7 suplentes</div>`, 'a-banquillo')}${PN('📋 RESERVA (5)', `<div class="pill">5 convocados</div>`, 'a-banquillo')}${PN('👔 CUERPO TÉCNICO (6)', `<div class="pill">6 miembros</div>`, 'a-banquillo')}</div>
-  <div class="row" style="margin-top:12px">${T('a-perfiles', '🌐 Perfiles', 'pill on')} ${T('a-perfiles', '🛠️ Crear / Editar', 'pill')} ${T('a-perfiles', '📋 Cartelera', 'pill')} ${T('a-perfiles', '🌐 Red KINET', 'pill')} ${T('a-perfiles', '📍 Posición: todas ▾', 'pill')}</div>
-  <div style="margin-top:12px">${MB('a-enviar', '⚡ Enviar plantilla, banquillo y rasgos al entrenador IA →', 'pri')}</div>
-`},
-comunidad: { icon: '🌐', name: 'Comunidad / Red Social', title: 'Comunidad & KINET Network™', html: () => `
-  <div class="row" style="margin-bottom:10px">${T('m-pulse', '⚡ KINET Pulse', 'pill on')} ${T('m-pulse', '🎬 KINET Shorts', 'pill')} ${T('m-pulse', '💼 KINET Radar', 'pill')} <span style="flex:1"></span>${T('m-filtros', '⚽ Fútbol ▾', 'pill')} ${T('m-filtros', '👥 Todos los roles ▾', 'pill')}</div>
-  <div class="grid" style="grid-template-columns:minmax(0,1fr) 250px">
-    <div style="display:flex;flex-direction:column;gap:10px">
-      <div class="row">${T('m-feedtabs', '🔥 Para ti', 'pill on')} ${T('m-feedtabs', '👥 Siguiendo', 'pill')} ${T('m-feedtabs', '⚡ Recientes', 'pill')}</div>
-      ${T('m-composer', `<div class="row"><div class="post-av">NT</div><div class="field" style="flex:1">Crear publicación, compartir foto o lanzar convocatoria…</div>${MB('m-composer', 'Publicar', 'pri')}</div><div class="row" style="margin-top:8px">${MB('m-video', '🎬 Vídeo HD (PRO)')} ${MB('m-composer', '🖼️ Foto / Telemetría')} ${MB('m-composer', '💼 Convocatoria / Artículo')}</div>`, 'p')}
-      ${T('m-post', `<div class="row"><div class="post-av">LM</div><div><b style="font-size:.8rem">Lucas M.</b> ${MB('m-seguir', '✓ Siguiendo')}<div class="mono" style="font-size:.56rem;color:var(--mute)">@lucasm · Fútbol</div></div></div><p style="font-size:.78rem;color:#CBD5E1;margin:8px 0">Doblete hoy y primera titularidad. A seguir trabajando.</p><div class="row">${MB('m-respetos', '🔥 12 Respetos')} ${MB('m-dm', '💬 Mensaje directo')} ${MB('m-perfil', '👤 Ver perfil')} ${MB('m-ia', '🤖 Preguntar a la IA')} ${MB('m-reportar', '🚩 Reportar')}</div>`, 'p')}
-    </div>
-    <div style="display:flex;flex-direction:column;gap:10px">
-      ${PN('👤 TU IDENTIDAD EN KINET NETWORK™', `<div class="row"><div class="post-av">NT</div><div><b style="font-size:.8rem">Naim Tahri</b><div class="mono" style="font-size:.56rem;color:var(--mute)">0 seguidores · 0 seguidos</div></div></div><div style="margin-top:8px">${MB('m-identidad', '🖼️ Foto, Bio & CV')}</div>`, 'm-identidad')}
-      ${PN('💬 KINET DIRECT & CONEXIONES', `<div class="row">${MB('m-bandeja', 'Abrir bandeja →')} ${MB('m-bandeja', '💬 Mis chats')}</div><div class="row" style="margin-top:8px">${T('m-soporte', '🛠️ @kinet_support', 'pill')}</div>`, 'm-bandeja')}
-    </div>
-  </div>
-`},
-studio: { icon: '🎵', name: 'KINET Media Studio', title: 'KINET Media Studio™', html: () => `
-  <div class="row" style="justify-content:space-between;margin-bottom:10px"><div class="row">${T('s-modo', '🖼️ Imagen', 'pill on')} ${T('s-modo', '🎥 Vídeo (edición)', 'pill')}</div>${T('s-uso', '<span class="mono" style="font-size:.62rem">Imágenes hoy 1/3 · IA del mes 4 %</span>', 'pill')}</div>
-  <div class="grid" style="grid-template-columns:minmax(0,1fr) 230px">
-    <div>
-      <div class="row" style="margin-bottom:8px">${MB('s-musica', '♪ + Añadir canción')} ${MB('s-subir', '⬆ Subir foto o vídeo')}</div>
-      ${T('s-chat', `<div class="p" style="min-height:190px;display:flex;flex-direction:column;gap:8px"><div class="bub out">un balón de fútbol en estudio con luz neón</div><div class="bub in">Aquí tienes tu imagen.<div style="margin-top:6px;border-radius:10px;background:linear-gradient(160deg,#0d3a22,#04060A);height:90px;display:flex;align-items:center;justify-content:center;font-size:2rem">⚽</div><div class="row" style="margin-top:6px">${MB('s-filtros', 'Cine')} ${MB('s-filtros', 'B/N')} ${MB('s-filtros', 'Neón')} ${MB('s-texto', '+ Texto')} ${MB('s-editia', 'Editar con IA')}</div></div></div>`)}
-      <div style="margin-top:8px"><span class="tag">PLANTILLAS DE IMAGEN</span></div>
-      ${T('s-plantillas', `<div class="row" style="flex-wrap:nowrap;overflow:hidden"><div class="tpl"><b>Foto de prensa Primera</b><span>CREA CON IA</span></div><div class="tpl"><b>Póster épico</b><span>CREA CON IA</span></div><div class="tpl"><b>Retoque de fotógrafo pro</b><span>EDITA TU FOTO</span></div><div class="tpl"><b>Fondo de estadio</b><span>EDITA TU FOTO</span></div></div>`)}
-      <div class="row" style="margin-top:8px">${T('s-chat', 'Describe la imagen que quieres crear…', 'field', 'div', 'flex:1')} ${MB('s-chat', 'Crear imagen', 'pri')} ${MB('s-video', 'Editar vídeo', 'pri')}</div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      ${PN('AJUSTES DE SALIDA', `${F('Sin marca de agua')}<div style="height:6px"></div>${F('Feed 4:5 (póster)')}`, 's-ajustes')}
-      ${PN('TEXTO DE LA PUBLICACIÓN', F('Qué quieres contar…'), 's-publicar')}
-      ${MB('s-publicar', 'Publicar en KINET Network™', 'pri')}
-    </div>
-  </div>
-`},
-perfil: { icon: '👤', name: 'Mi Perfil', title: 'Mi Perfil & Dossier Deportivo', html: () => `
-  <div class="row" style="justify-content:flex-end;margin-bottom:10px">${MB('p-cv', '📄 Descargar CV deportivo PDF', 'pri')}</div>
-  ${PN('1. IDENTIDAD OFICIAL, UBICACIÓN & COMPETICIÓN', `<div class="grid g2"><div>${F('Nombre y apellidos')}</div><div>${F('@usuario')}</div><div>${F('📅 Fecha de nacimiento')}</div><div>${F('📍 Ciudad actual')}</div><div>${F('🏟️ Club / equipo')}</div><div>${F('🏆 Categoría / división')}</div></div>`, 'p-identidad')}
-  <div style="height:12px"></div>
-  ${PN('DATOS DE TU DEPORTE', `<div class="grid g3"><div>${F('⚽ Demarcación')}</div><div>${F('📏 Altura (cm)')}</div><div>${F('⚖️ Peso (kg)')}</div></div><div style="height:8px"></div>${F('🦶 Pierna hábil')}`, 'p-deporte')}
-  <div style="height:12px"></div>
-  ${PN('🧠 TITULAR BIO PROFESIONAL', F('Una línea sobre ti (aparece en tu CV y en la red)'), 'p-bio')}
-  <div style="height:12px"></div>
-  ${PN('2. ENLACES OFICIALES & MÉTRICAS', `<div class="grid g2">${F('🔗 Transfermarkt / BeSoccer / federación')}${F('🎬 Enlace a tu vídeo highlight')}</div>`, 'p-enlaces')}
-  <div class="row" style="margin-top:12px;justify-content:space-between">${T('p-pasaporte', '<span class="pill on">PASAPORTE KINET · Perfil sin verificar</span>')}${MB('p-guardar', '✓ Guardar ficha y sincronizar', 'pri')}</div>
-`},
-despacho: { icon: '⚙️', name: 'Despacho & Ajustes', title: 'Despacho & Ajustes', html: () => `
-  <div class="row" style="margin-bottom:12px">${T('d-tabs', '⚙️ General & Cuenta', 'pill on')} ${T('d-tema', '🎨 Tema & Personalización', 'pill')} ${T('d-plan', '⚡ KINET PRO, Planes & Bonos', 'pill')} ${T('d-privacidad', '🔒 Privacidad & Redes', 'pill')} ${T('d-tabs', '📜 Términos & Condiciones', 'pill')} <span style="flex:1"></span>${MB('d-cuenta', '💾 Guardar cambios', 'pri')}</div>
-  <div class="grid g2">
-    ${PN('👤 CONFIGURACIÓN DE LA CUENTA', `${F('Nombre de usuario / titular')}<div style="height:6px"></div>${F('Correo electrónico')}<div style="height:6px"></div>${F('Disciplina deportiva: Fútbol ▾')}<div style="height:6px"></div>${F('Unidades: Métrico europeo ▾')}<div style="height:6px"></div>${F('Idioma: Español ▾')}`, 'd-cuenta')}
-    ${PN('⚡ ACCIONES RÁPIDAS DE SESIÓN & CUOTAS', `<div class="row" style="margin-bottom:8px">${MB('d-tutorial', '🎓 Tutorial interactivo')} ${MB('d-rol', '🔄 Cambiar rol')}</div><div class="row" style="margin-bottom:8px">${T('d-plan', '<span class="pill on">Pro Player · 8,99 €</span>')}</div><div class="row" style="margin-bottom:8px">${T('d-minutos', '<span class="pill">Minutos vídeo IA: 90</span>')} ${MB('d-minutos', '📊 Desglose')} ${MB('d-minutos', '➕ Bonos')}</div><div class="row">${MB('d-soporte', '🛟 Soporte')} ${MB('d-sesion', 'Cerrar sesión')}</div>`)}
-  </div>
-`}
+  vestuario:  { icon: '⚡', name: 'Vestuario',               title: 'Vestuario & Control Diario',        page: 'app.html',            pre: 'v' },
+  cuerpo:     { icon: '🧠', name: 'Cuerpo Técnico IA',       title: 'Sala de Juntas KINET',              page: 'cuerpo-tecnico.html', pre: 'c' },
+  ficha:      { icon: '🪪', name: 'Ficha & KINET Card',      title: 'Ficha & KINET Athlete Card™',       page: 'ficha-pro.html',      pre: 'f' },
+  lab:        { icon: '🎬', name: 'Laboratorio Vídeo',       title: 'Laboratorio Vision Analytics™',     page: 'ojeador-live.html',   pre: 'l' },
+  analizador: { icon: '📐', name: 'Analizador & Pizarra 3D', title: 'Analizador & Plantilla 3D',         page: 'analizador.html',     pre: 'a' },
+  comunidad:  { icon: '🌐', name: 'Comunidad / Red Social',  title: 'Comunidad & KINET Network™',        page: 'comunidad.html',      pre: 'm' },
+  studio:     { icon: '🎵', name: 'KINET Media Studio',      title: 'KINET Media Studio™',               page: 'media-studio.html',   pre: 's' },
+  perfil:     { icon: '👤', name: 'Mi Perfil',               title: 'Mi Perfil & Dossier Deportivo',     page: 'perfil.html',         pre: 'p' },
+  despacho:   { icon: '⚙️', name: 'Despacho & Ajustes',      title: 'Despacho & Ajustes',                page: 'despacho.html',       pre: 'd' }
 };
 const ORDER = ['vestuario', 'cuerpo', 'ficha', 'lab', 'analizador', 'comunidad', 'studio', 'perfil', 'despacho'];
 
+/* Cómo reconocer cada explicación dentro de la pantalla real: texto (o etiqueta) del elemento sobre el que se pulsa */
+const KEYS = {
+  'v-estado': /estado f[ií]sico|disponibilidad de hoy/i, 'v-checkin': /^(?:✓ ?)?check-?in$|^registrado$|haz tu check-?in/i, 'v-consejo': /consejo directo/i,
+  'v-cal': /calendario \/ ajustar/i, 'v-prog': /^[＋+] ?programar$/i, 'v-ia': /programar con ia/i, 'v-energia': /a tope|^🔥? ?normal$|cargado|energ[ií]a ahora/i,
+  'v-sesiones': /sesiones|planificaci[oó]n semanal|completadas/i, 'v-chat': /l[ií]nea directa/i,
+  'c-junta': /sala de juntas/i, 'c-especialista': /f[ií]sico, fisio|psicolog[ií]a|entrenador t[eé]cnico|agente de carrera/i, 'c-motor': /api ia|motor ia|ia live/i,
+  'c-rutina': /generar rutina/i, 'c-pdf': /exportar informe/i, 'c-atajos': /plan completo|qu[eé] atributo|sobrecarga/i, 'c-adjuntar': /adjuntar|^🖼/i, 'c-cupo': /consultas hoy|cupo|consultas restantes/i, 'c-input': /escribe tu consulta/i,
+  'f-carta': /carta interactiva|kinet card|athlete card/i, 'f-nivel': /bronce|plata|oro|holo/i, 'f-descubrir': /descubrir/i, 'f-pdf-carta': /descargar carta/i, 'f-cv': /exportar cv/i, 'f-audit': /auditor[ií]a biom/i, 'f-informe': /informe completo|tendencias/i,
+  'l-subir': /subir v[ií]deo/i, 'l-resultados': /resultados|m[eé]tricas|patrullaje/i, 'l-sesiones': /sesiones audit/i, 'l-guardar': /guardar en analizador/i, 'l-pdf': /exportar informe/i, 'l-bono': /bono/i,
+  'a-tabs': /^🏟?️? ?plantilla$|comparador|sinergia/i, 'a-pizarra': /pizarra/i, 'a-formacion': /formaci[oó]n|estilo de juego|tipo de ficha|vista/i, 'a-banquillo': /banquillo|reserva|cuerpo t[eé]cnico/i, 'a-gestionar': /gestionar plantilla|vaciar|stats plantilla/i, 'a-jugadas': /jugadas/i, 'a-compartir': /compartir/i, 'a-perfiles': /perfiles|cartelera|crear \/ editar/i, 'a-enviar': /enviar.*entrenador/i,
+  'm-pulse': /kinet pulse|kinet shorts|kinet radar/i, 'm-filtros': /todos los deportes|todos los roles|filtro/i, 'm-feedtabs': /para ti|siguiendo|recientes/i, 'm-composer': /crear publicaci|qu[eé] quieres compartir|nueva publicaci/i, 'm-video': /v[ií]deo hd/i,
+  'm-seguir': /^[＋+]? ?seguir$/i, 'm-respetos': /respetos/i, 'm-dm': /mensaje directo|^💬/i, 'm-perfil': /ver perfil/i, 'm-ia': /preguntar a la ia|^🤖/i, 'm-reportar': /reportar/i, 'm-identidad': /tu identidad|foto, bio/i, 'm-bandeja': /bandeja|kinet direct|explorar/i, 'm-soporte': /kinet_support|soporte/i, 'm-post': /comentar|compartir publicaci/i,
+  's-modo': /^imagen$|v[ií]deo \(pro\)/i, 's-uso': /im[aá]genes hoy|ia del mes/i, 's-plantillas': /plantillas de imagen|foto de prensa|p[oó]ster/i, 's-chat': /describe la imagen|crear imagen/i, 's-subir': /subir foto/i, 's-filtros': /filtros gratis/i, 's-texto': /^\+ ?texto/i, 's-editia': /editar con ia/i, 's-musica': /a[ñn]adir canci|m[uú]sica de la publicaci|spotify/i, 's-publicar': /publicar en kinet|^publicar$/i, 's-ajustes': /ajustes de salida|marca de agua|formato de la imagen/i, 's-video': /editar v[ií]deo/i,
+  'p-identidad': /identidad oficial|nombre completo|usuario/i, 'p-deporte': /demarcaci|altura|peso|pierna|mano h[aá]bil/i, 'p-bio': /titular|bio profesional|bio/i, 'p-enlaces': /enlaces|transfermarkt|besoccer|highlight/i, 'p-guardar': /guardar ficha/i, 'p-cv': /descargar cv/i, 'p-pasaporte': /pasaporte|certificaci/i,
+  'd-tabs': /general|tema|planes|privacidad|t[eé]rminos/i, 'd-cuenta': /configuraci[oó]n de la cuenta|guardar cambios/i, 'd-rol': /cambiar rol/i, 'd-plan': /tipo de cuenta|planes/i, 'd-minutos': /minutos/i, 'd-tema': /acento|rainbow|arco[ií]ris|tema/i, 'd-privacidad': /privacidad|redes/i, 'd-tutorial': /tutorial/i, 'd-soporte': /soporte/i, 'd-sesion': /cerrar sesi/i
+};
+
 /* ---------- motor del tutorial ---------- */
-let current = 'vestuario', tourIdx = -1, tourList = [], selectedId = null;
+let current = 'vestuario', tourIdx = -1, tourList = [], selectedId = null, frameScale = 1;
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+const ROLE_KEYS = ['kinet_active_role', 'kinet_role', 'kinet_mode'];
+const roleBackup = {};
+try { ROLE_KEYS.forEach(k => roleBackup[k] = localStorage.getItem(k)); } catch (e) {}
+function restoreRole() { try { ROLE_KEYS.forEach(k => { if (roleBackup[k] === null) localStorage.removeItem(k); else localStorage.setItem(k, roleBackup[k]); }); } catch (e) {} }
+window.addEventListener('pagehide', restoreRole);
 
 function renderSide() {
-  $('#side').innerHTML = ORDER.map((k, i) => {
+  $('#side').innerHTML = ORDER.map((k) => {
     const s = SCREENS[k];
     const sep = (k === 'perfil') ? '<div class="sep"></div>' : '';
     return `${sep}<button type="button" data-s="${k}" class="${k === current ? 'on' : ''}"><span>${s.icon}</span><span>${s.name}</span></button>`;
   }).join('');
 }
-function renderScreen() {
+
+function labelOf(n) {
+  if (!n || n.nodeType !== 1) return '';
+  const own = n.getAttribute('aria-label') || n.getAttribute('title') || n.getAttribute('placeholder') || '';
+  let t = (n.innerText || n.textContent || '').replace(/\s+/g, ' ').trim();
+  if (t.length > 110) { const h = n.querySelector('.panel-label,.panel-head,h1,h2,h3,h4,legend,label'); t = h ? (h.innerText || '').replace(/\s+/g, ' ').trim() : ''; }
+  return (own + ' ' + t).trim();
+}
+function tipFor(el) {
+  const pre = SCREENS[current].pre;
+  const ids = Object.keys(KEYS).filter(k => k[0] === pre && TIPS[k]);
+  let n = el, hops = 0;
+  while (n && n.nodeType === 1 && n.tagName !== 'BODY' && hops++ < 9) {
+    const lb = labelOf(n);
+    if (lb) { const id = ids.find(k => KEYS[k].test(lb)); if (id) return { id, el: n }; }
+    n = n.parentElement;
+  }
+  return null;
+}
+function findEl(doc, id) {
+  const re = KEYS[id]; if (!re) return null;
+  const cands = doc.querySelectorAll('button, a, label, input, textarea, select, [onclick], .panel-label, .pill, .chip, h1, h2, h3, h4, .kinet-panel');
+  for (const n of cands) {
+    const r = n.getBoundingClientRect(); if (r.width < 6 || r.height < 6) continue;
+    const cs = doc.defaultView.getComputedStyle(n); if (cs.visibility === 'hidden' || cs.display === 'none') continue;
+    const lb = labelOf(n); if (lb && lb.length < 140 && re.test(lb)) return n;
+  }
+  return null;
+}
+function frameDoc() { const f = $('#frame'); try { return f && f.contentDocument; } catch (e) { return null; } }
+
+function layoutFrame() {
+  const wrap = $('#frameWrap'), f = $('#frame'); if (!wrap || !f) return;
+  const w = wrap.clientWidth, h = wrap.clientHeight;
+  frameScale = w >= 1000 ? w / 1280 : 1;
+  f.style.width = (frameScale === 1 ? w : 1280) + 'px';
+  f.style.height = (h / frameScale) + 'px';
+  f.style.transform = frameScale === 1 ? 'none' : `scale(${frameScale})`;
+}
+
+const FRAME_CSS = `.kx-tut-sel{outline:2px solid #00FF88 !important;outline-offset:2px;box-shadow:0 0 22px rgba(0,255,136,.45) !important;border-radius:10px}
+.kx-tut-hover{outline:2px dashed rgba(0,255,136,.7) !important;outline-offset:2px}
+*{cursor:help !important} ::-webkit-scrollbar{width:8px} ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:8px}`;
+
+function armFrame() {
+  const f = $('#frame'), doc = frameDoc(), win = f && f.contentWindow; if (!doc || !win) return;
+  try {
+    const st = doc.createElement('style'); st.textContent = FRAME_CSS; doc.head.appendChild(st);
+    win.open = () => null; win.alert = () => {}; win.confirm = () => false; win.prompt = () => null;
+    const stop = (e) => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation && e.stopImmediatePropagation(); };
+    ['mousedown', 'mouseup', 'pointerdown', 'pointerup', 'touchstart', 'touchend', 'auxclick', 'contextmenu', 'submit', 'dblclick', 'dragstart'].forEach(ev => doc.addEventListener(ev, stop, true));
+    doc.addEventListener('keydown', (e) => { if (['Enter', ' ', 'Tab'].includes(e.key)) stop(e); }, true);
+    doc.addEventListener('click', (e) => {
+      stop(e);
+      const hit = tipFor(e.target);
+      if (hit) showTip(hit.id, hit.el); else showGeneric(e.target);
+    }, true);
+    let last = null;
+    doc.addEventListener('mouseover', (e) => { if (last) last.classList.remove('kx-tut-hover'); const h = tipFor(e.target); last = h ? h.el : null; if (last && !last.classList.contains('kx-tut-sel')) last.classList.add('kx-tut-hover'); }, true);
+    // sin modales ni avisos de bienvenida encima de la pantalla
+    setTimeout(() => { doc.querySelectorAll('.kinet-modal-overlay.open').forEach(m => m.classList.remove('open')); }, 600);
+  } catch (e) { console.warn('tutorial: no se pudo preparar la pantalla', e); }
+  buildTour();
+}
+function buildTour() {
+  const doc = frameDoc(); if (!doc) return;
+  const pre = SCREENS[current].pre;
+  tourList = Object.keys(KEYS).filter(k => k[0] === pre && TIPS[k] && findEl(doc, k));
+  tourIdx = -1;
+  $('#tourGo').textContent = tourList.length ? '▶ Visita guiada' : '▶ Visita guiada';
+}
+function clearSel() { const d = frameDoc(); if (d) d.querySelectorAll('.kx-tut-sel').forEach(e => e.classList.remove('kx-tut-sel')); }
+
+function loadScreen() {
   const s = SCREENS[current];
+  const role = document.body.dataset.role;
+  try { localStorage.setItem('kinet_active_role', role); localStorage.setItem('kinet_role', role); } catch (e) {}
   $('#screen').innerHTML = `
-    <div class="screen-head"><div><span class="tag">VISTA SIMULADA · ${esc(ROLE_NAMES[document.body.dataset.role].toUpperCase())}</span><h2>${esc(s.title)}</h2></div>
+    <div class="screen-head"><div><span class="tag">PANTALLA REAL · ${esc(ROLE_NAMES[role].toUpperCase())}</span><h2>${esc(s.title)}</h2></div>
       <div class="tour"><button class="btn" type="button" id="tourPrev" style="display:none">‹</button><button class="btn solid" type="button" id="tourGo">▶ Visita guiada</button><button class="btn" type="button" id="tourNext" style="display:none">›</button></div></div>
-    <div class="hint"><i></i><span>Todo lo de esta pantalla es de muestra. <b>Toca cualquier botón, tarjeta o campo</b> y te explico qué hace, cómo se usa y para qué sirve.</span></div>
-    ${s.html()}`;
-  tourList = [...new Set([...document.querySelectorAll('#screen [data-tip]')].map(e => e.dataset.tip).filter(id => TIPS[id]))];
-  tourIdx = -1; selectedId = null;
-  document.querySelectorAll('#screen [data-tip]').forEach(e => { if (!TIPS[e.dataset.tip]) e.removeAttribute('data-tip'); });
+    <div class="hint"><i></i><span>Estás viendo la <b>pantalla real</b> de KINET OS. <b>Toca cualquier botón, tarjeta o campo</b> y te explico qué hace, cómo se usa y para qué sirve. Aquí nada se guarda, no gasta IA ni te cobra.</span></div>
+    <div id="frameWrap" class="frame-wrap"><iframe id="frame" title="${esc(s.name)}" src="${s.page}?tutorial=1&role=${role}" loading="eager"></iframe></div>`;
+  tourList = []; tourIdx = -1; selectedId = null;
+  layoutFrame();
+  $('#frame').addEventListener('load', () => { layoutFrame(); armFrame(); setTimeout(buildTour, 1200); });
   showWelcome();
 }
+
 function showWelcome() {
   $('#info').innerHTML = `<button class="close-sheet" type="button" data-close>✕</button><span class="tag">QUÉ HAGO AQUÍ</span><h3>${esc(SCREENS[current].name)}</h3>
     <p>Pulsa cualquier elemento de la pantalla para ver su explicación. También puedes usar la <b>visita guiada</b> (▶) para recorrerlos en orden.</p>
-    <div class="note">Esto es una réplica: nada de lo que pulses guarda datos, usa IA o te cobra.</div>`;
+    <div class="note">Es la app de verdad, con tus datos, pero en modo demostración: nada de lo que pulses se ejecuta.</div>`;
   $('#info').classList.remove('open');
 }
-function showTip(id) {
+function showGeneric(el) {
+  const lb = labelOf(el).slice(0, 80);
+  clearSel();
+  $('#info').innerHTML = `<button class="close-sheet" type="button" data-close>✕</button><span class="tag">${esc(SCREENS[current].name.toUpperCase())}</span><h3>${esc(lb || 'Elemento de la pantalla')}</h3>
+    <p>Este elemento forma parte de la pantalla real de ${esc(SCREENS[current].name)}. Prueba a pulsar sus botones principales o usa la <b>visita guiada</b> (▶) para ver los más importantes explicados paso a paso.</p>`;
+  $('#info').classList.add('open');
+}
+function showTip(id, el) {
   const t = TIPS[id]; if (!t) return;
   selectedId = id;
-  document.querySelectorAll('#screen .sel').forEach(e => e.classList.remove('sel'));
-  document.querySelectorAll(`#screen [data-tip="${id}"]`).forEach(e => e.classList.add('sel'));
+  clearSel();
+  const d = frameDoc(); const target = el || (d && findEl(d, id)); if (target) target.classList.add('kx-tut-sel');
   const role = document.body.dataset.role;
   const rn = t.r && t.r[role];
   $('#info').innerHTML = `<button class="close-sheet" type="button" data-close>✕</button><span class="tag">${esc(SCREENS[current].name.toUpperCase())}</span><h3>${esc(t.t)}</h3>
     <div class="lbl">QUÉ ES</div><p>${esc(t.w)}</p>
     <div class="lbl">CÓMO SE USA</div><ol>${t.h.map(h => `<li>${esc(h)}</li>`).join('')}</ol>
     <div class="lbl">PARA QUÉ SIRVE</div><p>${esc(t.p)}</p>
-    ${rn ? `<div class="note"><b>Con tu rol (${esc(ROLE_NAMES[role])}):</b> ${esc(rn)}</div>` : ''}
-    ${t.n ? `<div class="note">${esc(t.n)}</div>` : ''}`;
+    ${t.n ? `<div class="note">${esc(t.n)}</div>` : ''}${rn ? `<div class="note"><b>${esc(ROLE_NAMES[role])}:</b> ${esc(rn)}</div>` : ''}`;
   $('#info').classList.add('open');
   const i = tourList.indexOf(id); if (i >= 0) tourIdx = i;
 }
 function tourStep(d) {
-  if (!tourList.length) return;
+  if (!tourList.length) { buildTour(); if (!tourList.length) return; }
   tourIdx = d === 0 ? 0 : (tourIdx + d + tourList.length) % tourList.length;
-  const id = tourList[tourIdx];
-  showTip(id);
-  const el = document.querySelector(`#screen [data-tip="${id}"]`);
+  const id = tourList[tourIdx], doc = frameDoc(), el = doc && findEl(doc, id);
+  showTip(id, el);
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   $('#tourPrev').style.display = $('#tourNext').style.display = 'inline-block';
   $('#tourGo').textContent = `${tourIdx + 1} / ${tourList.length}`;
@@ -392,7 +390,7 @@ function tourStep(d) {
 
 document.addEventListener('click', (e) => {
   const sb = e.target.closest('#side button[data-s]');
-  if (sb) { current = sb.dataset.s; renderSide(); renderScreen(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+  if (sb) { current = sb.dataset.s; renderSide(); loadScreen(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
   if (e.target.closest('[data-close]')) { $('#info').classList.remove('open'); return; }
   if (e.target.closest('#tourGo')) { tourStep(tourIdx < 0 ? 0 : 1); return; }
   if (e.target.closest('#tourPrev')) { tourStep(-1); return; }
@@ -401,15 +399,14 @@ document.addEventListener('click', (e) => {
   if (rb) {
     document.body.dataset.role = rb.dataset.r;
     document.querySelectorAll('#roleSeg button').forEach(b => b.classList.toggle('on', b === rb));
-    const keep = selectedId; renderScreen(); if (keep && tourList.includes(keep)) showTip(keep); return;
+    loadScreen(); return;
   }
-  const tipEl = e.target.closest('#screen [data-tip]');
-  if (tipEl) { e.preventDefault(); showTip(tipEl.dataset.tip); }
 });
 document.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') tourStep(1); if (e.key === 'ArrowLeft') tourStep(-1); if (e.key === 'Escape') $('#info').classList.remove('open'); });
+window.addEventListener('resize', layoutFrame);
 
 try { const r = localStorage.getItem('kinet_active_role'); if (['athlete', 'staff', 'scout'].includes(r)) { document.body.dataset.role = r; document.querySelectorAll('#roleSeg button').forEach(b => b.classList.toggle('on', b.dataset.r === r)); } } catch (e) {}
-renderSide(); renderScreen();
+renderSide(); loadScreen();
 </script>
 </body>
 </html>

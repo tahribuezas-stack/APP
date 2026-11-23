@@ -740,6 +740,12 @@ ${HUMAN_STYLE_BLOCK}
     if (slot === 'strong') incrementDailyChatUsage();
     else if (slot === 'lite') localStorage.setItem('kinet_ai_lite_count', String(getLiteUsage() + 1));
   }
+  function refundChatSlot(slot) {
+    try {
+      if (slot === 'strong') { const n = Math.max(0, getDailyChatUsage() - 1); localStorage.setItem('kinet_ai_daily_used', String(n)); localStorage.setItem('kinet_ai_chat_count', String(n)); }
+      else if (slot === 'lite') localStorage.setItem('kinet_ai_lite_count', String(Math.max(0, getLiteUsage() - 1)));
+    } catch (e) {}
+  }
   function chatLimitMessage(q) {
     const l = PLAN_LIMITS[getCurrentTier()] || PLAN_LIMITS.free;
     if (getBudgetStatus().exhausted && getCurrentTier() !== 'free') return 'Has agotado el presupuesto de IA potente de este mes y el cupo del motor básico de hoy. Se renueva el día 1 y a las 00:00 h.';
@@ -1553,10 +1559,13 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
           remainingAfter
         };
       } catch (apiErr) {
+        try { console.warn('[KINET IA]', apiErr && apiErr.message); } catch (e) {}
+        if (consumeQuota) refundChatSlot(slot);
+        const raw = `⚠️ **[Respuesta del Servidor de API]**: ${apiErr.message}\n\n*(Solo visible para el equipo: revisa tu clave en el botón **"API IA"** de la cabecera del chat.)*`;
         return {
           ok: false,
           remainingAfter,
-          reply: `⚠️ **[Respuesta del Servidor de API]**: ${apiErr.message}\n\n*(Pulsa el botón **"🟢 API IA"** arriba a la derecha en la cabecera del chat si necesitas actualizar tu clave de Google AI Studio \`AIzaSy...\`, Vertex AI o Groq \`gsk_...\`).*`
+          reply: isStaffSandboxUser() ? raw : 'Ahora mismo no puedo responderte: el servicio de IA no está disponible. Inténtalo de nuevo en unos minutos; tu consulta no se ha descontado.'
         };
       }
     },
@@ -2021,7 +2030,7 @@ Devuelve ESTRICTAMENTE JSON:
       if (q.imageRemaining <= 0) return limitHit({ ok: false, limitReached: true, error: `Has alcanzado tu límite de ${q.imageLimit} imágenes al día en el ${q.tierName}. Se renueva a las 00:00 h.` }, 'Imágenes de hoy agotadas');
       if (!imageBudgetOk(cost)) return { ok: false, limitReached: true, error: 'Has alcanzado el presupuesto de imágenes IA de este mes. Se renueva el día 1.' };
       const key = (localStorage.getItem('kinet_gemini_api_key') || KINET_API_CONFIG.GEMINI_API_KEY || DEFAULT_INSTALLED_API_KEY || '').trim();
-      if (!key) return { ok: false, error: 'No hay clave de Google AI Studio configurada (botón "API IA" del Cuerpo Técnico).' };
+      if (!key) return { ok: false, error: isStaffSandboxUser() ? 'No hay clave de Google AI Studio configurada (botón "API IA" del Cuerpo Técnico).' : 'La IA de imágenes no está disponible ahora mismo. Mientras tanto puedes usar los filtros gratis y las plantillas. Inténtalo más tarde.' };
 
       const clean = String(prompt).trim().slice(0, 700);
       const instr = isEdit
