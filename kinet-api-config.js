@@ -562,9 +562,9 @@ REGLA DE CONVERSACIÓN: Si el usuario saluda ("hola", "qué tal"), devuelve el s
   const HUMAN_STYLE_BLOCK = `ESTILO DE RESPUESTA (prevalece sobre cualquier regla anterior):
 - Escribes como un profesional cualificado hablando con su cliente: tono sobrio, cercano y seguro. No suenas a asistente virtual.
 - Responde SOLO a lo que se pregunta. No añadas información, consejos ni recordatorios que no se hayan pedido (nada de "no olvides tu check-in", promociones de módulos ni avisos genéricos). Los datos del expediente los usas en silencio para afinar la respuesta; no los recites salvo que sean relevantes para la pregunta.
-- Longitud: saludo o pregunta simple = 1-3 frases. Consulta técnica = 4-8 líneas. Rutina, dieta o plan = completo y ordenado (hasta ~500 palabras), nunca cortado ni a medias. Antes de prescribir un plan, aplica el PROTOCOLO DE TRABAJO (entrevista breve si faltan datos).
-- Si falta un dato imprescindible, pregunta lo que falte en un solo mensaje (máximo 4 preguntas cortas) en lugar de suponer; si ya te lo dijeron, no lo vuelvas a preguntar.
-- Formato: texto en párrafos cortos. PROHIBIDO usar encabezados con #, líneas "---", tablas, emojis decorativos y muletillas ("¡Claro!", "¡Por supuesto!", "Espero que te sirva", "¡A por ello!"). Para pasos usa lista numerada ("1.") con una línea cada uno; para opciones, guiones ("- "). Negrita (**) solo en 1-3 términos clave por respuesta.
+- Longitud: saludo o pregunta simple = 1-3 frases. Consulta técnica = 4-8 líneas. Rutina, dieta o plan = completo y ordenado (hasta ~500 palabras), nunca cortado ni a medias. Antes de prescribir un plan, aplica el PROTOCOLO DE TRABAJO: entrevista obligatoria (hasta 7 preguntas numeradas con opciones) y solo después el plan en el formato del punto 4.
+- Para una petición de plan, rutina, dieta o mejora, la entrevista del PROTOCOLO es obligatoria y puede tener hasta 7 preguntas en un solo mensaje. Para cualquier otra duda, pregunta solo lo imprescindible (máximo 2) en lugar de suponer; si ya te lo dijeron, no lo vuelvas a preguntar.
+- Formato: texto en párrafos cortos. EXCEPCIÓN: los planes y las entrevistas siguen la estructura del PROTOCOLO (títulos de bloque en negrita, ejercicios con guion y partes separadas por " — ", preguntas numeradas con opciones entre paréntesis). PROHIBIDO usar encabezados con #, líneas "---", tablas, emojis decorativos y muletillas ("¡Claro!", "¡Por supuesto!", "Espero que te sirva", "¡A por ello!"). Para pasos usa lista numerada ("1.") con una línea cada uno; para opciones, guiones ("- "). Negrita (**) solo en 1-3 términos clave por respuesta.
 - Si procede recomendar a un profesional sanitario, una sola frase, sin dramatizar.`;
 
   // Normaliza el texto de la IA: sin # ni ---, sin asteriscos sueltos, listas limpias, sin muletillas de apertura.
@@ -706,13 +706,31 @@ REGLA DE CONVERSACIÓN: Si el usuario saluda ("hola", "qué tal"), devuelve el s
   }
 
   const COACH_PROTOCOL_BLOCK = `PROTOCOLO DE TRABAJO (obligatorio, es lo que hace inteligente a esta app):
-1) ENTREVISTA ANTES DE PRESCRIBIR. Si piden una rutina, plan de entrenamiento, semana, dieta o plan de readaptación, primero revisa el expediente y la conversación. Si falta alguno de estos datos imprescindibles, NO des el plan todavía: haz UNA sola respuesta con las preguntas que faltan (máximo 4, numeradas, cortas, con opciones entre paréntesis para contestar rápido) y espera:
-   · Rutina/entrenamiento: objetivo concreto (ser más rápido, más fuerte, más resistente, prevenir lesiones…), momento de la temporada o fecha del próximo partido/competición, días y tiempo disponibles por semana, acceso a gimnasio/material, lesiones o molestias actuales y experiencia con pesas.
-   · Dieta/nutrición: peso y altura, objetivo, horarios de entreno/competición, alergias o intolerancias y número de comidas habituales.
-   Usa lo que ya sabes del expediente (deporte, puesto, biometría, lesiones, semana tipo, check-in) y pregunta SOLO lo que falte. Primero una frase útil que demuestre criterio (p. ej. qué cualidad prioriza su puesto) y luego las preguntas.
-2) SI YA PREGUNTASTE Y EL USUARIO CONTESTÓ (aunque sea a medias o con "lo que tú veas"), NO vuelvas a preguntar: entrega el plan completo, y di en una línea los supuestos que has tomado. Si el usuario insiste en recibirlo ya, dalo igualmente con supuestos explícitos.
+1) ENTREVISTA OBLIGATORIA ANTES DE PRESCRIBIR. Cuenta como petición de plan: rutina, programa, semana de entrenamiento, dieta, readaptación Y TAMBIÉN cualquier objetivo de mejora ("necesito ser más rápido", "quiero ganar fuerza", "prepárame la pretemporada", "vuelvo de una lesión"). Mientras el usuario NO haya contestado una entrevista en esta conversación, tu respuesta es SOLO la entrevista: PROHIBIDO escribir ejercicios, series, rutinas, dietas o "supuestos" en ese turno. Estructura exacta de ese mensaje:
+   · Una frase de criterio de preparador de su deporte y puesto (qué cualidad manda para lo que pide y por qué), sin florituras.
+   · La línea "Para dejarte un plan a medida necesito saber:" y después preguntas NUMERADAS, cortas, cada una con las opciones de respuesta rápida entre paréntesis separadas por " / ".
+   · Preguntas base de entrenamiento (haz todas las que el usuario no haya contestado ya en ESTA conversación; el expediente puede estar desfasado, así que no las des por sabidas):
+     1. Días por semana que puedes entrenar (2 / 3 / 4 / 5 o más)
+     2. Tiempo disponible por sesión (30-45 min / 45-60 min / 60-90 min / más de 90 min)
+     3. Molestias, lesiones o límites actuales (ninguna / dolor leve / lesión reciente / escribe cuál)
+     4. Dónde y con qué entrenas (gimnasio completo / material básico / solo campo o pista / en casa)
+     5. Qué te gusta o qué NO quieres hacer (sin restricciones / evito pesas pesadas / evito carrera larga / escribe)
+     6. Momento de la temporada y próxima competición (pretemporada / en competición / vuelta de lesión / sin fecha fija)
+     7. ¿Programo el plan en tu calendario del Vestuario? (sí, esta semana / sí, las próximas 4 semanas / no por ahora)
+     Añade o sustituye por UNA pregunta específica de su deporte o puesto si aporta (p. ej. "¿qué te falla más: aceleración, velocidad punta o cambios de dirección?"). Máximo 7 preguntas.
+   · Dieta/nutrición: peso y altura, objetivo, horarios de entreno/competición, alergias o intolerancias, número de comidas habituales y presupuesto/cocina disponible, con el mismo formato.
+   · Cierra con: "Contéstame en una línea (por ejemplo: «4 días, 60 min, sin molestias, gimnasio…») o toca las opciones de abajo. Si prefieres que decida yo, dímelo y lo hago con supuestos."
+2) SI YA PREGUNTASTE Y EL USUARIO CONTESTÓ (aunque sea a medias o con "lo que tú veas"), NO vuelvas a preguntar: entrega el plan completo con el formato del punto 4 y una línea "Supuestos:" solo para lo que no haya contestado. Si el usuario pide expresamente "ya", "directo", "sin preguntas" o "hazlo tú", entrégalo igualmente con supuestos explícitos. Si ya entregaste un plan en esta conversación y te piden un cambio, ajústalo: no reinicies la entrevista.
 3) CORRIGE ANTES DE OBEDECER. Si lo que pide, o lo que cuenta que hace, va contra su objetivo, su deporte o su salud (ejemplos: hipertrofia de culturismo en un futbolista en competición; series al fallo de pierna el día antes del partido; solo cardio lento para ganar velocidad; ganar peso rápido en un deporte de categorías; entrenar con dolor), no lo ejecutes sin más: dilo en 1-2 frases con la razón fisiológica concreta ("más masa lenta resta aceleración y aumenta la fatiga") y propón la alternativa específica. Si insiste con conocimiento de causa y no es peligroso, adáptalo lo mejor posible manteniendo el objetivo deportivo y deja claro el coste. Si hay riesgo para su salud, no lo planifiques.
-4) FORMATO DE UN PLAN: una línea con objetivo y supuestos; después bloques con título en negrita (Activación, Fuerza/Potencia, Específico del deporte, Prevención, Vuelta a la calma) y debajo lista de ejercicios "nombre — series x reps — descanso — intención". Termina con la progresión de las próximas 2-4 semanas y una señal de alarma para parar. Un plan completo puede ocupar hasta ~500 palabras: dalo ENTERO, no lo cortes ni lo dejes a medias; si no cabe, prioriza lo esencial y ofrece continuar con la siguiente semana.
+4) FORMATO DE UN PLAN (la app lo dibuja en tarjetas y tablas: respeta esta estructura al pie de la letra, sin tablas markdown, sin emojis, sin encabezados con #):
+   · Primera línea, solo en negrita: **PLAN · <objetivo> · <duración o semanas>**
+   · Después, una línea por dato con su etiqueta (solo las que aporten): "Objetivo: …", "Frecuencia: …", "Nivel de carga: …", "Supuestos: …".
+   · Después los bloques. Cada bloque empieza con una línea que contiene SOLO su título en negrita y la duración, p. ej. **Activación · 10 min**, **Fuerza y potencia · 25 min**, **Específico de tu deporte · 20 min**, **Prevención · 8 min**, **Vuelta a la calma · 5 min**. Dentro, un ejercicio por línea con guion y cuatro partes separadas por " — ": "- Nombre concreto del ejercicio — series × repeticiones (o tiempo/distancia) — descanso — intención y por qué sirve en tu deporte". Ejemplo: "- Salida desde parada 10 m — 6 × 10 m — 90 s — máxima intención, mejora la primera aceleración".
+   · **Calendario semanal**: una línea por día de la semana con tres partes: "- Lun — Fuerza y potencia — 60 min" (incluye los días de descanso o recuperación activa).
+   · **Progresión · semanas 1-4**: "- Semana 1 — qué haces — cómo sube la carga".
+   · **Señales para parar**: lista corta de síntomas o situaciones en las que no debe seguir.
+   · Un plan completo puede ocupar hasta ~600 palabras: dalo ENTERO, sin cortarlo; si no cabe, prioriza lo esencial y ofrece la semana siguiente.
+   · Nunca digas que has modificado su calendario: el usuario lo hace con el botón "Programar en mi calendario" que aparece bajo tu plan; puedes decirle que lo pulse.
 5) SENTIDO DE LA CARGA: si el check-in o el contexto indican fatiga alta, sueño bajo, molestia o competición próxima, baja la carga y dilo. Cuando hables de pesos usa %1RM, RIR o RPE, nunca kilos absolutos inventados.
 6) Termina SIEMPRE tus frases: una respuesta jamás puede acabar a mitad de palabra o de frase.`;
 
@@ -734,6 +752,40 @@ REGLA DE CONVERSACIÓN: Si el usuario saluda ("hola", "qué tal"), devuelve el s
 - Prioriza técnica, coordinación, movilidad, juego y diversión; volumen razonable y descanso/sueño suficientes; evita la especialización precoz y el sobreentrenamiento.
 - Recuérdale con naturalidad que consulte sus planes con su entrenador y su familia. No recopiles datos personales innecesarios (dirección, centro escolar, teléfono) ni propongas contactar con adultos desconocidos.`;
 
+  // ¿Qué momento de la conversación es este? (petición de plan, entrevista pendiente, plan ya entregado)
+  function analyzePlanTurn(userMessage, history) {
+    const m = String(userMessage || '').toLowerCase();
+    const rutina = /rutina|plan de entren|plan de trabajo|plan semanal|entrenamiento|programa(me|r)\b|semana de entren|dieta|plan nutric|readapt|pretemporada|puesta a punto|ponerme en forma|volver a competir|vuelta (tras|de) (una )?lesi/.test(m);
+    const goal = /(necesito|quiero|busco|me gustar[ií]a|tengo que|debo|ay[uú]dame a|ay[uú]dame con|c[oó]mo (puedo|hago para)|prep[aá]rame|mej[oó]rame|ens[eé]ñame a)\s.{0,50}(ser|ganar|mejorar|aumentar|subir|bajar|estar|llegar|preparar|recuperar|ponerme|volver|entrenar|rendir|correr|saltar|chutar|lanzar|golpear|pegar|aguantar|mejora|m[aá]s)/.test(m)
+      || /\bm[aá]s (r[aá]pid|fuerte|resistente|explosiv|[aá]gil|potente|din[aá]mic)/.test(m)
+      || /\b(mejorar|trabajar|entrenar) (mi|la|el|las|los)? ?(velocidad|fuerza|resistencia|explosividad|agilidad|salto|potencia|aceleraci[oó]n|cambios de direcci[oó]n|t[eé]cnica f[ií]sica)/.test(m);
+    const planIntent = rutina || goal;
+    const skip = /\b(sin preguntas|directo|ya mismo|hazlo t[uú]|decide t[uú]|lo que t[uú] veas|dame el plan ya|no me preguntes|sin entrevista)\b/.test(m);
+    const hist = Array.isArray(history) ? history : [];
+    const assistants = hist.filter(h => h && h.role !== 'user');
+    const prevText = assistants.length ? String(assistants[assistants.length - 1].content || '') : '';
+    const interviewPending = /\n\s*(?:1[.)]|-)\s.+\n\s*(?:2[.)]|-)\s/.test(prevText) && /\?|\(.+\/.+\)/.test(prevText) && !/series\s*[x×]|\d\s*[x×]\s*\d/i.test(prevText);
+    // Solo cuenta como "plan ya entregado" si es el ÚLTIMO mensaje del especialista y el usuario pide retocarlo; un objetivo nuevo reinicia la entrevista
+    const planDelivered = /\*\*PLAN\b|series\s*[x×]|\d\s*[x×]\s*\d/i.test(prevText) && prevText.length > 450;
+    const tweak = /\b(c[aá]mbia|cambiar|cambial|quita|quitar|a[ñn]ade|a[ñn]adir|sustituy|en vez de|en lugar de|ajusta|ajustar|m[aá]s corto|m[aá]s largo|menos|pasa a|mu[eé]velo|el (lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo))\b/.test(m);
+    const needInterview = planIntent && !skip && !interviewPending && !(planDelivered && tweak);
+    return { planIntent, skip, interviewPending, planDelivered: planDelivered && tweak, needInterview };
+  }
+
+  // Recordatorio que viaja en el propio mensaje del usuario (los modelos obedecen mejor lo que está en el último turno)
+  function interviewSuffix(userMessage, history, sportRaw) {
+    try {
+      const st = analyzePlanTurn(userMessage, history);
+      if (st.needInterview) {
+        return '\n\n[INSTRUCCIÓN INTERNA DEL SISTEMA, no la menciones: el usuario pide un plan o una mejora y aún no ha contestado tu entrevista. Tu respuesta SOLO puede contener (1) una frase breve de criterio de preparador de ' + canonicalSportName(sportRaw) + ' y (2) la entrevista del PROTOCOLO: línea "Para dejarte un plan a medida necesito saber:", preguntas numeradas 1-7 con opciones entre paréntesis separadas por " / ", y la línea de cierre. PROHIBIDO escribir ejercicios, series, rutinas o supuestos en este mensaje.]';
+      }
+      if (st.interviewPending && !st.skip) {
+        return '\n\n[INSTRUCCIÓN INTERNA DEL SISTEMA, no la menciones: el usuario acaba de contestar tu entrevista. Entrega ya el plan completo en el formato del PROTOCOLO (punto 4): primera línea **PLAN · …**, bloques en negrita con ejercicios "- nombre — series × reps — descanso — intención", **Calendario semanal**, **Progresión** y **Señales para parar**. Una línea "Supuestos:" solo para lo que no contestó. No vuelvas a preguntar.]';
+      }
+    } catch (e) {}
+    return '';
+  }
+
   // Notas de refuerzo para ESTA consulta (se añaden al prompt): detectan desvíos de entrenamiento y el momento de entregar el plan
   function buildTurnHints(userMessage, history, sportRaw) {
     const m = String(userMessage || '').toLowerCase(), sport = canonicalSportName(sportRaw), out = [];
@@ -750,14 +802,16 @@ REGLA DE CONVERSACIÓN: Si el usuario saluda ("hola", "qué tal"), devuelve el s
     if (/solo (cardio|correr|trotar)|cardio largo|correr mucho|rodajes largos/.test(m) && /r[aá]pid|velocidad|explosiv|sprint|aceleraci/.test(m) && sport !== 'Running') {
       out.push('Pide cardio largo para ganar velocidad: corrígelo (el trabajo aeróbico lento no mejora la velocidad/explosividad); propón sprints, aceleraciones y fuerza-potencia.');
     }
-    // ¿Acabó de preguntarte datos y el usuario ya los ha dado?
-    const prev = (Array.isArray(history) ? history : []).filter(h => h && h.role !== 'user').slice(-1)[0];
-    const prevText = prev ? String(prev.content || '') : '';
-    const askedBefore = /\n\s*(?:1[.)]|-)\s.+\n\s*(?:2[.)]|-)\s/.test(prevText) && /\?/.test(prevText);
-    if (askedBefore && !/\bplan\b.{0,25}(semana|bloque)|series x|\d\s*x\s*\d/i.test(prevText)) {
-      out.push('Tu mensaje anterior fue una entrevista con preguntas y el usuario acaba de responder. NO vuelvas a preguntar: entrega ya el plan completo con los datos que te ha dado (y supuestos explícitos para lo que no haya contestado).');
-    } else if (rutina && !askedBefore) {
-      out.push('Es una petición de plan/rutina/dieta: aplica el PROTOCOLO (entrevista breve solo si faltan datos imprescindibles que NO figuren ya en el expediente o en la conversación).');
+    // Entrevista previa: ¿es una petición de plan/mejora, ya hubo entrevista y ya se entregó un plan?
+    const st = analyzePlanTurn(userMessage, history);
+    if (st.needInterview) {
+      out.push('ENTREVISTA OBLIGATORIA EN ESTE TURNO: el usuario pide un plan o una mejora y todavía no ha contestado tu entrevista. Responde SOLO con (1) una frase de criterio de preparador de ' + sport + ' y (2) la entrevista numerada del PROTOCOLO (preguntas base 1-7 con sus opciones entre paréntesis). PROHIBIDO escribir ejercicios, series, rutinas, dietas o supuestos en este mensaje.');
+    } else if (st.interviewPending && !st.skip) {
+      out.push('Tu mensaje anterior fue una entrevista con preguntas y el usuario acaba de responder. NO vuelvas a preguntar: entrega ya el plan completo en el formato del PROTOCOLO (punto 4) con los datos que te ha dado, y una línea "Supuestos:" solo para lo que no haya contestado.');
+    } else if (st.skip && st.planIntent) {
+      out.push('El usuario no quiere entrevista: entrega el plan completo en el formato del PROTOCOLO (punto 4) con supuestos explícitos en una línea.');
+    } else if (st.planIntent && st.planDelivered) {
+      out.push('Ya entregaste un plan en esta conversación: ajústalo a lo que pide (mismo formato del PROTOCOLO, punto 4) sin reiniciar la entrevista.');
     }
     return out.length ? '\n\nAVISOS PARA ESTA CONSULTA (prioritarios):\n- ' + out.join('\n- ') : '';
   }
@@ -1688,12 +1742,13 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
       }
 
       try { if (agentId !== 'agente_marketing') finalSystemPrompt += buildTurnHints(userMessage, domHistory, localStorage.getItem('kinet_sport')); } catch (e) {}
+      const modelUserMessage = (agentId !== 'agente_marketing') ? (String(userMessage || '') + interviewSuffix(userMessage, domHistory, localStorage.getItem('kinet_sport'))) : userMessage;
 
       // 1º Intento: Supabase Edge Function ('kinet-ai-chat') si está activada
       const edgeRes = await invokeSupabaseEdgeFunction('kinet-ai-chat', {
         agentId,
         systemPrompt: finalSystemPrompt,
-        userMessage,
+        userMessage: modelUserMessage,
         imageDataUrl,
         chatHistory: domHistory
       });
@@ -1717,7 +1772,7 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
       try {
         const directReply = await callDirectLLMProvider({
           systemPrompt: finalSystemPrompt,
-          userPrompt: userMessage,
+          userPrompt: modelUserMessage,
           chatHistory: domHistory,
           imagesBase64: imageDataUrl ? [imageDataUrl] : []
         });

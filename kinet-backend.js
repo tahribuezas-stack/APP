@@ -229,14 +229,38 @@
       }
       originalSetItem.call(localStorage, 'kinet_bonus_video_mins', String(next));
       originalSetItem.call(localStorage, 'kinet_bonus_server_seen', String(next));
-      if (prevTier !== tier && !sessionStorage.getItem('kinet_tier_reloaded')) {
-        sessionStorage.setItem('kinet_tier_reloaded', '1');
+      if (prevTier !== tier && sessionStorage.getItem('kinet_tier_reloaded') !== tier) {
+        sessionStorage.setItem('kinet_tier_reloaded', tier);
         location.reload();
+        return { tier, bonus: next };
       }
+      try { decorateRoleChip(); window.dispatchEvent(new CustomEvent('kinet:tier-synced', { detail: { tier } })); } catch (e) {}
       return { tier, bonus: next };
     } catch (e) { return null; }
   }
   window.addEventListener('load', () => setTimeout(() => { syncPrivilegedFromServer(); }, 900));
+
+  // Chip de la cabecera: "ATLETA · FREE / PRO / CLUB". El plan sale del servidor (account_tier), no de una etiqueta fija.
+  function decorateRoleChip() {
+    const el = document.getElementById('topbar-role-title');
+    if (!el) return;
+    const raw = String(el.textContent || '').trim();
+    const base = raw.replace(/\s*[·•]\s*(FREE|PRO|CLUB)$/i, '').replace(/\s+PRO$/i, '').trim();
+    if (!/^ATLETA$/i.test(base)) return;                      // los demás roles ya llevan etiqueta larga
+    const t = String(localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
+    const tier = (t === 'pro' || t === 'club') ? t.toUpperCase() : 'FREE';
+    const next = base.toUpperCase() + ' · ' + tier;
+    el.title = 'Rol: atleta · Plan: ' + tier;
+    if (raw !== next) el.textContent = next;
+  }
+  function watchRoleChip() {
+    const el = document.getElementById('topbar-role-title');
+    if (!el) return;
+    decorateRoleChip();
+    try { new MutationObserver(() => decorateRoleChip()).observe(el, { childList: true, characterData: true, subtree: true }); } catch (e) {}
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watchRoleChip); else watchRoleChip();
+  window.addEventListener('load', () => setTimeout(decorateRoleChip, 300));
 
   // Escape de HTML para todo contenido escrito por usuarios (evita XSS almacenado)
   window.kinetEsc = function (v) {
