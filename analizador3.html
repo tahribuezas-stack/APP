@@ -35,6 +35,36 @@
     </script>
 
     <link rel="icon" type="image/svg+xml" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%2300FF88%22/><text x=%2250%22 y=%2272%22 font-size=%2265%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%2304060A%22>K</text></svg>">
+    <!-- FAVICON CON EL COLOR DEL TEMA (acento personalizado / arcoíris / color de rol) -->
+    <script>
+    (function kinetThemeFavicon(){
+        function paint(hex){
+            try{
+                var fav=document.getElementById('dynamic-favicon'); if(!fav) return;
+                fav.href='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="'+hex+'"/><text x="50" y="72" font-size="65" font-weight="900" font-family="Orbitron, sans-serif" text-anchor="middle" fill="#04060A">K</text></svg>');
+            }catch(e){}
+        }
+        function current(){
+            var role=(localStorage.getItem('kinet_active_role')||localStorage.getItem('kinet_role')||'athlete').toLowerCase();
+            var map={athlete:'#00FF88',staff:'#F59E0B',scout:'#3B82F6'};
+            var reset=localStorage.getItem('kinet_theme_color_reset')==='true';
+            var acc=reset?null:(localStorage.getItem('kinet_custom_accent_override')||localStorage.getItem('kinet_accent_color'));
+            return (acc && /^#[0-9a-f]{6}$/i.test(acc)) ? acc : (map[role]||'#00FF88');
+        }
+        function hsl(h){var s=1,l=.54,k=function(n){return(n+h/30)%12},a=s*Math.min(l,1-l),f=function(n){return l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)))};return '#'+[f(0),f(8),f(4)].map(function(x){return Math.round(255*x).toString(16).padStart(2,'0')}).join('')}
+        var hue=0,timer=null;
+        function run(){
+            if(timer){clearInterval(timer);timer=null;}
+            if(localStorage.getItem('kinet_rainbow_mode')==='true'){ timer=setInterval(function(){hue=(hue+8)%360;paint(hsl(hue));},500); }
+            else paint(current());
+        }
+        function start(){ run(); window.addEventListener('storage',run); window.addEventListener('pageshow',run); }
+        if(document.getElementById('dynamic-favicon')) start(); else document.addEventListener('DOMContentLoaded',start);
+        // El resto de la página reajusta el tema al cargar; repintamos tras ello.
+        window.addEventListener('load',function(){setTimeout(run,300);});
+    })();
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">

@@ -89,6 +89,7 @@
       dailyChatMessages: 15,
       dailyCommunityBotMessages: 5,
       dailySupportBotMessages: 10,
+      dailyTacticalAI: 3,
       dailyImageGenerations: 3,
       dailyRoutineTemplates: 1,
       monthlyVideoMinutes: 0,
@@ -105,6 +106,7 @@
       dailyChatMessages: 100,
       dailyCommunityBotMessages: 20,
       dailySupportBotMessages: 30,
+      dailyTacticalAI: 20,
       dailyImageGenerations: 30,
       dailyRoutineTemplates: 999,
       monthlyVideoMinutes: 90,
@@ -121,6 +123,7 @@
       dailyChatMessages: 300,
       dailyCommunityBotMessages: 40,
       dailySupportBotMessages: 60,
+      dailyTacticalAI: 50,
       dailyImageGenerations: 100,
       dailyRoutineTemplates: 999,
       monthlyVideoMinutes: 300,
@@ -711,6 +714,124 @@ CONTEXTO DE QUIEN PREGUNTA: rol ${role}, deporte ${sport}.`;
     };
   }
 
+  // ---------------------------------------------------------------------------
+  // IA TÁCTICA (Analizador 2): jugadas, entrenamientos y análisis de partido en JSON validado
+  // ---------------------------------------------------------------------------
+  function getTacticalAIUsage() {
+    const today = getTodayLocalKey();
+    if (localStorage.getItem('kinet_tai_date') !== today) {
+      localStorage.setItem('kinet_tai_date', today);
+      localStorage.setItem('kinet_tai_count', '0');
+      return 0;
+    }
+    const n = parseInt(localStorage.getItem('kinet_tai_count') || '0', 10);
+    return isNaN(n) ? 0 : Math.max(0, n);
+  }
+  function incrementTacticalAIUsage() {
+    localStorage.setItem('kinet_tai_count', String(getTacticalAIUsage() + 1));
+  }
+
+  const TACTICAL_EQUIP_TYPES = ['cone', 'pole', 'hurdle', 'ladder', 'minigoal', 'mannequin', 'ring', 'ball', 'zone'];
+
+  function buildTacticalAIPrompt(ctx) {
+    const isBB = /balonc/i.test(ctx.sport || '');
+    const geo = isBB
+      ? 'Cancha de baloncesto 28x15 m: x (0-100) va del aro propio (x≈5) al aro que atacamos (x≈95, y=50); y (0-100) de banda a banda. 1 unidad de x ≈ 0,28 m; 1 de y ≈ 0,15 m. Línea de triple ≈ 25 unidades del aro.'
+      : 'Campo de fútbol 105x68 m: x (0-100) va de nuestra portería (x≈3) a la portería rival que atacamos (x≈97, y=50); y (0-100) de banda a banda (y bajo = banda superior). 1 unidad de x ≈ 1,05 m; 1 de y ≈ 0,68 m. Área rival: x>84, y 22-78.';
+    const modeTxt = {
+      play: 'MODO JUGADA: diseña UNA jugada táctica de 3 fases (1 inicial, 2 desarrollo, 3 finalización).',
+      training: 'MODO ENTRENAMIENTO: diseña UN ejercicio de entrenamiento de 3 fases usando los jugadores de la pizarra (los rivales, si los hay, son oponentes pasivos o semiactivos) y coloca el MATERIAL necesario en el campo.',
+      match: 'MODO ANÁLISIS DE PARTIDO: haz un plan de partido contra el rival indicado y diseña 3 jugadas distintas (una por ventaja detectada), cada una de 3 fases.'
+    }[ctx.mode] || '';
+    return `Eres el Director Táctico de KINET OS, especialista en ${ctx.sport}. Respondes SOLO con un JSON válido (sin texto fuera del JSON, sin markdown), en español.
+${modeTxt}
+
+GEOMETRÍA: ${geo}
+Todas las coordenadas son [x,y] entre 4 y 96. Nuestro equipo ataca hacia x=100.
+
+ESTRUCTURA EXACTA DEL JSON:
+{
+ "title": "nombre corto",
+ "summary": "2-3 frases: idea de juego y por qué funciona contra este rival y con estos jugadores",
+ "keys": ["3 a 5 claves o consejos concretos"],
+ ${ctx.mode === 'training' ? '"drill": {"objective":"...", "organization":"cómo se organizan los jugadores", "series":"series, repeticiones, tiempos de trabajo y pausa", "coaching":["2-4 puntos de corrección"]},\n "equipment": [{"type":"cone|pole|hurdle|ladder|minigoal|mannequin|ring|ball|zone","x":0,"y":0,"rot":0}],' : ''}
+ "plays": [ {
+   "title": "nombre",
+   "zoom": "full|left|right",
+   "ballHolder": <índice de NUESTRO jugador que empieza con el balón>,
+   "phases": [ {"note": "qué ocurre en esta fase y por qué (máx. 170 caracteres, cita jugadores por su nombre o puesto)", "moves": [ MOVIMIENTOS EN ORDEN ] } x3 ]
+ } ]
+}
+Cada movimiento es UNO de:
+ {"k":"G","t":"o","i":<n>,"to":[x,y]}   desmarque/carrera sin balón (o con él si ya lo tiene) de un jugador propio ("t":"o") o rival ("t":"r")
+ {"k":"B","t":"o","i":<n>,"to":[x,y]}   conducción/bote con balón (el balón viaja con él)
+ {"k":"R","t":"o","i":<n>,"to":[x,y]}   ${isBB ? 'bloqueo/pantalla' : 'presión o bloqueo/pantalla'}
+ {"k":"A","toT":"o","toI":<n>}          pase del balón al jugador n (el balón pasa a su posición ACTUAL en ese momento)
+ {"k":"A","to":[x,y]}                   pase a un espacio, centro o ${isBB ? 'tiro a canasta' : 'disparo a puerta'} (a coordenadas)
+REGLAS: ${modeTxt && ctx.mode === 'match' ? '"plays" debe tener 2 o 3 jugadas. ' : '"plays" tiene 1 jugada. '}Exactamente 3 fases por jugada, de 2 a 6 movimientos por fase, en el orden en que ocurren (primero el desmarque, luego el pase, etc.). Un jugador no recorre más de ${isBB ? '30' : '38'} unidades por movimiento. Un pase solo puede hacerlo quien tiene el balón: encadena bien los pases (el receptor pasa a ser el poseedor). Incluye como mucho 2 movimientos rivales por fase para reaccionar de forma realista. Los índices "i"/"toI" son los de las listas de jugadores que te doy; no inventes índices. Aprovecha las FORTALEZAS de cada jugador (velocidad, altura, tiro, pase, regate…) y ataca las DEBILIDADES del rival indicadas; si el usuario da notas sobre sus jugadores, tenlas muy en cuenta. No expliques fuera del JSON.`;
+  }
+
+  function sanitizeTacticalPlan(raw, ctx) {
+    const o = (raw && typeof raw === 'object') ? raw : {};
+    const nO = ctx.nOwn || 0, nR = ctx.nRival || 0;
+    const num = (v, a, b, d) => { const n = parseFloat(v); return isFinite(n) ? Math.min(b, Math.max(a, n)) : d; };
+    const txt = (v, n) => (typeof v === 'string') ? v.replace(/[<>]/g, '').trim().slice(0, n) : '';
+    const pt = (v) => Array.isArray(v) && v.length >= 2 ? [num(v[0], 3, 97, 50), num(v[1], 4, 96, 50)] : null;
+    const plays = (Array.isArray(o.plays) ? o.plays : (o.phases ? [o] : [])).slice(0, ctx.mode === 'match' ? 3 : 1).map((pl) => {
+      const phases = (Array.isArray(pl.phases) ? pl.phases : []).slice(0, 3).map((ph) => {
+        const moves = [];
+        (Array.isArray(ph && ph.moves) ? ph.moves : []).slice(0, 8).forEach((m) => {
+          if (!m || typeof m !== 'object') return;
+          const k = String(m.k || 'G').toUpperCase();
+          if (k === 'A') {
+            const toT = m.toT === 'r' ? 'r' : 'o';
+            const toI = parseInt(m.toI, 10);
+            if (isFinite(toI) && toI >= 0 && toI < (toT === 'r' ? nR : nO)) { moves.push({ k: 'A', toT, toI }); return; }
+            const to = pt(m.to); if (to) moves.push({ k: 'A', to });
+            return;
+          }
+          if (!['G', 'B', 'R'].includes(k)) return;
+          const t = m.t === 'r' ? 'r' : 'o';
+          const i = parseInt(m.i, 10);
+          const to = pt(m.to);
+          if (!to || !isFinite(i) || i < 0 || i >= (t === 'r' ? nR : nO)) return;
+          moves.push({ k, t, i, to });
+        });
+        return { note: txt(ph && ph.note, 200), moves };
+      }).filter(ph => ph.moves.length > 0 || ph.note);
+      while (phases.length && phases.length < 3) phases.push({ note: '', moves: [] });
+      const bh = parseInt(pl.ballHolder, 10);
+      return {
+        title: txt(pl.title, 70) || 'Jugada IA',
+        zoom: ['full', 'left', 'right'].includes(pl.zoom) ? pl.zoom : 'full',
+        ballHolder: (isFinite(bh) && bh >= 0 && bh < nO) ? bh : null,
+        phases
+      };
+    }).filter(pl => pl.phases.length === 3 && pl.phases.some(ph => ph.moves.length));
+    const eq = [];
+    if (ctx.mode === 'training' && Array.isArray(o.equipment)) {
+      o.equipment.slice(0, 40).forEach((e) => {
+        if (!e || !TACTICAL_EQUIP_TYPES.includes(e.type)) return;
+        const p = pt([e.x, e.y]); if (!p) return;
+        eq.push({ type: e.type, x: p[0], y: p[1], rot: num(e.rot, 0, 359, 0) });
+      });
+    }
+    let drill = null;
+    if (ctx.mode === 'training' && o.drill && typeof o.drill === 'object') {
+      drill = {
+        objective: txt(o.drill.objective, 240), organization: txt(o.drill.organization, 360),
+        series: txt(o.drill.series, 240),
+        coaching: (Array.isArray(o.drill.coaching) ? o.drill.coaching : []).slice(0, 5).map(c => txt(c, 180)).filter(Boolean)
+      };
+    }
+    return {
+      title: txt(o.title, 80) || (plays[0] ? plays[0].title : 'Plan IA'),
+      summary: txt(o.summary, 600),
+      keys: (Array.isArray(o.keys) ? o.keys : []).slice(0, 6).map(k => txt(k, 200)).filter(Boolean),
+      drill, equipment: eq, plays
+    };
+  }
+
   // Prompt LIGERO del bot de la comunidad: solo rol, deporte y plan. No lleva expediente biométrico ni datos privados.
   function buildCommunityBotPrompt(postContext) {
     const role = (localStorage.getItem('kinet_active_role') || 'athlete').toLowerCase();
@@ -961,7 +1082,7 @@ FORMATO: respuestas breves (máximo ~150 palabras salvo que pidan más), con **n
     return null;
   }
 
-  async function callDirectLLMProvider({ systemPrompt, userPrompt, chatHistory = [], imagesBase64 = [], responseMimeType = 'text/plain' }) {
+  async function callDirectLLMProvider({ systemPrompt, userPrompt, chatHistory = [], imagesBase64 = [], responseMimeType = 'text/plain', maxTokens = 0 }) {
     const tier = getCurrentTier();
     const modelCfg = KINET_API_CONFIG.modelsByTier[tier] || KINET_API_CONFIG.modelsByTier.free;
     const geminiKey = (localStorage.getItem('kinet_gemini_api_key') || KINET_API_CONFIG.GEMINI_API_KEY || DEFAULT_INSTALLED_API_KEY).trim();
@@ -979,7 +1100,7 @@ FORMATO: respuestas breves (máximo ~150 palabras salvo que pidan más), con **n
       const bodyObj = {
         model: modelCfg.groq,
         messages,
-        max_tokens: modelCfg.maxTokens,
+        max_tokens: (maxTokens || modelCfg.maxTokens),
         temperature: modelCfg.temperature
       };
       if (responseMimeType === 'application/json') {
@@ -1016,7 +1137,7 @@ FORMATO: respuestas breves (máximo ~150 palabras salvo que pidan más), con **n
       const bodyObj = {
         model: modelCfg.openai,
         messages,
-        max_tokens: modelCfg.maxTokens,
+        max_tokens: (maxTokens || modelCfg.maxTokens),
         temperature: modelCfg.temperature
       };
       if (responseMimeType === 'application/json') {
@@ -1062,7 +1183,7 @@ FORMATO: respuestas breves (máximo ~150 palabras salvo que pidan más), con **n
 
       const genConfig = {
         temperature: modelCfg.temperature,
-        maxOutputTokens: modelCfg.maxTokens
+        maxOutputTokens: (maxTokens || modelCfg.maxTokens)
       };
       if (responseMimeType === 'application/json') {
         genConfig.responseMimeType = 'application/json';
@@ -1340,6 +1461,63 @@ FORMATO: respuestas breves (máximo ~150 palabras salvo que pidan más), con **n
       }
       incrementSupportBotUsage();
       return { ok: true, reply, remaining: Math.max(0, limit - used - 1), limit };
+    },
+
+    // Estado del cupo de IA táctica (para mostrarlo en la pizarra sin gastar una llamada)
+    getTacticalAIStatus() {
+      const limits = PLAN_LIMITS[getCurrentTier()] || PLAN_LIMITS.free;
+      const limit = limits.dailyTacticalAI || 3;
+      const used = getTacticalAIUsage();
+      let hasKey = false;
+      try { hasKey = Boolean(hasAnyConfiguredApiKey() || String(DEFAULT_INSTALLED_API_KEY || '').trim()); } catch (e) {}
+      return { used, limit, remaining: Math.max(0, limit - used), hasKey };
+    },
+
+    // ------------------------------------------------------------------------
+    // IA TÁCTICA: genera jugadas / entrenamientos / planes de partido para la pizarra del Analizador 2
+    // ------------------------------------------------------------------------
+    async askTacticalAI(ctx = {}) {
+      const limits = PLAN_LIMITS[getCurrentTier()] || PLAN_LIMITS.free;
+      const limit = limits.dailyTacticalAI || 3;
+      const used = getTacticalAIUsage();
+      if (used >= limit) {
+        return { ok: false, limitReached: true, remaining: 0, limit, error: `Has agotado tus ${limit} generaciones tácticas de hoy. Se reinician a las 00:00h.` };
+      }
+      const mode = ['play', 'training', 'match'].includes(ctx.mode) ? ctx.mode : 'play';
+      const c = Object.assign({}, ctx, { mode });
+      const fmtP = (p) => `[${Math.round(p.x)},${Math.round(p.y)}]`;
+      const own = (c.own || []).map(p => `${p.i}: ${p.pos}${p.name ? ' "' + p.name + '"' : ''} ${fmtP(p)}${p.skills ? ' · ' + p.skills : ''}`).join('\n');
+      const riv = (c.rival && c.rival.tokens || []).map(p => `${p.i}: ${p.pos} ${fmtP(p)}`).join('\n');
+      const W = (c.rival && c.rival.weaknesses || []).map(w => '- ' + w).join('\n');
+      const userPrompt = `DEPORTE: ${c.sport}. SECCIÓN: ${c.section || 'entrenamiento'}.
+BALÓN ahora en ${fmtP(c.ball || { x: 50, y: 50 })}.
+NUESTROS JUGADORES (índice: puesto "nombre" [x,y] · habilidades):
+${own || '(sin jugadores)'}
+RIVAL: ${c.rival ? c.rival.formation + ' · bloque ' + c.rival.block : 'sin rival colocado'}
+${riv ? 'POSICIONES RIVALES (índice: puesto [x,y]):\n' + riv : ''}
+${W ? 'DEBILIDADES DEL RIVAL:\n' + W : ''}
+${c.rival && c.rival.notes ? 'NOTAS SOBRE EL RIVAL: ' + c.rival.notes : ''}
+${c.notes ? 'NOTAS SOBRE NUESTROS JUGADORES / OBJETIVO: ' + c.notes : ''}
+${c.equipmentHint ? 'MATERIAL DISPONIBLE: ' + c.equipmentHint : ''}
+PETICIÓN DEL USUARIO: ${String(c.request || '').slice(0, 500) || '(sin petición concreta: elige lo más útil)'}`;
+      const sanCtx = { mode, sport: c.sport, nOwn: (c.own || []).length, nRival: (c.rival && c.rival.tokens || []).length };
+      const systemPrompt = buildTacticalAIPrompt(Object.assign({}, c, { mode }));
+      const tryOnce = async () => {
+        const txt = await callDirectLLMProvider({ systemPrompt, userPrompt, chatHistory: [], responseMimeType: 'application/json', maxTokens: mode === 'match' ? 5200 : 3200 });
+        const m = String(txt || '').match(/\{[\s\S]*\}/);
+        if (!m) throw new Error('La IA no devolvió un plan válido');
+        return sanitizeTacticalPlan(JSON.parse(m[0]), sanCtx);
+      };
+      let plan = null, lastErr = '';
+      for (let attempt = 0; attempt < 2 && !plan; attempt++) {
+        try {
+          const r = await tryOnce();
+          if (r.plays.length) plan = r; else lastErr = 'La IA devolvió una jugada incompleta';
+        } catch (e) { lastErr = String(e && e.message || e); }
+      }
+      if (!plan) return { ok: false, remaining: Math.max(0, limit - used), limit, error: lastErr || 'La IA no está disponible ahora mismo' };
+      incrementTacticalAIUsage();
+      return { ok: true, data: plan, remaining: Math.max(0, limit - used - 1), limit };
     },
 
     // ------------------------------------------------------------------------
