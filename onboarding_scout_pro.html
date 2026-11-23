@@ -797,7 +797,7 @@
       if (scoutState.chatStepIndex === 0) {
         const cityM = val.match(/(?:vivo en|sede en|estoy en|oper[oa] en)\s+([A-ZÁÉÍÓÚÑa-záéíóúñ\s]{2,20}?)(?:,|\sy\s|\.|$)/i);
         if (cityM) scoutState.extracted.city = cityM[1].trim();
-        scoutState.extracted.clubOrAgency = val.split(',')[0].trim().slice(0, 32);
+        scoutState.extracted.clubOrAgency = val.split(',')[0].replace(/^\s*(?:(?:trabajo|ojeo|dirijo|represento|estoy)\s+(?:en|con|para)\s+(?:el|la|los|las)?\s*|soy\s+.*?\s+(?:del|de la|de)\s+)/i, '').trim().slice(0, 32);
         scoutState.extracted.marketZone = val;
       } else if (scoutState.chatStepIndex === 1) {
         scoutState.extracted.targetProfile = val;
@@ -874,7 +874,31 @@
       requestAnimationFrame(animate);
     }
 
-    function finishScoutOnboarding() {
+    // La IA interpreta las respuestas libres (si hay IA disponible); si falla, se mantiene la lectura local.
+    async function enrichWithAI() {
+      const answers = (scoutState.chatHistory || []).filter(m => m.role === 'user').map(m => String(m.content || ''));
+      if (!answers.length || !window.KinetAPIs || typeof KinetAPIs.extractOnboardingProfile !== 'function') return;
+      const btn = document.querySelector('button[onclick^="finishScoutOnboarding"]');
+      const oldTxt = btn ? btn.textContent : '';
+      if (btn) { btn.disabled = true; btn.textContent = 'ANALIZANDO TUS RESPUESTAS…'; }
+      try {
+        const P = await Promise.race([
+          KinetAPIs.extractOnboardingProfile({ role: 'scout', sport: scoutState.sport, position: scoutState.position || scoutState.role || '', category: scoutState.category, answers }),
+          new Promise(r => setTimeout(() => r(null), 7000))
+        ]);
+        if (P) {
+          const ex = scoutState.extracted;
+          if (P.club) ex.clubOrAgency = P.club;
+          if (P.city) ex.city = P.city;
+          if (P.hometown) ex.hometown = P.hometown;
+          if (P.marketZone) ex.marketZone = P.marketZone;
+        }
+      } catch (e) { /* sin IA: se queda la lectura local */ }
+      if (btn) { btn.disabled = false; btn.textContent = oldTxt; }
+    }
+
+    async function finishScoutOnboarding() {
+      await enrichWithAI();
       scoutState.maxAge = document.getElementById('val-scout-edad').textContent;
       scoutState.budget = document.getElementById('val-scout-budget').textContent;
       scoutState.minGrl = document.getElementById('slider-scout-grl').value + ' GRL';

@@ -2380,16 +2380,21 @@
             const text = document.getElementById('quick-doubt-input').value.trim();
             if (!text) return;
 
-            const q = text.toLowerCase();
-            let targetAgent = 'physical';
-
-            if (q.includes('comer') || q.includes('cena') || q.includes('dieta') || q.includes('gel') || q.includes('peso') || q.includes('kcal')) {
-                targetAgent = 'nutrition';
-            } else if (q.includes('nervio') || q.includes('miedo') || q.includes('presion') || q.includes('mental') || q.includes('foco')) {
-                targetAgent = 'mental';
-            } else if (q.includes('fichaje') || q.includes('contrato') || q.includes('mercado') || q.includes('beca')) {
-                targetAgent = 'career';
-            }
+            // Router de especialista: normaliza tildes y puntúa por temática (el especialista elegido responde con IA en Cuerpo Técnico)
+            const q = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            const RULES = {
+                nutrition: /\b(comer|comida|cen[ao]|cenar|desayun|almuerz|dieta|nutri|hidrat|agua|gel|suplement|creatina|proteina|carbohidrat|peso|kcal|calori|ayuno|corte de peso|cafeina|bebida)/,
+                mental: /\b(nervio|miedo|presion|mental|foco|concentr|ansied|estres|confianza|motivaci|bloqueo|psicolog|autoestima|visualiz|respirac|racha|sueno|dormir|insomnio)/,
+                career: /\b(fichaje|contrato|mercado|beca|agente|representante|ojeador|scout|club interesad|cv\b|dossier|marca personal|patrocin|redes|carrera|universidad|cantera)/,
+                tactical: /\b(tactic|jugada|sistema|posicionamiento|estrategia|video|analiza|analisis|presion alta|bloque|rival|marcaje|saque|pizarra|abp|esquema|rol)/,
+                physical: /\b(lesion|dolor|molestia|sobrecarga|isquio|gemelo|rodilla|tobillo|hombro|codo|espalda|fuerza|gimnasio|entreno|entrenamiento|carga|fatiga|cansad|recuper|calentamiento|movilidad|sprint|velocidad|explosiv|resistencia|musculo|pretemporada|descanso)/
+            };
+            let targetAgent = 'physical', best = 0;
+            Object.keys(RULES).forEach(k => { const m = q.match(new RegExp(RULES[k].source, 'g')); const sc = m ? m.length : 0; if (sc > best) { best = sc; targetAgent = k; } });
+            const NAMES = { physical: 'Preparador Físico & Nutrición', nutrition: 'Preparador Físico & Nutrición', mental: 'Psicólogo Deportivo', career: 'Analista & Career IA', tactical: 'Técnico & Vídeo' };
+            const tag = document.getElementById('mini-chat-agent-tag'), live = document.getElementById('mini-chat-live-msg');
+            if (tag) tag.textContent = 'DERIVANDO // ' + (NAMES[targetAgent] || 'ESPECIALISTA').toUpperCase();
+            if (live) live.textContent = 'Te paso con ' + (NAMES[targetAgent] || 'tu especialista') + ' para responder a tu consulta…';
 
             const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
             localStorage.setItem('kinet_pending_question', text);

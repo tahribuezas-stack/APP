@@ -736,9 +736,9 @@
       coachState.chatHistory.push({ role: 'user', content: val });
 
       if (coachState.chatStepIndex === 0) {
-        const cityM = val.match(/(?:vivo en|estoy en|trabajo en)\s+([A-ZÁÉÍÓÚÑa-záéíóúñ\s]{2,20}?)(?:,|\sy\s|\.|$)/i);
+        const cityM = val.match(/(?:vivo en|resido en|estoy en|sede en)\s+([A-ZÁÉÍÓÚÑa-záéíóúñ\s]{2,20}?)(?:,|\sy\s|\.|$)/i);
         if (cityM) coachState.extracted.city = cityM[1].trim();
-        coachState.extracted.club = val.split(',')[0].trim().slice(0, 32);
+        coachState.extracted.club = val.split(',')[0].replace(/^\s*(?:(?:trabajo|entreno|dirijo|ojeo|estoy)\s+(?:en|con|para)\s+(?:el|la|los|las)?\s*|soy\s+.*?\s+(?:del|de la|de)\s+)/i, '').trim().slice(0, 32);
       } else if (coachState.chatStepIndex === 1) {
         coachState.extracted.specificFocus = val;
       } else if (coachState.chatStepIndex === 2) {
@@ -816,7 +816,30 @@
       requestAnimationFrame(animate);
     }
 
-    function finishCoachOnboarding() {
+    // La IA interpreta las respuestas libres (si hay IA disponible); si falla, se mantiene la lectura local.
+    async function enrichWithAI() {
+      const answers = (coachState.chatHistory || []).filter(m => m.role === 'user').map(m => String(m.content || ''));
+      if (!answers.length || !window.KinetAPIs || typeof KinetAPIs.extractOnboardingProfile !== 'function') return;
+      const btn = document.querySelector('button[onclick^="finishCoachOnboarding"]');
+      const oldTxt = btn ? btn.textContent : '';
+      if (btn) { btn.disabled = true; btn.textContent = 'ANALIZANDO TUS RESPUESTAS…'; }
+      try {
+        const P = await Promise.race([
+          KinetAPIs.extractOnboardingProfile({ role: 'staff', sport: coachState.sport, position: coachState.position || coachState.role || '', category: coachState.category, answers }),
+          new Promise(r => setTimeout(() => r(null), 7000))
+        ]);
+        if (P) {
+          const ex = coachState.extracted;
+          if (P.club) ex.club = P.club;
+          if (P.city) ex.city = P.city;
+          if (P.hometown) ex.hometown = P.hometown;
+        }
+      } catch (e) { /* sin IA: se queda la lectura local */ }
+      if (btn) { btn.disabled = false; btn.textContent = oldTxt; }
+    }
+
+    async function finishCoachOnboarding() {
+      await enrichWithAI();
       if (coachState.extracted.club) localStorage.setItem('kinet_user_club', coachState.extracted.club);
       if (coachState.extracted.city) localStorage.setItem('kinet_user_city', coachState.extracted.city);
 

@@ -959,7 +959,40 @@
       requestAnimationFrame(animateShatter);
     }
 
-    function finishOnboarding() {
+    // La IA interpreta las respuestas libres (si hay IA disponible); si falla, se mantiene la lectura local.
+    async function enrichWithAI() {
+      const answers = (state.chatHistory || []).filter(m => m.role === 'user').map(m => String(m.content || ''));
+      if (!answers.length || !window.KinetAPIs || typeof KinetAPIs.extractOnboardingProfile !== 'function') return;
+      const btn = document.querySelector('button[onclick^="finishOnboarding"]');
+      const oldTxt = btn ? btn.textContent : '';
+      if (btn) { btn.disabled = true; btn.textContent = 'ANALIZANDO TUS RESPUESTAS…'; }
+      try {
+        const P = await Promise.race([
+          KinetAPIs.extractOnboardingProfile({ role: 'athlete', sport: state.sport, position: state.position || state.role || '', category: state.category, answers }),
+          new Promise(r => setTimeout(() => r(null), 7000))
+        ]);
+        if (P) {
+          const ex = state.extracted;
+          if (P.club) ex.club = P.club;
+          if (P.city) ex.city = P.city;
+          if (P.hometown) ex.hometown = P.hometown;
+          if (P.laterality && !state.laterality) state.laterality = P.laterality;
+          if (P.strength) ex.strength = P.strength;
+          if (P.weakness) ex.weakness = P.weakness;
+          if (P.injuries) ex.injuryHistory = P.injuries;
+          if (P.sleepHours) ex.sleepHours = P.sleepHours;
+          if ((P.fieldDays.length || P.gymDays.length) && !(P.fieldDays.length + P.gymDays.length === 1 && P.matchDay === null)) {
+            ex.trainingDays = P.fieldDays; ex.gymDays = P.gymDays;
+            if (P.matchDay !== null) ex.matchDay = P.matchDay;
+            ex.restDays = P.restDays.length ? P.restDays : [0,1,2,3,4,5,6].filter(d => !P.fieldDays.includes(d) && !P.gymDays.includes(d) && d !== ex.matchDay);
+          }
+        }
+      } catch (e) { /* sin IA: se queda la lectura local */ }
+      if (btn) { btn.disabled = false; btn.textContent = oldTxt; }
+    }
+
+    async function finishOnboarding() {
+      await enrichWithAI();
       state.altura = document.getElementById('slider-altura').value;
       state.peso = document.getElementById('slider-peso').value;
       state.edad = document.getElementById('slider-edad').value;
