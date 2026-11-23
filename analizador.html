@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <script src="kinet-guard.js"></script>
+<script src="kinet-teams.js"></script>
 <script src="kinet-sport.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1599,6 +1600,7 @@
 
                 <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-secondary);display:flex;align-items:center;gap:10px;">
                     <span>PLANTILLA 3D, COMPARADOR 1VS1 & CARTELERA</span>
+                    <span id="kinet-team-slot"></span>
                     <span style="color:var(--role-color);font-weight:700;" id="topbar-sport-tag">● FÚTBOL</span>
                 </div>
 
@@ -2679,6 +2681,7 @@
 
             const rawSport = localStorage.getItem('kinet_sport') || localStorage.getItem('sport') || 'Fútbol';
             activeArenaSport = normalizeSportName(rawSport);
+            if (window.KinetTeams) KinetTeams.mount('kinet-team-slot', activeArenaSport);
 
             document.getElementById('sidebar-sport-subtitle').textContent = `AI PRECISION // ${activeArenaSport.toUpperCase()}`;
             document.getElementById('topbar-sport-tag').textContent = `● ${activeArenaSport.toUpperCase()}`;
@@ -2738,7 +2741,7 @@
 
         function loadPersistedCustomAndShortlistData() {
             try {
-                const spKey = activeArenaSport.toLowerCase();
+                const spKey = (window.KinetTeams ? KinetTeams.key(activeArenaSport) : activeArenaSport.toLowerCase());
                 customCreatedPlayers = JSON.parse(localStorage.getItem(`kinet_custom_players_${spKey}`) || '[]');
                 shortlistPlayers = JSON.parse(localStorage.getItem(`kinet_shortlist_${spKey}`) || '[]');
                 calibratedKinetOverrides = JSON.parse(localStorage.getItem(`kinet_calibrated_overrides_${spKey}`) || '{}');
@@ -2768,7 +2771,7 @@
 
         function saveCustomAndShortlistData() {
             try {
-                const spKey = activeArenaSport.toLowerCase();
+                const spKey = (window.KinetTeams ? KinetTeams.key(activeArenaSport) : activeArenaSport.toLowerCase());
                 localStorage.setItem(`kinet_custom_players_${spKey}`, JSON.stringify(customCreatedPlayers));
                 localStorage.setItem(`kinet_shortlist_${spKey}`, JSON.stringify(shortlistPlayers));
                 localStorage.setItem(`kinet_calibrated_overrides_${spKey}`, JSON.stringify(calibratedKinetOverrides));
@@ -2805,7 +2808,7 @@
 
         function restoreFullSquadStateFromStorage() {
             const cfg = SPORT_ARENA_CONFIGS[activeArenaSport] || SPORT_ARENA_CONFIGS['Fútbol'];
-            const spKey = activeArenaSport.toLowerCase();
+            const spKey = (window.KinetTeams ? KinetTeams.key(activeArenaSport) : activeArenaSport.toLowerCase());
             try {
                 const rawSaved = JSON.parse(localStorage.getItem(`kinet_full_board_state_${spKey}`) || 'null');
                 if (rawSaved && Array.isArray(rawSaved.boardSlots) && rawSaved.boardSlots.length > 0) {
@@ -3687,7 +3690,7 @@
 
                     <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:8px 12px;font-size:0.66rem;color:#CBD5E1;flex-wrap:wrap;gap:8px;">
                         <div><strong style="color:var(--role-color);font-family:'Orbitron';">🪑 SUPLENTES / ROTACIÓN:</strong> ${subs.length > 0 ? subs.join(' • ') : 'Convocatoria abierta'}</div>
-                        <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:#94A3B8;">jkinetos.es</span>
+                        <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:#94A3B8;">kinetos.es</span>
                     </div>
                 `;
                 return;
@@ -4419,7 +4422,7 @@
             pdf.setTextColor(148, 163, 184);
             pdf.setFontSize(8);
             const safeSp = activeArenaSport.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]/g, '_');
-            pdf.text('Dossier táctico ejecutivo generado por KINET Squad & 1vs1 Analyzer 3D • jkinetos.es', 14, 286);
+            pdf.text('Dossier táctico ejecutivo generado por KINET Squad & 1vs1 Analyzer 3D • kinetos.es', 14, 286);
             pdf.save(`Dossier_Plantilla_3D_KINET_${safeSp}.pdf`);
         }
 
@@ -4871,7 +4874,7 @@
 
                 pdf.setTextColor(148, 163, 184);
                 pdf.setFontSize(7.5);
-                pdf.text('Documento oficial generado por KINET Matchday & Share Suite™ • jkinetos.es', 14, 196);
+                pdf.text('Documento oficial generado por KINET Matchday & Share Suite™ • kinetos.es', 14, 196);
 
                 const safeSp = activeArenaSport.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]/g, '_');
                 pdf.save(`KINET_Matchday_${activeBroadcasterFormat.toUpperCase()}_${safeSp}.pdf`);
@@ -5384,7 +5387,7 @@
                 pdf.setTextColor(148, 163, 184);
                 pdf.setFont('helvetica', 'bold');
                 pdf.setFontSize(7.5);
-                pdf.text('Exportacion visual de alta definicion generada por KINET Matchday & Share Suite™ • jkinetos.es', pageW / 2, pageH - 4, { align: 'center' });
+                pdf.text('Exportacion visual de alta definicion generada por KINET Matchday & Share Suite™ • kinetos.es', pageW / 2, pageH - 4, { align: 'center' });
 
                 const safeSp = activeArenaSport.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]/g, '_');
                 pdf.save(`KINET_Matchday_${activeBroadcasterFormat.toUpperCase()}_${safeSp}.pdf`);
@@ -5811,7 +5814,7 @@
             window.staffSlots = [];
 
             function initStaffSlots() {
-                const spKey = activeArenaSport.toLowerCase();
+                const spKey = (window.KinetTeams ? KinetTeams.key(activeArenaSport) : activeArenaSport.toLowerCase());
                 try {
                     const saved = JSON.parse(localStorage.getItem(`kinet_staff_bench_slots_${spKey}`) || 'null');
                     if (Array.isArray(saved) && saved.length === 6) {
@@ -5823,7 +5826,7 @@
             }
 
             function saveStaffSlotsToStorage() {
-                const spKey = activeArenaSport.toLowerCase();
+                const spKey = (window.KinetTeams ? KinetTeams.key(activeArenaSport) : activeArenaSport.toLowerCase());
                 try {
                     localStorage.setItem(`kinet_staff_bench_slots_${spKey}`, JSON.stringify(window.staffSlots));
                 } catch (e) {}

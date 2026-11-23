@@ -1109,7 +1109,7 @@
                                     <li><strong>300 consultas/día</strong> · 100 imágenes/día · motor de IA superior</li>
                                     <li><strong>300 min/mes</strong> de Auditoría de Vídeo Táctico</li>
                                     <li>KINET Radar B2B + <strong>seguimiento externo</strong> de deportistas</li>
-                                    <li>Gestión <strong>multiequipo</strong> (plantillas ampliadas en camino)</li>
+                                    <li>Gestión <strong>multiequipo</strong>: hasta 12 equipos, cada uno con su plantilla, formación y jugadas</li>
                                     <li><strong>-50%</strong> en Bonos Extra · 0 anuncios</li>
                                 </ul>
                             </div>
@@ -1216,6 +1216,20 @@
                                         <span>Restringe mensajes directos de cuentas no verificadas por KINET OS</span>
                                     </div>
                                     <label class="switch"><input type="checkbox" id="setting-minor-protection" onchange="syncPrivacySwitch('minor_mode', this.checked)"><span class="slider"></span></label>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>📊 Datos anonimizados de tendencias (opcional)</label>
+                                        <span>Información agregada y anonimizada, nunca tu nombre, mensajes, vídeos ni salud. Puedes retirarlo cuando quieras. Las cuentas de menores nunca participan.</span>
+                                    </div>
+                                    <label class="switch"><input type="checkbox" id="setting-anon-data" onchange="syncPrivacySwitch('anon_data', this.checked)"><span class="slider"></span></label>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>🎯 Anuncios personalizados (plan gratuito)</label>
+                                        <span>Sin tu consentimiento solo verás anuncios no personalizados. Desactivado siempre en menores.</span>
+                                    </div>
+                                    <label class="switch"><input type="checkbox" id="setting-personalized-ads" onchange="syncPrivacySwitch('personalized_ads', this.checked)"><span class="slider"></span></label>
                                 </div>
                                 <div class="setting-row">
                                     <div class="setting-info">
@@ -1641,6 +1655,18 @@
 
             const minorProtEl = document.getElementById('setting-minor-protection');
             if (minorProtEl) minorProtEl.checked = localStorage.getItem('kinet_minor_protection') === 'true';
+            (function () {
+                let anon = localStorage.getItem('kinet_anon_data');
+                if (anon === null) { try { const c = JSON.parse(localStorage.getItem('kinet_consents') || 'null'); anon = String(!!(c && c.anon_data)); } catch (e) { anon = 'false'; } }
+                const a = document.getElementById('setting-anon-data'); if (a) a.checked = anon === 'true';
+                const p = document.getElementById('setting-personalized-ads'); if (p) p.checked = localStorage.getItem('kinet_personalized_ads') === 'true';
+            })();
+            if (window.KinetMinors && KinetMinors.isMinor()) {
+                KinetMinors.enforce();
+                if (minorProtEl) minorProtEl.checked = true;
+                const pv = document.getElementById('setting-private-account'); if (pv) pv.checked = true;
+                const mv = document.getElementById('setting-scout-vis'); if (mv) mv.checked = false;
+            }
 
             const besoccerEl = document.getElementById('setting-besoccer-url');
             if (besoccerEl) besoccerEl.value = localStorage.getItem('kinet_besoccer_url') || localStorage.getItem('kinet_user_transfermarkt') || '';
@@ -1709,7 +1735,19 @@
         });
 
         function syncPrivacySwitch(typeKey, isChecked) {
-            if (typeKey === 'private') {
+            // Un menor no puede desactivar sus protecciones
+            if (window.KinetMinors && KinetMinors.isMinor() && ((typeKey === 'private' && !isChecked) || (typeKey === 'minor_mode' && !isChecked) || (typeKey === 'market_open' && isChecked))) {
+                KinetMinors.enforce(); KinetMinors.blockedNotice(typeKey === 'market_open' ? 'Aparecer en KINET Radar B2B' : 'Esta protección');
+                const map = { private: ['setting-private-account', true], minor_mode: ['setting-minor-protection', true], market_open: ['setting-scout-vis', false] };
+                const m = map[typeKey]; const el = m && document.getElementById(m[0]); if (el) el.checked = m[1];
+                return;
+            }
+            if (typeKey === 'anon_data' || typeKey === 'personalized_ads') {
+                if (isChecked && window.KinetMinors && KinetMinors.isMinor()) {
+                    KinetMinors.blockedNotice('Esta opción'); const el = document.getElementById(typeKey === 'anon_data' ? 'setting-anon-data' : 'setting-personalized-ads'); if (el) el.checked = false; return;
+                }
+                localStorage.setItem(typeKey === 'anon_data' ? 'kinet_anon_data' : 'kinet_personalized_ads', String(isChecked));
+            } else if (typeKey === 'private') {
                 localStorage.setItem('kinet_private_account', String(isChecked));
             } else if (typeKey === 'read_receipts') {
                 localStorage.setItem('kinet_show_read_receipts', String(isChecked));
@@ -2510,6 +2548,14 @@ function stageResetRoleColor() {
 
         function launchOfficialStripeCheckout() {
             if (requireAccountBeforePay()) { closeKinetModal('checkout-upgrade-modal'); return; }
+            // Menores de 18: solo con autorización expresa del tutor y su tarjeta (Condiciones §6)
+            if (window.KinetMinors && KinetMinors.isMinor() && !isStaffSandboxAccount()) {
+                if (!window.__kinetGuardianOk) {
+                    KinetMinors.guardianPaymentGate().then(function (ok) { if (ok) { window.__kinetGuardianOk = true; launchOfficialStripeCheckout(); } });
+                    return;
+                }
+                window.__kinetGuardianOk = false;
+            }
             const consentBox = document.getElementById('legal-checkout-consent');
             if (!consentBox || !consentBox.checked) {
                 alert('Por favor, marca la casilla de aceptación del Contrato Legal y del Art. 103.m (TRLGDCU) antes de continuar hacia la pasarela de pago.');

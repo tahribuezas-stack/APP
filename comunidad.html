@@ -3222,6 +3222,7 @@
         }
 
         function togglePrivateAccountSetting(isPrivate) {
+            if (!isPrivate && window.KinetMinors && KinetMinors.isMinor()) { KinetMinors.blockedNotice('Tener la cuenta pública'); const sw = document.getElementById('private-account-switch'); if (sw) sw.checked = true; return; }
             localStorage.setItem('kinet_private_account', String(isPrivate));
             if (window.KinetBackend && typeof window.KinetBackend.pushLocalStateToCloud === 'function') {
                 window.KinetBackend.pushLocalStateToCloud();
@@ -4217,6 +4218,7 @@
         }
 
         function toggleMarketStatus(isOpen) {
+            if (isOpen && window.KinetMinors && KinetMinors.isMinor()) { KinetMinors.blockedNotice('Aparecer en KINET Radar B2B'); isOpen = false; const sw = document.getElementById('open-offers-switch'); if (sw) sw.checked = false; }
             localStorage.setItem('kinet_market_open', String(isOpen));
             const pill = document.getElementById('market-status-pill');
             if (isOpen) {
@@ -4789,6 +4791,13 @@
             const targetPerson = findDirectoryPerson(currentDmContact);
             if (targetPerson && isBlockedHandle(targetPerson.handle)) return;
 
+            // Reglas de menores: los adultos no escriben a cuentas de menores y los menores no chatean a solas con ojeadores/entrenadores adultos
+            if (targetPerson && targetPerson.handle !== '@kinet_support' && window.KinetMinors) {
+                const meMinor = KinetMinors.isMinor();
+                if (!meMinor && targetPerson.minor) { KinetMinors.notice('🛡️ Protección de menores', 'Esta cuenta tiene activada la protección de menores y no admite mensajes directos de personas adultas. Si eres su entrenador o ojeador, contacta con su familia o su club.'); return; }
+                if (meMinor && !targetPerson.minor && (targetPerson.role === 'scout' || targetPerson.role === 'staff')) { KinetMinors.notice('🛡️ Protección de menores', 'Por tu seguridad, los mensajes directos con ojeadores y entrenadores adultos los gestiona tu madre, padre o tutor. Pídele que contacte con esa persona o club en tu nombre.'); return; }
+            }
+
             if (!DM_CONVERSATIONS[currentDmContact]) DM_CONVERSATIONS[currentDmContact] = [];
             const isBotSupport = targetPerson && targetPerson.handle === '@kinet_support';
 
@@ -4911,7 +4920,8 @@
                         const posLabel = prof.position || 'PRO';
                         const contactFullTitle = `${fullName} (${posLabel})`;
                         const isPriv = prof.user_state && prof.user_state.kinet_private_account === 'true';
-                        const cityVal = (prof.user_state && prof.user_state.kinet_user_city) || '';
+                        const isMinorProfile = !!(prof.user_state && prof.user_state.kinet_minor_protection === 'true');
+                        const cityVal = isMinorProfile ? '' : ((prof.user_state && prof.user_state.kinet_user_city) || '');
 
                         const existingIdx = NETWORK_DIRECTORY.findIndex(u =>
                             cleanHandleNormalized(u.handle) === cleanHandleNormalized(h) ||
@@ -4935,12 +4945,13 @@
                             roleBadge: roleBadge,
                             sport: normalizeSportOption(prof.active_sport || 'Fútbol'),
                             position: posLabel,
-                            club: prof.club || 'Sin club',
+                            club: isMinorProfile ? 'Sin club' : (prof.club || 'Sin club'),
                             city: cityVal,
-                            headline: prof.bio || `${posLabel} • ${prof.club || 'KINET OS'}`,
+                            minor: isMinorProfile,
+                            headline: prof.bio || (isMinorProfile ? `${posLabel} • KINET OS` : `${posLabel} • ${prof.club || 'KINET OS'}`),
                             unread: false,
-                            isPrivate: isPriv,
-                            marketOpen: prof.market_open !== false,
+                            isPrivate: isPriv || isMinorProfile,
+                            marketOpen: isMinorProfile ? false : prof.market_open !== false,
                             lastActiveMs: prof.updated_at ? new Date(prof.updated_at).getTime() : Date.now()
                         };
 

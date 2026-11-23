@@ -1275,11 +1275,7 @@
             </div>
 
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-                <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                    <button type="button" class="btn-pdf-chat" id="tpl-btn-workout" onclick="switchRoutineTemplateType('workout')">🏋️ 1. Rutina Campo & Gym</button>
-                    <button type="button" class="btn-pdf-chat" id="tpl-btn-nutrition" onclick="switchRoutineTemplateType('nutrition')">🥗 2. Dieta & Protocolo Fisio</button>
-                    <button type="button" class="btn-pdf-chat" id="tpl-btn-tactical" onclick="switchRoutineTemplateType('tactical')">🧠 3. Hoja de Ruta Táctica</button>
-                </div>
+                <div id="tpl-source-label" style="font-size:0.72rem;color:var(--text-secondary);line-height:1.4;">Plantilla generada a partir de la respuesta de tu especialista.</div>
                 <span id="tpl-tier-badge" style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);">● PLANTILLA OFICIAL KINET</span>
             </div>
 
@@ -1504,7 +1500,7 @@
         let activeChatsState = null;
         let currentProfileCfg = null;
         let pendingCompressedChatImage = null;
-        let activeRoutineTemplateType = 'workout';
+        let activeRoutineTemplateType = 'plan';
         let etaIntervalTimer = null;
 
         // =========================================================================
@@ -2366,7 +2362,7 @@ Responde siempre en español con naturalidad y precisión técnica.`;
                     const tplType = currentChatKey === 'fisico_nutri' ? 'workout' : (currentChatKey === 'tecnico_video' ? 'tactical' : 'workout');
                     inlineToolsHtml = `
                         <div class="msg-inline-actions">
-                            <button type="button" class="msg-mini-pill-btn" onclick="openRoutineTemplateModal('${tplType}')">📋 Convertir en Plantilla Imagen / PDF</button>
+                            <button type="button" class="msg-mini-pill-btn" onclick="openRoutineTemplateModal(null, ${idx})">📋 Convertir en Plantilla Imagen / PDF</button>
                             ${currentChatKey === 'agente_marketing' && !m.mediaStudioPrompt ? `<button type="button" class="msg-mini-pill-btn" onclick="openMediaStudioWithAutoPrompt('', 'matchday')">🎨 Abrir Media Studio</button>` : ''}
                         </div>
                     `;
@@ -2656,9 +2652,10 @@ Responde siempre en español con naturalidad y precisión técnica.`;
                 : activeChatsState[currentChatKey].title;
 
             const sysPrompt = buildEliteTrainedSystemPrompt(senderName, sportChosen, userPos);
-            const recentHistory = (activeChatsState[currentChatKey].messages || []).slice(-8).map(m => ({
+            const stripNotice = (t) => String(t || '').replace(/\n*\s*(?:⚡|ℹ️)\s*\*?\[?(?:Aviso de Vestuario|Has usado tus consultas)[\s\S]*$/i, '').trim();
+            const recentHistory = (activeChatsState[currentChatKey].messages || []).slice(-9).filter(m => m.sender !== '🏟️ Vestuario KINET OS // Descanso Táctico').map(m => ({
                 role: m.incoming ? 'assistant' : 'user',
-                content: String(m.text || '').slice(0, 380)
+                content: stripNotice(m.text).slice(0, m.incoming ? 2600 : 900)
             }));
 
             let externalReply = null;
@@ -2749,8 +2746,30 @@ Responde siempre en español con naturalidad y precisión técnica.`;
             return true;
         }
 
-        function openRoutineTemplateModal(defaultType) {
-            activeRoutineTemplateType = defaultType || (currentChatKey === 'tecnico_video' ? 'tactical' : 'workout');
+        // La plantilla se construye con la respuesta REAL del especialista (rutina, dieta o plan), no con un texto fijo
+        let tplSource = null;
+        function isPlanLikeText(t) {
+            t = String(t || '');
+            const items = (t.match(/^\s*(?:\d+[.)]|[-•])\s+\S/gm) || []).length;
+            return items >= 3 && t.length > 350;
+        }
+        function openRoutineTemplateModal(defaultType, msgIdx) {
+            const chat = activeChatsState[currentChatKey];
+            const msgs = (chat && chat.messages) || [];
+            let src = (typeof msgIdx === 'number' && msgs[msgIdx] && msgs[msgIdx].incoming) ? msgs[msgIdx] : null;
+            if (!src) { for (let i = msgs.length - 1; i >= 0; i--) { if (msgs[i].incoming && isPlanLikeText(msgs[i].text)) { src = msgs[i]; break; } } }
+            if (!src) {
+                // Aún no hay ningún plan en la conversación: se lo pedimos al especialista (que primero te entrevista)
+                const input = document.getElementById('chat-user-input');
+                if (input) {
+                    input.value = currentChatKey === 'psicologia' || currentChatKey === 'agente_marketing'
+                        ? 'Quiero un plan por escrito para trabajarlo y descargarlo.'
+                        : 'Quiero una rutina de entrenamiento específica para mi deporte y mi puesto para descargarla en PDF.';
+                    sendUserMessage();
+                }
+                return;
+            }
+            tplSource = { text: String(src.text || ''), sender: src.sender || 'Especialista KINET', chatKey: currentChatKey };
             renderRoutineTemplateCanvas();
             document.getElementById('routine-template-modal').classList.add('open');
         }
@@ -2759,86 +2778,68 @@ Responde siempre en español con naturalidad y precisión técnica.`;
             document.getElementById('routine-template-modal').classList.remove('open');
         }
 
-        function switchRoutineTemplateType(typeKey) {
-            activeRoutineTemplateType = typeKey;
-            renderRoutineTemplateCanvas();
+        // Convierte el texto de la IA en bloques: **Título** + lista de ejercicios/pautas
+        function parsePlanText(raw) {
+            const lines = String(raw || '').replace(/\r/g, '').split('\n');
+            const blocks = []; const intro = []; const outro = [];
+            let cur = null, gap = false;
+            const clean = (x) => String(x).replace(/\*\*(.+?)\*\*/g, '$1').replace(/^\s*(?:\d+[.)]|[-•*])\s+/, '').replace(/\s+/g, ' ').trim();
+            lines.forEach((ln) => {
+                const t = ln.trim(); if (!t) { gap = true; return; }
+                const wasGap = gap; gap = false;
+                const isItem = /^(?:\d+[.)]|[-•])\s+\S/.test(t);
+                const h = /^\*\*([^*]{3,90})\*\*:?$/.exec(t) || (!isItem && /^([A-ZÁÉÍÓÚÑ][^.!?]{2,70}):$/.exec(t));
+                if (h) { cur = { phase: clean(h[1]).toUpperCase(), items: [] }; blocks.push(cur); return; }
+                if (isItem) { if (!cur) { cur = { phase: 'PLAN', items: [] }; blocks.push(cur); } cur.items.push(clean(t)); return; }
+                if (cur && cur.items.length) { if (wasGap) outro.push(clean(t)); else cur.items[cur.items.length - 1] += ' ' + clean(t); return; }
+                intro.push(clean(t));
+            });
+            return { intro: intro.join(' '), outro: outro.join(' '), blocks: blocks.filter(b => b.items.length) };
         }
 
         function renderRoutineTemplateCanvas() {
             const canvasBox = document.getElementById('routine-export-canvas');
-            if (!canvasBox) return;
-
+            if (!canvasBox || !tplSource) return;
             const sportChosen = (localStorage.getItem('kinet_sport') || 'Fútbol').toUpperCase();
             const userName = (localStorage.getItem('kinet_user_name') || 'ATLETA KINET').toUpperCase();
             const userPos = (localStorage.getItem('kinet_position') || 'PRO').toUpperCase();
             const anthropometry = localStorage.getItem('kinet_user_anthropometry') || 'sin datos registrados';
-
-            const templatesData = {
-                workout: {
-                    tag: 'PLANTILLA OFICIAL // PREPARACIÓN FÍSICA & GIMNASIO',
-                    title: `RUTINA DE POTENCIA REACTIVA & PREVENCIÓN (${sportChosen})`,
-                    blocks: [
-                        { phase: 'BLOQUE 1 • ACTIVACIÓN & MOVILIDAD (12 MIN)', items: ['Movilidad dinámica de cadera y tobillo (2x45s)', 'Plancha isométrica anti-rotación + activación glúteo medio (3x35s)', 'Skipping reactivo + apoyos unipodales de estabilización (3x20m)'] },
-                        { phase: 'BLOQUE 2 • FUERZA EXPLOSIVA & TRANSFERENCIA (25 MIN)', items: [`Sentadilla búlgara explosiva / Trap-Bar Jump adaptada a ${userPos} (4x6 reps • RIR 2)`, 'Aceleración resistida + salida lanzada 15 metros al 95% (5 series • Rec 90s)', 'Cambio de dirección reactivo 45° con frenada controlada (4x4 por lado)'] },
-                        { phase: 'BLOQUE 3 • PREVENCIÓN LESIONAL & DESCARGA (10 MIN)', items: ['Curl nórdico asistido / Excéntrico de isquiotibiales (3x6 reps lentas 4s)', 'Isométrico de tendón rotuliano y sóleo (3x40s)', 'Liberación miofascial + hidratación con electrolitos (500 ml)'] }
-                    ]
-                },
-                nutrition: {
-                    tag: 'PLANTILLA OFICIAL // NUTRICIÓN DE COMPETICIÓN & FISIO',
-                    title: `PROTOCOLO DE CARGA ENERGÉTICA Y RECUPERACIÓN (${sportChosen})`,
-                    blocks: [
-                        { phase: 'FASE 1 • PRE-COMPETICIÓN (3H A 45M ANTES)', items: ['Comida principal (3h antes): Arroz blanco o pasta (1.8g/kg) + pechuga de pavo/pollo (30g proteína)', 'Activación (45m antes): 1 plátano maduro + 400 ml de agua con sales minerales', 'Evitar grasas pesadas y fibra excesiva antes de saltar a pista'] },
-                        { phase: 'FASE 2 • INTRA-SESIÓN & HIDRATACIÓN', items: ['500 - 700 ml/hora de bebida isotónica (6% carbohidratos + 400mg sodio)', 'En días de doble sesión o calor: añadir 1 gel isotónico en el minuto 45'] },
-                        { phase: 'FASE 3 • VENTANA METABÓLICA & FISIO POST-ENTRENO', items: ['Primeros 30 min: Batido Recovery (30g Whey Isolate + 50g amilopectina/fruta)', 'Cena regenerativa: Pescado azul (Omega-3 antiinflamatorio) + patata asada + verduras', 'Descanso nocturno objetivo: 8.0 horas + descarga de piernas en alto (12 min)'] }
-                    ]
-                },
-                tactical: {
-                    tag: 'PLANTILLA OFICIAL // HOJA DE RUTA TÁCTICA & MIND COACH',
-                    title: `PLAN ESPECÍFICO DE CAMPO Y FOCO MENTAL (${userPos})`,
-                    blocks: [
-                        { phase: 'OBJETIVO 1 • LECTURA TÁCTICA & POSICIONAMIENTO', items: [`Escaneo visual (Scanning) cada 3 segundos antes de recibir en zona de ${userPos}`, 'Perfilado corporal abierto hacia línea de progresión para superar primera línea de presión', 'Temporización en el 1vs1 y ataque al espacio débil del defensor'] },
-                        { phase: 'OBJETIVO 2 • AUDITORÍA DE VÍDEO (VISION LAB™)', items: ['Grabar 3 micro-clips de 30-45 segundos en el próximo partido/entreno', 'Analizar ángulo de apoyo y velocidad de ejecución en los últimos 20 minutos'] },
-                        { phase: 'OBJETIVO 3 • PROTOCOLO MIND COACH PRE-PARTIDO', items: ['Respiración cuadrada 4-4-4-4 en vestuario (3 minutos)', 'Visualización de 3 acciones exitosas propias de tu demarcación', 'Palabra ancla de reinicio inmediato tras pérdida o error: "SIGUIENTE"'] }
-                    ]
-                }
-            };
-
-            const cur = templatesData[activeRoutineTemplateType] || templatesData.workout;
+            const E = (x) => String(x).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+            const tags = { group: 'PLAN INTEGRAL // SALA DE JUNTAS', fisico_nutri: 'PREPARACIÓN FÍSICA, FISIO & NUTRICIÓN', psicologia: 'MIND COACH // PLAN MENTAL', tecnico_video: 'HOJA DE RUTA TÉCNICO-TÁCTICA', agente_marketing: 'CARRERA & MARCA PERSONAL' };
+            const tag = 'PLANTILLA OFICIAL // ' + (tags[tplSource.chatKey] || 'PLAN PERSONALIZADO');
+            const parsed = parsePlanText(tplSource.text);
+            const blocks = parsed.blocks.length ? parsed.blocks : [{ phase: 'PLAN', items: [tplSource.text.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim()] }];
+            activeRoutineTemplateType = tplSource.chatKey || 'plan';
+            const lbl = document.getElementById('tpl-source-label');
+            if (lbl) lbl.textContent = 'Plantilla generada a partir de la respuesta de ' + tplSource.sender + '. Es tu plan real, no un modelo genérico.';
 
             canvasBox.innerHTML = `
-                <!-- CABECERA OFICIAL CON LOGO KINET SIEMPRE ARRIBA A LA IZQUIERDA -->
                 <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.12);padding-bottom:14px;margin-bottom:16px;gap:12px;flex-wrap:wrap;">
                     <div style="display:flex;align-items:center;gap:12px;">
-                        <div style="width:42px;height:42px;border-radius:12px;background:var(--role-gradient);color:#04060A;font-family:'Orbitron';font-weight:900;font-size:1.3rem;display:flex;align-items:center;justify-content:center;box-shadow:0 0 16px var(--role-glow);">K</div>
+                        <div style="width:42px;height:42px;border-radius:12px;background:var(--role-gradient);color:#04060A;font-family:'Orbitron';font-weight:900;font-size:1.3rem;display:flex;align-items:center;justify-content:center;">K</div>
                         <div>
                             <div style="font-family:'Orbitron';font-weight:900;font-size:1.02rem;letter-spacing:0.14em;color:white;">KINET OS</div>
-                            <div style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);letter-spacing:0.08em;">${cur.tag}</div>
+                            <div style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);letter-spacing:0.08em;">${E(tag)}</div>
                         </div>
                     </div>
                     <div style="text-align:right;font-family:'JetBrains Mono';font-size:0.62rem;color:#CBD5E1;">
-                        <div><strong>${userName}</strong> (${userPos})</div>
-                        <div style="color:#94A3B8;">${anthropometry} • ${new Date().toLocaleDateString('es-ES')}</div>
+                        <div><strong>${E(userName)}</strong> (${E(userPos)})</div>
+                        <div style="color:#94A3B8;">${E(sportChosen)} • ${E(anthropometry)} • ${new Date().toLocaleDateString('es-ES')}</div>
                     </div>
                 </div>
-
-                <h4 style="font-family:'Orbitron';font-size:0.95rem;font-weight:900;color:var(--role-color);margin-bottom:12px;letter-spacing:0.03em;">${cur.title}</h4>
-
+                ${parsed.intro ? `<p style="margin:0 0 12px;font-size:0.8rem;line-height:1.5;color:#E2E8F0;">${E(parsed.intro)}</p>` : ''}
                 <div style="display:flex;flex-direction:column;gap:10px;">
-                    ${cur.blocks.map(b => `
+                    ${blocks.map(b => `
                         <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.09);border-left:3px solid var(--role-color);border-radius:12px;padding:10px 13px;">
-                            <div style="font-family:'Orbitron';font-size:0.72rem;font-weight:800;color:white;margin-bottom:6px;">${b.phase}</div>
-                            <ul style="margin:0;padding-left:16px;font-size:0.76rem;color:#E2E8F0;line-height:1.5;">
-                                ${b.items.map(it => `<li>${it}</li>`).join('')}
-                            </ul>
-                        </div>
-                    `).join('')}
+                            <div style="font-family:'Orbitron';font-size:0.72rem;font-weight:800;color:white;margin-bottom:6px;">${E(b.phase)}</div>
+                            <ul style="margin:0;padding-left:16px;font-size:0.76rem;color:#E2E8F0;line-height:1.5;">${b.items.map(it => `<li>${E(it)}</li>`).join('')}</ul>
+                        </div>`).join('')}
                 </div>
-
+                ${parsed.outro ? `<p style="margin:12px 0 0;font-size:0.76rem;line-height:1.5;color:#CBD5E1;border-left:3px solid var(--role-color);padding-left:10px;">${E(parsed.outro)}</p>` : ''}
                 <div style="margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono';font-size:0.58rem;color:#94A3B8;">
-                    <span>✓ CERTIFICADO POR KINET AI TECHNICAL STAFF</span>
-                    <span>jkinetos.es</span>
-                </div>
-            `;
+                    <span>✓ GENERADO POR KINET AI TECHNICAL STAFF · orientativo, no sustituye a un profesional sanitario</span>
+                    <span>kinetos.es</span>
+                </div>`;
         }
 
         async function exportRoutineTemplateAsImage() {
@@ -2941,7 +2942,7 @@ Responde siempre en español con naturalidad y precisión técnica.`;
 
             pdf.setTextColor(148, 163, 184);
             pdf.setFontSize(8);
-            pdf.text('Informe tactico y biometrico generado por KINET OS — Cuerpo Tecnico IA • jkinetos.es', 14, 286);
+            pdf.text('Informe tactico y biometrico generado por KINET OS — Cuerpo Tecnico IA • kinetos.es', 14, 286);
 
             pdf.save(`Informe_Cuerpo_Tecnico_KINET_${sportChosen}.pdf`);
         }

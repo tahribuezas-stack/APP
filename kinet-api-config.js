@@ -29,6 +29,12 @@
   const KINET_API_CONFIG = {
     SUPABASE_URL: SUPABASE_PROJECT_URL,
     EDGE_BASE_URL: EDGE_FUNCTIONS_BASE,
+    // Pon true cuando hayas desplegado la Edge Function 'kinet-ai-chat' (supabase/LEEME_IA_Y_MENORES.md): la IA, los límites y el tope del 33 % pasan al servidor.
+    edgeFunctionsDeployed: false,
+    // Pon true tras desplegar 'guardian-consent': se envía un correo al tutor de cada menor para confirmar su autorización.
+    guardianVerification: false,
+    // Spotify: pega aquí el Client ID de tu app de developer.spotify.com (ver supabase/LEEME_PASOS_PARA_TI.md §6). Es público, no es un secreto.
+    SPOTIFY_CLIENT_ID: '',
 
     GEMINI_API_KEY: DEFAULT_INSTALLED_API_KEY,
     GROQ_API_KEY: localStorage.getItem('kinet_groq_api_key') || '',
@@ -39,30 +45,35 @@
     videoStorage: { provider: 'none', bucket: 'kinet-videos', functionName: 'video-upload-url', maxMB: 8, quality: 'normal' },
 
     // Modelos asignados automáticamente según el Plan de Suscripción del usuario
+    // Cada plan tiene su motor, su tope de respuesta y su coste estimado por consulta (€) para el control del 33 %.
+    // Ajusta costEur con la factura real de tu proveedor. maxTokens incluye el "pensamiento" interno del modelo.
     modelsByTier: {
       free: {
-        gemini: 'gemini-3.8-flash',
-        geminiFallback: 'gemini-3.5-flash',
+        gemini: 'gemini-3.5-flash',          // motor equilibrado y barato: con el prompt de preparador rinde mucho
+        geminiFallback: 'gemini-3.5-flash-lite',
         openai: 'gpt-4o-mini',
         groq: 'llama-3.3-70b-versatile',
-        maxTokens: 600,
-        temperature: 0.65
+        maxTokens: 1800,
+        temperature: 0.6,
+        costEur: 0.0012
       },
       pro: {
-        gemini: 'gemini-3.8-flash',
+        gemini: 'gemini-3.8-flash',          // motor potente
         geminiFallback: 'gemini-3.5-flash',
         openai: 'gpt-4o-mini',
         groq: 'llama-3.3-70b-versatile',
-        maxTokens: 850,
-        temperature: 0.68
+        maxTokens: 2600,
+        temperature: 0.62,
+        costEur: 0.005
       },
       club: {
         gemini: 'gemini-3.8-flash',
         geminiFallback: 'gemini-3.5-flash',
         openai: 'gpt-4o',
         groq: 'llama-3.3-70b-versatile',
-        maxTokens: 1100,
-        temperature: 0.68
+        maxTokens: 3400,
+        temperature: 0.62,
+        costEur: 0.006
       }
     },
 
@@ -73,8 +84,9 @@
       geminiFallback: 'gemini-3.5-flash',
       openai: 'gpt-4o-mini',
       groq: 'llama-3.1-8b-instant',
-      maxTokens: 380,
-      temperature: 0.6
+      maxTokens: 1100,
+      temperature: 0.6,
+      costEur: 0.0004
     },
 
     // Enlaces Oficiales de Stripe Payment Links (rellena tus URLs de buy.stripe.com)
@@ -453,6 +465,10 @@ REGLA DE CONVERSACIÓN: Si el usuario saluda ("hola", "qué tal"), devuelve el s
     };
   }
 
+  // Quita los avisos que añade la propia app (cupo, motor básico…) para que no entren al historial del modelo
+  function stripSystemNotices(t) {
+    return String(t || '').replace(/\n*\s*(?:⚡|ℹ️)\s*\*?\[?(?:Aviso de Vestuario|Has usado tus consultas)[\s\S]*$/i, '').replace(/\n*\s*ℹ️\s*\*?Has usado tus consultas[\s\S]*$/i, '').trim();
+  }
   function extractActiveConversationHistoryFromDOM() {
     const history = [];
     try {
@@ -462,11 +478,11 @@ REGLA DE CONVERSACIÓN: Si el usuario saluda ("hola", "qué tal"), devuelve el s
         const isIncoming = el.classList.contains('incoming');
         const clone = el.cloneNode(true);
         clone.querySelectorAll('.msg-inline-actions, .handoff-action-card, .msg-time, strong').forEach(n => n.remove());
-        const txt = (clone.textContent || '').trim();
+        const txt = stripSystemNotices((clone.textContent || '').trim());
         if (txt && !txt.includes('Respuesta del Servidor de API')) {
           history.push({
             role: isIncoming ? 'assistant' : 'user',
-            content: txt.slice(0, 380)
+            content: txt.slice(0, isIncoming ? 2600 : 900)
           });
         }
       });
@@ -546,8 +562,8 @@ REGLA DE CONVERSACIÓN: Si el usuario saluda ("hola", "qué tal"), devuelve el s
   const HUMAN_STYLE_BLOCK = `ESTILO DE RESPUESTA (prevalece sobre cualquier regla anterior):
 - Escribes como un profesional cualificado hablando con su cliente: tono sobrio, cercano y seguro. No suenas a asistente virtual.
 - Responde SOLO a lo que se pregunta. No añadas información, consejos ni recordatorios que no se hayan pedido (nada de "no olvides tu check-in", promociones de módulos ni avisos genéricos). Los datos del expediente los usas en silencio para afinar la respuesta; no los recites salvo que sean relevantes para la pregunta.
-- Longitud: saludo o pregunta simple = 1-3 frases. Consulta técnica = 4-8 líneas. Solo si piden un plan completo (rutina, dieta, sesión) te extiendes, y entonces con estructura clara.
-- Si falta un dato imprescindible, haz UNA pregunta concreta en lugar de suponer.
+- Longitud: saludo o pregunta simple = 1-3 frases. Consulta técnica = 4-8 líneas. Rutina, dieta o plan = completo y ordenado (hasta ~500 palabras), nunca cortado ni a medias. Antes de prescribir un plan, aplica el PROTOCOLO DE TRABAJO (entrevista breve si faltan datos).
+- Si falta un dato imprescindible, pregunta lo que falte en un solo mensaje (máximo 4 preguntas cortas) en lugar de suponer; si ya te lo dijeron, no lo vuelvas a preguntar.
 - Formato: texto en párrafos cortos. PROHIBIDO usar encabezados con #, líneas "---", tablas, emojis decorativos y muletillas ("¡Claro!", "¡Por supuesto!", "Espero que te sirva", "¡A por ello!"). Para pasos usa lista numerada ("1.") con una línea cada uno; para opciones, guiones ("- "). Negrita (**) solo en 1-3 términos clave por respuesta.
 - Si procede recomendar a un profesional sanitario, una sola frase, sin dramatizar.`;
 
@@ -610,6 +626,142 @@ REGLA DE CONVERSACIÓN: Si el usuario saluda ("hola", "qué tal"), devuelve el s
     return roleTxt + '\n\n' + safety;
   }
 
+  // ==========================================================================
+  // CEREBRO DE PREPARADOR: ciencia del entrenamiento POR DEPORTE + entrevista previa + corrección de desvíos
+  // (lo usan los 4 especialistas, la programación de semana y las rutinas)
+  // ==========================================================================
+  const SPORT_TRAINING_SCIENCE = {
+    'Fútbol': {
+      prioridades: 'aceleración 0-10 m, velocidad máxima y sprint repetido, cambios de dirección y frenada, fuerza máxima relativa y potencia (no volumen), resistencia intermitente de alta intensidad (juegos reducidos, intervalos 15-15 / 30-15) y prevención (nórdico/isquios excéntrico, Copenhagen/aductores, isométricos de tendón rotuliano y tobillo, FIFA 11+)',
+      gimnasio: '1-2 sesiones/semana en competición (2 en pretemporada), 40-60 min. Series de 3-5 reps al 75-90 % 1RM con intención máxima de velocidad, 3-5 series, descansos 2-3 min; pliometría y trineo/resistidos. Ejercicios tipo: sentadilla o trap-bar, peso muerto rumano, hip thrust, zancada/búlgara, salto con contramovimiento, nórdico, Copenhagen, press y dominadas como complemento.',
+      evitar: 'hipertrofia clásica de culturismo (series de 8-15 al fallo, "día de pierna" destructivo, split por músculos), mucho volumen excéntrico o piernas pesadas en MD-1/MD-2, rodajes largos y lentos como base aeróbica, y cualquier trabajo que sume masa sin ganar velocidad. Más masa lenta = menos aceleración, más fatiga y más riesgo muscular.',
+      semana: 'con partido: MD+1 recuperación/regenerativo, MD-4 fuerza pesada, MD-3 carga de campo (resistencia intermitente), MD-2 velocidad/estímulo corto, MD-1 activación y táctica corta; sin partido: 2 de fuerza + 1-2 de velocidad.',
+      posiciones: [
+        [/portero|gk|guardameta/, 'portero: reactividad y primeros pasos laterales, salto y extensión, movilidad de cadera y hombro, potencia de piernas; poco volumen de carrera continua; trabajo de blocaje/caída y core anti-rotación'],
+        [/central|d[ce]fensa central|dfc|\bdc\b/, 'central: fuerza y salto para duelos aéreos, aceleración corta y frenada, fuerza de contacto, velocidad de giro y de recuperación'],
+        [/lateral|carrilero|\blb\b|\brb\b|\bli\b|\bld\b/, 'lateral/carrilero: sprints repetidos de 20-40 m, capacidad de repetir esfuerzos, centro y recuperación, aductores'],
+        [/mediocentro|pivote|medio|centrocamp|interior|mcd|\bmc\b|mco/, 'centrocampista: resistencia intermitente, cambios de dirección, giros y escaneo, fuerza para proteger balón, aceleración corta'],
+        [/extremo|banda|\bei\b|\bed\b|\blw\b|\brw\b/, 'extremo: velocidad máxima, aceleración y 1 contra 1, frenada y cambio de ritmo, prevención de isquios'],
+        [/delantero|nueve|punta|\bdc\b|\bst\b|\bcf\b/, 'delantero: primeros 5-10 m, fuerza de espalda/contacto, frenada-giro-remate, potencia de salto, isquios y glúteo']
+      ]
+    },
+    'Baloncesto': {
+      prioridades: 'salto vertical y pliometría, aceleración 0-5 m y frenada, cambios de dirección, fuerza de tren inferior y core, hombro/escápula, resistencia intermitente, y prevención de tobillo, rodilla (tendón rotuliano) y lumbar',
+      gimnasio: '2 sesiones/semana, 45-60 min: sentadilla/trap-bar, peso muerto rumano, zancadas, hip thrust, saltos (drop jump, box jump) con calidad, press/remo/dominadas, isométricos de tendón rotuliano y fortalecimiento de tobillo.',
+      evitar: 'volumen alto de pecho/brazos al estilo culturista, que resta movilidad y velocidad; series al fallo en piernas en semanas de partidos; sumar saltos sin control de carga (el tendón rotuliano es el punto débil).',
+      semana: 'con partidos: 1-2 sesiones de fuerza-potencia lejos del partido, trabajo de tiro y pista con carga moderada; descargar 24-48 h antes del partido.',
+      posiciones: [
+        [/base|\bpg\b|escolta|\bsg\b/, 'exterior (base/escolta): agilidad, aceleración, frenada, resistencia intermitente y tiro con fatiga'],
+        [/alero|\bsf\b|ala.?p[ií]vot|\bpf\b/, 'ala: salto, fuerza de contacto y velocidad lateral, rebote'],
+        [/p[ií]vot|\bc\b|center/, 'pívot: fuerza máxima para el contacto, salto reactivo, movilidad de tobillo y cadera, desplazamientos cortos']
+      ]
+    },
+    'Pádel / Tenis': {
+      prioridades: 'desplazamientos laterales y split-step, primeros pasos explosivos, potencia rotacional (lanzamientos de balón medicinal), anti-rotación/core, estabilidad de hombro (manguito y escápula), salud de codo/muñeca, lumbar y rodillas; resistencia específica de puntos largos',
+      gimnasio: '2 sesiones/semana: fuerza global de piernas y tirones (remos, dominadas), rotación y anti-rotación, trabajo de manguito rotador, pliometría lateral; ejercicios unilaterales equilibrados.',
+      evitar: 'press de banca y empujes pesados en exceso (cargan el hombro), trabajo asimétrico que agrave la descompensación del lado dominante, volumen de antebrazo/bíceps sin control (codo de tenista) y hipertrofia general sin utilidad en pista.',
+      semana: 'con torneo: fuerza lejos del torneo, el día previo solo activación; entre partidos, recuperación y movilidad.',
+      posiciones: [
+        [/rev[eé]s|izquierda|\bizq/, 'lado del revés: más remates y salidas de pared: potencia rotacional y estabilidad de hombro'],
+        [/derecha|\bdrive\b/, 'lado de la derecha/drive: más ataques y volea de derecha: potencia y control de cadera/rotación']
+      ]
+    },
+    'Boxeo / MMA': {
+      prioridades: 'potencia rotacional y de cadera, velocidad de mano, cuello y trapecios, core, capacidad intermitente por asaltos (rounds), pliometría, movilidad de hombros y cadera, y prevención de manos/muñecas, hombros y rodillas',
+      gimnasio: '2 sesiones/semana: potencia (kettlebell swing, cargadas, lanzamientos de balón medicinal), fuerza de tirón/empuje moderada, core, cuello; combinar con saco/manoplas por rounds (3 min) y sparring controlado.',
+      evitar: 'hipertrofia que obligue a subir de categoría de peso, cortes de peso agresivos o deshidratación, cardio largo y lento como único trabajo aeróbico, sparring duro sin descarga previa y volumen de pesas pesado en el campamento cercano al combate.',
+      semana: 'fight camp: 8-10 semanas, sparring 2 veces/semana lejos del combate, última semana de descarga y control de peso saludable.',
+      posiciones: []
+    },
+    'Running': {
+      prioridades: 'base aeróbica (≈80 % del volumen fácil, ≈20 % de calidad: umbral, series, tempo), tirada larga progresiva (+10 % semanal máx., descarga cada 3-4 semanas), fuerza máxima y pliometría 2 veces/semana (mejora la economía de carrera) y prevención de gemelos, Aquiles, fascia plantar, periostio y rodilla',
+      gimnasio: '2 sesiones/semana de 30-40 min: sentadilla/trap-bar pesado (3-6 reps), peso muerto rumano, zancadas, elevaciones de gemelo con peso (rodilla recta y flexionada), saltos y core.',
+      evitar: 'hipertrofia culturista (masa que sube el coste energético), subir volumen e intensidad a la vez, series intensas sin base aeróbica y saltarse descargas.',
+      semana: 'ejemplo: 1-2 calidad, 1 tirada larga, resto rodajes suaves, 2 de fuerza (no el día antes de calidad), 1 día de descanso.',
+      posiciones: []
+    },
+    'Otros Deportes': {
+      prioridades: 'la capacidad dominante de su disciplina (fuerza, potencia, resistencia o técnica), especificidad del gesto, sobrecarga progresiva y prevención de las zonas de sobreuso propias de ese deporte',
+      gimnasio: '1-3 sesiones/semana según la fase; ejercicios con transferencia directa al gesto del deporte.',
+      evitar: 'entrenar como si fuera culturismo o fitness general, volumen sin propósito y cualquier trabajo que reste la cualidad principal del deporte.',
+      semana: 'periodiza según la fecha de la próxima competición.',
+      posiciones: []
+    }
+  };
+
+  function buildTrainingScienceBlock(sportRaw, posRaw) {
+    const sport = canonicalSportName(sportRaw);
+    const s = SPORT_TRAINING_SCIENCE[sport] || SPORT_TRAINING_SCIENCE['Otros Deportes'];
+    const pos = String(posRaw || '').toLowerCase();
+    let posHint = '';
+    (s.posiciones || []).some(([re, txt]) => { if (re.test(pos)) { posHint = txt; return true; } return false; });
+    return `CRITERIO DE PREPARADOR FÍSICO (${sport}) — es lo que te distingue de un entrenador genérico:
+- Prioriza SIEMPRE lo que gana partidos/competiciones en ${sport}: ${s.prioridades}.
+- Gimnasio: ${s.gimnasio}
+- Evita: ${s.evitar}
+- Semana tipo: ${s.semana}${posHint ? '\n- Específico de su puesto: ' + posHint : ''}
+- Principios generales: especificidad y transferencia al deporte; sobrecarga progresiva; "dosis mínima eficaz" en competición; la carga se ajusta al estado del día (check-in, sueño, RPE, molestias); 1 variable que sube cada vez (volumen o intensidad, no las dos); semanas de descarga; mínimo 48 h entre estímulos pesados del mismo grupo; el trabajo duro nunca el día previo a competir.
+- Cada ejercicio que propongas debe tener nombre concreto, series x repeticiones (o tiempo/distancia), descanso e intención ("máxima velocidad", "controlado 3 s", "RIR 2") y un motivo en media frase de por qué sirve para ${sport}${pos ? ' y para su puesto' : ''}. Nada de listas vagas ("haz pesas", "cardio").
+- Si usas jerga de otro deporte, estás equivocado: solo vocabulario de ${sport}.`;
+  }
+
+  const COACH_PROTOCOL_BLOCK = `PROTOCOLO DE TRABAJO (obligatorio, es lo que hace inteligente a esta app):
+1) ENTREVISTA ANTES DE PRESCRIBIR. Si piden una rutina, plan de entrenamiento, semana, dieta o plan de readaptación, primero revisa el expediente y la conversación. Si falta alguno de estos datos imprescindibles, NO des el plan todavía: haz UNA sola respuesta con las preguntas que faltan (máximo 4, numeradas, cortas, con opciones entre paréntesis para contestar rápido) y espera:
+   · Rutina/entrenamiento: objetivo concreto (ser más rápido, más fuerte, más resistente, prevenir lesiones…), momento de la temporada o fecha del próximo partido/competición, días y tiempo disponibles por semana, acceso a gimnasio/material, lesiones o molestias actuales y experiencia con pesas.
+   · Dieta/nutrición: peso y altura, objetivo, horarios de entreno/competición, alergias o intolerancias y número de comidas habituales.
+   Usa lo que ya sabes del expediente (deporte, puesto, biometría, lesiones, semana tipo, check-in) y pregunta SOLO lo que falte. Primero una frase útil que demuestre criterio (p. ej. qué cualidad prioriza su puesto) y luego las preguntas.
+2) SI YA PREGUNTASTE Y EL USUARIO CONTESTÓ (aunque sea a medias o con "lo que tú veas"), NO vuelvas a preguntar: entrega el plan completo, y di en una línea los supuestos que has tomado. Si el usuario insiste en recibirlo ya, dalo igualmente con supuestos explícitos.
+3) CORRIGE ANTES DE OBEDECER. Si lo que pide, o lo que cuenta que hace, va contra su objetivo, su deporte o su salud (ejemplos: hipertrofia de culturismo en un futbolista en competición; series al fallo de pierna el día antes del partido; solo cardio lento para ganar velocidad; ganar peso rápido en un deporte de categorías; entrenar con dolor), no lo ejecutes sin más: dilo en 1-2 frases con la razón fisiológica concreta ("más masa lenta resta aceleración y aumenta la fatiga") y propón la alternativa específica. Si insiste con conocimiento de causa y no es peligroso, adáptalo lo mejor posible manteniendo el objetivo deportivo y deja claro el coste. Si hay riesgo para su salud, no lo planifiques.
+4) FORMATO DE UN PLAN: una línea con objetivo y supuestos; después bloques con título en negrita (Activación, Fuerza/Potencia, Específico del deporte, Prevención, Vuelta a la calma) y debajo lista de ejercicios "nombre — series x reps — descanso — intención". Termina con la progresión de las próximas 2-4 semanas y una señal de alarma para parar. Un plan completo puede ocupar hasta ~500 palabras: dalo ENTERO, no lo cortes ni lo dejes a medias; si no cabe, prioriza lo esencial y ofrece continuar con la siguiente semana.
+5) SENTIDO DE LA CARGA: si el check-in o el contexto indican fatiga alta, sueño bajo, molestia o competición próxima, baja la carga y dilo. Cuando hables de pesos usa %1RM, RIR o RPE, nunca kilos absolutos inventados.
+6) Termina SIEMPRE tus frases: una respuesta jamás puede acabar a mitad de palabra o de frase.`;
+
+
+  // ¿El usuario es menor de 18 años? (fecha de nacimiento, edad directa o protección de menores activa)
+  function isMinorUser() {
+    try {
+      if (window.KinetMinors) return window.KinetMinors.isMinor();
+      const bd = localStorage.getItem('kinet_user_birthdate') || localStorage.getItem('kinet_birth_date');
+      if (bd) { const b = new Date(bd); if (!isNaN(b)) { const n = new Date(); let a = n.getFullYear() - b.getFullYear(); if (n.getMonth() < b.getMonth() || (n.getMonth() === b.getMonth() && n.getDate() < b.getDate())) a--; return a < 18; } }
+      const ag = parseInt(localStorage.getItem('kinet_age_years_direct') || localStorage.getItem('kinet_age') || '0', 10);
+      if (ag > 0 && ag < 18) return true;
+      return localStorage.getItem('kinet_minor_protection') === 'true';
+    } catch (e) { return false; }
+  }
+  const MINOR_AI_BLOCK = `USUARIO MENOR DE 18 AÑOS (reglas estrictas, prevalecen sobre todo lo demás):
+- Nada de suplementos (creatina, cafeína, proteína en polvo, quemadores…), dietas de pérdida de peso, déficits calóricos ni "cortes de peso".
+- Nada de test de 1RM ni cargas máximas: técnica primero, cargas moderadas (RIR 3-4), 6-12 repeticiones controladas, progresión lenta y supervisada por su entrenador.
+- Prioriza técnica, coordinación, movilidad, juego y diversión; volumen razonable y descanso/sueño suficientes; evita la especialización precoz y el sobreentrenamiento.
+- Recuérdale con naturalidad que consulte sus planes con su entrenador y su familia. No recopiles datos personales innecesarios (dirección, centro escolar, teléfono) ni propongas contactar con adultos desconocidos.`;
+
+  // Notas de refuerzo para ESTA consulta (se añaden al prompt): detectan desvíos de entrenamiento y el momento de entregar el plan
+  function buildTurnHints(userMessage, history, sportRaw) {
+    const m = String(userMessage || '').toLowerCase(), sport = canonicalSportName(sportRaw), out = [];
+    const rutina = /rutina|plan de entren|entrenamiento|programa(me|r)|semana de entren|dieta|plan nutric|readapt/.test(m);
+    if (/hipertrofi|masa muscular|ganar (m[uú]sculo|volumen|peso)|culturism|marcar (pecho|brazo|abdomen)|brazos grandes|pecho|bíceps|biceps|tr[ií]ceps|d[ií]a de (pecho|brazo|espalda)|definir/.test(m) && sport !== 'Otros Deportes') {
+      out.push(`El usuario pide trabajo de hipertrofia/estética. Aplica la regla CORRIGE ANTES DE OBEDECER: explícale en 1-2 frases por qué en ${sport} no es lo que más rinde (masa que no se convierte en rendimiento, resta velocidad/movilidad y aumenta la fatiga) y propón la alternativa específica (fuerza máxima relativa, potencia y prevención); solo si insiste conscientemente, un bloque corto de hipertrofia funcional en pretemporada sin sacrificar su cualidad principal.`);
+    }
+    if (/(d[ií]a (antes|previo)|v[ií]spera|ayer|ma[ñn]ana).{0,40}(partido|competici|torneo|combate|carrera)/.test(m) && /pierna|sentadilla|pesas|gimnasio|fallo|series|intenso|duro|entreno fuerte/.test(m)) {
+      out.push('El usuario menciona entrenar duro cerca de una competición. Corrígelo: nada de trabajo pesado o al fallo en las 24-48 h previas; propón activación, velocidad corta y recuperación.');
+    }
+    if (/adelgazar|perder peso|bajar de peso|cortar peso|cortar kilos|deshidrat|ayuno|quemar grasa r[aá]pido|rebajar/.test(m)) {
+      out.push('El usuario habla de perder peso. Seguridad: nada de dietas extremas, deshidratación ni pérdidas rápidas; si es deporte de categorías de peso o es menor, solo pautas saludables y recomienda un profesional.');
+    }
+    if (/solo (cardio|correr|trotar)|cardio largo|correr mucho|rodajes largos/.test(m) && /r[aá]pid|velocidad|explosiv|sprint|aceleraci/.test(m) && sport !== 'Running') {
+      out.push('Pide cardio largo para ganar velocidad: corrígelo (el trabajo aeróbico lento no mejora la velocidad/explosividad); propón sprints, aceleraciones y fuerza-potencia.');
+    }
+    // ¿Acabó de preguntarte datos y el usuario ya los ha dado?
+    const prev = (Array.isArray(history) ? history : []).filter(h => h && h.role !== 'user').slice(-1)[0];
+    const prevText = prev ? String(prev.content || '') : '';
+    const askedBefore = /\n\s*(?:1[.)]|-)\s.+\n\s*(?:2[.)]|-)\s/.test(prevText) && /\?/.test(prevText);
+    if (askedBefore && !/\bplan\b.{0,25}(semana|bloque)|series x|\d\s*x\s*\d/i.test(prevText)) {
+      out.push('Tu mensaje anterior fue una entrevista con preguntas y el usuario acaba de responder. NO vuelvas a preguntar: entrega ya el plan completo con los datos que te ha dado (y supuestos explícitos para lo que no haya contestado).');
+    } else if (rutina && !askedBefore) {
+      out.push('Es una petición de plan/rutina/dieta: aplica el PROTOCOLO (entrevista breve solo si faltan datos imprescindibles que NO figuren ya en el expediente o en la conversación).');
+    }
+    return out.length ? '\n\nAVISOS PARA ESTA CONSULTA (prioritarios):\n- ' + out.join('\n- ') : '';
+  }
+
   function buildMasterTrainedSystemPrompt(agentKey) {
     const ctx = gatherFullUserContextSnapshot();
     const persona = KINET_TRAINED_PERSONAS[agentKey] || KINET_TRAINED_PERSONAS.group;
@@ -633,7 +785,9 @@ EXPEDIENTE BIOMÉTRICO Y TÁCTICO EN TIEMPO REAL DEL USUARIO:
 LO QUE EL USUARIO HA CONTADO RECIENTEMENTE A TU CUERPO TÉCNICO (memoria compartida entre los 4 especialistas):
 ${ctx.memory || '- (aún nada)'}
 
-${PLAN_FOCUS_BY_AGENT[agentKey] ? 'CÓMO USAR EL PLAN SEGÚN TU ESPECIALIDAD:\n' + PLAN_FOCUS_BY_AGENT[agentKey] + '\n\n' : ''}${buildRoleAndSafetyBlock(ctx.role, agentKey)}
+${PLAN_FOCUS_BY_AGENT[agentKey] ? 'CÓMO USAR EL PLAN SEGÚN TU ESPECIALIDAD:\n' + PLAN_FOCUS_BY_AGENT[agentKey] + '\n\n' : ''}${(ctx.role === 'athlete' || ctx.role === 'staff') && agentKey !== 'agente_marketing' ? buildTrainingScienceBlock(ctx.sport, ctx.userPos) + '\n\n' : ''}${COACH_PROTOCOL_BLOCK}
+
+${isMinorUser() ? MINOR_AI_BLOCK + '\n\n' : ''}${buildRoleAndSafetyBlock(ctx.role, agentKey)}
 
 REGLAS DE VERACIDAD Y ROL:
 - Usa SOLO los datos del expediente. Si un dato figura como "no registrada", dilo y pídeselo; NUNCA inventes medidas, estadísticas ni resultados del usuario.
@@ -688,9 +842,9 @@ ${HUMAN_STYLE_BLOCK}
   // Es una estimación en el navegador (no es a prueba de manipulación); el control real irá en una Edge Function.
   // ==========================================================================
   const AI_BUDGET_SHARE = 0.33;
-  const FREE_MONTHLY_BUDGET_EUR = 0.45;
+  const FREE_MONTHLY_BUDGET_EUR = 0.60;
   const IMAGE_BUDGET_CEILING = 0.75;   // las imágenes/ediciones no pueden gastar más del 75 % del presupuesto (el resto, para chat)
-  const AI_COST_EUR = { strong: 0.004, strongVision: 0.007, lite: 0.0003, image: 0.04, imageEdit: 0.045, videoPlan: 0.015 };
+  const AI_COST_EUR = { strong: 0.005, strongVision: 0.009, lite: 0.0003, image: 0.04, imageEdit: 0.045, videoPlan: 0.015 };
   let _engineOverride = null;
 
   function monthKeyNow() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); }
@@ -1201,15 +1355,14 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
   // 7. CLIENTE HTTP DE API REAL (GEMINI AIzaSy, VERTEX AQ., GROQ, OPENAI Y EDGE)
   // ==========================================================================
   async function invokeSupabaseEdgeFunction(functionName, payloadObj) {
-    if (localStorage.getItem('kinet_edge_functions_deployed') !== 'true') {
+    // Se activa con KINET_API_CONFIG.edgeFunctionsDeployed = true (tras desplegar supabase/functions/kinet-ai-chat)
+    if (KINET_API_CONFIG.edgeFunctionsDeployed !== true && localStorage.getItem('kinet_edge_functions_deployed') !== 'true') {
       return null;
     }
 
     const sb = window.KinetBackend?.getClient?.();
     const { data: { session } } = sb ? await sb.auth.getSession() : { data: { session: null } };
-    if (!session?.access_token) {
-      throw new Error('Inicia sesión para usar la IA.');
-    }
+    if (!session?.access_token) return null;      // invitado: sin servidor, usa el modo directo
 
     const headers = {
       'Content-Type': 'application/json',
@@ -1218,7 +1371,7 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
     };
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 14000);
+    const timeoutId = setTimeout(() => controller.abort(), 45000);
 
     try {
       const res = await fetch(`${EDGE_FUNCTIONS_BASE}/${functionName}`, {
@@ -1228,9 +1381,9 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
         signal: controller.signal
       });
       clearTimeout(timeoutId);
-      if (res.ok) {
-        return await res.json();
-      }
+      if (res.ok) return await res.json();
+      // El servidor dice "límite alcanzado": se respeta (no se salta llamando directamente al proveedor)
+      if (res.status === 429) { const j = await res.json().catch(() => ({})); return Object.assign({ limitReached: true }, j); }
     } catch (e) {
       clearTimeout(timeoutId);
     }
@@ -1241,8 +1394,15 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
     const engine = _engineOverride || (getBudgetStatus().exhausted ? 'lite' : 'strong');
     _engineOverride = null;
     const out = await _callProviderRaw(opts, engine);
-    addSpend(engine === 'lite' ? AI_COST_EUR.lite : ((opts.imagesBase64 && opts.imagesBase64.length) ? AI_COST_EUR.strongVision : AI_COST_EUR.strong));
+    const tcfg = KINET_API_CONFIG.modelsByTier[getCurrentTier()] || KINET_API_CONFIG.modelsByTier.free;
+    const vis = !!(opts.imagesBase64 && opts.imagesBase64.length);
+    addSpend(engine === 'lite' ? (KINET_API_CONFIG.liteModel.costEur || AI_COST_EUR.lite) : ((tcfg.costEur || AI_COST_EUR.strong) * (vis ? 1.8 : 1)));
     return out;
+  }
+
+  function _trimToSentence(t) {
+    const cut = Math.max(t.lastIndexOf('.\n'), t.lastIndexOf('. '), t.lastIndexOf('!'), t.lastIndexOf('?'), t.lastIndexOf('\n- '), t.lastIndexOf('\n\n'), t.lastIndexOf('.'));
+    return cut > t.length * 0.5 ? t.slice(0, cut + 1).trim() : t;
   }
 
   async function _callProviderRaw({ systemPrompt, userPrompt, chatHistory = [], imagesBase64 = [], responseMimeType = 'text/plain', maxTokens = 0, grounded = false }, engine) {
@@ -1257,7 +1417,7 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
     if (groqKey) {
       const messages = [{ role: 'system', content: systemPrompt }];
       if (Array.isArray(chatHistory)) {
-        chatHistory.slice(-6).forEach(m => messages.push({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content }));
+        chatHistory.slice(-8).forEach(m => messages.push({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content }));
       }
       messages.push({ role: 'user', content: userPrompt });
 
@@ -1281,14 +1441,14 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
         throw new Error(err?.error?.message || `Error HTTP ${res.status} en Groq API`);
       }
       const d = await res.json();
-      if (d?.choices?.[0]?.message?.content) return d.choices[0].message.content.trim();
+      if (d?.choices?.[0]?.message?.content) { const o = d.choices[0].message.content.trim(); return (d.choices[0].finish_reason === 'length' && responseMimeType !== 'application/json') ? _trimToSentence(o) : o; }
     }
 
     // 2. OpenAI GPT-4o-mini / GPT-4o (si el usuario configuró clave sk-...)
     if (openaiKey) {
       const messages = [{ role: 'system', content: systemPrompt }];
       if (Array.isArray(chatHistory)) {
-        chatHistory.slice(-6).forEach(m => messages.push({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content }));
+        chatHistory.slice(-8).forEach(m => messages.push({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content }));
       }
       const userContent = [{ type: 'text', text: userPrompt }];
       imagesBase64.forEach((imgUrl) => {
@@ -1318,7 +1478,7 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
         throw new Error(err?.error?.message || `Error HTTP ${res.status} en OpenAI API`);
       }
       const d = await res.json();
-      if (d?.choices?.[0]?.message?.content) return d.choices[0].message.content.trim();
+      if (d?.choices?.[0]?.message?.content) { const o = d.choices[0].message.content.trim(); return (d.choices[0].finish_reason === 'length' && responseMimeType !== 'application/json') ? _trimToSentence(o) : o; }
     }
 
     // 3. Google Gemini 2.5 Flash / Vertex AI Express (soporta tu clave AQ. y claves AIzaSy)
@@ -1370,6 +1530,7 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
 
       const geminiModelsToTry = [modelCfg.gemini, modelCfg.geminiFallback || 'gemini-3.5-flash'];
       const errorsLog = [];
+      let _partialText = '';
       const isAuthKey = geminiKey.startsWith('AQ.');
 
       // Las claves AQ. (Authentication Keys de AI Studio) se envían en la cabecera
@@ -1388,8 +1549,10 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
             if (res.ok) {
               const data = await res.json();
               const out = readGeminiText(data);
+              // Si se cortó por límite, reintenta una vez con el doble de margen antes de recortar a la última frase completa
+              if (out.truncated && attempt === 0) { _partialText = out.text || _partialText; continue; }
               if (out.text) return (out.truncated && responseMimeType !== 'application/json') ? trimToSentence(out.text) : out.text;
-              if (out.truncated && attempt === 0) continue;
+              if (_partialText) return responseMimeType !== 'application/json' ? trimToSentence(_partialText) : _partialText;
               errorsLog.push(`[${mName}] respuesta vacía`);
               break;
             } else {
@@ -1490,6 +1653,8 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
     extractVideoKeyframesBase64,
     deductVideoMinutes,
     buildMasterTrainedSystemPrompt,
+    buildTrainingScienceBlock,
+    isMinorUser,
     gatherFullUserContextSnapshot,
 
     // ------------------------------------------------------------------------
@@ -1512,7 +1677,7 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
       try { pushSharedMemory(agentId, userMessage); } catch (e) {}
       // Si la página ya envía el prompt maestro (cuerpo-tecnico.html lo hace), no se duplica: ahorra ~la mitad de tokens de entrada
       const alreadyHasMaster = !!systemPrompt && systemPrompt.indexOf('EXPEDIENTE BIOMÉTRICO Y TÁCTICO EN TIEMPO REAL') !== -1;
-      const finalSystemPrompt = (systemPrompt && !alreadyHasMaster) ? `${trainedPrompt}\n\n${systemPrompt}` : trainedPrompt;
+      let finalSystemPrompt = (systemPrompt && !alreadyHasMaster) ? `${trainedPrompt}\n\n${systemPrompt}` : trainedPrompt;
       let domHistory = (Array.isArray(chatHistory) && chatHistory.length > 0)
         ? chatHistory
         : extractActiveConversationHistoryFromDOM();
@@ -1521,6 +1686,8 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
         const lastH = domHistory[domHistory.length - 1];
         if (lastH && lastH.role === 'user' && String(lastH.content || '').slice(0, 380) === String(userMessage || '').slice(0, 380)) domHistory = domHistory.slice(0, -1);
       }
+
+      try { if (agentId !== 'agente_marketing') finalSystemPrompt += buildTurnHints(userMessage, domHistory, localStorage.getItem('kinet_sport')); } catch (e) {}
 
       // 1º Intento: Supabase Edge Function ('kinet-ai-chat') si está activada
       const edgeRes = await invokeSupabaseEdgeFunction('kinet-ai-chat', {
@@ -1531,9 +1698,14 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
         chatHistory: domHistory
       });
 
+      if (edgeRes && edgeRes.limitReached) {
+        if (consumeQuota) refundChatSlot(slot);
+        return limitHit({ ok: false, limitReached: true, remainingAfter: 0, reply: edgeRes.reply || chatLimitMessage(quota) }, 'Consultas agotadas');
+      }
       if (edgeRes && edgeRes.reply) {
         return {
           ok: true,
+          engine: edgeRes.engine || slot,
           reply: cleanAIReply(edgeRes.reply),
           mediaStudioPrompt: edgeRes.mediaStudioPrompt || null,
           suggestedHandoff: edgeRes.suggestedHandoff || null,
@@ -1580,7 +1752,8 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
       if (consumeQuota) { slot = peekChatSlot(); if (!slot) return { ok: false, limitReached: true, error: 'limit' }; }
       let txt = null;
       try {
-        const edgeRes = await invokeSupabaseEdgeFunction('kinet-ai-chat', { agentId: 'json', systemPrompt, userMessage: userPrompt, chatHistory: [] });
+        const edgeRes = await invokeSupabaseEdgeFunction('kinet-ai-chat', { agentId: 'json', systemPrompt, userMessage: userPrompt, chatHistory: [], maxTokens });
+        if (edgeRes && edgeRes.limitReached) return { ok: false, limitReached: true, error: 'limit' };
         if (edgeRes && edgeRes.reply) txt = edgeRes.reply;
       } catch (e) {}
       if (!txt) {
@@ -1622,6 +1795,7 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
       let reply = null;
       try {
         const edgeRes = await invokeSupabaseEdgeFunction('kinet-ai-chat', { agentId: 'community', systemPrompt, userMessage: q, chatHistory: hist });
+        if (edgeRes && edgeRes.limitReached) return { ok: false, limitReached: true, remaining: 0, reply: edgeRes.reply || 'Has alcanzado tu límite diario. Se reinicia a las 00:00 h.' };
         if (edgeRes && edgeRes.reply) reply = edgeRes.reply;
       } catch (e) { /* sin sesión o edge no disponible: se intenta la vía directa */ }
       if (!reply) {
@@ -1671,6 +1845,7 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
       let reply = null;
       try {
         const edgeRes = await invokeSupabaseEdgeFunction('kinet-ai-chat', { agentId: 'support', systemPrompt, userMessage: q, chatHistory: hist });
+        if (edgeRes && edgeRes.limitReached) return { ok: false, limitReached: true, remaining: 0, reply: edgeRes.reply || 'Has alcanzado tu límite diario. Se reinicia a las 00:00 h.' };
         if (edgeRes && edgeRes.reply) reply = edgeRes.reply;
       } catch (e) { /* sin sesión / edge no disponible */ }
       if (!reply) {

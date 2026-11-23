@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <script src="kinet-guard.js"></script>
+<script src="kinet-teams.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
@@ -709,6 +710,7 @@
             <header class="os-topbar">
                 <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-secondary);display:flex;align-items:center;gap:10px;">
                     <span>LABORATORIO DE ESTRATEGIAS, MARCAJE 1VS1 & JUGADAS MULTIFASE</span>
+                    <span id="kinet-team-slot"></span>
                     <span style="color:var(--role-color);font-weight:700;" id="topbar-sport-tag">● FÚTBOL</span>
                 </div>
                 <div class="active-role-indicator">
@@ -1878,7 +1880,7 @@
         };
         function rivalWeaknessCatalog() { return RIVAL_WEAKNESS_CATALOG[activeArenaSport] || RIVAL_WEAKNESS_CATALOG['Fútbol']; }
 
-        function rivalCfgKey() { return `kinet_rival_cfg_${activeArenaSport.toLowerCase()}`; }
+        function rivalCfgKey() { return `kinet_rival_cfg_${(window.KinetTeams ? KinetTeams.key(activeArenaSport) : activeArenaSport.toLowerCase())}`; }
         function saveRivalCfg() {
             try { localStorage.setItem(rivalCfgKey(), JSON.stringify({ form: currentRivalPresetName, block: rivalBlock, weak: rivalWeaknesses, notes: rivalNotes, aiNotes: aiExtraNotes })); } catch (e) {}
         }
@@ -3736,6 +3738,7 @@
                 const roleTitleEl = document.getElementById('topbar-role-title');
                 if (roleTitleEl) roleTitleEl.textContent = roleLabels[activeRoleKey] || 'ATLETA PRO';
                 activeArenaSport = normalizeArenaSport(urlParams.get('sport') || localStorage.getItem('kinet_sport') || 'Fútbol');
+                if (window.KinetTeams) KinetTeams.mount('kinet-team-slot', activeArenaSport);
                 // Coherencia multideporte: el laboratorio de balón (campo/cancha) solo sirve a Fútbol y Baloncesto.
                 if (activeArenaSport !== 'Fútbol' && activeArenaSport !== 'Baloncesto') {
                     window.location.replace(`analizador3.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`);
@@ -3756,7 +3759,7 @@
                     if (el) el.href = `${navMap[id]}${queryParams}`;
                 });
 
-                const spKey = activeArenaSport.toLowerCase();
+                const spKey = (window.KinetTeams ? KinetTeams.key(activeArenaSport) : activeArenaSport.toLowerCase());
                 let savedBoard = null;
                 try {
                     savedBoard = JSON.parse(localStorage.getItem(`kinet_full_board_state_${spKey}`) || 'null');
@@ -4491,7 +4494,7 @@
         }
 
         function syncSavedPlaysToSupabase() {
-            const spKey = activeArenaSport.toLowerCase();
+            const spKey = (window.KinetTeams ? KinetTeams.key(activeArenaSport) : activeArenaSport.toLowerCase());
             localStorage.setItem(`kinet_saved_tactics_${spKey}`, JSON.stringify(savedPlaysLibrary));
             updateSavedCountBadge();
             if (window.KinetBackend && typeof window.KinetBackend.pushLocalStateToCloud === 'function') {
@@ -4705,7 +4708,7 @@
         });
         window.addEventListener('kinet:cloud-synced', () => {
             applyDespachoThemeSettings();
-            const spKey = activeArenaSport.toLowerCase();
+            const spKey = (window.KinetTeams ? KinetTeams.key(activeArenaSport) : activeArenaSport.toLowerCase());
             try {
                 savedPlaysLibrary = JSON.parse(localStorage.getItem(`kinet_saved_tactics_${spKey}`) || '[]');
                 updateSavedCountBadge();
