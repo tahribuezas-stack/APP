@@ -359,6 +359,7 @@
         #arena-rivals-layer, #arena-tokens-layer {
             position: absolute; inset: 0; pointer-events: none !important;
         }
+        .micro-player-token, .micro-rival-token { touch-action: none; }
         .micro-player-token {
             position: absolute; transform: translate(-50%, -50%);
             width: 40px; height: 40px; border-radius: 50%;
@@ -2253,7 +2254,142 @@
             };
         }
 
+        // =========================================================================
+        // JUGADAS DE BALONCESTO (cancha completa, ataque hacia la derecha).
+        // Fichas propias: [PG, SG, SF, PF, C]  ·  Rivales: 5 fichas en el orden del sistema rival cargado.
+        // Flechas: G=desmarque · A=pase · B=bote · R=bloqueo.  Coordenadas en % de cancha.
+        // =========================================================================
+        const BB_COL = { G: '#00FF88', A: '#F59E0B', B: '#38BDF8', R: '#EF4444' };
+        const BASKETBALL_PLAYS = {
+            build_up: { zoom: 'right', phases: [
+                { s: [[52,50],[76,18],[76,82],[88,30],[66,50]], r: [[59,57],[80,20],[80,80],[93,37],[74,44]], ball: [52,50],
+                  v: [[66,50,58,45,'R'],[52,50,64,40,'B']], zone: null,
+                  note: '1. Bloqueo alto: el pívot sale a poner pantalla al base mientras los dos aleros abren el campo.' },
+                { s: [[64,40],[76,18],[76,82],[88,30],[58,45]], r: [[66,44],[80,20],[80,80],[93,37],[74,50]], ball: [64,40],
+                  v: [[58,45,84,52,'G'],[64,40,70,36,'B']], zone: null,
+                  note: '2. Continuación: el pívot hace roll al aro y el base ataca el espacio; el defensor del pívot debe elegir.' },
+                { s: [[70,36],[76,18],[88,84],[88,30],[86,55]], r: [[72,42],[80,22],[86,78],[93,37],[80,48]], ball: [70,36],
+                  v: [[70,36,86,55,'A'],[70,36,88,84,'A']], zone: [86,55,34,'G'],
+                  note: '3. Finalización: pase al pívot para bandeja o mate; si cierra la ayuda, descarga al alero en la esquina.' }
+            ]},
+            positional_attack: { zoom: 'right', phases: [
+                { s: [[55,50],[65,24],[65,76],[92,10],[92,90]], r: [[62,50],[71,28],[71,72],[87,17],[87,83]], ball: [55,50],
+                  v: [[55,50,72,44,'B']], zone: null,
+                  note: '1. Pintura abierta (5-Out): cinco jugadores fuera del arco; el base lee la defensa y se prepara para penetrar.' },
+                { s: [[72,44],[65,24],[65,76],[92,10],[92,90]], r: [[65,48],[70,30],[72,66],[87,17],[87,83]], ball: [72,44],
+                  v: [[72,44,84,50,'B']], zone: null,
+                  note: '2. Penetración: el base supera a su defensor y atrae la ayuda desde el lado débil.' },
+                { s: [[84,50],[65,24],[65,76],[92,10],[92,90]], r: [[78,50],[70,30],[76,60],[87,17],[87,83]], ball: [84,50],
+                  v: [[84,50,65,76,'A']], zone: [65,76,34,'G'],
+                  note: '3. Descarga y triple: el defensor del alero ayudó en la pintura; pase fuera al tirador liberado.' }
+            ]},
+            counter_attack: { zoom: 'full', phases: [
+                { s: [[26,22],[30,78],[28,50],[20,50],[14,40]], r: [[62,40],[62,60],[40,30],[44,70],[36,50]], ball: [20,50],
+                  v: [[20,50,26,22,'A'],[30,78,52,78,'G'],[28,50,50,50,'G']], zone: null,
+                  note: '1. Rebote y primer pase: el ala-pívot asegura el rebote y sale rápido al base por el carril exterior.' },
+                { s: [[54,26],[52,78],[52,50],[34,50],[28,40]], r: [[72,42],[72,58],[46,34],[48,66],[42,50]], ball: [54,26],
+                  v: [[54,26,72,32,'B'],[52,78,74,76,'G'],[52,50,80,50,'G']], zone: null,
+                  note: '2. Carriles abiertos: tres jugadores corren los tres carriles y el rival solo tiene dos defensores atrás (3vs2).' },
+                { s: [[72,32],[74,76],[84,50],[52,50],[46,40]], r: [[80,40],[80,62],[60,36],[60,64],[63,50]], ball: [72,32],
+                  v: [[72,32,84,50,'A']], zone: [86,50,34,'G'],
+                  note: '3. Finalización: el base fija a un defensor y pasa al alero que llega por el centro para la bandeja.' }
+            ]},
+            mid_block: { zoom: 'right', phases: [
+                { s: [[56,50],[66,20],[66,80],[74,50],[90,36]], r: [[68,34],[68,66],[82,22],[85,50],[82,78]], ball: [56,50],
+                  v: [[56,50,74,50,'A'],[90,36,90,58,'G']], zone: null,
+                  note: '1. Sobrecarga de poste alto: pase al ala-pívot en el hueco entre los dos defensores exteriores de la zona 2-3.' },
+                { s: [[56,50],[66,20],[66,80],[74,50],[90,58]], r: [[70,42],[70,58],[82,26],[86,50],[82,74]], ball: [74,50],
+                  v: [[74,50,66,20,'A'],[66,80,88,90,'G']], zone: null,
+                  note: '2. Inversión rápida: el balón sale del poste alto al ala y el alero contrario corre a la esquina vacía.' },
+                { s: [[56,50],[66,20],[88,90],[74,50],[90,58]], r: [[66,28],[70,56],[80,18],[86,44],[84,76]], ball: [66,20],
+                  v: [[66,20,88,90,'A']], zone: [88,90,30,'G'],
+                  note: '3. Triple en la esquina: pase cruzado (skip) a la esquina débil, donde la zona llega tarde.' }
+            ]},
+            low_block: { zoom: 'left', phases: [
+                { s: [[27,50],[24,24],[24,76],[11,38],[11,62]], r: [[36,50],[31,18],[31,82],[17,32],[17,68]], ball: [36,50],
+                  v: [[11,38,9,45,'G'],[11,62,9,55,'G']], zone: null,
+                  note: '1. Cierre de pintura: tu equipo (defensa) cierra el área y se coloca entre cada rival y el aro.' },
+                { s: [[26,52],[24,24],[24,76],[10,44],[10,56]], r: [[20,50],[31,18],[31,82],[17,32],[17,68]], ball: [20,50],
+                  v: [[24,76,17,62,'G'],[24,24,17,38,'G']], zone: null,
+                  note: '2. Rotación del lado débil: el rival penetra y los aleros rotan a ayudar y recuperar su marca.' },
+                { s: [[30,28],[17,38],[17,62],[10,44],[10,56]], r: [[20,50],[31,18],[31,82],[15,30],[15,70]], ball: [17,62],
+                  v: [[10,44,13,37,'R'],[10,56,13,63,'R'],[17,62,30,28,'A'],[30,28,50,22,'G']], zone: null,
+                  note: '3. Rebote y contraataque: boxeo sobre cada rival, el alero asegura el rebote y sale rápido al base, que ya corre el carril.' }
+            ]},
+            gegenpress: { zoom: 'full', phases: [
+                { s: [[64,24],[74,44],[70,62],[56,38],[48,50]], r: [[82,14],[84,48],[76,74],[88,66],[64,72]], ball: [82,14],
+                  v: [[64,24,75,17,'G'],[74,44,83,26,'G']], zone: null,
+                  note: '1. Trampa en la esquina (2vs1): base y escolta doblan al portador contra la banda.' },
+                { s: [[75,17],[83,26],[72,56],[56,38],[48,50]], r: [[82,14],[84,48],[76,74],[88,66],[64,72]], ball: [82,14],
+                  v: [[72,56,82,50,'G']], zone: null,
+                  note: '2. Robo en línea de pase: mientras se dobla al balón, el tercer defensor anticipa el pase de salida al centro.' },
+                { s: [[75,17],[83,26],[82,50],[56,38],[48,50]], r: [[82,14],[88,40],[76,74],[88,66],[64,72]], ball: [82,50],
+                  v: [[82,50,92,50,'B']], zone: [93,50,26,'G'],
+                  note: '3. Bandeja: robo y finalización inmediata ante la defensa rival descolocada.' }
+            ]},
+            corner_left: { zoom: 'right', phases: [
+                { s: [[97,30],[78,62],[90,62],[78,38],[90,38]], r: [[92,25],[85,56],[84,69],[72,33],[84,44]], ball: [97,30],
+                  v: [[78,38,82,56,'R']], zone: null,
+                  note: '1. Saque de fondo (BLOB): formación en caja; el ala-pívot prepara el bloqueo ciego para liberar al tirador.' },
+                { s: [[97,30],[78,62],[90,62],[82,56],[90,38]], r: [[92,25],[85,60],[84,69],[74,42],[84,44]], ball: [97,30],
+                  v: [[78,62,90,88,'G'],[90,38,93,50,'G']], zone: null,
+                  note: '2. Bloqueo ciego: el tirador sale a la esquina por el hombro del pívot mientras el otro pívot sella a su par bajo el aro.' },
+                { s: [[97,30],[90,88],[90,62],[82,56],[93,50]], r: [[92,34],[88,76],[85,67],[76,44],[86,46]], ball: [97,30],
+                  v: [[97,30,93,50,'A'],[97,30,90,88,'A']], zone: [93,50,26,'G'],
+                  note: '3. Finalización: lob al pívot sellado; si el defensor ayuda, pase largo al tirador liberado en la esquina.' }
+            ]},
+            corner_right: { zoom: 'right', phases: [
+                { s: [[70,5],[92,62],[82,86],[82,42],[74,50]], r: [[66,12],[88,58],[77,81],[87,40],[69,54]], ball: [70,5],
+                  v: [[82,42,77,49,'R'],[74,50,70,44,'R'],[92,62,84,54,'G']], zone: null,
+                  note: '1. Saque de banda (SLOB): doble pantalla escalonada en la zona; el tirador espera bajo el aro.' },
+                { s: [[70,5],[84,54],[82,86],[82,42],[74,50]], r: [[66,12],[86,61],[77,81],[87,40],[69,54]], ball: [70,5],
+                  v: [[84,54,64,26,'G']], zone: null,
+                  note: '2. Salida del tirador: pasa pegado a las dos pantallas y sube al ala librándose de su defensor.' },
+                { s: [[70,5],[64,26],[82,86],[82,42],[74,50]], r: [[68,10],[72,40],[77,81],[87,40],[69,54]], ball: [70,5],
+                  v: [[70,5,64,26,'A']], zone: [64,26,30,'G'],
+                  note: '3. Tiro ganador: el sacador busca al tirador liberado en el ala; su defensor llega tarde tras las pantallas.' }
+            ]},
+            fk_close: { zoom: 'left', phases: [
+                { s: [[32,48],[17,40],[17,60],[10,62],[10,38]], r: [[22,50],[18,28],[18,72],[26,30],[26,70]], ball: [22,50],
+                  v: [[10,38,13,31,'R'],[10,62,13,69,'R']], zone: null,
+                  note: '1. Box-out: los dos jugadores más cercanos al aro se interponen entre el rival y la canasta antes de que salga el tiro libre.' },
+                { s: [[32,48],[17,40],[17,60],[10,62],[12,46]], r: [[24,50],[18,28],[18,72],[26,30],[26,70]], ball: [12,46],
+                  v: [[12,46,32,48,'A'],[17,40,40,22,'G'],[17,60,40,78,'G']], zone: null,
+                  note: '2. Rebote y salida: el pívot asegura el balón y lo saca al base mientras los aleros abren los carriles.' },
+                { s: [[32,48],[40,22],[40,78],[18,50],[14,46]], r: [[24,52],[30,32],[30,68],[22,28],[22,72]], ball: [32,48],
+                  v: [[32,48,54,46,'B'],[40,22,58,22,'G'],[40,78,58,78,'G']], zone: null,
+                  note: '3. Transición: tres carriles abiertos; el rival, aún en nuestro campo, llega tarde a la defensa.' }
+            ]}
+        };
+
+        // Carga una jugada de baloncesto en la pizarra. Devuelve false si no hay jugada para esa clave.
+        function applyBasketballPlay(momentKey) {
+            const play = BASKETBALL_PLAYS[momentKey];
+            if (!play || !Array.isArray(rivalTokens) || rivalTokens.length < 5 || baseVerticalSlots.length < 5) return false;
+            showRivals = true; syncRivalToggleButton();
+            const baseSlots = baseVerticalSlots.map(s => ({ pos: s.pos, player: s.player, ...verticalToHorizontal(s.x, s.y) }));
+            const baseRiv = JSON.parse(JSON.stringify(rivalTokens));
+            phasesData = play.phases.map(ph => ({
+                vectors: ph.v.map(a => toSvgVec(a[0], a[1], a[2], a[3], BB_COL[a[4]])),
+                slotsCoords: baseSlots.map((s, i) => ({ ...s, x: ph.s[i] ? ph.s[i][0] : s.x, y: ph.s[i] ? ph.s[i][1] : s.y })),
+                rivalsCoords: baseRiv.map((r, i) => ({ ...r, x: ph.r[i] ? ph.r[i][0] : r.x, y: ph.r[i] ? ph.r[i][1] : r.y })),
+                ballCoords: { x: ph.ball[0], y: ph.ball[1] },
+                zone: ph.zone ? { cx: Math.round(ph.zone[0] / 100 * 600), cy: Math.round(ph.zone[1] / 100 * 420), r: ph.zone[2], color: BB_COL[ph.zone[3]] } : null,
+                note: ph.note
+            }));
+            setTacticalZoom(play.zoom);
+            selectTacticalPhase(0, true);
+            return true;
+        }
+
+        // Cargar una jugada/posición nunca deja el modo "Crear" encendido por detrás (evita que un arrastre dibuje flechas sin querer)
         function applyMomentPositioning(momentKey) {
+            isRecordingPlay = false;
+            applyMomentPositioningCore(momentKey);
+            renderRightSubTab();
+        }
+
+        function applyMomentPositioningCore(momentKey) {
             selectedActor = null;
             if (momentKey === 'base_formation') {
                 resetBoardToCleanBase(true);
@@ -2278,6 +2414,7 @@
             }));
             loadRivalFormationCoords(currentRivalPresetName);
             const baseRivals = JSON.parse(JSON.stringify(rivalTokens));
+            if (activeArenaSport === 'Baloncesto' && applyBasketballPlay(momentKey)) return;
             const cloneSlots = (arr) => JSON.parse(JSON.stringify(arr));
 
             const gkIdx = findRoleIndex(baseSlots, 'gk');
@@ -2331,7 +2468,7 @@
                     { vectors: v3, slotsCoords: s3, rivalsCoords: r1, ballCoords: { x: 97, y: 51 }, zone: { cx: 580, cy: 214, r: 22, color: '#00FF88' }, note: '3. Finalización (Córner Izquierdo): Remate cruzado a la red.' }
                 ];
                 setTacticalZoom('right');
-                selectTacticalPhase(0);
+                selectTacticalPhase(0, true);
                 return;
             }
 
@@ -2377,7 +2514,7 @@
                     { vectors: v3, slotsCoords: s3, rivalsCoords: r1, ballCoords: { x: 97, y: 49 }, zone: { cx: 580, cy: 206, r: 22, color: '#00FF88' }, note: '3. Finalización (Córner Derecho): Definición al primer toque.' }
                 ];
                 setTacticalZoom('right');
-                selectTacticalPhase(0);
+                selectTacticalPhase(0, true);
                 return;
             }
 
@@ -2425,7 +2562,7 @@
                     { vectors: v3, slotsCoords: s3, rivalsCoords: r1, ballCoords: { x: 97, y: 49 }, zone: { cx: 580, cy: 206, r: 22, color: '#00FF88' }, note: '3. Finalización (Falta Cercana): Centro raso al segundo palo y gol.' }
                 ];
                 setTacticalZoom('right');
-                selectTacticalPhase(0);
+                selectTacticalPhase(0, true);
                 return;
             }
 
@@ -2471,7 +2608,7 @@
                     { vectors: v3, slotsCoords: s3, rivalsCoords: r1, ballCoords: { x: 97, y: 51 }, zone: { cx: 580, cy: 214, r: 22, color: '#00FF88' }, note: '3. Finalización: Remate atacando el balón en carrera.' }
                 ];
                 setTacticalZoom('right');
-                selectTacticalPhase(0);
+                selectTacticalPhase(0, true);
                 return;
             }
 
@@ -2508,7 +2645,7 @@
                     { vectors: v3, slotsCoords: s3, rivalsCoords: r1, ballCoords: { x: 58, y: 26 }, zone: null, note: '3. Finalización: Transición ofensiva hacia campo abierto.' }
                 ];
                 setTacticalZoom('left');
-                selectTacticalPhase(0);
+                selectTacticalPhase(0, true);
                 return;
             }
 
@@ -2579,14 +2716,15 @@
                 ];
             }
 
-            selectTacticalPhase(0);
+            selectTacticalPhase(0, true);
         }
 
         // =========================================================================
         // 10. CONTROL DE FASES, RENDERIZADO Y ARRASTRE LIBRE (SIN LÍNEAS HASTA PULSAR EMPEZAR A CREAR)
         // =========================================================================
-        function selectTacticalPhase(targetPhaseIdx) {
-            if (phasesData[currentPhaseIdx]) {
+        // skipSync=true al cargar una jugada nueva: el tablero aún tiene las fichas de la jugada anterior y no debe pisar las nuevas fases
+        function selectTacticalPhase(targetPhaseIdx, skipSync) {
+            if (!skipSync && phasesData[currentPhaseIdx]) {
                 syncPhaseSnapshot();
             }
             currentPhaseIdx = targetPhaseIdx;
@@ -2767,7 +2905,8 @@
             const surface = document.getElementById('arena-3d-surface');
             if (!surface) return;
 
-            el.onmousedown = (e) => {
+            el.onpointerdown = (e) => {
+                if (e.pointerType === 'mouse' && e.button !== 0) return;
                 e.stopPropagation();
                 const startX = slotObj.x, startY = slotObj.y;
                 const preDragSig = buildStateSignature(boardHorizontalSlots, rivalTokens, ballCoords, phasesData, manMarkingLinks);
@@ -2798,8 +2937,9 @@
                 };
 
                 const onUp = () => {
-                    window.removeEventListener('mousemove', onMove);
-                    window.removeEventListener('mouseup', onUp);
+                    window.removeEventListener('pointermove', onMove);
+                    window.removeEventListener('pointerup', onUp);
+                    window.removeEventListener('pointercancel', onUp);
                     el.classList.remove('dragging');
 
                     if (maxDelta >= 2) {
@@ -2860,8 +3000,9 @@
                     }
                 };
 
-                window.addEventListener('mousemove', onMove);
-                window.addEventListener('mouseup', onUp);
+                window.addEventListener('pointermove', onMove);
+                window.addEventListener('pointerup', onUp);
+                window.addEventListener('pointercancel', onUp);
             };
         }
 
@@ -2871,7 +3012,7 @@
                 return;
             }
             if (zoneType === 'free_kick') {
-                applyMomentPositioning('fk_close');
+                applyMomentPositioning(activeArenaSport === 'Baloncesto' ? 'corner_right' : 'fk_close');
                 return;
             }
 
@@ -2881,20 +3022,35 @@
 
             if (zoneType === 'own_box') {
                 setTacticalZoom('left');
-                boardHorizontalSlots.forEach((s, i) => { if (i === 0) { s.x = 7; s.y = 50; } else s.x = Math.max(14, s.x - 10); });
-                ballCoords = { x: 8, y: 50 };
+                if (activeArenaSport === 'Baloncesto') {
+                    boardHorizontalSlots.forEach(s => { s.x = Math.max(12, Math.round(s.x * 0.45)); });
+                    ballCoords = { x: boardHorizontalSlots[0].x, y: boardHorizontalSlots[0].y };
+                } else {
+                    boardHorizontalSlots.forEach((s, i) => { if (i === 0) { s.x = 7; s.y = 50; } else s.x = Math.max(14, s.x - 10); });
+                    ballCoords = { x: 8, y: 50 };
+                }
             } else if (zoneType === 'midfield') {
                 setTacticalZoom('full');
                 ballCoords = { x: 46, y: 50 };
             } else if (zoneType === 'final_third') {
                 setTacticalZoom('right');
-                boardHorizontalSlots.forEach((s, i) => { if (i === 0) { s.x = 22; s.y = 50; } else s.x = Math.min(86, s.x + 14); });
-                ballCoords = { x: 68, y: 48 };
+                if (activeArenaSport === 'Baloncesto') {
+                    boardHorizontalSlots.forEach(s => { s.x = Math.min(88, s.x + 14); });
+                    ballCoords = { x: boardHorizontalSlots[0].x, y: boardHorizontalSlots[0].y };
+                } else {
+                    boardHorizontalSlots.forEach((s, i) => { if (i === 0) { s.x = 22; s.y = 50; } else s.x = Math.min(86, s.x + 14); });
+                    ballCoords = { x: 68, y: 48 };
+                }
             } else if (zoneType === 'def_block') {
                 setTacticalZoom('left');
                 showRivals = true; syncRivalToggleButton();
-                boardHorizontalSlots.forEach((s, i) => { if (i === 0) { s.x = 8; s.y = 50; } else s.x = Math.max(16, Math.round(s.x * 0.6)); });
-                ballCoords = { x: 42, y: 50 };
+                if (activeArenaSport === 'Baloncesto') {
+                    boardHorizontalSlots.forEach(s => { s.x = Math.max(14, Math.round(s.x * 0.45)); });
+                    ballCoords = { x: 36, y: 50 };
+                } else {
+                    boardHorizontalSlots.forEach((s, i) => { if (i === 0) { s.x = 8; s.y = 50; } else s.x = Math.max(16, Math.round(s.x * 0.6)); });
+                    ballCoords = { x: 42, y: 50 };
+                }
             }
             phasesData[currentPhaseIdx].vectors = [];
             syncPhaseSnapshot();
@@ -2948,7 +3104,7 @@
                 id: editingPlayId || ('play_' + Date.now()),
                 title: title.trim(),
                 section: activeSection,
-                momentKey: activeMomentKey,
+                momentKey: activeMomentKey === PICK_MOMENT_KEY ? 'kickoff_center' : activeMomentKey,
                 zoomMode: currentZoomMode,
                 notes: overrideNotes || `${currentPresetName} • 3 Fases (${totalVecs} trazos)`,
                 phasesSnapshot: JSON.parse(JSON.stringify(phasesData)),
@@ -3079,24 +3235,38 @@
                 syncRivalToggleButton();
 
                 const catObj = getActiveMomentCatalog()[secKey] || getActiveMomentCatalog().train;
-                activeMomentKey = catObj.items[0].key;
-                populateDynamicMomentDropdown();
-                refreshAllCustomKinetSelects();
-                applyMomentPositioning(activeMomentKey);
+                const firstKey = catObj.items[0].key;
+                if (firstKey === 'base_formation' || firstKey === 'kickoff_center') {
+                    activeMomentKey = firstKey;
+                    populateDynamicMomentDropdown();
+                    refreshAllCustomKinetSelects();
+                    applyMomentPositioning(activeMomentKey);
+                } else {
+                    // Entrar en la pestaña NO dibuja ninguna jugada: pizarra limpia y el usuario elige la situación
+                    isRecordingPlay = false;
+                    applyKickoffFormation(true);
+                    activeMomentKey = PICK_MOMENT_KEY;
+                    populateDynamicMomentDropdown();
+                    refreshAllCustomKinetSelects();
+                    document.getElementById('live-tactical-teleprompter').innerHTML = `🎯 <strong>Elige una situación</strong> en el desplegable para cargarla en la pizarra, o pulsa "⚡ Empezar a Crear" para dibujar la tuya.`;
+                }
                 renderRightSubTab();
             });
         }
 
+        const PICK_MOMENT_KEY = '__pick';
         function populateDynamicMomentDropdown() {
             const catObj = getActiveMomentCatalog()[activeSection] || getActiveMomentCatalog().train;
             const sel = document.getElementById('dynamic-moment-selector');
             if (!sel) return;
-            sel.innerHTML = catObj.items.map(item =>
+            const pickOpt = activeMomentKey === PICK_MOMENT_KEY ? `<option value="${PICK_MOMENT_KEY}" selected>${catObj.prefix} Elige una situación…</option>` : '';
+            sel.innerHTML = pickOpt + catObj.items.map(item =>
                 `<option value="${item.key}" ${item.key === activeMomentKey ? 'selected' : ''}>${catObj.prefix} ${item.label}</option>`
             ).join('');
         }
 
         function onMomentDropdownChange(newMomentKey) {
+            if (newMomentKey === PICK_MOMENT_KEY) return;
             guardUnsavedPlay(() => {
                 applyMomentPositioning(newMomentKey);
             });
