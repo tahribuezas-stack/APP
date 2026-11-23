@@ -32,7 +32,7 @@
     // Pon true cuando hayas desplegado la Edge Function 'kinet-ai-chat' (supabase/LEEME_IA_Y_MENORES.md): la IA, los límites y el tope del 33 % pasan al servidor.
     edgeFunctionsDeployed: true,
     // Pon true tras desplegar 'guardian-consent': se envía un correo al tutor de cada menor para confirmar su autorización.
-    guardianVerification: false,
+    guardianVerification: true,
     // Spotify: pega aquí el Client ID de tu app de developer.spotify.com (ver supabase/LEEME_PASOS_PARA_TI.md §6). Es público, no es un secreto.
     SPOTIFY_CLIENT_ID: '',
 
