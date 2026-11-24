@@ -49,38 +49,38 @@
     // Ajusta costEur con la factura real de tu proveedor. maxTokens incluye el "pensamiento" interno del modelo.
     modelsByTier: {
       free: {
-        gemini: 'gemini-3.5-flash-lite',     // motor barato (modelo vigente en la doc de Google): con el prompt de preparador rinde bien
+        gemini: 'gemini-2.5-flash-lite',     // motor barato: con el prompt de preparador rinde bien (modo directo; el servidor usa los mismos modelos)
         geminiFallback: 'gemini-3.1-flash-lite',
         openai: 'gpt-4o-mini',
         groq: 'llama-3.3-70b-versatile',
         maxTokens: 1800,
         temperature: 0.6,
-        costEur: 0.0012
+        costEur: 0.0008
       },
       pro: {
-        gemini: 'gemini-3.8-flash',          // motor potente
-        geminiFallback: 'gemini-3.6-flash',
+        gemini: 'gemini-3.1-flash-lite',     // motor de pago: rutinas, planes y derivaciones entre agentes
+        geminiFallback: 'gemini-3.5-flash-lite',
         openai: 'gpt-4o-mini',
         groq: 'llama-3.3-70b-versatile',
         maxTokens: 2600,
         temperature: 0.62,
-        costEur: 0.005
+        costEur: 0.003
       },
       club: {
-        gemini: 'gemini-3.8-flash',
-        geminiFallback: 'gemini-3.6-flash',
+        gemini: 'gemini-3.1-flash-lite',
+        geminiFallback: 'gemini-3.5-flash-lite',
         openai: 'gpt-4o',
         groq: 'llama-3.3-70b-versatile',
         maxTokens: 3400,
         temperature: 0.62,
-        costEur: 0.006
+        costEur: 0.003
       }
     },
 
     // Motor BÁSICO (casi gratis): se usa en el plan gratuito tras las 15 consultas potentes del día
     // y en los planes de pago cuando se agota su presupuesto mensual de IA (33 % de lo que pagan).
     liteModel: {
-      gemini: 'gemini-3.5-flash-lite',
+      gemini: 'gemini-2.5-flash-lite',
       geminiFallback: 'gemini-3.1-flash-lite',
       openai: 'gpt-4o-mini',
       groq: 'llama-3.1-8b-instant',
