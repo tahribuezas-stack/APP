@@ -29,18 +29,19 @@
   <table id="t"></table>
 </div>
 <div class="card">
-  <button id="b-refresh">Actualizar estado</button>
+  <button id="b-backup">1 · Descargar copia de seguridad de este dispositivo</button>
+  <button id="b-refresh" class="sec">Actualizar estado</button>
   <button id="b-force" class="sec">Forzar: copiar la nube a este dispositivo</button>
-  <button id="b-relogin" class="sec">Cerrar sesión y entrar de nuevo</button>
+  <button id="b-relogin" class="sec">2 · Volver a iniciar sesión (conserva tus datos)</button>
   <p><small>"Forzar" borra las diferencias locales de este dispositivo y deja exactamente lo que hay guardado en tu cuenta (plan, deporte, chats, colores…).</small></p>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="kinet-api-config.js?v=19"></script>
-<script src="kinet-backend.js?v=19"></script>
+<script src="kinet-api-config.js?v=21"></script>
+<script src="kinet-backend.js?v=21"></script>
 <script>
 (function(){
-  var VERSION='v19';
+  var VERSION='v21';
   function esc(s){return String(s==null?'—':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
   function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
   function row(a,b,cls){return '<tr><td>'+esc(a)+'</td><td class="'+(cls||'')+'">'+esc(b)+'</td></tr>'}
@@ -62,7 +63,7 @@
     var localSport=ls('kinet_sport');
     rows.push(row('Versión del código en este dispositivo',VERSION+(window.KinetBackend?' (motor cargado)':' (motor NO cargado)'),window.KinetBackend?'ok':'bad'));
     rows.push(row('Sesión con la nube', sess?'Activa':'NO hay sesión válida',sess?'ok':'bad'));
-    if(!sess) problems.push('Este dispositivo no tiene una sesión válida con la nube, por eso no se sincroniza. Pulsa «Cerrar sesión y entrar de nuevo».');
+    if(!sess) problems.push('Este dispositivo no tiene una sesión válida con la nube, por eso no se sincroniza. Pulsa «2 · Volver a iniciar sesión (conserva tus datos)».');
     rows.push(row('Correo de la sesión',sess&&sess.user&&sess.user.email));
     rows.push(row('ID de cuenta (sesión)',short(sess&&sess.user&&sess.user.id)));
     rows.push(row('ID de cuenta (guardado aquí)',short(localUid), (sess&&localUid&&sess.user.id!==localUid)?'bad':''));
@@ -85,9 +86,23 @@
     if(!problems.length){v.className='ok';v.textContent='✔ Este dispositivo está sincronizado con tu cuenta.'}
     else{v.className='bad';v.innerHTML='✖ Hay diferencias:<br>'+problems.map(function(p){return '• '+esc(p)}).join('<br>')}
   }
+  function backup(){
+    try{
+      var o={_fecha:new Date().toISOString(),_origen:location.origin};
+      for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i); if(k&&k.indexOf('kinet_')===0) o[k]=localStorage.getItem(k);}
+      var blob=new Blob([JSON.stringify(o)],{type:'application/json'});
+      var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='kinet-copia-'+new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')+'.json';
+      document.body.appendChild(a); a.click(); setTimeout(function(){a.remove()},500); return true;
+    }catch(e){return false}
+  }
+  document.getElementById('b-backup').onclick=function(){ alert(backup()?'Copia descargada. Guárdala por si acaso.':'No se pudo crear la copia.'); };
   document.getElementById('b-refresh').onclick=run;
   document.getElementById('b-force').onclick=async function(){
-    if(!confirm('Esto deja este dispositivo igual que tu cuenta en la nube. ¿Continuar?'))return;
+    var sb0=window.KinetBackend&&KinetBackend.getClient&&KinetBackend.getClient(); var ss0=null;
+    try{ss0=sb0&&(await sb0.auth.getSession()).data.session}catch(e){}
+    if(!ss0){ alert('Este dispositivo no tiene sesión con la nube. Primero pulsa «Volver a iniciar sesión».'); return; }
+    if(!confirm('Esto deja este dispositivo igual que tu cuenta en la nube (se descargará antes una copia de seguridad). ¿Continuar?'))return;
+    backup();
     try{
       var keep={kinet_device_id:1};
       Object.keys(localStorage).forEach(function(k){ if(k.indexOf('kinet_')===0&&!keep[k]&&k!=='kinet_user_id'&&k!=='kinet_user_email'&&k!=='kinet_logged_in'&&k!=='kinet_auth_session_token'&&k!=='kinet_user_name'&&k!=='kinet_social_handle'&&k!=='kinet_username') localStorage.removeItem(k); });
@@ -97,10 +112,11 @@
     location.reload();
   };
   document.getElementById('b-relogin').onclick=async function(){
-    if(!confirm('Se cerrará la sesión en ESTE dispositivo y volverás al inicio de sesión. Tus datos siguen guardados en la nube. ¿Continuar?'))return;
+    if(!confirm('Se descargará una copia de seguridad y volverás al inicio de sesión. Al entrar, tus datos de este dispositivo se unen con los de la nube. ¿Continuar?'))return;
+    backup();
     try{ var sb=KinetBackend.getClient(); if(sb&&sb.auth) await sb.auth.signOut(); }catch(e){}
-    try{ Object.keys(localStorage).forEach(function(k){ if(k.indexOf('kinet_')===0&&k!=='kinet_device_id') localStorage.removeItem(k); }); }catch(e){}
-    location.href='login.html';
+    try{ ['kinet_logged_in','kinet_auth_session_token','kinet_sync_base','kinet_sync_seen'].forEach(function(k){localStorage.removeItem(k)}); }catch(e){}
+    setTimeout(function(){ location.href='login.html'; },900);
   };
   window.addEventListener('load',function(){setTimeout(run,1500)});
 })();

@@ -550,6 +550,25 @@
     } catch (e) {}
   }
 
+
+  // Une dos copias de un chat de IA: deja los mensajes de la nube y añade al final los que solo estaban en este dispositivo.
+  function mergeChatStates(cloudStr, localStr) {
+    try {
+      const c = JSON.parse(cloudStr), l = JSON.parse(localStr);
+      if (!c || typeof c !== 'object' || !l || typeof l !== 'object') return cloudStr;
+      const sig = (m) => String((m && m.sender) || '') + '|' + String((m && m.time) || '') + '|' + String((m && m.text) || '').slice(0, 240);
+      Object.keys(l).forEach((agent) => {
+        const la = l[agent];
+        if (!la || typeof la !== 'object') return;
+        if (!c[agent]) { c[agent] = la; return; }
+        const cm = Array.isArray(c[agent].messages) ? c[agent].messages : (c[agent].messages = []);
+        const have = new Set(cm.map(sig));
+        (Array.isArray(la.messages) ? la.messages : []).forEach((m) => { if (!have.has(sig(m))) { cm.push(m); have.add(sig(m)); } });
+      });
+      return JSON.stringify(c);
+    } catch (e) { return cloudStr; }
+  }
+
   function restoreCloudStateToLocal(profileRow) {
     if (!profileRow || !profileRow.id) return;
     isHydratingFromCloud = true;
@@ -587,7 +606,15 @@
           if (k === 'kinet_user_name' && (cloudState[k] === 'Usuario KINET' || cloudState[k] === 'Atleta Invitado')) {
             return;
           }
-          if (!unsynced.has(k) && !SYNC_SKIP[k]) originalSetItem.call(localStorage, k, String(cloudState[k]));
+          if (!unsynced.has(k) && !SYNC_SKIP[k]) {
+            let val = String(cloudState[k]);
+            // Primera sincronización de este dispositivo: los chats de IA que solo existen aquí se FUSIONAN con los de la nube (no se pierde nada)
+            if (!baseBefore && /^kinet_staff_chats_v\d+_/.test(k)) {
+              const loc = localStorage.getItem(k);
+              if (loc && loc !== val) val = mergeChatStates(val, loc);
+            }
+            originalSetItem.call(localStorage, k, val);
+          }
         }
       });
       // Claves borradas en otro dispositivo: se borran aquí si no tenemos cambios locales pendientes en ellas
