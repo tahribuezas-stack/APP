@@ -89,8 +89,29 @@
     if (window.top !== window) return false;   // dentro del tutorial (iframe) no se pregunta
     if (g('kinet_is_guest') === 'true' || g('kinet_guest_session') === 'true' || g('kinet_mode') === 'guest') return false;
     if (!(g('kinet_logged_in') === 'true' || g('kinet_user_id'))) return false;
-    try { var c = JSON.parse(g('kinet_consents') || 'null'); if (c && c.terms && c.age14 && (g('kinet_user_birthdate') || g('kinet_birth_date'))) return false; } catch (e) {}
+    // Ya confirmado alguna vez en este dispositivo para esta cuenta (clave fuera de la sincronización: nada la borra)
+    if (g('kx_age_ok') && g('kx_age_ok') === (g('kinet_user_id') || 'x')) return false;
+    try { var c = JSON.parse(g('kinet_consents') || 'null'); if (c && c.terms && c.age14 && (g('kinet_user_birthdate') || g('kinet_birth_date'))) { markAgeOk(); return false; } } catch (e) {}
     return true;
+  }
+  function markAgeOk() { try { ls.setItem('kx_age_ok', g('kinet_user_id') || 'x'); } catch (e) {} }
+  // ¿La cuenta ya dio edad y consentimientos al registrarse (o en otro dispositivo)? Se mira en los datos de la cuenta antes de preguntar.
+  function restoreFromAccount() {
+    return new Promise(function (resolve) {
+      try {
+        var sb = window.KinetBackend && KinetBackend.getClient && KinetBackend.getClient();
+        if (!sb || !sb.auth || !sb.auth.getSession) return resolve(false);
+        sb.auth.getSession().then(function (r) {
+          var u = r && r.data && r.data.session && r.data.session.user, m = (u && u.user_metadata) || {};
+          var bd = m.birth_date || m.birthdate || '', c = m.consents;
+          if (bd && c && c.terms && c.age14) {
+            try { ls.setItem('kinet_user_birthdate', bd); ls.setItem('kinet_birth_date', bd); ls.setItem('kinet_consents', JSON.stringify(c)); } catch (e) {}
+            markAgeOk(); try { Minors.enforce(); } catch (e) {} return resolve(true);
+          }
+          resolve(false);
+        }).catch(function () { resolve(false); });
+      } catch (e) { resolve(false); }
+    });
   }
   function openGate() {
     if (document.getElementById('kinet-age-gate')) return;
@@ -143,7 +164,7 @@
         if (sb && sb.auth && sb.auth.updateUser) sb.auth.updateUser({ data: { consents: consents, birthdate: bd } });
         if (window.KinetBackend && KinetBackend.pushLocalStateToCloud) KinetBackend.pushLocalStateToCloud();
       } catch (e) {}
-      Minors.enforce();
+      markAgeOk(); Minors.enforce();
       d.remove();
     };
   }
@@ -169,9 +190,20 @@
   function startGate() {
     if (!needsGate()) return;
     // Espera un momento a que la sincronización de la nube traiga sus consentimientos (otro dispositivo)
-    var done = false, go = function () { if (done) return; done = true; if (needsGate()) openGate(); };
-    window.addEventListener('kinet:cloud-synced', function () { setTimeout(function () { Minors.enforce(); go(); }, 200); }, { once: true });
-    setTimeout(go, 3500);
+    var done = false, go = function () {
+      if (done) return; done = true;
+      if (!needsGate()) return;
+      restoreFromAccount().then(function (ok) { if (!ok && needsGate()) openGate(); });
+    };
+    // Si la sincronización trae los consentimientos mientras el aviso está abierto, se cierra solo
+    window.addEventListener('kinet:cloud-synced', function () {
+      setTimeout(function () {
+        Minors.enforce();
+        if (!needsGate()) { var o = document.getElementById('kinet-age-gate'); if (o) o.remove(); }
+        go();
+      }, 200);
+    });
+    setTimeout(go, 6000);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startGate); else startGate();
 })();

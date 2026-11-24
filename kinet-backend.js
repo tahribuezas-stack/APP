@@ -493,6 +493,25 @@
     }, 500);
   }
 
+  // "Config. Red Social": solo para invitados (incentivo para crear cuenta) o cuentas que NO han configurado nada.
+  // En cuanto existe cualquier dato mínimo de perfil, no vuelve a aparecer (editar sigue en Mi Perfil).
+  function profileLooksConfigured() {
+    const g = (k) => (localStorage.getItem(k) || '').trim();
+    if (g('kinet_social_configured') === 'true' || g('kinet_profile_completed') === 'true') return true;
+    if (g('kinet_user_name') && g('kinet_user_name') !== 'Atleta Invitado' && g('kinet_user_name') !== 'Usuario KINET') return true;
+    return !!(g('kinet_user_avatar') || g('kinet_social_bio') || g('kinet_user_club'));
+  }
+  function syncSocialConfigLinks() {
+    try {
+      const hide = isStrictlyAuthenticatedUser() && profileLooksConfigured();
+      document.querySelectorAll('#nav-config-social, #drawer-config-social').forEach((el) => { el.style.display = hide ? 'none' : ''; });
+    } catch (e) {}
+  }
+  window.KinetSocialLinks = { refresh: syncSocialConfigLinks, configured: profileLooksConfigured };
+  window.addEventListener('kinet:cloud-synced', syncSocialConfigLinks);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', syncSocialConfigLinks); else syncSocialConfigLinks();
+  setTimeout(syncSocialConfigLinks, 1200);
+
   function scrubHardcodedHtmlPlaceholdersForGuest() {
     if (isStrictlyAuthenticatedUser()) return;
     const guestName = localStorage.getItem('kinet_user_name') || 'Atleta Invitado';
