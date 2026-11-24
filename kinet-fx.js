@@ -311,15 +311,50 @@
   }
   function setupProgress() {
     if (ls('kinet_fx_progress') === 'off') return;
-    var ws = document.querySelector('.os-workspace'); if (!ws) return;
-    var bar = document.createElement('div'); bar.id = 'kx-progress'; document.body.appendChild(bar);
-    function upd(src) {
-      var el = src === document ? (document.scrollingElement || doc) : src, max = el.scrollHeight - el.clientHeight;
-      if (max < 40) { bar.classList.remove('on'); return; }
-      bar.classList.add('on'); bar.style.transform = 'scaleX(' + Math.min(1, el.scrollTop / max) + ')';
+    var ws = document.querySelector('.os-workspace'), om = document.querySelector('.os-main');
+    if (!ws && !om) return;
+    var bar = document.createElement('div'); bar.id = 'kx-progress'; bar.setAttribute('aria-hidden', 'true');
+    var fill = document.createElement('i'); bar.appendChild(fill); document.body.appendChild(bar);
+    function room(el) { return el ? el.scrollHeight - el.clientHeight : 0; }
+    function scroller() {
+      if (room(ws) > 40) return ws;
+      if (room(om) > 40) return om;
+      var d = document.scrollingElement || doc; return room(d) > 40 ? d : null;
     }
-    ws.addEventListener('scroll', function () { upd(ws); }, { passive: true });
-    window.addEventListener('scroll', function () { upd(document); }, { passive: true });
+    function upd() {
+      var el = scroller();
+      if (!el) { bar.classList.remove('on', 'full'); return; }
+      var max = room(el), p = Math.max(0, Math.min(1, el.scrollTop / max));
+      bar.classList.add('on'); bar.style.setProperty('--p', p.toFixed(4)); bar.classList.toggle('full', p > .985);
+    }
+    document.addEventListener('scroll', upd, { passive: true, capture: true });
+    window.addEventListener('resize', upd, { passive: true });
+    setInterval(function () { if (!document.hidden) upd(); }, 1500);   // el contenido llega tarde: recalcula
+    upd(); setTimeout(upd, 600);
+  }
+  /* El contenido baja con la rueda y el teclado aunque el cursor esté en los márgenes, la cabecera o fuera de la columna central */
+  function setupScrollAnywhere() {
+    var ws = document.querySelector('.os-workspace'), om = document.querySelector('.os-main');
+    if (!ws || !om) return;
+    var BLOCK = '.drawer,.modal,.pal,[class*="modal"],[class*="overlay"],[class*="drawer"],.kc,select,textarea,input,[contenteditable]';
+    function target() { return ws.scrollHeight - ws.clientHeight > 4 ? ws : null; }
+    om.addEventListener('wheel', function (e) {
+      if (e.ctrlKey || e.defaultPrevented || !e.deltaY) return;
+      var t = e.target; if (!t || ws.contains(t)) return;
+      if (t.closest && t.closest(BLOCK)) return;
+      var w = target(); if (!w) return;
+      w.scrollTop += e.deltaY * (e.deltaMode === 1 ? 34 : e.deltaMode === 2 ? w.clientHeight : 1); e.preventDefault();
+    }, { passive: false });
+    document.addEventListener('keydown', function (e) {
+      if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
+      var a = document.activeElement; if (a && a !== document.body && a !== document.documentElement) return;
+      var w = target(); if (!w) return; if (document.querySelector('.modal.on,.modal.open,.pal.on,.drawer.on,.drawer.open')) return;
+      var k = e.key, h = w.clientHeight;
+      var d = k === 'PageDown' || (k === ' ' && !e.shiftKey) ? h * .88 : k === 'PageUp' || (k === ' ' && e.shiftKey) ? -h * .88 : k === 'ArrowDown' ? 60 : k === 'ArrowUp' ? -60 : 0;
+      if (k === 'Home') { w.scrollTo({ top: 0, behavior: 'smooth' }); e.preventDefault(); return; }
+      if (k === 'End') { w.scrollTo({ top: w.scrollHeight, behavior: 'smooth' }); e.preventDefault(); return; }
+      if (d) { w.scrollBy({ top: d, behavior: 'smooth' }); e.preventDefault(); }
+    });
   }
   function setupMagnet() {
     if (!fine || reduce || ls('kinet_fx_magnet') === 'off') return;
@@ -528,7 +563,7 @@
 
   /* ───────── arranque ───────── */
   function boot() {
-    try { setupLinks(); setupPrefetch(); setupTabs(); setupCursor(); setupPulse(); setupProgress(); setupMagnet(); setupGrain(); setupLed(); } catch (e) {}
+    try { setupLinks(); setupPrefetch(); setupTabs(); setupCursor(); setupPulse(); setupProgress(); setupScrollAnywhere(); setupMagnet(); setupGrain(); setupLed(); } catch (e) {}
     try { setupChatMotion(); } catch (e) {}
     try { setupNavGlide(); } catch (e) {}
     if (startCovered) {

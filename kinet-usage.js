@@ -41,7 +41,7 @@
   '.kx-us-pill .kx-us-ring{width:26px;height:26px;flex:0 0 26px}.kx-us-pill .kx-us-ring svg{width:26px;height:26px}.kx-us-pill .kx-us-ring circle{stroke-width:5}.kx-us-pill .kx-us-ring b{display:none}' +
   '.kx-us-pill .txt{font:800 .62rem/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.06em;color:#E2E8F0;white-space:nowrap}.kx-us-pill .txt b{color:var(--kx-us-c,var(--role-color,#00FF88))}' +
   '.kx-us-pill.low{--kx-us-c:#F59E0B}.kx-us-pill.out{--kx-us-c:#EF4444}' +
-  '@media (max-width:960px){.kx-us-pill{display:flex}}' +
+  '@media (max-width:960px){.kx-us-pill{display:flex;padding:4px;gap:0;right:8px;bottom:calc(72px + env(safe-area-inset-bottom,0px));opacity:.82;transition:opacity .25s,transform .25s}.kx-us-pill .txt{display:none}.kx-us-pill .kx-us-ring{width:34px;height:34px;flex-basis:34px}.kx-us-pill .kx-us-ring svg{width:34px;height:34px}.kx-us-pill .kx-us-ring b{display:flex;font-size:.58rem}.kx-us-pill.kx-away{opacity:0;transform:translateY(10px);pointer-events:none}}' +
   /* franja del chat */
   '.kx-us-strip{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;padding:7px 14px;cursor:pointer;border-top:1px solid rgba(var(--role-rgb,0,255,136),.14);background:rgba(8,11,16,.55);' +
     'font:700 .6rem/1 "JetBrains Mono",ui-monospace,monospace;color:#94A3B8;letter-spacing:.06em;animation:kxUsRise .6s cubic-bezier(.2,.8,.2,1) both;transition:background .3s}' +
@@ -171,11 +171,13 @@
   /* ---------- pastilla flotante (móvil) ---------- */
   function buildPill() {
     if (document.querySelector('.kx-us-pill') || document.querySelector('.chat-input-bar')) return;   // en el chat ya hay franja
+    (function () { var t = 0; function away() { var p = document.querySelector('.kx-us-pill'); if (!p) return; p.classList.add('kx-away'); clearTimeout(t); t = setTimeout(function () { p.classList.remove('kx-away'); }, 1100); } window.addEventListener('scroll', away, { passive: true, capture: true }); window.addEventListener('touchmove', away, { passive: true }); document.addEventListener('focusin', function (e) { if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) { var p = document.querySelector('.kx-us-pill'); if (p) p.classList.add('kx-away'); } }); document.addEventListener('focusout', function () { setTimeout(function () { var p = document.querySelector('.kx-us-pill'); if (p) p.classList.remove('kx-away'); }, 300); }); })();
     var b = document.createElement('button'); b.type = 'button'; b.className = 'kx-us-pill'; b.setAttribute('aria-label', 'Ver mi uso de IA');
     b.innerHTML = ringHTML() + '<span class="txt">IA <b data-pn>0</b>/<span data-pt>0</span></span>';
     b.addEventListener('click', openPanel); document.body.appendChild(b); pills.push(b);
   }
   function paintPill(b, q) {
+    var rb = b.querySelector('.kx-us-ring b'); if (rb) rb.textContent = q.isStaff ? '∞' : String(model(q).rem);
     if (q.isStaff) { b.classList.remove('low', 'out'); b.querySelector('[data-pn]').textContent = '∞'; b.querySelector('[data-pt]').textContent = '∞'; setRing(b, 1); return; }
     var m = model(q); setState(b, m.st);
     b.querySelector('[data-pn]').textContent = m.rem; b.querySelector('[data-pt]').textContent = m.total; setRing(b, frac(m.rem, m.total));

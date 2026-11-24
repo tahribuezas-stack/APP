@@ -18,11 +18,13 @@
     { id: 'soporte',      icon: '🎧', label: 'Soporte',              roles: ['subadmin', 'moderator'] },
     { id: 'verificacion', icon: '✅', label: 'Verificación B2B',     roles: ['subadmin', 'scout_verifier'] },
     { id: 'planes',       icon: '💳', label: 'Planes y minutos',     roles: ['subadmin'] },
+    { id: 'finanzas',     icon: '💶', label: 'Finanzas y márgenes',  roles: ['subadmin'] },
     { id: 'marketing',    icon: '📣', label: 'Marketing',            roles: ['subadmin', 'marketing'] },
     { id: 'ia',           icon: '🧠', label: 'IA y costes',          roles: ['subadmin'] },
     { id: 'video',        icon: '🎬', label: 'Vídeo y almacenaje',   roles: ['subadmin'] },
     { id: 'config',       icon: '🎛️', label: 'Regulación de la app', roles: ['subadmin'] },
     { id: 'equipo',       icon: '🧑‍💼', label: 'Equipo y rangos',      roles: ['subadmin'] },
+    { id: 'directiva',    icon: '🧭', label: 'Directiva · Mural',    roles: ['subadmin'] },
     { id: 'auditoria',    icon: '🧾', label: 'Auditoría',            roles: ['subadmin'] },
     { id: 'salud',        icon: '🩺', label: 'Estado del sistema',   roles: ['subadmin'] },
     { id: 'pruebas',      icon: '🧪', label: 'Pruebas (Modo Dios)',  roles: ['subadmin'] }
