@@ -43,65 +43,98 @@
   }
   ss('kx_cover', null);
 
-  /* ───────── cortina ───────── */
-  var melt = null, cols = [], sweep = null;
+  /* ───────── cortina: líquido oscuro con borde suave (gotas grandes y redondeadas, sin cuadrados) ───────── */
+  var melt = null, liq = null, lctx = null, sweep = null, liqRaf = 0;
+  var LW = 0, LH = 0, LM = 0, lobes = [], liqFill = null, liqRgb = '0,255,136';
   function ensureMelt() {
     if (melt) return melt;
     if (!document.body) return null;
-    if (!document.getElementById('kx-goo-svg')) {
-      var s = document.createElement('div'); s.id = 'kx-goo-svg'; s.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden';
-      s.innerHTML = '<svg width="0" height="0" aria-hidden="true"><filter id="kx-goo" x="-5%" y="-5%" width="110%" height="115%"><feGaussianBlur in="SourceGraphic" stdDeviation="13" result="b"/><feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 30 -13"/></filter></svg>';
-      document.body.appendChild(s);
-    }
     melt = document.createElement('div'); melt.id = 'kx-melt'; melt.setAttribute('aria-hidden', 'true');
-    if (!wide) melt.className = 'simple';
-    var n = wide ? 48 : 14, html = '<div class="kx-cols">';
-    for (var i = 0; i < n; i++) html += '<div class="kx-col" style="--drip:' + (28 + Math.round(Math.random() * 96)) + 'px"></div>';
-    html += '</div><div class="kx-grid"></div><div class="kx-logo"><div class="kx-ring-wrap"><svg class="kx-ring" viewBox="0 0 120 120" aria-hidden="true"><circle class="kx-ring-bg" cx="60" cy="60" r="54"/><circle class="kx-ring-fg" cx="60" cy="60" r="54"/></svg><div class="kx-mark">K</div></div><div class="kx-word"></div><div class="kx-sub"></div><div class="kx-meter"><div class="kx-bar"><i></i></div><b class="kx-pct">000</b></div></div>';
-    melt.innerHTML = html; document.body.appendChild(melt);
-    cols = [].slice.call(melt.querySelectorAll('.kx-col'));
-    var w = melt.querySelector('.kx-word'); 'KINET OS'.split('').forEach(function (ch, i) { var sp = document.createElement('span'); sp.textContent = ch === ' ' ? ' ' : ch; sp.style.animationDelay = (0.35 + i * 0.06) + 's'; w.appendChild(sp); });
+    melt.innerHTML = '<canvas class="kx-liquid"></canvas>' + '<div class="kx-grid"></div><div class="kx-logo"><div class="kx-ring-wrap"><svg class="kx-ring" viewBox="0 0 120 120" aria-hidden="true"><circle class="kx-ring-bg" cx="60" cy="60" r="54"/><circle class="kx-ring-fg" cx="60" cy="60" r="54"/></svg><div class="kx-mark">K</div></div><div class="kx-word"></div><div class="kx-sub"></div><div class="kx-meter"><div class="kx-bar"><i></i></div><b class="kx-pct">000</b></div></div>';
+    document.body.appendChild(melt);
+    liq = melt.querySelector('.kx-liquid'); try { lctx = liq.getContext('2d'); } catch (e) { lctx = null; }
+    var w = melt.querySelector('.kx-word'); 'KINET OS'.split('').forEach(function (ch, i) { var sp = document.createElement('span'); sp.textContent = ch === ' ' ? ' ' : ch; sp.style.animationDelay = (0.35 + i * 0.06) + 's'; w.appendChild(sp); });
     sweep = document.createElement('div'); sweep.id = 'kx-sweep'; sweep.innerHTML = '<i></i>'; document.body.appendChild(sweep);
     return melt;
   }
-  var OUT = 'translateY(calc(-100% - 170px))', IN = 'translateY(0)', DOWN = 'translateY(calc(100% + 170px))';
-  function setCols(t) { cols.forEach(function (c) { c.style.transform = t; }); }
+  // Prepara el lienzo y reparte unas pocas gotas anchas y suaves (3 en móvil, 5 en escritorio)
+  function prepLiquid() {
+    if (!liq || !lctx) return;
+    LW = innerWidth; LH = innerHeight;
+    var dpr = Math.min(window.devicePixelRatio || 1, LW >= 900 ? 2 : 1.5);
+    liq.width = Math.round(LW * dpr); liq.height = Math.round(LH * dpr);
+    lctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var n = LW >= 900 ? 5 : (LW >= 600 ? 4 : 3), seg = LW / n;
+    LM = LH * (LW >= 900 ? 0.38 : 0.27);
+    lobes = [];
+    for (var i = 0; i < n; i++) lobes.push({ cx: seg * (i + 0.5) + (Math.random() - 0.5) * seg * 0.5, w: seg * (0.30 + Math.random() * 0.18), h: LM * (0.62 + Math.random() * 0.38), d: Math.random() * 0.18 });
+    liqFill = lctx.createLinearGradient(0, 0, 0, LH); liqFill.addColorStop(0, '#0B121C'); liqFill.addColorStop(0.65, '#04060A'); liqFill.addColorStop(1, '#04060A');
+    try { var r = getComputedStyle(document.body).getPropertyValue('--role-rgb').trim(); if (/^\d+\s*,\s*\d+\s*,\s*\d+$/.test(r)) liqRgb = r; } catch (e) {}
+  }
+  function easeIO(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+  // Altura del borde del líquido en la posición x para el progreso p (0..1). Las gotas se adelantan al resto y se redondean.
+  function liqEdge(x, p) {
+    var base = -LM * 1.05 + (LH + LM * 1.05 + 2) * p, d = 0;
+    for (var i = 0; i < lobes.length; i++) {
+      var L = lobes[i], q = Math.min(1, Math.max(0, (p - L.d) / 0.82)), f = 4 * q * (1 - q);
+      var u = (x - L.cx) / L.w; d += L.h * Math.exp(-u * u) * f;
+    }
+    return base + d + Math.sin(x / LW * 7.5 + 0.8) * LM * 0.025 * (4 * p * (1 - p));
+  }
+  // mode 'cover': oscuro POR ENCIMA del borde (la cortina cae). mode 'reveal': oscuro POR DEBAJO (la pantalla se derrite hacia abajo).
+  function drawLiquid(p, mode) {
+    if (!lctx) return;
+    var c = lctx, step = LW >= 900 ? 5 : 8, x, y;
+    c.clearRect(0, 0, LW, LH);
+    c.beginPath();
+    if (mode === 'cover') c.moveTo(0, -6); else c.moveTo(0, LH + 6);
+    var xs = [], ys = [];
+    for (x = 0; x < LW + step; x += step) { var xx = Math.min(x, LW); y = liqEdge(xx, p); xs.push(xx); ys.push(y); c.lineTo(xx, y); }
+    if (mode === 'cover') c.lineTo(LW, -6); else c.lineTo(LW, LH + 6);
+    c.closePath(); c.fillStyle = liqFill; c.fill();
+    if (p > 0.001 && p < 0.999) {      // borde luminoso suave siguiendo la curva
+      c.lineJoin = 'round'; c.lineCap = 'round';
+      [[12, 0.07], [5, 0.16], [1.6, 0.9]].forEach(function (s2) {
+        c.beginPath(); for (var i = 0; i < xs.length; i++) { if (i) c.lineTo(xs[i], ys[i]); else c.moveTo(xs[i], ys[i]); }
+        c.lineWidth = s2[0]; c.strokeStyle = 'rgba(' + liqRgb + ',' + s2[1] + ')'; c.stroke();
+      });
+    }
+  }
+  function drawFull() { if (!lctx) return; lctx.clearRect(0, 0, LW, LH); lctx.fillStyle = '#04060A'; lctx.fillRect(0, 0, LW, LH); }
+  function runLiquid(mode, dur) {
+    return new Promise(function (res) {
+      cancelAnimationFrame(liqRaf);
+      var t0 = performance.now();
+      (function f(now) {
+        var t = Math.min(1, Math.max(0, (now - t0) / dur));
+        drawLiquid(easeIO(t), mode);
+        if (t < 1) liqRaf = requestAnimationFrame(f); else res();
+      })(t0);
+    });
+  }
 
   // La cortina cae (salida de la página)
   function coverIn() {
     return new Promise(function (res) {
-      var m = ensureMelt(); if (!m || reduce || !cols[0].animate) { res(); return; }
-      m.classList.add('on'); setCols(OUT);
-      var last = 0;
-      cols.forEach(function (c, i) {
-        var d = (Math.sin(i * 0.5 + 1) + 1) * 105 + Math.random() * 35;
-        c.animate([{ transform: OUT }, { transform: IN }], { duration: 520, delay: d, easing: 'cubic-bezier(.7,0,.25,1)', fill: 'forwards' });
-        last = Math.max(last, 520 + d + 190);
-      });
-      setTimeout(res, Math.min(last, 900));
+      var m = ensureMelt(); if (!m || reduce || !lctx) { res(); return; }
+      prepLiquid(); drawLiquid(0, 'cover'); m.classList.add('on');
+      runLiquid('cover', 620).then(function () { drawFull(); res(); });
     });
   }
-  // La cortina se derrite hacia abajo (entrada a la página)
+  // La pantalla se derrite hacia abajo (entrada a la página)
   function meltAway(opts) {
     opts = opts || {};
     var m = ensureMelt(); if (!m) { doc.classList.remove('kx-cover'); return Promise.resolve(); }
-    m.classList.add('on'); setCols(IN);
-    doc.classList.remove('kx-cover');           // la cortina real (columnas) ya tapa la pantalla
+    prepLiquid(); drawFull(); m.classList.add('on');
+    doc.classList.remove('kx-cover');           // la cortina real ya tapa la pantalla
     var logo = m.querySelector('.kx-logo');
     return new Promise(function (resolve) {
       var start = function () {
         if (logo && logo.animate) logo.animate([{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(1.08)' }], { duration: 380, easing: 'ease-in', fill: 'forwards' });
-        var last = 0;
-        var N = cols.length;
-        cols.forEach(function (c, i) {
-          var u = i / (N - 1);
-          // frente de onda suave (columnas vecinas caen casi a la vez) + un pequeño temblor
-          var d = (0.5 + 0.5 * Math.sin(u * 5.2 + 0.6)) * 170 + (0.5 + 0.5 * Math.sin(u * 13.7)) * 70 + Math.random() * 14 + Math.abs(u - 0.5) * 120;
-          var dur = 1050 + (0.5 + 0.5 * Math.sin(u * 9.1 + 2)) * 260;
-          if (c.animate) c.animate([{ transform: IN }, { transform: DOWN }], { duration: dur, delay: d, easing: 'cubic-bezier(.6,.02,.28,1)', fill: 'forwards' });
-          last = Math.max(last, dur + d);
-        });
-        setTimeout(function () { m.classList.remove('on'); setCols(OUT); if (logo) logo.style.opacity = 0; resolve(); }, last + 40);
+        var done = function () { cancelAnimationFrame(liqRaf); m.classList.remove('on'); if (lctx) lctx.clearRect(0, 0, LW, LH); if (logo) logo.style.opacity = 0; resolve(); };
+        if (lctx) runLiquid('reveal', 1250).then(done);
+        else if (m.animate) { m.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 600, fill: 'forwards' }).onfinish = function () { done(); m.style.opacity = ''; }; }
+        else done();
         setTimeout(function () { if (!opts.noRebuild) KinetFX.rebuild(null, { page: true }); }, 260);
       };
       if (opts.logo) {
@@ -425,6 +458,21 @@
     function y(el) { return el.offsetTop + el.offsetHeight * .25; }
     function place() { var a = nav.querySelector('a.side-link.active'); if (!a) return; ind.style.height = Math.max(18, a.offsetHeight * .5) + 'px'; ind.style.translate = '0 ' + y(a) + 'px'; ind.style.opacity = 1; }
     window.addEventListener('resize', place);
+    // Si el deslizamiento se queda a medias (pestaña en segundo plano, animación pausada…), el marcador se coloca siempre en la opción activa
+    function settle() {
+      try {
+        var a = nav.querySelector('a.side-link.active'); if (!a) return;
+        var want = nav.getBoundingClientRect().top + y(a), got = ind.getBoundingClientRect().top;
+        if (Math.abs(want - got) > 2 || !ind.style.opacity) {
+          if (ind.getAnimations) ind.getAnimations().forEach(function (an) { try { an.finish(); } catch (e) {} });
+          var tr = ind.style.transition; ind.style.transition = 'none'; place(); void ind.offsetWidth; ind.style.transition = tr;
+        }
+      } catch (e) {}
+    }
+    setTimeout(settle, 1100); setTimeout(settle, 2600);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) setTimeout(settle, 60); });
+    window.addEventListener('pageshow', function () { setTimeout(settle, 60); });
+    window.addEventListener('focus', function () { setTimeout(settle, 60); });
     if (!from || from === act || reduce || needIntro || !act.animate) { ind.style.transition = 'none'; place(); requestAnimationFrame(function () { ind.style.transition = ''; }); return; }
     // el marcador arranca en la opción anterior y se desliza
     ind.style.transition = 'none'; ind.style.height = Math.max(18, from.offsetHeight * .5) + 'px'; ind.style.translate = '0 ' + y(from) + 'px'; ind.style.opacity = 1;
@@ -479,7 +527,7 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
   // Volver con el botón "atrás" (caché de página): nunca debe quedarse la cortina
-  window.addEventListener('pageshow', function (e) { if (e.persisted) { doc.classList.remove('kx-cover'); doc.classList.remove('kx-soft'); if (melt) { melt.classList.remove('on'); } go.busy = false; } });
+  window.addEventListener('pageshow', function (e) { if (e.persisted) { doc.classList.remove('kx-cover'); doc.classList.remove('kx-soft'); if (melt) { cancelAnimationFrame(liqRaf); melt.classList.remove('on'); } go.busy = false; } });
 
   window.KinetFX = { motion: { system: sysReduce, respect: respectSys, active: !reduce }, led: { apply: applyLed, defaults: LED_DEF }, rebuild: rebuild, go: go, coverIn: coverIn, meltAway: meltAway,
     setCursor: function (on) { try { localStorage.setItem('kinet_fx_cursor', on ? 'on' : 'off'); } catch (e) {} location.reload(); } };

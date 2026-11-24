@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script src="kinet-guard.js?v=37"></script>
-<script src="kinet-teams.js?v=37"></script>
+<script src="kinet-guard.js?v=38"></script>
+<script src="kinet-teams.js?v=38"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
@@ -73,10 +73,10 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="kinet-sport.js?v=37"></script>
-<script src="kinet-backend.js?v=37"></script>
-    <script src="kinet-positions.js?v=37"></script>
-    <script src="kinet-api-config.js?v=37"></script>
+    <script src="kinet-sport.js?v=38"></script>
+<script src="kinet-backend.js?v=38"></script>
+    <script src="kinet-positions.js?v=38"></script>
+    <script src="kinet-api-config.js?v=39"></script>
 
     <style>
         :root {
@@ -128,44 +128,6 @@
             html, body { height: auto !important; overflow-y: auto !important; }
             .os-main { height: auto !important; overflow: visible !important; }
             .os-sidebar { display: none !important; }
-        }
-
-        /* CORTINA DIVERTIDA CON SEGURO AUTOMÁTICO CSS */
-        @keyframes kinetCurtainAutoHide {
-            0%, 60% { opacity: 1; pointer-events: all; }
-            100% { opacity: 0; pointer-events: none; visibility: hidden; }
-        }
-        #kinet-funny-curtain {
-            position: fixed; inset: 0; z-index: 99999;
-            background: radial-gradient(circle at 50% 50%, rgba(var(--role-rgb), 0.18) 0%, #04060A 85%);
-            backdrop-filter: blur(18px);
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
-            opacity: 1;
-            transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-            animation: kinetCurtainAutoHide 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            cursor: pointer;
-        }
-        #kinet-funny-curtain.curtain-hidden {
-            opacity: 0 !important;
-            pointer-events: none !important;
-            visibility: hidden !important;
-            display: none !important;
-        }
-        #kinet-funny-curtain.curtain-exit-active {
-            animation: none !important;
-            display: flex !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            pointer-events: all !important;
-        }
-        @keyframes kinetSpinBall {
-            0% { transform: scale(0.6) rotate(0deg); }
-            60% { transform: scale(1.16) rotate(210deg); }
-            100% { transform: scale(1) rotate(360deg); }
-        }
-        @keyframes kinetWhistleBounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-7px); }
         }
 
         /* SIDEBAR OFICIAL */
@@ -479,6 +441,22 @@
         #sport-ball-node { pointer-events: auto !important; cursor: grab; touch-action: none; }
         #sport-ball-node:hover { box-shadow: 0 6px 14px rgba(0,0,0,0.9), 0 0 24px var(--role-color), 0 0 10px #FFFFFF; }
         #sport-ball-node.dragging { transition: none !important; cursor: grabbing; z-index: 96; transform: translate(-50%, -50%) scale(1.25); }
+        /* Balón con volumen 3D: esfera, brillo y sombra proyectada sobre el césped */
+        #sport-ball-node {
+            width: 26px; height: 26px; line-height: 1; filter: none;
+            background: radial-gradient(circle at 32% 26%, #FFFFFF 0%, #E5EAF1 38%, #9AA6B5 78%, #5B6676 100%);
+            border: 1.5px solid rgba(4, 6, 10, 0.92);
+            box-shadow: inset -3px -4px 7px rgba(0,0,0,0.38), inset 2px 2px 4px rgba(255,255,255,0.8), 0 5px 10px rgba(0,0,0,0.75), 0 0 14px rgba(255,255,255,0.55);
+            margin: 0; transition: left 0.72s cubic-bezier(0.22, 1, 0.36, 1), top 0.72s cubic-bezier(0.22, 1, 0.36, 1), margin 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        #sport-ball-node::after {
+            content: ''; position: absolute; left: 50%; bottom: -9px; width: 70%; height: 6px; margin-left: -35%;
+            border-radius: 50%; background: rgba(0,0,0,0.55); filter: blur(2.5px); z-index: -1; pointer-events: none;
+        }
+        /* Si una ficha lleva el balón, éste queda a sus pies y NO tapa el centro de la ficha (así siempre puedes agarrar la ficha) */
+        #sport-ball-node.held { margin: 14px 0 0 16px; }
+        #sport-ball-node.carried { transition: none !important; z-index: 97; margin: 14px 0 0 16px; box-shadow: inset -3px -4px 7px rgba(0,0,0,0.38), inset 2px 2px 4px rgba(255,255,255,0.8), 0 8px 14px rgba(0,0,0,0.7), 0 0 20px var(--role-color); }
+        .micro-player-token.has-ball { border-color: #FFFFFF; }
         .micro-player-token.has-ball, .micro-rival-token.has-ball { box-shadow: 0 0 0 3px rgba(255,255,255,0.28), 0 6px 16px rgba(0,0,0,0.88), 0 0 14px rgba(255,255,255,0.55); }
         #arena-equip-layer, #arena-badge-layer { position: absolute; inset: 0; pointer-events: none !important; }
         #arena-equip-layer { z-index: 30; }
@@ -663,19 +641,14 @@
             font-size: 0.71rem; color: #F8FAFC;
         }
     </style>
-    <link rel="stylesheet" href="kinet-mobile-fix.css?v=37">
-<link rel="stylesheet" href="kinet-fx.css?v=37">
-<script src="kinet-fx.js?v=37"></script>
-<script src="kinet-usage.js?v=37"></script>
+    <link rel="stylesheet" href="kinet-mobile-fix.css?v=38">
+<link rel="stylesheet" href="kinet-fx.css?v=40">
+<link rel="stylesheet" href="kinet-curtain.css?v=39">
+<script src="kinet-curtain.js?v=39"></script>
+<script src="kinet-fx.js?v=40"></script>
+<script src="kinet-usage.js?v=38"></script>
 </head>
 <body data-role="athlete" class="lab-page">
-
-    <!-- CORTINA DE TRANSICIÓN CON AUTO-OCULTACIÓN CSS -->
-    <div id="kinet-funny-curtain" onclick="this.classList.add('curtain-hidden')">
-        <div style="font-size:3.6rem;animation:kinetSpinBall 0.45s cubic-bezier(0.16,1,0.3,1) forwards;filter:drop-shadow(0 0 25px var(--role-color));" id="curtain-icon">📋</div>
-        <div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:#FFFFFF;letter-spacing:0.08em;text-align:center;animation:kinetWhistleBounce 0.6s infinite;" id="curtain-title">📣 ¡PIZARRA TÁCTICA LISTA!</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:0.74rem;color:var(--role-color);background:rgba(var(--role-rgb),0.12);border:1px solid var(--role-color);padding:6px 14px;border-radius:99px;" id="curtain-sub">Desplegando el campo en horizontal...</div>
-    </div>
 
     <div class="os-layout">
         <!-- SIDEBAR -->
@@ -710,6 +683,9 @@
 
         <!-- MAIN -->
         <div class="os-main">
+            <!-- CORTINA 3D: solo cubre el cuadro de contenido -->
+            <div id="kinet-funny-curtain" class="kc kc-on"></div>
+            <script>KinetCurtain.fill({icon:"📋",title:"📣 ¡PIZARRA TÁCTICA LISTA!",sub:"Desplegando el campo en horizontal..."});</script>
             <header class="os-topbar">
                 <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-secondary);display:flex;align-items:center;gap:10px;">
                     <span>LABORATORIO DE ESTRATEGIAS, MARCAJE 1VS1 & JUGADAS MULTIFASE</span>
@@ -1431,6 +1407,7 @@
         let boardHorizontalSlots = [];
         let rivalTokens = [];
         let ballCoords = { x: 50, y: 50 };
+        const BALL_HOLD_R = 5.2; // % de campo: a esta distancia o menos, la ficha 'lleva' el balón
         let manMarkingLinks = {};
 
         let currentPhaseIdx = 0;
@@ -2466,12 +2443,14 @@
             const svgLayer = document.getElementById('arena-vectors-svg');
             const ballEl = document.getElementById('sport-ball-node');
             const badgeLayer = document.getElementById('arena-badge-layer');
-            const nearBall = (o) => Math.hypot(o.x - ballCoords.x, o.y - ballCoords.y) < 3.4;
+            const nearBall = (o) => Math.hypot(o.x - ballCoords.x, o.y - ballCoords.y) < BALL_HOLD_R;
 
             if (ballEl) {
                 const bx = fieldPctToDisplayPctX(ballCoords.x);
                 if (!ballEl.classList.contains('dragging')) { ballEl.style.left = `${bx}%`; ballEl.style.top = `${ballCoords.y}%`; }
                 ballEl.style.display = (bx < -5 || bx > 105) ? 'none' : 'flex';
+                const heldBy = boardHorizontalSlots.some(nearBall) || (showRivals && Array.isArray(rivalTokens) && rivalTokens.some(nearBall));
+                ballEl.classList.toggle('held', heldBy);
             }
             if (tokensLayer) {
                 while (tokensLayer.children.length > boardHorizontalSlots.length) tokensLayer.removeChild(tokensLayer.lastElementChild);
@@ -2578,7 +2557,7 @@
             const slot = isRiv ? rivalTokens[idx] : boardHorizontalSlots[idx];
             if (!slot) return null;
             const ox = slot.x, oy = slot.y;
-            const carry = kind === 'dribble' || Math.hypot(ballCoords.x - ox, ballCoords.y - oy) < 4;
+            const carry = kind === 'dribble' || Math.hypot(ballCoords.x - ox, ballCoords.y - oy) < BALL_HOLD_R;
             const col = kind === 'dribble' ? K_COL.dribble : ((kind === 'screen' || isRiv) ? K_COL.screen : K_COL.move);
             phasesData[currentPhaseIdx].vectors.push(mkVec({ x: ox, y: oy }, { x: tx, y: ty }, col, { t: isRiv ? 'r' : 'o', i: idx }));
             slot.x = tx; slot.y = ty;
@@ -2606,6 +2585,11 @@
                 const startX = slotObj.x, startY = slotObj.y;
                 const pre = snapshotForUndo();
                 let maxDelta = 0;
+                // ¿lleva el balón esta ficha? Entonces el balón viaja pegado a ella mientras la arrastras
+                const ballStart = { x: ballCoords.x, y: ballCoords.y };
+                const carriesBall = Math.hypot(ballStart.x - startX, ballStart.y - startY) < BALL_HOLD_R;
+                const ballEl = carriesBall ? document.getElementById('sport-ball-node') : null;
+                if (ballEl) ballEl.classList.add('carried');
                 el.classList.add('dragging');
                 const onMove = (ev) => {
                     const rect = surface.getBoundingClientRect();
@@ -2615,14 +2599,23 @@
                     slotObj.x = nx; slotObj.y = ny;
                     el.style.left = `${fieldPctToDisplayPctX(nx)}%`;
                     el.style.top = `${ny}%`;
+                    if (ballEl) {
+                        ballCoords = { x: nx, y: ny };
+                        ballEl.style.left = `${fieldPctToDisplayPctX(nx)}%`;
+                        ballEl.style.top = `${ny}%`;
+                    }
                 };
                 const onUp = () => {
                     window.removeEventListener('pointermove', onMove);
                     window.removeEventListener('pointerup', onUp);
                     window.removeEventListener('pointercancel', onUp);
                     el.classList.remove('dragging');
+                    if (ballEl) ballEl.classList.remove('carried');
                     if (maxDelta >= 2) {
                         const fx = slotObj.x, fy = slotObj.y;
+                        // el balón se recoloca según el modo: en "Crear" lo gestiona recordTokenMove (conducción/pase)
+                        ballCoords = { x: ballStart.x, y: ballStart.y };
+                        if (carriesBall && !isRecordingPlay) ballCoords = { x: fx, y: fy };
                         selectedActor = { isRival, index: idx };
                         pushSnapshot(pre);
                         if (isRecordingPlay) {
@@ -2636,6 +2629,7 @@
                         afterBoardEdit();
                     } else {
                         slotObj.x = startX; slotObj.y = startY;
+                        ballCoords = { x: ballStart.x, y: ballStart.y };
                         if (isRecordingPlay && activeDrawingTool === 'manmark' && isRival && selectedActor && !selectedActor.isRival) {
                             pushSnapshot(pre);
                             hasUnsavedChanges = true;
@@ -3820,9 +3814,7 @@
             } catch (err) {
                 console.error('Error en inicialización táctica:', err);
             } finally {
-                setTimeout(() => {
-                    document.getElementById('kinet-funny-curtain')?.classList.add('curtain-hidden');
-                }, 260);
+                setTimeout(() => { window.KinetCurtain ? KinetCurtain.hide() : document.getElementById('kinet-funny-curtain')?.classList.add('curtain-hidden'); }, 260);
             }
         }
 
@@ -4642,16 +4634,10 @@
         function returnToRosterPage() {
             guardUnsavedPlay(() => {
                 sessionStorage.setItem('kinet_flip_transition', 'from_strategies');
-                const curtain = document.getElementById('kinet-funny-curtain');
-                if (curtain) {
-                    document.getElementById('curtain-title').textContent = '🏃‍♂️ ¡RECOGIENDO LOS CONOS!';
-                    document.getElementById('curtain-sub').textContent = 'Volviendo a la pizarra vertical de plantilla...';
-                    curtain.classList.remove('curtain-hidden');
-                    curtain.classList.add('curtain-exit-active');
-                }
+                if (window.KinetCurtain) KinetCurtain.show({ icon: '🏃‍♂️', title: '🏃‍♂️ ¡RECOGIENDO LOS CONOS!', sub: 'Volviendo a la pizarra vertical de plantilla...' });
                 setTimeout(() => {
                     window.location.href = `analizador.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`;
-                }, 300);
+                }, 520);
             });
         }
 
@@ -4741,6 +4727,6 @@
     window.addEventListener('kinet:cloud-synced', applyClubGate);
 })();
 </script>
-<script src="kinet-mobile-nav.js?v=37" defer></script>
+<script src="kinet-mobile-nav.js?v=38" defer></script>
 </body>
 </html>

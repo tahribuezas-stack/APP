@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script src="kinet-guard.js?v=37"></script>
-<script src="kinet-teams.js?v=37"></script>
-<script src="kinet-sport.js?v=37"></script>
+<script src="kinet-guard.js?v=38"></script>
+<script src="kinet-teams.js?v=38"></script>
+<script src="kinet-sport.js?v=38"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
@@ -21,10 +21,10 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="kinet-backend.js?v=37"></script>
-<script src="kinet-gestion.js?v=37"></script>
-    <script src="kinet-positions.js?v=37"></script>
-    <script src="kinet-api-config.js?v=37"></script>
+    <script src="kinet-backend.js?v=38"></script>
+<script src="kinet-gestion.js?v=38"></script>
+    <script src="kinet-positions.js?v=38"></script>
+    <script src="kinet-api-config.js?v=39"></script>
 
     <style>
         :root {
@@ -1507,11 +1507,13 @@
         }
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
-    <link rel="stylesheet" href="kinet-mobile-fix.css?v=37">
-<link rel="stylesheet" href="kinet-fx.css?v=37">
-<script src="kinet-fx.js?v=37"></script>
-<script src="kinet-usage.js?v=37"></script>
-    <script src="kinet-ads.js?v=37"></script>
+    <link rel="stylesheet" href="kinet-mobile-fix.css?v=38">
+<link rel="stylesheet" href="kinet-fx.css?v=40">
+<link rel="stylesheet" href="kinet-curtain.css?v=39">
+<script src="kinet-curtain.js?v=39"></script>
+<script src="kinet-fx.js?v=40"></script>
+<script src="kinet-usage.js?v=38"></script>
+    <script src="kinet-ads.js?v=38"></script>
 </head>
 <body data-role="athlete">
 
@@ -5743,29 +5745,12 @@
                 return tier === 'club';
             };
 
-            function triggerFunnyTacticalCurtain(titleTxt, subTxt, targetUrl) {
-                let curtain = document.getElementById('kinet-funny-curtain');
-                if (!curtain) {
-                    curtain = document.createElement('div');
-                    curtain.id = 'kinet-funny-curtain';
-                    curtain.style.cssText = 'position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 50% 50%, rgba(var(--role-rgb),0.18) 0%, #04060A 85%);backdrop-filter:blur(18px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;opacity:0;pointer-events:none;transition:opacity 0.24s ease;';
-                    curtain.innerHTML = `
-                        <style>
-                            @keyframes kinetSpinBall { 0% { transform: scale(0.5) rotate(0deg); } 60% { transform: scale(1.18) rotate(220deg); } 100% { transform: scale(1) rotate(360deg); } }
-                            @keyframes kinetWhistleBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-                        </style>
-                        <div style="font-size:3.6rem;animation:kinetSpinBall 0.45s cubic-bezier(0.16,1,0.3,1) forwards;filter:drop-shadow(0 0 25px var(--role-color));">📋</div>
-                        <div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:#FFFFFF;letter-spacing:0.08em;text-align:center;animation:kinetWhistleBounce 0.6s infinite;" id="curtain-title"></div>
-                        <div style="font-family:'JetBrains Mono',monospace;font-size:0.74rem;color:var(--role-color);background:rgba(var(--role-rgb),0.12);border:1px solid var(--role-color);padding:6px 14px;border-radius:99px;" id="curtain-sub"></div>
-                    `;
-                    document.body.appendChild(curtain);
+            function triggerFunnyTacticalCurtain(titleTxt, subTxt, targetUrl, icon) {
+                if (window.KinetCurtain) {
+                    KinetCurtain.show({ icon: icon || '📋', title: titleTxt, sub: subTxt });
                 }
-                document.getElementById('curtain-title').textContent = titleTxt;
-                document.getElementById('curtain-sub').textContent = subTxt;
-                curtain.style.pointerEvents = 'all';
-                requestAnimationFrame(() => { curtain.style.opacity = '1'; });
                 if (targetUrl) {
-                    setTimeout(() => { window.location.href = targetUrl; }, 320);
+                    setTimeout(() => { window.location.href = targetUrl; }, 560);
                 }
             }
 
@@ -5806,10 +5791,12 @@
                 const curtainSub = isTeamBallSport
                     ? 'Girando el estadio en horizontal y colocando los conos...'
                     : `Abriendo Laboratorio Especializado de ${activeArenaSport}...`;
+                const curtainIcon = isTeamBallSport ? '📋' : (activeArenaSport === 'Running' ? '⏱️' : (activeArenaSport === 'Pádel / Tenis' ? '🎾' : (activeArenaSport === 'Otros Deportes' ? '🏅' : '🥊')));
                 triggerFunnyTacticalCurtain(
                     curtainTitle,
                     curtainSub,
-                    `${targetPage}?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`
+                    `${targetPage}?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`,
+                    curtainIcon
                 );
             };
 

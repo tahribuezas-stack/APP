@@ -46,9 +46,9 @@
     ws.innerHTML = H.head('Cuentas', 'Usuarios', 'Busca, filtra y abre la ficha de cualquier cuenta. Todo cambio queda registrado en la auditoría.', '') +
       '<div class="panel" style="margin-bottom:16px"><div class="row">' +
       '<div class="field" style="flex:2 1 240px"><label>Buscar</label><input class="inp" id="uq" placeholder="Correo, @usuario, nombre o club" value="' + esc(U.q) + '"></div>' +
-      '<div class="field"><label>Plan</label><select class="inp" id="ut"><option value="">Todos</option><option value="free">Free</option><option value="pro">PRO</option><option value="club">CLUB</option></select></div>' +
-      '<div class="field"><label>Perfil</label><select class="inp" id="ur"><option value="">Todos</option><option value="athlete">Atleta</option><option value="staff">Staff</option><option value="scout">Scout</option></select></div>' +
-      '<div class="field"><label>Estado</label><select class="inp" id="uf"><option value="">Todos</option><option value="banned">Suspendidos</option><option value="verified">Verificados</option><option value="team">Equipo</option><option value="minor">Menores</option></select></div>' +
+      '<div class="field"><label>Plan</label><select data-kinet-select style="width:100%" class="inp" id="ut"><option value="">Todos</option><option value="free">Free</option><option value="pro">PRO</option><option value="club">CLUB</option></select></div>' +
+      '<div class="field"><label>Perfil</label><select data-kinet-select style="width:100%" class="inp" id="ur"><option value="">Todos</option><option value="athlete">Atleta</option><option value="staff">Staff</option><option value="scout">Scout</option></select></div>' +
+      '<div class="field"><label>Estado</label><select data-kinet-select style="width:100%" class="inp" id="uf"><option value="">Todos</option><option value="banned">Suspendidos</option><option value="verified">Verificados</option><option value="team">Equipo</option><option value="minor">Menores</option></select></div>' +
       '</div></div><div id="ulist">' + H.skeleton(2) + '</div>';
     $('#ut').value = U.tier; $('#ur').value = U.role; $('#uf').value = U.flag;
     var load = async function () {
@@ -100,9 +100,9 @@
       (ai.length ? '<div class="panel" style="margin-bottom:12px;padding:14px"><div class="p-l" style="margin-bottom:8px">Uso de IA por día</div>' + H.barChart(ai.slice().reverse().map(function (x) { return { x: String(x.day).slice(8, 10), y: (x.strong || 0) + (x.lite || 0) + (x.aux || 0) }; }), { h: 110 }) + '</div>' : '');
     if (canPlan) {
       html += '<div class="panel" style="margin-bottom:12px;padding:14px"><div class="p-l" style="margin-bottom:10px">Plan, minutos y rango</div><div class="row">' +
-        '<div class="field"><label>Plan</label><select class="inp" id="dPlan"><option value="free">Free</option><option value="pro">PRO</option><option value="club">CLUB</option></select></div>' +
+        '<div class="field"><label>Plan</label><select data-kinet-select style="width:100%" class="inp" id="dPlan"><option value="free">Free</option><option value="pro">PRO</option><option value="club">CLUB</option></select></div>' +
         '<div class="field"><label>Minutos bonus (0–595)</label><input class="inp" id="dMin" type="number" min="0" max="595" value="' + (Number(p.bonus_video_mins) || 0) + '"></div>' +
-        '<div class="field"><label>Rango de equipo</label><select class="inp" id="dStaff"><option value="">Sin rango</option><option value="moderator">Moderación</option><option value="scout_verifier">Verificación B2B</option><option value="marketing">Marketing</option><option value="subadmin">Dirección (subadmin)</option>' + (H.can('superadmin') ? '<option value="superadmin">Jefe (superadmin)</option>' : '') + '</select></div></div>' +
+        '<div class="field"><label>Rango de equipo</label><select data-kinet-select style="width:100%" class="inp" id="dStaff"><option value="">Sin rango</option><option value="moderator">Moderación</option><option value="scout_verifier">Verificación B2B</option><option value="marketing">Marketing</option><option value="subadmin">Dirección (subadmin)</option>' + (H.can('superadmin') ? '<option value="superadmin">Jefe (superadmin)</option>' : '') + '</select></div></div>' +
         '<div style="margin-top:12px"><button class="btn pri" id="dSave">Guardar cambios</button></div></div>';
     }
     html += '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
@@ -142,7 +142,7 @@
       H.kpi('Usuarios PRO', pro, {}) + H.kpi('Usuarios CLUB', club, {}) + H.kpi('Conversión a pago', o.users_total ? 100 * (pro + club) / o.users_total : 0, { dec: 1, suf: ' %', sub: 'Sobre ' + H.num(o.users_total || 0) + ' cuentas' }) + '</div>' +
       '<div class="grid g2" style="margin-bottom:16px"><div class="panel"><div class="p-h"><span class="p-l">Conceder plan o minutos</span></div>' +
       '<div class="row"><div class="field" style="flex:2 1 200px"><label>Correo o @usuario</label><input class="inp" id="pTarget" placeholder="nombre@correo.com"></div>' +
-      '<div class="field"><label>Plan</label><select class="inp" id="pPlan"><option value="">No cambiar</option><option value="free">Free</option><option value="pro">PRO</option><option value="club">CLUB</option></select></div>' +
+      '<div class="field"><label>Plan</label><select data-kinet-select style="width:100%" class="inp" id="pPlan"><option value="">No cambiar</option><option value="free">Free</option><option value="pro">PRO</option><option value="club">CLUB</option></select></div>' +
       '<div class="field"><label>Minutos</label><input class="inp" id="pMin" type="number" min="0" max="595" placeholder="No cambiar"></div></div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn sm" data-m="45">+45</button><button class="btn sm" data-m="150">+150</button><button class="btn sm" data-m="400">+400</button><button class="btn sm" data-m="595">Máx 595</button><button class="btn sm" data-m="0">0</button></div>' +
       '<div style="margin-top:14px"><button class="btn pri" id="pGo">Aplicar</button></div></div>' +

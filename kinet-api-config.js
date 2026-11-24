@@ -49,8 +49,8 @@
     // Ajusta costEur con la factura real de tu proveedor. maxTokens incluye el "pensamiento" interno del modelo.
     modelsByTier: {
       free: {
-        gemini: 'gemini-2.5-flash-lite',     // motor barato: con el prompt de preparador rinde bien (modo directo; el servidor usa los mismos modelos)
-        geminiFallback: 'gemini-2.5-flash',
+        gemini: 'gemini-3.1-flash-lite',     // motor barato: con el prompt de preparador rinde bien (modo directo; el servidor usa los mismos modelos)
+        geminiFallback: 'gemini-3.5-flash-lite',
         openai: 'gpt-4o-mini',
         groq: 'llama-3.3-70b-versatile',
         maxTokens: 1500,
@@ -58,8 +58,8 @@
         costEur: 0.0008
       },
       pro: {
-        gemini: 'gemini-2.5-flash',          // motor FUERTE de pago (15 al día); al agotarse responde el básico (liteModel)
-        geminiFallback: 'gemini-2.5-flash-lite',
+        gemini: 'gemini-3.8-flash',          // motor FUERTE de pago (15 al día); al agotarse responde el básico (liteModel)
+        geminiFallback: 'gemini-3.5-flash-lite',
         openai: 'gpt-4o-mini',
         groq: 'llama-3.3-70b-versatile',
         maxTokens: 2600,
@@ -67,8 +67,8 @@
         costEur: 0.0036
       },
       club: {
-        gemini: 'gemini-2.5-flash',          // motor FUERTE de pago (45 al día)
-        geminiFallback: 'gemini-2.5-flash-lite',
+        gemini: 'gemini-3.8-flash',          // motor FUERTE de pago (45 al día)
+        geminiFallback: 'gemini-3.5-flash-lite',
         openai: 'gpt-4o',
         groq: 'llama-3.3-70b-versatile',
         maxTokens: 3400,
@@ -80,8 +80,8 @@
     // Motor BÁSICO (muy barato): es el único del plan gratuito (10 al día) y el que sigue en Pro/Club cuando se agota el cupo diario del motor fuerte
     // o el presupuesto mensual de IA.
     liteModel: {
-      gemini: 'gemini-2.5-flash-lite',
-      geminiFallback: 'gemini-3.1-flash-lite',
+      gemini: 'gemini-3.1-flash-lite',
+      geminiFallback: 'gemini-3.5-flash-lite',
       openai: 'gpt-4o-mini',
       groq: 'llama-3.1-8b-instant',
       maxTokens: 1100,
@@ -2307,9 +2307,10 @@ Devuelve ESTRICTAMENTE JSON:
       if (!key) return { ok: false, error: isStaffSandboxUser() ? 'No hay clave de Google AI Studio configurada (botón "API IA" del Cuerpo Técnico).' : 'La IA de imágenes no está disponible ahora mismo. Mientras tanto puedes usar los filtros gratis y las plantillas. Inténtalo más tarde.' };
 
       const clean = String(prompt).trim().slice(0, 700);
+      // EDICIÓN: se trata como retoque, no como "regenerar": la cara, el cuerpo y la pose NO se tocan.
       const instr = isEdit
-        ? `Edit the attached photo as a top professional sports photographer / retoucher would. Request: ${clean}. ${style ? style + '. ' : ''}Keep the same person, face, body, kit and composition unless the request says otherwise. Photorealistic. Do NOT add any text, letters, numbers, logos or watermarks.`
-        : `${clean}. ${style ? style + '. ' : ''}Render exactly the subject described, photorealistic, professional sports photography quality. Do NOT add any text, letters, numbers, logos or watermarks anywhere in the image.`;
+        ? `You are a professional photo retoucher. Edit ONLY what the request asks for and leave everything else pixel-faithful to the attached photo. Request: ${clean}. ${style ? style + '. ' : ''}\nSTRICT IDENTITY RULES: this is a real person. Keep the exact same face, facial features, skin tone, hair, expression, body proportions, pose, kit and camera framing. Do not beautify, slim, age, reshape or redraw the face. Do not change the number of people, hands or limbs. Only change lighting, colour grade, background or atmosphere as requested. Natural photorealistic result, no plastic skin. Do NOT add any text, letters, numbers, logos or watermarks.`
+        : `${clean}. ${style ? style + '. ' : ''}Render exactly the subject described as a real professional sports photograph: natural anatomy and proportions, realistic faces, correct hands with five fingers, accurate sports kit and equipment, sharp focus, natural skin texture, no distortions, no extra limbs, no warped faces. Do NOT add any text, letters, numbers, logos or watermarks anywhere in the image.`;
       const parts = [];
       if (isEdit && imageDataUrl.includes(',')) {
         const mime = imageDataUrl.substring(imageDataUrl.indexOf(':') + 1, imageDataUrl.indexOf(';')) || 'image/jpeg';
@@ -2317,10 +2318,14 @@ Devuelve ESTRICTAMENTE JSON:
       }
       parts.push({ text: instr });
 
-      const models = ['gemini-3.1-flash-lite-image', 'gemini-3.1-flash-image'];
+      // Orden por calidad. "Lite" es el más barato pero el peor editando caras: queda solo como último recurso.
+      // Si un modelo no existe para tu clave (404) o falla, se pasa automáticamente al siguiente.
+      const models = ['gemini-nano-banana-2.1', 'gemini-3.1-flash-image', 'gemini-3.1-flash-lite-image'];
+      const MODEL_EUR = { 'gemini-nano-banana-2.1': 0.034, 'gemini-3.1-flash-image': 0.065, 'gemini-3.1-flash-lite-image': 0.034 };
       const errs = [];
       for (const m of models) {
-        for (const withAspect of [true, false]) {
+        // En una EDICIÓN no se fuerza relación de aspecto: así Google conserva el encuadre original y no rehace la cara.
+        for (const withAspect of (isEdit ? [false] : [true, false])) {
           try {
             const gen = { responseModalities: ['IMAGE'] };
             if (withAspect && aspect) gen.imageConfig = { aspectRatio: aspect };
@@ -2340,8 +2345,8 @@ Devuelve ESTRICTAMENTE JSON:
             const d = p && (p.inlineData || p.inline_data);
             if (d && d.data) {
               incrementDailyImageUsage();
-              addSpend(cost);
-              return { ok: true, dataUrl: `data:${d.mimeType || d.mime_type || 'image/png'};base64,${d.data}` };
+              addSpend(Math.max(cost, (MODEL_EUR[m] || 0) + (isEdit ? 0.004 : 0.002)));
+              return { ok: true, model: m, dataUrl: `data:${d.mimeType || d.mime_type || 'image/png'};base64,${d.data}` };
             }
             const blocked = data && data.candidates && data.candidates[0] && data.candidates[0].finishReason;
             errs.push(`[${m}] la respuesta no incluyó imagen${blocked ? ' (' + blocked + ')' : ''}`);

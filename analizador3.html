@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script src="kinet-guard.js?v=37"></script>
+<script src="kinet-guard.js?v=38"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
@@ -72,10 +72,10 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="kinet-sport.js?v=37"></script>
-<script src="kinet-backend.js?v=37"></script>
-    <script src="kinet-positions.js?v=37"></script>
-    <script src="kinet-api-config.js?v=37"></script>
+    <script src="kinet-sport.js?v=38"></script>
+<script src="kinet-backend.js?v=38"></script>
+    <script src="kinet-positions.js?v=38"></script>
+    <script src="kinet-api-config.js?v=39"></script>
 
     <style>
         :root {
@@ -128,26 +128,6 @@
             .os-main { height: auto !important; overflow: visible !important; }
             .os-sidebar { display: none !important; }
         }
-
-        /* CORTINA DE CARGA ANIMADA IDÉNTICA A ANALIZADOR 2 */
-        @keyframes kinetCurtainAutoHide {
-            0%, 58% { opacity: 1; pointer-events: all; }
-            100% { opacity: 0; pointer-events: none; visibility: hidden; }
-        }
-        #kinet-funny-curtain {
-            position: fixed; inset: 0; z-index: 99999;
-            background: radial-gradient(circle at 50% 50%, rgba(var(--role-rgb), 0.18) 0%, #04060A 85%);
-            backdrop-filter: blur(18px);
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
-            opacity: 1;
-            transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-            animation: kinetCurtainAutoHide 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            cursor: pointer;
-        }
-        #kinet-funny-curtain.curtain-hidden { opacity: 0 !important; pointer-events: none !important; visibility: hidden !important; display: none !important; }
-        #kinet-funny-curtain.curtain-exit-active { animation: none !important; display: flex !important; visibility: visible !important; opacity: 1 !important; pointer-events: all !important; }
-        @keyframes kinetSpinBall { 0% { transform: scale(0.6) rotate(0deg); } 60% { transform: scale(1.16) rotate(210deg); } 100% { transform: scale(1) rotate(360deg); } }
-        @keyframes kinetWhistleBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
 
         /* SIDEBAR OFICIAL */
         .os-sidebar {
@@ -499,20 +479,15 @@
         .club-gate-box { max-width: 460px; text-align: center; background: var(--bg-panel); border: 1px solid #F59E0B; border-radius: 20px; padding: 26px; }
         .z1 { background: rgba(148,163,184,0.18); color: #CBD5E1; }
     </style>
-    <link rel="stylesheet" href="kinet-mobile-fix.css?v=37">
-<link rel="stylesheet" href="kinet-fx.css?v=37">
-<script src="kinet-fx.js?v=37"></script>
-<script src="kinet-usage.js?v=37"></script>
+    <link rel="stylesheet" href="kinet-mobile-fix.css?v=38">
+<link rel="stylesheet" href="kinet-fx.css?v=40">
+<link rel="stylesheet" href="kinet-curtain.css?v=39">
+<script src="kinet-curtain.js?v=39"></script>
+<script src="kinet-fx.js?v=40"></script>
+<script src="kinet-usage.js?v=38"></script>
 </head>
 <body data-role="athlete" class="lab-page">
     <div id="lab-toast" role="status" aria-live="polite"></div>
-
-    <!-- CORTINA DE CARGA ANIMADA -->
-    <div id="kinet-funny-curtain" onclick="this.classList.add('curtain-hidden')">
-        <div style="font-size:3.6rem;animation:kinetSpinBall 0.45s cubic-bezier(0.16,1,0.3,1) forwards;filter:drop-shadow(0 0 25px var(--role-color));" id="curtain-icon">⏱️</div>
-        <div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:#FFFFFF;letter-spacing:0.08em;text-align:center;animation:kinetWhistleBounce 0.6s infinite;" id="curtain-title">⏱️ ¡LABORATORIO ESPECIALIZADO LISTO!</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:0.74rem;color:var(--role-color);background:rgba(var(--role-rgb),0.12);border:1px solid var(--role-color);padding:6px 14px;border-radius:99px;" id="curtain-sub">Calibrando pizarra 3D, parciales y simulador táctico...</div>
-    </div>
 
     <div class="os-layout">
         <!-- SIDEBAR -->
@@ -547,6 +522,9 @@
 
         <!-- MAIN -->
         <div class="os-main">
+            <!-- CORTINA 3D: solo cubre el cuadro de contenido -->
+            <div id="kinet-funny-curtain" class="kc kc-on"></div>
+            <script>KinetCurtain.fill({icon:"⏱️",title:"⏱️ ¡LABORATORIO ESPECIALIZADO LISTO!",sub:"Calibrando pizarra 3D, parciales y simulador táctico..."});</script>
             <header class="os-topbar">
                 <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-secondary);display:flex;align-items:center;gap:10px;">
                     <span id="topbar-lab-desc">LABORATORIO DE ENTRENAMIENTO, COMPETICIÓN & ESTRATEGIA 3D</span>
@@ -2409,9 +2387,8 @@ Los bloques son una sesión de entrenamiento complementaria (máx. 8). Para type
             window.location.href = `cuerpo-tecnico.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}&agent=tecnico_video`;
         }
         function returnToRosterPage() {
-            const curtain = $('kinet-funny-curtain');
-            if (curtain) { $('curtain-title').textContent = '🏃‍♂️ ¡VOLVIENDO A PLANTILLA 3D!'; $('curtain-sub').textContent = 'Sincronizando cambios con tu pizarra principal...'; curtain.classList.remove('curtain-hidden'); curtain.classList.add('curtain-exit-active'); }
-            setTimeout(() => { window.location.href = `analizador.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`; }, 300);
+            if (window.KinetCurtain) KinetCurtain.show({ icon: '🏃‍♂️', title: '🏃‍♂️ ¡VOLVIENDO A PLANTILLA 3D!', sub: 'Sincronizando cambios con tu pizarra principal...' });
+            setTimeout(() => { window.location.href = `analizador.html?role=${activeRoleKey}&sport=${encodeURIComponent(activeArenaSport)}`; }, 520);
         }
 
         // ---- acceso Club ----
@@ -2602,7 +2579,7 @@ Los bloques son una sesión de entrenamiento complementaria (máx. 8). Para type
                 setupTopBarBySport(); renderPhaseButtons(); renderToolRow(); bindStageInteraction();
                 renderStage(); syncRightTabButtons(); renderRightTab(); bindSpotlightToElements();
             } finally {
-                setTimeout(() => { const c = $('kinet-funny-curtain'); if (c) c.classList.add('curtain-hidden'); }, 280);
+                setTimeout(() => { if (window.KinetCurtain) KinetCurtain.hide(); else { const c = $('kinet-funny-curtain'); if (c) c.classList.add('curtain-hidden'); } }, 280);
             }
         });
 
@@ -2616,7 +2593,7 @@ Los bloques son una sesión de entrenamiento complementaria (máx. 8). Para type
 
     </script>
 <script>try{if(window.KinetSport){var u=new URLSearchParams(location.search).get('sport')||localStorage.getItem('kinet_sport')||'';window.addEventListener('DOMContentLoaded',function(){KinetSport.relabel(document.body,u)});}}catch(e){}</script>
-<script src="kinet-mobile-nav.js?v=37" defer></script>
+<script src="kinet-mobile-nav.js?v=38" defer></script>
 </body>
 </html>
 

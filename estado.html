@@ -4,49 +4,124 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
+<meta name="theme-color" content="#06080E">
 <title>KINET OS · Estado de sincronización</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script>
+(function () {
+  try {
+    var a = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
+    var rb = localStorage.getItem('kinet_rainbow_mode') === 'true';
+    if (a && a.charAt(0) === '#' && !rb) {
+      var n = parseInt(a.slice(1), 16);
+      if (!isNaN(n)) {
+        var r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255, st = document.createElement('style');
+        st.textContent = ':root{--role-color:' + a + ' !important;--role-rgb:' + r + ',' + g + ',' + b + ' !important;--role-gradient:linear-gradient(135deg,' + a + ' 0%,rgba(' + r + ',' + g + ',' + b + ',0.75) 100%) !important}';
+        document.head.appendChild(st);
+      }
+    }
+  } catch (e) {}
+})();
+</script>
 <style>
-  :root{--bg:#04060A;--card:#0B1220;--line:#1E293B;--txt:#E2E8F0;--mut:#94A3B8;--ok:#00FF88;--warn:#F59E0B;--bad:#EF4444}
+  :root{--role-color:#00FF88;--role-rgb:0,255,136;--role-gradient:linear-gradient(135deg,#00FF88 0%,rgba(0,255,136,.75) 100%);
+    --bg-void:#06080E;--bg-panel:rgba(13,17,26,.90);--line:rgba(255,255,255,.08);--txt:#F8FAFC;--mut:#94A3B8;--ok:#00FF88;--warn:#F59E0B;--bad:#EF4444;--r:18px}
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.45 Inter,system-ui,sans-serif;padding:20px 16px 60px}
-  h1{font-size:18px;margin:0 0 4px}
-  p.sub{color:var(--mut);margin:0 0 18px}
-  .card{max-width:720px;margin:0 auto 14px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
-  table{width:100%;border-collapse:collapse}
-  td{padding:7px 4px;border-bottom:1px solid var(--line);vertical-align:top;word-break:break-word}
-  td:first-child{color:var(--mut);width:46%}
-  tr:last-child td{border-bottom:0}
-  .ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
-  button{background:var(--ok);color:#04060A;border:0;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer;margin:4px 6px 4px 0}
-  button.sec{background:transparent;color:var(--txt);border:1px solid var(--line)}
-  #verdict{font-weight:700;margin-bottom:8px}
-  small{color:var(--mut)}
+  html,body{margin:0;min-height:100%}
+  body{background-color:var(--bg-void);background-image:radial-gradient(circle at 50% -20%,rgba(var(--role-rgb),.16),transparent 60%),linear-gradient(rgba(255,255,255,.012) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.012) 1px,transparent 1px);background-size:100% 100%,40px 40px,40px 40px;
+    color:var(--txt);font:14px/1.5 Inter,system-ui,sans-serif;padding:0 0 70px;-webkit-font-smoothing:antialiased}
+  .top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;padding:12px 18px;background:rgba(6,8,14,.82);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
+  .logo{width:36px;height:36px;border-radius:11px;background:var(--role-gradient);color:#04060A;display:grid;place-items:center;font:900 1.05rem Orbitron,sans-serif;box-shadow:0 0 18px rgba(var(--role-rgb),.45)}
+  .top .t1{font:800 .95rem Orbitron,sans-serif;letter-spacing:.08em}
+  .top .t2{font:700 .58rem "JetBrains Mono",monospace;letter-spacing:.16em;color:var(--role-color);text-transform:uppercase}
+  .top a.back{margin-left:auto;text-decoration:none;color:var(--txt);font:700 .62rem "JetBrains Mono",monospace;letter-spacing:.1em;padding:9px 13px;border-radius:11px;border:1px solid rgba(var(--role-rgb),.35);background:rgba(var(--role-rgb),.07);transition:.25s}
+  .top a.back:hover{border-color:var(--role-color);box-shadow:0 0 16px rgba(var(--role-rgb),.3)}
+  .wrap{max-width:860px;margin:0 auto;padding:22px 16px 0;display:flex;flex-direction:column;gap:16px}
+  .panel{position:relative;overflow:hidden;background:var(--bg-panel);border:1px solid var(--line);border-radius:var(--r);padding:20px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 14px 34px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);animation:rise .6s cubic-bezier(.2,.8,.2,1) both}
+  .panel:nth-child(2){animation-delay:.08s}.panel:nth-child(3){animation-delay:.16s}
+  .panel::before{content:"";position:absolute;left:0;top:0;right:0;height:2px;background:var(--role-gradient);opacity:.7}
+  .eyebrow{font:700 .58rem "JetBrains Mono",monospace;letter-spacing:.18em;color:var(--role-color);text-transform:uppercase;margin-bottom:6px}
+  h1{font:900 1.25rem Orbitron,sans-serif;letter-spacing:.04em;margin:0 0 6px}
+  p.sub{color:var(--mut);margin:0;font-size:.82rem;max-width:62ch}
+  #verdict{margin-top:16px;display:flex;gap:11px;align-items:flex-start;padding:13px 15px;border-radius:14px;font-weight:600;font-size:.86rem;border:1px solid var(--line);background:rgba(255,255,255,.03)}
+  #verdict::before{content:"";flex:0 0 10px;height:10px;margin-top:5px;border-radius:50%;background:var(--mut);box-shadow:0 0 0 0 transparent}
+  #verdict.ok{border-color:rgba(0,255,136,.4);background:rgba(0,255,136,.07);color:var(--ok)}
+  #verdict.ok::before{background:var(--ok);animation:pulse 2.2s ease-in-out infinite}
+  #verdict.bad{border-color:rgba(239,68,68,.45);background:rgba(239,68,68,.08);color:#FCA5A5}
+  #verdict.bad::before{background:var(--bad)}
+  #t{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}
+  .cell{display:flex;flex-direction:column;gap:5px;padding:11px 13px;border-radius:13px;background:rgba(255,255,255,.025);border:1px solid var(--line);min-width:0;transition:border-color .25s,background .25s}
+  .cell:hover{border-color:rgba(var(--role-rgb),.35);background:rgba(var(--role-rgb),.04)}
+  .cell .k{font:700 .55rem "JetBrains Mono",monospace;letter-spacing:.14em;color:var(--mut);text-transform:uppercase}
+  .cell .v{font:600 .86rem Inter,sans-serif;color:var(--txt);word-break:break-word}
+  .cell .v.ok{color:var(--ok)}.cell .v.warn{color:var(--warn)}.cell .v.bad{color:#FCA5A5}
+  .cell.full{grid-column:1/-1}
+  .acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+  .btn{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:8px;cursor:pointer;padding:11px 15px;border-radius:12px;font:800 .68rem Orbitron,"JetBrains Mono",sans-serif;letter-spacing:.06em;color:var(--txt);border:1px solid rgba(255,255,255,.14);background:rgba(4,6,10,.6);transition:transform .25s,box-shadow .25s,border-color .25s,background .25s}
+  .btn:hover{transform:translateY(-1px);border-color:var(--role-color);box-shadow:0 0 18px rgba(var(--role-rgb),.28);background:rgba(var(--role-rgb),.08)}
+  .btn:focus-visible{outline:2px solid var(--role-color);outline-offset:2px}
+  .btn.pri{color:#04060A;background:var(--role-gradient);border-color:transparent}
+  .btn.pri:hover{box-shadow:0 0 22px rgba(var(--role-rgb),.55)}
+  .btn.dng:hover{border-color:var(--bad);box-shadow:0 0 18px rgba(239,68,68,.3);background:rgba(239,68,68,.08)}
+  .btn .n{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:7px;background:rgba(255,255,255,.1);font:800 .6rem "JetBrains Mono",monospace}
+  .btn.pri .n{background:rgba(4,6,10,.2)}
+  #ai-out{margin-top:14px;padding:12px 14px;border-radius:13px;background:rgba(4,6,10,.7);border:1px solid var(--line);font:500 .78rem/1.6 "JetBrains Mono",monospace;color:var(--mut);display:none;word-break:break-word}
+  #ai-out.show,#ai-out.ok,#ai-out.warn,#ai-out.bad{display:block}
+  #ai-out.ok{color:var(--ok);border-color:rgba(0,255,136,.35)}#ai-out.warn{color:var(--warn);border-color:rgba(245,158,11,.4)}#ai-out.bad{color:#FCA5A5;border-color:rgba(239,68,68,.4)}
+  .note{margin:14px 0 0;color:var(--mut);font-size:.74rem;line-height:1.55}
+  .note b{color:var(--txt)}
+  /* ventanas KINET (sustituyen a alert/confirm del navegador) */
+  .kov{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(3,5,9,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .kov.open{display:flex;animation:fade .2s ease both}
+  .kbox{width:min(440px,100%);padding:22px;border-radius:20px;background:rgba(10,14,22,.98);border:1px solid rgba(var(--role-rgb),.4);box-shadow:0 0 40px rgba(var(--role-rgb),.18),0 24px 60px rgba(0,0,0,.6);animation:rise .35s cubic-bezier(.2,.8,.2,1) both}
+  .kbox h3{margin:0 0 8px;font:900 .9rem Orbitron,sans-serif;letter-spacing:.08em;color:var(--role-color)}
+  .kbox p{margin:0 0 18px;color:#CBD5E1;font-size:.86rem;line-height:1.55}
+  .kbox .row{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+  @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,255,136,.5)}50%{box-shadow:0 0 0 7px rgba(0,255,136,0)}}
+  @media (max-width:620px){#t{grid-template-columns:1fr}.panel{padding:16px}.btn{flex:1 1 100%;justify-content:center}.top .t2{display:none}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-<div class="card"><h1>Estado de sincronización</h1><p class="sub">Comprueba que este dispositivo y la nube hablan de la misma cuenta. Haz una captura de esta pantalla en cada dispositivo.</p>
+<header class="top"><div class="logo">K</div><div><div class="t1">KINET OS</div><div class="t2">Centro de diagnóstico</div></div><a class="back" href="app.html">← VOLVER</a></header>
+<main class="wrap">
+<section class="panel">
+  <div class="eyebrow">Sincronización · cuenta y dispositivo</div>
+  <h1>Estado de sincronización</h1>
+  <p class="sub">Comprueba que este dispositivo y la nube hablan de la misma cuenta. Haz una captura de esta pantalla en cada dispositivo.</p>
   <div id="verdict">Comprobando…</div>
-  <table id="t"></table>
-</div>
-<div class="card">
-  <button id="b-backup">1 · Descargar copia de seguridad de este dispositivo</button>
-  <button id="b-refresh" class="sec">Actualizar estado</button>
-  <button id="b-force" class="sec">Forzar: copiar la nube a este dispositivo</button>
-  <button id="b-relogin" class="sec">2 · Volver a iniciar sesión (conserva tus datos)</button>
-  <button id="b-ai" class="sec">3 · Probar la IA ahora</button>
-  <div id="ai-out" style="margin-top:8px;font-size:13px"></div>
-  <p><small>"Forzar" borra las diferencias locales de este dispositivo y deja exactamente lo que hay guardado en tu cuenta (plan, deporte, chats, colores…).</small></p>
-</div>
-
+  <div id="t"></div>
+</section>
+<section class="panel">
+  <div class="eyebrow">Acciones</div>
+  <div class="acts">
+    <button class="btn pri" id="b-backup"><span class="n">1</span>Descargar copia de seguridad</button>
+    <button class="btn" id="b-refresh">⟳ Actualizar estado</button>
+    <button class="btn dng" id="b-force">⤓ Forzar: copiar la nube a este dispositivo</button>
+    <button class="btn" id="b-relogin"><span class="n">2</span>Volver a iniciar sesión (conserva tus datos)</button>
+    <button class="btn" id="b-ai"><span class="n">3</span>Probar la IA ahora</button>
+  </div>
+  <div id="ai-out"></div>
+  <p class="note"><b>«Forzar»</b> borra las diferencias locales de este dispositivo y deja exactamente lo que hay guardado en tu cuenta (plan, deporte, chats, colores…). Antes se descarga una copia de seguridad.</p>
+</section>
+</main>
+<div class="kov" id="kov" role="dialog" aria-modal="true"><div class="kbox"><h3 id="kov-t">KINET OS</h3><p id="kov-m"></p><div class="row" id="kov-b"></div></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="kinet-api-config.js?v=37"></script>
-<script src="kinet-backend.js?v=37"></script>
+<script src="kinet-api-config.js?v=39"></script>
+<script src="kinet-backend.js?v=38"></script>
 <script>
 (function(){
-  var VERSION='v36';
+  var VERSION='v38';
   function esc(s){return String(s==null?'—':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
   function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
-  function row(a,b,cls){return '<tr><td>'+esc(a)+'</td><td class="'+(cls||'')+'">'+esc(b)+'</td></tr>'}
+  function row(a,b,cls){return '<div class="cell"><span class="k">'+esc(a)+'</span><span class="v '+(cls||'')+'">'+esc(b)+'</span></div>'}
+  function kbox(title,msg,buttons){return new Promise(function(res){var o=document.getElementById('kov');document.getElementById('kov-t').textContent=title;document.getElementById('kov-m').textContent=msg;var b=document.getElementById('kov-b');b.innerHTML='';buttons.forEach(function(x){var e=document.createElement('button');e.className='btn'+(x.pri?' pri':'');e.textContent=x.t;e.onclick=function(){o.classList.remove('open');res(x.v)};b.appendChild(e)});o.classList.add('open');var f=b.lastChild;if(f)f.focus()})}
+  function kAlert(m){return kbox('KINET OS',m,[{t:'Entendido',v:true,pri:true}])}
+  function kConfirm(m){return kbox('CONFIRMAR',m,[{t:'Cancelar',v:false},{t:'Continuar',v:true,pri:true}])}
   function short(id){return id?String(id).slice(0,8)+'…':null}
   async function run(){
     var rows=[],problems=[];
@@ -97,10 +172,10 @@
       document.body.appendChild(a); a.click(); setTimeout(function(){a.remove()},500); return true;
     }catch(e){return false}
   }
-  document.getElementById('b-backup').onclick=function(){ alert(backup()?'Copia descargada. Guárdala por si acaso.':'No se pudo crear la copia.'); };
+  document.getElementById('b-backup').onclick=function(){ kAlert(backup()?'Copia descargada. Guárdala por si acaso.':'No se pudo crear la copia.'); };
   document.getElementById('b-refresh').onclick=run;
   document.getElementById('b-ai').onclick=async function(){
-    var out=document.getElementById('ai-out'); out.className=''; out.textContent='Probando la IA…';
+    var out=document.getElementById('ai-out'); out.className='show'; out.textContent='Probando la IA…';
     try{
       var sb=KinetBackend.getClient(); var ss=(await sb.auth.getSession()).data.session;
       if(!ss){ out.className='bad'; out.textContent='No hay sesión: inicia sesión primero (los invitados no tienen IA).'; return; }
@@ -117,8 +192,8 @@
   document.getElementById('b-force').onclick=async function(){
     var sb0=window.KinetBackend&&KinetBackend.getClient&&KinetBackend.getClient(); var ss0=null;
     try{ss0=sb0&&(await sb0.auth.getSession()).data.session}catch(e){}
-    if(!ss0){ alert('Este dispositivo no tiene sesión con la nube. Primero pulsa «Volver a iniciar sesión».'); return; }
-    if(!confirm('Esto deja este dispositivo igual que tu cuenta en la nube (se descargará antes una copia de seguridad). ¿Continuar?'))return;
+    if(!ss0){ await kAlert('Este dispositivo no tiene sesión con la nube. Primero pulsa «Volver a iniciar sesión».'); return; }
+    if(!(await kConfirm('Esto deja este dispositivo igual que tu cuenta en la nube (se descargará antes una copia de seguridad). ¿Continuar?')))return;
     backup();
     try{
       var keep={kinet_device_id:1};
@@ -129,7 +204,7 @@
     location.reload();
   };
   document.getElementById('b-relogin').onclick=async function(){
-    if(!confirm('Se descargará una copia de seguridad y volverás al inicio de sesión. Al entrar, tus datos de este dispositivo se unen con los de la nube. ¿Continuar?'))return;
+    if(!(await kConfirm('Se descargará una copia de seguridad y volverás al inicio de sesión. Al entrar, tus datos de este dispositivo se unen con los de la nube. ¿Continuar?')))return;
     backup();
     try{ var sb=KinetBackend.getClient(); if(sb&&sb.auth) await sb.auth.signOut(); }catch(e){}
     try{ ['kinet_logged_in','kinet_auth_session_token','kinet_sync_base','kinet_sync_seen'].forEach(function(k){localStorage.removeItem(k)}); }catch(e){}

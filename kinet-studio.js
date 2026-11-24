@@ -48,7 +48,7 @@
     { id: 'stadium-bg', kind: 'edit', name: 'Fondo de estadio', hint: 'Estadio o ambiente (opcional)', track: 'trk_1', aspect: '4:5',
       build: function (t, v) { return 'Place the athlete in ' + (t || v.venue) + ', matching light direction and perspective, realistic shadows, natural integration, keep the athlete untouched'; } },
     { id: 'magazine', kind: 'edit', name: 'Portada de revista deportiva', hint: 'Ambiente (opcional)', track: 'trk_2', aspect: '4:5',
-      build: function (t) { return 'Transform into a premium sports magazine editorial portrait: dramatic studio lighting, deep contrast, cinematic colour grade, polished retouch' + (t ? '. ' + t : ''); } },
+      build: function (t) { return 'Give this same photo a premium sports magazine editorial look (same person, same face, same pose and framing): dramatic studio lighting, deep contrast, cinematic colour grade, polished but natural retouch' + (t ? '. ' + t : ''); } },
     { id: 'golden', kind: 'edit', name: 'Hora dorada', hint: 'Opcional', track: 'trk_5', aspect: '4:5',
       build: function (t) { return 'Relight the photo as golden hour: warm low sun, long soft shadows, golden rim light, rich warm tones' + (t ? '. ' + t : ''); } },
     { id: 'bw-ai', kind: 'edit', name: 'Blanco y negro dramático', hint: 'Opcional', track: 'trk_4', aspect: '4:5',
