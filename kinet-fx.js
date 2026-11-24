@@ -32,6 +32,10 @@
   var introMode = ls('kinet_fx_intro') || 'full';     // full | off
   var transOn = ls('kinet_fx_transitions') !== 'off';
   var needIntro = SHELL && !reduce && introMode !== 'off' && ls('kinet_logged_in') === 'true' && !ss('kx_intro');
+  var softAt = parseInt(ss('kx_soft') || '0', 10);
+  var softIn = !reduce && SHELL && transOn && softAt && (Date.now() - softAt) < 5000 && !fromNav && !needIntro;
+  ss('kx_soft', null);
+  if (softIn) { doc.classList.add('kx-soft'); setTimeout(function () { doc.classList.remove('kx-soft'); }, 3000); }   // red de seguridad
   var startCovered = !reduce && ((fromNav && transOn) || needIntro);
   if (startCovered) {
     doc.classList.add('kx-cover');
@@ -57,7 +61,7 @@
     melt.innerHTML = html; document.body.appendChild(melt);
     cols = [].slice.call(melt.querySelectorAll('.kx-col'));
     var w = melt.querySelector('.kx-word'); 'KINET OS'.split('').forEach(function (ch, i) { var sp = document.createElement('span'); sp.textContent = ch === ' ' ? ' ' : ch; sp.style.animationDelay = (0.35 + i * 0.06) + 's'; w.appendChild(sp); });
-    sweep = document.createElement('div'); sweep.id = 'kx-sweep'; document.body.appendChild(sweep);
+    sweep = document.createElement('div'); sweep.id = 'kx-sweep'; sweep.innerHTML = '<i></i>'; document.body.appendChild(sweep);
     return melt;
   }
   var OUT = 'translateY(calc(-100% - 170px))', IN = 'translateY(0)', DOWN = 'translateY(calc(100% + 170px))';
@@ -124,26 +128,38 @@
     var now = Date.now(); if (!o.force && now - lastRebuild < 350 && !o.page) return; lastRebuild = now;
     root = root || document.querySelector('.tab-content.active, .os-workspace') || document.querySelector('main') || document.body;
     var ws = o.page ? (document.querySelector('.os-workspace') || document.querySelector('main') || document.body) : root;
-    // 1) las piezas grandes se "dibujan" con una cortina de recorte
+    var gentle = !!(o.quick || o.soft);          // transición discreta: solo aparece y sube un poco, sin recortes ni desenfoque
+    // 1) las piezas grandes
     var kids = [].slice.call(ws.children).filter(function (e) { return e.nodeType === 1 && !/^(SCRIPT|STYLE)$/.test(e.tagName) && visible(e); }).slice(0, 8);
     if (o.children === false) kids = [];
     if (o.sweepOnly) { kids = []; }
     kids.forEach(function (el, i) {
       if (!el.animate) return;
-      el.animate([{ clipPath: 'inset(0 0 100% 0)', opacity: 0 }, { clipPath: 'inset(0 0 0% 0)', opacity: 1 }], { duration: o.quick ? 380 : 620, delay: i * (o.quick ? 35 : 70), easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' });
+      if (gentle) el.animate([{ opacity: 0, translate: '0 10px' }, { opacity: 1, translate: '0 0' }], { duration: o.soft ? 420 : 300, delay: i * 28, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
+      else el.animate([{ clipPath: 'inset(0 0 100% 0)', opacity: 0 }, { clipPath: 'inset(0 0 0% 0)', opacity: 1 }], { duration: 620, delay: i * 70, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' });
     });
-    // 2) las tarjetas se reensamblan con un pequeño desenfoque
-    var cards = o.sweepOnly ? [] : [].slice.call(ws.querySelectorAll(CARD_SEL)).filter(visible).slice(0, 24);
+    // 2) las tarjetas se reensamblan
+    var cards = o.sweepOnly ? [] : [].slice.call(ws.querySelectorAll(CARD_SEL)).filter(visible).slice(0, gentle ? 18 : 24);
     cards.forEach(function (el, i) {
       if (!el.animate) return;
-      var blur = i < 8 && !o.quick ? 'blur(7px)' : 'none';
+      if (gentle) { el.animate([{ opacity: 0, translate: '0 8px' }, { opacity: 1, translate: '0 0' }], { duration: o.soft ? 440 : 320, delay: (o.soft ? 80 : 20) + i * 20, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' }); return; }
+      var blur = i < 8 ? 'blur(7px)' : 'none';
       el.animate([{ opacity: 0, filter: blur, translate: '0 18px', scale: '.985' }, { opacity: 1, filter: 'none', translate: '0 0', scale: '1' }],
-        { duration: o.quick ? 420 : 760, delay: (o.quick ? 40 : 140) + i * (o.quick ? 22 : 45), easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' });
+        { duration: 760, delay: 140 + i * 45, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' });
     });
-    // 3) barrido de luz
-    if (sweep && sweep.animate && (o.page || !o.quick)) {
-      sweep.animate([{ transform: 'translateY(-130px)', opacity: 0 }, { opacity: 1, offset: .15 }, { transform: 'translateY(' + innerHeight + 'px)', opacity: .9, offset: .85 }, { transform: 'translateY(' + (innerHeight + 60) + 'px)', opacity: 0 }], { duration: o.page ? 1100 : 800, delay: o.page ? 120 : 0, easing: 'cubic-bezier(.45,0,.2,1)' });
-    }
+    // 3) barrido de luz: SOLO dentro del cuadro de contenido que cambia (nunca sobre el menú ni la pantalla entera)
+    if (sweep && (o.page || o.sweepOnly || o.soft)) sweepIn(ws);
+  }
+  function sweepIn(box) {
+    try {
+      var line = sweep && sweep.firstElementChild; if (!line || !line.animate || !box) return;
+      var r = box.getBoundingClientRect();
+      var top = Math.max(r.top, 0), bottom = Math.min(r.bottom, innerHeight), left = Math.max(r.left, 0), right = Math.min(r.right, innerWidth);
+      var h = bottom - top, w = right - left; if (h < 60 || w < 60) return;
+      sweep.style.cssText = 'left:' + left + 'px;top:' + top + 'px;width:' + w + 'px;height:' + h + 'px;opacity:1';
+      var an = line.animate([{ transform: 'translateY(-120px)', opacity: 0 }, { opacity: .85, offset: .18 }, { transform: 'translateY(' + (h - 20) + 'px)', opacity: .7, offset: .85 }, { transform: 'translateY(' + (h + 40) + 'px)', opacity: 0 }], { duration: 900, easing: 'cubic-bezier(.45,0,.2,1)' });
+      an.onfinish = function () { sweep.style.opacity = 0; };
+    } catch (e) {}
   }
 
   // Cambio de pestaña / modo dentro de la misma página
@@ -157,12 +173,26 @@
   }
 
   /* ───────── navegación con cortina ───────── */
-  function go(url) {
+  function isShell(p) { return /^(app|cuerpo-tecnico|ficha-pro|ojeador-live|analizador|comunidad|media-studio|despacho|perfil|gestion)\.html$/.test(p); }
+  // Pantalla completa SOLO al entrar en la app y al cambiar entre APP y GESTIÓN. El resto (cambiar de sección) anima solo el cuadro de contenido.
+  function go(url, opts) {
+    opts = opts || {};
     if (reduce || !transOn || !ensureMelt()) { location.href = url; return; }
     if (go.busy) return; go.busy = true;
+    setTimeout(function () { go.busy = false; }, 3000);    // por si el navegador cancela la navegación
+    var to = ''; try { to = (new URL(url, location.href).pathname.split('/').pop() || '').toLowerCase(); } catch (e) {}
+    var modeChange = (path === 'gestion.html') !== (to === 'gestion.html');
+    var main = document.querySelector('main.os-workspace');
+    var soft = !opts.full && !modeChange && SHELL && isShell(to) && main && main.animate;
+    if (soft) {
+      ss('kx_soft', String(Date.now()));
+      var outA = main.animate([{ opacity: 1, translate: '0 0', filter: 'blur(0)' }, { opacity: 0, translate: '0 -8px', filter: 'blur(3px)' }], { duration: 200, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' });
+      setTimeout(function () { try { outA.cancel(); } catch (e) {} }, 1800);   // si la navegación se cancela, el contenido vuelve
+      setTimeout(function () { location.href = url; }, 190);
+      return;
+    }
     ss('kx_cover', String(Date.now()));
     coverIn().then(function () { location.href = url; });
-    setTimeout(function () { go.busy = false; }, 3000);    // por si el navegador cancela la navegación
   }
   function setupLinks() {
     document.addEventListener('click', function (e) {
@@ -311,13 +341,25 @@
         var go2 = function () { if (fired) return; fired = true; meltAway({ logo: intro }); };
         if (document.readyState === 'complete') go2(); else { window.addEventListener('load', go2, { once: true }); setTimeout(go2, 2600); }
       } catch (e) { doc.classList.remove('kx-cover'); }
+    } else if (softIn) {
+      try {
+        ensureMelt();
+        var mn = document.querySelector('main.os-workspace');
+        var run = function () {
+          if (run.done) return; run.done = true;
+          doc.classList.remove('kx-soft');
+          if (mn && mn.animate) mn.animate([{ opacity: 0, translate: '0 12px', filter: 'blur(4px)' }, { opacity: 1, translate: '0 0', filter: 'blur(0)' }], { duration: 460, easing: 'cubic-bezier(.22,1,.36,1)' });
+          rebuild(null, { page: true, soft: true, force: true });
+        };
+        if (document.readyState === 'complete') setTimeout(run, 30); else { window.addEventListener('load', function () { setTimeout(run, 30); }, { once: true }); setTimeout(run, 1800); }
+      } catch (e) { doc.classList.remove('kx-soft'); }
     } else if (!reduce) {
-      try { ensureMelt(); setTimeout(function () { rebuild(null, { page: true, quick: true }); }, 120); } catch (e) {}
+      try { ensureMelt(); setTimeout(function () { rebuild(null, { page: true, soft: true }); }, 120); } catch (e) {}
     }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
   // Volver con el botón "atrás" (caché de página): nunca debe quedarse la cortina
-  window.addEventListener('pageshow', function (e) { if (e.persisted) { doc.classList.remove('kx-cover'); if (melt) { melt.classList.remove('on'); } go.busy = false; } });
+  window.addEventListener('pageshow', function (e) { if (e.persisted) { doc.classList.remove('kx-cover'); doc.classList.remove('kx-soft'); if (melt) { melt.classList.remove('on'); } go.busy = false; } });
 
   window.KinetFX = { motion: { system: sysReduce, respect: respectSys, active: !reduce }, led: { apply: applyLed, defaults: LED_DEF }, rebuild: rebuild, go: go, coverIn: coverIn, meltAway: meltAway,
     setCursor: function (on) { try { localStorage.setItem('kinet_fx_cursor', on ? 'on' : 'off'); } catch (e) {} location.reload(); } };

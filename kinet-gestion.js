@@ -97,7 +97,7 @@
   }
   function currentSectionId() { return (location.hash || '').replace('#', '') || 'resumen'; }
 
-  function nav2(u) { try { if (window.KinetFX && KinetFX.go) { KinetFX.go(u); return; } } catch (e) {} location.href = u; }
+  function nav2(u, full) { try { if (window.KinetFX && KinetFX.go) { KinetFX.go(u, { full: !!full }); return; } } catch (e) {} location.href = u; }
   var originalNavHtml = null;
   function flipSwap(nav, html, afterIn) {
     var icons = [].slice.call(nav.querySelectorAll('.kg-flip, .side-link-left > span:first-child'));
@@ -139,13 +139,12 @@
       sw.setAttribute('data-mode', to);
       [].forEach.call(sw.querySelectorAll('button'), function (x) { x.classList.toggle('on', x === b); });
       lsSet('kinet_ui_mode', to);
+      // El menú NO se cambia aquí: la cortina cubre toda la pantalla y la otra página llega ya con su propio menú.
       if (to === 'gestion') {
-        if (onGestionPage()) { flipSwap(nav, gestionItems(r).map(function (it) { return navItemHtml(it, it.id === currentSectionId()); }).join('')); return; }
-        flipSwap(nav, gestionItems(r).map(function (it) { return navItemHtml(it, it.id === 'resumen'); }).join(''), function () { nav2('gestion.html#' + (lsGet('kinet_last_gestion') || 'resumen')); });
+        if (onGestionPage()) return;
+        nav2('gestion.html#' + (lsGet('kinet_last_gestion') || 'resumen'), true);
       } else {
-        var last = sessionStorage.getItem('kinet_last_app') || 'app.html';
-        var html = APP_LINKS.map(function (it) { return navItemHtml(it, last.indexOf(it.href) === 0); }).join('');
-        flipSwap(nav, html, function () { nav2(last); });
+        nav2(sessionStorage.getItem('kinet_last_app') || 'app.html', true);
       }
     });
   }
