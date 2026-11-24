@@ -189,10 +189,10 @@
   // Entrada: la sección entra deslizando y sus piezas se montan una a una
   function enter(ws, dir) {
     if (reduce || !ws.animate) return;
-    ws.animate([{ opacity: 0, translate: (30 * dir) + 'px 0', filter: 'blur(8px)' }, { opacity: 1, translate: '0 0', filter: 'blur(0)' }], { duration: 560, easing: 'cubic-bezier(.16,1,.3,1)' });
+    ws.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, easing: 'ease-out' });
     var items = $$('.panel, .kpi, .alert, .ann-prev, .tab, .head', ws).slice(0, 22);
     items.forEach(function (el, i) {
-      if (el.animate) el.animate([{ opacity: 0, translate: '0 18px', scale: '.985' }, { opacity: 1, translate: '0 0', scale: '1' }], { duration: 620, delay: 90 + i * 42, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' });
+      if (el.animate) el.animate([{ opacity: 0, translate: '0 26px', scale: '.97' }, { opacity: 1, translate: '0 0', scale: '1' }], { duration: 560, delay: 100 + Math.min(i, 10) * 70, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
     });
     $$('tbody tr', ws).slice(0, 14).forEach(function (el, i) {
       if (el.animate) el.animate([{ opacity: 0, translate: '-10px 0' }, { opacity: 1, translate: '0 0' }], { duration: 420, delay: 260 + i * 26, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' });

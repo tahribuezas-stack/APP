@@ -128,27 +128,44 @@
     var now = Date.now(); if (!o.force && now - lastRebuild < 350 && !o.page) return; lastRebuild = now;
     root = root || document.querySelector('.tab-content.active, .os-workspace') || document.querySelector('main') || document.body;
     var ws = o.page ? (document.querySelector('.os-workspace') || document.querySelector('main') || document.body) : root;
-    var gentle = !!(o.quick || o.soft);          // transición discreta: solo aparece y sube un poco, sin recortes ni desenfoque
+    var gentle = !!(o.quick || o.soft);          // cascada: solo aparece y sube un poco, sin recortes ni desenfoque
     // 1) las piezas grandes
     var kids = [].slice.call(ws.children).filter(function (e) { return e.nodeType === 1 && !/^(SCRIPT|STYLE)$/.test(e.tagName) && visible(e); }).slice(0, 8);
     if (o.children === false) kids = [];
     if (o.sweepOnly) { kids = []; }
     kids.forEach(function (el, i) {
       if (!el.animate) return;
-      if (gentle) el.animate([{ opacity: 0, translate: '0 10px' }, { opacity: 1, translate: '0 0' }], { duration: o.soft ? 420 : 300, delay: i * 28, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
+      if (o.soft) return;        // en la cascada completa la página entra de una vez y se animan las tarjetas
+      if (gentle) el.animate([{ opacity: 0, translate: '0 10px' }, { opacity: 1, translate: '0 0' }], { duration: 300, delay: i * 28, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
       else el.animate([{ clipPath: 'inset(0 0 100% 0)', opacity: 0 }, { clipPath: 'inset(0 0 0% 0)', opacity: 1 }], { duration: 620, delay: i * 70, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' });
     });
     // 2) las tarjetas se reensamblan
     var cards = o.sweepOnly ? [] : [].slice.call(ws.querySelectorAll(CARD_SEL)).filter(visible).slice(0, gentle ? 18 : 24);
     cards.forEach(function (el, i) {
       if (!el.animate) return;
-      if (gentle) { el.animate([{ opacity: 0, translate: '0 8px' }, { opacity: 1, translate: '0 0' }], { duration: o.soft ? 440 : 320, delay: (o.soft ? 80 : 20) + i * 20, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' }); return; }
+      if (o.soft) { el.animate([{ opacity: 0, translate: '0 26px', scale: '.97' }, { opacity: 1, translate: '0 0', scale: '1' }], { duration: 560, delay: 110 + Math.min(i, 10) * 70, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' }); return; }
+      if (gentle) { el.animate([{ opacity: 0, translate: '0 14px', scale: '.985' }, { opacity: 1, translate: '0 0', scale: '1' }], { duration: 340, delay: 20 + Math.min(i, 12) * 32, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' }); return; }
       var blur = i < 8 ? 'blur(7px)' : 'none';
       el.animate([{ opacity: 0, filter: blur, translate: '0 18px', scale: '.985' }, { opacity: 1, filter: 'none', translate: '0 0', scale: '1' }],
         { duration: 760, delay: 140 + i * 45, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' });
     });
     // 3) barrido de luz: SOLO dentro del cuadro de contenido que cambia (nunca sobre el menú ni la pantalla entera)
-    if (sweep && (o.page || o.sweepOnly || o.soft)) sweepIn(ws);
+    if (o.page || o.sweepOnly || o.soft) perimeter(ws);
+  }
+  // LED perimetral: un rayo de luz da la vuelta al borde de TODO el cuadro de contenido (nunca sobre el menú)
+  var perim = null;
+  function perimeter(box) {
+    try {
+      if (!box || !box.getBoundingClientRect || !document.body || reduce) return;
+      var r = box.getBoundingClientRect();
+      var top = Math.max(r.top, 0), left = Math.max(r.left, 0), w = Math.min(r.right, innerWidth) - left, h = Math.min(r.bottom, innerHeight) - top;
+      if (w < 120 || h < 120) return;
+      if (!perim) { perim = document.createElement('div'); perim.id = 'kx-perim'; perim.setAttribute('aria-hidden', 'true'); document.body.appendChild(perim); }
+      perim.style.cssText = 'left:' + left + 'px;top:' + top + 'px;width:' + w + 'px;height:' + h + 'px;opacity:0';
+      if (perim.getAnimations) perim.getAnimations().forEach(function (a) { a.cancel(); });
+      var an = perim.animate([{ '--kx-pa': '0deg', opacity: 0 }, { opacity: 1, offset: .12 }, { opacity: 1, offset: .85 }, { '--kx-pa': '360deg', opacity: 0 }], { duration: 1150, easing: 'cubic-bezier(.4,0,.3,1)' });
+      an.onfinish = function () { perim.style.opacity = 0; };
+    } catch (e) {}
   }
   function sweepIn(box) {
     try {
@@ -186,13 +203,28 @@
     var soft = !opts.full && !modeChange && SHELL && isShell(to) && main && main.animate;
     if (soft) {
       ss('kx_soft', String(Date.now()));
-      var outA = main.animate([{ opacity: 1, translate: '0 0', filter: 'blur(0)' }, { opacity: 0, translate: '0 -8px', filter: 'blur(3px)' }], { duration: 200, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' });
+      // Se navega YA: el navegador mantiene la página actual en pantalla hasta que la nueva puede pintarse, así no hay hueco ni tirón.
+      var outA = main.animate([{ opacity: 1, translate: '0 0' }, { opacity: .55, translate: '0 -6px' }], { duration: 160, easing: 'ease-out', fill: 'forwards' });
       setTimeout(function () { try { outA.cancel(); } catch (e) {} }, 1800);   // si la navegación se cancela, el contenido vuelve
-      setTimeout(function () { location.href = url; }, 190);
+      location.href = url;
       return;
     }
     ss('kx_cover', String(Date.now()));
     coverIn().then(function () { location.href = url; });
+  }
+  var pre = {};
+  function prefetch(href) {
+    try {
+      var u = new URL(href, location.href); if (u.origin !== location.origin || !/\.html$/.test(u.pathname)) return;
+      var k = u.pathname + u.search; if (pre[k]) return; pre[k] = 1;
+      var l = document.createElement('link'); l.rel = 'prefetch'; l.href = u.href; l.as = 'document'; document.head.appendChild(l);
+    } catch (e) {}
+  }
+  function setupPrefetch() {
+    var c = navigator.connection || {}; if (c.saveData) return;
+    ['mouseover', 'touchstart', 'focusin'].forEach(function (ev) {
+      document.addEventListener(ev, function (e) { var a = e.target && e.target.closest && e.target.closest('a[href]'); if (a && /\.html/.test(a.getAttribute('href') || '')) prefetch(a.href); }, { passive: true });
+    });
   }
   function setupLinks() {
     document.addEventListener('click', function (e) {
@@ -212,24 +244,23 @@
   /* ───────── cursor, pulso, progreso, magnetismo, grano ───────── */
   function setupCursor() {
     if (!fine || reduce || ls('kinet_fx_cursor') === 'off') return;
-    var dot = document.createElement('div'), ring = document.createElement('div'); dot.id = 'kx-cur-dot'; ring.id = 'kx-cur-ring';
-    document.body.appendChild(ring); document.body.appendChild(dot);
+    // Solo un halo que acompaña al puntero. El puntero real del sistema se ve SIEMPRE (también sobre ventanas flotantes, menús y campos de texto).
+    var ring = document.createElement('div'); ring.id = 'kx-cur-ring'; document.body.appendChild(ring);
     var mx = -100, my = -100, rx = -100, ry = -100, raf = 0, first = true;
     var HOT = 'a,button,[role="button"],[onclick],select,label,summary,.side-link,.tab,.d-tab,input[type=checkbox],input[type=radio],input[type=range],input[type=color],.contact-item,.color-swatch-btn,.sw';
-    var TXT = 'input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=button]):not([type=submit]):not([type=color]),textarea,[contenteditable=true],[contenteditable=""]';
     function loop() {
-      rx += (mx - rx) * .2; ry += (my - ry) * .2;
-      dot.style.transform = 'translate3d(' + mx + 'px,' + my + 'px,0)'; ring.style.transform = 'translate3d(' + rx.toFixed(1) + 'px,' + ry.toFixed(1) + 'px,0)';
+      rx += (mx - rx) * .22; ry += (my - ry) * .22;
+      ring.style.transform = 'translate3d(' + rx.toFixed(1) + 'px,' + ry.toFixed(1) + 'px,0)';
       raf = (Math.abs(mx - rx) > .1 || Math.abs(my - ry) > .1) ? requestAnimationFrame(loop) : 0;
     }
     document.addEventListener('mousemove', function (e) {
       mx = e.clientX; my = e.clientY;
-      if (first) { first = false; rx = mx; ry = my; doc.classList.add('kx-cursor', 'kx-cur-on'); }
+      if (first) { first = false; rx = mx; ry = my; doc.classList.add('kx-cur-on'); }
       if (!raf) raf = requestAnimationFrame(loop);
     }, { passive: true });
     document.addEventListener('mouseover', function (e) {
       var t = e.target; if (!t || !t.closest) return;
-      doc.classList.toggle('kx-cur-text', !!t.closest(TXT)); doc.classList.toggle('kx-cur-hot', !!t.closest(HOT) && !t.closest(TXT));
+      doc.classList.toggle('kx-cur-hot', !!t.closest(HOT));
     }, { passive: true });
     document.addEventListener('mousedown', function () { doc.classList.add('kx-cur-down'); }, { passive: true });
     document.addEventListener('mouseup', function () { doc.classList.remove('kx-cur-down'); }, { passive: true });
@@ -276,7 +307,7 @@
   var LED_DEF = { style: 'cometa', speed: 'normal', intensity: 'media', color: 'rol', custom: '#00FF88', width: '2', scope: 'all', ambient: 'on' };
   var LED_SEL = '.kinet-panel, .pricing-card, .panel, .chat-container, .glass-card, .profile-hero-box, .x-post-card';
   var LED_FREE = /(^|,\s*)(\.kinet-panel|\.pricing-card|\.panel)$/;   // estas ya reservan ::after para las marcas de esquina
-  var ledOn = false, ledMo = null, ledTimer = 0;
+  var ledOn = false, ledMo = null, ledTimer = 0, ledSeen = (window.WeakSet ? new WeakSet() : { has: function () { return false; }, add: function () {} });
   function ledCfg(o) {
     var c = {}; Object.keys(LED_DEF).forEach(function (k) { c[k] = (o && o[k] != null) ? o[k] : (ls('kinet_led_' + k) || LED_DEF[k]); });
     return c;
@@ -285,7 +316,8 @@
     if (!ledOn) return;
     var list = document.querySelectorAll(LED_SEL), n = 0;
     for (var i = 0; i < list.length && n < 160; i++) {
-      var el = list[i]; if (el.classList.contains('kx-led')) continue;
+      var el = list[i]; if (el.classList.contains('kx-led') || ledSeen.has(el)) continue;
+      ledSeen.add(el);
       if (el.closest('#kx-melt, .kg-switch')) continue;
       var cs; try { cs = getComputedStyle(el); } catch (e) { continue; }
       if (cs.position === 'static') continue;
@@ -330,7 +362,7 @@
 
   /* ───────── arranque ───────── */
   function boot() {
-    try { setupLinks(); setupTabs(); setupCursor(); setupPulse(); setupProgress(); setupMagnet(); setupGrain(); setupLed(); } catch (e) {}
+    try { setupLinks(); setupPrefetch(); setupTabs(); setupCursor(); setupPulse(); setupProgress(); setupMagnet(); setupGrain(); setupLed(); } catch (e) {}
     if (startCovered) {
       try {
         ensureMelt();
@@ -339,7 +371,7 @@
         // Esperamos a que la página tenga contenido; si tarda, se revela igualmente (una sola vez)
         var fired = false;
         var go2 = function () { if (fired) return; fired = true; meltAway({ logo: intro }); };
-        if (document.readyState === 'complete') go2(); else { window.addEventListener('load', go2, { once: true }); setTimeout(go2, 2600); }
+        if (document.readyState === 'complete') go2(); else { window.addEventListener('load', go2, { once: true }); setTimeout(go2, intro ? 2600 : 900); }
       } catch (e) { doc.classList.remove('kx-cover'); }
     } else if (softIn) {
       try {
@@ -348,10 +380,12 @@
         var run = function () {
           if (run.done) return; run.done = true;
           doc.classList.remove('kx-soft');
-          if (mn && mn.animate) mn.animate([{ opacity: 0, translate: '0 12px', filter: 'blur(4px)' }, { opacity: 1, translate: '0 0', filter: 'blur(0)' }], { duration: 460, easing: 'cubic-bezier(.22,1,.36,1)' });
+          if (mn && mn.animate) mn.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 240, easing: 'ease-out' });
           rebuild(null, { page: true, soft: true, force: true });
         };
-        if (document.readyState === 'complete') setTimeout(run, 30); else { window.addEventListener('load', function () { setTimeout(run, 30); }, { once: true }); setTimeout(run, 1800); }
+        // El contenido se revela en cuanto la página está montada (no se espera a fuentes ni imágenes: eso era el microtirón)
+        setTimeout(function () { requestAnimationFrame(run); }, 30);
+        setTimeout(run, 700);
       } catch (e) { doc.classList.remove('kx-soft'); }
     } else if (!reduce) {
       try { ensureMelt(); setTimeout(function () { rebuild(null, { page: true, soft: true }); }, 120); } catch (e) {}
