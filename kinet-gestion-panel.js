@@ -192,7 +192,7 @@
     var ws = $('#ws'), token = {}; route.token = token;
     // salida: el contenido anterior se desplaza y se desenfoca antes de dar paso al nuevo
     if (!reduce && ws.children.length && ws.animate && prevId && prevId !== id) {
-      try { await ws.animate([{ opacity: 1, translate: '0 0' }, { opacity: 0, translate: (-22 * dir) + 'px 0' }], { duration: 160, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' }).finished; } catch (e) {}
+      try { await ws.animate([{ opacity: 1, translate: '0 0' }, { opacity: 0, translate: (-22 * dir) + 'px 0' }], { duration: 210, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' }).finished; } catch (e) {}
       if (route.token !== token) return;
     }
     ws.getAnimations && ws.getAnimations().forEach(function (a) { a.cancel(); });
@@ -210,13 +210,13 @@
   // Entrada: la sección entra deslizando y sus piezas se montan una a una
   function enter(ws, dir) {
     if (reduce || !ws.animate) return;
-    ws.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, easing: 'ease-out' });
+    ws.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 340, easing: 'ease-out' });
     var items = $$('.panel, .kpi, .alert, .ann-prev, .tab, .head', ws).slice(0, 22);
     items.forEach(function (el, i) {
-      if (el.animate) el.animate([{ opacity: 0, translate: (56 * dir) + 'px 0', scale: '.98' }, { opacity: 1, translate: '0 0', scale: '1' }], { duration: 600, delay: 80 + Math.min(i, 10) * 60, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
+      if (el.animate) el.animate([{ opacity: 0, translate: (56 * dir) + 'px 0', scale: '.98' }, { opacity: 1, translate: '0 0', scale: '1' }], { duration: 820, delay: 100 + Math.min(i, 10) * 85, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
     });
     $$('tbody tr', ws).slice(0, 14).forEach(function (el, i) {
-      if (el.animate) el.animate([{ opacity: 0, translate: '-10px 0' }, { opacity: 1, translate: '0 0' }], { duration: 420, delay: 260 + i * 26, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' });
+      if (el.animate) el.animate([{ opacity: 0, translate: '-10px 0' }, { opacity: 1, translate: '0 0' }], { duration: 560, delay: 340 + i * 34, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' });
     });
     if (window.KinetFX && KinetFX.rebuild) { try { KinetFX.rebuild(ws, { children: false, quick: false, force: true, sweepOnly: true }); } catch (e) {} }
   }

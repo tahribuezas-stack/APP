@@ -3,9 +3,9 @@
    - Siempre llevan la etiqueta «ANUNCIO» (o «PROMO KINET» si es de la propia app) y un enlace para quitarlos.
    - Para añadir un patrocinador real: pon un objeto en SPONSORS (abajo). Mientras no haya ninguno se muestran promos de KINET y el espacio «Tu marca aquí».
    Huecos:
-     <div data-kinet-ad="wide"></div>                       franja larga (o dos mitades) bajo el contenido
-     <div data-kinet-ad="side" data-replace="#id"></div>    tarjeta compacta de la barra lateral (sustituye a #id mientras haya anuncios)
-     data-kinet-ad-chat=".outgoing"                          contenedor de chat: la tarjeta aparece bajo la última respuesta
+     <div data-kinet-ad="wide"></div>                       DENTRO de .bento-grid (última fila): dos mitades con el mismo corte (columnas) que los cuadros de arriba; fuera de una rejilla: franja larga
+     <div data-kinet-ad="slim"></div>                       tira fina de una línea al final del contenido (Ficha, Laboratorio, Analizador)
+     data-kinet-ad-chat=".outgoing" data-kinet-ad-in=".incoming"   contenedor de chat: la tarjeta aparece bajo la última respuesta, con el mismo ancho que el último mensaje recibido
      KinetAds.interleave(cards)                              feed de Comunidad: mezcla tarjetas-anuncio con las publicaciones */
 (function () {
   'use strict';
@@ -61,28 +61,55 @@
   function why() { return '<a class="kad-rm" href="' + removeHref() + '" title="' + (isGuest() ? 'Crea tu cuenta' : 'Quita los anuncios con KINET PRO') + '">' + (isGuest() ? 'Crear cuenta' : 'Quitar anuncios') + '</a>'; }
 
   /* ───────────────────────── Plantillas ───────────────────────── */
-  function wideCard(a, half) {
-    return '<div class="kad kad-wide' + (half ? ' kad-half' : '') + '" data-kad="' + esc(a.id) + '">' + tile(a, 52) +
+  function wideCard(a, half, cls) {
+    return '<div class="kad kad-wide' + (half ? ' kad-half' : '') + (cls ? ' ' + cls : '') + '" data-kad="' + esc(a.id) + '">' + tile(a, 52) +
       '<div class="kad-body"><div class="kad-top"><span class="kad-tag">' + tag(a) + '</span>' + why() + '</div>' +
       '<div class="kad-title">' + esc(a.title) + '</div><div class="kad-text">' + esc(a.text) + '</div></div>' +
       link(a, 'kad-cta', esc(a.cta) + ' <b>→</b>') + '</div>';
   }
-  function wideRow() {
+  /* Última fila de la rejilla donde está el hueco: devuelve las clases de columna (col-7, col-5…) de sus cuadros, para copiarlas a los anuncios */
+  function lastRowCols(slot) {
+    var out = [], sum = 0, el = slot.previousElementSibling;
+    while (el && sum < 12) {
+      if (!el.classList.contains('kad')) {
+        var ce = '', m = '';
+        try { ce = (getComputedStyle(el).gridColumnStart || '') + ' ' + (getComputedStyle(el).gridColumnEnd || ''); } catch (e) {}
+        m = /span\s+(\d+)/.exec(ce);
+        var n = m ? parseInt(m[1], 10) : 12;
+        var cc = (String(el.className).match(/\bcol-\d+\b/) || [''])[0];
+        out.unshift({ n: n, cls: cc }); sum += n;
+      }
+      el = el.previousElementSibling;
+    }
+    return sum === 12 ? out : null;
+  }
+  function wideInto(slot) {
+    var grid = slot.parentElement && slot.parentElement.classList.contains('bento-grid');
+    var cols = grid ? lastRowCols(slot) : null;
+    if (grid && cols && cols.length >= 1 && cols.length <= 3) {
+      slot.style.display = 'contents'; slot.setAttribute('data-kad-grid', '1');
+      var html = '', prev = null;
+      cols.forEach(function (c) {
+        var a = next(prev); prev = a.id;
+        html += wideCard(a, cols.length > 1, (c.cls || '') + ' kx-reveal' + (cols.length === 1 ? ' kad-full' : ''));
+      });
+      slot.innerHTML = html; return;
+    }
     var a = next(), two = (seed + picked) % 2 === 0 && pool().length > 1;
-    if (!two) return '<div class="kad-row">' + wideCard(a, false) + '</div>';
+    if (!two) { slot.innerHTML = '<div class="kad-row">' + wideCard(a, false, 'kx-reveal') + '</div>'; return; }
     var b = next(a.id);
-    return '<div class="kad-row kad-two">' + wideCard(a, true) + wideCard(b, true) + '</div>';
+    slot.innerHTML = '<div class="kad-row kad-two">' + wideCard(a, true, 'kx-reveal') + wideCard(b, true, 'kx-reveal') + '</div>';
+  }
+  function slimCard(a) {
+    return '<div class="kad-row"><div class="kad kad-slim kx-reveal" data-kad="' + esc(a.id) + '">' + tile(a, 30) +
+      '<span class="kad-tag">' + tag(a) + '</span><span class="kad-slim-t"><b>' + esc(a.title) + '</b><span> · ' + esc(a.text) + '</span></span>' +
+      link(a, 'kad-cta kad-cta-sm', esc(a.cta) + ' <b>→</b>') + why() + '</div></div>';
   }
   function chatCard(a) {
     return '<div class="kad kad-chat" data-kad="' + esc(a.id) + '">' + tile(a, 74) +
       '<div class="kad-body"><div class="kad-top"><span class="kad-tag">' + tag(a) + '</span><span class="kad-dots">•••</span></div>' +
       '<div class="kad-title">' + esc(a.title) + '</div><div class="kad-text">' + esc(a.text) + '</div>' +
       '<div class="kad-foot">' + link(a, 'kad-cta kad-cta-sm', esc(a.cta) + ' <b>→</b>') + why() + '</div></div></div>';
-  }
-  function sideCard(a) {
-    return '<div class="kad kad-side" data-kad="' + esc(a.id) + '"><div class="kad-top"><span class="kad-tag">' + tag(a) + '</span>' + why() + '</div>' +
-      '<div class="kad-side-row">' + tile(a, 34) + '<div><div class="kad-title">' + esc(a.title) + '</div></div></div>' +
-      '<div class="kad-text">' + esc(a.text) + '</div>' + link(a, 'kad-cta kad-cta-sm', esc(a.cta) + ' <b>→</b>') + '</div>';
   }
   function feedCard(a) {
     return '<div class="kad kad-feed" data-kad="' + esc(a.id) + '"><div class="kad-top"><div class="kad-feed-h">' + tile(a, 40) +
@@ -112,15 +139,20 @@
       '.kad-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:9px;position:relative}' +
       /* franja larga / dos mitades: fina, del ancho de los cuadros de arriba */
       '.kad-row{display:grid;grid-template-columns:1fr;gap:var(--kad-gap,16px);margin-top:var(--kad-gap,16px);grid-column:1/-1;width:100%}.kad-row.kad-two{grid-template-columns:1fr 1fr}' +
+      '.kad-wide.kad-full{grid-column:1/-1}.bento-grid>.kad-wide{align-self:stretch;min-width:0}' +
+      /* tira fina (Ficha, Laboratorio, Analizador): una sola línea */
+      '.kad-slim{display:flex;align-items:center;gap:11px;padding:7px 12px;min-height:46px}.kad-slim .kad-tile{width:30px;height:30px;border-radius:9px}' +
+      '.kad-slim-t{flex:1;min-width:0;font:500 .72rem Inter,sans-serif;color:#94A3B8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}.kad-slim-t b{color:#fff;font-weight:800}' +
+      '@media(max-width:720px){.kad-slim{flex-wrap:wrap}.kad-slim-t{flex-basis:100%;white-space:normal;order:5}}' +
       '.kad-wide{display:flex;align-items:center;gap:14px;padding:12px 16px;min-height:78px}.kad-wide .kad-body{flex:1;min-width:0}' +
       '.kad-wide .kad-text{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}' +
       '.kad-half{padding:11px 14px}.kad-half .kad-cta{padding:7px 11px}.kad-half .kad-cta b{display:none}' +
       '@media(max-width:820px){.kad-row.kad-two{grid-template-columns:1fr}.kad-wide{flex-wrap:wrap}.kad-wide .kad-cta{margin-left:66px}}' +
       /* tarjeta bajo la respuesta del chat (estilo patrocinado de los asistentes) */
-      '.kad-chat{display:flex;gap:14px;align-items:flex-start;padding:12px 14px;margin:12px 0 4px;max-width:520px;background:rgba(255,255,255,.025)}.kad-chat .kad-body{flex:1;min-width:0}.kad-dots{color:#475569;letter-spacing:.1em;font-size:.7rem}' +
-      '.kad-chat-wrap{padding:0 10px}' +
-      /* barra lateral */
-      '.kad-side{padding:11px 12px;border-radius:14px}.kad-side-row{display:flex;gap:9px;align-items:center;margin:8px 0 5px;position:relative}.kad-side .kad-title{font-size:.78rem;margin:0}.kad-side .kad-text{font-size:.68rem;margin:0 0 9px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.kad-side .kad-cta{width:100%;justify-content:center}' +
+      '.kad-chat{display:flex;gap:14px;align-items:flex-start;padding:12px 14px;margin:0;width:100%;box-sizing:border-box;background:rgba(255,255,255,.025)}.kad-chat .kad-body{flex:1;min-width:0}.kad-dots{color:#475569;letter-spacing:.1em;font-size:.7rem}' +
+      '.kad-chat-wrap{align-self:flex-start;box-sizing:border-box;max-width:100%;min-width:min(100%,300px);container-type:inline-size;flex:none}' +
+      '@container (max-width:380px){.kad-chat{gap:10px;padding:11px 12px}.kad-chat .kad-tile{width:48px!important;height:48px!important;border-radius:12px}.kad-chat .kad-foot{flex-wrap:wrap}}' +
+      '.kad-chat .kad-shine{position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 35%,rgba(var(--role-rgb,0,255,136),.16) 50%,transparent 65%);translate:-120% 0}' +
       /* feed de Comunidad: parece una publicación */
       '.kad-feed{padding:15px;margin-bottom:11px}.kad-feed-h{display:flex;align-items:center;gap:10px}.kad-feed-n{font:800 .84rem Inter,sans-serif;color:#fff}.kad-feed-s{font:600 .6rem "JetBrains Mono",monospace;color:#64748B;margin-top:1px}' +
       '[data-kad-hidden]{display:none!important}@media print{.kad,.kad-row{display:none!important}}';
@@ -142,32 +174,54 @@
       var s = slots[i], kind = s.getAttribute('data-kinet-ad');
       if (s.getAttribute('data-kad-done')) continue;
       s.setAttribute('data-kad-done', '1');
-      if (kind === 'wide') { s.innerHTML = wideRow(); s.classList.add('kad-slot'); }
-      else if (kind === 'side') {
-        var sel = s.getAttribute('data-replace'), old = sel ? document.querySelector(sel) : null;
-        if (old) { old.setAttribute('data-kad-hidden', '1'); old.style.display = 'none'; }
-        s.innerHTML = sideCard(next()); s.classList.add('kad-slot');
-      }
+      if (kind === 'wide') { wideInto(s); s.classList.add('kad-slot'); }
+      else if (kind === 'slim') { s.innerHTML = slimCard(next()); s.classList.add('kad-slot'); }
     }
+  }
+  function reduced() { try { return document.documentElement.classList.contains('kx-reduce'); } catch (e) { return false; } }
+  /* Entrada del anuncio: sube y se enfoca, el icono «salta» y un destello recorre la tarjeta una vez */
+  function enter(wrap) {
+    if (reduced() || !wrap.animate) return;
+    var card = wrap.firstElementChild; if (!card) return;
+    var ease = 'cubic-bezier(.22,1,.36,1)', d = 520;
+    try {
+      wrap.animate([{ opacity: 0, translate: '-14px 12px', scale: '.965', filter: 'blur(5px)' }, { opacity: 1, translate: '0 0', scale: '1', filter: 'blur(0)' }], { duration: d, delay: 260, easing: ease, fill: 'backwards' });
+      var t = card.querySelector('.kad-tile');
+      if (t) t.animate([{ scale: '.55', rotate: '-14deg' }, { scale: '1.12', rotate: '3deg', offset: .6 }, { scale: '1', rotate: '0deg' }], { duration: 640, delay: 420, easing: ease, fill: 'backwards' });
+      var sh = document.createElement('span'); sh.className = 'kad-shine'; card.appendChild(sh);
+      var a = sh.animate([{ translate: '-120% 0' }, { translate: '120% 0' }], { duration: 900, delay: 640, easing: 'ease-in-out', fill: 'backwards' });
+      a.onfinish = a.oncancel = function () { try { sh.remove(); } catch (e) {} };
+    } catch (e) {}
   }
   function attachChat(box) {
     if (box.__kadObs) { if (box.__kadPlace) box.__kadPlace(); return; }
-    var need = box.getAttribute('data-kinet-ad-chat') || '', creative = null, busy = false;
+    var need = box.getAttribute('data-kinet-ad-chat') || '', inSel = box.getAttribute('data-kinet-ad-in') || '', creative = null, busy = false;
+    function fit(wrap) {
+      // mismo ancho horizontal que el último mensaje recibido, para una lectura coherente
+      var last = null;
+      if (inSel) { var l = box.querySelectorAll(inSel); last = l.length ? l[l.length - 1] : null; }
+      var w = last ? last.offsetWidth : 0;
+      if (w > 40) wrap.style.width = w + 'px'; else wrap.style.width = '';
+    }
     function place() {
       if (busy) return; busy = true;
       try {
-        var old = box.querySelector(':scope > .kad-chat-wrap');
+        var old = box.querySelector(':scope > .kad-chat-wrap'), fresh = false;
         if (!enabled()) { if (old) old.remove(); return; }
         if (need && !box.querySelector(need)) { if (old) old.remove(); return; }   // aún no ha preguntado nada: no hay respuesta bajo la que ir
         if (!creative) creative = next();
         var atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 140;
-        if (!old) { old = document.createElement('div'); old.className = 'kad-chat-wrap'; old.innerHTML = chatCard(creative); }
-        if (box.lastElementChild !== old) { box.appendChild(old); if (atBottom) box.scrollTop = box.scrollHeight; }
+        if (!old) { old = document.createElement('div'); old.className = 'kad-chat-wrap'; old.innerHTML = chatCard(creative); fresh = true; }
+        if (box.lastElementChild !== old) box.appendChild(old);
+        fit(old);
+        if (fresh) enter(old);
+        if (atBottom) box.scrollTop = box.scrollHeight;
       } finally { busy = false; }
     }
     box.__kadPlace = place;
     box.__kadObs = new MutationObserver(function () { place(); });
     box.__kadObs.observe(box, { childList: true });
+    window.addEventListener('resize', function () { var w = box.querySelector(':scope > .kad-chat-wrap'); if (w) fit(w); });
     place();
   }
   function mountChats() { var l = document.querySelectorAll('[data-kinet-ad-chat]'); for (var i = 0; i < l.length; i++) attachChat(l[i]); }
@@ -178,7 +232,7 @@
   }
   function unmount() {
     var l = document.querySelectorAll('.kad-chat-wrap'); for (var i = 0; i < l.length; i++) l[i].remove();
-    var sl = document.querySelectorAll('.kad-slot'); for (var k = 0; k < sl.length; k++) { sl[k].innerHTML = ''; sl[k].removeAttribute('data-kad-done'); sl[k].classList.remove('kad-slot'); }
+    var sl = document.querySelectorAll('.kad-slot'); for (var k = 0; k < sl.length; k++) { sl[k].innerHTML = ''; sl[k].style.display = ''; sl[k].removeAttribute('data-kad-grid'); sl[k].removeAttribute('data-kad-done'); sl[k].classList.remove('kad-slot'); }
     var h = document.querySelectorAll('[data-kad-hidden]'); for (var j = 0; j < h.length; j++) { h[j].style.display = ''; h[j].removeAttribute('data-kad-hidden'); }
   }
   function refresh() { if (enabled()) mount(); else unmount(); }
