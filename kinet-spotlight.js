@@ -58,12 +58,12 @@
 })();
 if (!window.KinetBackend) {
   const s = document.createElement('script');
-  s.src = 'kinet-backend.js';
+  s.src = 'kinet-backend.js?v=19';
   document.head.appendChild(s);
 }
 // Carga automática del motor Cloud de KINET OS
 if (!window.KinetBackend && !document.querySelector('script[src*="kinet-backend.js"]')) {
   const kbScript = document.createElement('script');
-  kbScript.src = 'kinet-backend.js';
+  kbScript.src = 'kinet-backend.js?v=19';
   document.head.appendChild(kbScript);
 }
