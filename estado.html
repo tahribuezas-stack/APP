@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>KINET OS · Estado de sincronización</title>
+<style>
+  :root{--bg:#04060A;--card:#0B1220;--line:#1E293B;--txt:#E2E8F0;--mut:#94A3B8;--ok:#00FF88;--warn:#F59E0B;--bad:#EF4444}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.45 Inter,system-ui,sans-serif;padding:20px 16px 60px}
+  h1{font-size:18px;margin:0 0 4px}
+  p.sub{color:var(--mut);margin:0 0 18px}
+  .card{max-width:720px;margin:0 auto 14px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  table{width:100%;border-collapse:collapse}
+  td{padding:7px 4px;border-bottom:1px solid var(--line);vertical-align:top;word-break:break-word}
+  td:first-child{color:var(--mut);width:46%}
+  tr:last-child td{border-bottom:0}
+  .ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+  button{background:var(--ok);color:#04060A;border:0;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer;margin:4px 6px 4px 0}
+  button.sec{background:transparent;color:var(--txt);border:1px solid var(--line)}
+  #verdict{font-weight:700;margin-bottom:8px}
+  small{color:var(--mut)}
+</style>
+</head>
+<body>
+<div class="card"><h1>Estado de sincronización</h1><p class="sub">Comprueba que este dispositivo y la nube hablan de la misma cuenta. Haz una captura de esta pantalla en cada dispositivo.</p>
+  <div id="verdict">Comprobando…</div>
+  <table id="t"></table>
+</div>
+<div class="card">
+  <button id="b-refresh">Actualizar estado</button>
+  <button id="b-force" class="sec">Forzar: copiar la nube a este dispositivo</button>
+  <button id="b-relogin" class="sec">Cerrar sesión y entrar de nuevo</button>
+  <p><small>"Forzar" borra las diferencias locales de este dispositivo y deja exactamente lo que hay guardado en tu cuenta (plan, deporte, chats, colores…).</small></p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="kinet-api-config.js?v=19"></script>
+<script src="kinet-backend.js?v=19"></script>
+<script>
+(function(){
+  var VERSION='v19';
+  function esc(s){return String(s==null?'—':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
+  function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
+  function row(a,b,cls){return '<tr><td>'+esc(a)+'</td><td class="'+(cls||'')+'">'+esc(b)+'</td></tr>'}
+  function short(id){return id?String(id).slice(0,8)+'…':null}
+  async function run(){
+    var rows=[],problems=[];
+    var sb=window.KinetBackend&&KinetBackend.getClient&&KinetBackend.getClient();
+    var sess=null,serverRow=null,err=null;
+    try{ if(sb&&sb.auth){ var r=await sb.auth.getSession(); sess=r&&r.data&&r.data.session; } }catch(e){err=String(e&&e.message||e)}
+    var localUid=ls('kinet_user_id');
+    if(sess){
+      try{
+        var q=await sb.from('profiles').select('id,account_tier,active_sport,active_role,updated_at,full_name').eq('id',sess.user.id).maybeSingle();
+        serverRow=q&&q.data; if(q&&q.error) err=q.error.message;
+      }catch(e){err=String(e&&e.message||e)}
+    }
+    var localTier=(ls('kinet_account_tier')||'free').toLowerCase();
+    var srvTier=serverRow?String(serverRow.account_tier||'free').toLowerCase():null;
+    var localSport=ls('kinet_sport');
+    rows.push(row('Versión del código en este dispositivo',VERSION+(window.KinetBackend?' (motor cargado)':' (motor NO cargado)'),window.KinetBackend?'ok':'bad'));
+    rows.push(row('Sesión con la nube', sess?'Activa':'NO hay sesión válida',sess?'ok':'bad'));
+    if(!sess) problems.push('Este dispositivo no tiene una sesión válida con la nube, por eso no se sincroniza. Pulsa «Cerrar sesión y entrar de nuevo».');
+    rows.push(row('Correo de la sesión',sess&&sess.user&&sess.user.email));
+    rows.push(row('ID de cuenta (sesión)',short(sess&&sess.user&&sess.user.id)));
+    rows.push(row('ID de cuenta (guardado aquí)',short(localUid), (sess&&localUid&&sess.user.id!==localUid)?'bad':''));
+    if(sess&&localUid&&sess.user.id!==localUid) problems.push('El perfil guardado en este dispositivo es de otra cuenta distinta a la de la sesión.');
+    rows.push(row('Plan en este dispositivo',localTier.toUpperCase()));
+    rows.push(row('Plan en la nube',srvTier?srvTier.toUpperCase():null, srvTier&&srvTier!==localTier?'warn':'ok'));
+    if(srvTier&&srvTier!==localTier) problems.push('El plan de este dispositivo ('+localTier.toUpperCase()+') no coincide con el de la nube ('+srvTier.toUpperCase()+').');
+    rows.push(row('Deporte en este dispositivo',localSport));
+    rows.push(row('Deporte en la nube',serverRow&&serverRow.active_sport, serverRow&&serverRow.active_sport&&localSport!==serverRow.active_sport?'warn':'ok'));
+    if(serverRow&&serverRow.active_sport&&localSport!==serverRow.active_sport) problems.push('El deporte no coincide con el de la nube.');
+    rows.push(row('Última modificación en la nube',serverRow&&serverRow.updated_at));
+    rows.push(row('Última sincronización vista aquí',ls('kinet_sync_seen')));
+    rows.push(row('Color de acento aquí',ls('kinet_accent_color')||'(por defecto del plan)'));
+    var nk=0,chat=0;try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('kinet_')===0)nk++;if(k&&k.indexOf('kinet_staff_chats_v3_')===0)chat+=(localStorage.getItem(k)||'').length;}}catch(e){}
+    rows.push(row('Datos guardados aquí',nk+' claves · chats IA: '+chat+' caracteres'));
+    rows.push(row('Dirección de esta página',location.origin));
+    if(err) rows.push(row('Aviso técnico',err,'warn'));
+    document.getElementById('t').innerHTML=rows.join('');
+    var v=document.getElementById('verdict');
+    if(!problems.length){v.className='ok';v.textContent='✔ Este dispositivo está sincronizado con tu cuenta.'}
+    else{v.className='bad';v.innerHTML='✖ Hay diferencias:<br>'+problems.map(function(p){return '• '+esc(p)}).join('<br>')}
+  }
+  document.getElementById('b-refresh').onclick=run;
+  document.getElementById('b-force').onclick=async function(){
+    if(!confirm('Esto deja este dispositivo igual que tu cuenta en la nube. ¿Continuar?'))return;
+    try{
+      var keep={kinet_device_id:1};
+      Object.keys(localStorage).forEach(function(k){ if(k.indexOf('kinet_')===0&&!keep[k]&&k!=='kinet_user_id'&&k!=='kinet_user_email'&&k!=='kinet_logged_in'&&k!=='kinet_auth_session_token'&&k!=='kinet_user_name'&&k!=='kinet_social_handle'&&k!=='kinet_username') localStorage.removeItem(k); });
+      await KinetBackend.pullCloudStateToLocal();
+      try{ if(KinetBackend.syncPrivilegedFromServer) await KinetBackend.syncPrivilegedFromServer(); }catch(e){}
+    }catch(e){}
+    location.reload();
+  };
+  document.getElementById('b-relogin').onclick=async function(){
+    if(!confirm('Se cerrará la sesión en ESTE dispositivo y volverás al inicio de sesión. Tus datos siguen guardados en la nube. ¿Continuar?'))return;
+    try{ var sb=KinetBackend.getClient(); if(sb&&sb.auth) await sb.auth.signOut(); }catch(e){}
+    try{ Object.keys(localStorage).forEach(function(k){ if(k.indexOf('kinet_')===0&&k!=='kinet_device_id') localStorage.removeItem(k); }); }catch(e){}
+    location.href='login.html';
+  };
+  window.addEventListener('load',function(){setTimeout(run,1500)});
+})();
+</script>
+</body>
+</html>
