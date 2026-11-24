@@ -91,16 +91,16 @@
 
     // Enlaces Oficiales de Stripe Payment Links (rellena tus URLs de buy.stripe.com)
     stripeLinks: {
-      plan_pro: '',          // Suscripción Pro Player MENSUAL (11,99€/mes)
-      plan_club: '',         // Suscripción Club & Scout MENSUAL (39,99€/mes)
-      plan_pro_year: '',     // Pro Player ANUAL (99€/año)
-      plan_club_year: '',    // Club & Scout ANUAL (399€/año)
-      pack_45_free: '',      // Bono +45 min Tarifa Estándar Free (3,98€)
-      pack_45_pro: '',       // Bono +45 min Tarifa Miembro PRO -50% (1,99€)
-      pack_150_free: '',     // Bono +150 min Tarifa Estándar Free (7,98€)
-      pack_150_pro: '',      // Bono +150 min Tarifa Miembro PRO -50% (3,99€)
-      pack_400_free: '',     // Bono +400 min Tarifa Estándar Free (15,98€)
-      pack_400_pro: ''       // Bono +400 min Tarifa Miembro PRO/Club -50% (7,99€)
+      plan_pro: 'https://buy.stripe.com/test_28E7sM7OSayuc1k1wD6Zy0a',          // Suscripción Pro Player MENSUAL (11,99€/mes)
+      plan_club: 'https://buy.stripe.com/test_14A6oI5GKdKG0iC5MT6Zy08',         // Suscripción Club & Scout MENSUAL (39,99€/mes)
+      plan_pro_year: 'https://buy.stripe.com/test_14A9AU4CGgWSaXg8Z56Zy0b',     // Pro Player ANUAL (99€/año)
+      plan_club_year: 'https://buy.stripe.com/test_28E14ofhk4a68P8ejp6Zy09',    // Club & Scout ANUAL (399€/año)
+      pack_45_free: 'https://buy.stripe.com/test_6oUeVe6KOeOK6H07V16Zy04',      // Bono +45 min Tarifa Estándar Free (3,98€)
+      pack_45_pro: 'https://buy.stripe.com/test_00wdRa6KOdKGe9s7V16Zy02',       // Bono +45 min Tarifa Miembro PRO -50% (1,99€)
+      pack_150_free: 'https://buy.stripe.com/test_14A7sM7OS21Y5CWfnt6Zy05',     // Bono +150 min Tarifa Estándar Free (7,98€)
+      pack_150_pro: 'https://buy.stripe.com/test_14AcN6fhkgWSghA8Z56Zy01',      // Bono +150 min Tarifa Miembro PRO -50% (3,99€)
+      pack_400_free: 'https://buy.stripe.com/test_9B600kgloayughA8Z56Zy03',     // Bono +400 min Tarifa Estándar Free (15,98€)
+      pack_400_pro: 'https://buy.stripe.com/test_cNifZic588qmd5o3EL6Zy00'       // Bono +400 min Tarifa Miembro PRO/Club -50% (7,99€)
     }
   };
 
