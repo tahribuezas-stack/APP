@@ -56,6 +56,7 @@
   } catch (e) { deviceId = 'dev_' + Math.random().toString(36).slice(2, 10); }
   let remoteChecking = false;
   let lastPullChanged = [];
+  let lastPullWriter = null;
 
   // =========================================================================
   // 1. VALIDADOR INTELIGENTE DE SESIÓN REAL / PRO VS INVITADO (NUNCA BLOQUEA CUENTAS PRO)
@@ -326,13 +327,16 @@
   const SYNC_SKIP = {
     kinet_sb_key: 1, kinet_saved_posts: 1, kinet_is_guest: 1, kinet_guest_session: 1, kinet_auth_session_token: 1,
     kinet_staff_admin_role: 1, kinet_device_id: 1, kinet_sync_base: 1, kinet_sync_seen: 1, kinet_sync_writer: 1,
-    kinet_account_tier: 1, kinet_is_pro: 1, kinet_ct_inflight: 1   // plan: lo decide solo el servidor
+    kinet_account_tier: 1, kinet_is_pro: 1, kinet_ct_inflight: 1,   // plan: lo decide solo el servidor
+    // Mensajes de un solo uso entre pantallas: NUNCA deben viajar a la nube (si no, al recargar se repiten)
+    kinet_pending_question: 1, kinet_target_agent: 1, kinet_pending_dm_broadcast: 1, kinet_ct_consumed: 1
   };
   const CHANGE_IGNORE = {
     kinet_auth_session_token: 1, kinet_avatar_updated_at: 1, kinet_unread_dm_count: 1, kinet_mode: 1, kinet_logged_in: 1,
     kinet_account_tier: 1, kinet_is_pro: 1, kinet_bonus_video_mins: 1, kinet_video_mins_used: 1, kinet_user_id: 1,
     kinet_sync_base: 1, kinet_sync_seen: 1, kinet_sync_writer: 1, kinet_staff_admin_role: 1, kinet_device_id: 1,
-    kinet_social_configured: 1, kinet_profile_completed: 1, kinet_official_welcome_read: 1, kinet_ct_inflight: 1
+    kinet_social_configured: 1, kinet_profile_completed: 1, kinet_official_welcome_read: 1, kinet_ct_inflight: 1,
+    kinet_pending_question: 1, kinet_target_agent: 1, kinet_pending_dm_broadcast: 1, kinet_ct_consumed: 1
   };
   function hashStr(str) {
     let h = 5381;
@@ -406,6 +410,8 @@
     try {
       refreshDOMAvatarsAndProfileUI();
       applyGlobalSidebarEnhancements();
+      // Si el último en escribir fue ESTE dispositivo (otra pantalla de la app), no hay nada "de otro dispositivo": ni recarga ni aviso.
+      if (lastPullWriter && lastPullWriter === deviceId) return;
       // La página puede declarar que ya aplicó el cambio en vivo (p. ej. chats) llamando a preventDefault(): sin recarga ni aviso.
       const handled = !window.dispatchEvent(new CustomEvent('kinet:remote-update', { detail: { changed: lastPullChanged.slice() }, cancelable: true }));
       if (handled) return;
@@ -1444,6 +1450,7 @@
           const after = currentSyncHashes();
           const keys = {}; Object.keys(before).concat(Object.keys(after)).forEach((k) => { keys[k] = 1; });
           lastPullChanged = Object.keys(keys).filter((k) => before[k] !== after[k] && !CHANGE_IGNORE[k]);
+          lastPullWriter = (rows[0].user_state && rows[0].user_state.kinet_sync_writer) || null;
           initialCloudPullFinished = true;
           window.dispatchEvent(new CustomEvent('kinet:cloud-synced', { detail: rows[0] }));
           // Datos que solo existen en este dispositivo: se suben
@@ -1698,6 +1705,16 @@
   });
   window.addEventListener('online', () => { checkRemoteChange('resume'); });
   setInterval(() => { if (!document.hidden) checkRemoteChange('poll'); }, 20000);
+
+  // "Config. Red Social" se ve SIEMPRE. Si no hay cuenta (invitado), pulsarlo lleva a crear una: es el incentivo para registrarse.
+  document.addEventListener('click', (ev) => {
+    try {
+      const a = ev.target && ev.target.closest && ev.target.closest('#nav-config-social, #drawer-config-social');
+      if (!a || isStrictlyAuthenticatedUser()) return;
+      ev.preventDefault(); ev.stopImmediatePropagation();
+      location.href = 'login.html?mode=register&reason=social';
+    } catch (e) {}
+  }, true);
 
   document.addEventListener('DOMContentLoaded', () => {
     refreshDOMAvatarsAndProfileUI();

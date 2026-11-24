@@ -7,7 +7,7 @@
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return [].slice.call((r || document).querySelectorAll(s)); };
-  var reduce = false; try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  var reduce = false; try { reduce = localStorage.getItem('kinet_fx_motion') === 'system' && matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
 
   /* ───────── Formato ───────── */
   var H = KGP.helpers;

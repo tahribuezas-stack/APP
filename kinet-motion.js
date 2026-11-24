@@ -6,7 +6,8 @@
 (function () {
   'use strict';
   var reduce = false;
-  try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  try { reduce = localStorage.getItem('kinet_fx_motion') === 'system' && window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  if (reduce) document.documentElement.classList.add('kx-reduce');
   var doc = document.documentElement;
 
   /* ---------- 1. Aparición al hacer scroll ---------- */

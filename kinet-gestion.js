@@ -8,7 +8,7 @@
   if (window.KinetGestion) return;
 
   var reduce = false;
-  try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  try { reduce = localStorage.getItem('kinet_fx_motion') === 'system' && window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
 
   /* ───────── Secciones del panel y qué rango ve cada una ───────── */
   var SECTIONS = [

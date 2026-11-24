@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script src="kinet-guard.js?v=23"></script>
-<script src="kinet-sport.js?v=23"></script>
-<script src="kinet-select.js?v=23"></script>
+<script src="kinet-guard.js?v=24"></script>
+<script src="kinet-sport.js?v=24"></script>
+<script src="kinet-select.js?v=24"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
@@ -46,10 +46,10 @@
     <!-- Librería Oficial para Generación Real del Contrato / Informe en PDF + Supabase + KINET Backend + APIs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="kinet-backend.js?v=23"></script>
-<script src="kinet-gestion.js?v=23"></script>
-    <script src="kinet-api-config.js?v=23"></script>
-    <script src="kinet-sensors.js?v=23"></script>
+    <script src="kinet-backend.js?v=24"></script>
+<script src="kinet-gestion.js?v=24"></script>
+    <script src="kinet-api-config.js?v=24"></script>
+    <script src="kinet-sensors.js?v=24"></script>
 
     <style>
         :root {
@@ -571,9 +571,9 @@
         .m-nav-btn { background: transparent; border: none; color: var(--text-secondary); font-family: 'Inter', sans-serif; font-size: 0.62rem; font-weight: 700; padding: 6px 8px; border-radius: 14px; display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; cursor: pointer; }
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
-    <link rel="stylesheet" href="kinet-mobile-fix.css?v=23">
-<link rel="stylesheet" href="kinet-fx.css?v=23">
-<script src="kinet-fx.js?v=23"></script>
+    <link rel="stylesheet" href="kinet-mobile-fix.css?v=24">
+<link rel="stylesheet" href="kinet-fx.css?v=24">
+<script src="kinet-fx.js?v=24"></script>
 </head>
 <body data-role="athlete">
 
@@ -1049,6 +1049,14 @@
                                 <div class="panel-head">
                                     <span class="panel-label">🎞️ Movimiento & Efectos</span>
                                     <button class="btn-secondary" style="padding:5px 10px; font-size:0.62rem;" onclick="stageResetFx()">↺ Todo activado</button>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>Movimiento del sistema</label>
+                                        <span>Muchos ordenadores traen "reducir movimiento" activado sin saberlo. "Siempre" muestra todas las animaciones; "Respetar" las apaga si tu sistema lo pide (se aplica al recargar)</span>
+                                        <span id="fx-diag" style="display:block;margin-top:4px;color:var(--role-color);font-family:'JetBrains Mono',monospace;font-size:.62rem"></span>
+                                    </div>
+                                    <select id="setting-fx-motion" class="setting-select" onchange="stageFx('motion', this.value)"><option value="always">Siempre animado</option><option value="system">Respetar mi sistema</option></select>
                                 </div>
                                 <div class="setting-row">
                                     <div class="setting-info">
@@ -1778,8 +1786,6 @@
             if (localStorage.getItem('kinet_social_configured') === 'true' || localStorage.getItem('kinet_user_name')) {
                 const navSoc = document.getElementById('nav-config-social');
                 const drwSoc = document.getElementById('drawer-config-social');
-                if (navSoc) navSoc.style.display = 'none';
-                if (drwSoc) drwSoc.style.display = 'none';
             }
 
             if (tabParam === 'subscription' || window.location.hash === '#subscription' || window.location.hash === '#payg-bonuses-section') {
@@ -1981,8 +1987,8 @@ function stageResetRoleColor() {
         // ── Luz LED y efectos de movimiento ──
         const LED_KEYS = ['style', 'speed', 'intensity', 'color', 'custom', 'width', 'scope', 'ambient'];
         const LED_DEFAULTS = { style: 'cometa', speed: 'normal', intensity: 'media', color: 'rol', custom: '#00FF88', width: '2', scope: 'all', ambient: 'on' };
-        const FX_KEYS = ['intro', 'transitions', 'cursor', 'pulse', 'magnet', 'progress', 'grain'];
-        const FX_DEFAULTS = { intro: 'full', transitions: 'on', cursor: 'on', pulse: 'on', magnet: 'on', progress: 'on', grain: 'on' };
+        const FX_KEYS = ['motion', 'intro', 'transitions', 'cursor', 'pulse', 'magnet', 'progress', 'grain'];
+        const FX_DEFAULTS = { motion: 'always', intro: 'full', transitions: 'on', cursor: 'on', pulse: 'on', magnet: 'on', progress: 'on', grain: 'on' };
         function ledDraft() { const o = {}; LED_KEYS.forEach(k => { o[k] = draftSettings['led_' + k]; }); return o; }
         function syncLedFxControls() {
             LED_KEYS.forEach(k => {
@@ -1993,6 +1999,10 @@ function stageResetRoleColor() {
                 const el = document.getElementById('setting-fx-' + k); if (!el) return;
                 if (el.type === 'checkbox') el.checked = draftSettings['fx_' + k] !== 'off'; else el.value = draftSettings['fx_' + k];
             });
+            try {
+                const d = document.getElementById('fx-diag');
+                if (d) { const sys = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches; d.textContent = 'Tu sistema pide ' + (sys ? 'REDUCIR movimiento' : 'movimiento normal') + ' · Efectos ' + ((window.KinetFX && KinetFX.motion && KinetFX.motion.active) ? 'ACTIVOS' : 'APAGADOS') + ' · v24'; }
+            } catch (e) {}
             const row = document.getElementById('led-custom-row');
             if (row) row.style.display = draftSettings.led_color === 'custom' ? 'flex' : 'none';
         }

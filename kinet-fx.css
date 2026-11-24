@@ -1,7 +1,7 @@
 /* KINET OS · capa visual y de movimiento compartida (v22)
    Principios: nada de esto cambia la maquetación ni los colores de la app; solo añade acabado.
    - Las microinteracciones usan las propiedades individuales `scale` y `translate`, así no chocan con los `transform` de cada página.
-   - Todo respeta prefers-reduced-motion. Si el JS falla, la página queda exactamente como estaba. */
+   - Respeta la preferencia de movimiento del sistema solo si el usuario lo elige (Despacho › Efectos). Si el JS falla, la página queda exactamente como estaba. */
 
 /* ───────── Cortina de transición (derretir y reconstruir) ───────── */
 html.kx-cover::after {
@@ -97,10 +97,8 @@ html.kx-cur-text #kx-cur-dot, html.kx-cur-text #kx-cur-ring { opacity: 0 !import
 html.kx-cur-hot #kx-cur-ring { width: 52px; height: 52px; margin: -26px 0 0 -26px; background: rgba(var(--role-rgb, 0, 255, 136), .10); border-color: rgba(var(--role-rgb, 0, 255, 136), .9); }
 html.kx-cur-down #kx-cur-ring { width: 22px; height: 22px; margin: -11px 0 0 -11px; background: rgba(var(--role-rgb, 0, 255, 136), .22); }
 
-@media (prefers-reduced-motion: reduce) {
-  #kx-grain { animation: none; }
-  .kx-pulse, #kx-cur-ring { display: none; }
-}
+html.kx-reduce #kx-grain { animation: none; }
+html.kx-reduce .kx-pulse, html.kx-reduce #kx-cur-ring { display: none; }
 @media print { #kx-grain, #kx-melt, #kx-sweep, #kx-progress, #kx-cur-dot, #kx-cur-ring { display: none !important; } }
 
 
@@ -109,7 +107,7 @@ html.kx-cur-down #kx-cur-ring { width: 22px; height: 22px; margin: -11px 0 0 -11
 @property --kx-p { syntax: '<percentage>'; inherits: true; initial-value: 0%; }
 @property --kx-ax { syntax: '<percentage>'; inherits: true; initial-value: 20%; }
 @property --kx-ay { syntax: '<percentage>'; inherits: true; initial-value: 30%; }
-:root { --kx-led-speed: 6s; --kx-led-op: .55; --kx-led-w: 1.5px; --kx-led-c1: var(--role-color, #00FF88); --kx-led-c2: rgba(255,255,255,.95); }
+:root { --kx-led-speed: 6s; --kx-led-op: .85; --kx-led-w: 2px; --kx-led-c1: var(--role-color, #00FF88); --kx-led-c2: rgba(255,255,255,.95); }
 html.kx-led-on { animation: kxSpin var(--kx-led-speed) linear infinite; }
 html.kx-led-on.kx-led-sweep { animation: kxSweep var(--kx-led-speed) cubic-bezier(.45, 0, .25, 1) infinite; }
 @keyframes kxSpin { to { --kx-a: 360deg; } }
@@ -119,7 +117,7 @@ html.kx-led-on .kx-led::after {
   content: ''; position: absolute; inset: 0; border-radius: inherit; padding: var(--kx-led-w); pointer-events: none; z-index: 3;
   background: conic-gradient(from var(--kx-a), transparent 0deg, transparent 215deg, color-mix(in srgb, var(--kx-led-c1) 35%, transparent) 285deg, var(--kx-led-c1) 335deg, var(--kx-led-c2) 355deg, transparent 360deg);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  opacity: var(--kx-led-op); transition: opacity .45s ease; filter: none;
+  opacity: var(--kx-led-op); transition: opacity .45s ease; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--kx-led-c1) 70%, transparent));
 }
 html.kx-led-on.kx-led-dual .kx-led::after { background: conic-gradient(from var(--kx-a), transparent 0deg, transparent 200deg, color-mix(in srgb, var(--kx-led-c1) 30%, transparent) 250deg, var(--kx-led-c1) 310deg, var(--kx-led-c2) 340deg, color-mix(in srgb, var(--kx-led-c1) 40%, transparent) 352deg, transparent 360deg); }
 html.kx-led-on.kx-led-rainbow .kx-led::after { background: conic-gradient(from var(--kx-a), #ff3d71, #ffb300, #00ff88, #00e5ff, #7c4dff, #ff3d71); }
@@ -145,7 +143,7 @@ html.kx-led-on.kx-led-hover.kx-led-breath .kx-led:not(:hover)::after { animation
   animation: kxAmb 26s ease-in-out infinite alternate; }
 html.kx-amb-on #kx-ambient { opacity: var(--kx-amb-op, .7); }
 @keyframes kxAmb { 0% { --kx-ax: 12%; --kx-ay: 22%; } 50% { --kx-ax: 70%; --kx-ay: 55%; } 100% { --kx-ax: 38%; --kx-ay: 82%; } }
-@media (prefers-reduced-motion: reduce) { html.kx-led-on, #kx-ambient { animation: none !important; } }
+html.kx-reduce.kx-led-on, html.kx-reduce #kx-ambient { animation: none !important; }
 @media print { #kx-ambient { display: none !important; } }
 
 

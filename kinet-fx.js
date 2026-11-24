@@ -3,13 +3,19 @@
    2) Transición entre páginas: la cortina cae como goteo oscuro y, al llegar, se derrite hacia abajo.
    3) Reconstrucción al cambiar de pestaña o modo dentro de una página (Gestionar plantilla, Jugadas, ajustes…).
    4) Cursor propio, pulso al hacer clic, barra de avance, grano fino y botones magnéticos.
-   Todo es opcional: sin JS, con prefers-reduced-motion o si algo falla, la app se ve y funciona igual que antes. */
+   Todo es opcional: sin JS, con "respetar reducir movimiento" activado o si algo falla, la app se ve y funciona igual que antes. */
 (function () {
   'use strict';
   if (window.KinetFX) return;
   var doc = document.documentElement;
   var reduce = false, fine = false;
-  try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  var sysReduce = false;
+  try { sysReduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  /* Por defecto las animaciones se ven SIEMPRE (muchos Windows traen "reducir movimiento" activado sin que su dueño lo sepa y eso apagaba todo).
+     Quien lo necesite puede elegir en Despacho › Efectos "Respetar la preferencia de mi sistema": entonces sí se desactiva el movimiento. */
+  var respectSys = false; try { respectSys = localStorage.getItem('kinet_fx_motion') === 'system'; } catch (e) {}
+  reduce = respectSys && sysReduce;
+  if (reduce) document.documentElement.classList.add('kx-reduce');
   try { fine = matchMedia('(hover: hover) and (pointer: fine)').matches; } catch (e) {}
   var wide = innerWidth >= 900;
   function ss(k, v) { try { if (v === undefined) return sessionStorage.getItem(k); if (v === null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v); } catch (e) {} return null; }
@@ -272,8 +278,8 @@
     }
     var sp = { lenta: '10s', normal: '6s', rapida: '3.2s' }[c.speed] || '6s'; if (c.style === 'barrido') sp = { lenta: '7s', normal: '4.5s', rapida: '2.6s' }[c.speed] || '4.5s'; if (c.style === 'respiro') sp = { lenta: '6s', normal: '4s', rapida: '2.2s' }[c.speed] || '4s';
     doc.style.setProperty('--kx-led-speed', sp);
-    doc.style.setProperty('--kx-led-op', String({ suave: .32, media: .55, alta: .9 }[c.intensity] || .55));
-    doc.style.setProperty('--kx-led-w', ({ '1': '1px', '2': '1.5px', '3': '2.5px' }[String(c.width)] || '1.5px'));
+    doc.style.setProperty('--kx-led-op', String({ suave: .5, media: .85, alta: 1 }[c.intensity] || .85));
+    doc.style.setProperty('--kx-led-w', ({ '1': '1.25px', '2': '2px', '3': '3px' }[String(c.width)] || '2px'));
     if (c.color === 'custom' && /^#[0-9a-f]{6}$/i.test(c.custom)) doc.style.setProperty('--kx-led-c1', c.custom); else doc.style.removeProperty('--kx-led-c1');
     // resplandor ambiental
     var amb = document.getElementById('kx-ambient');
@@ -313,6 +319,6 @@
   // Volver con el botón "atrás" (caché de página): nunca debe quedarse la cortina
   window.addEventListener('pageshow', function (e) { if (e.persisted) { doc.classList.remove('kx-cover'); if (melt) { melt.classList.remove('on'); } go.busy = false; } });
 
-  window.KinetFX = { led: { apply: applyLed, defaults: LED_DEF }, rebuild: rebuild, go: go, coverIn: coverIn, meltAway: meltAway,
+  window.KinetFX = { motion: { system: sysReduce, respect: respectSys, active: !reduce }, led: { apply: applyLed, defaults: LED_DEF }, rebuild: rebuild, go: go, coverIn: coverIn, meltAway: meltAway,
     setCursor: function (on) { try { localStorage.setItem('kinet_fx_cursor', on ? 'on' : 'off'); } catch (e) {} location.reload(); } };
 })();
