@@ -22,8 +22,10 @@
   function ls(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 
   var path = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
-  var SHELL = /^(app|cuerpo-tecnico|ficha-pro|ojeador-live|analizador|comunidad|media-studio|despacho|perfil|gestion)\.html$/.test(path);
-  var NOFX_PAGES = /^(estado)\.html$/.test(path);
+  var SHELL = /^(app|cuerpo-tecnico|ficha-pro|ojeador-live|analizador|comunidad|media-studio|despacho|perfil|gestion|estado)\.html$/.test(path);
+  var NAV_FROM = ss('kx_nav_from');   // se lee antes de que el menú lo consuma: dice desde qué opción venimos (avanzar o retroceder)
+  if (SHELL && path !== 'gestion.html') doc.classList.add('kx-cards');   // los cuadros se mueven igual que en Gestión
+  var NOFX_PAGES = false;   // (estado.html ya usa los efectos: intro, barra LED y cuadros)
   if (NOFX_PAGES) { window.KinetFX = { rebuild: function () {}, go: function (u) { location.href = u; } }; return; }
 
   /* ───────── decisión temprana: ¿empezamos tapados? (antes del primer pintado, sin parpadeo) ───────── */
@@ -154,6 +156,15 @@
   /* ───────── reconstrucción de contenido ───────── */
   var CARD_SEL = '.kinet-panel, .glass-card, .panel, .pricing-card, .setting-row, .kpi-box, .session-item, .contact-item, .legal-clause-box, .day-pill, .month-day-cell, [data-reveal], .kx-reveal';
   function visible(el) { var r = el.getBoundingClientRect(); return r.width > 2 && r.height > 2 && r.bottom > 0 && r.top < innerHeight * 1.05; }
+  // ¿avanzamos o retrocedemos en el menú? Los cuadros entran desde el lado al que vamos (como en Gestión)
+  function navDir() {
+    try {
+      var d = JSON.parse(NAV_FROM || 'null'); if (!d || !d.h || Date.now() - d.t > 9000) return 1;
+      var hrefs = [].slice.call(document.querySelectorAll('.sidebar-nav a.side-link')).map(function (a) { return String(a.getAttribute('href') || '').split('#')[0].split('?')[0].split('/').pop().toLowerCase(); });
+      var x = hrefs.indexOf(d.h), y = hrefs.indexOf(path);
+      return (x > -1 && y > -1 && x !== y && y < x) ? -1 : 1;
+    } catch (e) { return 1; }
+  }
   var lastRebuild = 0;
   function rebuild(root, o) {
     o = o || {};
@@ -161,26 +172,20 @@
     var now = Date.now(); if (!o.force && now - lastRebuild < 350 && !o.page) return; lastRebuild = now;
     root = root || document.querySelector('.tab-content.active, .os-workspace') || document.querySelector('main') || document.body;
     var ws = o.page ? (document.querySelector('.os-workspace') || document.querySelector('main') || document.body) : root;
-    var gentle = !!(o.quick || o.soft);          // cascada: solo aparece y sube un poco, sin recortes ni desenfoque
-    // 1) las piezas grandes
-    var kids = [].slice.call(ws.children).filter(function (e) { return e.nodeType === 1 && !/^(SCRIPT|STYLE)$/.test(e.tagName) && visible(e); }).slice(0, 8);
-    if (o.children === false) kids = [];
-    if (o.sweepOnly) { kids = []; }
-    kids.forEach(function (el, i) {
-      if (!el.animate) return;
-      if (o.soft) return;        // en la cascada completa la página entra de una vez y se animan las tarjetas
-      if (gentle) el.animate([{ opacity: 0, translate: '0 10px' }, { opacity: 1, translate: '0 0' }], { duration: 440, delay: i * 40, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
-      else el.animate([{ clipPath: 'inset(0 0 100% 0)', opacity: 0 }, { clipPath: 'inset(0 0 0% 0)', opacity: 1 }], { duration: 620, delay: i * 70, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' });
-    });
-    // 2) las tarjetas se reensamblan
-    var cards = o.sweepOnly ? [] : [].slice.call(ws.querySelectorAll(CARD_SEL)).filter(visible).slice(0, gentle ? 18 : 24);
+    var gentle = !!o.quick;                       // cambio de pestaña dentro de la página: mismo movimiento, algo más rápido
+    var dir = gentle ? 1 : navDir(), sx = innerWidth < 700 ? 24 : 56, EZ = 'cubic-bezier(.22,1,.36,1)';
+    // 1) el contenido entra con un fundido corto (igual que en Gestión)
+    if (!o.soft && !o.sweepOnly && o.children !== false && ws.animate) ws.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 340, easing: 'ease-out' });
+    // 2) los cuadros entran deslizándose y escalonados (igual que en Gestión); los anidados no se animan dos veces
+    var cards = o.sweepOnly ? [] : [].slice.call(ws.querySelectorAll(CARD_SEL)).filter(visible);
+    cards = cards.filter(function (el) { return !cards.some(function (c) { return c !== el && c.contains(el); }); }).slice(0, 22);
     cards.forEach(function (el, i) {
       if (!el.animate) return;
-      if (o.soft) { el.animate([{ opacity: 0, translate: '0 26px', scale: '.97' }, { opacity: 1, translate: '0 0', scale: '1' }], { duration: 780, delay: 130 + Math.min(i, 10) * 95, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' }); return; }
-      if (gentle) { el.animate([{ opacity: 0, translate: '0 14px', scale: '.985' }, { opacity: 1, translate: '0 0', scale: '1' }], { duration: 520, delay: 40 + Math.min(i, 12) * 48, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' }); return; }
-      var blur = i < 8 ? 'blur(7px)' : 'none';
-      el.animate([{ opacity: 0, filter: blur, translate: '0 18px', scale: '.985' }, { opacity: 1, filter: 'none', translate: '0 0', scale: '1' }],
-        { duration: 760, delay: 140 + i * 45, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' });
+      el.animate([{ opacity: 0, translate: (sx * dir) + 'px 0', scale: '.98' }, { opacity: 1, translate: '0 0', scale: '1' }],
+        { duration: gentle ? 640 : 820, delay: (gentle ? 50 : 100) + Math.min(i, 10) * (gentle ? 60 : 85), easing: EZ, fill: 'backwards' });
+    });
+    if (!o.sweepOnly) [].slice.call(ws.querySelectorAll('tbody tr')).filter(visible).slice(0, 14).forEach(function (el, i) {
+      if (el.animate) el.animate([{ opacity: 0, translate: '-10px 0' }, { opacity: 1, translate: '0 0' }], { duration: 560, delay: (gentle ? 200 : 340) + i * 34, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' });
     });
     // 3) barrido de luz: SOLO dentro del cuadro de contenido que cambia (nunca sobre el menú ni la pantalla entera)
     if (o.page || o.sweepOnly || o.soft) perimeter(ws);
@@ -225,7 +230,7 @@
   }
 
   /* ───────── navegación con cortina ───────── */
-  function isShell(p) { return /^(app|cuerpo-tecnico|ficha-pro|ojeador-live|analizador|comunidad|media-studio|despacho|perfil|gestion)\.html$/.test(p); }
+  function isShell(p) { return /^(app|cuerpo-tecnico|ficha-pro|ojeador-live|analizador|comunidad|media-studio|despacho|perfil|gestion|estado)\.html$/.test(p); }
   // Pantalla completa SOLO al entrar en la app y al cambiar entre APP y GESTIÓN. El resto (cambiar de sección) anima solo el cuadro de contenido.
   function go(url, opts) {
     opts = opts || {};
@@ -312,7 +317,6 @@
   function setupProgress() {
     if (ls('kinet_fx_progress') === 'off') return;
     var ws = document.querySelector('.os-workspace'), om = document.querySelector('.os-main');
-    if (!ws && !om) return;
     var bar = document.createElement('div'); bar.id = 'kx-progress'; bar.setAttribute('aria-hidden', 'true');
     var fill = document.createElement('i'); bar.appendChild(fill); document.body.appendChild(bar);
     function room(el) { return el ? el.scrollHeight - el.clientHeight : 0; }
@@ -355,6 +359,36 @@
       if (k === 'End') { w.scrollTo({ top: w.scrollHeight, behavior: 'smooth' }); e.preventDefault(); return; }
       if (d) { w.scrollBy({ top: d, behavior: 'smooth' }); e.preventDefault(); }
     });
+  }
+  /* ───────── cuadros como en Gestión: luz que sigue al cursor y onda al pulsar un botón ───────── */
+  function setupCards() {
+    if (!doc.classList.contains('kx-cards') || reduce) return;
+    var SPOT = '.kinet-panel, .panel, .pricing-card, .side-link', seen = window.WeakSet ? new WeakSet() : null, raf = 0, ev = null;
+    if (fine) document.addEventListener('mousemove', function (e) {
+      ev = e; if (raf) return;
+      raf = requestAnimationFrame(function () {
+        raf = 0; var el = ev.target && ev.target.closest && ev.target.closest(SPOT);
+        for (var n = 0; el && n < 3; n++) {
+          var b = el.getBoundingClientRect(); el.style.setProperty('--mouse-x', (ev.clientX - b.left) + 'px'); el.style.setProperty('--mouse-y', (ev.clientY - b.top) + 'px');
+          if (seen && !seen.has(el)) {   // si la tarjeta no trae luz propia, se le pone la de Gestión
+            seen.add(el);
+            try { if (el.matches('.kinet-panel, .panel, .pricing-card')) { var bg = getComputedStyle(el, '::before').backgroundImage; if (!(bg && bg.indexOf('radial-gradient') > -1)) el.classList.add('kx-spot'); } } catch (x) {}
+          }
+          el = el.parentElement && el.parentElement.closest(SPOT);
+        }
+      });
+    }, { passive: true });
+    document.addEventListener('pointerdown', function (e) {
+      var b = e.target.closest && e.target.closest('.btn, .btn-primary, .btn-secondary, .btn-danger, .mini-action-pill'); if (!b || b.disabled) return;
+      var r = b.getBoundingClientRect(), s2 = Math.max(r.width, r.height) * 2;
+      if (!b.__kxRip) { b.__kxRip = { pos: getComputedStyle(b).position === 'static', ov: b.style.overflow }; if (b.__kxRip.pos) b.style.position = 'relative'; b.style.overflow = 'hidden'; }
+      var d = document.createElement('span'); d.className = 'kx-rip';
+      d.style.cssText = 'width:' + s2 + 'px;height:' + s2 + 'px;left:' + (e.clientX - r.left - s2 / 2) + 'px;top:' + (e.clientY - r.top - s2 / 2) + 'px';
+      b.appendChild(d);
+      clearTimeout(b.__kxRipT);
+      setTimeout(function () { d.remove(); }, 650);
+      b.__kxRipT = setTimeout(function () { var st = b.__kxRip; b.__kxRip = null; if (st) { if (st.pos) b.style.position = ''; b.style.overflow = st.ov; } }, 700);
+    }, { passive: true });
   }
   function setupMagnet() {
     if (!fine || reduce || ls('kinet_fx_magnet') === 'off') return;
@@ -563,7 +597,7 @@
 
   /* ───────── arranque ───────── */
   function boot() {
-    try { setupLinks(); setupPrefetch(); setupTabs(); setupCursor(); setupPulse(); setupProgress(); setupScrollAnywhere(); setupMagnet(); setupGrain(); setupLed(); } catch (e) {}
+    try { setupLinks(); setupPrefetch(); setupTabs(); setupCursor(); setupPulse(); setupProgress(); setupScrollAnywhere(); setupMagnet(); setupCards(); setupGrain(); setupLed(); } catch (e) {}
     try { setupChatMotion(); } catch (e) {}
     try { setupNavGlide(); } catch (e) {}
     if (startCovered) {
