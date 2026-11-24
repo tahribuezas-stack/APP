@@ -46,6 +46,7 @@
     <!-- Librerías Oficiales para Exportación Real a PDF (WYSIWYG Alta Resolución) -->
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script defer src="kinet-pdf.js?v=41"></script>
 
     <style>
         :root {
@@ -1082,8 +1083,8 @@
 <script src="kinet-gestion.js?v=38"></script>
     <script src="kinet-api-config.js?v=39"></script>
     <link rel="stylesheet" href="kinet-mobile-fix.css?v=38">
-<link rel="stylesheet" href="kinet-fx.css?v=40">
-<script src="kinet-fx.js?v=40"></script>
+<link rel="stylesheet" href="kinet-fx.css?v=41">
+<script src="kinet-fx.js?v=41"></script>
 <script src="kinet-usage.js?v=38"></script>
     <script src="kinet-ads.js?v=38"></script>
 </head>
@@ -2494,56 +2495,45 @@
             renderCardAndPanelState();
         }
 
+        // Captura la carta 3D sin transformaciones (si no, sale torcida) y la devuelve a su estado
+        async function captureKinetCard() {
+            const cardEl = document.getElementById('kinet-3d-card');
+            const prevTransform = cardEl.style.transform;
+            const wasChainsVisible = cardEl.classList.contains('chains-locked');
+            cardEl.style.transform = 'none';
+            if (wasChainsVisible && !isAiVerifiedMode) cardEl.classList.remove('chains-locked');
+            try {
+                return await KinetPDF.capture(cardEl, { scale: 3, bg: '#06080E' });
+            } finally {
+                cardEl.style.transform = prevTransform;
+                if (wasChainsVisible) cardEl.classList.add('chains-locked');
+            }
+        }
+        function kinetPdfFail(e, what) {
+            console.error('[KINET PDF]', e);
+            alert('No se pudo generar ' + what + '.\n\nMotivo: ' + ((e && e.message) || e) + '\n\nComprueba tu conexión y vuelve a intentarlo.');
+        }
+        function kinetAthleteBrief() {
+            const g = (k, d) => { try { return localStorage.getItem(k) || d; } catch (e) { return d; } };
+            return { name: g('kinet_user_name', 'Atleta KINET'), sub: g('kinet_sport', 'Fútbol') };
+        }
+
         async function downloadCardOnlyPDF() {
             const btn = document.getElementById('btn-download-card-pdf');
             const originalText = btn.innerHTML;
             btn.innerHTML = '⏳ Generando PDF...';
             btn.disabled = true;
-
             try {
-                const cardEl = document.getElementById('kinet-3d-card');
-                const prevTransform = cardEl.style.transform;
-                const wasChainsVisible = cardEl.classList.contains('chains-locked');
-                cardEl.style.transform = 'none';
-                if (wasChainsVisible && !isAiVerifiedMode) cardEl.classList.remove('chains-locked');
-
-                const canvas = await html2canvas(cardEl, {
-                    scale: 3,
-                    backgroundColor: '#06080E',
-                    useCORS: true,
-                    logging: false
-                });
-                cardEl.style.transform = prevTransform;
-                if (wasChainsVisible) cardEl.classList.add('chains-locked');
-
-                const imgData = canvas.toDataURL('image/png');
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [110, 175] });
-
-                pdf.setFillColor(6, 8, 14);
-                pdf.rect(0, 0, 110, 175, 'F');
-
-                // LOGO OFICIAL KINET OS ARRIBA A LA IZQUIERDA
-                pdf.setFillColor(0, 255, 136);
-                pdf.roundedRect(7, 5, 9, 9, 2, 2, 'F');
-                pdf.setTextColor(4, 6, 10);
-                pdf.setFont('helvetica', 'bold');
-                pdf.setFontSize(9);
-                pdf.text('K', 10, 11.2);
-                pdf.setTextColor(255, 255, 255);
-                pdf.setFontSize(8.5);
-                pdf.text('KINET OS // OFFICIAL ATHLETE CARD', 19, 11);
-
-                pdf.addImage(imgData, 'PNG', 7, 17, 96, 148);
-
+                if (!window.KinetPDF || !(window.jspdf && window.jspdf.jsPDF)) throw new Error('el generador de PDF aún no se ha cargado');
+                const canvas = await captureKinetCard();
+                const d = KinetPDF.create({ title: 'Carta oficial KINET', subtitle: 'Tarjeta de atleta verificada por KINET Vision', tag: 'Official athlete card', athlete: kinetAthleteBrief() });
+                const maxW = d.cw(), avail = d.H - d.bottom - d.y - 4, r = canvas.width / canvas.height;
+                const w = Math.min(maxW * 0.78, avail * r), h = w / r;
+                d.pdf.addImage(canvas.toDataURL('image/jpeg', 0.94), 'JPEG', d.mx + (maxW - w) / 2, d.y, w, h, undefined, 'FAST');
                 const playerName = (localStorage.getItem('kinet_user_name') || 'Atleta_KINET').replace(/\s+/g, '_');
-                pdf.save(`KINET_Card_${playerName}.pdf`);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
+                d.save(`KINET_Card_${playerName}.pdf`, 'Carta oficial generada por KINET OS');
+            } catch (err) { kinetPdfFail(err, 'el PDF de la carta'); }
+            finally { btn.innerHTML = originalText; btn.disabled = false; }
         }
 
         async function exportFullDossierPDF() {
@@ -2551,106 +2541,37 @@
             const originalText = btn.innerHTML;
             btn.innerHTML = '⏳ Maquetando PDF...';
             btn.disabled = true;
-
             try {
-                const cardEl = document.getElementById('kinet-3d-card');
-                const prevTransform = cardEl.style.transform;
-                cardEl.style.transform = 'none';
-
-                const canvas = await html2canvas(cardEl, {
-                    scale: 3,
-                    backgroundColor: '#06080E',
-                    useCORS: true,
-                    logging: false
-                });
-                cardEl.style.transform = prevTransform;
-
-                const imgData = canvas.toDataURL('image/png');
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-                pdf.setFillColor(6, 8, 14);
-                pdf.rect(0, 0, 210, 297, 'F');
-
-                pdf.setFillColor(13, 17, 26);
-                pdf.roundedRect(12, 12, 186, 26, 4, 4, 'F');
-
-                pdf.setFillColor(0, 255, 136);
-                pdf.roundedRect(16, 16, 12, 12, 3, 3, 'F');
-                pdf.setTextColor(4, 6, 10);
-                pdf.setFont('helvetica', 'bold');
-                pdf.setFontSize(11);
-                pdf.text('K', 20.3, 24);
-
-                pdf.setTextColor(0, 255, 136);
-                pdf.setFontSize(12.5);
-                pdf.text('KINET OS // INFORME BIOMECANICO DE TENDENCIAS & KINET CARD', 32, 21.5);
-
-                const sportChosen = (localStorage.getItem('kinet_sport') || 'Fútbol').toUpperCase();
-                const userName = (localStorage.getItem('kinet_user_name') || 'ATLETA KINET').toUpperCase();
+                if (!window.KinetPDF || !(window.jspdf && window.jspdf.jsPDF)) throw new Error('el generador de PDF aún no se ha cargado');
+                const canvas = await captureKinetCard();
+                const sportChosen = (localStorage.getItem('kinet_sport') || 'Fútbol');
+                const userName = (localStorage.getItem('kinet_user_name') || 'Atleta KINET');
                 const grl = document.getElementById('card-grl-display').textContent;
                 const pos = document.getElementById('card-pos-display').textContent;
-
-                pdf.setTextColor(203, 213, 225);
-                pdf.setFontSize(8.8);
-                pdf.text(`ATLETA: ${userName}   |   DISCIPLINA: ${sportChosen}   |   DEMARCACION: ${pos}   |   GRL: ${grl}`, 32, 30);
-
-                pdf.addImage(imgData, 'PNG', 14, 44, 82, 124);
-
-                pdf.setFillColor(13, 17, 26);
-                pdf.roundedRect(102, 44, 96, 124, 4, 4, 'F');
-                pdf.setTextColor(0, 255, 136);
-                pdf.setFontSize(10.5);
-                pdf.text('INFORME DE TENDENCIAS TACTICAS Y ZONAS IA', 108, 55);
-
                 const rep = activeSportSchema.tendencyReport;
-                pdf.setTextColor(248, 250, 252);
-                pdf.setFontSize(8.5);
-                const blocks = [
-                    `• Arquetipo Detectado: ${rep.archetype}`,
-                    `• Zonas de Influencia / Carrera: ${rep.zones}`,
-                    `• Patron Biomecanico IA: ${rep.biomech}`,
-                    `• Recomendacion Cuerpo Tecnico: ${rep.advice}`
-                ];
-                let ty = 65;
-                blocks.forEach(b => {
-                    const lines = pdf.splitTextToSize(b, 84);
-                    pdf.text(lines, 108, ty);
-                    ty += lines.length * 4.5 + 4;
+                const d = KinetPDF.create({ title: 'Informe biomecánico y KINET Card', subtitle: 'Tendencias tácticas, zonas de influencia y percentiles del atleta', tag: 'Dossier del atleta', athlete: { name: userName, sub: sportChosen + ' • ' + pos } });
+
+                d.heading('Ficha del atleta');
+                d.kv([['Atleta', userName], ['Disciplina', sportChosen], ['Demarcación', pos], ['GRL', String(grl)]], 4);
+
+                d.heading('KINET Card e informe de tendencias');
+                d.ensure(110);
+                const y0 = d.y, imgW = 70, r = canvas.width / canvas.height, imgH = imgW / r;
+                d.pdf.addImage(canvas.toDataURL('image/jpeg', 0.94), 'JPEG', d.mx, y0, imgW, imgH, undefined, 'FAST');
+                const x2 = d.mx + imgW + 8, w2 = d.cw() - imgW - 8;
+                d.y = y0 + 3;
+                [['Arquetipo detectado', rep.archetype], ['Zonas de influencia / carrera', rep.zones], ['Patrón biomecánico IA', rep.biomech], ['Recomendación del cuerpo técnico', rep.advice]].forEach(([k, v]) => {
+                    d.paragraph(String(k).toUpperCase(), { x: x2, w: w2, size: 7, bold: true, color: [100, 116, 139], gap: 0.8 });
+                    d.paragraph(v, { x: x2, w: w2, size: 8.8, gap: 4.5 });
                 });
+                d.y = Math.max(d.y, y0 + imgH) + 6;
 
-                pdf.setFillColor(13, 17, 26);
-                pdf.roundedRect(14, 176, 184, 82, 4, 4, 'F');
-                pdf.setTextColor(0, 255, 136);
-                pdf.setFontSize(10.5);
-                pdf.text('PERCENTILES OFICIALES EN BASE DE DATOS SCOUT MATRIX B2B', 20, 188);
-
-                let pY = 200;
-                activeSportSchema.percentiles.forEach((p) => {
-                    pdf.setTextColor(226, 232, 240);
-                    pdf.setFontSize(9);
-                    pdf.text(`• ${p.label}`, 20, pY);
-                    pdf.setTextColor(0, 255, 136);
-                    pdf.text(`Percentil ${p.pct}%`, 166, pY);
-                    pdf.setFillColor(30, 41, 59);
-                    pdf.rect(20, pY + 3, 170, 3, 'F');
-                    pdf.setFillColor(0, 255, 136);
-                    pdf.rect(20, pY + 3, (170 * p.pct) / 100, 3, 'F');
-                    pY += 17;
-                });
-
-                pdf.setTextColor(148, 163, 184);
-                pdf.setFontSize(8);
-                pdf.text('Documento oficial auditado por KINET Vision Analytics™ • kinetos.es', 14, 284);
-
+                d.heading('Percentiles en la base de datos Scout Matrix');
+                d.bars(activeSportSchema.percentiles.map(p => ({ label: p.label, pct: p.pct, unit: ' %' })));
                 const cleanName = userName.replace(/\s+/g, '_');
-                pdf.save(`Dossier_KINET_${cleanName}_${sportChosen}.pdf`);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
+                d.save(`Dossier_KINET_${cleanName}_${sportChosen.toUpperCase()}.pdf`, 'Documento generado y auditado por KINET Vision Analytics');
+            } catch (err) { kinetPdfFail(err, 'el dossier PDF'); }
+            finally { btn.innerHTML = originalText; btn.disabled = false; }
         }
 
      function forceUpdateTabFavicon(hexColor) {

@@ -305,7 +305,7 @@
   function setupPulse() {
     if (reduce || ls('kinet_fx_pulse') === 'off') return;
     document.addEventListener('pointerdown', function (e) {
-      if (e.button) return; var p = document.createElement('div'); p.className = 'kx-pulse'; p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px';
+      if (e.button) return; if (e.target && e.target.closest && e.target.closest('.sidebar-nav')) return; var p = document.createElement('div'); p.className = 'kx-pulse'; p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px';
       document.body.appendChild(p); setTimeout(function () { p.remove(); }, 750);
     }, { passive: true });
   }
@@ -454,7 +454,7 @@
     ss('kx_nav_from', null);
     if (getComputedStyle(nav).position === 'static') nav.style.position = 'relative';
     nav.style.isolation = 'isolate';
-    var ind = document.createElement('i'); ind.className = 'kx-nav-ind'; ind.setAttribute('aria-hidden', 'true'); nav.appendChild(ind);
+    nav.classList.add('kx-has-ind'); var ind = document.createElement('i'); ind.className = 'kx-nav-ind'; ind.setAttribute('aria-hidden', 'true'); nav.appendChild(ind);
     function y(el) { return el.offsetTop + el.offsetHeight * .25; }
     function place() { var a = nav.querySelector('a.side-link.active'); if (!a) return; ind.style.height = Math.max(18, a.offsetHeight * .5) + 'px'; ind.style.translate = '0 ' + y(a) + 'px'; ind.style.opacity = 1; }
     window.addEventListener('resize', place);

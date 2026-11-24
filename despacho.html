@@ -45,6 +45,7 @@
     
     <!-- Librería Oficial para Generación Real del Contrato / Informe en PDF + Supabase + KINET Backend + APIs -->
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script defer src="kinet-pdf.js?v=41"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="kinet-backend.js?v=38"></script>
 <script src="kinet-gestion.js?v=38"></script>
@@ -572,8 +573,8 @@
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
     <link rel="stylesheet" href="kinet-mobile-fix.css?v=38">
-<link rel="stylesheet" href="kinet-fx.css?v=40">
-<script src="kinet-fx.js?v=40"></script>
+<link rel="stylesheet" href="kinet-fx.css?v=41">
+<script src="kinet-fx.js?v=41"></script>
 <script src="kinet-usage.js?v=38"></script>
 </head>
 <body data-role="athlete">
@@ -3038,145 +3039,48 @@ function stageResetRoleColor() {
         }
 
         function downloadContractReportPDF() {
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            try {
+                if (!window.KinetPDF || !(window.jspdf && window.jspdf.jsPDF)) throw new Error('el generador de PDF aún no se ha cargado');
+                const userName = (localStorage.getItem('kinet_user_name') || 'Atleta KINET');
+                const userEmail = localStorage.getItem('kinet_user_email') || 'usuario@kinetos.es';
+                const sportChosen = (localStorage.getItem('kinet_sport') || 'Fútbol');
+                const activeRoleKey = localStorage.getItem('kinet_active_role') || 'athlete';
+                const roleMap = { athlete: 'Atleta / deportista pro', staff: 'Entrenador / cuerpo técnico', scout: 'Director deportivo / scout B2B' };
+                const st = getDespachoFullQuotaBreakdown();
+                const tier = st.currentTier;
+                const tierName = tier === 'club' ? 'Licencia corporativa Club & Scout B2B' : (tier === 'pro' ? 'Licencia individual Pro Player' : 'Licencia de iniciación (plan gratuito)');
+                const tierPrice = tier === 'club' ? '39,99 EUR / mes (IVA incl.)' : (tier === 'pro' ? '11,99 EUR / mes (IVA incl.)' : '0,00 EUR / sin coste fijo');
+                const baseVideoQuota = tier === 'club' ? '300 minutos / mes incluidos' : (tier === 'pro' ? '90 minutos / mes incluidos' : '0 minutos mensuales (capacidad máx. de bonos: 595 min)');
+                const contractId = 'KNT-' + new Date().getFullYear() + '-' + Math.floor(100000 + Math.random() * 900000);
+                const d = KinetPDF.create({
+                    title: 'Contrato de suscripción, pagos y datos',
+                    subtitle: 'Cumplimiento UE: RGPD 2016/679 · LOPDGDD 3/2018 · LSSI-CE 34/2002 · RDL 1/2007 (TRLGDCU)',
+                    tag: 'Contrato mercantil // Expediente ' + contractId,
+                    athlete: { name: userName, sub: userEmail }
+                });
+                d.heading('Partes contratantes y datos del titular');
+                d.kv([['Titular', userName], ['Correo vinculado', userEmail], ['Rol operativo', roleMap[activeRoleKey] || roleMap.athlete], ['Disciplina', sportChosen], ['Expediente n.º', contractId]], 2);
 
-            const userName = (localStorage.getItem('kinet_user_name') || 'Atleta KINET').toUpperCase();
-            const userEmail = localStorage.getItem('kinet_user_email') || 'usuario@kinetos.es';
-            const sportChosen = (localStorage.getItem('kinet_sport') || 'Fútbol').toUpperCase();
-            const activeRoleKey = localStorage.getItem('kinet_active_role') || 'athlete';
-            const roleMap = { athlete: 'ATLETA / DEPORTISTA PRO', staff: 'ENTRENADOR / CUERPO TECNICO', scout: 'DIRECTOR DEPORTIVO / SCOUT B2B' };
-            const st = getDespachoFullQuotaBreakdown();
-            const tier = st.currentTier;
-            const tierName = tier === 'club' ? 'LICENCIA CORPORATIVA CLUB & SCOUT B2B' : (tier === 'pro' ? 'LICENCIA INDIVIDUAL PRO PLAYER' : 'LICENCIA DE INICIACION (PLAN GRATUITO)');
-            const tierPrice = tier === 'club' ? '39,99 EUR / Mes (IVA incl.)' : (tier === 'pro' ? '11,99 EUR / Mes (IVA incl.)' : '0,00 EUR / Sin coste fijo');
-            const baseVideoQuota = tier === 'club' ? '300 minutos / mes incluidos' : (tier === 'pro' ? '90 minutos / mes incluidos' : '0 minutos mensuales (Capacidad máx. bonos: 595 min)');
-            const contractId = 'KNT-' + new Date().getFullYear() + '-' + Math.floor(100000 + Math.random() * 900000);
-            const dateStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+                d.heading('Régimen de suscripción y bonos de vídeo');
+                d.table([{ label: 'Concepto', w: 2.4, bold: true }, { label: 'Detalle', w: 5.6 }], [
+                    ['Modalidad contratada', `${tierName} (${tierPrice})`],
+                    ['Asignación mensual Vision Lab', baseVideoQuota],
+                    ['Saldo total disponible', `${st.totalVideoAvailable} min totales (${st.remainingPlanMins} min plan + ${st.bonusMins} / 595 min bono)`],
+                    ['Regla de capacidad y suelo', 'Tope del monedero de bonos: 595 min. Ascenso a PRO: x2 min (hasta 595 min). Baja a Free: -50 % (exento si < 50 min).']
+                ]);
 
-            pdf.setFillColor(248, 250, 252);
-            pdf.rect(0, 0, 210, 297, 'F');
-            pdf.setDrawColor(15, 23, 42);
-            pdf.setLineWidth(0.8);
-            pdf.rect(10, 10, 190, 277);
-            pdf.setLineWidth(0.25);
-            pdf.rect(12, 12, 186, 273);
+                d.heading('Cláusulas legales de pago, desistimiento y RGPD');
+                [['1. Pasarela PCI-DSS y condiciones de pago', 'Todos los pagos se procesan mediante Stripe Connect (PCI-DSS nivel 1). Los suscriptores Pro Player y Club disfrutan de una bonificación del 50 % en los paquetes Pay-As-You-Go respecto a la tarifa estándar de cuentas gratuitas.'],
+                 ['2. Excepción al derecho de desistimiento (art. 103.m RDL 1/2007)', 'Al tratarse de suministro de contenido digital y capacidad de cómputo IA de ejecución inmediata, el titular acepta expresamente que la acreditación de minutos o la activación de la licencia conlleva la pérdida del derecho de desistimiento y reembolso.'],
+                 ['3. Conversión monetaria y protección (< 50 min)', 'El tope de reserva de bonos es de 595 min. Al subir de Free a PRO el saldo de bonos se duplica hasta alcanzar como máximo los 595 min. Al bajar de PRO a Free, si el saldo es >= 50 min se reajusta un -50 % (con suelo mínimo de 50 min); si es < 50 min, conserva el 100 % intacto.']
+                ].forEach(c => { d.paragraph(c[0], { bold: true, size: 9, gap: 1, color: [15, 23, 42] }); d.paragraph(c[1], { size: 8.8, gap: 4 }); });
 
-            pdf.setFillColor(8, 11, 18);
-            pdf.rect(12, 12, 186, 28, 'F');
-
-            pdf.setFillColor(0, 255, 136);
-            pdf.roundedRect(16, 16, 12, 12, 2.5, 2.5, 'F');
-            pdf.setTextColor(4, 6, 10);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(11);
-            pdf.text('K', 20.3, 24.2);
-
-            pdf.setTextColor(0, 255, 136);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(12.2);
-            pdf.text('KINET OS // CONTRATO MERCANTIL DE SUSCRIPCION, PAGOS Y DATOS', 32, 22);
-
-            pdf.setTextColor(226, 232, 240);
-            pdf.setFontSize(8.1);
-            pdf.text(`EXPEDIENTE CONTRACTUAL N.º: ${contractId}   |   FECHA DE EMISION: ${dateStr.toUpperCase()}`, 32, 29.5);
-            pdf.text('CUMPLIMIENTO NORMATIVO UE (RGPD 2016/679 • LOPDGDD 3/2018 • LSSI-CE 34/2002 • RDL 1/2007 TRLGDCU)', 32, 35.5);
-
-            let y = 49;
-            pdf.setFillColor(226, 232, 240);
-            pdf.rect(16, y - 5, 178, 7, 'F');
-            pdf.setTextColor(15, 23, 42);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(9.2);
-            pdf.text('I. PARTES CONTRATANTES Y DATOS REGISTRADOS DEL TITULAR DE LA CUENTA', 19, y);
-
-            y += 6;
-            pdf.setDrawColor(203, 213, 225);
-            pdf.setFillColor(255, 255, 255);
-            pdf.rect(16, y, 178, 26, 'FD');
-
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(8.6);
-            pdf.text('• Nombre Completo del Titular:', 20, y + 7);
-            pdf.setFont('helvetica', 'normal');
-            pdf.text(userName, 92, y + 7);
-
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('• Correo Electronico Vinculado:', 20, y + 14);
-            pdf.setFont('helvetica', 'normal');
-            pdf.text(userEmail, 92, y + 14);
-
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('• Rol Operativo y Disciplina:', 20, y + 21);
-            pdf.setFont('helvetica', 'normal');
-            pdf.text(`${roleMap[activeRoleKey]}  —  Deporte: ${sportChosen}`, 92, y + 21);
-
-            y += 35;
-            pdf.setFillColor(226, 232, 240);
-            pdf.rect(16, y - 5, 178, 7, 'F');
-            pdf.setTextColor(15, 23, 42);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(9.2);
-            pdf.text('II. REGIMEN DE SUSCRIPCION, BONOS DE VIDEO Y CONVERSION TARIFARIA', 19, y);
-
-            y += 6;
-            pdf.setFillColor(255, 255, 255);
-            pdf.rect(16, y, 178, 36, 'FD');
-
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(8.5);
-            pdf.text('1. Modalidad Contratada:', 20, y + 7);
-            pdf.setFont('helvetica', 'normal');
-            pdf.text(`${tierName} (${tierPrice})`, 82, y + 7);
-
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('2. Asignacion Mensual Vision Lab:', 20, y + 14);
-            pdf.setFont('helvetica', 'normal');
-            pdf.text(baseVideoQuota, 82, y + 14);
-
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('3. Saldo Total Disponible:', 20, y + 21);
-            pdf.setFont('helvetica', 'normal');
-            pdf.text(`${st.totalVideoAvailable} min totales (${st.remainingPlanMins} min Plan + ${st.bonusMins} / 595 min Bono)`, 82, y + 21);
-
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('4. Regla de Capacidad y Suelo:', 20, y + 28);
-            pdf.setFont('helvetica', 'normal');
-            pdf.text('Tope monedero bonos: 595 min. Ascenso a PRO: x2 min (hasta 595 min). Baja a Free: -50% (exento si <50 min).', 82, y + 28);
-
-            y += 45;
-            pdf.setFillColor(226, 232, 240);
-            pdf.rect(16, y - 5, 178, 7, 'F');
-            pdf.setTextColor(15, 23, 42);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(9.2);
-            pdf.text('III. CLAUSULAS LEGALES DE PAGO, DESISTIMIENTO (ART. 103.M TRLGDCU) Y RGPD', 19, y);
-
-            y += 6;
-            pdf.setFillColor(255, 255, 255);
-            pdf.rect(16, y, 178, 56, 'FD');
-            pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(8.1);
-            const legalLines = pdf.splitTextToSize(
-                '1. PASARELA PCI-DSS Y CONDICIONES DE PAGO: Todos los pagos se procesan mediante Stripe Connect (PCI-DSS Nivel 1). Los suscriptores Pro Player y Club disfrutan de una bonificacion del 50% en los paquetes Pay-As-You-Go respecto a la tarifa estandar de cuentas gratuitas.\n' +
-                '2. EXCEPCION AL DERECHO DE DESISTIMIENTO (ART. 103.m RDL 1/2007): Al tratarse de suministro de contenido digital y capacidad de computo IA de ejecucion inmediata, el titular acepta expresamente que la acreditacion de minutos o activacion de licencia conlleva la perdida del derecho de desistimiento y reembolso.\n' +
-                '3. CONVERSION MONETARIA Y PROTECCION (<50 MIN): El tope de reserva de bonos es de 595 min. Al subir de Free a PRO el saldo de bonos se duplica hasta alcanzar como maximo los 595 min. Al bajar de PRO a Free, si el saldo es >=50 min se reajusta un -50% (con suelo minimo de 50 min); si es <50 min, conserva el 100% intacto.',
-                170
-            );
-            pdf.text(legalLines, 20, y + 7);
-
-            y = 252;
-            pdf.setDrawColor(148, 163, 184);
-            pdf.line(16, y, 95, y);
-            pdf.line(115, y, 194, y);
-
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(8.2);
-            pdf.setTextColor(15, 23, 42);
-            pdf.text('POR KINET AI TECHNOLOGIES (SELLO SHA-256)', 16, y + 5);
-            pdf.text(`CONFORME: ${userName}`, 115, y + 5);
-
-            pdf.save(`Contrato_KINET_OS_${userName.replace(/\s+/g, '_')}.pdf`);
+                d.signatures('Por KINET AI Technologies (sello SHA-256)', 'Conforme: ' + userName);
+                d.save(`Contrato_KINET_OS_${userName.toUpperCase().replace(/\s+/g, '_')}.pdf`, 'Contrato emitido por KINET OS · ' + new Date().toLocaleDateString('es-ES'));
+            } catch (e) {
+                console.error('[KINET PDF]', e);
+                alert('No se pudo generar el contrato en PDF.\n\nMotivo: ' + ((e && e.message) || e) + '\n\nComprueba tu conexión y vuelve a intentarlo.');
+            }
         }
 
        function promptCancelPlan(planName) {

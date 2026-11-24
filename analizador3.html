@@ -71,6 +71,7 @@
 
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script defer src="kinet-pdf.js?v=41"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="kinet-sport.js?v=38"></script>
 <script src="kinet-backend.js?v=38"></script>
@@ -480,10 +481,10 @@
         .z1 { background: rgba(148,163,184,0.18); color: #CBD5E1; }
     </style>
     <link rel="stylesheet" href="kinet-mobile-fix.css?v=38">
-<link rel="stylesheet" href="kinet-fx.css?v=40">
+<link rel="stylesheet" href="kinet-fx.css?v=41">
 <link rel="stylesheet" href="kinet-curtain.css?v=39">
 <script src="kinet-curtain.js?v=39"></script>
-<script src="kinet-fx.js?v=40"></script>
+<script src="kinet-fx.js?v=41"></script>
 <script src="kinet-usage.js?v=38"></script>
 </head>
 <body data-role="athlete" class="lab-page">
@@ -2371,15 +2372,26 @@ Los bloques son una sesión de entrenamiento complementaria (máx. 8). Para type
         }
         async function exportLabPlanPDF() {
             try {
-                const target = $('export-stage-panel');
-                const canvas = await html2canvas(target, { scale: 2.2, backgroundColor: '#050811', useCORS: true, logging: false });
-                const { jsPDF } = window.jspdf, pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-                const head = () => { pdf.setFillColor(5, 8, 15); pdf.rect(0, 0, 297, 210, 'F'); pdf.setTextColor(0, 255, 136); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(13); pdf.text(`KINET OS // LABORATORIO ESPECIALIZADO (${activeArenaSport.toUpperCase()})`, 15, 15); };
-                head(); pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 15, 22, 267, 174);
-                pdf.addPage(); head(); pdf.setFontSize(11); pdf.setTextColor(226, 232, 240); pdf.setFont('helvetica', 'normal');
-                let y = 26; planSummaryLines().forEach(line => { pdf.splitTextToSize(String(line).normalize('NFD').replace(/[^\x20-\x7E]/g, ''), 265).forEach(seg => { if (y > 198) { pdf.addPage(); head(); pdf.setFontSize(11); pdf.setTextColor(226, 232, 240); pdf.setFont('helvetica', 'normal'); y = 26; } pdf.text(seg, 15, y); y += 6.2; }); });
-                pdf.save(`KINET_Lab_${activeArenaSport.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
-            } catch (e) { window.print(); }
+                if (!window.KinetPDF || !(window.jspdf && window.jspdf.jsPDF)) throw new Error('el generador de PDF aún no se ha cargado');
+                await KinetPDF.shot({
+                    element: $('export-stage-panel'), scale: 2.2, bg: '#050811', orientation: 'landscape',
+                    title: 'Laboratorio especializado', subtitle: `Plan de ${activeArenaSport} diseñado en KINET OS`,
+                    tag: 'Laboratorio ' + activeArenaSport,
+                    athlete: { name: localStorage.getItem('kinet_user_name') || 'Atleta KINET', sub: activeArenaSport },
+                    afterNewPage: true,
+                    after: (d) => {
+                        d.heading('Resumen del plan');
+                        let group = [];
+                        const flush = () => { if (group.length) { d.bullets(group); group = []; } };
+                        planSummaryLines().forEach(l => { const t = String(l || '').trim(); if (!t) flush(); else group.push(t); });
+                        flush();
+                    },
+                    filename: `KINET_Lab_${activeArenaSport.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`
+                });
+            } catch (e) {
+                console.error('[KINET PDF]', e);
+                alert('No se pudo generar el PDF del laboratorio.\n\nMotivo: ' + ((e && e.message) || e) + '\n\nComprueba tu conexión y vuelve a intentarlo.');
+            }
         }
         function sendLabPlanToCoachAI() {
             const q = `🎯 [Laboratorio Especializado — ${activeArenaSport}]: ${$('ai-live-diagnosis').innerText} Detalle:\n${planSummaryLines().join('\n')}\nAnaliza este plan, corrige cualquier fallo de ritmo o táctica y dame una sesión complementaria.`;

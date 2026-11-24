@@ -46,6 +46,7 @@
     <!-- Librerías Oficiales para Exportar Rutinas, Imágenes y Actas en PDF / PNG -->
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script defer src="kinet-pdf.js?v=41"></script>
     <!-- SDK Oficial de Supabase + Motor Central KINET Backend + Config APIs -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="kinet-backend.js?v=38"></script>
@@ -1066,8 +1067,8 @@
             -webkit-box-shadow:0 0 0 1000px #0A0E16 inset !important;-webkit-text-fill-color:#F1F5F9 !important;caret-color:#F1F5F9;transition:background-color 99999s ease-in-out 0s}
 </style>
     <link rel="stylesheet" href="kinet-mobile-fix.css?v=38">
-<link rel="stylesheet" href="kinet-fx.css?v=40">
-<script src="kinet-fx.js?v=40"></script>
+<link rel="stylesheet" href="kinet-fx.css?v=41">
+<script src="kinet-fx.js?v=41"></script>
 <script src="kinet-usage.js?v=38"></script>
     <script src="kinet-ads.js?v=38"></script>
 </head>
@@ -3198,14 +3199,30 @@ Responde siempre en español con naturalidad y precisión técnica.`;
                 </div>`;
         }
 
+        function kinetAthleteInfo() {
+            const g = (k, d) => { try { return localStorage.getItem(k) || d; } catch (e) { return d; } };
+            const pos = g('kinet_position', '');
+            const anthro = g('kinet_user_anthropometry', '');
+            return {
+                name: g('kinet_user_name', 'Atleta KINET') + (pos ? ' (' + pos + ')' : ''),
+                sub: [g('kinet_sport', 'Fútbol'), anthro && anthro !== 'sin datos registrados' ? anthro : '', new Date().toLocaleDateString('es-ES')].filter(Boolean).join(' • ')
+            };
+        }
+        function kinetPdfFail(e, what) {
+            console.error('[KINET PDF]', e);
+            const msg = (e && e.message) ? e.message : String(e || 'error desconocido');
+            alert('No se pudo generar ' + what + '.\n\nMotivo: ' + msg + '\n\nComprueba tu conexión (el generador de PDF se carga desde internet) y vuelve a intentarlo.');
+        }
+        const KINET_PLAN_TITLES = { group: 'Plan integral del equipo', fisico_nutri: 'Plan de preparación física, fisio y nutrición', psicologia: 'Plan mental y de rendimiento', tecnico_video: 'Hoja de ruta técnico-táctica', agente_marketing: 'Plan de carrera y marca personal' };
+
         async function exportRoutineTemplateAsImage() {
             if (!checkFreeTierTemplateLimit()) return;
             const target = document.getElementById('routine-export-canvas');
             if (!target) return;
             try {
-                const canvas = await html2canvas(target, { scale: 2.4, backgroundColor: '#070B14', useCORS: true, logging: false });
+                const canvas = await KinetPDF.capture(target, { scale: 2.4, bg: '#070B14' });
                 canvas.toBlob((blob) => {
-                    if (!blob) return;
+                    if (!blob) { kinetPdfFail(new Error('el navegador no pudo crear la imagen'), 'la imagen de la plantilla'); return; }
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
@@ -3214,93 +3231,47 @@ Responde siempre en español con naturalidad y precisión técnica.`;
                     a.click();
                     setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1200);
                 }, 'image/png');
-            } catch (e) {}
+            } catch (e) { kinetPdfFail(e, 'la imagen de la plantilla'); }
         }
 
+        // PDF vectorial multipágina (texto real, tablas, calendario, progresión, señales de alerta) construido con el motor KINET PDF
         async function exportRoutineTemplateAsPDF() {
             if (!checkFreeTierTemplateLimit()) return;
-            const target = document.getElementById('routine-export-canvas');
-            if (!target) return;
+            if (!tplSource) return;
             try {
-                const canvas = await html2canvas(target, { scale: 2.4, backgroundColor: '#070B14', useCORS: true, logging: false });
-                const imgData = canvas.toDataURL('image/png');
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-                pdf.setFillColor(6, 8, 14);
-                pdf.rect(0, 0, 210, 297, 'F');
-                const ratio = canvas.width / canvas.height;
-                const w = 186;
-                const h = Math.min(265, w / ratio);
-                pdf.addImage(imgData, 'PNG', 12, 16, w, h);
-                pdf.save(`Plantilla_Rutina_KINET_${activeRoutineTemplateType.toUpperCase()}.pdf`);
-            } catch (e) {}
+                if (!window.KinetPDF || !(window.jspdf && window.jspdf.jsPDF)) throw new Error('el generador de PDF aún no se ha cargado');
+                const parsed = parsePlanText(tplSource.text);
+                const blocks = parsed.blocks.length ? parsed.blocks : [{ phase: 'PLAN', items: [tplSource.text.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim()] }];
+                const tags = { group: 'Plan integral // Sala de juntas', fisico_nutri: 'Preparación física, fisio & nutrición', psicologia: 'Mind coach // Plan mental', tecnico_video: 'Hoja de ruta técnico-táctica', agente_marketing: 'Carrera & marca personal' };
+                const key = tplSource.chatKey || 'plan';
+                KinetPDF.plan({
+                    title: KINET_PLAN_TITLES[key] || 'Plan personalizado',
+                    subtitle: 'Elaborado por ' + (tplSource.sender || 'el especialista KINET') + ' a partir de tu conversación',
+                    tag: 'Plantilla oficial // ' + (tags[key] || 'Plan personalizado'),
+                    athlete: kinetAthleteInfo(),
+                    intro: parsed.intro, blocks, outro: parsed.outro,
+                    filename: `Plantilla_Rutina_KINET_${key.toUpperCase()}.pdf`
+                });
+            } catch (e) { kinetPdfFail(e, 'el PDF de la plantilla'); }
         }
 
         // =========================================================================
-        // 5. EXPORTACIÓN REAL EN PDF DEL ACTA COMPLETA CON LOGO KINET ARRIBA A LA IZQUIERDA
+        // 5. INFORME PDF DE LA CONVERSACIÓN (acta del cuerpo técnico)
         // =========================================================================
         function downloadChatReportPDF() {
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-            const sportChosen = (localStorage.getItem('kinet_sport') || 'Fútbol').toUpperCase();
-            const userName = (localStorage.getItem('kinet_user_name') || 'ATLETA KINET').toUpperCase();
-            const chat = activeChatsState[currentChatKey];
-
-            pdf.setFillColor(6, 8, 14);
-            pdf.rect(0, 0, 210, 297, 'F');
-
-            pdf.setFillColor(13, 17, 26);
-            pdf.roundedRect(14, 14, 182, 26, 4, 4, 'F');
-
-            // LOGO OFICIAL KINET OS SIEMPRE ARRIBA A LA IZQUIERDA
-            pdf.setFillColor(0, 255, 136);
-            pdf.roundedRect(18, 18, 12, 12, 3, 3, 'F');
-            pdf.setTextColor(4, 6, 10);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(11);
-            pdf.text('K', 22.3, 26);
-
-            pdf.setTextColor(0, 255, 136);
-            pdf.setFontSize(12);
-            pdf.text('KINET OS // ACTA OFICIAL E INFORME DEL CUERPO TECNICO IA', 34, 23);
-
-            pdf.setTextColor(203, 213, 225);
-            pdf.setFontSize(8.8);
-            pdf.text(`TITULAR: ${userName}   |   DISCIPLINA: ${sportChosen}   |   ESPECIALISTA: ${chat.title.toUpperCase()}`, 34, 32);
-
-            let y = 48;
-            chat.messages.forEach((m) => {
-                const cleanText = String(m.text || '').replace(/\*\*/g, '');
-                if (y > 260) {
-                    pdf.addPage();
-                    pdf.setFillColor(6, 8, 14);
-                    pdf.rect(0, 0, 210, 297, 'F');
-                    y = 20;
-                }
-                pdf.setFillColor(13, 17, 26);
-                const lines = pdf.splitTextToSize(cleanText, 166);
-                const boxH = lines.length * 5 + 12;
-                pdf.roundedRect(14, y, 182, boxH, 3, 3, 'F');
-
-                pdf.setTextColor(0, 255, 136);
-                pdf.setFont('helvetica', 'bold');
-                pdf.setFontSize(9);
-                pdf.text(`${m.sender}  [${m.time}]`, 20, y + 7);
-
-                pdf.setTextColor(241, 245, 249);
-                pdf.setFont('helvetica', 'normal');
-                pdf.setFontSize(9);
-                pdf.text(lines, 20, y + 13);
-
-                y += boxH + 6;
-            });
-
-            pdf.setTextColor(148, 163, 184);
-            pdf.setFontSize(8);
-            pdf.text('Informe tactico y biometrico generado por KINET OS — Cuerpo Tecnico IA • kinetos.es', 14, 286);
-
-            pdf.save(`Informe_Cuerpo_Tecnico_KINET_${sportChosen}.pdf`);
+            try {
+                if (!window.KinetPDF || !(window.jspdf && window.jspdf.jsPDF)) throw new Error('el generador de PDF aún no se ha cargado');
+                const chat = activeChatsState[currentChatKey];
+                const sport = (localStorage.getItem('kinet_sport') || 'Fútbol');
+                KinetPDF.chat({
+                    title: 'Informe del cuerpo técnico',
+                    subtitle: 'Acta de la conversación con ' + (chat.title || 'el especialista'),
+                    athlete: kinetAthleteInfo(),
+                    meta: [['Titular', localStorage.getItem('kinet_user_name') || 'Atleta KINET'], ['Disciplina', sport], ['Especialista', chat.title || '—']],
+                    messages: (chat.messages || []).map(m => ({ text: m.text, sender: m.sender, time: m.time, incoming: !!m.incoming })),
+                    filename: `Informe_Cuerpo_Tecnico_KINET_${sport.toUpperCase()}.pdf`
+                });
+            } catch (e) { kinetPdfFail(e, 'el informe PDF'); }
         }
 
         (function initGlobalKinetPersonalization() {

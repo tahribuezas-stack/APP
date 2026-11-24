@@ -20,6 +20,7 @@
     <!-- Librerías Oficiales para Captura HD (html2canvas) + PDF + Supabase + KINET Backend v5.7 + APIs -->
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script defer src="kinet-pdf.js?v=41"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="kinet-backend.js?v=38"></script>
 <script src="kinet-gestion.js?v=38"></script>
@@ -1508,10 +1509,10 @@
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
     <link rel="stylesheet" href="kinet-mobile-fix.css?v=38">
-<link rel="stylesheet" href="kinet-fx.css?v=40">
+<link rel="stylesheet" href="kinet-fx.css?v=41">
 <link rel="stylesheet" href="kinet-curtain.css?v=39">
 <script src="kinet-curtain.js?v=39"></script>
-<script src="kinet-fx.js?v=40"></script>
+<script src="kinet-fx.js?v=41"></script>
 <script src="kinet-usage.js?v=38"></script>
     <script src="kinet-ads.js?v=38"></script>
 </head>
@@ -3757,13 +3758,7 @@
             if (statusEl) statusEl.textContent = '⏳ GENERANDO ARCHIVO PNG HD...';
             try {
                 const target = document.getElementById('broadcaster-export-stage');
-                const canvas = await html2canvas(target, {
-                    scale: 2.2,
-                    backgroundColor: '#050811',
-                    useCORS: true,
-                    allowTaint: true,
-                    logging: false
-                });
+                const canvas = await KinetPDF.capture(target, { scale: 2.2, bg: '#050811' });
 
                 const safeSport = activeArenaSport
                     .normalize('NFD')
@@ -3789,7 +3784,8 @@
                     if (statusEl) statusEl.textContent = '✓ IMAGEN PNG DESCARGADA CORRECTAMENTE';
                 }, 'image/png');
             } catch (e) {
-                if (statusEl) statusEl.textContent = '⚠️ ERROR AL EXPORTAR IMAGEN';
+                console.error('[KINET IMG]', e);
+                if (statusEl) statusEl.textContent = '⚠️ ERROR AL EXPORTAR IMAGEN: ' + String((e && e.message) || e).slice(0, 80);
             }
         }
 
@@ -3809,13 +3805,7 @@
             let capturedPosterDataUrl = null;
             try {
                 const target = document.getElementById('broadcaster-export-stage');
-                const canvas = await html2canvas(target, {
-                    scale: 1.6,
-                    backgroundColor: '#050811',
-                    useCORS: true,
-                    allowTaint: true,
-                    logging: false
-                });
+                const canvas = await KinetPDF.capture(target, { scale: 1.6, bg: '#050811' });
                 capturedPosterDataUrl = canvas.toDataURL('image/jpeg', 0.82);
             } catch (e) {}
 
@@ -3862,7 +3852,7 @@
 
             try {
                 const target = document.getElementById('broadcaster-export-stage');
-                const canvas = await html2canvas(target, { scale: 2, backgroundColor: '#050811', useCORS: true, logging: false });
+                const canvas = await KinetPDF.capture(target, { scale: 2, bg: '#050811' });
                 canvas.toBlob(async (blob) => {
                     if (navigator.share && blob) {
                         const file = new File([blob], 'KINET_Matchday.png', { type: 'image/png' });
@@ -4359,77 +4349,41 @@
         }
 
         function exportAnalyzerReportPDF() {
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-            const fitInfo = evaluateTeamTacticalFit();
-
-            pdf.setFillColor(6, 8, 14);
-            pdf.rect(0, 0, 210, 297, 'F');
-
-            pdf.setFillColor(13, 17, 26);
-            pdf.roundedRect(14, 14, 182, 28, 4, 4, 'F');
-            pdf.setTextColor(0, 255, 136);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(13);
-            pdf.text(`KINET OS // DOSSIER EJECUTIVO DE PLANTILLA 3D & CARTELERA (${activeArenaSport.toUpperCase()})`, 19, 25);
-
-            pdf.setTextColor(203, 213, 225);
-            pdf.setFontSize(8.8);
-            pdf.text(`SISTEMA: ${currentPresetName.toUpperCase()}   |   ESTILO: ${fitInfo.styleLabel.toUpperCase()}   |   SINERGIA IA: ${fitInfo.score}%`, 19, 34);
-
-            let y = 52;
-            pdf.setTextColor(0, 255, 136);
-            pdf.setFontSize(10.5);
-            pdf.text('1. ALINEACION TITULAR Y RASGOS TACTICOS ESPECIFICOS', 16, y);
-            y += 7;
-
-            currentBoardSlots.forEach((s, idx) => {
-                pdf.setTextColor(248, 250, 252);
-                pdf.setFont('helvetica', 'bold');
-                pdf.setFontSize(8.8);
-                const pName = s.player ? `${s.player.name} (${s.player.grl || '??'} GRL)` : 'Puesto Vacío (+ Asignar)';
-                const pTrait = s.player && s.player.traitNotes ? ` — ${s.player.traitNotes}` : '';
-                pdf.text(`${idx + 1}. [${s.pos}]  ${pName}${pTrait}`, 18, y);
-                y += 6.5;
-            });
-
-            y += 4;
-            pdf.setTextColor(0, 255, 136);
-            pdf.setFontSize(10.5);
-            pdf.text(`2. BANQUILLO OFICIAL (${benchSlots.length} SUPLENTES) Y RESERVA (${reserveSlots.length} PLAZAS)`, 16, y);
-            y += 7;
-            pdf.setTextColor(226, 232, 240);
-            pdf.setFontSize(8.5);
-            const bNames = benchSlots.map(b => `${b.pos}: ${b.player ? b.player.name + ' (' + (b.player.grl || '??') + ')' : 'Vacío'}`).join('   |   ');
-            const rNames = reserveSlots.map(r => `${r.pos}: ${r.player ? r.player.name + ' (' + (r.player.grl || '??') + ')' : 'Vacío'}`).join('   |   ');
-            pdf.text(pdf.splitTextToSize(`Banquillo: ${bNames}`, 176), 18, y);
-            y += 10;
-            pdf.text(pdf.splitTextToSize(`Reserva: ${rNames}`, 176), 18, y);
-
-            y += 12;
-            pdf.setTextColor(0, 255, 136);
-            pdf.setFontSize(10.5);
-            pdf.text('3. CARTELERA DE FICHAJES / OBJETIVOS Y COMPATIBILIDAD IA', 16, y);
-            y += 7;
-            if (shortlistPlayers.length === 0) {
-                pdf.setTextColor(148, 163, 184);
-                pdf.setFontSize(8.5);
-                pdf.text('Sin jugadores en Cartelera actualmente.', 18, y);
-            } else {
-                shortlistPlayers.slice(0, 6).forEach((sp, i) => {
-                    const fit = calculateCandidateFitWithSquad(sp);
-                    pdf.setTextColor(248, 250, 252);
-                    pdf.setFontSize(8.5);
-                    pdf.text(`${i + 1}. ${sp.name} [${sp.pos} • ${sp.grl || '??'} GRL] — Encaje IA: ${fit.fitScore || '--'}% (${fit.reason})`, 18, y);
-                    y += 6.5;
+            try {
+                if (!window.KinetPDF || !(window.jspdf && window.jspdf.jsPDF)) throw new Error('el generador de PDF aún no se ha cargado');
+                const fitInfo = evaluateTeamTacticalFit();
+                const nm = (pl) => pl ? `${pl.name}` : '';
+                const d = KinetPDF.create({
+                    title: 'Dossier ejecutivo de plantilla',
+                    subtitle: `Pizarra 3D y cartelera de fichajes · ${activeArenaSport}`,
+                    tag: 'Squad & 1vs1 Analyzer 3D',
+                    athlete: { name: (localStorage.getItem('kinet_user_name') || 'Cuerpo técnico KINET'), sub: activeArenaSport }
                 });
-            }
+                d.heading('Resumen táctico');
+                d.kv([['Sistema', currentPresetName], ['Estilo de juego', fitInfo.styleLabel], ['Sinergia IA', fitInfo.score + ' %'], ['Deporte', activeArenaSport]], 2);
 
-            pdf.setTextColor(148, 163, 184);
-            pdf.setFontSize(8);
-            const safeSp = activeArenaSport.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]/g, '_');
-            pdf.text('Dossier táctico ejecutivo generado por KINET Squad & 1vs1 Analyzer 3D • kinetos.es', 14, 286);
-            pdf.save(`Dossier_Plantilla_3D_KINET_${safeSp}.pdf`);
+                d.heading('Alineación titular y rasgos', { chip: currentBoardSlots.length + ' puestos' });
+                d.table([{ label: 'Nº', w: 0.6, align: 'center' }, { label: 'Pos.', w: 0.9, bold: true }, { label: 'Jugador', w: 3.2, bold: true }, { label: 'GRL', w: 0.8, align: 'center' }, { label: 'Rasgos tácticos', w: 4 }],
+                    currentBoardSlots.map((sl, i) => [String(i + 1), { t: sl.pos, chip: true }, sl.player ? nm(sl.player) : 'Puesto vacío', sl.player ? String(sl.player.grl || '—') : '—', (sl.player && sl.player.traitNotes) || '—']));
+
+                const bench = benchSlots.map(x => [{ t: x.pos, chip: true }, x.player ? nm(x.player) : 'Vacío', x.player ? String(x.player.grl || '—') : '—']);
+                const reserve = reserveSlots.map(x => [{ t: x.pos, chip: true }, x.player ? nm(x.player) : 'Vacío', x.player ? String(x.player.grl || '—') : '—']);
+                const cols3 = [{ label: 'Pos.', w: 1 }, { label: 'Jugador', w: 4, bold: true }, { label: 'GRL', w: 1, align: 'center' }];
+                d.heading('Banquillo oficial', { chip: benchSlots.length + ' suplentes' });
+                if (bench.length) d.table(cols3, bench); else d.paragraph('Sin suplentes asignados.');
+                d.heading('Reserva', { chip: reserveSlots.length + ' plazas' });
+                if (reserve.length) d.table(cols3, reserve); else d.paragraph('Sin plazas de reserva.');
+
+                d.heading('Cartelera de fichajes y compatibilidad IA', { chip: Math.min(6, shortlistPlayers.length) + ' objetivos' });
+                if (!shortlistPlayers.length) d.callout('No hay jugadores en la cartelera actualmente. Añade objetivos desde el buscador para ver su encaje con tu plantilla.', {});
+                else d.table([{ label: 'Nº', w: 0.6, align: 'center' }, { label: 'Jugador', w: 2.8, bold: true }, { label: 'Pos.', w: 0.9 }, { label: 'GRL', w: 0.8, align: 'center' }, { label: 'Encaje IA', w: 1.1, align: 'center' }, { label: 'Motivo', w: 3.8 }],
+                    shortlistPlayers.slice(0, 6).map((sp, i) => { const fit = calculateCandidateFitWithSquad(sp); return [String(i + 1), sp.name, { t: sp.pos, chip: true }, String(sp.grl || '—'), (fit.fitScore != null ? fit.fitScore : '—') + ' %', fit.reason || '']; }));
+                const safeSp = activeArenaSport.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]/g, '_');
+                d.save(`Dossier_Plantilla_3D_KINET_${safeSp}.pdf`, 'Dossier generado por KINET Squad & 1vs1 Analyzer 3D');
+            } catch (e) {
+                console.error('[KINET PDF]', e);
+                alert('No se pudo generar el dossier PDF.\n\nMotivo: ' + ((e && e.message) || e) + '\n\nComprueba tu conexión y vuelve a intentarlo.');
+            }
         }
 
         // =========================================================================
@@ -5349,59 +5303,18 @@
 
             try {
                 const target = document.getElementById('broadcaster-export-stage');
-                const canvas = await html2canvas(target, {
-                    scale: 2.6,
-                    backgroundColor: '#050811',
-                    useCORS: true,
-                    allowTaint: true,
-                    logging: false
-                });
-
-                const imgData = canvas.toDataURL('image/png');
-                const isPortraitPoster = activeBroadcasterFormat === 'poster';
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF({
-                    orientation: isPortraitPoster ? 'portrait' : 'landscape',
-                    unit: 'mm',
-                    format: 'a4'
-                });
-
-                const pageW = isPortraitPoster ? 210 : 297;
-                const pageH = isPortraitPoster ? 297 : 210;
-
-                pdf.setFillColor(5, 8, 15);
-                pdf.rect(0, 0, pageW, pageH, 'F');
-
-                const margin = 10;
-                const maxW = pageW - margin * 2;
-                const maxH = pageH - margin * 2 - 8;
-
-                const imgRatio = canvas.width / canvas.height;
-                let renderW = maxW;
-                let renderH = renderW / imgRatio;
-
-                if (renderH > maxH) {
-                    renderH = maxH;
-                    renderW = renderH * imgRatio;
-                }
-
-                const offsetX = (pageW - renderW) / 2;
-                const offsetY = (pageH - 8 - renderH) / 2;
-
-                pdf.addImage(imgData, 'PNG', offsetX, offsetY, renderW, renderH);
-
-                pdf.setTextColor(148, 163, 184);
-                pdf.setFont('helvetica', 'bold');
-                pdf.setFontSize(7.5);
-                pdf.text('Exportacion visual de alta definicion generada por KINET Matchday & Share Suite™ • kinetos.es', pageW / 2, pageH - 4, { align: 'center' });
-
+                const canvas = await KinetPDF.capture(target, { scale: 2.6, bg: '#050811' });
                 const safeSp = activeArenaSport.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]/g, '_');
-                pdf.save(`KINET_Matchday_${activeBroadcasterFormat.toUpperCase()}_${safeSp}.pdf`);
+                KinetPDF.visual({
+                    canvas, orientation: activeBroadcasterFormat === 'poster' ? 'portrait' : 'landscape',
+                    title: 'KINET Matchday', footer: 'Exportación visual generada por KINET Matchday & Share Suite',
+                    filename: `KINET_Matchday_${activeBroadcasterFormat.toUpperCase()}_${safeSp}.pdf`
+                });
 
                 if (statusEl) statusEl.textContent = '✓ DOCUMENTO PDF IDÉNTICO DESCARGADO';
             } catch (err) {
-                console.error(err);
-                if (statusEl) statusEl.textContent = '⚠️ ERROR AL EXPORTAR DOCUMENTO';
+                console.error('[KINET PDF]', err);
+                if (statusEl) statusEl.textContent = '⚠️ ERROR AL EXPORTAR: ' + String((err && err.message) || err).slice(0, 80);
             }
         };
         // =========================================================================

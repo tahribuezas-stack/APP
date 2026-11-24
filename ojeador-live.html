@@ -44,6 +44,7 @@
     
     <!-- Librerías Oficiales PDF + Supabase + KINET Backend + Config APIs -->
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script defer src="kinet-pdf.js?v=41"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="kinet-backend.js?v=38"></script>
 <script src="kinet-gestion.js?v=38"></script>
@@ -834,8 +835,8 @@
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
     <link rel="stylesheet" href="kinet-mobile-fix.css?v=38">
-<link rel="stylesheet" href="kinet-fx.css?v=40">
-<script src="kinet-fx.js?v=40"></script>
+<link rel="stylesheet" href="kinet-fx.css?v=41">
+<script src="kinet-fx.js?v=41"></script>
 <script src="kinet-usage.js?v=38"></script>
     <script src="kinet-ads.js?v=38"></script>
 </head>
@@ -2213,72 +2214,34 @@
         // EXPORTACIÓN PDF EJECUTIVA PROFESIONAL CON LOGO KINET ARRIBA A LA IZQUIERDA
         // =========================================================================
         function exportVisionReportPDF() {
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-            const s = currentActiveSession;
-
-            pdf.setFillColor(6, 8, 14);
-            pdf.rect(0, 0, 210, 297, 'F');
-
-            pdf.setFillColor(13, 17, 26);
-            pdf.roundedRect(14, 14, 182, 28, 4, 4, 'F');
-
-            // LOGO OFICIAL KINET OS ARRIBA A LA IZQUIERDA
-            pdf.setFillColor(0, 255, 136);
-            pdf.roundedRect(18, 18, 12, 12, 3, 3, 'F');
-            pdf.setTextColor(4, 6, 10);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(11);
-            pdf.text('K', 22.3, 26);
-
-            pdf.setTextColor(0, 255, 136);
-            pdf.setFontSize(12.5);
-            pdf.text('KINET VISION ANALYTICS™ // DOSSIER EJECUTIVO DE VIDEO', 34, 24);
-
-            pdf.setTextColor(203, 213, 225);
-            pdf.setFontSize(8.8);
-            pdf.text(`DISCIPLINA: ${activeSportName.toUpperCase()}   |   SUJETO EVALUADO: ${(s ? s.subjectName + ' (' + s.subjectPos + ')' : 'PENDIENTE').toUpperCase()}`, 34, 33);
-
-            if (!s) {
-                pdf.setTextColor(248, 250, 252);
-                pdf.text('Aún no se ha subido ningún clip de vídeo en esta sesión.', 20, 56);
-            } else {
-                pdf.setFillColor(13, 17, 26);
-                pdf.roundedRect(14, 48, 182, 58, 4, 4, 'F');
-                pdf.setTextColor(0, 255, 136);
-                pdf.setFontSize(10.5);
-                pdf.text('1. FICHA TECNICA DEL BLOQUE Y TELEMETRIA EXTRAIDA POR IA', 20, 59);
-
-                pdf.setTextColor(248, 250, 252);
-                pdf.setFontSize(9.2);
-                pdf.text(`• Bloque Táctico: ${s.optionLabel}   |   Contexto: ${s.matchContext}`, 20, 69);
-                pdf.text(`• Observación Específica Analizada: "${s.userNotes}"`, 20, 77);
-                pdf.text(`• ${currentSportSchema.pillLabels[0]}: ${s.metrics[0]}   |   ${currentSportSchema.pillLabels[1]}: ${s.metrics[1]}`, 20, 85);
-                pdf.text(`• ${currentSportSchema.pillLabels[2]}: ${s.metrics[2]}   |   ${currentSportSchema.pillLabels[3]}: ${s.metrics[3]}`, 20, 93);
-
-                pdf.setFillColor(13, 17, 26);
-                pdf.roundedRect(14, 114, 182, 96, 4, 4, 'F');
-                pdf.setTextColor(0, 255, 136);
-                pdf.setFontSize(10.5);
-                pdf.text('2. DESGLOSE BIOMECANICO Y DICTAMEN PERSONALIZADO DE LA IA', 20, 125);
-
-                let y = 136;
-                s.bars.forEach(b => {
-                    pdf.setTextColor(241, 245, 249);
-                    pdf.setFontSize(9);
-                    pdf.text(`• ${b[0]}: ${b[1]}% (Nivel Óptimo Verificado)`, 20, y);
-                    y += 8;
+            try {
+                if (!window.KinetPDF || !(window.jspdf && window.jspdf.jsPDF)) throw new Error('el generador de PDF aún no se ha cargado');
+                const s = currentActiveSession;
+                const d = KinetPDF.create({
+                    title: 'Dossier ejecutivo de vídeo',
+                    subtitle: 'Análisis biomecánico y táctico por IA',
+                    tag: 'Kinet Vision Analytics',
+                    athlete: { name: s ? `${s.subjectName} (${s.subjectPos})` : 'Pendiente', sub: activeSportName }
                 });
-
-                const lines = pdf.splitTextToSize(s.aiVerdict, 168);
-                pdf.setTextColor(203, 213, 225);
-                pdf.text(lines, 20, y + 6);
+                if (!s) {
+                    d.callout('Aún no se ha subido ningún clip de vídeo en esta sesión. Sube un clip en Vision Lab y vuelve a exportar el informe.', { title: 'Sin datos' });
+                } else {
+                    d.heading('Ficha técnica del bloque');
+                    d.kv([['Bloque táctico', s.optionLabel], ['Contexto', s.matchContext], ['Sujeto evaluado', `${s.subjectName} (${s.subjectPos})`], ['Disciplina', activeSportName]], 2);
+                    if (s.userNotes) d.callout(s.userNotes, { title: 'Observación analizada' });
+                    d.heading('Telemetría extraída por IA');
+                    const L = currentSportSchema.pillLabels || [];
+                    d.table([{ label: 'Métrica', w: 3, bold: true }, { label: 'Valor', w: 2, align: 'center' }], (s.metrics || []).map((m, i) => [L[i] || ('Métrica ' + (i + 1)), String(m)]));
+                    d.heading('Desglose biomecánico');
+                    d.bars((s.bars || []).map(b => ({ label: String(b[0]), pct: parseFloat(b[1]) || 0, unit: ' %' })));
+                    d.heading('Dictamen personalizado de la IA');
+                    d.callout(s.aiVerdict || 'Sin dictamen disponible.', {});
+                }
+                d.save(`Dossier_Vision_Analytics_${activeSportName}.pdf`, 'Certificado generado por KINET Vision Analytics · orientativo');
+            } catch (e) {
+                console.error('[KINET PDF]', e);
+                alert('No se pudo generar el dossier de vídeo.\n\nMotivo: ' + ((e && e.message) || e) + '\n\nComprueba tu conexión y vuelve a intentarlo.');
             }
-
-            pdf.setTextColor(148, 163, 184);
-            pdf.setFontSize(8);
-            pdf.text('Certificado biomecánico oficial generado por KINET Vision Analytics™ • kinetos.es', 14, 286);
-            pdf.save(`Dossier_Vision_Analytics_${activeSportName}.pdf`);
         }
 
         // =========================================================================
