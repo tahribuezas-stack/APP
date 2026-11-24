@@ -329,6 +329,7 @@
       var reserved = el.matches('.kinet-panel, .pricing-card, .panel');
       if (!reserved) { var a = getComputedStyle(el, '::after').content; if (a && a !== 'none' && a !== 'normal') continue; }
       el.classList.add('kx-led'); n++;
+      try { var rr = parseFloat(cs.borderTopLeftRadius); el.style.setProperty('--kx-r', (isNaN(rr) ? 14 : Math.min(rr, 60)) + 'px'); } catch (e) {}
       el.style.setProperty('--kx-led-d', (-Math.random() * 6).toFixed(2) + 's');
       if (ledIO) ledIO.observe(el); else el.classList.add('kx-vis');
     }

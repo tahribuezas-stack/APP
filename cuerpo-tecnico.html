@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script src="kinet-guard.js?v=28"></script>
-<script src="kinet-sport.js?v=28"></script>
+<script src="kinet-guard.js?v=29"></script>
+<script src="kinet-sport.js?v=29"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
@@ -44,13 +44,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     
     <!-- Librerías Oficiales para Exportar Rutinas, Imágenes y Actas en PDF / PNG -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <!-- SDK Oficial de Supabase + Motor Central KINET Backend + Config APIs -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="kinet-backend.js?v=28"></script>
-<script src="kinet-gestion.js?v=28"></script>
-    <script src="kinet-api-config.js?v=28"></script>
+    <script src="kinet-backend.js?v=29"></script>
+<script src="kinet-gestion.js?v=29"></script>
+    <script src="kinet-api-config.js?v=29"></script>
 
     <style>
         :root {
@@ -1065,9 +1065,10 @@
         .chat-input:-webkit-autofill,.chat-input:-webkit-autofill:hover,.chat-input:-webkit-autofill:focus,.quick-input:-webkit-autofill,.kinet-input:-webkit-autofill{
             -webkit-box-shadow:0 0 0 1000px #0A0E16 inset !important;-webkit-text-fill-color:#F1F5F9 !important;caret-color:#F1F5F9;transition:background-color 99999s ease-in-out 0s}
 </style>
-    <link rel="stylesheet" href="kinet-mobile-fix.css?v=28">
-<link rel="stylesheet" href="kinet-fx.css?v=28">
-<script src="kinet-fx.js?v=28"></script>
+    <link rel="stylesheet" href="kinet-mobile-fix.css?v=29">
+<link rel="stylesheet" href="kinet-fx.css?v=29">
+<script src="kinet-fx.js?v=29"></script>
+    <script src="kinet-ads.js?v=29"></script>
 </head>
 <body data-role="athlete">
 
@@ -1252,7 +1253,7 @@
                         <!-- BARRA DE CONSULTAS RÁPIDAS -->
                         <div class="quick-prompts-bar" id="quick-prompts-container"></div>
 
-                        <div class="chat-messages-scroll" id="chat-messages-box"></div>
+                        <div class="chat-messages-scroll" id="chat-messages-box" data-kinet-ad-chat=".msg-bubble.outgoing"></div>
 
                         <!-- PREVISUALIZACIÓN DE IMAGEN COMPRIMIDA ADJUNTA -->
                         <div class="chat-image-preview-bar" id="chat-image-preview-bar">
@@ -2348,12 +2349,20 @@ Responde siempre en español con naturalidad y precisión técnica.`;
                 });
                 localStorage.removeItem('kinet_pending_question');
                 localStorage.removeItem('kinet_target_agent');
+                try { saveChatHistoryToLocal(); } catch (e) {}
 
                 setTimeout(() => {
                     processSpecialistReply(pendingQ, null);
                 }, 350);
             }
 
+            if (!pendingQ) {
+                const pend0 = readInflight();
+                if (pend0 && pend0.agent && activeChatsState[pend0.agent] && pend0.agent !== currentChatKey) {
+                    currentChatKey = pend0.agent;
+                    document.querySelectorAll('.contact-item').forEach(el => el.classList.toggle('active', el.getAttribute('data-agent') === currentChatKey));
+                }
+            }
             updateQuotaHeaderUI();
             renderCurrentChat();
             try { lastChatsRaw = localStorage.getItem(chatsStorageKey()); lastChatsMem = JSON.stringify(activeChatsState); } catch (e) {}
@@ -2371,6 +2380,7 @@ Responde siempre en español con naturalidad y precisión técnica.`;
             });
             if (element) element.classList.add('active');
             renderCurrentChat();
+            try { const oc = document.getElementById('kinet-resume-card'); if (oc) oc.remove(); const po = readInflight(); if (po && po.agent === chatKey) showResumePrompt(po); } catch (e) {}
 
             if (window.innerWidth <= 850) {
                 document.getElementById('chat-wrapper').classList.add('mobile-chat-active');
@@ -2917,6 +2927,7 @@ Responde siempre en español con naturalidad y precisión técnica.`;
         function showResumePrompt(o) {
             const box = document.getElementById('chat-messages-box');
             if (!box || document.getElementById('kinet-resume-card')) return;
+            if (o.agent && o.agent !== currentChatKey) return;   // solo en el chat de esa petición
             const titles = (activeChatsState[o.agent] && activeChatsState[o.agent].title) || 'Cuerpo Técnico';
             const card = document.createElement('div');
             card.id = 'kinet-resume-card';

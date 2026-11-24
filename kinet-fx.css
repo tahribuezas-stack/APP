@@ -107,24 +107,28 @@ html.kx-reduce .kx-pulse, html.kx-reduce #kx-cur-ring { display: none; }
 @property --kx-ay { syntax: '<percentage>'; inherits: true; initial-value: 30%; }
 :root { --kx-led-speed: 6s; --kx-led-op: .85; --kx-led-w: 2px; --kx-led-c2: rgba(255,255,255,.95); }
 @keyframes kxSpin { to { --kx-a: 360deg; } }
+@keyframes kxOrbit { from { offset-distance: 0%; } to { offset-distance: 100%; } }
 @keyframes kxSweep { 0% { --kx-p: -25%; } 100% { --kx-p: 125%; } }
 
+/* Cometa de luz que recorre el borde: es UN elemento pequeño que se desplaza (offset-path), sin repintar el panel en cada fotograma */
 html.kx-led-on .kx-led.kx-vis::after {
-  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: var(--kx-led-w); pointer-events: none; z-index: 3;
-  background: conic-gradient(from var(--kx-a), transparent 0deg, transparent 215deg, color-mix(in srgb, var(--kx-led-c1, var(--role-color, #00FF88)) 35%, transparent) 285deg, var(--kx-led-c1, var(--role-color, #00FF88)) 335deg, var(--kx-led-c2) 355deg, transparent 360deg);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  opacity: var(--kx-led-op); transition: opacity .45s ease; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--kx-led-c1, var(--role-color, #00FF88)) 70%, transparent));
+  content: ''; position: absolute; inset: auto; left: 0; top: 0; width: var(--kx-comet, 110px); height: calc(var(--kx-led-w) + .6px); border-radius: 99px; padding: 0; pointer-events: none; z-index: 3;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--kx-led-c1, var(--role-color, #00FF88)) 40%, transparent) 40%, var(--kx-led-c1, var(--role-color, #00FF88)) 78%, var(--kx-led-c2));
+  offset-path: inset(0 round var(--kx-r, 16px)); offset-rotate: auto; offset-anchor: 50% 50%;
+  box-shadow: 0 0 9px 1px color-mix(in srgb, var(--kx-led-c1, var(--role-color, #00FF88)) 55%, transparent);
+  opacity: var(--kx-led-op); transition: opacity .45s ease;
 }
-html.kx-led-on.kx-led-dual .kx-led.kx-vis::after { background: conic-gradient(from var(--kx-a), transparent 0deg, transparent 200deg, color-mix(in srgb, var(--kx-led-c1, var(--role-color, #00FF88)) 30%, transparent) 250deg, var(--kx-led-c1, var(--role-color, #00FF88)) 310deg, var(--kx-led-c2) 340deg, color-mix(in srgb, var(--kx-led-c1, var(--role-color, #00FF88)) 40%, transparent) 352deg, transparent 360deg); }
-html.kx-led-on.kx-led-rainbow .kx-led.kx-vis::after { background: conic-gradient(from var(--kx-a), #ff3d71, #ffb300, #00ff88, #00e5ff, #7c4dff, #ff3d71); }
+html.kx-led-on.kx-led-dual .kx-led.kx-vis::after { --kx-comet: 170px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--kx-led-c1, var(--role-color, #00FF88)) 30%, transparent) 25%, var(--kx-led-c1, var(--role-color, #00FF88)) 60%, var(--kx-led-c2) 78%, color-mix(in srgb, var(--kx-led-c1, var(--role-color, #00FF88)) 40%, transparent)); }
+html.kx-led-on.kx-led-rainbow .kx-led.kx-vis::after { --kx-comet: 150px; background: linear-gradient(90deg, transparent, #ff3d71, #ffb300, #00ff88, #00e5ff, #7c4dff); box-shadow: 0 0 9px 1px rgba(124,77,255,.45); }
 /* barrido: una línea de luz que recorre el borde inferior */
 html.kx-led-on.kx-led-sweep .kx-led.kx-vis::after {
   padding: 0; background: linear-gradient(90deg, transparent calc(var(--kx-p) - 22%), var(--kx-led-c1, var(--role-color, #00FF88)) var(--kx-p), var(--kx-led-c2) calc(var(--kx-p) + 2%), transparent calc(var(--kx-p) + 18%)) bottom left / 100% var(--kx-led-w) no-repeat;
-  -webkit-mask: none; mask: none; inset: auto 0 0 0; height: var(--kx-led-w); border-radius: 0 0 inherit inherit;
+  -webkit-mask: none; mask: none; inset: auto 0 0 0; width: auto; height: var(--kx-led-w); border-radius: 0 0 inherit inherit; offset-path: none; box-shadow: none;
 }
 html.kx-led-on.kx-led-sweep.kx-led-rainbow .kx-led.kx-vis::after { background: linear-gradient(90deg, transparent calc(var(--kx-p) - 25%), #ff3d71 calc(var(--kx-p) - 12%), #ffb300 calc(var(--kx-p) - 4%), #00ff88 var(--kx-p), #00e5ff calc(var(--kx-p) + 6%), transparent calc(var(--kx-p) + 20%)) bottom left / 100% var(--kx-led-w) no-repeat; }
 /* respiro: el contorno completo late suavemente */
-html.kx-led-on.kx-led-breath .kx-led.kx-vis::after { background: linear-gradient(var(--kx-led-c1, var(--role-color, #00FF88)), var(--kx-led-c1, var(--role-color, #00FF88))); animation: kxBreath var(--kx-led-speed) ease-in-out infinite; }
+html.kx-led-on.kx-led-breath .kx-led.kx-vis::after { inset: 0; width: auto; height: auto; padding: var(--kx-led-w); border-radius: inherit; offset-path: none; box-shadow: none; background: linear-gradient(var(--kx-led-c1, var(--role-color, #00FF88)), var(--kx-led-c1, var(--role-color, #00FF88)));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); animation: kxBreath var(--kx-led-speed) ease-in-out infinite; }
 @keyframes kxBreath { 0%, 100% { opacity: calc(var(--kx-led-op) * .25); } 50% { opacity: var(--kx-led-op); } }
 /* solo al pasar el ratón */
 html.kx-led-on.kx-led-hover .kx-led.kx-vis::after { opacity: 0; }
@@ -170,7 +174,7 @@ html.kx-reduce #kx-ambient::before, html.kx-reduce #kx-ambient::after { animatio
 html.kx-reduce #kx-perim { display: none; }
 @media print { #kx-perim { display: none !important; } }
 
-html.kx-led-on .kx-led.kx-vis::after { animation: kxSpin var(--kx-led-speed) linear infinite; animation-delay: var(--kx-led-d, 0s); }
+html.kx-led-on .kx-led.kx-vis::after { animation: kxOrbit var(--kx-led-speed) linear infinite; animation-delay: var(--kx-led-d, 0s); }
 html.kx-led-on.kx-led-sweep .kx-led.kx-vis::after { animation: kxSweep var(--kx-led-speed) cubic-bezier(.45, 0, .25, 1) infinite; animation-delay: var(--kx-led-d, 0s); }
 html.kx-led-on.kx-led-breath .kx-led.kx-vis::after { animation: kxBreath var(--kx-led-speed) ease-in-out infinite; animation-delay: var(--kx-led-d, 0s); }
 html.kx-reduce .kx-led.kx-vis::after { animation: none !important; }

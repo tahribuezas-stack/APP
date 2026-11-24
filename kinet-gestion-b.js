@@ -96,6 +96,7 @@
   var FLAGS = [
     { k: 'video_uploads_off', t: 'Pausar subida de vídeos', d: 'Nadie puede subir vídeos nuevos (los ya subidos se siguen viendo). Útil si R2 va mal o hay abuso.' },
     { k: 'ai_chat_off', t: 'Pausar el chat con la IA', d: 'El Cuerpo Técnico IA muestra un aviso en lugar de responder. Útil si hay un problema de costes o de proveedor.' },
+    { k: 'ads_off', t: 'Ocultar todos los anuncios', d: 'Apaga los anuncios para cuentas gratuitas e invitados. Útil si un patrocinador falla o mientras se prueba la app.' },
     { k: 'community_readonly', t: 'Comunidad en solo lectura', d: 'Se puede ver la comunidad pero no publicar ni comentar. Útil durante una incidencia de moderación.' }
   ];
   S.config = async function (ws) {
