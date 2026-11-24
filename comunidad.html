@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script src="kinet-guard.js?v=26"></script>
-<script src="kinet-sport.js?v=26"></script>
-<script src="kinet-cv.js?v=26"></script>
+<script src="kinet-guard.js?v=27"></script>
+<script src="kinet-sport.js?v=27"></script>
+<script src="kinet-cv.js?v=27"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -22,15 +22,15 @@
     
     <!-- SDK Oficial de Supabase + Motor Central KINET Backend + Config APIs -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="kinet-backend.js?v=26"></script>
-<script src="kinet-gestion.js?v=26"></script>
-    <script src="kinet-positions.js?v=26"></script>
-    <script src="kinet-api-config.js?v=26"></script>
-    <script src="kinet-support-kb.js?v=26"></script>
-    <script src="kinet-moderation.js?v=26"></script>
-    <script src="kinet-video-store.js?v=26"></script>
-    <script src="kinet-typing.js?v=26"></script>
-    <script src="kinet-community-bot.js?v=26" defer></script>
+    <script src="kinet-backend.js?v=27"></script>
+<script src="kinet-gestion.js?v=27"></script>
+    <script src="kinet-positions.js?v=27"></script>
+    <script src="kinet-api-config.js?v=27"></script>
+    <script src="kinet-support-kb.js?v=27"></script>
+    <script src="kinet-moderation.js?v=27"></script>
+    <script src="kinet-video-store.js?v=27"></script>
+    <script src="kinet-typing.js?v=27"></script>
+    <script src="kinet-community-bot.js?v=27" defer></script>
 
     <style>
         :root {
@@ -1537,9 +1537,9 @@
         }
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
-    <link rel="stylesheet" href="kinet-mobile-fix.css?v=26">
-<link rel="stylesheet" href="kinet-fx.css?v=26">
-<script src="kinet-fx.js?v=26"></script>
+    <link rel="stylesheet" href="kinet-mobile-fix.css?v=27">
+<link rel="stylesheet" href="kinet-fx.css?v=27">
+<script src="kinet-fx.js?v=27"></script>
 </head>
 <body data-role="athlete">
 
@@ -3265,8 +3265,7 @@
 
             refreshMySocialCardUI();
 
-            const isSocialConfigured = localStorage.getItem('kinet_social_configured') === 'true';
-            syncSocialConfigVisibility(isSocialConfigured);
+            syncSocialConfigVisibility(socialIsConfigured());
 
             if (forceOpenSetup) {
                 openSocialSetupModal();
@@ -3293,6 +3292,16 @@
                 window.KinetBackend.pushLocalStateToCloud();
             }
             renderDmMessages(true);
+        }
+
+        // Perfil configurado = cualquier señal real de identidad (antes bastaba con perder el nombre un instante
+        // —p. ej. al llegar tarde la nube— para que saliera "Configurar" en una cuenta ya configurada)
+        function socialIsConfigured() {
+            const g = (k) => (localStorage.getItem(k) || '').trim();
+            if (g('kinet_social_configured') === 'true' || g('kinet_profile_completed') === 'true') return true;
+            if (g('kinet_user_name') || g('kinet_user_avatar') || g('kinet_social_bio') || g('kinet_user_club')) return true;
+            const h = g('kinet_social_handle') || g('kinet_username');
+            return !!(h && h !== '@alexvance_pro' && g('kinet_logged_in') === 'true');
         }
 
         function syncSocialConfigVisibility(isConfigured) {
@@ -5197,6 +5206,7 @@
 
         // Escuchadores globales sin parpadeo (usan forceRender = false)
         window.addEventListener('kinet:cloud-synced', () => {
+            try { syncSocialConfigVisibility(socialIsConfigured()); } catch (e) {}
             refreshMySocialCardUI();
             filterSocialFeed(false);
             renderSideDmInboxList();

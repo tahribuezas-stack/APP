@@ -173,12 +173,13 @@
 
   /* ═════════ ESTADO DEL SISTEMA ═════════ */
   S.salud = async function (ws) {
-    ws.innerHTML = H.head('Diagnóstico', 'Estado del sistema', 'Comprobaciones en vivo desde este dispositivo.', '<button class="btn" id="shRe">↻ Repetir</button>') + '<div class="grid g2" id="shGrid"></div>';
+    ws.innerHTML = H.head('Diagnóstico', 'Estado del sistema', 'Comprobaciones en vivo desde este dispositivo.', '<a class="btn" href="estado.html" target="_blank" rel="noopener" style="text-decoration:none">🌐 Página de estado (estado.html) ↗</a><button class="btn" id="shRe">↻ Repetir</button>') + '<div class="grid g2" id="shGrid"></div>';
     var checks = [], push = function (st, t, d) { checks.push({ st: st, t: t, d: d }); };
     var c = B().getClient && B().getClient(), t0 = performance.now(), ok = true;
     try { await B().fetchPublicConfig(); var ms = Math.round(performance.now() - t0); push(ms < 700 ? 'ok' : 'warn', 'Base de datos (Supabase)', 'Responde en ' + ms + ' ms'); } catch (e) { push('bad', 'Base de datos (Supabase)', 'No responde'); }
     try { var s = await c.auth.getSession(); var exp = s.data.session && s.data.session.expires_at; push(s.data.session ? 'ok' : 'bad', 'Sesión', s.data.session ? 'Activa · caduca ' + H.date(exp * 1000) : 'Sin sesión'); } catch (e) { push('bad', 'Sesión', 'Error'); }
     try { var ov = await H.rpc('admin_overview'); push('ok', 'SQL de gestión (07_gestion.sql)', 'Instalado y respondiendo'); push(ov.users_total != null ? 'ok' : 'warn', 'Tabla de perfiles', H.num(ov.users_total) + ' cuentas'); push(ov.terms != null ? 'ok' : 'warn', 'Moderación (03_moderacion_trafico.sql)', ov.terms != null ? ov.terms + ' palabras bloqueadas' : 'No encontrada'); push(ov.ai_cost_month != null ? 'ok' : 'warn', 'Límites de IA (05_ia_limites.sql)', ov.ai_cost_month != null ? 'Registrando consumo' : 'No encontrada'); push(ov.video_bytes != null ? 'ok' : 'warn', 'Vídeo R2 (06_video_r2.sql)', ov.video_bytes != null ? 'Registrando subidas' : 'No encontrada'); } catch (e) { push('bad', 'SQL de gestión', e.message); }
+    try { await H.rpc('kinet_handle_free', { h: '@kinet_comprobacion' }); push('ok', 'SQL de usuario (08_usuario.sql)', 'Instalado: @usuario único y cambio cada 30 días activos'); } catch (e) { push('warn', 'SQL de usuario (08_usuario.sql)', 'No instalado todavía: ejecútalo en Supabase → SQL Editor'); }
     var cfg = (window.KINET_API_CONFIG || {}), vs = cfg.videoStorage || {};
     push(vs.provider === 'r2' ? 'ok' : 'warn', 'Almacenamiento de vídeo', vs.provider === 'r2' ? 'Cloudflare R2 · bucket ' + (vs.bucket || '—') : 'Sin configurar');
     push(cfg.edgeFunctionsDeployed ? 'ok' : 'warn', 'IA en el servidor (Edge Function)', cfg.edgeFunctionsDeployed ? 'Activada' : 'No marcada como desplegada');

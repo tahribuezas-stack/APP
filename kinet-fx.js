@@ -158,7 +158,9 @@
     try {
       if (!box || !box.getBoundingClientRect || !document.body || reduce) return;
       var r = box.getBoundingClientRect();
-      var top = Math.max(r.top, 0), left = Math.max(r.left, 0), w = Math.min(r.right, innerWidth) - left, h = Math.min(r.bottom, innerHeight) - top;
+      // Toda la zona de contenido: de borde a borde de la parte derecha, justo debajo de la barra superior (no la columna centrada del contenido)
+      var om = box.closest && box.closest('.os-main'), orr = om ? om.getBoundingClientRect() : r;
+      var top = Math.max(r.top, 0), left = Math.max(orr.left, 0) + 2, w = Math.min(orr.right, innerWidth) - left - 2, h = Math.min(orr.bottom, innerHeight) - top - 2;
       if (w < 120 || h < 120) return;
       if (!perim) { perim = document.createElement('div'); perim.id = 'kx-perim'; perim.setAttribute('aria-hidden', 'true'); document.body.appendChild(perim); }
       perim.style.cssText = 'left:' + left + 'px;top:' + top + 'px;width:' + w + 'px;height:' + h + 'px;opacity:0';
@@ -307,6 +309,9 @@
   var LED_DEF = { style: 'cometa', speed: 'normal', intensity: 'media', color: 'rol', custom: '#00FF88', width: '2', scope: 'all', ambient: 'on' };
   var LED_SEL = '.kinet-panel, .pricing-card, .panel, .chat-container, .glass-card, .profile-hero-box, .x-post-card';
   var LED_FREE = /(^|,\s*)(\.kinet-panel|\.pricing-card|\.panel)$/;   // estas ya reservan ::after para las marcas de esquina
+  // La luz solo se anima en las tarjetas que se ven en pantalla (las demás no cuestan nada)
+  var ledIO = null;
+  try { if ('IntersectionObserver' in window) ledIO = new IntersectionObserver(function (es) { es.forEach(function (e) { e.target.classList.toggle('kx-vis', e.isIntersecting); }); }, { rootMargin: '40px' }); } catch (e) {}
   var ledOn = false, ledMo = null, ledTimer = 0, ledSeen = (window.WeakSet ? new WeakSet() : { has: function () { return false; }, add: function () {} });
   function ledCfg(o) {
     var c = {}; Object.keys(LED_DEF).forEach(function (k) { c[k] = (o && o[k] != null) ? o[k] : (ls('kinet_led_' + k) || LED_DEF[k]); });
@@ -324,6 +329,8 @@
       var reserved = el.matches('.kinet-panel, .pricing-card, .panel');
       if (!reserved) { var a = getComputedStyle(el, '::after').content; if (a && a !== 'none' && a !== 'normal') continue; }
       el.classList.add('kx-led'); n++;
+      el.style.setProperty('--kx-led-d', (-Math.random() * 6).toFixed(2) + 's');
+      if (ledIO) ledIO.observe(el); else el.classList.add('kx-vis');
     }
   }
   function applyLed(override) {

@@ -14,10 +14,10 @@
   var SECTIONS = [
     { id: 'resumen',      icon: '📊', label: 'Panel general',        tag: 'HOY',  roles: ['all'] },
     { id: 'usuarios',     icon: '👥', label: 'Usuarios',             roles: ['subadmin', 'moderator', 'scout_verifier'] },
-    { id: 'planes',       icon: '💳', label: 'Planes y minutos',     roles: ['subadmin'] },
     { id: 'moderacion',   icon: '🛡️', label: 'Moderación',           roles: ['subadmin', 'moderator'] },
     { id: 'soporte',      icon: '🎧', label: 'Soporte',              roles: ['subadmin', 'moderator'] },
     { id: 'verificacion', icon: '✅', label: 'Verificación B2B',     roles: ['subadmin', 'scout_verifier'] },
+    { id: 'planes',       icon: '💳', label: 'Planes y minutos',     roles: ['subadmin'] },
     { id: 'marketing',    icon: '📣', label: 'Marketing',            roles: ['subadmin', 'marketing'] },
     { id: 'ia',           icon: '🧠', label: 'IA y costes',          roles: ['subadmin'] },
     { id: 'video',        icon: '🎬', label: 'Vídeo y almacenaje',   roles: ['subadmin'] },

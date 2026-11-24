@@ -49,9 +49,9 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline-offs
 table, .kpi-val, .kpi-sub, .day-num, .session-time, .plan-badge, [class*="kpi"] { font-variant-numeric: tabular-nums; }
 
 /* grano fino: quita el aspecto “plano” de los degradados */
-#kx-grain { position: fixed; inset: -50%; z-index: 2147482000; pointer-events: none; opacity: .045; mix-blend-mode: overlay;
+#kx-grain { position: fixed; inset: 0; z-index: 2147482000; pointer-events: none; opacity: .028;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-  animation: kxGrain 1.2s steps(6) infinite; }
+  }
 @keyframes kxGrain { 0% { transform: translate(0, 0); } 20% { transform: translate(-3%, 2%); } 40% { transform: translate(2%, -3%); } 60% { transform: translate(-2%, -1%); } 80% { transform: translate(3%, 3%); } 100% { transform: translate(0, 0); } }
 
 /* marcas de esquina tipo visor sobre los paneles */
@@ -88,12 +88,12 @@ table, .kpi-val, .kpi-sub, .day-num, .session-time, .plan-badge, [class*="kpi"] 
 
 /* halo del cursor (solo ratón): el puntero del sistema nunca se oculta */
 #kx-cur-ring { position: fixed; left: 0; top: 0; z-index: 2147483647; pointer-events: none; border-radius: 50%; will-change: transform; opacity: 0; transition: opacity .25s ease, width .2s, height .2s, margin .2s, background .2s;
-  width: 34px; height: 34px; margin: -17px 0 0 -17px; border: 1px solid rgba(var(--role-rgb, 0, 255, 136), .55); }
+  width: 24px; height: 24px; margin: -12px 0 0 -12px; border: 1px solid rgba(var(--role-rgb, 0, 255, 136), .55); }
 html.kx-cur-on #kx-cur-ring { opacity: .85; }
 html.kx-cur-on #kx-cur-dot, html.kx-cur-on #kx-cur-ring { opacity: 1; }
 html.kx-cur-text #kx-cur-dot, html.kx-cur-text #kx-cur-ring { opacity: 0 !important; }
-html.kx-cur-hot #kx-cur-ring { width: 52px; height: 52px; margin: -26px 0 0 -26px; background: rgba(var(--role-rgb, 0, 255, 136), .10); border-color: rgba(var(--role-rgb, 0, 255, 136), .9); }
-html.kx-cur-down #kx-cur-ring { width: 22px; height: 22px; margin: -11px 0 0 -11px; background: rgba(var(--role-rgb, 0, 255, 136), .22); }
+html.kx-cur-hot #kx-cur-ring { width: 36px; height: 36px; margin: -18px 0 0 -18px; background: rgba(var(--role-rgb, 0, 255, 136), .10); border-color: rgba(var(--role-rgb, 0, 255, 136), .9); }
+html.kx-cur-down #kx-cur-ring { width: 16px; height: 16px; margin: -8px 0 0 -8px; background: rgba(var(--role-rgb, 0, 255, 136), .22); }
 
 html.kx-reduce #kx-grain { animation: none; }
 html.kx-reduce .kx-pulse, html.kx-reduce #kx-cur-ring { display: none; }
@@ -101,47 +101,44 @@ html.kx-reduce .kx-pulse, html.kx-reduce #kx-cur-ring { display: none; }
 
 
 /* ───────── Luz LED perimetral y resplandor ambiental (personalizable desde Despacho › Tema) ───────── */
-@property --kx-a { syntax: '<angle>'; inherits: true; initial-value: 0deg; }
-@property --kx-p { syntax: '<percentage>'; inherits: true; initial-value: 0%; }
+@property --kx-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@property --kx-p { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
 @property --kx-ax { syntax: '<percentage>'; inherits: true; initial-value: 20%; }
 @property --kx-ay { syntax: '<percentage>'; inherits: true; initial-value: 30%; }
 :root { --kx-led-speed: 6s; --kx-led-op: .85; --kx-led-w: 2px; --kx-led-c2: rgba(255,255,255,.95); }
-html.kx-led-on { animation: kxSpin var(--kx-led-speed) linear infinite; }
-html.kx-led-on.kx-led-sweep { animation: kxSweep var(--kx-led-speed) cubic-bezier(.45, 0, .25, 1) infinite; }
 @keyframes kxSpin { to { --kx-a: 360deg; } }
 @keyframes kxSweep { 0% { --kx-p: -25%; } 100% { --kx-p: 125%; } }
 
-html.kx-led-on .kx-led::after {
+html.kx-led-on .kx-led.kx-vis::after {
   content: ''; position: absolute; inset: 0; border-radius: inherit; padding: var(--kx-led-w); pointer-events: none; z-index: 3;
   background: conic-gradient(from var(--kx-a), transparent 0deg, transparent 215deg, color-mix(in srgb, var(--kx-led-c1, var(--role-color, #00FF88)) 35%, transparent) 285deg, var(--kx-led-c1, var(--role-color, #00FF88)) 335deg, var(--kx-led-c2) 355deg, transparent 360deg);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
   opacity: var(--kx-led-op); transition: opacity .45s ease; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--kx-led-c1, var(--role-color, #00FF88)) 70%, transparent));
 }
-html.kx-led-on.kx-led-dual .kx-led::after { background: conic-gradient(from var(--kx-a), transparent 0deg, transparent 200deg, color-mix(in srgb, var(--kx-led-c1, var(--role-color, #00FF88)) 30%, transparent) 250deg, var(--kx-led-c1, var(--role-color, #00FF88)) 310deg, var(--kx-led-c2) 340deg, color-mix(in srgb, var(--kx-led-c1, var(--role-color, #00FF88)) 40%, transparent) 352deg, transparent 360deg); }
-html.kx-led-on.kx-led-rainbow .kx-led::after { background: conic-gradient(from var(--kx-a), #ff3d71, #ffb300, #00ff88, #00e5ff, #7c4dff, #ff3d71); }
+html.kx-led-on.kx-led-dual .kx-led.kx-vis::after { background: conic-gradient(from var(--kx-a), transparent 0deg, transparent 200deg, color-mix(in srgb, var(--kx-led-c1, var(--role-color, #00FF88)) 30%, transparent) 250deg, var(--kx-led-c1, var(--role-color, #00FF88)) 310deg, var(--kx-led-c2) 340deg, color-mix(in srgb, var(--kx-led-c1, var(--role-color, #00FF88)) 40%, transparent) 352deg, transparent 360deg); }
+html.kx-led-on.kx-led-rainbow .kx-led.kx-vis::after { background: conic-gradient(from var(--kx-a), #ff3d71, #ffb300, #00ff88, #00e5ff, #7c4dff, #ff3d71); }
 /* barrido: una línea de luz que recorre el borde inferior */
-html.kx-led-on.kx-led-sweep .kx-led::after {
+html.kx-led-on.kx-led-sweep .kx-led.kx-vis::after {
   padding: 0; background: linear-gradient(90deg, transparent calc(var(--kx-p) - 22%), var(--kx-led-c1, var(--role-color, #00FF88)) var(--kx-p), var(--kx-led-c2) calc(var(--kx-p) + 2%), transparent calc(var(--kx-p) + 18%)) bottom left / 100% var(--kx-led-w) no-repeat;
   -webkit-mask: none; mask: none; inset: auto 0 0 0; height: var(--kx-led-w); border-radius: 0 0 inherit inherit;
 }
-html.kx-led-on.kx-led-sweep.kx-led-rainbow .kx-led::after { background: linear-gradient(90deg, transparent calc(var(--kx-p) - 25%), #ff3d71 calc(var(--kx-p) - 12%), #ffb300 calc(var(--kx-p) - 4%), #00ff88 var(--kx-p), #00e5ff calc(var(--kx-p) + 6%), transparent calc(var(--kx-p) + 20%)) bottom left / 100% var(--kx-led-w) no-repeat; }
+html.kx-led-on.kx-led-sweep.kx-led-rainbow .kx-led.kx-vis::after { background: linear-gradient(90deg, transparent calc(var(--kx-p) - 25%), #ff3d71 calc(var(--kx-p) - 12%), #ffb300 calc(var(--kx-p) - 4%), #00ff88 var(--kx-p), #00e5ff calc(var(--kx-p) + 6%), transparent calc(var(--kx-p) + 20%)) bottom left / 100% var(--kx-led-w) no-repeat; }
 /* respiro: el contorno completo late suavemente */
-html.kx-led-on.kx-led-breath { animation: none; }
-html.kx-led-on.kx-led-breath .kx-led::after { background: linear-gradient(var(--kx-led-c1, var(--role-color, #00FF88)), var(--kx-led-c1, var(--role-color, #00FF88))); animation: kxBreath var(--kx-led-speed) ease-in-out infinite; }
+html.kx-led-on.kx-led-breath .kx-led.kx-vis::after { background: linear-gradient(var(--kx-led-c1, var(--role-color, #00FF88)), var(--kx-led-c1, var(--role-color, #00FF88))); animation: kxBreath var(--kx-led-speed) ease-in-out infinite; }
 @keyframes kxBreath { 0%, 100% { opacity: calc(var(--kx-led-op) * .25); } 50% { opacity: var(--kx-led-op); } }
 /* solo al pasar el ratón */
-html.kx-led-on.kx-led-hover .kx-led::after { opacity: 0; }
-html.kx-led-on.kx-led-hover .kx-led:hover::after { opacity: var(--kx-led-op); }
-html.kx-led-on.kx-led-hover.kx-led-breath .kx-led:not(:hover)::after { animation: none; }
+html.kx-led-on.kx-led-hover .kx-led.kx-vis::after { opacity: 0; }
+html.kx-led-on.kx-led-hover .kx-led.kx-vis:hover::after { opacity: var(--kx-led-op); }
+html.kx-led-on.kx-led-hover.kx-led-breath .kx-led.kx-vis:not(:hover)::after { animation: none; }
 
-#kx-ambient { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0; transition: opacity .8s ease; mix-blend-mode: screen;
-  background:
-    radial-gradient(46vmax 34vmax at var(--kx-ax) var(--kx-ay), rgba(var(--role-rgb, 0, 255, 136), .13), transparent 70%),
-    radial-gradient(38vmax 30vmax at calc(100% - var(--kx-ax)) calc(100% - var(--kx-ay)), rgba(var(--role-rgb, 0, 255, 136), .08), transparent 70%);
-  animation: kxAmb 26s ease-in-out infinite alternate; }
+#kx-ambient { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0; transition: opacity .8s ease; overflow: hidden; contain: strict; }
+#kx-ambient::before, #kx-ambient::after { content: ''; position: absolute; width: 70vmax; height: 56vmax; left: 0; top: 0; will-change: transform; border-radius: 50%; }
+#kx-ambient::before { background: radial-gradient(closest-side, rgba(var(--role-rgb, 0, 255, 136), .13), transparent); animation: kxAmbA 30s ease-in-out infinite alternate; }
+#kx-ambient::after { background: radial-gradient(closest-side, rgba(var(--role-rgb, 0, 255, 136), .08), transparent); animation: kxAmbB 36s ease-in-out infinite alternate; }
+@keyframes kxAmbA { 0% { transform: translate3d(-20vw, -22vh, 0); } 50% { transform: translate3d(35vw, 8vh, 0); } 100% { transform: translate3d(5vw, 48vh, 0); } }
+@keyframes kxAmbB { 0% { transform: translate3d(60vw, 45vh, 0); } 50% { transform: translate3d(20vw, 20vh, 0); } 100% { transform: translate3d(50vw, -15vh, 0); } }
 html.kx-amb-on #kx-ambient { opacity: var(--kx-amb-op, .7); }
-@keyframes kxAmb { 0% { --kx-ax: 12%; --kx-ay: 22%; } 50% { --kx-ax: 70%; --kx-ay: 55%; } 100% { --kx-ax: 38%; --kx-ay: 82%; } }
-html.kx-reduce.kx-led-on, html.kx-reduce #kx-ambient { animation: none !important; }
+html.kx-reduce #kx-ambient::before, html.kx-reduce #kx-ambient::after { animation: none !important; }
 @media print { #kx-ambient { display: none !important; } }
 
 
@@ -165,10 +162,15 @@ html.kx-reduce.kx-led-on, html.kx-reduce #kx-ambient { animation: none !importan
 
 
 /* ───────── LED perimetral de cambio de sección: da la vuelta a todo el cuadro de contenido ───────── */
-@property --kx-pa { syntax: '<angle>'; inherits: true; initial-value: 0deg; }
+@property --kx-pa { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
 #kx-perim { position: fixed; left: 0; top: 0; width: 0; height: 0; z-index: 950; pointer-events: none; opacity: 0; padding: 2.5px; border-radius: 0;
   background: conic-gradient(from var(--kx-pa), transparent 0deg, transparent 225deg, rgba(var(--role-rgb, 0, 255, 136), .35) 290deg, var(--role-color, #00FF88) 340deg, #fff 358deg, transparent 360deg);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
   filter: drop-shadow(0 0 7px var(--role-color, #00FF88)); }
 html.kx-reduce #kx-perim { display: none; }
 @media print { #kx-perim { display: none !important; } }
+
+html.kx-led-on .kx-led.kx-vis::after { animation: kxSpin var(--kx-led-speed) linear infinite; animation-delay: var(--kx-led-d, 0s); }
+html.kx-led-on.kx-led-sweep .kx-led.kx-vis::after { animation: kxSweep var(--kx-led-speed) cubic-bezier(.45, 0, .25, 1) infinite; animation-delay: var(--kx-led-d, 0s); }
+html.kx-led-on.kx-led-breath .kx-led.kx-vis::after { animation: kxBreath var(--kx-led-speed) ease-in-out infinite; animation-delay: var(--kx-led-d, 0s); }
+html.kx-reduce .kx-led.kx-vis::after { animation: none !important; }
