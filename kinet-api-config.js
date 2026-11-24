@@ -64,7 +64,7 @@
         groq: 'llama-3.3-70b-versatile',
         maxTokens: 2600,
         temperature: 0.62,
-        costEur: 0.003
+        costEur: 0.0015
       },
       club: {
         gemini: 'gemini-3.1-flash-lite',
@@ -73,11 +73,11 @@
         groq: 'llama-3.3-70b-versatile',
         maxTokens: 3400,
         temperature: 0.62,
-        costEur: 0.003
+        costEur: 0.0015
       }
     },
 
-    // Motor BÁSICO (casi gratis): se usa en el plan gratuito tras las 15 consultas potentes del día
+    // Motor BÁSICO (casi gratis): se usa en el plan gratuito tras las 10 consultas potentes del día
     // y en los planes de pago cuando se agota su presupuesto mensual de IA (33 % de lo que pagan).
     liteModel: {
       gemini: 'gemini-2.5-flash-lite',
@@ -112,7 +112,7 @@
     free: {
       tierName: 'Plan Gratuito',
       priceMonthly: 0,
-      dailyChatMessages: 15,
+      dailyChatMessages: 10,
       dailyCommunityBotMessages: 5,
       dailySupportBotMessages: 10,
       dailyTacticalAI: 3,
@@ -121,7 +121,7 @@
       monthlyVideoMinutes: 0,
       maxVideoEditSeconds: 0,
       maxVideoEditClips: 0,
-      dailyLiteMessages: 0,        // gratis: 15 consultas y luego cuenta atrás hasta las 00:00
+      dailyLiteMessages: 0,        // gratis: 10 consultas y luego cuenta atrás hasta las 00:00
       bonusDiscountPct: 0,
       canUploadVideoShorts: false,
       canUseMediaStudioVideo: false,
@@ -132,7 +132,7 @@
     pro: {
       tierName: 'Pro Player',
       priceMonthly: 8.99,
-      dailyChatMessages: 100,
+      dailyChatMessages: 30,
       dailyCommunityBotMessages: 20,
       dailySupportBotMessages: 30,
       dailyTacticalAI: 20,
@@ -141,7 +141,7 @@
       monthlyVideoMinutes: 90,
       maxVideoEditSeconds: 60,
       maxVideoEditClips: 4,
-      dailyLiteMessages: 400,
+      dailyLiteMessages: 100,
       bonusDiscountPct: 50,
       canUploadVideoShorts: true,
       canUseMediaStudioVideo: true,
@@ -152,7 +152,7 @@
     club: {
       tierName: 'Club & Scout Pro',
       priceMonthly: 29.99,
-      dailyChatMessages: 300,
+      dailyChatMessages: 100,
       dailyCommunityBotMessages: 40,
       dailySupportBotMessages: 60,
       dailyTacticalAI: 50,
@@ -161,7 +161,7 @@
       monthlyVideoMinutes: 300,
       maxVideoEditSeconds: 120,
       maxVideoEditClips: 8,
-      dailyLiteMessages: 800,
+      dailyLiteMessages: 200,
       bonusDiscountPct: 50,
       canUploadVideoShorts: true,
       canUseMediaStudioVideo: true,

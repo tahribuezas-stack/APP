@@ -17,7 +17,7 @@
   var SPONSORS = [];
 
   var HOUSE = [
-    { id: 'pro',    brand: 'KINET', title: 'KINET PRO · Cuerpo Técnico sin límites', text: 'Hasta 100 consultas potentes al día, Media Studio completo y cero anuncios. Desde 8,99 €/mes.', cta: 'Ver planes', url: 'despacho.html?tab=subscription', guestUrl: 'login.html?mode=register', emoji: '⚡', tone: '#00FF88', house: true },
+    { id: 'pro',    brand: 'KINET', title: 'KINET PRO · Cuerpo Técnico sin límites', text: 'Hasta 30 consultas potentes al día, Media Studio completo y cero anuncios. Desde 8,99 €/mes.', cta: 'Ver planes', url: 'despacho.html?tab=subscription', guestUrl: 'login.html?mode=register', emoji: '⚡', tone: '#00FF88', house: true },
     { id: 'lab',    brand: 'KINET', title: 'Descubre tu KINET Card', text: 'Sube un clip de ~1,5 min y la IA audita tu técnica y desbloquea tu carta oficial.', cta: 'Ir al Laboratorio', url: 'ojeador-live.html', emoji: '🎬', tone: '#38BDF8', house: true },
     { id: 'radar',  brand: 'KINET', title: 'Hazte visible ante ojeadores', text: 'Completa tu ficha y aparece en el Radar de clubes y ojeadores de tu deporte.', cta: 'Completar ficha', url: 'perfil.html', emoji: '📡', tone: '#A78BFA', house: true },
     { id: 'cv',     brand: 'KINET', title: 'Tu dossier deportivo en PDF', text: 'CV profesional con tu KINET Card, listo para enviar a clubes en un clic.', cta: 'Crear mi dossier', url: 'perfil.html', emoji: '📄', tone: '#F59E0B', house: true },
