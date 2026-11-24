@@ -27,6 +27,10 @@
   '.kx-us-bars{display:flex;gap:4px;height:4px}' +
   '.kx-us-bars span{position:relative;display:block;height:100%;border-radius:4px;background:rgba(255,255,255,.09);overflow:hidden}' +
   '.kx-us-bars i,.kx-us-seg i,.kx-us-row .bar i{display:block;height:100%;width:0;border-radius:inherit;background:var(--kx-us-c,var(--role-color,#00FF88));box-shadow:0 0 8px var(--kx-us-c,var(--role-color,#00FF88));transition:width 1.1s cubic-bezier(.2,.8,.2,1),background .4s}' +
+  '.kx-us-card{gap:9px;padding:6px 10px;border-radius:11px}' +
+  '.kx-us-card .kx-us-ring{width:30px;height:30px;flex:0 0 30px}.kx-us-card .kx-us-ring svg{width:30px;height:30px}.kx-us-card .kx-us-ring circle{stroke-width:5}.kx-us-card .kx-us-ring b{font-size:.6rem}' +
+  '.kx-us-card .kx-us-info{gap:3px}.kx-us-card .kx-us-t{font-size:.5rem;letter-spacing:.1em}.kx-us-card .kx-us-sub{font-size:.64rem;line-height:1.15}.kx-us-card .kx-us-bars{height:2px}' +
+  '.kx-us-card .kx-us-chev{font-size:.85rem}' +
   '.kx-us-chev{font-size:1rem;color:rgba(255,255,255,.4);transition:transform .3s,color .3s}.kx-us-card:hover .kx-us-chev{transform:translateX(3px);color:var(--role-color,#00FF88)}' +
   '.kx-us-hero.low{--kx-us-c:#F59E0B}.kx-us-hero.out{--kx-us-c:#EF4444}' +
   '.kx-us-card.low{--kx-us-c:#F59E0B}.kx-us-card.out{--kx-us-c:#EF4444;animation:kxUsIn .7s cubic-bezier(.2,.8,.2,1) both,kxUsPulse 2.4s ease-in-out infinite}' +

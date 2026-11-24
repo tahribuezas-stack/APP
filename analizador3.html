@@ -3,8 +3,15 @@
 <head>
 <script src="kinet-guard.js?v=38"></script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#06080E">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="KINET OS">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#06080E">
     <title>KINET OS // Laboratorio Táctico 3D Especializado</title>
 
     <!-- ZERO-FLASH THEME LOCK -->
@@ -71,12 +78,12 @@
 
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script defer src="kinet-pdf.js?v=41"></script>
+    <script defer src="kinet-pdf.js?v=44"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="kinet-sport.js?v=38"></script>
-<script src="kinet-backend.js?v=38"></script>
+<script src="kinet-backend.js?v=44"></script>
     <script src="kinet-positions.js?v=38"></script>
-    <script src="kinet-api-config.js?v=39"></script>
+    <script src="kinet-api-config.js?v=44"></script>
 
     <style>
         :root {
@@ -481,13 +488,41 @@
         .z1 { background: rgba(148,163,184,0.18); color: #CBD5E1; }
     </style>
     <link rel="stylesheet" href="kinet-mobile-fix.css?v=38">
-<link rel="stylesheet" href="kinet-fx.css?v=41">
-<link rel="stylesheet" href="kinet-curtain.css?v=39">
-<script src="kinet-curtain.js?v=39"></script>
-<script src="kinet-fx.js?v=41"></script>
-<script src="kinet-usage.js?v=38"></script>
+<link rel="stylesheet" href="kinet-fx.css?v=44">
+<link rel="stylesheet" href="kinet-curtain.css?v=45">
+<script src="kinet-curtain.js?v=45"></script>
+<script src="kinet-fx.js?v=44"></script>
+<script src="kinet-usage.js?v=45"></script>
+<link rel="stylesheet" href="kinet-mobile.css?v=44">
+<script defer src="kinet-mobile.js?v=44"></script>
+    <script defer src="kinet-housekeeping.js?v=44"></script>
+<style id="kinet-vt">@view-transition { navigation: auto; } ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .16s; animation-timing-function: ease-out; } @media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }</style>
+<style id="kinet-noselect">
+/* Pizarras y fichas: nunca se selecciona el texto al arrastrar */
+.arena-3d-viewport, .arena-3d-viewport *, .micro-player-token, .micro-player-token *, .micro-rival-token, .micro-rival-token *,
+.lab-actor-token, .lab-actor-token *, .tactical-node-token, .tactical-node-token *, .bench-slot-pill, .bench-slot-pill *, #sport-ball-node, #sport-ball-node *,
+.equip-item, .equip-item * { -webkit-user-select: none !important; user-select: none !important; -webkit-touch-callout: none; -webkit-user-drag: none; }
+.arena-3d-viewport svg text, .arena-svg-canvas text { pointer-events: none; -webkit-user-select: none; user-select: none; }
+</style>
+<script>
+(function(){
+  var SEL = '.arena-3d-viewport, .tactical-node-token, .bench-slot-pill, .lab-actor-token, .micro-player-token, .micro-rival-token';
+  function inBoard(e){ var t = e.target; return t && t.closest && t.closest(SEL); }
+  document.addEventListener('selectstart', function(e){ if (inBoard(e)) e.preventDefault(); }, true);
+  document.addEventListener('dragstart', function(e){ if (inBoard(e)) e.preventDefault(); }, true);
+  document.addEventListener('pointerdown', function(e){
+    if (!inBoard(e)) return;
+    var s = window.getSelection && window.getSelection();
+    if (s && s.rangeCount && !s.isCollapsed) s.removeAllRanges();
+  }, true);
+})();
+</script>
 </head>
 <body data-role="athlete" class="lab-page">
+<script>/* rol desde el primer píxel: evita el parpadeo verde→color de rol al cargar */
+(function(){try{function n(v){if(!v)return null;v=String(v).toLowerCase();if(v==='athlete'||v.indexOf('atleta')>-1||v.indexOf('jugador')>-1)return'athlete';if(v==='staff'||/entrenador|coach|fisio|staff/.test(v))return'staff';if(v==='scout'||/scout|director|ojeador/.test(v))return'scout';return null}
+var r=n(localStorage.getItem('kinet_active_role'))||n(localStorage.getItem('kinet_role'))||n(new URLSearchParams(location.search).get('role'));if(r)document.body.setAttribute('data-role',r)}catch(e){}})();
+</script>
     <div id="lab-toast" role="status" aria-live="polite"></div>
 
     <div class="os-layout">
@@ -580,7 +615,6 @@
                             <div class="panel-head-fixed">
                                 <div class="panel-head-left">
                                     <div class="minimal-mode-switch">
-                                        <button type="button" class="minimal-mode-btn" onclick="returnToRosterPage()">👥 Gestionar Plantilla</button>
                                         <button type="button" class="minimal-mode-btn active">🎬 Jugadas & Estrategias IA ✓</button>
                                     </div>
                                     <div id="live-tactical-teleprompter">Cargando simulador especializado...</div>

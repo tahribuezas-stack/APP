@@ -4,8 +4,15 @@
 <script src="kinet-guard.js?v=38"></script>
 <script src="kinet-teams.js?v=38"></script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#06080E">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="KINET OS">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#06080E">
     <title>KINET OS // Pizarra de Estrategias & Jugadas IA</title>
 
     <!-- ZERO-FLASH THEME LOCK -->
@@ -72,12 +79,12 @@
 
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script defer src="kinet-pdf.js?v=41"></script>
+    <script defer src="kinet-pdf.js?v=44"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="kinet-sport.js?v=38"></script>
-<script src="kinet-backend.js?v=38"></script>
+<script src="kinet-backend.js?v=44"></script>
     <script src="kinet-positions.js?v=38"></script>
-    <script src="kinet-api-config.js?v=39"></script>
+    <script src="kinet-api-config.js?v=44"></script>
 
     <style>
         :root {
@@ -440,14 +447,15 @@
 
         /* ===== V11: balón libre, material, orden de movimientos, rival, IA ===== */
         #sport-ball-node { pointer-events: auto !important; cursor: grab; touch-action: none; }
-        #sport-ball-node:hover { box-shadow: 0 6px 14px rgba(0,0,0,0.9), 0 0 24px var(--role-color), 0 0 10px #FFFFFF; }
+        #sport-ball-node:hover { filter: drop-shadow(0 3px 3px rgba(0,0,0,0.65)) drop-shadow(0 0 8px var(--role-color)); }
+        #sport-ball-node svg { width: 100%; height: 100%; display: block; pointer-events: none; }
+        #sport-ball-node, #sport-ball-node * { user-select: none; -webkit-user-select: none; -webkit-user-drag: none; }
         #sport-ball-node.dragging { transition: none !important; cursor: grabbing; z-index: 96; transform: translate(-50%, -50%) scale(1.25); }
         /* Balón con volumen 3D: esfera, brillo y sombra proyectada sobre el césped */
         #sport-ball-node {
-            width: 26px; height: 26px; line-height: 1; filter: none;
-            background: radial-gradient(circle at 32% 26%, #FFFFFF 0%, #E5EAF1 38%, #9AA6B5 78%, #5B6676 100%);
-            border: 1.5px solid rgba(4, 6, 10, 0.92);
-            box-shadow: inset -3px -4px 7px rgba(0,0,0,0.38), inset 2px 2px 4px rgba(255,255,255,0.8), 0 5px 10px rgba(0,0,0,0.75), 0 0 14px rgba(255,255,255,0.55);
+            width: 34px; height: 34px; line-height: 1; filter: drop-shadow(0 3px 3px rgba(0,0,0,0.65));
+            background: none !important; border: 0 !important; border-radius: 50%;
+            box-shadow: none !important; font-size: 1.7rem;
             margin: 0; transition: left 0.72s cubic-bezier(0.22, 1, 0.36, 1), top 0.72s cubic-bezier(0.22, 1, 0.36, 1), margin 0.28s cubic-bezier(0.22, 1, 0.36, 1);
         }
         #sport-ball-node::after {
@@ -455,8 +463,8 @@
             border-radius: 50%; background: rgba(0,0,0,0.55); filter: blur(2.5px); z-index: -1; pointer-events: none;
         }
         /* Si una ficha lleva el balón, éste queda a sus pies y NO tapa el centro de la ficha (así siempre puedes agarrar la ficha) */
-        #sport-ball-node.held { margin: 14px 0 0 16px; }
-        #sport-ball-node.carried { transition: none !important; z-index: 97; margin: 14px 0 0 16px; box-shadow: inset -3px -4px 7px rgba(0,0,0,0.38), inset 2px 2px 4px rgba(255,255,255,0.8), 0 8px 14px rgba(0,0,0,0.7), 0 0 20px var(--role-color); }
+        #sport-ball-node.held { margin: 15px 0 0 17px; width: 28px; height: 28px; }
+        #sport-ball-node.carried { transition: none !important; z-index: 97; margin: 15px 0 0 17px; width: 28px; height: 28px; filter: drop-shadow(0 5px 4px rgba(0,0,0,0.7)) drop-shadow(0 0 8px var(--role-color)); }
         .micro-player-token.has-ball { border-color: #FFFFFF; }
         .micro-player-token.has-ball, .micro-rival-token.has-ball { box-shadow: 0 0 0 3px rgba(255,255,255,0.28), 0 6px 16px rgba(0,0,0,0.88), 0 0 14px rgba(255,255,255,0.55); }
         #arena-equip-layer, #arena-badge-layer { position: absolute; inset: 0; pointer-events: none !important; }
@@ -643,13 +651,41 @@
         }
     </style>
     <link rel="stylesheet" href="kinet-mobile-fix.css?v=38">
-<link rel="stylesheet" href="kinet-fx.css?v=41">
-<link rel="stylesheet" href="kinet-curtain.css?v=39">
-<script src="kinet-curtain.js?v=39"></script>
-<script src="kinet-fx.js?v=41"></script>
-<script src="kinet-usage.js?v=38"></script>
+<link rel="stylesheet" href="kinet-fx.css?v=44">
+<link rel="stylesheet" href="kinet-curtain.css?v=45">
+<script src="kinet-curtain.js?v=45"></script>
+<script src="kinet-fx.js?v=44"></script>
+<script src="kinet-usage.js?v=45"></script>
+<link rel="stylesheet" href="kinet-mobile.css?v=44">
+<script defer src="kinet-mobile.js?v=44"></script>
+    <script defer src="kinet-housekeeping.js?v=44"></script>
+<style id="kinet-vt">@view-transition { navigation: auto; } ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .16s; animation-timing-function: ease-out; } @media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }</style>
+<style id="kinet-noselect">
+/* Pizarras y fichas: nunca se selecciona el texto al arrastrar */
+.arena-3d-viewport, .arena-3d-viewport *, .micro-player-token, .micro-player-token *, .micro-rival-token, .micro-rival-token *,
+.lab-actor-token, .lab-actor-token *, .tactical-node-token, .tactical-node-token *, .bench-slot-pill, .bench-slot-pill *, #sport-ball-node, #sport-ball-node *,
+.equip-item, .equip-item * { -webkit-user-select: none !important; user-select: none !important; -webkit-touch-callout: none; -webkit-user-drag: none; }
+.arena-3d-viewport svg text, .arena-svg-canvas text { pointer-events: none; -webkit-user-select: none; user-select: none; }
+</style>
+<script>
+(function(){
+  var SEL = '.arena-3d-viewport, .tactical-node-token, .bench-slot-pill, .lab-actor-token, .micro-player-token, .micro-rival-token';
+  function inBoard(e){ var t = e.target; return t && t.closest && t.closest(SEL); }
+  document.addEventListener('selectstart', function(e){ if (inBoard(e)) e.preventDefault(); }, true);
+  document.addEventListener('dragstart', function(e){ if (inBoard(e)) e.preventDefault(); }, true);
+  document.addEventListener('pointerdown', function(e){
+    if (!inBoard(e)) return;
+    var s = window.getSelection && window.getSelection();
+    if (s && s.rangeCount && !s.isCollapsed) s.removeAllRanges();
+  }, true);
+})();
+</script>
 </head>
 <body data-role="athlete" class="lab-page">
+<script>/* rol desde el primer píxel: evita el parpadeo verde→color de rol al cargar */
+(function(){try{function n(v){if(!v)return null;v=String(v).toLowerCase();if(v==='athlete'||v.indexOf('atleta')>-1||v.indexOf('jugador')>-1)return'athlete';if(v==='staff'||/entrenador|coach|fisio|staff/.test(v))return'staff';if(v==='scout'||/scout|director|ojeador/.test(v))return'scout';return null}
+var r=n(localStorage.getItem('kinet_active_role'))||n(localStorage.getItem('kinet_role'))||n(new URLSearchParams(location.search).get('role'));if(r)document.body.setAttribute('data-role',r)}catch(e){}})();
+</script>
 
     <div class="os-layout">
         <!-- SIDEBAR -->
@@ -750,9 +786,6 @@
                             <div class="panel-head-fixed">
                                 <div class="panel-head-left">
                                     <div class="minimal-mode-switch">
-                                        <button type="button" class="minimal-mode-btn" onclick="returnToRosterPage()">
-                                            👥 Gestionar Plantilla
-                                        </button>
                                         <button type="button" class="minimal-mode-btn active">
                                             🎬 Jugadas & Estrategias IA ✓
                                         </button>
@@ -3785,7 +3818,7 @@
                 document.getElementById('arena-svg-mount').innerHTML = buildHorizontalSVG(activeArenaSport);
 
                 const ballIconMap = { 'Fútbol': '⚽', 'Baloncesto': '🏀', 'Pádel / Tenis': '🎾', 'Boxeo / MMA': '🥊', 'Running': '⏱️' };
-                document.getElementById('sport-ball-node').textContent = ballIconMap[activeArenaSport] || '⚽';
+                document.getElementById('sport-ball-node').innerHTML = kinetBallMarkup(activeArenaSport);
                 const cIcon = document.getElementById('curtain-icon');
                 if (cIcon) cIcon.textContent = ballIconMap[activeArenaSport] || '📋';
 
@@ -4627,6 +4660,18 @@
             }
         }
 
+        // Balón entero (sin disco blanco): SVG por deporte
+        function kinetBallMarkup(sport) {
+            if (sport === 'Baloncesto') {
+                return '<svg viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="kbB" cx="34%" cy="28%" r="75%"><stop offset="0" stop-color="#FFB46B"/><stop offset=".55" stop-color="#F0761F"/><stop offset="1" stop-color="#A3410C"/></radialGradient></defs><circle cx="50" cy="50" r="47" fill="url(#kbB)" stroke="#2A1305" stroke-width="3"/><g fill="none" stroke="#2A1305" stroke-width="3.2" stroke-linecap="round"><path d="M50 3V97M3 50H97"/><path d="M16 17C34 33 34 67 16 83"/><path d="M84 17C66 33 66 67 84 83"/></g></svg>';
+            }
+            if (sport === 'Pádel / Tenis') {
+                return '<svg viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="kbT" cx="34%" cy="28%" r="75%"><stop offset="0" stop-color="#F4FF8A"/><stop offset=".55" stop-color="#C6E22C"/><stop offset="1" stop-color="#6E8A0C"/></radialGradient></defs><circle cx="50" cy="50" r="47" fill="url(#kbT)" stroke="#2B3A06" stroke-width="3"/><g fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" opacity=".95"><path d="M12 24C38 38 38 62 12 76"/><path d="M88 24C62 38 62 62 88 76"/></g></svg>';
+            }
+            if (sport === 'Boxeo / MMA') return '<span style="font-size:1.9rem;line-height:1;display:block">🥊</span>';
+            if (sport === 'Running') return '<span style="font-size:1.9rem;line-height:1;display:block">⏱️</span>';
+            return '<svg viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="kbF" cx="34%" cy="28%" r="78%"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".6" stop-color="#E4E9F0"/><stop offset="1" stop-color="#9AA6B5"/></radialGradient></defs><circle cx="50" cy="50" r="47" fill="url(#kbF)" stroke="#0B0F16" stroke-width="3"/><g fill="#10151D"><polygon points="50,30 63,39 58,55 42,55 37,39"/><polygon points="50,3 62,10 50,18 38,10"/><polygon points="94,40 90,56 80,50 82,38"/><polygon points="6,40 10,56 20,50 18,38"/><polygon points="26,86 38,80 44,92 32,96"/><polygon points="74,86 62,80 56,92 68,96"/></g><g stroke="#10151D" stroke-width="2.4" fill="none"><path d="M50 30V18M63 39L80 50M58 55L62 80M42 55L38 80M37 39L20 50"/></g></svg>';
+        }
         function returnToRosterPage() {
             guardUnsavedPlay(() => {
                 sessionStorage.setItem('kinet_flip_transition', 'from_strategies');

@@ -1450,7 +1450,7 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
     };
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 45000);
+    const timeoutId = setTimeout(() => controller.abort(), functionName === 'kinet-image' ? 80000 : 45000);
 
     try {
       const res = await fetch(`${EDGE_FUNCTIONS_BASE}/${functionName}`, {
@@ -2131,23 +2131,6 @@ Reglas: los días se codifican 0=domingo,1=lunes,2=martes,3=miércoles,4=jueves,
         extracted = await extractVideoKeyframesBase64(videoFileOrElement, 6, 540, 0.68);
       }
 
-      const edgeData = await invokeSupabaseEdgeFunction('kinet-vision-lab', {
-        sport,
-        role,
-        clipTitle,
-        blockType,
-        matchContext,
-        userNotes,
-        subjectName,
-        subjectPos,
-        durationMinutes,
-        framesBase64: extracted.frames
-      });
-
-      if (edgeData && edgeData.ok) {
-        return edgeData;
-      }
-
       const visionSystemPrompt = `Contexto del atleta: ${buildAthleteContextLine()}
 Eres el motor biomecánico y táctico KINET Vision Analytics™ para ${sport}.
 Analiza los fotogramas del vídeo y el contexto ("${matchContext}", bloque "${blockType}", nota del usuario: "${userNotes}") para el sujeto ${subjectName} (${subjectPos}).
@@ -2167,6 +2150,19 @@ Devuelve ESTRICTAMENTE un JSON válido con esta estructura:
   "report": { "archetype": "<perfil de jugador observado>", "zones": "<zonas o acciones donde más influye>", "biomech": "<observaciones biomecánicas>", "advice": "<consejo concreto y accionable>" },
   "aiVerdict": "Dictamen técnico detallado de 2-3 frases en ${role === 'athlete' ? '1ª persona (dirigido a ti)' : '3ª persona (informe de scouting)'} sobre lo observado en los fotogramas y el contexto."
 }`;
+
+      const edgeData = await invokeSupabaseEdgeFunction('kinet-vision-lab', {
+        systemPrompt: visionSystemPrompt,
+        userPrompt: `Audita este clip de ${sport} (${blockType}). Contexto: ${matchContext}. Foco solicitado: ${userNotes}. Fotogramas adjuntos: ${extracted.frames.length}.`,
+        framesBase64: extracted.frames
+      });
+
+      if (edgeData && edgeData.ok) {
+        return edgeData;
+      }
+      if (edgeData && edgeData.limitReached) {
+        return { ok: false, limitReached: true, error: edgeData.reply || edgeData.error || 'Has alcanzado tu límite de IA de hoy. Se reinicia a las 00:00 h.' };
+      }
 
       try {
         const rawJsonText = await callDirectLLMProvider({
@@ -2303,8 +2299,20 @@ Devuelve ESTRICTAMENTE JSON:
       const q = this.getQuotaStatus();
       if (q.imageRemaining <= 0) return limitHit({ ok: false, limitReached: true, error: `Has alcanzado tu límite de ${q.imageLimit} imágenes al día en el ${q.tierName}. Se renueva a las 00:00 h.` }, 'Imágenes de hoy agotadas');
       if (!imageBudgetOk(cost)) return { ok: false, limitReached: true, error: 'Has alcanzado el presupuesto de imágenes IA de este mes. Se renueva el día 1.' };
+      // 1) SERVIDOR (recomendado): la clave de Google vive en la Edge Function `kinet-image`, no en el navegador, y el servidor aplica el cupo y el presupuesto.
+      try {
+        const srv = await invokeSupabaseEdgeFunction('kinet-image', { prompt: String(prompt).trim().slice(0, 700), imageDataUrl: imageDataUrl || null, aspect, style });
+        if (srv && srv.ok && srv.dataUrl) {
+          incrementDailyImageUsage();
+          addSpend(Math.max(cost, Number(srv.costEur) || 0));
+          return { ok: true, model: srv.model || 'server', dataUrl: srv.dataUrl };
+        }
+        if (srv && srv.limitReached) return limitHit({ ok: false, limitReached: true, error: srv.error || 'Has alcanzado tu límite de imágenes.' }, 'Imágenes de hoy agotadas');
+        if (srv && srv.error && srv.error !== 'sin-sesion') window.__kinetLastAiError = { status: 502, code: srv.error, kind: srv.code || '', detail: srv.detail || '', fn: 'kinet-image', at: Date.now() };
+      } catch (e) { /* si el servidor no responde, se prueba el modo directo (solo si hay clave) */ }
+      // 2) MODO DIRECTO (solo si hay una clave en este navegador: equipo o pruebas)
       const key = (localStorage.getItem('kinet_gemini_api_key') || KINET_API_CONFIG.GEMINI_API_KEY || DEFAULT_INSTALLED_API_KEY || '').trim();
-      if (!key) return { ok: false, error: isStaffSandboxUser() ? 'No hay clave de Google AI Studio configurada (botón "API IA" del Cuerpo Técnico).' : 'La IA de imágenes no está disponible ahora mismo. Mientras tanto puedes usar los filtros gratis y las plantillas. Inténtalo más tarde.' };
+      if (!key) return { ok: false, error: isStaffSandboxUser() ? 'La función del servidor `kinet-image` no responde y no hay clave local. Despliégala (supabase functions deploy kinet-image) o pon una clave en el botón "API IA" del Cuerpo Técnico.' : 'La IA de imágenes no está disponible ahora mismo. Mientras tanto puedes usar los filtros gratis y las plantillas. Inténtalo más tarde.' };
 
       const clean = String(prompt).trim().slice(0, 700);
       // EDICIÓN: se trata como retoque, no como "regenerar": la cara, el cuerpo y la pose NO se tocan.

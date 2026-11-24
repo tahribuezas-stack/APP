@@ -4,8 +4,15 @@
 <script src="kinet-guard.js?v=38"></script>
 <script src="kinet-sport.js?v=38"></script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#06080E">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="KINET OS">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#06080E">
     <title>KINET OS // Laboratorio Vision Analytics™</title>
     
     <!-- Favicon Corporativo Dinámico por JavaScript -->
@@ -44,12 +51,12 @@
     
     <!-- Librerías Oficiales PDF + Supabase + KINET Backend + Config APIs -->
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script defer src="kinet-pdf.js?v=41"></script>
+    <script defer src="kinet-pdf.js?v=44"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="kinet-backend.js?v=38"></script>
+    <script src="kinet-backend.js?v=44"></script>
 <script src="kinet-gestion.js?v=38"></script>
     <script src="kinet-positions.js?v=38"></script>
-    <script src="kinet-api-config.js?v=39"></script>
+    <script src="kinet-api-config.js?v=44"></script>
 
     <style>
         :root {
@@ -835,10 +842,13 @@
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
     <link rel="stylesheet" href="kinet-mobile-fix.css?v=38">
-<link rel="stylesheet" href="kinet-fx.css?v=41">
-<script src="kinet-fx.js?v=41"></script>
-<script src="kinet-usage.js?v=38"></script>
+<link rel="stylesheet" href="kinet-fx.css?v=44">
+<script src="kinet-fx.js?v=44"></script>
+<script src="kinet-usage.js?v=45"></script>
     <script src="kinet-ads.js?v=38"></script>
+<link rel="stylesheet" href="kinet-mobile.css?v=44">
+<script defer src="kinet-mobile.js?v=44"></script>
+    <script defer src="kinet-housekeeping.js?v=44"></script>
 </head>
 <body data-role="athlete">
 
@@ -985,6 +995,7 @@
                                 <!-- MONITOR GRANDE CON LÁSER DE PUNTA A PUNTA -->
                                 <div class="vision-hud-viewport">
                                     <video id="vision-real-video" class="vision-video-bg" loop muted playsinline></video>
+                                    <img id="vision-saved-thumb" class="vision-video-bg" alt="" style="filter:grayscale(.35) brightness(.8);">
                                     <div class="vision-scanline"></div>
                                     <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono'; font-size:0.65rem; color:var(--role-color);">
                                         <span id="hud-top-left-status">[REC ● ESCANEO BIOMECÁNICO IA // LISTO]</span>
@@ -1772,6 +1783,7 @@
         function initVisionLabCleanState() {
             currentSportSchema = resolveWizardSportSchema(activeSportName);
             loadSavedSessions();
+            window.addEventListener('pagehide', releaseVisionVideo);
 
             document.getElementById('t-lbl-1').textContent = currentSportSchema.pillLabels[0];
             document.getElementById('t-lbl-2').textContent = currentSportSchema.pillLabels[1];
@@ -1796,7 +1808,7 @@
             renderVisionSessionsList();
 
             if (analyzedSessionsHistory.length > 0) {
-                loadSessionIntoMonitor(analyzedSessionsHistory[0]);
+                loadSessionIntoMonitor(analyzedSessionsHistory[0], true);
             } else {
                 resetEmptyMonitorUI();
             }
@@ -1961,6 +1973,38 @@
             document.getElementById('hidden-vision-file-input').click();
         }
 
+        // El VÍDEO nunca se guarda (privacidad y espacio): solo viven las ESTADÍSTICAS del análisis + una miniatura diminuta como recuerdo visual.
+        let currentVisionVideoUrl = null;
+        function releaseVisionVideo() {
+            const v = document.getElementById('vision-real-video');
+            try { if (v) { v.pause(); v.removeAttribute('src'); v.load(); v.style.display = 'none'; } } catch (e) {}
+            if (currentVisionVideoUrl) { try { URL.revokeObjectURL(currentVisionVideoUrl); } catch (e) {} currentVisionVideoUrl = null; }
+        }
+        function grabVisionThumb(videoEl) {
+            return new Promise((resolve) => {
+                try {
+                    if (!videoEl || !videoEl.videoWidth) return resolve('');
+                    const draw = () => {
+                        try {
+                            const w = 240, h = Math.max(1, Math.round(w * videoEl.videoHeight / videoEl.videoWidth));
+                            const c = document.createElement('canvas'); c.width = w; c.height = h;
+                            c.getContext('2d').drawImage(videoEl, 0, 0, w, h);
+                            resolve(c.toDataURL('image/jpeg', 0.5));
+                        } catch (e) { resolve(''); }
+                    };
+                    const t = Math.min(1.2, (videoEl.duration || 2) / 2);
+                    if (Math.abs((videoEl.currentTime || 0) - t) < 0.05) return draw();
+                    const done = () => { videoEl.removeEventListener('seeked', done); draw(); };
+                    videoEl.addEventListener('seeked', done); videoEl.currentTime = t;
+                    setTimeout(() => resolve(''), 2500);
+                } catch (e) { resolve(''); }
+            });
+        }
+        function showSavedThumb(src) {
+            const im = document.getElementById('vision-saved-thumb'); if (!im) return;
+            if (src) { im.src = src; im.style.display = 'block'; } else { im.removeAttribute('src'); im.style.display = 'none'; }
+        }
+
         async function handleVisionClipFileSelected(input) {
             if (!input.files || !input.files[0]) return;
             const file = input.files[0];
@@ -1969,8 +2013,10 @@
             closeUploadWizardModal();
 
             const videoEl = document.getElementById('vision-real-video');
+            releaseVisionVideo(); showSavedThumb('');
             if (videoEl) {
-                videoEl.src = URL.createObjectURL(file);
+                currentVisionVideoUrl = URL.createObjectURL(file);
+                videoEl.src = currentVisionVideoUrl;
                 videoEl.style.display = 'block';
                 videoEl.play().catch(() => {});
             }
@@ -1978,6 +2024,7 @@
             const quotaNow = getAvailableVideoMinutesState();
             if (quotaNow.totalAvailable < opt.dur) {
                 document.getElementById('vision-upgrade-modal').classList.add('open');
+                releaseVisionVideo();
                 input.value = '';
                 return;
             }
@@ -2045,7 +2092,8 @@
                 const stT = document.getElementById('vision-status-title');
                 const stD = document.getElementById('vision-status-desc');
                 if (stT) stT.textContent = '⚠️ No se pudo analizar el vídeo';
-                if (stD) stD.textContent = aiErr + ' No se ha descontado ningún minuto. (Revisa tu clave en el botón "API IA" del Cuerpo Técnico.)';
+                if (stD) stD.textContent = aiErr + ' No se ha descontado ningún minuto.';
+                releaseVisionVideo();
                 input.value = '';
                 return;
             }
@@ -2057,8 +2105,12 @@
                 localStorage.setItem('kinet_verified_gps_speed', finalMetrics[1]);
             }
 
+            const thumb = await grabVisionThumb(videoEl);
+            const nowD = new Date();
             const newSession = {
                 id: 'vs_' + Date.now(),
+                createdAt: nowD.getTime(),
+                thumb: thumb,
                 fileName: file.name,
                 sport: activeSportName,
                 category: selectedWizardCat,
@@ -2072,7 +2124,7 @@
                 bars: finalBars,
                 aiVerdict: aiPersonalizedVerdict,
                 estimatedGrl: finalGrl,
-                dateStr: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+                dateStr: nowD.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }) + ' ' + nowD.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
             };
 
             analyzedSessionsHistory.unshift(newSession);
@@ -2080,16 +2132,19 @@
             loadSessionIntoMonitor(newSession);
             renderVisionSessionsList();
             input.value = '';
+            // El vídeo ya cumplió su función: se libera de la memoria (se conservan las estadísticas y la miniatura)
+            setTimeout(() => { releaseVisionVideo(); showSavedThumb(newSession.thumb); }, 6000);
         }
 
-        function loadSessionIntoMonitor(session) {
+        function loadSessionIntoMonitor(session, fromHistory) {
             currentActiveSession = session;
+            if (fromHistory) { releaseVisionVideo(); showSavedThumb(session.thumb || ''); }
             document.getElementById('vision-active-subject').textContent =
                 `${activeRoleKey === 'athlete' ? 'ATLETA' : 'EVALUADO'}: ${session.subjectName.toUpperCase()} (${session.subjectPos.toUpperCase()})`;
 
             document.getElementById('hud-top-left-status').textContent = `[REC ● ESCANEO BIOMECÁNICO IA // ${session.dateStr}]`;
             document.getElementById('vision-status-title').textContent = `${session.optionLabel} — ${session.matchContext}`;
-            document.getElementById('vision-status-desc').textContent = `${session.subjectPos} — "${session.userNotes}" (Sello KINET AI Verified activo)`;
+            document.getElementById('vision-status-desc').textContent = `${session.subjectPos} — "${session.userNotes}" (Sello KINET AI Verified activo)` + (fromHistory ? ' · Estadísticas guardadas. El vídeo no se conserva: se descarta tras el análisis para proteger tu privacidad y ahorrar espacio.' : '');
             document.getElementById('hud-bottom-left').textContent = 'SELLO: AI VERIFIED';
             document.getElementById('hud-bottom-right').textContent = `GRL ESTIMADO IA: ${session.estimatedGrl}`;
 
@@ -2129,7 +2184,8 @@
 
             box.innerHTML = analyzedSessionsHistory.map((s, idx) => `
                 <div class="session-history-row" onclick="loadSessionByIndex(${idx})">
-                    <div>
+                    ${s.thumb ? `<img src="${s.thumb}" alt="" style="width:46px;height:30px;object-fit:cover;border-radius:6px;margin-right:10px;border:1px solid var(--border-subtle);flex-shrink:0;">` : ''}
+                    <div style="flex:1;min-width:0;">
                         <div style="font-weight:800; font-size:0.8rem; color:white;">${s.subjectName} — <span style="color:var(--role-color);">${s.optionLabel}</span></div>
                         <div style="font-size:0.68rem; color:var(--text-secondary);">${s.matchContext} • ${s.metrics[1]} (${s.metrics[0]})</div>
                     </div>
@@ -2140,7 +2196,7 @@
 
         function loadSessionByIndex(idx) {
             if (analyzedSessionsHistory[idx]) {
-                loadSessionIntoMonitor(analyzedSessionsHistory[idx]);
+                loadSessionIntoMonitor(analyzedSessionsHistory[idx], true);
             }
         }
 

@@ -292,6 +292,8 @@
     return sbClient;
   }
 
+  // Claves temporales (traspasos entre pantallas, avisos, OAuth a medias): no tienen sentido en la nube ni en otros dispositivos
+  const TEMP_KEY_RE = /^kinet_(hk_day|media_studio_auto_|vision_lab_import_target|spotify_(verifier|return)|sync_toast_at|sync_reload_at|lite_notice|pending_stripe_item)/;
   function collectAllKinetLocalState() {
     const state = {};
     for (let i = 0; i < localStorage.length; i++) {
@@ -308,7 +310,8 @@
         k !== 'kinet_device_id' &&
         k !== 'kinet_sync_base' &&
         k !== 'kinet_sync_seen' &&
-        k !== 'kinet_sync_writer'
+        k !== 'kinet_sync_writer' &&
+        !TEMP_KEY_RE.test(k)
       ) {
         const val = localStorage.getItem(k);
         if (val && val.length < 600000) {
@@ -329,14 +332,18 @@
     kinet_staff_admin_role: 1, kinet_device_id: 1, kinet_sync_base: 1, kinet_sync_seen: 1, kinet_sync_writer: 1,
     kinet_account_tier: 1, kinet_is_pro: 1, kinet_ct_inflight: 1,   // plan: lo decide solo el servidor
     // Mensajes de un solo uso entre pantallas: NUNCA deben viajar a la nube (si no, al recargar se repiten)
-    kinet_pending_question: 1, kinet_target_agent: 1, kinet_pending_dm_broadcast: 1, kinet_ct_consumed: 1
+    kinet_pending_question: 1, kinet_target_agent: 1, kinet_pending_dm_broadcast: 1, kinet_ct_consumed: 1,
+    kinet_hk_day: 1, kinet_media_studio_auto_prompt: 1, kinet_media_studio_auto_preset: 1, kinet_vision_lab_import_target: 1,
+    kinet_spotify_verifier: 1, kinet_spotify_return: 1, kinet_sync_toast_at: 1, kinet_sync_reload_at: 1, kinet_lite_notice: 1, kinet_pending_stripe_item: 1
   };
   const CHANGE_IGNORE = {
     kinet_auth_session_token: 1, kinet_avatar_updated_at: 1, kinet_unread_dm_count: 1, kinet_mode: 1, kinet_logged_in: 1,
     kinet_account_tier: 1, kinet_is_pro: 1, kinet_bonus_video_mins: 1, kinet_video_mins_used: 1, kinet_user_id: 1,
     kinet_sync_base: 1, kinet_sync_seen: 1, kinet_sync_writer: 1, kinet_staff_admin_role: 1, kinet_device_id: 1,
     kinet_social_configured: 1, kinet_profile_completed: 1, kinet_official_welcome_read: 1, kinet_ct_inflight: 1,
-    kinet_pending_question: 1, kinet_target_agent: 1, kinet_pending_dm_broadcast: 1, kinet_ct_consumed: 1
+    kinet_pending_question: 1, kinet_target_agent: 1, kinet_pending_dm_broadcast: 1, kinet_ct_consumed: 1,
+    kinet_hk_day: 1, kinet_media_studio_auto_prompt: 1, kinet_media_studio_auto_preset: 1, kinet_vision_lab_import_target: 1,
+    kinet_spotify_verifier: 1, kinet_spotify_return: 1, kinet_sync_toast_at: 1, kinet_sync_reload_at: 1, kinet_lite_notice: 1, kinet_pending_stripe_item: 1
   };
   function hashStr(str) {
     let h = 5381;

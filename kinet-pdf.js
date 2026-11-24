@@ -395,14 +395,25 @@
       });
     } catch (e) {}
   }
+  // html2canvas NO sabe dibujar sombras difuminadas (las pinta como bloques sólidos → "velo" gris/negro), ni perspectiva 3D,
+  // ni animaciones a medias. En el clon que se captura se aplanan: sin sombras/filtros/transiciones y con el campo 3D en plano.
+  var CAPTURE_CSS = '*,*::before,*::after{box-shadow:none!important;text-shadow:none!important;filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;transition:none!important;animation:none!important}' +
+    '#broadcaster-export-stage .arena-3d-viewport,.arena-3d-viewport{height:370px!important;overflow:hidden!important;background:#06090F!important;border-color:rgba(255,255,255,.12)!important}' +
+    '#broadcaster-export-stage .arena-3d-surface,.arena-3d-surface{transform:none!important;width:94%!important;height:90%!important}' +
+    '#broadcaster-export-stage .tactical-node-token,.tactical-node-token,.tactical-node-token:hover,.tactical-node-token.selected-slot{transform:translate(-50%,-50%)!important;border-style:solid!important}' +
+    '.tactical-node-token.empty-slot{border-style:dashed!important}.mini-card-remove-x{display:none!important}';
+  function prepClone(doc) {
+    try { var st = doc.createElement('style'); st.textContent = CAPTURE_CSS; (doc.head || doc.documentElement).appendChild(st); } catch (e) {}
+  }
   // Captura SIN "allowTaint": una imagen de otro dominio sin permiso ya no rompe la exportación (se omite y el resto sale bien)
   async function capture(el, o) {
     o = o || {};
     if (typeof html2canvas !== 'function') throw new Error('html2canvas no está cargado');
-    var base = { scale: o.scale || 2, backgroundColor: o.bg == null ? null : o.bg, useCORS: true, allowTaint: false, logging: false, imageTimeout: 9000 };
+    try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch (e) {}
+    var base = { scale: o.scale || 2, backgroundColor: o.bg == null ? null : o.bg, useCORS: true, allowTaint: false, logging: false, imageTimeout: 9000, onclone: function (doc) { prepClone(doc); } };
     var cv;
     try { cv = await html2canvas(el, base); cv.toDataURL('image/jpeg', 0.3); }
-    catch (e) { cv = await html2canvas(el, Object.assign({}, base, { onclone: function (doc) { stripForeign(doc); } })); }
+    catch (e) { cv = await html2canvas(el, Object.assign({}, base, { onclone: function (doc) { prepClone(doc); stripForeign(doc); } })); }
     return cv;
   }
   // Coloca una captura dentro de un rectángulo SIN deformarla (misma proporción), en JPEG para que el PDF pese poco

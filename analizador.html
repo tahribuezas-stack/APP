@@ -5,8 +5,15 @@
 <script src="kinet-teams.js?v=38"></script>
 <script src="kinet-sport.js?v=38"></script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#06080E">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="KINET OS">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#06080E">
     <title>KINET OS // Analizador & Plantilla 3D</title>
     
     <!-- Favicon Corporativo Dinámico por JavaScript -->
@@ -20,12 +27,12 @@
     <!-- Librerías Oficiales para Captura HD (html2canvas) + PDF + Supabase + KINET Backend v5.7 + APIs -->
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script defer src="kinet-pdf.js?v=41"></script>
+    <script defer src="kinet-pdf.js?v=44"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="kinet-backend.js?v=38"></script>
+    <script src="kinet-backend.js?v=44"></script>
 <script src="kinet-gestion.js?v=38"></script>
     <script src="kinet-positions.js?v=38"></script>
-    <script src="kinet-api-config.js?v=39"></script>
+    <script src="kinet-api-config.js?v=44"></script>
 
     <style>
         :root {
@@ -1509,17 +1516,46 @@
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
     <link rel="stylesheet" href="kinet-mobile-fix.css?v=38">
-<link rel="stylesheet" href="kinet-fx.css?v=41">
-<link rel="stylesheet" href="kinet-curtain.css?v=39">
-<script src="kinet-curtain.js?v=39"></script>
-<script src="kinet-fx.js?v=41"></script>
-<script src="kinet-usage.js?v=38"></script>
+<link rel="stylesheet" href="kinet-fx.css?v=44">
+<link rel="stylesheet" href="kinet-curtain.css?v=45">
+<script src="kinet-curtain.js?v=45"></script>
+<script src="kinet-fx.js?v=44"></script>
+<script src="kinet-usage.js?v=45"></script>
     <script src="kinet-ads.js?v=38"></script>
+<link rel="stylesheet" href="kinet-mobile.css?v=44">
+<script defer src="kinet-mobile.js?v=44"></script>
+    <script defer src="kinet-housekeeping.js?v=44"></script>
+<style id="kinet-vt">@view-transition { navigation: auto; } ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .16s; animation-timing-function: ease-out; } @media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }</style>
+<style id="kinet-noselect">
+/* Pizarras y fichas: nunca se selecciona el texto al arrastrar */
+.arena-3d-viewport, .arena-3d-viewport *, .micro-player-token, .micro-player-token *, .micro-rival-token, .micro-rival-token *,
+.lab-actor-token, .lab-actor-token *, .tactical-node-token, .tactical-node-token *, .bench-slot-pill, .bench-slot-pill *, #sport-ball-node, #sport-ball-node *,
+.equip-item, .equip-item * { -webkit-user-select: none !important; user-select: none !important; -webkit-touch-callout: none; -webkit-user-drag: none; }
+.arena-3d-viewport svg text, .arena-svg-canvas text { pointer-events: none; -webkit-user-select: none; user-select: none; }
+</style>
+<script>
+(function(){
+  var SEL = '.arena-3d-viewport, .tactical-node-token, .bench-slot-pill, .lab-actor-token, .micro-player-token, .micro-rival-token';
+  function inBoard(e){ var t = e.target; return t && t.closest && t.closest(SEL); }
+  document.addEventListener('selectstart', function(e){ if (inBoard(e)) e.preventDefault(); }, true);
+  document.addEventListener('dragstart', function(e){ if (inBoard(e)) e.preventDefault(); }, true);
+  document.addEventListener('pointerdown', function(e){
+    if (!inBoard(e)) return;
+    var s = window.getSelection && window.getSelection();
+    if (s && s.rangeCount && !s.isCollapsed) s.removeAllRanges();
+  }, true);
+})();
+</script>
 </head>
 <body data-role="athlete">
+<script>/* rol desde el primer píxel: evita el parpadeo verde→color de rol al cargar */
+(function(){try{function n(v){if(!v)return null;v=String(v).toLowerCase();if(v==='athlete'||v.indexOf('atleta')>-1||v.indexOf('jugador')>-1)return'athlete';if(v==='staff'||/entrenador|coach|fisio|staff/.test(v))return'staff';if(v==='scout'||/scout|director|ojeador/.test(v))return'scout';return null}
+var r=n(localStorage.getItem('kinet_active_role'))||n(localStorage.getItem('kinet_role'))||n(new URLSearchParams(location.search).get('role'));if(r)document.body.setAttribute('data-role',r)}catch(e){}})();
+</script>
 
     <!-- INPUT OCULTO PARA SUBIR ESCUDO DEL EQUIPO EN EL PÓSTER DE PARTIDO -->
     <input type="file" id="hidden-club-crest-input" accept="image/*" style="display:none;" onchange="handleClubCrestSelected(this)">
+    <input type="file" id="hidden-rival-crest-input" accept="image/*" style="display:none;" onchange="handleRivalCrestSelected(this)">
 
     <div class="os-layout">
         
@@ -1965,6 +2001,9 @@
                     <button type="button" class="btn-secondary" style="padding:7px 11px;font-size:0.6rem;border-color:var(--role-color);color:var(--role-color);" onclick="document.getElementById('hidden-club-crest-input').click()">
                         🛡️ Subir Escudo Club
                     </button>
+                    <button type="button" class="btn-secondary" style="padding:7px 11px;font-size:0.6rem;" onclick="document.getElementById('hidden-rival-crest-input').click()">
+                        ⚔️ Escudo Rival
+                    </button>
                 </div>
                 <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:var(--role-color);font-weight:700;" id="broadcaster-status-msg">● LISTO PARA EXPORTAR O PUBLICAR</span>
             </div>
@@ -1986,6 +2025,14 @@
                 <div class="md-field-group">
                     <label>📍 ESTADIO / PABELLÓN / PISTA</label>
                     <input type="text" id="md-match-venue" class="kinet-input" placeholder="Ej: ESTADIO CENTRAL" value="ESTADIO CENTRAL" oninput="rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63()">
+                </div>
+                <div class="md-field-group xi-only">
+                    <label>🧑‍💼 ENTRENADOR (OPCIONAL)</label>
+                    <input type="text" id="md-coach" class="kinet-input" placeholder="Ej: Xabi Alonso" value="" oninput="rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63()">
+                </div>
+                <div class="md-field-group xi-only">
+                    <label>©️ CAPITÁN</label>
+                    <select id="md-captain" class="kinet-input" onchange="xiCaptainIdx = parseInt(this.value, 10); rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63()"><option value="-1">Sin capitán</option></select>
                 </div>
             </div>
 
@@ -3632,15 +3679,216 @@
             rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
         }
 
+        // Los escudos se reducen a 256 px (PNG con transparencia): pesan unos KB y se ven nítidos en el póster
+        function shrinkCrest(dataUrl) {
+            return new Promise((resolve) => {
+                const im = new Image();
+                im.onload = () => {
+                    try {
+                        const sc = Math.min(1, 256 / Math.max(im.width, im.height));
+                        const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(im.width * sc)); c.height = Math.max(1, Math.round(im.height * sc));
+                        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+                        resolve(c.toDataURL('image/png'));
+                    } catch (e) { resolve(dataUrl); }
+                };
+                im.onerror = () => resolve(dataUrl);
+                im.src = dataUrl;
+            });
+        }
+        let uploadedRivalCrestUrl = null;   // el escudo rival cambia cada partido: solo vive en esta sesión
+        let xiCaptainIdx = -1;
         function handleClubCrestSelected(input) {
             if (!input.files || !input.files[0]) return;
             const reader = new FileReader();
-            reader.onload = function (e) {
-                uploadedClubCrestUrl = e.target.result;
+            reader.onload = async function (e) {
+                uploadedClubCrestUrl = await shrinkCrest(e.target.result);
                 try { localStorage.setItem('kinet_club_crest_url', uploadedClubCrestUrl); } catch (err) {}
                 rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
             };
             reader.readAsDataURL(input.files[0]);
+            input.value = '';
+        }
+        function handleRivalCrestSelected(input) {
+            if (!input.files || !input.files[0]) return;
+            const reader = new FileReader();
+            reader.onload = async function (e) {
+                uploadedRivalCrestUrl = await shrinkCrest(e.target.result);
+                rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+            };
+            reader.readAsDataURL(input.files[0]);
+            input.value = '';
+        }
+
+        // ---------- PÓSTER "STARTING XI" ----------
+        const XI_ROMAN = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V', 6: 'VI', 7: 'VII', 8: 'VIII', 9: 'IX', 10: 'X', 11: 'XI', 12: 'XII', 13: 'XIII', 14: 'XIV', 15: 'XV' };
+        function xiEsc(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+        function xiShortName(full) {
+            const parts = String(full || '').trim().split(/\s+/).filter(Boolean);
+            if (parts.length <= 1) return parts[0] || '';
+            return parts[0][0].toUpperCase() + '. ' + parts.slice(1).join(' ');
+        }
+        function xiCrestBox(url, fallbackHtml, size) {
+            if (url) return `<div style="width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;"><img src="${url}" alt="" style="max-width:100%;max-height:100%;object-fit:contain;"></div>`;
+            return fallbackHtml;
+        }
+        // Mini pista del póster: misma geometría (600×420) que la pizarra principal de cada deporte, con divs puros (html2canvas)
+        function xiCourtHtml(sportKey) {
+            const P = (x, y, w, h, st) => `<div style="position:absolute;left:${(x / 6).toFixed(2)}%;top:${(y / 4.2).toFixed(2)}%;width:${(w / 6).toFixed(2)}%;height:${(h / 4.2).toFixed(2)}%;box-sizing:border-box;${st || ''}"></div>`;
+            const W = 'rgba(255,255,255,.62)';
+            const b1 = `1px solid ${W}`;
+            if (sportKey === 'Baloncesto') {
+                return P(0, 0, 600, 420, 'background:repeating-linear-gradient(0deg,#1E1812 0 4px,#17130E 4px 8px);')
+                    + P(215, 16, 170, 155, 'background:rgba(245,158,11,.22);border:1px solid #F59E0B;')
+                    + P(24, 16, 552, 388, `border:${b1};`)
+                    + P(66, 16, 0, 114, `border-left:${b1};`) + P(534, 16, 0, 114, `border-left:${b1};`)
+                    + P(66, 130, 468, 215, 'border:1px solid #00FF88;border-top:0;border-radius:0 0 50% 50% / 0 0 100% 100%;')
+                    + P(246, 117, 108, 108, `border:${b1};border-radius:50%;`)
+                    + P(270, 36, 60, 0, 'border-top:2px solid #fff;')
+                    + P(289, 37, 22, 22, 'border:1.5px solid #F59E0B;border-radius:50%;')
+                    + P(220, 324, 160, 80, `border:${b1};border-bottom:0;border-radius:50% 50% 0 0 / 100% 100% 0 0;`);
+            }
+            if (sportKey === 'Pádel / Tenis') {
+                return P(0, 0, 600, 420, 'background:#071B30;')
+                    + P(48, 20, 504, 380, 'background:#0B2847;border:1.5px solid #38BDF8;')
+                    + P(48, 82, 504, 0, `border-top:${b1};`) + P(48, 338, 504, 0, `border-top:${b1};`)
+                    + P(300, 82, 0, 256, `border-left:${b1};`)
+                    + P(40, 207, 520, 5, 'background:#00FF88;');
+            }
+            if (sportKey === 'Boxeo / MMA') {
+                return P(0, 0, 600, 420, 'background:#070A12;')
+                    + P(40, 20, 520, 380, 'background:#0D1320;border:1px solid rgba(255,255,255,.3);border-radius:22%;')
+                    + P(110, 52, 380, 316, `background:rgba(16,23,38,.9);border:1.5px solid ${W};`)
+                    + P(185, 95, 230, 230, 'border:1px dashed rgba(0,255,136,.35);border-radius:50%;')
+                    + P(242, 152, 116, 116, 'background:rgba(0,255,136,.1);border:1.5px solid #00FF88;border-radius:50%;')
+                    + `<div style="position:absolute;left:${(110 / 6).toFixed(2)}%;top:${(52 / 4.2).toFixed(2)}%;width:0;height:0;border-top:12px solid #EF4444;border-right:12px solid transparent;"></div>`
+                    + `<div style="position:absolute;right:${((600 - 490) / 6).toFixed(2)}%;bottom:${((420 - 368) / 4.2).toFixed(2)}%;width:0;height:0;border-bottom:12px solid #3B82F6;border-left:12px solid transparent;"></div>`;
+            }
+            if (sportKey !== 'Fútbol' && sportKey) {   // Running / otros: pista de atletismo
+                return P(0, 0, 600, 420, 'background:#090D16;')
+                    + P(28, 24, 544, 372, `background:#6E1D1B;border:1px solid ${W};border-radius:33%/48%;`)
+                    + P(52, 48, 496, 324, 'border:1px dashed rgba(255,255,255,.45);border-radius:31%/48%;')
+                    + P(78, 74, 444, 272, 'border:1px dashed rgba(255,255,255,.35);border-radius:29%/48%;')
+                    + P(104, 100, 392, 220, 'background:#0A1F17;border:1.5px solid #00FF88;border-radius:27%/48%;')
+                    + P(419, 24, 0, 76, 'border-left:2px solid #fff;');
+            }
+            return P(0, 0, 600, 420, 'background:linear-gradient(180deg,#06160F 0 50%,#0A2217 50% 100%);background-size:100% 10%;')
+                + P(24, 16, 552, 388, `border:${b1};`)
+                + P(24, 209, 552, 0, `border-top:${b1};`)
+                + P(248, 158, 104, 104, `border:${b1};border-radius:50%;`)
+                + P(165, 16, 270, 78, `border:${b1};`) + P(225, 16, 150, 30, `border:${b1};`)
+                + P(165, 326, 270, 78, `border:${b1};`) + P(225, 374, 150, 30, `border:${b1};`);
+        }
+
+        function buildStartingXiHtml(o) {
+            const slots = currentBoardSlots || [];
+            const n = slots.length;
+            const subs = (benchSlots || []).map((b, i) => ({ b, i })).filter(x => x.b.player);
+            const coach = (document.getElementById('md-coach')?.value || '').trim();
+            const numOf = (sl, i) => (sl.player && (sl.player.number || sl.player.dorsal)) ? (sl.player.number || sl.player.dorsal) : (i + 1);
+            const grls = slots.filter(sl => sl.player && Number(sl.player.grl) > 0).map(sl => Number(sl.player.grl));
+            const avg = grls.length ? Math.round(grls.reduce((a, b) => a + b, 0) / grls.length) : null;
+            const sport = String(activeArenaSport || 'Fútbol').toUpperCase();
+            const preset = String(currentPresetName || '').replace(/\s*\(.*$/, '');
+
+            const isSolo = n <= 1;
+            const roman = XI_ROMAN[n] || String(n);
+            const isFight = /BOXEO|MMA/i.test(String(activeArenaSport));
+            const titleTop = isFight ? 'FIGHT' : isSolo ? 'ATLETA' : 'STARTING';
+            const titleAcc = isFight ? 'CARD' : isSolo ? 'TITULAR' : roman;
+
+            const rs = n <= 2 ? 24 : n <= 5 ? 19 : n <= 8 ? 16.5 : n <= 11 ? 14.5 : 12;      // tamaño de letra de la lista según el nº de titulares
+            const gap = n <= 2 ? 22 : n <= 5 ? 14 : n <= 8 ? 10 : n <= 11 ? 7.5 : 5;
+            const stackPos = n <= 8;   // pocos titulares: la demarcación (a veces larga) va debajo del nombre
+            const rows = slots.map((sl, i) => {
+                const name = sl.player ? xiShortName(sl.player.name) : 'Por asignar';
+                const isCap = i === xiCaptainIdx;
+                return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:${gap}px;">
+                    <div style="width:${rs + 18}px;flex-shrink:0;text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:5px;">
+                        ${isCap ? `<span style="width:${rs + 1}px;height:${rs + 1}px;border-radius:50%;background:var(--role-color);color:#04060A;font-family:'Orbitron';font-weight:900;font-size:${Math.max(8, rs - 6)}px;line-height:${rs + 1}px;text-align:center;display:inline-block;">C</span>` : ''}
+                        <span style="font-family:'Orbitron';font-weight:800;font-size:${rs}px;color:#FFFFFF;">${numOf(sl, i)}</span>
+                    </div>
+                    <div style="min-width:0;flex:1;">
+                        <div style="font-family:'Inter',sans-serif;font-weight:800;font-size:${rs + 1}px;line-height:1.15;color:${sl.player ? '#F8FAFC' : 'rgba(255,255,255,.35)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.01em;">${xiEsc(name)}</div>
+                        ${stackPos ? `<div style="font-family:'JetBrains Mono';font-weight:700;font-size:9px;letter-spacing:.08em;color:var(--role-color);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${xiEsc(sl.pos)}</div>` : ''}
+                    </div>
+                    ${stackPos ? '' : `<div style="font-family:'JetBrains Mono';font-weight:700;font-size:${Math.max(8, rs - 6)}px;color:var(--role-color);opacity:.9;flex-shrink:0;">${xiEsc(sl.pos)}</div>`}
+                </div>`;
+            }).join('');
+
+            const subsHtml = subs.length
+                ? subs.slice(0, 12).map(x => `<div style="display:flex;gap:6px;font-size:10.5px;line-height:1.5;white-space:nowrap;overflow:hidden;"><span style="font-family:'Orbitron';font-weight:800;color:var(--role-color);min-width:18px;text-align:right;">${x.i + n + 1}</span><span style="font-family:'Inter';font-weight:600;color:#CBD5E1;overflow:hidden;text-overflow:ellipsis;">${xiEsc(xiShortName(x.b.player.name))}</span></div>`).join('')
+                : `<div style="font-size:10.5px;color:#94A3B8;">Convocatoria abierta</div>`;
+
+            // Mini pizarra táctica (div puros: html2canvas los dibuja siempre bien)
+            const dots = slots.map((sl, i) => {
+                const filled = !!sl.player;
+                return `<div style="position:absolute;left:${sl.x}%;top:${sl.y}%;width:15px;height:15px;margin:-7.5px 0 0 -7.5px;border-radius:50%;box-sizing:border-box;border:1.5px solid var(--role-color);background:${filled ? 'var(--role-color)' : 'rgba(4,6,10,.8)'};color:${filled ? '#04060A' : 'var(--role-color)'};font-family:'Orbitron';font-weight:900;font-size:7px;line-height:12px;text-align:center;">${numOf(sl, i)}</div>`;
+            }).join('');
+
+            const ownCrest = xiCrestBox(uploadedClubCrestUrl,
+                `<div style="width:54px;height:54px;border-radius:14px;background:var(--role-gradient);color:#04060A;font-family:'Orbitron';font-weight:900;font-size:28px;line-height:54px;text-align:center;">K</div>`, 54);
+            const rivInit = xiEsc((o.rivalTeam || 'RIVAL').split(/\s+/).map(w => w[0]).join('').slice(0, 3));
+            const rivalCrest = xiCrestBox(uploadedRivalCrestUrl,
+                `<div style="width:54px;height:54px;border-radius:50%;box-sizing:border-box;border:2px solid rgba(255,255,255,.55);color:#FFFFFF;font-family:'Orbitron';font-weight:900;font-size:${rivInit.length > 2 ? 15 : 19}px;line-height:50px;text-align:center;">${rivInit}</div>`, 54);
+
+            return `
+            <div class="xi-poster" style="position:relative;width:100%;aspect-ratio:4 / 5;overflow:hidden;border-radius:18px;background:linear-gradient(155deg,#0B1226 0%,#0A0F1F 48%,#060914 100%);border:1.5px solid rgba(var(--role-rgb),.55);box-sizing:border-box;">
+                <div style="position:absolute;right:-18%;top:6%;width:84%;height:70%;border-radius:50%;background:radial-gradient(circle at 50% 50%,rgba(var(--role-rgb),.30) 0%,rgba(var(--role-rgb),.10) 45%,rgba(var(--role-rgb),0) 70%);"></div>
+                <div style="position:absolute;left:-30%;bottom:-24%;width:90%;height:60%;border-radius:50%;background:radial-gradient(circle at 50% 50%,rgba(56,189,248,.16) 0%,rgba(56,189,248,0) 68%);"></div>
+                <div style="position:absolute;left:-10%;top:30%;width:130%;height:1px;background:rgba(255,255,255,.06);transform:rotate(-14deg);"></div>
+                <div style="position:absolute;left:-10%;top:46%;width:130%;height:1px;background:rgba(255,255,255,.05);transform:rotate(-14deg);"></div>
+                <div style="position:absolute;left:-10%;top:62%;width:130%;height:1px;background:rgba(var(--role-rgb),.18);transform:rotate(-14deg);"></div>
+                <div style="position:absolute;right:3%;top:2%;font-family:'Orbitron';font-weight:900;font-size:230px;line-height:1;color:rgba(255,255,255,.035);">K</div>
+
+                <!-- cabecera: escudos -->
+                <div style="position:absolute;left:6.5%;top:4.2%;right:6.5%;display:flex;align-items:center;gap:14px;">
+                    ${ownCrest}
+                    <div style="width:1.5px;height:44px;background:rgba(255,255,255,.35);"></div>
+                    ${rivalCrest}
+                    <div style="margin-left:auto;text-align:right;">
+                        <div style="font-family:'JetBrains Mono';font-weight:700;font-size:9px;letter-spacing:.14em;color:var(--role-color);">KINET MATCHDAY</div>
+                        <div style="font-family:'JetBrains Mono';font-size:8.5px;letter-spacing:.1em;color:#94A3B8;margin-top:3px;">${xiEsc(sport)}</div>
+                    </div>
+                </div>
+
+                <!-- título -->
+                <div style="position:absolute;left:6.5%;top:19%;right:6.5%;">
+                    <div style="font-family:'Orbitron';font-weight:900;font-size:41px;line-height:1;letter-spacing:.01em;color:#FFFFFF;white-space:nowrap;">${titleTop} <span style="color:var(--role-color);">${titleAcc}</span></div>
+                    <div style="height:2px;width:100%;margin:8px 0 6px;background:linear-gradient(90deg,var(--role-color),rgba(var(--role-rgb),0));"></div>
+                    <div style="font-family:'JetBrains Mono';font-weight:700;font-size:9.5px;letter-spacing:.12em;color:#CBD5E1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">ALINEACIÓN • ${xiEsc(o.myTeam)} <span style="color:var(--role-color);">VS</span> ${xiEsc(o.rivalTeam)}</div>
+                    <div style="font-family:'JetBrains Mono';font-size:8.5px;letter-spacing:.08em;color:#94A3B8;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${xiEsc(o.matchTime)} • ${xiEsc(o.matchVenue)}</div>
+                </div>
+
+                <!-- lista de titulares -->
+                <div style="position:absolute;left:6.5%;top:34.5%;width:52%;">${rows}</div>
+
+                <!-- diseño KINET (sustituye a la foto) -->
+                <div style="position:absolute;right:5%;top:33%;width:34%;text-align:center;">
+                    <div style="position:relative;width:66%;margin:0 auto;padding-top:66%;">
+                        <div style="position:absolute;inset:0;border-radius:50%;box-sizing:border-box;border:1.5px solid rgba(var(--role-rgb),.55);background:radial-gradient(circle at 50% 40%,rgba(var(--role-rgb),.28),rgba(var(--role-rgb),.04) 70%);"></div>
+                        <div style="position:absolute;inset:11%;border-radius:50%;box-sizing:border-box;border:1px dashed rgba(255,255,255,.35);"></div>
+                        <div style="position:absolute;inset:24%;border-radius:50%;box-sizing:border-box;border:1.5px solid var(--role-color);background:rgba(5,8,17,.85);"></div>
+                        <div style="position:absolute;left:0;right:0;top:50%;margin-top:-19px;font-family:'Orbitron';font-weight:900;font-size:34px;line-height:38px;color:var(--role-color);">K</div>
+                    </div>
+                    <div style="margin-top:7px;font-family:'JetBrains Mono';font-weight:700;font-size:8px;letter-spacing:.14em;color:#94A3B8;">${avg ? 'MEDIA GRL' : 'KINET OS'}</div>
+                    <div style="font-family:'Orbitron';font-weight:900;font-size:${avg ? 26 : 14}px;line-height:1.1;color:#FFFFFF;">${avg ? avg : 'ELITE'}</div>
+                    <div style="margin-top:8px;font-family:'JetBrains Mono';font-weight:700;font-size:8px;letter-spacing:.12em;color:var(--role-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${xiEsc(preset || 'SISTEMA')}</div>
+                    <div style="position:relative;margin-top:5px;width:100%;padding-top:70%;border:1px solid rgba(255,255,255,.22);border-radius:6px;box-sizing:border-box;background:rgba(5,8,17,.55);">
+                        <div style="position:absolute;inset:0;overflow:hidden;border-radius:5px;">${xiCourtHtml(activeArenaSport)}</div>
+                        ${dots}
+                    </div>
+                </div>
+
+                <!-- suplentes -->
+                <div style="position:absolute;left:6.5%;right:6.5%;bottom:5.4%;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+                        <div style="font-family:'Orbitron';font-weight:800;font-size:10px;letter-spacing:.1em;color:var(--role-color);">SUPLENTES</div>
+                        ${coach ? `<div style="font-family:'Inter';font-weight:700;font-size:10px;color:#E2E8F0;margin-left:auto;">DT · ${xiEsc(coach)}</div>` : ''}
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0 10px;">${subsHtml}</div>
+                </div>
+                <div style="position:absolute;left:6.5%;right:6.5%;bottom:1.6%;display:flex;justify-content:space-between;font-family:'JetBrains Mono';font-size:7.5px;letter-spacing:.1em;color:#64748B;"><span>KINET OS · ALINEACIÓN OFICIAL</span><span>kinetos.es</span></div>
+            </div>`;
         }
 
         function rpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63() {
@@ -3657,56 +3905,34 @@
                 ? `<img src="${uploadedClubCrestUrl}" style="width:52px;height:52px;border-radius:12px;object-fit:contain;background:rgba(255,255,255,0.06);padding:4px;border:1.5px solid var(--role-color);">`
                 : `<div style="width:52px;height:52px;border-radius:12px;background:var(--role-gradient);color:#04060A;font-family:'Orbitron';font-weight:900;font-size:1.45rem;display:flex;align-items:center;justify-content:center;box-shadow:0 0 18px var(--role-glow);">K</div>`;
 
-            // FORMATO 1: PÓSTER OFICIAL DE CONVOCATORIA / ONCE DE PARTIDO (ESTILO TV CLUBES)
+            // FORMATO 1: PÓSTER "STARTING XI" KINET (alineación oficial con escudos propio y rival)
             if (activeBroadcasterFormat === 'poster') {
                 if (inputsRow) inputsRow.style.display = 'grid';
-                const starters = currentBoardSlots.map((s, idx) => ({
-                    num: idx + 1,
-                    pos: s.pos,
-                    name: s.player ? s.player.name : 'Por asignar',
-                    grl: s.player && s.player.grl ? s.player.grl : '--'
-                }));
-                const subs = benchSlots.filter(b => b.player).map(b => `${b.player.name.split(' ')[0]} (${b.pos})`);
-
-                stage.innerHTML = `
-                    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.12);padding-bottom:12px;margin-bottom:14px;gap:12px;flex-wrap:wrap;">
-                        <div style="display:flex;align-items:center;gap:12px;">
-                            ${crestHtml}
-                            <div>
-                                <div style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--role-color);letter-spacing:0.15em;">OFFICIAL MATCHDAY LINEUP • ${activeArenaSport.toUpperCase()}</div>
-                                <div style="font-family:'Orbitron';font-size:1.2rem;font-weight:900;color:white;letter-spacing:-0.01em;">${myTeam} <span style="color:var(--role-color);font-size:0.85rem;">VS</span> ${rivalTeam}</div>
-                                <div style="font-family:'JetBrains Mono';font-size:0.62rem;color:#94A3B8;margin-top:2px;">📍 ${matchVenue}   |   🕒 ${matchTime}   |   📐 ${currentPresetName}</div>
-                            </div>
-                        </div>
-                        <div style="font-family:'Orbitron';font-size:0.7rem;font-weight:900;color:var(--role-color);border:1px solid var(--role-color);padding:4px 10px;border-radius:8px;background:rgba(var(--role-rgb),0.12);">
-                            ✓ KINET OS VERIFIED
-                        </div>
-                    </div>
-
-                    <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(145px, 1fr));gap:8px;margin-bottom:12px;">
-                        ${starters.map(st => `
-                            <div style="background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.1);border-left:3px solid var(--role-color);border-radius:10px;padding:7px 9px;display:flex;align-items:center;justify-content:space-between;gap:6px;">
-                                <div style="min-width:0;">
-                                    <div style="font-family:'JetBrains Mono';font-size:0.54rem;color:var(--role-color);font-weight:700;">#${st.num} • ${st.pos}</div>
-                                    <div style="font-family:'Orbitron';font-size:0.7rem;font-weight:800;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${st.name}</div>
-                                </div>
-                                <span style="font-family:'Orbitron';font-size:0.72rem;font-weight:900;color:var(--role-color);background:rgba(0,0,0,0.45);padding:3px 6px;border-radius:6px;">${st.grl}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-
-                    <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:8px 12px;font-size:0.66rem;color:#CBD5E1;flex-wrap:wrap;gap:8px;">
-                        <div><strong style="color:var(--role-color);font-family:'Orbitron';">🪑 SUPLENTES / ROTACIÓN:</strong> ${subs.length > 0 ? subs.join(' • ') : 'Convocatoria abierta'}</div>
-                        <span style="font-family:'JetBrains Mono';font-size:0.58rem;color:#94A3B8;">kinetos.es</span>
-                    </div>
-                `;
+                document.querySelectorAll('#broadcaster-match-inputs .xi-only').forEach(el => el.style.display = '');
+                stage.className = 'matchday-poster-canvas xi-mode';
+                stage.innerHTML = buildStartingXiHtml({ myTeam, rivalTeam, matchTime, matchVenue });
+                // lista de capitanes (solo cuando cambia la plantilla)
+                const capSel = document.getElementById('md-captain');
+                if (capSel) {
+                    const names = currentBoardSlots.map((sl, i) => (i + 1) + ' · ' + (sl.player ? sl.player.name : sl.pos));
+                    const sig = names.join('|');
+                    if (capSel.dataset.sig !== sig) {
+                        capSel.innerHTML = '<option value="-1">Sin capitán</option>' + names.map((n, i) => `<option value="${i}">${n.replace(/</g, '&lt;')}</option>`).join('');
+                        capSel.dataset.sig = sig;
+                    }
+                    capSel.value = String(xiCaptainIdx);
+                }
                 return;
             }
+            document.querySelectorAll('#broadcaster-match-inputs .xi-only').forEach(el => el.style.display = 'none');
 
             // FORMATO 2: CAPTURA VISUAL DEL CAMPO 3D CON LAS FICHAS COLOCADAS SOBRE EL CÉSPED
             if (activeBroadcasterFormat === 'pitch') {
                 if (inputsRow) inputsRow.style.display = 'grid';
-                const pitchHtml = document.getElementById('arena-viewport-box')?.outerHTML || '';
+                const pitchHtml = (document.getElementById('arena-viewport-box')?.outerHTML || '')
+                    .replace(/ id="(arena-viewport-box|arena-3d-surface|arena-svg-mount|arena-tokens-layer)"/g, '')
+                    .replace(/\+ Asignar/g, '—')
+                    .replace(/selected-slot/g, '');
                 stage.innerHTML = `
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
                         <div style="display:flex;align-items:center;gap:10px;">
@@ -5136,6 +5362,9 @@
                                     <button type="button" class="btn-secondary" style="padding:9px 13px;font-size:0.62rem;border-color:var(--role-color);color:var(--role-color);white-space:nowrap;" onclick="document.getElementById('hidden-club-crest-input').click()">
                                         🛡️ Subir Escudo Club
                                     </button>
+                                    <button type="button" class="btn-secondary" style="padding:9px 13px;font-size:0.62rem;white-space:nowrap;" onclick="document.getElementById('hidden-rival-crest-input').click()">
+                                        ⚔️ Escudo Rival
+                                    </button>
                                 </div>
                             </div>
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-top:-4px;">
@@ -5373,6 +5602,9 @@
                 #broadcaster-export-stage .holo-stat-cell strong {
                     font-size: 0.85rem !important;
                 }
+
+                #broadcaster-export-stage.xi-mode { padding: 0 !important; background: none !important; border: 0 !important; border-radius: 18px !important; box-shadow: none !important; max-width: 520px; margin: 0 auto; }
+                .md-field-group.xi-only select { width: 100%; }
 
                 /* 2. Grid fijo en "Ver Stats Plantilla" para que las 6 columnas queden alineadas al milímetro */
                 .squad-stats-fixed-row {
@@ -5704,7 +5936,7 @@
                 const curtainSub = isTeamBallSport
                     ? 'Girando el estadio en horizontal y colocando los conos...'
                     : `Abriendo Laboratorio Especializado de ${activeArenaSport}...`;
-                const curtainIcon = isTeamBallSport ? '📋' : (activeArenaSport === 'Running' ? '⏱️' : (activeArenaSport === 'Pádel / Tenis' ? '🎾' : (activeArenaSport === 'Otros Deportes' ? '🏅' : '🥊')));
+                const curtainIcon = isTeamBallSport ? (activeArenaSport === 'Baloncesto' ? '🏀' : '⚽') : (activeArenaSport === 'Running' ? '⏱️' : (activeArenaSport === 'Pádel / Tenis' ? '🎾' : (activeArenaSport === 'Otros Deportes' ? '🏅' : '🥊')));
                 triggerFunnyTacticalCurtain(
                     curtainTitle,
                     curtainSub,

@@ -4,8 +4,15 @@
 <script src="kinet-guard.js?v=38"></script>
 <script src="kinet-sport.js?v=38"></script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#06080E">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="KINET OS">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#06080E">
     <title>KINET OS // Cuerpo Técnico IA (4 Especialistas & Handoff)</title>
     
     <!-- Favicon Corporativo Dinámico por JavaScript -->
@@ -46,12 +53,12 @@
     <!-- Librerías Oficiales para Exportar Rutinas, Imágenes y Actas en PDF / PNG -->
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script defer src="kinet-pdf.js?v=41"></script>
+    <script defer src="kinet-pdf.js?v=44"></script>
     <!-- SDK Oficial de Supabase + Motor Central KINET Backend + Config APIs -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="kinet-backend.js?v=38"></script>
+    <script src="kinet-backend.js?v=44"></script>
 <script src="kinet-gestion.js?v=38"></script>
-    <script src="kinet-api-config.js?v=39"></script>
+    <script src="kinet-api-config.js?v=44"></script>
 
     <style>
         :root {
@@ -637,12 +644,16 @@
 
         .quick-prompts-bar {
             display: flex;
+            flex-wrap: wrap;
             gap: 7px;
             padding: 8px 16px;
             background: rgba(8, 11, 18, 0.72);
             border-bottom: 1px solid rgba(255,255,255,0.05);
-            overflow-x: auto;
+            overflow-x: hidden;
+            overflow-y: auto;
+            max-height: 118px;
             flex-shrink: 0;
+            scrollbar-width: thin;
         }
         .quick-prompt-chip {
             background: rgba(255,255,255,0.03);
@@ -652,9 +663,12 @@
             font-size: 0.68rem;
             font-weight: 600;
             padding: 5px 11px;
-            border-radius: 999px;
+            border-radius: 14px;
             cursor: pointer;
-            white-space: nowrap;
+            white-space: normal;
+            text-align: left;
+            line-height: 1.25;
+            max-width: 100%;
             transition: all 0.2s ease;
         }
         .quick-prompt-chip:hover {
@@ -1067,10 +1081,13 @@
             -webkit-box-shadow:0 0 0 1000px #0A0E16 inset !important;-webkit-text-fill-color:#F1F5F9 !important;caret-color:#F1F5F9;transition:background-color 99999s ease-in-out 0s}
 </style>
     <link rel="stylesheet" href="kinet-mobile-fix.css?v=38">
-<link rel="stylesheet" href="kinet-fx.css?v=41">
-<script src="kinet-fx.js?v=41"></script>
-<script src="kinet-usage.js?v=38"></script>
+<link rel="stylesheet" href="kinet-fx.css?v=44">
+<script src="kinet-fx.js?v=44"></script>
+<script src="kinet-usage.js?v=45"></script>
     <script src="kinet-ads.js?v=38"></script>
+<link rel="stylesheet" href="kinet-mobile.css?v=44">
+<script defer src="kinet-mobile.js?v=44"></script>
+    <script defer src="kinet-housekeeping.js?v=44"></script>
 </head>
 <body data-role="athlete">
 
@@ -2338,6 +2355,10 @@ Responde siempre en español con naturalidad y precisión técnica.`;
                 document.querySelectorAll('.contact-item').forEach(el => {
                     el.classList.toggle('active', el.getAttribute('data-agent') === currentChatKey);
                 });
+            }
+            // En el móvil, si llegas con un especialista concreto (o con una pregunta pendiente) se abre directamente su chat
+            if ((rawAgentParam || pendingQ) && window.innerWidth <= 850) {
+                try { document.getElementById('chat-wrapper').classList.add('mobile-chat-active'); } catch (e) {}
             }
 
             if (pendingQ) {

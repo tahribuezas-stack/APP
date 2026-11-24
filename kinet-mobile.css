@@ -1,0 +1,343 @@
+/* =========================================================================
+   KINET OS · CAPA MÓVIL "APP"  (v42)
+   Rehace la estética del móvil/tablet para que se sienta como una app nativa:
+   barra inferior anclada, cabecera compacta, tarjetas planas a todo el ancho,
+   ventanas como hojas inferiores, chat a pantalla completa y zonas seguras (notch / barra de inicio).
+   TODO está dentro de @media (max-width: 960px): el ESCRITORIO NO CAMBIA.
+   Enlazar al FINAL del <head> (después de kinet-mobile-fix.css y kinet-fx.css).
+   ========================================================================= */
+
+/* El botón ⋯ del chat solo existe en móvil (en escritorio nunca se ve) */
+.kx-chat-more { display: none; }
+
+@media (max-width: 960px) {
+
+  :root {
+    --kx-bar-h: 62px;                                   /* alto de la barra inferior */
+    --kx-sa-b: env(safe-area-inset-bottom, 0px);
+    --kx-sa-t: env(safe-area-inset-top, 0px);
+    --kx-nav-total: calc(var(--kx-bar-h) + var(--kx-sa-b));
+  }
+
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  html, body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
+  * { -webkit-tap-highlight-color: transparent; }
+  a, button, [role="button"], .contact-item, .side-link, .m-nav-btn { touch-action: manipulation; }
+  body { -webkit-font-smoothing: antialiased; }
+
+  /* Fondo más limpio y ligero (sin cuadrícula: menos ruido y menos GPU) */
+  html, body {
+    background-image: radial-gradient(120% 55% at 50% -8%, rgba(var(--role-rgb), .16), transparent 62%) !important;
+    background-size: 100% 100% !important;
+  }
+
+  /* ───────── Contenedor: respira bien y deja sitio a la barra inferior ───────── */
+  .os-layout { padding-bottom: 0 !important; }
+  .os-workspace {
+    padding: 14px 14px calc(var(--kx-nav-total) + 22px) !important;
+    gap: 0;
+  }
+
+  /* ───────── Cabecera superior: fina, tipo app ───────── */
+  .os-topbar {
+    position: sticky !important; top: 0 !important; z-index: 110 !important;
+    min-height: 52px; padding: calc(8px + var(--kx-sa-t)) 14px 8px !important;
+    gap: 10px !important; flex-wrap: nowrap !important; row-gap: 0 !important;
+    align-items: center !important;
+    background: rgba(6, 8, 14, .86) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4);
+    border-bottom: 1px solid rgba(255, 255, 255, .06) !important;
+  }
+  .os-topbar .brand-logo-icon { width: 30px !important; height: 30px !important; border-radius: 10px !important; font-size: .9rem !important; box-shadow: 0 0 14px var(--role-glow) !important; }
+  .os-topbar .mobile-brand { gap: 8px; flex: 0 0 auto; }
+  .os-topbar .mobile-brand span { font-size: .86rem !important; letter-spacing: .1em !important; }
+  /* la descripción larga sobra: el título grande de la página ya lo dice todo */
+  .os-topbar > div:not(.topbar-actions):not(.active-role-indicator) { flex: 1 1 auto !important; justify-content: flex-end !important; min-width: 0; }
+  .os-topbar > div:not(.topbar-actions):not(.active-role-indicator) > span:first-child:not(#topbar-sport-tag) { display: none !important; }
+  .os-topbar #topbar-sport-tag { font-size: .62rem !important; letter-spacing: .06em; white-space: nowrap; }
+  .os-topbar .topbar-actions { gap: 6px !important; flex: 0 0 auto !important; }
+  .os-topbar .kinet-section-info-btn { width: 30px !important; height: 30px !important; }
+  .os-topbar .active-role-indicator { padding: 5px 10px !important; gap: 6px !important; }
+  .os-topbar .active-role-text { font-size: .58rem !important; letter-spacing: .05em !important; max-width: 34vw; }
+  .os-topbar .topbar-actions .btn-secondary { padding: 6px 10px !important; font-size: .64rem !important; border-radius: 10px !important; min-height: 30px; }
+  /* barras con varios botones (Comunidad, Laboratorio de vídeo…): segunda fila a todo el ancho, deslizable */
+  .os-topbar { flex-wrap: wrap !important; row-gap: 8px !important; }
+  .os-topbar .topbar-actions:has(.btn-secondary) {
+    flex: 1 1 100% !important; order: 5 !important; justify-content: flex-start !important; flex-wrap: nowrap !important;
+    overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  }
+  .os-topbar .topbar-actions:has(.btn-secondary)::-webkit-scrollbar { display: none; }
+  .os-topbar .topbar-actions:has(.btn-secondary) > * { flex: 0 0 auto; }
+  .os-topbar .topbar-actions:has(.btn-secondary) .active-role-indicator { margin-left: auto; }
+  .os-topbar #topbar-analyzer-btn { flex: 1 1 auto !important; text-align: center; }
+  .os-topbar .topbar-center-title { display: none !important; }
+  /* selector de equipo del Analizador: fila propia */
+  .os-topbar > div:has(#kinet-team-slot) { flex: 1 1 100% !important; order: 6; justify-content: flex-start !important; overflow: visible !important; }
+  .os-topbar > div:has(#kinet-team-slot) #kinet-team-slot { flex: 1 1 auto; min-width: 0; }
+  .os-topbar > div:has(#kinet-team-slot) #kinet-team-slot > * { max-width: 100%; }
+  .topbar-community-btn { display: none !important; }
+
+  /* ───────── Encabezado de página ───────── */
+  .context-header { margin: 2px 0 14px !important; gap: 10px !important; align-items: flex-start !important; flex-direction: column !important; }
+  .context-tag {
+    font-size: .58rem !important; letter-spacing: .12em !important; margin-bottom: 4px !important;
+    display: flex !important; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .context-tag > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .context-title { font-size: 1.42rem !important; line-height: 1.15 !important; letter-spacing: -.01em; }
+  /* chips de estado: una sola fila deslizable en vez de apilarse */
+  .header-badges-group {
+    display: flex !important; flex-wrap: nowrap !important; gap: 8px !important; width: calc(100% + 14px);
+    overflow-x: auto; padding: 2px 14px 4px 0; margin-right: -14px;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none; scroll-snap-type: x proximity;
+  }
+  .header-badges-group::-webkit-scrollbar { display: none; }
+  .header-badges-group > * { flex: 0 0 auto; white-space: nowrap; scroll-snap-align: start; }
+  .context-header .btn-secondary, .context-header .btn-primary { padding: 9px 14px !important; font-size: .74rem !important; min-height: 40px !important; flex: 0 1 auto; }
+  .context-header > div:last-child:not(:first-child) { width: 100%; }
+  .verified-badge, .header-badges-group .btn-secondary, .header-badges-group .btn-primary {
+    font-size: .64rem !important; padding: 7px 12px !important; border-radius: 999px !important; min-height: 32px;
+  }
+
+  /* ───────── Rejilla y tarjetas: planas, a todo el ancho ───────── */
+  .bento-grid { display: flex !important; flex-direction: column !important; gap: 12px !important; }
+  .bento-grid > [class*="col-"] { width: 100% !important; grid-column: auto !important; min-width: 0; }
+  .kinet-panel {
+    border-radius: 20px !important; padding: 16px 14px !important;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 8px 22px rgba(0, 0, 0, .32) !important;
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+    background: linear-gradient(180deg, rgba(18, 23, 34, .92), rgba(11, 15, 23, .94)) !important;
+  }
+  .kinet-panel::before, .chat-container::before, .msg-bubble::before { display: none !important; }
+  .kinet-panel:hover { transform: none !important; }
+  .kinet-panel .kinet-panel { padding: 12px !important; border-radius: 16px !important; box-shadow: none !important; background: rgba(255, 255, 255, .025) !important; }
+  .panel-head { margin-bottom: 10px !important; gap: 8px !important; flex-wrap: wrap; }
+  .panel-label { font-size: .62rem !important; letter-spacing: .1em !important; }
+
+  /* ───────── Controles táctiles ───────── */
+  .btn-primary, .btn-secondary, .btn-danger, button.preset-pill-btn { min-height: 44px; border-radius: 14px; }
+  .btn-primary, .btn-secondary { padding: 10px 16px; font-size: .78rem; max-width: 100%; white-space: normal; text-align: center; line-height: 1.25; }
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]), select, textarea { font-size: 16px !important; }
+  input[type="text"], input[type="email"], input[type="search"], input[type="number"], input[type="password"], textarea, select { min-height: 44px; }
+  /* evitar que el hover "pegue" en pantallas táctiles */
+  @media (hover: none) {
+    .kinet-panel:hover, .btn-primary:hover, .btn-secondary:hover, .contact-item:hover, .side-link:hover { transform: none !important; filter: none !important; }
+  }
+
+  /* ───────── BARRA INFERIOR: anclada, tipo app nativa ───────── */
+  body .mobile-bottom-nav {
+    display: flex !important;
+    position: fixed !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+    transform: none !important; width: 100% !important; max-width: none !important; margin: 0 !important;
+    border-radius: 0 !important; border: 0 !important; border-top: 1px solid rgba(255, 255, 255, .08) !important;
+    padding: 6px 6px calc(6px + var(--kx-sa-b)) !important; gap: 2px;
+    background: rgba(7, 10, 17, .9) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(1.5); backdrop-filter: blur(22px) saturate(1.5);
+    box-shadow: 0 -12px 32px rgba(0, 0, 0, .5) !important;
+    justify-content: space-around !important; z-index: 130 !important;
+  }
+  body .m-nav-btn {
+    flex: 1 1 0; min-width: 0; position: relative; padding: 7px 2px 5px !important; gap: 3px !important;
+    border-radius: 14px !important; font-size: .6rem !important; font-weight: 700; letter-spacing: .01em;
+    color: #8793A6 !important; background: transparent !important;
+    transition: color .2s ease, transform .15s ease !important;
+  }
+  body .m-nav-btn > span:first-child { font-size: 1.28rem !important; line-height: 1; transition: transform .25s cubic-bezier(.34, 1.56, .64, 1), filter .25s; }
+  body .m-nav-btn > span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  body .m-nav-btn:active { transform: scale(.94); }
+  body .m-nav-btn.active { color: var(--role-color) !important; background: transparent !important; }
+  body .m-nav-btn.active::before {
+    content: ''; position: absolute; top: -7px; left: 26%; right: 26%; height: 3px; border-radius: 0 0 5px 5px;
+    background: var(--role-color); box-shadow: 0 2px 12px var(--role-glow);
+  }
+  body .m-nav-btn.active > span:first-child { transform: translateY(-1px) scale(1.08); filter: drop-shadow(0 0 7px var(--role-glow)); }
+
+  /* ───────── Menú completo (pantalla desplegable) ───────── */
+  #mobile-menu-drawer {
+    padding: calc(16px + var(--kx-sa-t)) 14px calc(16px + var(--kx-sa-b)) !important;
+    background: rgba(5, 7, 12, .975) !important;
+  }
+  #mobile-menu-drawer #kinet-drawer-list, #mobile-menu-drawer .kx-drawer-list { max-height: none !important; flex: 1 1 auto; min-height: 0; overflow-y: auto; gap: 8px !important; -webkit-overflow-scrolling: touch; }
+  #mobile-menu-drawer a {
+    min-height: 54px; padding: 12px 16px !important; border-radius: 16px !important; font-size: .92rem !important;
+    background: rgba(255, 255, 255, .035) !important; border: 1px solid rgba(255, 255, 255, .07) !important;
+  }
+  #mobile-menu-drawer a[style*="role-gradient"] { background: var(--role-gradient) !important; border: 0 !important; }
+  #mobile-menu-drawer a.kx-admin-link { border-color: rgba(var(--role-rgb), .55) !important; color: var(--role-color) !important; background: rgba(var(--role-rgb), .09) !important; }
+  #mobile-menu-drawer a.kx-install-link { border-style: dashed !important; }
+
+  /* ───────── Ventanas emergentes → hoja inferior ───────── */
+  .kinet-modal-overlay, .kx-us-ov { align-items: flex-end !important; padding: 0 !important; }
+  .kinet-modal-box, .kx-us-box {
+    width: 100% !important; max-width: 100% !important; max-height: 90vh !important; max-height: 90dvh !important;
+    border-radius: 24px 24px 0 0 !important; border-bottom: 0 !important;
+    padding: 20px 16px calc(20px + var(--kx-sa-b)) !important;
+    -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+    transform: translateY(24px);
+  }
+  .kinet-modal-overlay.open .kinet-modal-box, .kx-us-ov.open .kx-us-box { transform: none; transition: transform .38s cubic-bezier(.16, 1, .3, 1); }
+  .kinet-modal-box::before, .kx-us-box::before {                                        /* asa de la hoja */
+    content: ''; display: block; width: 38px; height: 4px; border-radius: 4px; background: rgba(255, 255, 255, .22);
+    margin: -8px auto 6px; flex: 0 0 auto;
+  }
+
+  /* ───────── Medidor de IA: pastilla discreta sobre la barra ───────── */
+  .kx-us-pill { bottom: calc(var(--kx-nav-total) + 10px) !important; right: 12px !important; padding: 4px 9px 4px 5px !important; opacity: .94; }
+  .kx-us-pill { padding: 4px !important; gap: 0 !important; transition: transform .3s cubic-bezier(.16,1,.3,1), opacity .3s !important; }
+  html.kx-pill-hide .kx-us-pill { transform: translateY(90px) !important; opacity: 0 !important; pointer-events: none; }
+  .kx-us-pill .txt { font-size: 0 !important; letter-spacing: 0; }
+  .kx-us-pill .txt b { font-size: .64rem; margin: 0 6px 0 5px; }
+  .kx-us-pill .txt span { display: none; }
+
+  /* anuncios / avisos por encima de la barra */
+  .kg-ann { bottom: calc(var(--kx-nav-total) + 12px) !important; }
+
+  /* Cuadros de ayuda flotantes (robot de la comunidad, etc.) fuera del paso */
+  [id*="community-bot"] , .kcb-fab, .kinet-bot-fab { bottom: calc(var(--kx-nav-total) + 58px) !important; }
+
+  /* ───────── Pestañas horizontales ───────── */
+  .settings-tabs, .tabs-row, .mode-tabs-group, .analyzer-tabs-group, .despacho-tabs, .tab-strip {
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .settings-tabs::-webkit-scrollbar, .tabs-row::-webkit-scrollbar, .despacho-tabs::-webkit-scrollbar, .tab-strip::-webkit-scrollbar { display: none; }
+
+
+  /* ───────── Barras de herramientas del analizador: rejillas compactas ───────── */
+  .analyzer-toolbar { flex-direction: column !important; align-items: stretch !important; gap: 8px !important; padding: 8px !important; }
+  .analyzer-tabs-group { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; width: 100% !important; gap: 4px !important; }
+  .analyzer-tab-btn { flex-direction: column !important; gap: 2px !important; padding: 8px 4px !important; font-size: .58rem !important; white-space: normal !important; line-height: 1.15; text-align: center; min-width: 0; justify-content: center; }
+  .analyzer-controls-right { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; width: 100% !important; }
+  .analyzer-controls-right > * { min-width: 0 !important; }
+  .analyzer-controls-right .kinet-custom-select-wrap { width: 100% !important; max-width: 100% !important; }
+  .analyzer-controls-right > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+  /* ───────── Tablas anchas: deslizan en vez de romper la página ───────── */
+  .table-wrap, .kinet-table-wrap, .plan-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* ───────── Evitar desbordes laterales ───────── */
+  .os-main, .os-workspace, .kinet-panel { max-width: 100vw; min-width: 0; }
+  img, video, canvas, svg { max-width: 100%; }
+}
+
+/* ===== Móviles estrechos ===== */
+@media (max-width: 380px) {
+  .os-workspace { padding-left: 10px !important; padding-right: 10px !important; }
+  .context-title { font-size: 1.28rem !important; }
+  body .m-nav-btn { font-size: .56rem !important; }
+  .os-topbar .active-role-text { max-width: 28vw; }
+}
+
+/* ===================================================================
+   CUERPO TÉCNICO · el chat ocupa TODA la pantalla (≤850px)
+   Lista de especialistas → toca uno → chat a pantalla completa.
+   =================================================================== */
+@media (max-width: 850px) {
+
+  /* Lista de especialistas: filas tipo "chats" */
+  .chat-container { border: 0 !important; background: transparent !important; box-shadow: none !important; border-radius: 0 !important;
+    height: auto !important; min-height: calc(100dvh - 190px); margin: 0 !important; overflow: visible !important; }
+  .chat-sidebar { background: transparent !important; overflow: visible !important; }
+  .chat-sidebar-header { padding: 4px 2px 12px !important; border: 0 !important; font-size: .7rem !important; }
+  .contact-item {
+    margin: 0 0 10px; padding: 14px !important; gap: 14px !important; border: 1px solid rgba(255, 255, 255, .07) !important; border-radius: 18px;
+    background: linear-gradient(180deg, rgba(18, 23, 34, .9), rgba(11, 15, 23, .92)) !important;
+  }
+  .contact-item.active { border-color: rgba(var(--role-rgb), .55) !important; background: linear-gradient(135deg, rgba(var(--role-rgb), .16), rgba(11, 15, 23, .94) 70%) !important; }
+  .contact-item.active::before { display: none !important; }
+  .contact-avatar { width: 50px !important; height: 50px !important; border-radius: 16px !important; font-size: 1.5rem !important; flex: 0 0 50px; }
+  .contact-name { font-size: .98rem !important; }
+  .contact-status { font-size: .66rem !important; white-space: normal !important; line-height: 1.35; }
+  .contact-item::after { content: '›'; margin-left: auto; font-size: 1.5rem; color: rgba(255, 255, 255, .28); font-weight: 300; }
+
+  /* El chat abierto se convierte en una capa a pantalla completa */
+  body.kx-chat-open .os-topbar,
+  body.kx-chat-open .mobile-bottom-nav,
+  body.kx-chat-open .kx-us-pill,
+  body.kx-chat-open .kg-ann { display: none !important; }
+  body.kx-chat-open { overflow: hidden !important; }
+  body.kx-chat-open .os-workspace { padding: 0 !important; overflow: visible !important; }
+
+  .chat-container.mobile-chat-active {
+    position: fixed !important; left: 0; right: 0; top: var(--kx-vv-top, 0px); bottom: auto;
+    height: var(--kx-vv-h, 100dvh) !important; width: 100% !important; margin: 0 !important; min-height: 0 !important;
+    z-index: 300; overflow: hidden !important; background: var(--bg-void) !important;
+    animation: kxChatIn .32s cubic-bezier(.16, 1, .3, 1);
+  }
+  @keyframes kxChatIn { from { transform: translateX(26px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .chat-container.mobile-chat-active .chat-main-area {
+    position: absolute !important; inset: 0 !important; display: flex !important; flex-direction: column; height: 100% !important; width: 100%;
+    background: radial-gradient(100% 40% at 50% 0, rgba(var(--role-rgb), .10), transparent 70%), var(--bg-void);
+  }
+
+  /* Cabecera del chat: compacta */
+  .chat-header-bar {
+    flex: 0 0 auto; position: relative; flex-wrap: nowrap !important; gap: 8px !important;
+    padding: calc(8px + var(--kx-sa-t)) 10px 8px 6px !important;
+    background: rgba(7, 10, 17, .96) !important; border-bottom: 1px solid rgba(255, 255, 255, .07) !important;
+  }
+  .chat-header-bar > div:first-child { min-width: 0; flex: 1 1 auto; gap: 6px !important; }
+  .chat-header-bar > div:first-child > div:last-child { min-width: 0; }
+  .chat-back-btn { width: 40px; height: 40px; font-size: 1.5rem !important; padding: 0 !important; border-radius: 12px; flex: 0 0 40px; }
+  .chat-back-btn:active { background: rgba(var(--role-rgb), .15); }
+  #active-chat-icon { width: 38px; height: 38px; border-radius: 12px; font-size: 1.15rem !important; display: flex; align-items: center; justify-content: center;
+    background: rgba(var(--role-rgb), .13); border: 1px solid rgba(var(--role-rgb), .4); flex: 0 0 38px; }
+  #active-chat-title { font-size: .84rem !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #active-chat-status { display: block; font-size: .58rem !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Acciones del chat: dentro del menú ⋯ */
+  .chat-header-bar > div:last-child { display: none !important; }
+  .chat-header-bar.kx-actions-open > div:last-child {
+    display: flex !important; flex-direction: column; align-items: stretch; gap: 8px !important; flex-wrap: nowrap !important;
+    position: absolute; top: 100%; right: 10px; left: 10px; z-index: 20; padding: 12px;
+    background: rgba(9, 13, 21, .98); border: 1px solid rgba(var(--role-rgb), .45); border-radius: 18px;
+    box-shadow: 0 18px 44px rgba(0, 0, 0, .7); animation: kxPop .22s cubic-bezier(.16, 1, .3, 1);
+  }
+  @keyframes kxPop { from { opacity: 0; transform: translateY(-8px) scale(.98); } to { opacity: 1; transform: none; } }
+  .chat-header-bar.kx-actions-open > div:last-child .btn-pdf-chat { width: 100%; justify-content: flex-start; padding: 12px 14px; font-size: .74rem; border-radius: 12px; min-height: 46px; }
+  .kx-chat-more { display: flex; flex: 0 0 40px; width: 40px; height: 40px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, .1); background: rgba(255, 255, 255, .04);
+    color: #E2E8F0; font-size: 1.25rem; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; letter-spacing: .05em; }
+  .kx-chat-more:active, .chat-header-bar.kx-actions-open .kx-chat-more { background: rgba(var(--role-rgb), .18); color: var(--role-color); border-color: rgba(var(--role-rgb), .5); }
+
+  /* Consultas rápidas: una fila deslizable, fina */
+  .quick-prompts-bar { padding: 8px 10px !important; gap: 7px !important; flex: 0 0 auto; flex-wrap: nowrap !important; overflow-x: auto !important; overflow-y: hidden !important; max-height: none !important; align-items: stretch; scrollbar-width: none; -webkit-overflow-scrolling: touch; background: transparent !important; border-bottom: 0 !important; }
+  .quick-prompts-bar::-webkit-scrollbar { display: none; }
+  .quick-prompt-chip { padding: 7px 13px !important; font-size: .72rem !important; min-height: 34px; flex: 0 0 auto; width: max-content; max-width: min(78vw, 300px) !important; white-space: normal !important; line-height: 1.25 !important; border-radius: 16px !important; background: rgba(255, 255, 255, .045) !important; }
+
+  /* Mensajes: lo que más espacio ocupa */
+  .chat-messages-scroll {
+    flex: 1 1 0 !important; min-height: 0; padding: 12px 10px 14px !important; gap: 10px !important;
+    overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+  }
+  .msg-bubble { max-width: 88% !important; padding: 10px 13px !important; font-size: .9rem !important; line-height: 1.5 !important; border-radius: 18px !important; clip-path: none !important; }
+  .msg-bubble.incoming { border-top-left-radius: 6px !important; }
+  .msg-bubble.outgoing { border-top-right-radius: 6px !important; background: linear-gradient(135deg, rgba(var(--role-rgb), .26), rgba(var(--role-rgb), .12)) !important; }
+  .msg-bubble.incoming.rich { max-width: 100% !important; }
+  .msg-bubble img { border-radius: 12px; }
+  .ai-thinking-eta-card { max-width: 100% !important; }
+
+  /* Franja de uso de IA + barra de escritura */
+  .kx-us-strip { padding: 6px 12px !important; flex: 0 0 auto; }
+  .chat-image-preview-bar { flex: 0 0 auto; }
+  .chat-input-bar {
+    flex: 0 0 auto; padding: 8px 10px calc(8px + var(--kx-sa-b)) !important; gap: 8px !important; align-items: flex-end !important;
+    background: rgba(7, 10, 17, .96) !important; border-top: 1px solid rgba(255, 255, 255, .07) !important;
+  }
+  .upload-img-btn { width: 44px !important; height: 44px !important; border-radius: 22px !important; flex: 0 0 44px; }
+  .chat-container.kx-led::before, .chat-container.kx-led::after { display: none !important; }
+  .chat-input { min-width: 0; width: 0; flex: 1 1 0 !important; min-height: 44px; padding: 11px 16px !important; border-radius: 22px !important; font-size: 16px !important; }
+  .send-btn { width: 44px !important; height: 44px !important; min-width: 44px; border-radius: 22px !important; flex: 0 0 44px; padding: 0 !important; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+}
+
+/* Movimiento reducido */
+@media (max-width: 960px) and (prefers-reduced-motion: reduce) {
+  .chat-container.mobile-chat-active, .chat-header-bar.kx-actions-open > div:last-child { animation: none !important; }
+  .kinet-modal-overlay.open .kinet-modal-box { transition: none; }
+}
+
+/* ===================================================================
+   MODO APP INSTALADA (pantalla completa, sin barra del navegador)
+   =================================================================== */
+@media (display-mode: standalone) and (max-width: 960px), (display-mode: fullscreen) and (max-width: 960px) {
+  body { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+  input, textarea, [contenteditable], .msg-bubble, .context-title { user-select: text; -webkit-user-select: text; }
+}

@@ -455,40 +455,74 @@
     if (getComputedStyle(nav).position === 'static') nav.style.position = 'relative';
     nav.style.isolation = 'isolate';
     nav.classList.add('kx-has-ind'); var ind = document.createElement('i'); ind.className = 'kx-nav-ind'; ind.setAttribute('aria-hidden', 'true'); nav.appendChild(ind);
+    // El menú se termina de montar durante los primeros ms (se añaden opciones, cargan fuentes, cambia el alto de la cabecera…).
+    // Antes el marcador se colocaba con las medidas de ese instante, y al asentarse el menú "saltaba" a su sitio.
+    // Ahora: (1) el marcador está oculto hasta tener la posición definitiva, (2) cualquier cambio del menú lo recoloca al instante
+    // (sin animar) y (3) el deslizamiento solo empieza cuando el menú lleva unos fotogramas quieto.
     function y(el) { return el.offsetTop + el.offsetHeight * .25; }
-    function place() { var a = nav.querySelector('a.side-link.active'); if (!a) return; ind.style.height = Math.max(18, a.offsetHeight * .5) + 'px'; ind.style.translate = '0 ' + y(a) + 'px'; ind.style.opacity = 1; }
-    window.addEventListener('resize', place);
-    // Si el deslizamiento se queda a medias (pestaña en segundo plano, animación pausada…), el marcador se coloca siempre en la opción activa
-    function settle() {
-      try {
-        var a = nav.querySelector('a.side-link.active'); if (!a) return;
-        var want = nav.getBoundingClientRect().top + y(a), got = ind.getBoundingClientRect().top;
-        if (Math.abs(want - got) > 2 || !ind.style.opacity) {
-          if (ind.getAnimations) ind.getAnimations().forEach(function (an) { try { an.finish(); } catch (e) {} });
-          var tr = ind.style.transition; ind.style.transition = 'none'; place(); void ind.offsetWidth; ind.style.transition = tr;
+    var glide = null, revealed = false;
+    function cancelGlide() { if (glide) { try { glide.cancel(); } catch (e) {} glide = null; } }
+    function place() { var a = nav.querySelector('a.side-link.active'); if (!a) return; var tr = ind.style.transition; ind.style.transition = 'none'; ind.style.height = Math.max(18, a.offsetHeight * .5) + 'px'; ind.style.translate = '0 ' + y(a) + 'px'; if (revealed) ind.style.opacity = 1; void ind.offsetWidth; ind.style.transition = tr; }
+    var willGlide = !!(from && from !== act && !reduce && !needIntro && act.animate && ind.animate), started = false;
+    var animating = willGlide;   // mientras espera su deslizamiento, nada recoloca el marcador (si no, se veía el salto al destino)
+    function sync() { if (animating) return; cancelGlide(); place(); }
+    window.addEventListener('resize', sync);
+    try {
+      new MutationObserver(function (ms) {
+        for (var i = 0; i < ms.length; i++) {
+          var t = ms[i].target, own = t === ind || (t.classList && t.classList.contains('kx-nav-pill'));
+          if (ms[i].type === 'childList') { var n = [].slice.call(ms[i].addedNodes).concat([].slice.call(ms[i].removedNodes)); own = n.length > 0 && n.every(function (x) { return x === ind || (x.classList && x.classList.contains('kx-nav-pill')); }); }
+          if (!own) { sync(); return; }
         }
-      } catch (e) {}
-    }
+      }).observe(nav, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden'] });
+    } catch (e) {}
+    try { if (window.ResizeObserver) { var ro = new ResizeObserver(function () { sync(); }); ro.observe(nav); [].slice.call(nav.children).forEach(function (c) { if (c !== ind) ro.observe(c); }); } } catch (e) {}
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { sync(); }).catch(function () {});
+    window.addEventListener('load', sync);
+    function settle() { if (started && (!glide || glide.playState !== 'running')) animating = false; if (!animating) sync(); else if (!started) kick(); }
     setTimeout(settle, 1100); setTimeout(settle, 2600);
     document.addEventListener('visibilitychange', function () { if (!document.hidden) setTimeout(settle, 60); });
     window.addEventListener('pageshow', function () { setTimeout(settle, 60); });
     window.addEventListener('focus', function () { setTimeout(settle, 60); });
-    if (!from || from === act || reduce || needIntro || !act.animate) { ind.style.transition = 'none'; place(); requestAnimationFrame(function () { ind.style.transition = ''; }); return; }
-    // el marcador arranca en la opción anterior y se desliza
-    ind.style.transition = 'none'; ind.style.height = Math.max(18, from.offsetHeight * .5) + 'px'; ind.style.translate = '0 ' + y(from) + 'px'; ind.style.opacity = 1;
-    var cs = getComputedStyle(act), bg = cs.backgroundColor, bd = cs.borderTopColor, sh = cs.boxShadow, col = cs.color;
-    var ghost = document.createElement('i'); ghost.className = 'kx-nav-pill'; ghost.setAttribute('aria-hidden', 'true');
-    ghost.style.cssText = 'left:' + act.offsetLeft + 'px;width:' + act.offsetWidth + 'px;height:' + act.offsetHeight + 'px;border-radius:' + cs.borderTopLeftRadius + ';background:' + bg + ';border:1px solid ' + bd + ';box-shadow:' + sh + ';translate:0 ' + from.offsetTop + 'px';
-    nav.appendChild(ghost);
-    try { act.animate([{ backgroundColor: 'rgba(0,0,0,0)', borderColor: 'rgba(0,0,0,0)', boxShadow: '0 0 0 rgba(0,0,0,0)' }, { backgroundColor: bg, borderColor: bd, boxShadow: sh }], { duration: 420, delay: 380, easing: 'ease-out', fill: 'backwards' }); } catch (e) {}
-    void ind.offsetWidth;
-    setTimeout(function () {
-      ind.style.transition = ''; place();
+    if (!willGlide) {   // carga normal: el marcador aparece cuando el menú ya está quieto (nunca en una posición provisional)
+      var t0 = Date.now(), lastK = '', quiet = 0;
+      (function waitQuiet() {
+        var a = nav.querySelector('a.side-link.active'), k = a ? a.offsetTop + '/' + a.offsetHeight : '';
+        quiet = k === lastK ? quiet + 1 : 0; lastK = k;
+        if ((quiet >= 2 && document.readyState !== 'loading') || Date.now() - t0 > 400) { revealed = true; place(); } else requestAnimationFrame(waitQuiet);
+      })();
+      setTimeout(function () { if (!revealed) { revealed = true; place(); } }, 700);
+      return;
+    }
+    // Deslizamiento desde la opción anterior: solo cuando el menú está quieto (misma posición durante 3 fotogramas, máx. ~500 ms)
+    ind.style.opacity = 0;
+    var tStart = Date.now(), lastY = -1, still = 0;
+    function waitStable() {
+      var a = nav.querySelector('a.side-link.active'); if (!a) return;
+      var cy = a.offsetTop + '/' + from.offsetTop + '/' + a.offsetHeight;
+      still = cy === lastY ? still + 1 : 0; lastY = cy;
+      if ((still >= 3 && document.readyState !== 'loading') || Date.now() - tStart > 500) run(a); else requestAnimationFrame(waitStable);
+    }
+    function run(a) {
+      if (started) return; started = true; animating = true;
+      var y0 = y(from), y1 = y(a), h0 = Math.max(18, from.offsetHeight * .5), h1 = Math.max(18, a.offsetHeight * .5);
+      var cs = getComputedStyle(a), bg = cs.backgroundColor, bd = cs.borderTopColor, sh = cs.boxShadow;
+      var ghost = document.createElement('i'); ghost.className = 'kx-nav-pill'; ghost.setAttribute('aria-hidden', 'true');
+      ghost.style.cssText = 'left:' + a.offsetLeft + 'px;width:' + a.offsetWidth + 'px;height:' + a.offsetHeight + 'px;border-radius:' + cs.borderTopLeftRadius + ';background:' + bg + ';border:1px solid ' + bd + ';box-shadow:' + sh + ';translate:0 ' + from.offsetTop + 'px';
+      nav.appendChild(ghost);
+      try { a.animate([{ backgroundColor: 'rgba(0,0,0,0)', borderColor: 'rgba(0,0,0,0)', boxShadow: '0 0 0 rgba(0,0,0,0)' }, { backgroundColor: bg, borderColor: bd, boxShadow: sh }], { duration: 420, delay: 300, easing: 'ease-out', fill: 'backwards' }); } catch (e) {}
+      revealed = true; ind.style.transition = 'none'; ind.style.opacity = 1; ind.style.height = h1 + 'px'; ind.style.translate = '0 ' + y1 + 'px';
+      var done = function () { animating = false; glide = null; try { ghost.remove(); } catch (e) {} place(); };
       try {
-        var g = ghost.animate([{ translate: '0 ' + from.offsetTop + 'px', opacity: 1 }, { translate: '0 ' + act.offsetTop + 'px', opacity: 1, offset: .72 }, { translate: '0 ' + act.offsetTop + 'px', opacity: 0 }], { duration: 900, easing: EASE_NAV, fill: 'forwards' });
+        glide = ind.animate([{ translate: '0 ' + y0 + 'px', height: h0 + 'px' }, { translate: '0 ' + y1 + 'px', height: h1 + 'px' }], { duration: 640, easing: EASE_NAV, fill: 'both' });
+        glide.onfinish = glide.oncancel = done;
+        var g = ghost.animate([{ translate: '0 ' + from.offsetTop + 'px', opacity: 1 }, { translate: '0 ' + a.offsetTop + 'px', opacity: 1, offset: .72 }, { translate: '0 ' + a.offsetTop + 'px', opacity: 0 }], { duration: 900, easing: EASE_NAV, fill: 'forwards' });
         g.onfinish = g.oncancel = function () { try { ghost.remove(); } catch (e) {} };
-      } catch (e) { ghost.remove(); }
-    }, 90);
+      } catch (e) { done(); }
+    }
+    function kick() { var a = nav.querySelector('a.side-link.active'); if (a) run(a); else { animating = false; started = true; } }
+    setTimeout(function () { if (!started) kick(); }, 900);   // red de seguridad (pestaña en segundo plano: los fotogramas se pausan)
+    requestAnimationFrame(waitStable);
   }
   var EASE_NAV = 'cubic-bezier(.22,1,.36,1)';
 

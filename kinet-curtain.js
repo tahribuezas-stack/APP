@@ -83,6 +83,34 @@
         if (i && o.icon) i.textContent = o.icon;
     }
 
+    // Continuidad entre páginas: la cortina de salida anota la hora; la de llegada
+    // adelanta todas sus animaciones ese tiempo, así NO se reinicia ni se corta.
+    var STAMP = 'kinet_curtain_t';
+    function stamp(o) {
+        var c = '', rgb = '';
+        try { var cs = getComputedStyle(document.body); c = cs.getPropertyValue('--role-color').trim(); rgb = cs.getPropertyValue('--role-rgb').trim(); } catch (e) {}
+        try { sessionStorage.setItem(STAMP, JSON.stringify({ t: Date.now(), o: o || {}, c: c, rgb: rgb })); } catch (e) {}
+    }
+    function peek() {
+        try {
+            var r = JSON.parse(sessionStorage.getItem(STAMP) || 'null');
+            if (r && r.t && Date.now() - r.t >= 0 && Date.now() - r.t <= 4500) return r;
+        } catch (e) {}
+        return null;
+    }
+    function resume(el) {
+        var r = peek(), t = r ? r.t : 0;
+        try { sessionStorage.removeItem(STAMP); } catch (e) {}
+        var dt = Date.now() - t;
+        if (!t) return;
+        try {
+            void el.offsetWidth;
+            el.getAnimations({ subtree: true }).forEach(function (a) {
+                try { a.currentTime = dt; } catch (e) {}
+            });
+        } catch (e) {}
+    }
+
     var KC = {
         markup: markup,
         // Cortina ya visible al cargar la página (llamar justo después del <div id="kinet-funny-curtain">)
@@ -90,7 +118,13 @@
             var el = document.getElementById('kinet-funny-curtain');
             if (!el) return;
             el.className = 'kc kc-on';
+            var prev = peek();
+            // mismo mensaje que mostró la página anterior: la cortina continúa, no se "repite" con otro texto
+            if (prev && prev.o && (prev.o.title || prev.o.sub)) o = prev.o;
             el.innerHTML = markup(o);
+            // mismo color de rol que la página anterior (si no, parpadea verde→ámbar al cargar)
+            if (prev && prev.c) { el.style.setProperty('--role-color', prev.c); if (prev.rgb) el.style.setProperty('--role-rgb', prev.rgb); }
+            resume(el);
             el.onclick = function () { KC.hide(true); };
             bindTilt(el);
             document.addEventListener('DOMContentLoaded', function () {
@@ -104,6 +138,7 @@
             setText(el, o);
             el.classList.remove('curtain-hidden', 'kc-leaving', 'curtain-exit-active');
             el.classList.remove('kc-on'); void el.offsetWidth; el.classList.add('kc-on');
+            stamp(o);
             return el;
         },
         hide: function (force) {
@@ -118,6 +153,7 @@
                 leaveTimer = setTimeout(function () {
                     el.classList.add('curtain-hidden');
                     el.classList.remove('kc-on', 'kc-leaving');
+                    el.style.removeProperty('--role-color'); el.style.removeProperty('--role-rgb');
                 }, 430);
             }, wait);
         }

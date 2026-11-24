@@ -143,7 +143,11 @@
     var e = String((res && res.error) || '');
     if (/limit|límite|presupuesto|No hay clave/i.test(e) || (res && res.limitReached)) return e;
     if (/SAFETY|IMAGE_OTHER|PROHIBITED|blocked|bloque/i.test(e)) return 'La IA no ha podido crear esta imagen (puede incumplir sus normas de seguridad). Prueba con otra descripción.';
-    if (/403|401|API key|clave|permission/i.test(e)) return 'La clave de IA no es válida o no tiene acceso a la generación de imágenes. Revísala en el botón «API IA» del Cuerpo Técnico.';
+    if (/403|401|API key|clave|permission/i.test(e)) {
+      var staff = ['superadmin', 'subadmin', 'moderator', 'scout_verifier', 'marketing', 'admin'].indexOf((localStorage.getItem('kinet_staff_admin_role') || '').toLowerCase().trim()) >= 0;
+      return staff ? 'La clave de IA no es válida o no tiene acceso a la generación de imágenes. Revisa el secreto GEMINI_API_KEY de la función kinet-image (o la clave local en «API IA»).'
+        : 'La IA de imágenes no está disponible ahora mismo. Tu imagen no se ha descontado; prueba más tarde o usa los filtros gratis.';
+    }
     if (/429|quota|exceeded/i.test(e)) return 'La IA está saturada ahora mismo. Inténtalo de nuevo en un minuto.';
     return 'No se ha podido crear la imagen. ' + e.split('\n')[0].slice(0, 160);
   }
@@ -565,6 +569,47 @@
     } finally { runBtn.disabled = false; }
   }
 
+  // ───────────── limpieza diaria a las 00:00 ─────────────
+  // El chat del Studio (imágenes, fotos subidas, vídeos y textos) se vacía cada medianoche para no acumular memoria.
+  // NO se toca nada del usuario: cuotas, perfil, plan, ajustes ni lo ya publicado en Comunidad.
+  function dayKey() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+  var STUDIO_DAY = dayKey();
+  function wipeStudioChat(reason) {
+    try {
+      if (KS.busy) return false; // no cortar una generación en curso: se limpia en el siguiente aviso
+      var f = feed();
+      if (f) {
+        f.querySelectorAll('img,video,audio,canvas').forEach(function (n) { try { if (/^blob:/.test(n.src || '')) URL.revokeObjectURL(n.src); n.removeAttribute('src'); } catch (e) {} });
+        f.innerHTML = '<div class="studio-chat-msg incoming"><strong style="color:var(--role-color);font-family:\'JetBrains Mono\';font-size:0.63rem;display:block;margin-bottom:3px;letter-spacing:0.06em;">KINET STUDIO</strong>' +
+          'Nuevo día, chat limpio. Las imágenes y el contenido del Studio se borran automáticamente a las 00:00 para no ocupar espacio: descarga o publica lo que quieras conservar antes de esa hora.</div>';
+      }
+      KS.items = {}; KS.last = null; KS.source = null; KS.template = null; KS.veFiles = []; KS.veAudio = null;
+      var vid = $('ve-video'); if (vid) { try { if (/^blob:/.test(vid.src || '')) URL.revokeObjectURL(vid.src); vid.pause && vid.pause(); vid.removeAttribute('src'); vid.load && vid.load(); } catch (e) {} }
+      var dl = $('ve-download'); if (dl) { try { if (/^blob:/.test(dl.href || '')) URL.revokeObjectURL(dl.href); } catch (e) {} dl.removeAttribute('href'); }
+      var res = $('ve-result'); if (res) res.style.display = 'none';
+      var fl = $('ve-file-list'); if (fl) fl.textContent = 'Ningún vídeo seleccionado';
+      var an = $('ve-audio-name'); if (an) an.textContent = '';
+      var pi = $('ai-prompt-input'); if (pi) pi.value = '';
+      var fi = $('hidden-media-file-input'); if (fi) { try { fi.value = ''; } catch (e) {} }
+      try { renderSourceChip(); buildTemplates(); } catch (e) {}
+      try { ['kinet_studio_chat', 'kinet_studio_items', 'kinet_media_studio_chat', 'kinet_media_studio_cache'].forEach(function (k) { localStorage.removeItem(k); sessionStorage.removeItem(k); }); } catch (e) {}
+      STUDIO_DAY = dayKey(); refreshUsage();
+      return true;
+    } catch (e) { return false; }
+  }
+  function checkMidnight() { if (dayKey() !== STUDIO_DAY) wipeStudioChat('midnight'); }
+  var midTimer = null;
+  function scheduleMidnight() {
+    clearTimeout(midTimer);
+    var n = new Date(), next = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1, 0, 0, 1) - n;
+    midTimer = setTimeout(function () { checkMidnight(); scheduleMidnight(); }, Math.max(1000, Math.min(next, 2147000000)));
+  }
+  // Red de seguridad: si el equipo estaba dormido o la pestaña en segundo plano, se comprueba al volver y cada minuto
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) { checkMidnight(); scheduleMidnight(); } });
+  window.addEventListener('focus', checkMidnight);
+  setInterval(checkMidnight, 60000);
+  scheduleMidnight();
+
   // ───────────── estilos ─────────────
   var css = document.createElement('style');
   css.textContent =
@@ -596,7 +641,7 @@
     send: send, onFile: onFile, pickTemplate: pickTemplate, pickVideoStyle: pickVideoStyle, applyFilter: applyFilter,
     download: download, pdf: pdf, addText: addText, editWithAI: editWithAI, clearSource: clearSource, publish: publish,
     autoTrack: autoTrack, onModeChange: onModeChange, refreshUsage: refreshUsage, buildTemplates: buildTemplates,
-    openVideoEditModal: openVideoEditModal, onVideoEditFiles: onVideoEditFiles, onVideoEditAudio: onVideoEditAudio,
+    wipeChat: wipeStudioChat, openVideoEditModal: openVideoEditModal, onVideoEditFiles: onVideoEditFiles, onVideoEditAudio: onVideoEditAudio,
     veSet: veSet, runVideoEdit: runVideoEdit, _state: KS, _compose: compose
   };
   window.generateAiEdit = send;
