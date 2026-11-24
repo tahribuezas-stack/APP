@@ -67,14 +67,14 @@
     var pctRev = revenue ? 100 * (o.ai_cost_month || 0) / revenue : 0;
     ws.innerHTML = H.head('Inteligencia artificial', 'IA y costes', 'Consumo por día y por usuario. Regla del proyecto: la IA no debe superar el 33 % de lo que paga cada suscriptor.', '') +
       '<div class="grid g4" style="margin-bottom:16px">' + H.kpi('Coste del mes', o.ai_cost_month || 0, { suf: ' €', dec: 2, sub: 'Hoy ' + H.eur(o.ai_cost_today || 0) }) + H.kpi('Consultas (30 días)', calls, { sub: 'Potente ' + H.num(sum('strong')) + ' · Básica ' + H.num(sum('lite')) + ' · Aux. ' + H.num(sum('aux')) }) + H.kpi('Coste (30 días)', cost, { suf: ' €', dec: 2 }) +
-      H.kpi('% sobre ingreso teórico', pctRev, { dec: 1, suf: ' %', sub: 'Tope fijado: 33 %', cls: pctRev > 33 ? 'bad' : pctRev > 25 ? 'warn' : 'ok' }) + '</div>' +
+      H.kpi('% sobre ingreso teórico', pctRev, { dec: 1, suf: ' %', sub: 'Tope fijado: 20 %', cls: pctRev > 20 ? 'bad' : pctRev > 15 ? 'warn' : 'ok' }) + '</div>' +
       '<div class="grid g2" style="margin-bottom:16px"><div class="panel"><div class="p-h"><span class="p-l">Consultas por día</span></div>' + H.barChart(days.map(function (d) { return { x: String(d.day).slice(8, 10), y: (d.strong || 0) + (d.lite || 0) + (d.aux || 0) }; })) + '</div>' +
       '<div class="panel"><div class="p-h"><span class="p-l">Coste por día (€)</span></div>' + H.lineChart(days.map(function (d) { return { x: String(d.day).slice(8, 10), y: Number(d.cost || 0), t: H.eur(d.cost) }; })) + '</div></div>' +
       '<div class="p-h"><span class="p-l">Mayores consumos del mes</span></div>' +
       H.table([
         { h: 'Usuario', f: function (u) { return '<b>' + esc(u.handle || '—') + '</b><div class="muted sm">' + esc(u.email || '') + '</div>'; } }, { h: 'Plan', f: function (u) { return H.tierChip(u.tier); } },
         { h: 'Consultas', f: function (u) { return H.num(u.calls); } }, { h: 'Coste', f: function (u) { return H.eur(u.cost); } },
-        { h: 'vs. 33 % del precio', f: function (u) { var pr = PRICE[u.tier]; if (!pr) return '<span class="muted sm">sin plan de pago</span>'; var p = 100 * Number(u.cost) / (pr * 0.33); return '<span class="chip ' + (p > 100 ? 'ban' : p > 75 ? 'nuevo' : 'resuelto') + '">' + Math.round(p) + ' % del tope</span>'; } }
+        { h: 'vs. 20 % del precio', f: function (u) { var pr = PRICE[u.tier]; if (!pr) return '<span class="muted sm">sin plan de pago</span>'; var p = 100 * Number(u.cost) / (pr * 0.20); return '<span class="chip ' + (p > 100 ? 'ban' : p > 75 ? 'nuevo' : 'resuelto') + '">' + Math.round(p) + ' % del tope</span>'; } }
       ], top, { empty: 'Todavía no hay consumo registrado este mes' }) +
       '<div class="muted sm" style="margin-top:12px;line-height:1.6">El tope se calcula sobre el precio con IVA para que sea una referencia rápida. El límite real lo aplica la función <span class="mono">kinet-ai-chat</span> en el servidor.</div>';
   };

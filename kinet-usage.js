@@ -30,6 +30,14 @@
   '.kx-us-chev{font-size:1rem;color:rgba(255,255,255,.4);transition:transform .3s,color .3s}.kx-us-card:hover .kx-us-chev{transform:translateX(3px);color:var(--role-color,#00FF88)}' +
   '.kx-us-hero.low{--kx-us-c:#F59E0B}.kx-us-hero.out{--kx-us-c:#EF4444}' +
   '.kx-us-card.low{--kx-us-c:#F59E0B}.kx-us-card.out{--kx-us-c:#EF4444;animation:kxUsIn .7s cubic-bezier(.2,.8,.2,1) both,kxUsPulse 2.4s ease-in-out infinite}' +
+  /* pastilla flotante (móvil: la barra lateral está oculta) */
+  '.kx-us-pill{all:unset;box-sizing:border-box;display:none;align-items:center;gap:7px;padding:5px 11px 5px 6px;border-radius:999px;cursor:pointer;position:fixed;right:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:90;' +
+    'background:rgba(8,11,16,.92);border:1px solid rgba(var(--role-rgb,0,255,136),.4);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 6px 22px rgba(0,0,0,.45);animation:kxUsIn .7s cubic-bezier(.2,.8,.2,1) both}' +
+  '.kx-us-pill:focus-visible{outline:2px solid var(--role-color,#00FF88);outline-offset:2px}' +
+  '.kx-us-pill .kx-us-ring{width:26px;height:26px;flex:0 0 26px}.kx-us-pill .kx-us-ring svg{width:26px;height:26px}.kx-us-pill .kx-us-ring circle{stroke-width:5}.kx-us-pill .kx-us-ring b{display:none}' +
+  '.kx-us-pill .txt{font:800 .62rem/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.06em;color:#E2E8F0;white-space:nowrap}.kx-us-pill .txt b{color:var(--kx-us-c,var(--role-color,#00FF88))}' +
+  '.kx-us-pill.low{--kx-us-c:#F59E0B}.kx-us-pill.out{--kx-us-c:#EF4444}' +
+  '@media (max-width:960px){.kx-us-pill{display:flex}}' +
   /* franja del chat */
   '.kx-us-strip{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;padding:7px 14px;cursor:pointer;border-top:1px solid rgba(var(--role-rgb,0,255,136),.14);background:rgba(8,11,16,.55);' +
     'font:700 .6rem/1 "JetBrains Mono",ui-monospace,monospace;color:#94A3B8;letter-spacing:.06em;animation:kxUsRise .6s cubic-bezier(.2,.8,.2,1) both;transition:background .3s}' +
@@ -73,7 +81,7 @@
   '@media (max-width:640px){.kx-us-strip{padding:7px 10px;gap:8px}.kx-us-strip .lbl{display:none}.kx-us-hero{flex-direction:column;text-align:center}}' +
   '@media (prefers-reduced-motion:reduce){.kx-us-card,.kx-us-strip,.kx-us-row,.kx-us-chip,.kx-us-box{animation:none!important;transition:none!important;opacity:1;transform:none}.kx-us-card::after{display:none}.kx-us-ring .val,.kx-us-bars i,.kx-us-seg i,.kx-us-row .bar i{transition:none!important}}';
 
-  var cards = [], strips = [], panel = null, clockT = null, lastTotal = {}, built = false;
+  var cards = [], strips = [], pills = [], panel = null, clockT = null, lastTotal = {}, built = false;
 
   function ls(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -156,6 +164,19 @@
     if (chip.getAttribute('data-k') !== txt) { chip.setAttribute('data-k', txt); chip.className = cls; chip.textContent = txt; chip.style.display = txt ? '' : 'none'; chip.style.animation = 'none'; void chip.offsetWidth; chip.style.animation = ''; }
   }
 
+  /* ---------- pastilla flotante (móvil) ---------- */
+  function buildPill() {
+    if (document.querySelector('.kx-us-pill') || document.querySelector('.chat-input-bar')) return;   // en el chat ya hay franja
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'kx-us-pill'; b.setAttribute('aria-label', 'Ver mi uso de IA');
+    b.innerHTML = ringHTML() + '<span class="txt">IA <b data-pn>0</b>/<span data-pt>0</span></span>';
+    b.addEventListener('click', openPanel); document.body.appendChild(b); pills.push(b);
+  }
+  function paintPill(b, q) {
+    if (q.isStaff) { b.classList.remove('low', 'out'); b.querySelector('[data-pn]').textContent = '∞'; b.querySelector('[data-pt]').textContent = '∞'; setRing(b, 1); return; }
+    var m = model(q); setState(b, m.st);
+    b.querySelector('[data-pn]').textContent = m.rem; b.querySelector('[data-pt]').textContent = m.total; setRing(b, frac(m.rem, m.total));
+  }
+
   /* ---------- panel ---------- */
   function buildPanel() {
     if (panel) return panel;
@@ -198,7 +219,7 @@
     note.innerHTML = '<strong>Cómo funciona:</strong> el motor potente da respuestas más largas y profundas; el básico es más breve. El cupo es diario y se reinicia a las 00:00 h. Las imágenes y el vídeo tienen su propio cupo.';
     p.querySelector('.kx-us-hero').className = 'kx-us-hero ' + m.st;
     countTo(p.querySelector('[data-n]'), m.rem, 'panel');
-    var up = tier === 'free' ? { t: 'Pasar a Pro · 50 consultas al día', k: 1 } : tier === 'pro' ? { t: 'Subir a Club · 125 al día', k: 1 } : null;
+    var up = tier === 'free' ? { t: 'Pasar a Pro · 40 consultas al día', k: 1 } : tier === 'pro' ? { t: 'Subir a Club · 100 al día', k: 1 } : null;
     if (up) { cta.style.display = ''; cta.textContent = up.t + ' →'; } else cta.style.display = 'none';
     setRing(p, frac(m.rem, m.total));
     requestAnimationFrame(function () { requestAnimationFrame(function () { [].forEach.call(rows.querySelectorAll('.bar i'), function (el) { el.style.width = el.getAttribute('data-w') + '%'; }); }); });
@@ -221,6 +242,7 @@
     var q = getQ(); if (!q) return;
     cards.forEach(function (c) { paintCard(c, q); });
     strips.forEach(function (s) { paintStrip(s, q); });
+    pills.forEach(function (p) { paintPill(p, q); });
     if (panel && panel.classList.contains('open')) paintPanel(q);
   }
   var pend = false;
@@ -231,7 +253,7 @@
     if (isGuest() || !window.KinetAPIs || !KinetAPIs.getQuotaStatus) return;
     built = true;
     var st = document.createElement('style'); st.id = 'kx-usage-css'; st.textContent = CSS; document.head.appendChild(st);
-    buildCard(); buildStrip();
+    buildCard(); buildStrip(); if (cards.length) buildPill();
     if (!cards.length && !strips.length) return;
     refresh();
     window.addEventListener('kinet:usage', soon); window.addEventListener('kinet:cloud-synced', soon); window.addEventListener('storage', soon);

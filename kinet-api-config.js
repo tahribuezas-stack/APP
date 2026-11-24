@@ -45,7 +45,7 @@
     videoStorage: { provider: 'r2', bucket: 'kinet-videos', functionName: 'video-upload-url', maxMB: 8, quality: 'normal' },
 
     // Modelos asignados automáticamente según el Plan de Suscripción del usuario
-    // Cada plan tiene su motor, su tope de respuesta y su coste estimado por consulta (€) para el control del 33 %.
+    // Cada plan tiene su motor, su tope de respuesta y su coste estimado por consulta (€) para el control del 20 %.
     // Ajusta costEur con la factura real de tu proveedor. maxTokens incluye el "pensamiento" interno del modelo.
     modelsByTier: {
       free: {
@@ -93,7 +93,7 @@
     stripeLinks: {
       plan_pro: 'https://buy.stripe.com/test_28E7sM7OSayuc1k1wD6Zy0a',          // Suscripción Pro Player MENSUAL (11,99€/mes)
       plan_club: 'https://buy.stripe.com/test_14A6oI5GKdKG0iC5MT6Zy08',         // Suscripción Club & Scout MENSUAL (39,99€/mes)
-      plan_pro_year: 'https://buy.stripe.com/test_14A9AU4CGgWSaXg8Z56Zy0b',     // Pro Player ANUAL (99€/año)
+      plan_pro_year: 'https://buy.stripe.com/test_28E8wQc58dKG5CW6QX6Zy0c',     // Pro Player ANUAL (129€/año)
       plan_club_year: 'https://buy.stripe.com/test_28E14ofhk4a68P8ejp6Zy09',    // Club & Scout ANUAL (399€/año)
       pack_45_free: 'https://buy.stripe.com/test_6oUeVe6KOeOK6H07V16Zy04',      // Bono +45 min Tarifa Estándar Free (3,98€)
       pack_45_pro: 'https://buy.stripe.com/test_00wdRa6KOdKGe9s7V16Zy02',       // Bono +45 min Tarifa Miembro PRO -50% (1,99€)
@@ -115,7 +115,7 @@
       tierName: 'Plan Gratuito',
       priceMonthly: 0,
       priceYearly: 0,
-      dailyChatMessages: 10,         // TOTAL de consultas al día (fuerte + básico). Gratis: solo motor básico
+      dailyChatMessages: 8,          // TOTAL de consultas al día (fuerte + básico). Gratis: solo motor básico
       dailyStrongMessages: 0,        // de ellas, cuántas con el motor fuerte (el resto, con el básico)
       dailyCommunityBotMessages: 5,
       dailySupportBotMessages: 5,
@@ -125,7 +125,7 @@
       monthlyVideoMinutes: 0,
       maxVideoEditSeconds: 0,
       maxVideoEditClips: 0,
-      dailyLiteMessages: 10,       // = dailyChatMessages - dailyStrongMessages (informativo)
+      dailyLiteMessages: 8,        // = dailyChatMessages - dailyStrongMessages (informativo)
       bonusDiscountPct: 0,
       canUploadVideoShorts: false,
       canUseMediaStudioVideo: false,
@@ -136,9 +136,9 @@
     pro: {
       tierName: 'Pro Player',
       priceMonthly: 11.99,
-      priceYearly: 99,
-      dailyChatMessages: 50,         // 15 con el motor fuerte + 35 con el básico
-      dailyStrongMessages: 15,
+      priceYearly: 129,
+      dailyChatMessages: 40,         // 12 con el motor fuerte + 28 con el básico
+      dailyStrongMessages: 12,
       dailyCommunityBotMessages: 10,
       dailySupportBotMessages: 15,
       dailyTacticalAI: 10,
@@ -147,7 +147,7 @@
       monthlyVideoMinutes: 90,
       maxVideoEditSeconds: 60,
       maxVideoEditClips: 4,
-      dailyLiteMessages: 35,
+      dailyLiteMessages: 28,
       bonusDiscountPct: 50,
       canUploadVideoShorts: true,
       canUseMediaStudioVideo: true,
@@ -159,8 +159,8 @@
       tierName: 'Club & Scout Pro',
       priceMonthly: 39.99,
       priceYearly: 399,
-      dailyChatMessages: 125,        // 45 con el motor fuerte + 80 con el básico
-      dailyStrongMessages: 45,
+      dailyChatMessages: 100,        // 35 con el motor fuerte + 65 con el básico
+      dailyStrongMessages: 35,
       dailyCommunityBotMessages: 20,
       dailySupportBotMessages: 30,
       dailyTacticalAI: 25,
@@ -169,7 +169,7 @@
       monthlyVideoMinutes: 300,
       maxVideoEditSeconds: 120,
       maxVideoEditClips: 8,
-      dailyLiteMessages: 80,
+      dailyLiteMessages: 65,
       bonusDiscountPct: 50,
       canUploadVideoShorts: true,
       canUseMediaStudioVideo: true,
@@ -901,11 +901,11 @@ ${HUMAN_STYLE_BLOCK}
 
 
   // ==========================================================================
-  // PRESUPUESTO DE IA: el gasto total estimado por usuario y mes nunca supera el 33 % de lo que paga
-  // (Pro 11,99 € → 3,96 € · Club 39,99 € → 13,20 €). Gratis: tope fijo muy bajo (lo paga la publicidad).
+  // PRESUPUESTO DE IA: el gasto total estimado por usuario y mes nunca supera el 20 % de lo que paga
+  // (Pro 11,99 € → 2,40 € · Club 39,99 € → 8,00 €). Gratis: tope fijo muy bajo (lo paga la publicidad).
   // Es una estimación en el navegador (no es a prueba de manipulación); el control real irá en una Edge Function.
   // ==========================================================================
-  const AI_BUDGET_SHARE = 0.33;
+  const AI_BUDGET_SHARE = 0.20;
   const FREE_MONTHLY_BUDGET_EUR = 0.35;
   const IMAGE_BUDGET_CEILING = 0.75;   // las imágenes/ediciones no pueden gastar más del 75 % del presupuesto (el resto, para chat)
   const AI_COST_EUR = { strong: 0.0036, strongVision: 0.0065, lite: 0.0008, image: 0.04, imageEdit: 0.045, videoPlan: 0.015 };
@@ -998,7 +998,7 @@ ${HUMAN_STYLE_BLOCK}
       el.id = 'kinet-limit-toast';
       el.setAttribute('role', 'status');
       el.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:99999;max-width:min(92vw,330px);background:rgba(8,11,16,.96);border:1px solid var(--role-color,#00FF88);border-radius:16px;padding:14px 16px;color:#E2E8F0;font-family:Inter,system-ui,sans-serif;box-shadow:0 0 28px rgba(0,255,136,.18);animation:kxLimIn .45s cubic-bezier(.2,.8,.2,1) both';
-      const upsell = tier === 'free' ? '<a href="despacho.html" style="color:var(--role-color,#00FF88);font-weight:700;text-decoration:underline;">Pasa a Pro</a> para tener 50 al día.' : 'Es un límite anti-abuso: se renueva solo.';
+      const upsell = tier === 'free' ? '<a href="despacho.html" style="color:var(--role-color,#00FF88);font-weight:700;text-decoration:underline;">Pasa a Pro</a> para tener 40 al día.' : 'Es un límite anti-abuso: se renueva solo.';
       el.innerHTML = '<style>@keyframes kxLimIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}</style>' +
         '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--role-color,#00FF88);font-weight:800">⏳ ' + (label || 'Cupo diario agotado') + '</div><button type="button" aria-label="Cerrar" style="background:none;border:0;color:#94A3B8;font-size:16px;line-height:1;cursor:pointer">×</button></div>' +
         '<div style="font:800 30px/1.1 \'JetBrains Mono\',ui-monospace,monospace;color:#fff;margin:8px 0 4px;letter-spacing:.04em" data-t>--:--:--</div>' +
@@ -1233,7 +1233,7 @@ REGLAS: ${modeTxt && ctx.mode === 'match' ? '"plays" debe tener 2 o 3 jugadas. '
 PERFIL DE QUIEN PREGUNTA: ${roleLabel} · deporte: ${sport} · plan: ${tier}. No conoces nada más de esta persona.
 
 QUÉ PUEDES HACER:
-1. Resolver dudas sobre KINET OS: la Comunidad (KINET Pulse, Shorts, Mercado/Radar, mensajes directos, perfil social, seguir cuentas), la KINET Card, el Cuerpo Técnico IA, el Laboratorio de Vídeo, la Pizarra 3D, Media Studio y los planes (Gratis 0€, Pro Player 11,99€/mes (99€/año), Club & Scout 39,99€/mes (399€/año)). Si no sabes un detalle concreto del producto, dilo y remite a Soporte; NO inventes funciones, precios ni condiciones.
+1. Resolver dudas sobre KINET OS: la Comunidad (KINET Pulse, Shorts, Mercado/Radar, mensajes directos, perfil social, seguir cuentas), la KINET Card, el Cuerpo Técnico IA, el Laboratorio de Vídeo, la Pizarra 3D, Media Studio y los planes (Gratis 0€, Pro Player 11,99€/mes (129€/año), Club & Scout 39,99€/mes (399€/año)). Si no sabes un detalle concreto del producto, dilo y remite a Soporte; NO inventes funciones, precios ni condiciones.
 2. Responder dudas deportivas generales (entrenamiento, técnica, táctica, recuperación, nutrición general, mentalidad, carrera deportiva, scouting y cómo moverse en el mercado) siempre adaptadas a ${sport}. Usa SOLO la jerga de ${sport}; no mezcles términos de otros deportes.
 3. Ayudar a escribir o mejorar una publicación, una bio o un mensaje a un club/ojeador.
 
