@@ -2156,9 +2156,36 @@ Responde siempre en español con naturalidad y precisión técnica.`;
             try {
                 const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
                 const storageKey = `kinet_staff_chats_v3_${activeRoleKey}_${sportChosen}`;
-                localStorage.setItem(storageKey, JSON.stringify(activeChatsState));
+                const ser = JSON.stringify(activeChatsState);
+                localStorage.setItem(storageKey, ser);
+                lastChatsRaw = ser; lastChatsMem = ser;
             } catch (e) {}
         }
+
+        // Si llegan conversaciones nuevas desde otro dispositivo (la nube terminó de sincronizar con esta página ya abierta),
+        // se recargan solas, siempre que aquí no haya cambios sin guardar.
+        let lastChatsRaw = null;   // último texto guardado/leído en localStorage
+        let lastChatsMem = null;   // foto del estado en memoria en ese momento
+        function chatsStorageKey() {
+            const sportChosen = localStorage.getItem('kinet_sport') || localStorage.getItem('sport') || 'Fútbol';
+            return `kinet_staff_chats_v3_${activeRoleKey}_${sportChosen}`;
+        }
+        function reloadChatsFromCloudIfNewer() {
+            try {
+                if (!activeChatsState || lastChatsMem === null) return;
+                if (JSON.stringify(activeChatsState) !== lastChatsMem) return; // hay edición local en curso: no se pisa
+                const raw = localStorage.getItem(chatsStorageKey());
+                if (!raw || raw === lastChatsRaw) return;
+                const saved = JSON.parse(raw);
+                if (!(saved && saved.fisico_nutri && saved.psicologia && saved.tecnico_video && saved.agente_marketing)) return;
+                activeChatsState = saved;
+                lastChatsRaw = raw;
+                renderCurrentChat();
+                lastChatsMem = JSON.stringify(activeChatsState);
+            } catch (e) {}
+        }
+        window.addEventListener('kinet:cloud-synced', reloadChatsFromCloudIfNewer);
+        window.addEventListener('kinet:remote-update', reloadChatsFromCloudIfNewer);
 
         function bindSpotlightMouseEffect() {
             document.querySelectorAll('.chat-container, .contact-item, .side-link, .msg-bubble').forEach(el => {
@@ -2295,6 +2322,7 @@ Responde siempre en español con naturalidad y precisión técnica.`;
 
             updateQuotaHeaderUI();
             renderCurrentChat();
+            try { lastChatsRaw = localStorage.getItem(chatsStorageKey()); lastChatsMem = JSON.stringify(activeChatsState); } catch (e) {}
             bindSpotlightMouseEffect();
         });
 

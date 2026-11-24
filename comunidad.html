@@ -3600,6 +3600,12 @@
             deletedMap[postId] = true;
             localStorage.setItem('kinet_deleted_post_ids', JSON.stringify(deletedMap));
 
+            // Si la publicación tenía un vídeo en el servidor (R2), se borra también de allí para no gastar espacio
+            try {
+                const delPost = (allSocialPosts || []).find(p => p.id === postId);
+                if (delPost && delPost.videoUrl && window.KinetVideo && KinetVideo.remove) KinetVideo.remove(delPost.videoUrl);
+            } catch (e) {}
+
             allSocialPosts = allSocialPosts.filter(p => p.id !== postId);
             try {
                 const localSaved = JSON.parse(localStorage.getItem('kinet_saved_posts') || '[]');
@@ -3909,9 +3915,7 @@
                 if (up.ok) { pendingComposerAttachment.url = up.url; pendingComposerAttachment.remote = true; }
                 else {
                     pendingComposerAttachment.localOnly = true;
-                    alert(up.reason === 'sin-almacenamiento'
-                        ? 'Tu vídeo se ha publicado solo en este dispositivo: el almacenamiento de vídeo aún no está activado en KINET OS.'
-                        : 'No se pudo subir el vídeo al servidor (' + up.reason + '). Se muestra solo en este dispositivo.');
+                    alert('Tu vídeo se muestra solo en este dispositivo. ' + (KinetVideo.reasonText ? KinetVideo.reasonText(up.reason) : ('No se pudo subir (' + up.reason + ').')));
                 }
                 delete pendingComposerAttachment.blob;
             }

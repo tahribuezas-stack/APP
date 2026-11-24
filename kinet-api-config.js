@@ -42,7 +42,7 @@
     spotifyAccessToken: localStorage.getItem('kinet_spotify_access_token') || '',
 
     // Vídeo de comunidad (máx. 20 s, comprimido en el navegador). provider: 'none' | 'r2' | 'supabase'. Ver supabase/LEEME_VIDEO_Y_MODERACION.md
-    videoStorage: { provider: 'none', bucket: 'kinet-videos', functionName: 'video-upload-url', maxMB: 8, quality: 'normal' },
+    videoStorage: { provider: 'r2', bucket: 'kinet-videos', functionName: 'video-upload-url', maxMB: 8, quality: 'normal' },
 
     // Modelos asignados automáticamente según el Plan de Suscripción del usuario
     // Cada plan tiene su motor, su tope de respuesta y su coste estimado por consulta (€) para el control del 33 %.

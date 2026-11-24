@@ -48,6 +48,15 @@
   const originalSetItem = localStorage.setItem;
   const originalRemoveItem = localStorage.removeItem;
 
+  // Identificador de ESTE dispositivo (no se sincroniza): permite saber si un cambio vino de otro dispositivo
+  let deviceId = '';
+  try {
+    deviceId = localStorage.getItem('kinet_device_id') || '';
+    if (!deviceId) { deviceId = 'dev_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); originalSetItem.call(localStorage, 'kinet_device_id', deviceId); }
+  } catch (e) { deviceId = 'dev_' + Math.random().toString(36).slice(2, 10); }
+  let remoteChecking = false;
+  let lastPullChanged = [];
+
   // =========================================================================
   // 1. VALIDADOR INTELIGENTE DE SESIÓN REAL / PRO VS INVITADO (NUNCA BLOQUEA CUENTAS PRO)
   // =========================================================================
@@ -293,15 +302,136 @@
         k !== 'kinet_is_guest' &&
         k !== 'kinet_guest_session' &&
         k !== 'kinet_auth_session_token' &&
-        k !== 'kinet_staff_admin_role'
+        k !== 'kinet_staff_admin_role' &&
+        k !== 'kinet_device_id' &&
+        k !== 'kinet_sync_base' &&
+        k !== 'kinet_sync_seen' &&
+        k !== 'kinet_sync_writer'
       ) {
         const val = localStorage.getItem(k);
-        if (val && val.length < 180000) {
+        if (val && val.length < 600000) {
           state[k] = val;
         }
       }
     }
     return state;
+  }
+
+
+  // =========================================================================
+  // SINCRONIZACIÓN ENTRE DISPOSITIVOS (v2): cada dispositivo sube SOLO lo que cambió desde la última sincronización
+  // y baja lo que cambió en otros, sin pisar ediciones locales pendientes. La base de comparación son huellas (hash) por clave.
+  // =========================================================================
+  const SYNC_SKIP = {
+    kinet_sb_key: 1, kinet_saved_posts: 1, kinet_is_guest: 1, kinet_guest_session: 1, kinet_auth_session_token: 1,
+    kinet_staff_admin_role: 1, kinet_device_id: 1, kinet_sync_base: 1, kinet_sync_seen: 1, kinet_sync_writer: 1,
+    kinet_account_tier: 1, kinet_is_pro: 1   // plan: lo decide solo el servidor
+  };
+  const CHANGE_IGNORE = {
+    kinet_auth_session_token: 1, kinet_avatar_updated_at: 1, kinet_unread_dm_count: 1, kinet_mode: 1, kinet_logged_in: 1,
+    kinet_account_tier: 1, kinet_is_pro: 1, kinet_bonus_video_mins: 1, kinet_video_mins_used: 1, kinet_user_id: 1,
+    kinet_sync_base: 1, kinet_sync_seen: 1, kinet_sync_writer: 1, kinet_staff_admin_role: 1, kinet_device_id: 1,
+    kinet_social_configured: 1, kinet_profile_completed: 1, kinet_official_welcome_read: 1
+  };
+  function hashStr(str) {
+    let h = 5381;
+    for (let i = 0; i < str.length; i++) { h = ((h << 5) + h + str.charCodeAt(i)) | 0; }
+    return str.length + ':' + (h >>> 0).toString(36);
+  }
+  function currentSyncHashes() {
+    const out = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || !k.startsWith('kinet_') || SYNC_SKIP[k]) continue;
+      const v = localStorage.getItem(k);
+      if (v && String(v).trim() !== '' && v.length < 600000) out[k] = hashStr(v);
+    }
+    return out;
+  }
+  function getSyncBase() {
+    try { const b = JSON.parse(localStorage.getItem('kinet_sync_base') || 'null'); return (b && typeof b === 'object') ? b : null; } catch (e) { return null; }
+  }
+  function setSyncBase(obj) { try { originalSetItem.call(localStorage, 'kinet_sync_base', JSON.stringify(obj)); } catch (e) {} }
+  function unsyncedLocalKeys() {
+    const base = getSyncBase(); const set = new Set();
+    if (!base) return set;
+    const now = currentSyncHashes();
+    Object.keys(now).forEach((k) => { if (base[k] !== now[k]) set.add(k); });
+    return set;
+  }
+
+  // La sesión real (Supabase) manda: si el perfil guardado en este navegador no es el de la sesión, se limpia todo resto de otra cuenta.
+  async function ensureSessionIdentity() {
+    try {
+      const c = initSupabase();
+      if (!c || !c.auth) return;
+      const { data } = await c.auth.getSession();
+      const sess = data && data.session;
+      if (!sess || !sess.user || !sess.user.id) return;
+      const sid = sess.user.id;
+      const uid = localStorage.getItem('kinet_user_id');
+      if (uid && uid !== sid) {
+        Object.keys(localStorage).forEach((k) => { if (k.startsWith('kinet_') && k !== 'kinet_device_id') originalRemoveItem.call(localStorage, k); });
+        originalSetItem.call(localStorage, 'kinet_user_id', sid);
+        if (sess.user.email) originalSetItem.call(localStorage, 'kinet_user_email', sess.user.email);
+        originalSetItem.call(localStorage, 'kinet_logged_in', 'true');
+        originalSetItem.call(localStorage, 'kinet_auth_session_token', 'auth_' + sid + '_' + Date.now());
+      }
+    } catch (e) {}
+  }
+
+  function showSyncToast() {
+    try {
+      if (document.getElementById('kinet-sync-toast') || !document.body) return;
+      const t = document.createElement('div');
+      t.id = 'kinet-sync-toast';
+      t.setAttribute('role', 'status');
+      t.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:92px;z-index:99999;display:flex;gap:10px;align-items:center;max-width:92vw;padding:10px 14px;border-radius:12px;background:rgba(8,12,20,.96);border:1px solid var(--role-color,#00FF88);color:#E2E8F0;font:600 12px/1.3 Inter,system-ui,sans-serif;box-shadow:0 6px 28px rgba(0,0,0,.55)';
+      t.innerHTML = '<span>🔄 Tus datos se actualizaron desde otro dispositivo</span><button type="button" style="background:var(--role-color,#00FF88);color:#04060A;border:0;border-radius:8px;padding:6px 10px;font-weight:800;cursor:pointer">Actualizar</button>';
+      t.querySelector('button').onclick = function () { location.reload(); };
+      document.body.appendChild(t);
+      setTimeout(function () { try { t.remove(); } catch (e) {} }, 15000);
+    } catch (e) {}
+  }
+
+  function onRemoteChanged(reason) {
+    try {
+      refreshDOMAvatarsAndProfileUI();
+      applyGlobalSidebarEnhancements();
+      window.dispatchEvent(new CustomEvent('kinet:remote-update', { detail: { changed: lastPullChanged.slice() } }));
+      const ae = document.activeElement;
+      const typing = !!(ae && (/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName) || ae.isContentEditable));
+      const busy = !!document.querySelector('.ai-thinking-eta-card');
+      const last = parseInt(sessionStorage.getItem('kinet_sync_reload_at') || '0', 10);
+      const canReload = !typing && !busy && (Date.now() - last > 30000);
+      if ((reason === 'load' || reason === 'resume') && canReload) {
+        sessionStorage.setItem('kinet_sync_reload_at', String(Date.now()));
+        location.reload();
+        return;
+      }
+      showSyncToast();
+    } catch (e) {}
+  }
+
+  async function checkRemoteChange(reason) {
+    if (remoteChecking || !initialCloudPullFinished || !isStrictlyAuthenticatedUser()) return;
+    remoteChecking = true;
+    try {
+      const uid = localStorage.getItem('kinet_user_id');
+      if (!uid || uid.length < 16) return;
+      const rows = await supabaseRestRequest(`profiles?id=eq.${encodeURIComponent(uid)}&select=updated_at,account_tier,writer:user_state->>kinet_sync_writer&limit=1`, 'GET');
+      const r = Array.isArray(rows) && rows[0];
+      if (!r) return;
+      const localTier = (localStorage.getItem('kinet_account_tier') || 'free').toLowerCase();
+      const srvTier = ['pro', 'club'].includes(String(r.account_tier).toLowerCase()) ? String(r.account_tier).toLowerCase() : 'free';
+      if (localTier !== srvTier) { try { await syncPrivilegedFromServer(); } catch (e) {} }
+      const seen = localStorage.getItem('kinet_sync_seen');
+      if (r.updated_at && r.updated_at === seen) return;
+      if (r.writer && r.writer === deviceId) { if (r.updated_at) originalSetItem.call(localStorage, 'kinet_sync_seen', r.updated_at); return; }
+      await KinetBackend.pullCloudStateToLocal();
+      if (lastPullChanged.length) onRemoteChanged(reason);
+    } catch (e) {
+    } finally { remoteChecking = false; }
   }
 
   // Interceptar localStorage.setItem para que los Onboardings NO puedan activar kinet_logged_in si el usuario es Invitado
@@ -423,6 +553,9 @@
   function restoreCloudStateToLocal(profileRow) {
     if (!profileRow || !profileRow.id) return;
     isHydratingFromCloud = true;
+    const unsynced = unsyncedLocalKeys();
+    const setSynced = (k, v) => { if (!unsynced.has(k)) originalSetItem.call(localStorage, k, v); };
+    const baseBefore = getSyncBase();
     try {
       localStorage.removeItem('kinet_is_guest');
       localStorage.removeItem('kinet_guest_session');
@@ -454,34 +587,40 @@
           if (k === 'kinet_user_name' && (cloudState[k] === 'Usuario KINET' || cloudState[k] === 'Atleta Invitado')) {
             return;
           }
-          originalSetItem.call(localStorage, k, String(cloudState[k]));
+          if (!unsynced.has(k) && !SYNC_SKIP[k]) originalSetItem.call(localStorage, k, String(cloudState[k]));
         }
       });
+      // Claves borradas en otro dispositivo: se borran aquí si no tenemos cambios locales pendientes en ellas
+      if (baseBefore) {
+        Object.keys(baseBefore).forEach((k) => {
+          if (!(k in cloudState) && !unsynced.has(k) && !SYNC_SKIP[k]) originalRemoveItem.call(localStorage, k);
+        });
+      }
 
       originalSetItem.call(localStorage, 'kinet_user_id', profileRow.id);
       if (profileRow.email) originalSetItem.call(localStorage, 'kinet_user_email', profileRow.email);
       if (profileRow.full_name && profileRow.full_name !== 'Atleta Invitado') {
-        originalSetItem.call(localStorage, 'kinet_user_name', profileRow.full_name);
+        setSynced('kinet_user_name', profileRow.full_name);
       }
       if (profileRow.handle && !profileRow.handle.includes('invitado')) {
-        originalSetItem.call(localStorage, 'kinet_username', profileRow.handle);
-        originalSetItem.call(localStorage, 'kinet_social_handle', profileRow.handle);
+        setSynced('kinet_username', profileRow.handle);
+        setSynced('kinet_social_handle', profileRow.handle);
       }
-      if (profileRow.bio) originalSetItem.call(localStorage, 'kinet_social_bio', profileRow.bio);
+      if (profileRow.bio) setSynced('kinet_social_bio', profileRow.bio);
 
       const cloudAvatar = profileRow.avatar_url || cloudState.kinet_user_avatar;
       if (cloudAvatar && cloudAvatar.length > 12) {
-        originalSetItem.call(localStorage, 'kinet_user_avatar', cloudAvatar);
+        setSynced('kinet_user_avatar', cloudAvatar);
       }
 
       if (profileRow.active_role) {
-        originalSetItem.call(localStorage, 'kinet_active_role', profileRow.active_role);
-        originalSetItem.call(localStorage, 'kinet_role', profileRow.active_role);
+        setSynced('kinet_active_role', profileRow.active_role);
+        setSynced('kinet_role', profileRow.active_role);
       }
-      if (profileRow.active_sport) originalSetItem.call(localStorage, 'kinet_sport', profileRow.active_sport);
-      if (profileRow.position && profileRow.position !== 'Por asignar') originalSetItem.call(localStorage, 'kinet_position', profileRow.position);
-      if (profileRow.category) originalSetItem.call(localStorage, 'kinet_category', profileRow.category);
-      if (profileRow.club) originalSetItem.call(localStorage, 'kinet_user_club', profileRow.club);
+      if (profileRow.active_sport) setSynced('kinet_sport', profileRow.active_sport);
+      if (profileRow.position && profileRow.position !== 'Por asignar') setSynced('kinet_position', profileRow.position);
+      if (profileRow.category) setSynced('kinet_category', profileRow.category);
+      if (profileRow.club) setSynced('kinet_user_club', profileRow.club);
       const resolvedTier = String(profileRow.account_tier || 'free').toLowerCase().trim();
       originalSetItem.call(localStorage, 'kinet_account_tier', resolvedTier);
       originalSetItem.call(localStorage, 'kinet_is_pro', (resolvedTier === 'pro' || resolvedTier === 'club') ? 'true' : 'false');
@@ -511,6 +650,17 @@
       originalSetItem.call(localStorage, 'kinet_logged_in', 'true');
       originalSetItem.call(localStorage, 'kinet_social_configured', 'true');
       originalSetItem.call(localStorage, 'kinet_profile_completed', 'true');
+      // Nueva base de comparación: solo las claves que ya coinciden con la nube
+      try {
+        const nb = {}; const nowH = currentSyncHashes(); const cs = profileRow.user_state || {};
+        Object.keys(nowH).forEach((k) => { if (k in cs && String(cs[k]) === localStorage.getItem(k)) nb[k] = nowH[k]; });
+        // claves que vienen de columnas del perfil (no de user_state) y están alineadas
+        const cols = { kinet_user_name: profileRow.full_name, kinet_social_handle: profileRow.handle, kinet_username: profileRow.handle, kinet_social_bio: profileRow.bio, kinet_user_avatar: profileRow.avatar_url, kinet_active_role: profileRow.active_role, kinet_role: profileRow.active_role, kinet_sport: profileRow.active_sport, kinet_position: profileRow.position, kinet_category: profileRow.category, kinet_user_club: profileRow.club };
+        Object.keys(cols).forEach((k) => { if (nowH[k] && cols[k] != null && String(cols[k]) === localStorage.getItem(k)) nb[k] = nowH[k]; });
+        unsynced.forEach((k) => { delete nb[k]; });
+        setSyncBase(nb);
+        if (profileRow.updated_at) originalSetItem.call(localStorage, 'kinet_sync_seen', profileRow.updated_at);
+      } catch (e) {}
     } finally {
       isHydratingFromCloud = false;
       refreshDOMAvatarsAndProfileUI();
@@ -1015,6 +1165,13 @@
         authedUserId = sess.user.id;
         lookupEmail = (sess.user.email || '').toLowerCase();
       }
+      // Si en este navegador había OTRA cuenta, se borra todo resto suyo antes de cargar la nueva (nunca se mezclan perfiles)
+      try {
+        const prevUid = localStorage.getItem('kinet_user_id');
+        if (prevUid && prevUid !== authedUserId) {
+          Object.keys(localStorage).forEach((k) => { if (k.startsWith('kinet_') && k !== 'kinet_device_id') originalRemoveItem.call(localStorage, k); });
+        }
+      } catch (e) {}
       originalSetItem.call(localStorage, 'kinet_user_id', authedUserId);
       try {
         const prow = await supabaseRestRequest(`profiles?id=eq.${authedUserId}&select=*&limit=1`, 'GET');
@@ -1087,45 +1244,64 @@
         } catch (e) {}
 
         const cloudPrevState = (existingRow && existingRow.user_state) ? existingRow.user_state : {};
-        const localNowState = collectAllKinetLocalState();
+        const base = getSyncBase();
+        // Sin base de comparación y con perfil ya existente en la nube: antes hay que bajar la nube (si no, un dispositivo con datos viejos la pisaría)
+        if (existingRow && !base) {
+          await KinetBackend.pullCloudStateToLocal();
+          if (!getSyncBase()) return { ok: false, needsPull: true };
+          return KinetBackend.pushLocalStateToCloud();
+        }
+        const nowHashes = currentSyncHashes();
+        const changed = [], removed = [];
+        Object.keys(nowHashes).forEach((k) => { if (!base || base[k] !== nowHashes[k]) changed.push(k); });
+        if (base) Object.keys(base).forEach((k) => { if (!(k in nowHashes)) removed.push(k); });
+        if (existingRow && !changed.length && !removed.length) return { ok: true, noChange: true };
+        const has = (...ks) => !existingRow || ks.some((k) => changed.includes(k));
 
         const safeMergedState = { ...cloudPrevState };
-        Object.keys(localNowState).forEach((k) => {
-          const val = localNowState[k];
-          if (val !== null && val !== undefined && String(val).trim() !== '' && !String(val).includes('invitado_')) {
-            safeMergedState[k] = val;
-          }
+        changed.forEach((k) => {
+          const val = localStorage.getItem(k);
+          if (val !== null && val !== undefined && String(val).trim() !== '' && !String(val).includes('invitado_')) safeMergedState[k] = val;
         });
+        removed.forEach((k) => { delete safeMergedState[k]; });
+        safeMergedState.kinet_sync_writer = deviceId;
 
-        // Si el usuario restauró el color original de su rol, eliminarlo también de Supabase user_state para que no reaparezca al cambiar de página
-        if (localStorage.getItem('kinet_theme_color_reset') === 'true' || (!localStorage.getItem('kinet_custom_accent_override') && !localStorage.getItem('kinet_accent_color'))) {
-          delete safeMergedState.kinet_custom_accent_override;
-          delete safeMergedState.kinet_accent_color;
-          safeMergedState.kinet_theme_color_reset = 'true';
-        } else {
-          delete safeMergedState.kinet_theme_color_reset;
+        // Color de acento: solo se toca si ESTE dispositivo lo cambió
+        const themeTouched = changed.concat(removed).some((k) => k === 'kinet_theme_color_reset' || k === 'kinet_custom_accent_override' || k === 'kinet_accent_color');
+        if (!existingRow || themeTouched) {
+          if (localStorage.getItem('kinet_theme_color_reset') === 'true' || (!localStorage.getItem('kinet_custom_accent_override') && !localStorage.getItem('kinet_accent_color'))) {
+            delete safeMergedState.kinet_custom_accent_override;
+            delete safeMergedState.kinet_accent_color;
+            safeMergedState.kinet_theme_color_reset = 'true';
+          } else {
+            delete safeMergedState.kinet_theme_color_reset;
+          }
         }
 
-        const payload = {
-          id: userId,
-          email: localStorage.getItem('kinet_user_email') || (existingRow && existingRow.email) || undefined,
-          full_name: currentName,
-          handle: currentHandle,
-          avatar_url: avatarData,
-          bio: localStorage.getItem('kinet_social_bio') || (existingRow && existingRow.bio) || '',
-          active_role: localStorage.getItem('kinet_active_role') || (existingRow && existingRow.active_role) || 'athlete',
-          active_sport: localStorage.getItem('kinet_sport') || (existingRow && existingRow.active_sport) || 'Fútbol',
-          position: localStorage.getItem('kinet_position') || (existingRow && existingRow.position) || 'Por asignar',
-          category: localStorage.getItem('kinet_user_category') || localStorage.getItem('kinet_category') || (existingRow && existingRow.category) || 'Senior',
-          club: localStorage.getItem('kinet_user_club') || (existingRow && existingRow.club) || '',
-          account_tier: localStorage.getItem('kinet_account_tier') || (existingRow && existingRow.account_tier) || 'free',
-          video_mins_used: parseFloat(localStorage.getItem('kinet_video_mins_used') || '0'),
-          bonus_video_mins: parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0'),
-          user_state: safeMergedState,
-          updated_at: new Date().toISOString()
-        };
+        const payload = { id: userId, user_state: safeMergedState, updated_at: new Date().toISOString() };
+        if (has('kinet_user_email') && (localStorage.getItem('kinet_user_email') || (existingRow && existingRow.email))) payload.email = localStorage.getItem('kinet_user_email') || existingRow.email;
+        if (has('kinet_user_name')) payload.full_name = currentName;
+        else if (!existingRow) payload.full_name = currentName;
+        if (has('kinet_social_handle', 'kinet_username')) payload.handle = currentHandle;
+        if (has('kinet_user_avatar')) payload.avatar_url = avatarData;
+        if (has('kinet_social_bio')) payload.bio = localStorage.getItem('kinet_social_bio') || '';
+        if (has('kinet_active_role', 'kinet_role')) payload.active_role = localStorage.getItem('kinet_active_role') || (existingRow && existingRow.active_role) || 'athlete';
+        if (has('kinet_sport')) payload.active_sport = localStorage.getItem('kinet_sport') || (existingRow && existingRow.active_sport) || 'Fútbol';
+        if (has('kinet_position')) payload.position = localStorage.getItem('kinet_position') || (existingRow && existingRow.position) || 'Por asignar';
+        if (has('kinet_user_category', 'kinet_category')) payload.category = localStorage.getItem('kinet_user_category') || localStorage.getItem('kinet_category') || (existingRow && existingRow.category) || 'Senior';
+        if (has('kinet_user_club')) payload.club = localStorage.getItem('kinet_user_club') || (existingRow && existingRow.club) || '';
+        if (!existingRow) payload.account_tier = 'free';   // el plan real lo pone el servidor
+        if (has('kinet_video_mins_used')) payload.video_mins_used = parseFloat(localStorage.getItem('kinet_video_mins_used') || '0');
+        if (has('kinet_bonus_video_mins')) payload.bonus_video_mins = parseFloat(localStorage.getItem('kinet_bonus_video_mins') || '0');
 
-        await supabaseRestRequest('profiles', 'POST', payload, true);
+        const saved = await supabaseRestRequest('profiles', 'POST', payload, true);
+        // Actualizar la base solo con lo que se acaba de subir
+        const nb = { ...(base || {}) };
+        changed.forEach((k) => { nb[k] = nowHashes[k]; });
+        removed.forEach((k) => { delete nb[k]; });
+        setSyncBase(nb);
+        const savedRow = Array.isArray(saved) && saved[0];
+        originalSetItem.call(localStorage, 'kinet_sync_seen', (savedRow && savedRow.updated_at) || payload.updated_at);
         return { ok: true };
       } catch (err) {
         return { ok: false, error: err };
@@ -1140,6 +1316,7 @@
           return null;
         }
 
+        await ensureSessionIdentity();
         const userId = await resolveCurrentUserId();
         if (!userId) {
           initialCloudPullFinished = true;
@@ -1148,9 +1325,15 @@
 
         const rows = await supabaseRestRequest(`profiles?id=eq.${userId}&select=*`, 'GET');
         if (Array.isArray(rows) && rows[0]) {
+          const before = currentSyncHashes();
           restoreCloudStateToLocal(rows[0]);
+          const after = currentSyncHashes();
+          const keys = {}; Object.keys(before).concat(Object.keys(after)).forEach((k) => { keys[k] = 1; });
+          lastPullChanged = Object.keys(keys).filter((k) => before[k] !== after[k] && !CHANGE_IGNORE[k]);
           initialCloudPullFinished = true;
           window.dispatchEvent(new CustomEvent('kinet:cloud-synced', { detail: rows[0] }));
+          // Datos que solo existen en este dispositivo: se suben
+          try { const b = getSyncBase() || {}; if (Object.keys(after).some((k) => !(k in b))) scheduleCloudSync(); } catch (e) {}
           return rows[0];
         }
       } catch (e) {}
@@ -1353,15 +1536,30 @@
     refreshDOMAvatarsAndProfileUI();
     applyGlobalSidebarEnhancements();
     KinetBackend.startRealtimeDMPolling(3500);
+    if (lastPullChanged.length) onRemoteChanged('load');
   });
 
+  // Sincronización en vivo: al volver a la app, al recuperar conexión y cada 20 s con la pestaña visible
   window.addEventListener('focus', () => {
     if (isStrictlyAuthenticatedUser()) {
-      KinetBackend.pullCloudStateToLocal();
+      checkRemoteChange('resume');
     } else {
       scrubHardcodedHtmlPlaceholdersForGuest();
     }
   });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      checkRemoteChange('resume');
+    } else if (isStrictlyAuthenticatedUser() && initialCloudPullFinished) {
+      if (syncTimeout) { clearTimeout(syncTimeout); syncTimeout = null; }
+      KinetBackend.pushLocalStateToCloud();
+    }
+  });
+  window.addEventListener('pagehide', () => {
+    if (isStrictlyAuthenticatedUser() && initialCloudPullFinished && syncTimeout) { clearTimeout(syncTimeout); syncTimeout = null; KinetBackend.pushLocalStateToCloud(); }
+  });
+  window.addEventListener('online', () => { checkRemoteChange('resume'); });
+  setInterval(() => { if (!document.hidden) checkRemoteChange('poll'); }, 20000);
 
   document.addEventListener('DOMContentLoaded', () => {
     refreshDOMAvatarsAndProfileUI();

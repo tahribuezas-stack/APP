@@ -107,10 +107,15 @@
     try {
       if (c.provider === 'r2') {
         var r = await sb.functions.invoke(c.functionName, { body: { contentType: blob.type, size: blob.size } });
-        if (r.error || !r.data || !r.data.uploadUrl) return { ok: false, reason: 'firma-rechazada' };
+        if (r.error || !r.data || !r.data.uploadUrl) {
+          // La función devuelve el motivo (límite diario, cuota llena…) en el cuerpo de la respuesta de error
+          var why = 'firma-rechazada';
+          try { var ctx = r.error && r.error.context; var j = ctx && ctx.json ? await ctx.json() : null; if (j && j.error) why = j.error; } catch (e) {}
+          return { ok: false, reason: why };
+        }
         var put = await fetch(r.data.uploadUrl, { method: 'PUT', headers: { 'Content-Type': blob.type }, body: blob });
         if (!put.ok) return { ok: false, reason: 'subida-fallida' };
-        return { ok: true, url: r.data.publicUrl, provider: 'r2' };
+        return { ok: true, url: r.data.publicUrl, key: r.data.key, provider: 'r2' };
       }
       if (c.provider === 'supabase') {
         var uid = (await sb.auth.getUser()).data.user; uid = uid && uid.id; if (!uid) return { ok: false, reason: 'sin-sesion' };
@@ -123,5 +128,32 @@
     return { ok: false, reason: 'proveedor-desconocido' };
   }
 
-  window.KinetVideo = { MAX_SECONDS: MAX_SECONDS, config: cfg, prepare: prepare, upload: upload };
+  // Borra un clip propio de R2 (por URL pública o clave). Con { all:true } borra todos los del usuario (borrado de cuenta).
+  async function remove(urlOrKey, opts) {
+    var c = cfg();
+    if (c.provider !== 'r2') return { ok: false, reason: 'sin-almacenamiento' };
+    var sb = window.KinetBackend && KinetBackend.getClient ? KinetBackend.getClient() : null;
+    if (!sb) return { ok: false, reason: 'sin-sesion' };
+    try {
+      var body = (opts && opts.all) ? { action: 'delete-all' } : { action: 'delete', url: String(urlOrKey || '') };
+      var r = await sb.functions.invoke(c.functionName, { body: body });
+      if (r.error) return { ok: false, reason: 'error' };
+      return { ok: true, deleted: r.data && r.data.deleted };
+    } catch (e) { return { ok: false, reason: 'error' }; }
+  }
+
+  // Texto claro para el usuario según el motivo devuelto por upload()
+  function reasonText(reason) {
+    var m = {
+      'sin-almacenamiento': 'El almacenamiento de vídeo aún no está activado en KINET OS.',
+      'demasiado-grande': 'El vídeo pesa demasiado. Prueba con calidad "ligero" o un clip más corto.',
+      'limite-diario': 'Has llegado al límite de vídeos de hoy para tu plan. Mañana podrás subir más, o pasa a un plan superior.',
+      'cuota-llena': 'Tu espacio de vídeo está lleno. Borra algún clip antiguo o pasa a un plan superior.',
+      'formato': 'Formato no admitido. Usa MP4 o WebM.',
+      'sin-sesion': 'Inicia sesión para subir vídeos.'
+    };
+    return m[reason] || 'No se pudo subir el vídeo (' + reason + ').';
+  }
+
+  window.KinetVideo = { MAX_SECONDS: MAX_SECONDS, config: cfg, prepare: prepare, upload: upload, remove: remove, reasonText: reasonText };
 })();
