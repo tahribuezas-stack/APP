@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script src="kinet-guard.js?v=21"></script>
-<script src="kinet-sport.js?v=21"></script>
+<script src="kinet-guard.js?v=22"></script>
+<script src="kinet-sport.js?v=22"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
@@ -912,6 +912,17 @@
             justify-content: space-between;
             transition: all 0.18s ease;
         }
+        .month-dow {
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.58rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            padding: 2px 0 4px;
+        }
+        .month-day-cell.is-blank { background: transparent; border-color: transparent; cursor: default; pointer-events: none; }
+        .month-day-cell.is-today { box-shadow: inset 0 0 0 1px var(--role-color); }
         .month-day-cell:hover,
         .month-day-cell.selected {
             border-color: var(--role-color);
@@ -963,9 +974,12 @@
     
         .quick-input:-webkit-autofill,.quick-input:-webkit-autofill:focus{-webkit-box-shadow:0 0 0 1000px #0A0E16 inset !important;-webkit-text-fill-color:#F1F5F9 !important;caret-color:#F1F5F9}
 </style>
-    <script src="kinet-backend.js?v=21"></script>
-    <script src="kinet-api-config.js?v=21"></script>
-    <link rel="stylesheet" href="kinet-mobile-fix.css?v=21">
+    <script src="kinet-backend.js?v=22"></script>
+<script src="kinet-gestion.js?v=22"></script>
+    <script src="kinet-api-config.js?v=22"></script>
+    <link rel="stylesheet" href="kinet-mobile-fix.css?v=22">
+<link rel="stylesheet" href="kinet-fx.css?v=22">
+<script src="kinet-fx.js?v=22"></script>
 </head>
 <body data-role="athlete">
 
@@ -1945,13 +1959,17 @@
             const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
             const grid = document.getElementById('full-month-grid');
             const labelOf = icon => icon === '🩹' ? 'Descanso' : (icon === '🏆' ? sportTerms().compCap : (icon.includes('🏋️') ? (icon.length > 3 ? 'Doble' : 'Gym') : sportTerms().fieldShort));
-            let html = '';
+            // Cabecera L M X J V S D y huecos iniciales para que el día 1 caiga en su día real de la semana (semana empieza en lunes)
+            let html = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'].map(n => `<div class="month-dow">${n}</div>`).join('');
+            const firstDow = (new Date(now.getFullYear(), now.getMonth(), 1).getDay() + 6) % 7;
+            for (let b = 0; b < firstDow; b++) html += '<div class="month-day-cell is-blank" aria-hidden="true"></div>';
             for (let d = 1; d <= daysInMonth; d++) {
                 const dateObj = new Date(now.getFullYear(), now.getMonth(), d);
                 const icon = dayIconFor(dateObj);
                 const isSel = d === selectedMonthDateNum;
+                const isToday = d === now.getDate();
                 html += `
-                    <div class="month-day-cell ${isSel ? 'selected' : ''}" onclick="selectMonthModalDay(${d})">
+                    <div class="month-day-cell ${isSel ? 'selected' : ''} ${isToday ? 'is-today' : ''}" onclick="selectMonthModalDay(${d})">
                         <div style="display:flex;justify-content:space-between;align-items:center;">
                             <span style="font-family:'Orbitron';font-size:0.78rem;font-weight:800;color:white;">${d}</span>
                             <span style="font-size:0.75rem;">${icon || ''}</span>

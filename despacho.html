@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script src="kinet-guard.js?v=21"></script>
-<script src="kinet-sport.js?v=21"></script>
-<script src="kinet-select.js?v=21"></script>
+<script src="kinet-guard.js?v=22"></script>
+<script src="kinet-sport.js?v=22"></script>
+<script src="kinet-select.js?v=22"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
@@ -46,9 +46,10 @@
     <!-- Librería Oficial para Generación Real del Contrato / Informe en PDF + Supabase + KINET Backend + APIs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="kinet-backend.js?v=21"></script>
-    <script src="kinet-api-config.js?v=21"></script>
-    <script src="kinet-sensors.js?v=21"></script>
+    <script src="kinet-backend.js?v=22"></script>
+<script src="kinet-gestion.js?v=22"></script>
+    <script src="kinet-api-config.js?v=22"></script>
+    <script src="kinet-sensors.js?v=22"></script>
 
     <style>
         :root {
@@ -564,7 +565,9 @@
         .m-nav-btn { background: transparent; border: none; color: var(--text-secondary); font-family: 'Inter', sans-serif; font-size: 0.62rem; font-weight: 700; padding: 6px 8px; border-radius: 14px; display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; cursor: pointer; }
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
-    <link rel="stylesheet" href="kinet-mobile-fix.css?v=21">
+    <link rel="stylesheet" href="kinet-mobile-fix.css?v=22">
+<link rel="stylesheet" href="kinet-fx.css?v=22">
+<script src="kinet-fx.js?v=22"></script>
 </head>
 <body data-role="athlete">
 
@@ -818,6 +821,7 @@
                                     <span class="panel-label" style="color:var(--role-color);">🛡️ MODO DIOS // SANDBOX DE PRUEBAS SIN PASARELA & CONSOLA DE MODERACIÓN SUPABASE</span>
                                     <span style="font-family:'JetBrains Mono';font-size:0.65rem;color:#04060A;background:var(--role-color);padding:4px 10px;border-radius:8px;font-weight:900;" id="sandbox-staff-badge">RANGO: SUPERADMIN</span>
                                 </div>
+                                <a href="gestion.html" class="btn-primary" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;margin:0 0 14px 0;padding:10px 16px;border-radius:12px;font-size:0.76rem;">🎛️ Abrir panel de GESTIÓN completo →</a>
                                 <p style="font-size:0.78rem;color:#CBD5E1;margin-bottom:14px;line-height:1.45;">
                                     Esta consola es <strong>100% invisible para los usuarios normales</strong> y se ha desbloqueado gracias a tu columna <code>staff_role</code> en Supabase. Como tu cuenta tiene privilegios internos, <strong>todas las pasarelas de pago están desactivadas para ti</strong>: puedes alternar de plan, rol, minutos y moderar usuarios al instante.
                                 </p>
@@ -2306,6 +2310,14 @@ function stageResetRoleColor() {
 
         async function staffInstantSwitchTier(targetTier) {
             const cleanTier = normalizeTier(targetTier);
+            // El plan lo decide el servidor: primero se cambia allí (el servidor valida que seas staff); si falla, no se toca nada aquí.
+            try {
+                const me = (localStorage.getItem('kinet_user_email') || '').trim();
+                await window.KinetBackend.adminUpdateUserAccount({ targetEmailOrHandle: me, accountTier: cleanTier });
+            } catch (err) {
+                openInfoModal('⚠️ NO SE PUDO CAMBIAR EL PLAN EN EL SERVIDOR', (err && err.message) || 'Error desconocido. Comprueba que has ejecutado supabase/01_seguridad.sql y que tu cuenta es superadmin.');
+                return;
+            }
             localStorage.setItem('kinet_account_tier', cleanTier);
             localStorage.setItem('kinet_is_pro', (cleanTier === 'pro' || cleanTier === 'club') ? 'true' : 'false');
             localStorage.setItem('kinet_plan_cycle_start', String(Date.now()));
@@ -2329,6 +2341,14 @@ function stageResetRoleColor() {
 
         async function staffInstantSetBonusMins(mins) {
             const capped = Math.min(MAX_BONUS_WALLET_MINS, Math.max(0, parseFloat(mins || 0)));
+            try {
+                const me = (localStorage.getItem('kinet_user_email') || '').trim();
+                await window.KinetBackend.adminUpdateUserAccount({ targetEmailOrHandle: me, bonusVideoMins: capped });
+                localStorage.setItem('kinet_bonus_server_seen', String(capped));
+            } catch (err) {
+                openInfoModal('⚠️ NO SE PUDIERON FIJAR LOS MINUTOS EN EL SERVIDOR', (err && err.message) || 'Error desconocido.');
+                return;
+            }
             localStorage.setItem('kinet_bonus_video_mins', String(capped));
             localStorage.setItem('kinet_video_mins_used', '0');
             if (window.KinetBackend) await window.KinetBackend.pushLocalStateToCloud();

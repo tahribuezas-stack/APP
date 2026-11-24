@@ -1,0 +1,249 @@
+/* KINET OS · capa de movimiento compartida (v22)
+   1) Entrada a la app: logo que se forma y la pantalla "se derrite" revelando la interfaz, que se reconstruye pieza a pieza.
+   2) Transición entre páginas: la cortina cae como goteo oscuro y, al llegar, se derrite hacia abajo.
+   3) Reconstrucción al cambiar de pestaña o modo dentro de una página (Gestionar plantilla, Jugadas, ajustes…).
+   4) Cursor propio, pulso al hacer clic, barra de avance, grano fino y botones magnéticos.
+   Todo es opcional: sin JS, con prefers-reduced-motion o si algo falla, la app se ve y funciona igual que antes. */
+(function () {
+  'use strict';
+  if (window.KinetFX) return;
+  var doc = document.documentElement;
+  var reduce = false, fine = false;
+  try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  try { fine = matchMedia('(hover: hover) and (pointer: fine)').matches; } catch (e) {}
+  var wide = innerWidth >= 900;
+  function ss(k, v) { try { if (v === undefined) return sessionStorage.getItem(k); if (v === null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v); } catch (e) {} return null; }
+  function ls(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+
+  var path = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+  var SHELL = /^(app|cuerpo-tecnico|ficha-pro|ojeador-live|analizador|comunidad|media-studio|despacho|perfil|gestion)\.html$/.test(path);
+  var NOFX_PAGES = /^(estado)\.html$/.test(path);
+  if (NOFX_PAGES) { window.KinetFX = { rebuild: function () {}, go: function (u) { location.href = u; } }; return; }
+
+  /* ───────── decisión temprana: ¿empezamos tapados? (antes del primer pintado, sin parpadeo) ───────── */
+  var navAt = parseInt(ss('kx_cover') || '0', 10);
+  var fromNav = navAt && (Date.now() - navAt) < 5000;
+  var needIntro = SHELL && !reduce && ls('kinet_logged_in') === 'true' && !ss('kx_intro');
+  var startCovered = !reduce && (fromNav || needIntro);
+  if (startCovered) {
+    doc.classList.add('kx-cover');
+    setTimeout(function () { doc.classList.remove('kx-cover'); }, 4500);   // red de seguridad absoluta
+  }
+  ss('kx_cover', null);
+
+  /* ───────── cortina ───────── */
+  var melt = null, cols = [], sweep = null;
+  function ensureMelt() {
+    if (melt) return melt;
+    if (!document.body) return null;
+    if (!document.getElementById('kx-goo-svg')) {
+      var s = document.createElement('div'); s.id = 'kx-goo-svg'; s.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden';
+      s.innerHTML = '<svg width="0" height="0" aria-hidden="true"><filter id="kx-goo" x="-5%" y="-5%" width="110%" height="115%"><feGaussianBlur in="SourceGraphic" stdDeviation="9" result="b"/><feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 24 -10"/></filter></svg>';
+      document.body.appendChild(s);
+    }
+    melt = document.createElement('div'); melt.id = 'kx-melt'; melt.setAttribute('aria-hidden', 'true');
+    if (!wide) melt.className = 'simple';
+    var n = wide ? 28 : 10, html = '<div class="kx-cols">';
+    for (var i = 0; i < n; i++) html += '<div class="kx-col" style="--drip:' + (28 + Math.round(Math.random() * 96)) + 'px"></div>';
+    html += '</div><div class="kx-logo"><div class="kx-mark">K</div><div class="kx-word"></div><div class="kx-sub"></div><div class="kx-bar"><i></i></div></div>';
+    melt.innerHTML = html; document.body.appendChild(melt);
+    cols = [].slice.call(melt.querySelectorAll('.kx-col'));
+    var w = melt.querySelector('.kx-word'); 'KINET OS'.split('').forEach(function (ch, i) { var sp = document.createElement('span'); sp.textContent = ch === ' ' ? ' ' : ch; sp.style.animationDelay = (0.35 + i * 0.06) + 's'; w.appendChild(sp); });
+    sweep = document.createElement('div'); sweep.id = 'kx-sweep'; document.body.appendChild(sweep);
+    return melt;
+  }
+  var OUT = 'translateY(calc(-100% - 170px))', IN = 'translateY(0)', DOWN = 'translateY(calc(100% + 170px))';
+  function setCols(t) { cols.forEach(function (c) { c.style.transform = t; }); }
+
+  // La cortina cae (salida de la página)
+  function coverIn() {
+    return new Promise(function (res) {
+      var m = ensureMelt(); if (!m || reduce || !cols[0].animate) { res(); return; }
+      m.classList.add('on'); setCols(OUT);
+      var last = 0;
+      cols.forEach(function (c, i) {
+        var d = (Math.sin(i * 0.5 + 1) + 1) * 105 + Math.random() * 35;
+        c.animate([{ transform: OUT }, { transform: IN }], { duration: 520, delay: d, easing: 'cubic-bezier(.7,0,.25,1)', fill: 'forwards' });
+        last = Math.max(last, 520 + d + 190);
+      });
+      setTimeout(res, Math.min(last, 900));
+    });
+  }
+  // La cortina se derrite hacia abajo (entrada a la página)
+  function meltAway(opts) {
+    opts = opts || {};
+    var m = ensureMelt(); if (!m) { doc.classList.remove('kx-cover'); return Promise.resolve(); }
+    m.classList.add('on'); setCols(IN);
+    doc.classList.remove('kx-cover');           // la cortina real (columnas) ya tapa la pantalla
+    var logo = m.querySelector('.kx-logo');
+    return new Promise(function (resolve) {
+      var start = function () {
+        if (logo && logo.animate) logo.animate([{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(1.08)' }], { duration: 380, easing: 'ease-in', fill: 'forwards' });
+        var last = 0;
+        cols.forEach(function (c, i) {
+          var d = (Math.sin(i * 0.45) + 1) * 130 + Math.random() * 40;
+          if (c.animate) c.animate([{ transform: IN }, { transform: DOWN }], { duration: 900, delay: d, easing: 'cubic-bezier(.55,.05,.2,1)', fill: 'forwards' });
+          last = Math.max(last, 900 + d);
+        });
+        setTimeout(function () { m.classList.remove('on'); setCols(OUT); if (logo) logo.style.opacity = 0; resolve(); }, last + 40);
+        setTimeout(function () { if (!opts.noRebuild) KinetFX.rebuild(null, { page: true }); }, 260);
+      };
+      if (opts.logo) {
+        var role = ls('kinet_active_role') || 'athlete', sport = ls('kinet_sport') || '';
+        var sub = m.querySelector('.kx-sub'); if (sub) sub.textContent = ({ athlete: 'Atleta', staff: 'Cuerpo técnico', scout: 'Ojeador' }[role] || 'Bienvenido') + (sport ? ' · ' + sport : '');
+        var bar = m.querySelector('.kx-bar i'); if (bar) { bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = ''; }
+        if (logo) { logo.style.opacity = 1; if (logo.animate) logo.animate([{ opacity: 0, transform: 'scale(.9)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 520, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'forwards' }); }
+        setTimeout(start, 1350);
+      } else setTimeout(start, 60);
+    });
+  }
+
+  /* ───────── reconstrucción de contenido ───────── */
+  var CARD_SEL = '.kinet-panel, .glass-card, .panel, .pricing-card, .setting-row, .kpi-box, .session-item, .contact-item, .legal-clause-box, .day-pill, .month-day-cell, [data-reveal], .kx-reveal';
+  function visible(el) { var r = el.getBoundingClientRect(); return r.width > 2 && r.height > 2 && r.bottom > 0 && r.top < innerHeight * 1.05; }
+  var lastRebuild = 0;
+  function rebuild(root, o) {
+    o = o || {};
+    if (reduce) return;
+    var now = Date.now(); if (!o.force && now - lastRebuild < 350 && !o.page) return; lastRebuild = now;
+    root = root || document.querySelector('.tab-content.active, .os-workspace') || document.querySelector('main') || document.body;
+    var ws = o.page ? (document.querySelector('.os-workspace') || document.querySelector('main') || document.body) : root;
+    // 1) las piezas grandes se "dibujan" con una cortina de recorte
+    var kids = [].slice.call(ws.children).filter(function (e) { return e.nodeType === 1 && !/^(SCRIPT|STYLE)$/.test(e.tagName) && visible(e); }).slice(0, 8);
+    if (o.children === false) kids = [];
+    kids.forEach(function (el, i) {
+      if (!el.animate) return;
+      el.animate([{ clipPath: 'inset(0 0 100% 0)', opacity: 0 }, { clipPath: 'inset(0 0 0% 0)', opacity: 1 }], { duration: o.quick ? 380 : 620, delay: i * (o.quick ? 35 : 70), easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' });
+    });
+    // 2) las tarjetas se reensamblan con un pequeño desenfoque
+    var cards = [].slice.call(ws.querySelectorAll(CARD_SEL)).filter(visible).slice(0, 24);
+    cards.forEach(function (el, i) {
+      if (!el.animate) return;
+      var blur = i < 8 && !o.quick ? 'blur(7px)' : 'none';
+      el.animate([{ opacity: 0, filter: blur, translate: '0 18px', scale: '.985' }, { opacity: 1, filter: 'none', translate: '0 0', scale: '1' }],
+        { duration: o.quick ? 420 : 760, delay: (o.quick ? 40 : 140) + i * (o.quick ? 22 : 45), easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' });
+    });
+    // 3) barrido de luz
+    if (sweep && sweep.animate && (o.page || !o.quick)) {
+      sweep.animate([{ transform: 'translateY(-130px)', opacity: 0 }, { opacity: 1, offset: .15 }, { transform: 'translateY(' + innerHeight + 'px)', opacity: .9, offset: .85 }, { transform: 'translateY(' + (innerHeight + 60) + 'px)', opacity: 0 }], { duration: o.page ? 1100 : 800, delay: o.page ? 120 : 0, easing: 'cubic-bezier(.45,0,.2,1)' });
+    }
+  }
+
+  // Cambio de pestaña / modo dentro de la misma página
+  var TAB_SEL = '.d-tab, .tab, .minimal-mode-btn, .an-mode, [role="tab"], .m-nav-btn, [onclick*="switchTab"], [onclick*="setAnalyzerMode"], [onclick*="switchMode"], .contact-item, .kq-chip';
+  function setupTabs() {
+    document.addEventListener('click', function (e) {
+      var t = e.target.closest && e.target.closest(TAB_SEL); if (!t) return;
+      if (t.closest('#kx-melt, .kg-switch')) return;
+      setTimeout(function () { rebuild(null, { quick: true, force: false }); }, 30);
+    });
+  }
+
+  /* ───────── navegación con cortina ───────── */
+  function go(url) {
+    if (reduce || !ensureMelt()) { location.href = url; return; }
+    if (go.busy) return; go.busy = true;
+    ss('kx_cover', String(Date.now()));
+    coverIn().then(function () { location.href = url; });
+    setTimeout(function () { go.busy = false; }, 3000);    // por si el navegador cancela la navegación
+  }
+  function setupLinks() {
+    document.addEventListener('click', function (e) {
+      if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      var a = e.target.closest && e.target.closest('a[href]'); if (!a) return;
+      if (a.target && a.target !== '_self') return; if (a.hasAttribute('download') || a.hasAttribute('data-no-fx')) return;
+      var h = a.getAttribute('href') || '';
+      if (!h || h.charAt(0) === '#' || /^(mailto:|tel:|javascript:|data:|blob:)/i.test(h)) return;
+      var u; try { u = new URL(a.href, location.href); } catch (x) { return; }
+      if (u.origin !== location.origin) return;
+      if (!/\.html$|\/$/.test(u.pathname)) return;
+      if (u.pathname === location.pathname && u.search === location.search) return;     // mismo documento
+      e.preventDefault(); go(u.href);
+    }, false);
+  }
+
+  /* ───────── cursor, pulso, progreso, magnetismo, grano ───────── */
+  function setupCursor() {
+    if (!fine || reduce || ls('kinet_fx_cursor') === 'off') return;
+    var dot = document.createElement('div'), ring = document.createElement('div'); dot.id = 'kx-cur-dot'; ring.id = 'kx-cur-ring';
+    document.body.appendChild(ring); document.body.appendChild(dot);
+    var mx = -100, my = -100, rx = -100, ry = -100, raf = 0, first = true;
+    var HOT = 'a,button,[role="button"],[onclick],select,label,summary,.side-link,.tab,.d-tab,input[type=checkbox],input[type=radio],input[type=range],input[type=color],.contact-item,.color-swatch-btn,.sw';
+    var TXT = 'input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=button]):not([type=submit]):not([type=color]),textarea,[contenteditable=true],[contenteditable=""]';
+    function loop() {
+      rx += (mx - rx) * .2; ry += (my - ry) * .2;
+      dot.style.transform = 'translate3d(' + mx + 'px,' + my + 'px,0)'; ring.style.transform = 'translate3d(' + rx.toFixed(1) + 'px,' + ry.toFixed(1) + 'px,0)';
+      raf = (Math.abs(mx - rx) > .1 || Math.abs(my - ry) > .1) ? requestAnimationFrame(loop) : 0;
+    }
+    document.addEventListener('mousemove', function (e) {
+      mx = e.clientX; my = e.clientY;
+      if (first) { first = false; rx = mx; ry = my; doc.classList.add('kx-cursor', 'kx-cur-on'); }
+      if (!raf) raf = requestAnimationFrame(loop);
+    }, { passive: true });
+    document.addEventListener('mouseover', function (e) {
+      var t = e.target; if (!t || !t.closest) return;
+      doc.classList.toggle('kx-cur-text', !!t.closest(TXT)); doc.classList.toggle('kx-cur-hot', !!t.closest(HOT) && !t.closest(TXT));
+    }, { passive: true });
+    document.addEventListener('mousedown', function () { doc.classList.add('kx-cur-down'); }, { passive: true });
+    document.addEventListener('mouseup', function () { doc.classList.remove('kx-cur-down'); }, { passive: true });
+    document.documentElement.addEventListener('mouseleave', function () { doc.classList.remove('kx-cur-on'); });
+    document.documentElement.addEventListener('mouseenter', function () { if (!first) doc.classList.add('kx-cur-on'); });
+  }
+  function setupPulse() {
+    if (reduce) return;
+    document.addEventListener('pointerdown', function (e) {
+      if (e.button) return; var p = document.createElement('div'); p.className = 'kx-pulse'; p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px';
+      document.body.appendChild(p); setTimeout(function () { p.remove(); }, 750);
+    }, { passive: true });
+  }
+  function setupProgress() {
+    var ws = document.querySelector('.os-workspace'); if (!ws) return;
+    var bar = document.createElement('div'); bar.id = 'kx-progress'; document.body.appendChild(bar);
+    function upd(src) {
+      var el = src === document ? (document.scrollingElement || doc) : src, max = el.scrollHeight - el.clientHeight;
+      if (max < 40) { bar.classList.remove('on'); return; }
+      bar.classList.add('on'); bar.style.transform = 'scaleX(' + Math.min(1, el.scrollTop / max) + ')';
+    }
+    ws.addEventListener('scroll', function () { upd(ws); }, { passive: true });
+    window.addEventListener('scroll', function () { upd(document); }, { passive: true });
+  }
+  function setupMagnet() {
+    if (!fine || reduce) return;
+    var cur = null;
+    document.addEventListener('mousemove', function (e) {
+      var b = e.target.closest && e.target.closest('.btn-primary, .brand-logo-icon, .kinet-section-info-btn');
+      if (cur && cur !== b) { cur.style.translate = ''; cur = null; }
+      if (!b) return; cur = b; var r = b.getBoundingClientRect();
+      b.style.translate = ((e.clientX - r.left - r.width / 2) * .08).toFixed(1) + 'px ' + ((e.clientY - r.top - r.height / 2) * .12).toFixed(1) + 'px';
+    }, { passive: true });
+    document.addEventListener('mouseleave', function () { if (cur) { cur.style.translate = ''; cur = null; } }, true);
+  }
+  function setupGrain() {
+    if (reduce) return;
+    var g = document.createElement('div'); g.id = 'kx-grain'; g.setAttribute('aria-hidden', 'true'); document.body.appendChild(g);
+  }
+
+  /* ───────── arranque ───────── */
+  function boot() {
+    try { setupLinks(); setupTabs(); setupCursor(); setupPulse(); setupProgress(); setupMagnet(); setupGrain(); } catch (e) {}
+    if (startCovered) {
+      try {
+        ensureMelt();
+        var intro = needIntro;
+        if (needIntro) { ss('kx_intro', '1'); ss('kx_intro_at', String(Date.now())); }
+        // Esperamos a que la página tenga contenido; si tarda, se revela igualmente (una sola vez)
+        var fired = false;
+        var go2 = function () { if (fired) return; fired = true; meltAway({ logo: intro }); };
+        if (document.readyState === 'complete') go2(); else { window.addEventListener('load', go2, { once: true }); setTimeout(go2, 2600); }
+      } catch (e) { doc.classList.remove('kx-cover'); }
+    } else if (!reduce) {
+      try { ensureMelt(); setTimeout(function () { rebuild(null, { page: true, quick: true }); }, 120); } catch (e) {}
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+  // Volver con el botón "atrás" (caché de página): nunca debe quedarse la cortina
+  window.addEventListener('pageshow', function (e) { if (e.persisted) { doc.classList.remove('kx-cover'); if (melt) { melt.classList.remove('on'); } go.busy = false; } });
+
+  window.KinetFX = { rebuild: rebuild, go: go, coverIn: coverIn, meltAway: meltAway,
+    setCursor: function (on) { try { localStorage.setItem('kinet_fx_cursor', on ? 'on' : 'off'); } catch (e) {} location.reload(); } };
+})();

@@ -240,6 +240,7 @@
       originalSetItem.call(localStorage, 'kinet_bonus_server_seen', String(next));
       if (prevTier !== tier && sessionStorage.getItem('kinet_tier_reloaded') !== tier) {
         sessionStorage.setItem('kinet_tier_reloaded', tier);
+        keepIntroAcrossReload();
         location.reload();
         return { tier, bonus: next };
       }
@@ -394,11 +395,20 @@
     } catch (e) {}
   }
 
+  // Si la página se recarga justo al entrar (sincronización inicial), la animación de entrada se retoma en la nueva carga.
+  function keepIntroAcrossReload() {
+    try {
+      const at = parseInt(sessionStorage.getItem('kx_intro_at') || '0', 10);
+      if (at && Date.now() - at < 8000) { sessionStorage.removeItem('kx_intro'); sessionStorage.setItem('kx_cover', String(Date.now())); }
+    } catch (e) {}
+  }
   function onRemoteChanged(reason) {
     try {
       refreshDOMAvatarsAndProfileUI();
       applyGlobalSidebarEnhancements();
-      window.dispatchEvent(new CustomEvent('kinet:remote-update', { detail: { changed: lastPullChanged.slice() } }));
+      // La página puede declarar que ya aplicó el cambio en vivo (p. ej. chats) llamando a preventDefault(): sin recarga ni aviso.
+      const handled = !window.dispatchEvent(new CustomEvent('kinet:remote-update', { detail: { changed: lastPullChanged.slice() }, cancelable: true }));
+      if (handled) return;
       const ae = document.activeElement;
       const typing = !!(ae && (/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName) || ae.isContentEditable));
       const busy = !!document.querySelector('.ai-thinking-eta-card');
@@ -406,9 +416,14 @@
       const canReload = !typing && !busy && (Date.now() - last > 30000);
       if ((reason === 'load' || reason === 'resume') && canReload) {
         sessionStorage.setItem('kinet_sync_reload_at', String(Date.now()));
+        keepIntroAcrossReload();
         location.reload();
         return;
       }
+      // Como mucho un aviso cada 3 minutos: si el otro dispositivo escribe sin parar, no se satura la pantalla.
+      const lastToast = parseInt(sessionStorage.getItem('kinet_sync_toast_at') || '0', 10);
+      if (Date.now() - lastToast < 180000) return;
+      sessionStorage.setItem('kinet_sync_toast_at', String(Date.now()));
       showSyncToast();
     } catch (e) {}
   }
@@ -1017,38 +1032,50 @@
       return { ok: true };
     },
 
+    // Configuración pública de la app (anuncio, mantenimiento, interruptores). Se puede leer sin sesión.
+    async fetchPublicConfig() {
+      try { return await supabaseRestRequest('app_config?select=key,value,updated_at', 'GET'); } catch (e) { return null; }
+    },
+
+    // Estado de moderación de la cuenta propia (si falta el SQL 07, devuelve null y no pasa nada).
+    async fetchOwnModeration() {
+      try {
+        if (!isStrictlyAuthenticatedUser()) return null;
+        const uid = localStorage.getItem('kinet_user_id');
+        if (!uid) return null;
+        const rows = await supabaseRestRequest(`profiles?id=eq.${encodeURIComponent(uid)}&select=is_banned,ban_reason&limit=1`, 'GET');
+        return (Array.isArray(rows) && rows[0]) || null;
+      } catch (e) { return null; }
+    },
+
+    // Llamada genérica a una función de gestión del servidor (el servidor valida tu rango en cada llamada).
+    async adminRpc(fn, args) {
+      if (!/^[a-z_]+$/.test(String(fn || ''))) throw new Error('Función no válida');
+      try {
+        return await supabaseRestRequest('rpc/' + fn, 'POST', args || {});
+      } catch (e) {
+        let m = String((e && e.message) || e);
+        const j = m.match(/\{.*\}/s);
+        if (j) { try { const o = JSON.parse(j[0]); m = o.message || o.hint || m; } catch (x) {} }
+        if (/Could not find the function|PGRST202|404/.test(m)) m = 'Falta ejecutar supabase/07_gestion.sql en Supabase.';
+        throw new Error(m);
+      }
+    },
+
     async adminToggleBanUser(targetEmailOrHandle, isBanned = true, reason = 'Incumplimiento de normas de KINET Network') {
       if (!this.hasStaffPermission('any')) throw new Error('Se requiere permiso de Moderación o Admin.');
       const q = String(targetEmailOrHandle || '').trim();
-      const filter = q.includes('@') && !q.startsWith('@')
-        ? `email=ilike.${encodeURIComponent(q)}`
-        : `handle=ilike.${encodeURIComponent(q.startsWith('@') ? q : '@' + q)}`;
-      const rows = await supabaseRestRequest(`profiles?${filter}&select=*&limit=1`, 'GET');
-      if (!Array.isArray(rows) || !rows[0]) throw new Error(`Usuario "${q}" no encontrado.`);
-      const row = rows[0];
-      const nextState = { ...(row.user_state || {}), kinet_account_banned: isBanned ? 'true' : 'false', kinet_ban_reason: reason };
-      await supabaseRestRequest(`profiles?id=eq.${row.id}`, 'PATCH', {
-        user_state: nextState,
-        updated_at: new Date().toISOString()
-      }, false);
-      return { ok: true, banned: isBanned, user: row.handle || row.email };
+      if (!q) throw new Error('Indica el correo o @handle del usuario.');
+      await this.adminRpc('admin_set_ban', { p_target: q, p_banned: !!isBanned, p_reason: isBanned ? reason : null });
+      return { ok: true, banned: isBanned, user: q };
     },
 
     async adminVerifyScoutOrClub(targetEmailOrHandle, isVerified = true) {
       if (!this.hasStaffPermission('any')) throw new Error('Se requiere permiso de Verificador o Admin.');
       const q = String(targetEmailOrHandle || '').trim();
-      const filter = q.includes('@') && !q.startsWith('@')
-        ? `email=ilike.${encodeURIComponent(q)}`
-        : `handle=ilike.${encodeURIComponent(q.startsWith('@') ? q : '@' + q)}`;
-      const rows = await supabaseRestRequest(`profiles?${filter}&select=*&limit=1`, 'GET');
-      if (!Array.isArray(rows) || !rows[0]) throw new Error(`Usuario "${q}" no encontrado.`);
-      const row = rows[0];
-      const nextState = { ...(row.user_state || {}), kinet_b2b_verified_seal: isVerified ? 'true' : 'false' };
-      await supabaseRestRequest(`profiles?id=eq.${row.id}`, 'PATCH', {
-        user_state: nextState,
-        updated_at: new Date().toISOString()
-      }, false);
-      return { ok: true, verified: isVerified, user: row.handle || row.email };
+      if (!q) throw new Error('Indica el correo o @handle del usuario.');
+      await this.adminRpc('admin_set_verified', { p_target: q, p_verified: !!isVerified });
+      return { ok: true, verified: isVerified, user: q };
     },
 
     getVideoCompressionConfig() {

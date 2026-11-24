@@ -99,6 +99,7 @@
   // Sube al proveedor configurado. Devuelve { ok, url, provider } o { ok:false, reason }
   async function upload(blob, meta) {
     var c = cfg();
+    if (window.KINET_FLAGS && window.KINET_FLAGS.video_uploads_off) return { ok: false, reason: 'pausado' };
     if (c.provider === 'none' || !c.provider) return { ok: false, reason: 'sin-almacenamiento' };
     if (blob.size > c.maxMB * 1048576) return { ok: false, reason: 'demasiado-grande' };
     var sb = window.KinetBackend && KinetBackend.getClient ? KinetBackend.getClient() : null;
@@ -147,6 +148,7 @@
     var m = {
       'sin-almacenamiento': 'El almacenamiento de vídeo aún no está activado en KINET OS.',
       'demasiado-grande': 'El vídeo pesa demasiado. Prueba con calidad "ligero" o un clip más corto.',
+      'pausado': 'La subida de vídeos está pausada temporalmente por el equipo de KINET OS. Vuelve a intentarlo en un rato.',
       'limite-diario': 'Has llegado al límite de vídeos de hoy para tu plan. Mañana podrás subir más, o pasa a un plan superior.',
       'cuota-llena': 'Tu espacio de vídeo está lleno. Borra algún clip antiguo o pasa a un plan superior.',
       'formato': 'Formato no admitido. Usa MP4 o WebM.',
