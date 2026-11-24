@@ -23,8 +23,10 @@
   /* ───────── decisión temprana: ¿empezamos tapados? (antes del primer pintado, sin parpadeo) ───────── */
   var navAt = parseInt(ss('kx_cover') || '0', 10);
   var fromNav = navAt && (Date.now() - navAt) < 5000;
-  var needIntro = SHELL && !reduce && ls('kinet_logged_in') === 'true' && !ss('kx_intro');
-  var startCovered = !reduce && (fromNav || needIntro);
+  var introMode = ls('kinet_fx_intro') || 'full';     // full | off
+  var transOn = ls('kinet_fx_transitions') !== 'off';
+  var needIntro = SHELL && !reduce && introMode !== 'off' && ls('kinet_logged_in') === 'true' && !ss('kx_intro');
+  var startCovered = !reduce && ((fromNav && transOn) || needIntro);
   if (startCovered) {
     doc.classList.add('kx-cover');
     setTimeout(function () { doc.classList.remove('kx-cover'); }, 4500);   // red de seguridad absoluta
@@ -38,14 +40,14 @@
     if (!document.body) return null;
     if (!document.getElementById('kx-goo-svg')) {
       var s = document.createElement('div'); s.id = 'kx-goo-svg'; s.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden';
-      s.innerHTML = '<svg width="0" height="0" aria-hidden="true"><filter id="kx-goo" x="-5%" y="-5%" width="110%" height="115%"><feGaussianBlur in="SourceGraphic" stdDeviation="9" result="b"/><feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 24 -10"/></filter></svg>';
+      s.innerHTML = '<svg width="0" height="0" aria-hidden="true"><filter id="kx-goo" x="-5%" y="-5%" width="110%" height="115%"><feGaussianBlur in="SourceGraphic" stdDeviation="13" result="b"/><feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 30 -13"/></filter></svg>';
       document.body.appendChild(s);
     }
     melt = document.createElement('div'); melt.id = 'kx-melt'; melt.setAttribute('aria-hidden', 'true');
     if (!wide) melt.className = 'simple';
-    var n = wide ? 28 : 10, html = '<div class="kx-cols">';
+    var n = wide ? 48 : 14, html = '<div class="kx-cols">';
     for (var i = 0; i < n; i++) html += '<div class="kx-col" style="--drip:' + (28 + Math.round(Math.random() * 96)) + 'px"></div>';
-    html += '</div><div class="kx-logo"><div class="kx-mark">K</div><div class="kx-word"></div><div class="kx-sub"></div><div class="kx-bar"><i></i></div></div>';
+    html += '</div><div class="kx-grid"></div><div class="kx-logo"><div class="kx-ring-wrap"><svg class="kx-ring" viewBox="0 0 120 120" aria-hidden="true"><circle class="kx-ring-bg" cx="60" cy="60" r="54"/><circle class="kx-ring-fg" cx="60" cy="60" r="54"/></svg><div class="kx-mark">K</div></div><div class="kx-word"></div><div class="kx-sub"></div><div class="kx-meter"><div class="kx-bar"><i></i></div><b class="kx-pct">000</b></div></div>';
     melt.innerHTML = html; document.body.appendChild(melt);
     cols = [].slice.call(melt.querySelectorAll('.kx-col'));
     var w = melt.querySelector('.kx-word'); 'KINET OS'.split('').forEach(function (ch, i) { var sp = document.createElement('span'); sp.textContent = ch === ' ' ? ' ' : ch; sp.style.animationDelay = (0.35 + i * 0.06) + 's'; w.appendChild(sp); });
@@ -80,10 +82,14 @@
       var start = function () {
         if (logo && logo.animate) logo.animate([{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(1.08)' }], { duration: 380, easing: 'ease-in', fill: 'forwards' });
         var last = 0;
+        var N = cols.length;
         cols.forEach(function (c, i) {
-          var d = (Math.sin(i * 0.45) + 1) * 130 + Math.random() * 40;
-          if (c.animate) c.animate([{ transform: IN }, { transform: DOWN }], { duration: 900, delay: d, easing: 'cubic-bezier(.55,.05,.2,1)', fill: 'forwards' });
-          last = Math.max(last, 900 + d);
+          var u = i / (N - 1);
+          // frente de onda suave (columnas vecinas caen casi a la vez) + un pequeño temblor
+          var d = (0.5 + 0.5 * Math.sin(u * 5.2 + 0.6)) * 170 + (0.5 + 0.5 * Math.sin(u * 13.7)) * 70 + Math.random() * 14 + Math.abs(u - 0.5) * 120;
+          var dur = 1050 + (0.5 + 0.5 * Math.sin(u * 9.1 + 2)) * 260;
+          if (c.animate) c.animate([{ transform: IN }, { transform: DOWN }], { duration: dur, delay: d, easing: 'cubic-bezier(.6,.02,.28,1)', fill: 'forwards' });
+          last = Math.max(last, dur + d);
         });
         setTimeout(function () { m.classList.remove('on'); setCols(OUT); if (logo) logo.style.opacity = 0; resolve(); }, last + 40);
         setTimeout(function () { if (!opts.noRebuild) KinetFX.rebuild(null, { page: true }); }, 260);
@@ -93,7 +99,11 @@
         var sub = m.querySelector('.kx-sub'); if (sub) sub.textContent = ({ athlete: 'Atleta', staff: 'Cuerpo técnico', scout: 'Ojeador' }[role] || 'Bienvenido') + (sport ? ' · ' + sport : '');
         var bar = m.querySelector('.kx-bar i'); if (bar) { bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = ''; }
         if (logo) { logo.style.opacity = 1; if (logo.animate) logo.animate([{ opacity: 0, transform: 'scale(.9)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 520, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'forwards' }); }
-        setTimeout(start, 1350);
+        // contador 000 → 100 sincronizado con el anillo
+        var pct = m.querySelector('.kx-pct'), t0 = performance.now(), DURC = 1250;
+        (function tick(now) { var p = Math.min(1, (now - t0) / DURC), e = 1 - Math.pow(1 - p, 3); if (pct) pct.textContent = String(Math.round(e * 100)).padStart(3, '0'); if (p < 1) requestAnimationFrame(tick); })(t0);
+        var fg = m.querySelector('.kx-ring-fg'); if (fg) { fg.style.animation = 'none'; void fg.getBoundingClientRect(); fg.style.animation = ''; }
+        setTimeout(start, 1500);
       } else setTimeout(start, 60);
     });
   }
@@ -111,12 +121,13 @@
     // 1) las piezas grandes se "dibujan" con una cortina de recorte
     var kids = [].slice.call(ws.children).filter(function (e) { return e.nodeType === 1 && !/^(SCRIPT|STYLE)$/.test(e.tagName) && visible(e); }).slice(0, 8);
     if (o.children === false) kids = [];
+    if (o.sweepOnly) { kids = []; }
     kids.forEach(function (el, i) {
       if (!el.animate) return;
       el.animate([{ clipPath: 'inset(0 0 100% 0)', opacity: 0 }, { clipPath: 'inset(0 0 0% 0)', opacity: 1 }], { duration: o.quick ? 380 : 620, delay: i * (o.quick ? 35 : 70), easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' });
     });
     // 2) las tarjetas se reensamblan con un pequeño desenfoque
-    var cards = [].slice.call(ws.querySelectorAll(CARD_SEL)).filter(visible).slice(0, 24);
+    var cards = o.sweepOnly ? [] : [].slice.call(ws.querySelectorAll(CARD_SEL)).filter(visible).slice(0, 24);
     cards.forEach(function (el, i) {
       if (!el.animate) return;
       var blur = i < 8 && !o.quick ? 'blur(7px)' : 'none';
@@ -141,7 +152,7 @@
 
   /* ───────── navegación con cortina ───────── */
   function go(url) {
-    if (reduce || !ensureMelt()) { location.href = url; return; }
+    if (reduce || !transOn || !ensureMelt()) { location.href = url; return; }
     if (go.busy) return; go.busy = true;
     ss('kx_cover', String(Date.now()));
     coverIn().then(function () { location.href = url; });
@@ -190,13 +201,14 @@
     document.documentElement.addEventListener('mouseenter', function () { if (!first) doc.classList.add('kx-cur-on'); });
   }
   function setupPulse() {
-    if (reduce) return;
+    if (reduce || ls('kinet_fx_pulse') === 'off') return;
     document.addEventListener('pointerdown', function (e) {
       if (e.button) return; var p = document.createElement('div'); p.className = 'kx-pulse'; p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px';
       document.body.appendChild(p); setTimeout(function () { p.remove(); }, 750);
     }, { passive: true });
   }
   function setupProgress() {
+    if (ls('kinet_fx_progress') === 'off') return;
     var ws = document.querySelector('.os-workspace'); if (!ws) return;
     var bar = document.createElement('div'); bar.id = 'kx-progress'; document.body.appendChild(bar);
     function upd(src) {
@@ -208,7 +220,7 @@
     window.addEventListener('scroll', function () { upd(document); }, { passive: true });
   }
   function setupMagnet() {
-    if (!fine || reduce) return;
+    if (!fine || reduce || ls('kinet_fx_magnet') === 'off') return;
     var cur = null;
     document.addEventListener('mousemove', function (e) {
       var b = e.target.closest && e.target.closest('.btn-primary, .brand-logo-icon, .kinet-section-info-btn');
@@ -219,13 +231,70 @@
     document.addEventListener('mouseleave', function () { if (cur) { cur.style.translate = ''; cur = null; } }, true);
   }
   function setupGrain() {
-    if (reduce) return;
+    if (reduce || ls('kinet_fx_grain') === 'off') return;
     var g = document.createElement('div'); g.id = 'kx-grain'; g.setAttribute('aria-hidden', 'true'); document.body.appendChild(g);
   }
 
+
+  /* ───────── luz LED perimetral + resplandor (opciones en Despacho › Tema & Personalización) ───────── */
+  var LED_DEF = { style: 'cometa', speed: 'normal', intensity: 'media', color: 'rol', custom: '#00FF88', width: '2', scope: 'all', ambient: 'on' };
+  var LED_SEL = '.kinet-panel, .pricing-card, .panel, .chat-container, .glass-card, .profile-hero-box, .x-post-card';
+  var LED_FREE = /(^|,\s*)(\.kinet-panel|\.pricing-card|\.panel)$/;   // estas ya reservan ::after para las marcas de esquina
+  var ledOn = false, ledMo = null, ledTimer = 0;
+  function ledCfg(o) {
+    var c = {}; Object.keys(LED_DEF).forEach(function (k) { c[k] = (o && o[k] != null) ? o[k] : (ls('kinet_led_' + k) || LED_DEF[k]); });
+    return c;
+  }
+  function ledTag() {
+    if (!ledOn) return;
+    var list = document.querySelectorAll(LED_SEL), n = 0;
+    for (var i = 0; i < list.length && n < 160; i++) {
+      var el = list[i]; if (el.classList.contains('kx-led')) continue;
+      if (el.closest('#kx-melt, .kg-switch')) continue;
+      var cs; try { cs = getComputedStyle(el); } catch (e) { continue; }
+      if (cs.position === 'static') continue;
+      var reserved = el.matches('.kinet-panel, .pricing-card, .panel');
+      if (!reserved) { var a = getComputedStyle(el, '::after').content; if (a && a !== 'none' && a !== 'normal') continue; }
+      el.classList.add('kx-led'); n++;
+    }
+  }
+  function applyLed(override) {
+    var c = ledCfg(override);
+    var off = c.style === 'off';
+    ledOn = !off && !reduce;
+    var cl = doc.classList;
+    ['kx-led-on', 'kx-led-sweep', 'kx-led-breath', 'kx-led-dual', 'kx-led-rainbow', 'kx-led-hover'].forEach(function (k) { cl.remove(k); });
+    if (ledOn) {
+      cl.add('kx-led-on');
+      if (c.style === 'barrido') cl.add('kx-led-sweep'); else if (c.style === 'respiro') cl.add('kx-led-breath');
+      if (c.color === 'dual') cl.add('kx-led-dual'); else if (c.color === 'arcoiris') cl.add('kx-led-rainbow');
+      if (c.scope === 'hover') cl.add('kx-led-hover');
+    }
+    var sp = { lenta: '10s', normal: '6s', rapida: '3.2s' }[c.speed] || '6s'; if (c.style === 'barrido') sp = { lenta: '7s', normal: '4.5s', rapida: '2.6s' }[c.speed] || '4.5s'; if (c.style === 'respiro') sp = { lenta: '6s', normal: '4s', rapida: '2.2s' }[c.speed] || '4s';
+    doc.style.setProperty('--kx-led-speed', sp);
+    doc.style.setProperty('--kx-led-op', String({ suave: .32, media: .55, alta: .9 }[c.intensity] || .55));
+    doc.style.setProperty('--kx-led-w', ({ '1': '1px', '2': '1.5px', '3': '2.5px' }[String(c.width)] || '1.5px'));
+    if (c.color === 'custom' && /^#[0-9a-f]{6}$/i.test(c.custom)) doc.style.setProperty('--kx-led-c1', c.custom); else doc.style.removeProperty('--kx-led-c1');
+    // resplandor ambiental
+    var amb = document.getElementById('kx-ambient');
+    if (c.ambient === 'on' && !reduce && document.body) {
+      if (!amb) { amb = document.createElement('div'); amb.id = 'kx-ambient'; amb.setAttribute('aria-hidden', 'true'); document.body.appendChild(amb); }
+      doc.style.setProperty('--kx-amb-op', String({ suave: .45, media: .8, alta: 1.15 }[c.intensity] || .8));
+      requestAnimationFrame(function () { doc.classList.add('kx-amb-on'); });
+    } else doc.classList.remove('kx-amb-on');
+    if (ledOn) {
+      ledTag();
+      if (!ledMo && window.MutationObserver && document.body) {
+        ledMo = new MutationObserver(function () { clearTimeout(ledTimer); ledTimer = setTimeout(ledTag, 350); });
+        ledMo.observe(document.body, { childList: true, subtree: true });
+      }
+    }
+  }
+  function setupLed() { try { applyLed(); } catch (e) {} window.addEventListener('storage', function (e) { if (e.key && e.key.indexOf('kinet_led_') === 0) applyLed(); }); }
+
   /* ───────── arranque ───────── */
   function boot() {
-    try { setupLinks(); setupTabs(); setupCursor(); setupPulse(); setupProgress(); setupMagnet(); setupGrain(); } catch (e) {}
+    try { setupLinks(); setupTabs(); setupCursor(); setupPulse(); setupProgress(); setupMagnet(); setupGrain(); setupLed(); } catch (e) {}
     if (startCovered) {
       try {
         ensureMelt();
@@ -244,6 +313,6 @@
   // Volver con el botón "atrás" (caché de página): nunca debe quedarse la cortina
   window.addEventListener('pageshow', function (e) { if (e.persisted) { doc.classList.remove('kx-cover'); if (melt) { melt.classList.remove('on'); } go.busy = false; } });
 
-  window.KinetFX = { rebuild: rebuild, go: go, coverIn: coverIn, meltAway: meltAway,
+  window.KinetFX = { led: { apply: applyLed, defaults: LED_DEF }, rebuild: rebuild, go: go, coverIn: coverIn, meltAway: meltAway,
     setCursor: function (on) { try { localStorage.setItem('kinet_fx_cursor', on ? 'on' : 'off'); } catch (e) {} location.reload(); } };
 })();

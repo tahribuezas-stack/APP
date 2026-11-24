@@ -326,13 +326,13 @@
   const SYNC_SKIP = {
     kinet_sb_key: 1, kinet_saved_posts: 1, kinet_is_guest: 1, kinet_guest_session: 1, kinet_auth_session_token: 1,
     kinet_staff_admin_role: 1, kinet_device_id: 1, kinet_sync_base: 1, kinet_sync_seen: 1, kinet_sync_writer: 1,
-    kinet_account_tier: 1, kinet_is_pro: 1   // plan: lo decide solo el servidor
+    kinet_account_tier: 1, kinet_is_pro: 1, kinet_ct_inflight: 1   // plan: lo decide solo el servidor
   };
   const CHANGE_IGNORE = {
     kinet_auth_session_token: 1, kinet_avatar_updated_at: 1, kinet_unread_dm_count: 1, kinet_mode: 1, kinet_logged_in: 1,
     kinet_account_tier: 1, kinet_is_pro: 1, kinet_bonus_video_mins: 1, kinet_video_mins_used: 1, kinet_user_id: 1,
     kinet_sync_base: 1, kinet_sync_seen: 1, kinet_sync_writer: 1, kinet_staff_admin_role: 1, kinet_device_id: 1,
-    kinet_social_configured: 1, kinet_profile_completed: 1, kinet_official_welcome_read: 1
+    kinet_social_configured: 1, kinet_profile_completed: 1, kinet_official_welcome_read: 1, kinet_ct_inflight: 1
   };
   function hashStr(str) {
     let h = 5381;
@@ -1258,6 +1258,66 @@
       return { ok: true, avatar_url: compressed };
     },
 
+    // ── @usuario: único y con cambio como máximo cada 30 días (el servidor lo vuelve a comprobar con 08_usuario.sql) ──
+    HANDLE_RESERVED: ['@kinet', '@kinet_official', '@kinetos', '@admin', '@administrador', '@soporte', '@support', '@staff', '@moderacion', '@moderador', '@oficial', '@invitado_kinet'],
+    HANDLE_COOLDOWN_DAYS: 30,
+    handleCooldownInfo() {
+      const raw = localStorage.getItem('kinet_handle_changed_at');
+      const t = raw ? Date.parse(raw) : NaN;
+      if (isNaN(t)) return { locked: false, daysLeft: 0, next: null };
+      const next = t + this.HANDLE_COOLDOWN_DAYS * 86400000;
+      const left = next - Date.now();
+      return left > 0 ? { locked: true, daysLeft: Math.ceil(left / 86400000), next: new Date(next) } : { locked: false, daysLeft: 0, next: null };
+    },
+    async requestHandleChange(rawHandle, opts) {
+      const apply = !(opts && opts.checkOnly);
+      let h = String(rawHandle || '').trim().replace(/\s+/g, '');
+      if (!h) return { ok: false, reason: 'empty', message: 'Escribe un @usuario.' };
+      if (!h.startsWith('@')) h = '@' + h;
+      const current = (localStorage.getItem('kinet_social_handle') || localStorage.getItem('kinet_username') || '').trim();
+      if (current && current.toLowerCase() === h.toLowerCase()) return { ok: true, unchanged: true, handle: current };
+      if (!/^@[a-zA-Z0-9_.]{3,20}$/.test(h)) return { ok: false, reason: 'format', message: 'El usuario debe tener entre 3 y 20 caracteres: letras, números, punto o guion bajo.' };
+      if (this.HANDLE_RESERVED.includes(h.toLowerCase())) return { ok: false, reason: 'taken', message: 'Ese usuario está reservado. Elige otro.' };
+      const cur = current.toLowerCase();
+      const placeholder = !cur || cur.includes('invitado');
+      const cd = this.handleCooldownInfo();
+      if (!placeholder && cd.locked) {
+        return { ok: false, reason: 'cooldown', daysLeft: cd.daysLeft, message: 'Solo puedes cambiar tu @usuario una vez cada 30 días. Podrás hacerlo de nuevo en ' + cd.daysLeft + (cd.daysLeft === 1 ? ' día.' : ' días.') };
+      }
+      try {
+        const me = await resolveCurrentUserId();
+        const esc = h.replace(/_/g, '\\_');
+        const rows = await supabaseRestRequest('profiles?handle=ilike.' + encodeURIComponent(esc) + '&select=id,handle&limit=5', 'GET');
+        const taken = Array.isArray(rows) && rows.some((r) => String(r.handle || '').toLowerCase() === h.toLowerCase() && String(r.id) !== String(me));
+        if (taken) return { ok: false, reason: 'taken', message: 'Ese @usuario ya lo usa otra persona. Prueba con otro.' };
+      } catch (e) { /* sin red: lo volverá a comprobar el servidor */ }
+      if (apply) {
+        originalSetItem.call(localStorage, 'kinet_social_handle', h);
+        originalSetItem.call(localStorage, 'kinet_username', h);
+        originalSetItem.call(localStorage, 'kinet_user_handle', h);
+        if (!placeholder) originalSetItem.call(localStorage, 'kinet_handle_changed_at', new Date().toISOString());
+      }
+      return { ok: true, handle: h, changed: true };
+    },
+
+    // ── Publicación fijada (una sola). Se guarda en local (sincroniza entre dispositivos) y, si existe la columna, en el perfil público ──
+    getPinnedPost() { return localStorage.getItem('kinet_pinned_post') || ''; },
+    async setPinnedPost(postId) {
+      if (postId) localStorage.setItem('kinet_pinned_post', String(postId)); else localStorage.removeItem('kinet_pinned_post');
+      try {
+        const uid = await resolveCurrentUserId();
+        if (uid && isStrictlyAuthenticatedUser()) await supabaseRestRequest('profiles?id=eq.' + encodeURIComponent(uid), 'PATCH', { pinned_post_id: postId ? String(postId) : null });
+      } catch (e) { /* aún sin la columna (08_usuario.sql): queda guardado solo en tus dispositivos */ }
+    },
+    async getPinnedPostFor(handle) {
+      try {
+        const esc = String(handle || '').replace(/_/g, '\\_');
+        const rows = await supabaseRestRequest('profiles?handle=ilike.' + encodeURIComponent(esc) + '&select=handle,pinned_post_id&limit=5', 'GET');
+        const r = Array.isArray(rows) && rows.find((x) => String(x.handle || '').toLowerCase() === String(handle || '').toLowerCase());
+        return (r && r.pinned_post_id) || '';
+      } catch (e) { return ''; }
+    },
+
     async pushLocalStateToCloud() {
       try {
         if (!isStrictlyAuthenticatedUser()) {
@@ -1585,6 +1645,30 @@
   };
 
   window.KinetBackend = KinetBackend;
+  // Ayuda visual junto al campo @usuario (cada 30 días y único)
+  window.KinetHandleUI = {
+    attach(inputId) {
+      const el = document.getElementById(inputId);
+      if (!el || KinetBackend.isGuest && KinetBackend.isGuest()) return;
+      let n = document.getElementById(inputId + '-rule');
+      if (!n) { n = document.createElement('div'); n.id = inputId + '-rule'; n.style.cssText = "font-family:'JetBrains Mono',monospace;font-size:.58rem;margin-top:5px;line-height:1.4;letter-spacing:.02em"; el.insertAdjacentElement('afterend', n); }
+      const cd = KinetBackend.handleCooldownInfo();
+      const cur = (localStorage.getItem('kinet_social_handle') || '').toLowerCase();
+      const free = !cur || cur.includes('invitado');
+      if (cd.locked && !free) {
+        el.readOnly = true; el.dataset.kxLocked = '1'; el.style.opacity = '.6'; el.style.cursor = 'not-allowed';
+        n.style.color = '#F59E0B'; n.textContent = '🔒 Podrás cambiar tu @usuario en ' + cd.daysLeft + (cd.daysLeft === 1 ? ' día' : ' días') + ' (' + cd.next.toLocaleDateString('es-ES') + ').';
+      } else {
+        if (el.dataset.kxLocked) { el.readOnly = false; el.style.opacity = ''; el.style.cursor = ''; }
+        n.style.color = '#94A3B8'; n.textContent = 'Único en KINET · solo se puede cambiar una vez cada 30 días.';
+      }
+    },
+    flash(inputId, msg) {
+      const n = document.getElementById(inputId + '-rule'); const el = document.getElementById(inputId);
+      if (n) { n.style.color = '#F87171'; n.textContent = '⚠ ' + msg; }
+      if (el) { el.animate([{ translate: '0 0' }, { translate: '-6px 0' }, { translate: '6px 0' }, { translate: '-4px 0' }, { translate: '0 0' }], { duration: 320 }); el.focus(); }
+    }
+  };
 
   KinetBackend.pullCloudStateToLocal().then(() => {
     refreshDOMAvatarsAndProfileUI();

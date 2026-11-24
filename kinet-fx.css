@@ -9,10 +9,10 @@ html.kx-cover::after {
 }
 #kx-melt { position: fixed; inset: 0; z-index: 2147483601; pointer-events: none; display: none; }
 #kx-melt.on { display: block; pointer-events: all; }
-#kx-melt .kx-cols { position: absolute; inset: 0; display: flex; filter: url(#kx-goo) drop-shadow(0 8px 18px rgba(var(--role-rgb, 0, 255, 136), .32)); }
+#kx-melt .kx-cols { position: absolute; inset: 0; display: flex; filter: url(#kx-goo) drop-shadow(0 10px 26px rgba(var(--role-rgb, 0, 255, 136), .38)); }
 #kx-melt.simple .kx-cols { filter: none; }
-#kx-melt .kx-col { position: relative; flex: 1 0 0; margin: 0 -1px; background: #04060A; will-change: transform; }
-#kx-melt .kx-col::after { content: ''; position: absolute; left: 14%; right: 14%; top: 100%; height: var(--drip, 60px); margin-top: -2px; background: #04060A; border-radius: 0 0 999px 999px; }
+#kx-melt .kx-col { position: relative; flex: 1 0 0; margin: 0 -1px; background: radial-gradient(120% 60% at 50% 100%, #0A1018, #04060A 70%); will-change: transform; }
+#kx-melt .kx-col::after { content: ''; position: absolute; left: 4%; right: 4%; top: 100%; height: var(--drip, 60px); margin-top: -2px; background: #04060A; border-radius: 0 0 999px 999px; }
 #kx-melt .kx-logo {
   position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; opacity: 0; pointer-events: none; z-index: 2;
 }
@@ -102,3 +102,67 @@ html.kx-cur-down #kx-cur-ring { width: 22px; height: 22px; margin: -11px 0 0 -11
   .kx-pulse, #kx-cur-ring { display: none; }
 }
 @media print { #kx-grain, #kx-melt, #kx-sweep, #kx-progress, #kx-cur-dot, #kx-cur-ring { display: none !important; } }
+
+
+/* ───────── Luz LED perimetral y resplandor ambiental (personalizable desde Despacho › Tema) ───────── */
+@property --kx-a { syntax: '<angle>'; inherits: true; initial-value: 0deg; }
+@property --kx-p { syntax: '<percentage>'; inherits: true; initial-value: 0%; }
+@property --kx-ax { syntax: '<percentage>'; inherits: true; initial-value: 20%; }
+@property --kx-ay { syntax: '<percentage>'; inherits: true; initial-value: 30%; }
+:root { --kx-led-speed: 6s; --kx-led-op: .55; --kx-led-w: 1.5px; --kx-led-c1: var(--role-color, #00FF88); --kx-led-c2: rgba(255,255,255,.95); }
+html.kx-led-on { animation: kxSpin var(--kx-led-speed) linear infinite; }
+html.kx-led-on.kx-led-sweep { animation: kxSweep var(--kx-led-speed) cubic-bezier(.45, 0, .25, 1) infinite; }
+@keyframes kxSpin { to { --kx-a: 360deg; } }
+@keyframes kxSweep { 0% { --kx-p: -25%; } 100% { --kx-p: 125%; } }
+
+html.kx-led-on .kx-led::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: var(--kx-led-w); pointer-events: none; z-index: 3;
+  background: conic-gradient(from var(--kx-a), transparent 0deg, transparent 215deg, color-mix(in srgb, var(--kx-led-c1) 35%, transparent) 285deg, var(--kx-led-c1) 335deg, var(--kx-led-c2) 355deg, transparent 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  opacity: var(--kx-led-op); transition: opacity .45s ease; filter: none;
+}
+html.kx-led-on.kx-led-dual .kx-led::after { background: conic-gradient(from var(--kx-a), transparent 0deg, transparent 200deg, color-mix(in srgb, var(--kx-led-c1) 30%, transparent) 250deg, var(--kx-led-c1) 310deg, var(--kx-led-c2) 340deg, color-mix(in srgb, var(--kx-led-c1) 40%, transparent) 352deg, transparent 360deg); }
+html.kx-led-on.kx-led-rainbow .kx-led::after { background: conic-gradient(from var(--kx-a), #ff3d71, #ffb300, #00ff88, #00e5ff, #7c4dff, #ff3d71); }
+/* barrido: una línea de luz que recorre el borde inferior */
+html.kx-led-on.kx-led-sweep .kx-led::after {
+  padding: 0; background: linear-gradient(90deg, transparent calc(var(--kx-p) - 22%), var(--kx-led-c1) var(--kx-p), var(--kx-led-c2) calc(var(--kx-p) + 2%), transparent calc(var(--kx-p) + 18%)) bottom left / 100% var(--kx-led-w) no-repeat;
+  -webkit-mask: none; mask: none; inset: auto 0 0 0; height: var(--kx-led-w); border-radius: 0 0 inherit inherit;
+}
+html.kx-led-on.kx-led-sweep.kx-led-rainbow .kx-led::after { background: linear-gradient(90deg, transparent calc(var(--kx-p) - 25%), #ff3d71 calc(var(--kx-p) - 12%), #ffb300 calc(var(--kx-p) - 4%), #00ff88 var(--kx-p), #00e5ff calc(var(--kx-p) + 6%), transparent calc(var(--kx-p) + 20%)) bottom left / 100% var(--kx-led-w) no-repeat; }
+/* respiro: el contorno completo late suavemente */
+html.kx-led-on.kx-led-breath { animation: none; }
+html.kx-led-on.kx-led-breath .kx-led::after { background: linear-gradient(var(--kx-led-c1), var(--kx-led-c1)); animation: kxBreath var(--kx-led-speed) ease-in-out infinite; }
+@keyframes kxBreath { 0%, 100% { opacity: calc(var(--kx-led-op) * .25); } 50% { opacity: var(--kx-led-op); } }
+/* solo al pasar el ratón */
+html.kx-led-on.kx-led-hover .kx-led::after { opacity: 0; }
+html.kx-led-on.kx-led-hover .kx-led:hover::after { opacity: var(--kx-led-op); }
+html.kx-led-on.kx-led-hover.kx-led-breath .kx-led:not(:hover)::after { animation: none; }
+
+#kx-ambient { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0; transition: opacity .8s ease; mix-blend-mode: screen;
+  background:
+    radial-gradient(46vmax 34vmax at var(--kx-ax) var(--kx-ay), rgba(var(--role-rgb, 0, 255, 136), .13), transparent 70%),
+    radial-gradient(38vmax 30vmax at calc(100% - var(--kx-ax)) calc(100% - var(--kx-ay)), rgba(var(--role-rgb, 0, 255, 136), .08), transparent 70%);
+  animation: kxAmb 26s ease-in-out infinite alternate; }
+html.kx-amb-on #kx-ambient { opacity: var(--kx-amb-op, .7); }
+@keyframes kxAmb { 0% { --kx-ax: 12%; --kx-ay: 22%; } 50% { --kx-ax: 70%; --kx-ay: 55%; } 100% { --kx-ax: 38%; --kx-ay: 82%; } }
+@media (prefers-reduced-motion: reduce) { html.kx-led-on, #kx-ambient { animation: none !important; } }
+@media print { #kx-ambient { display: none !important; } }
+
+
+/* ───────── Entrada: anillo de progreso, rejilla y contador ───────── */
+#kx-melt .kx-grid { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0; transition: opacity .6s ease;
+  background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: 56px 56px; mask-image: radial-gradient(60% 55% at 50% 50%, #000, transparent 75%); -webkit-mask-image: radial-gradient(60% 55% at 50% 50%, #000, transparent 75%); }
+#kx-melt.on .kx-grid { opacity: 1; }
+#kx-melt .kx-ring-wrap { position: relative; width: 112px; height: 112px; display: flex; align-items: center; justify-content: center; }
+#kx-melt .kx-ring { position: absolute; inset: 0; width: 100%; height: 100%; rotate: -90deg; overflow: visible; }
+#kx-melt .kx-ring circle { fill: none; stroke-width: 1.5; }
+#kx-melt .kx-ring-bg { stroke: rgba(255,255,255,.08); }
+#kx-melt .kx-ring-fg { stroke: var(--role-color, #00FF88); stroke-linecap: round; stroke-dasharray: 340; stroke-dashoffset: 340; filter: drop-shadow(0 0 6px var(--role-color, #00FF88)); animation: kxRingDraw 1.25s cubic-bezier(.4, 0, .15, 1) forwards; }
+@keyframes kxRingDraw { to { stroke-dashoffset: 0; } }
+#kx-melt .kx-mark::before, #kx-melt .kx-mark::after { display: none; }
+#kx-melt .kx-mark { width: 66px; height: 66px; border-radius: 20px; }
+#kx-melt .kx-logo { gap: 22px; }
+#kx-melt .kx-meter { display: flex; align-items: center; gap: 12px; }
+#kx-melt .kx-pct { font: 600 .62rem 'JetBrains Mono', monospace; letter-spacing: .18em; color: rgba(255,255,255,.55); font-variant-numeric: tabular-nums; }
+#kx-melt .kx-bar { width: 150px; }

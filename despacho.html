@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script src="kinet-guard.js?v=22"></script>
-<script src="kinet-sport.js?v=22"></script>
-<script src="kinet-select.js?v=22"></script>
+<script src="kinet-guard.js?v=23"></script>
+<script src="kinet-sport.js?v=23"></script>
+<script src="kinet-select.js?v=23"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
@@ -46,10 +46,10 @@
     <!-- Librería Oficial para Generación Real del Contrato / Informe en PDF + Supabase + KINET Backend + APIs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="kinet-backend.js?v=22"></script>
-<script src="kinet-gestion.js?v=22"></script>
-    <script src="kinet-api-config.js?v=22"></script>
-    <script src="kinet-sensors.js?v=22"></script>
+    <script src="kinet-backend.js?v=23"></script>
+<script src="kinet-gestion.js?v=23"></script>
+    <script src="kinet-api-config.js?v=23"></script>
+    <script src="kinet-sensors.js?v=23"></script>
 
     <style>
         :root {
@@ -286,6 +286,12 @@
 
         .settings-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px; padding-bottom: 40px; }
         .col-6 { grid-column: span 6; }
+        /* Cuadros de una misma fila siempre de la misma altura (izquierda = derecha) */
+        .settings-grid { align-items: stretch; }
+        .settings-grid > [class^="col-"] { display: flex; flex-direction: column; min-width: 0; }
+        .settings-grid > [class^="col-"] > .kinet-panel { flex: 1 1 auto; }
+        .pricing-cards-grid, .payg-grid { align-items: stretch; }
+        .pricing-cards-grid > .pricing-card, .payg-grid > * { height: 100%; }
         .col-12 { grid-column: span 12; }
         @media (max-width: 1024px) { .col-6 { grid-column: span 12; } }
 
@@ -565,9 +571,9 @@
         .m-nav-btn { background: transparent; border: none; color: var(--text-secondary); font-family: 'Inter', sans-serif; font-size: 0.62rem; font-weight: 700; padding: 6px 8px; border-radius: 14px; display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; cursor: pointer; }
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
-    <link rel="stylesheet" href="kinet-mobile-fix.css?v=22">
-<link rel="stylesheet" href="kinet-fx.css?v=22">
-<script src="kinet-fx.js?v=22"></script>
+    <link rel="stylesheet" href="kinet-mobile-fix.css?v=23">
+<link rel="stylesheet" href="kinet-fx.css?v=23">
+<script src="kinet-fx.js?v=23"></script>
 </head>
 <body data-role="athlete">
 
@@ -814,83 +820,6 @@
                             </div>
                         </div>
 
-                        <!-- PANEL MAESTRO OCULTO DE PRUEBAS Y MODERACIÓN (SOLO VISIBLE CON staff_role EN SUPABASE) -->
-                        <div class="col-12" id="staff-master-sandbox-panel" style="display:none;">
-                            <div class="kinet-panel" style="border: 1.5px solid var(--role-color); background: linear-gradient(145deg, rgba(var(--role-rgb), 0.10) 0%, rgba(10, 14, 24, 0.96) 100%);">
-                                <div class="panel-head">
-                                    <span class="panel-label" style="color:var(--role-color);">🛡️ MODO DIOS // SANDBOX DE PRUEBAS SIN PASARELA & CONSOLA DE MODERACIÓN SUPABASE</span>
-                                    <span style="font-family:'JetBrains Mono';font-size:0.65rem;color:#04060A;background:var(--role-color);padding:4px 10px;border-radius:8px;font-weight:900;" id="sandbox-staff-badge">RANGO: SUPERADMIN</span>
-                                </div>
-                                <a href="gestion.html" class="btn-primary" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;margin:0 0 14px 0;padding:10px 16px;border-radius:12px;font-size:0.76rem;">🎛️ Abrir panel de GESTIÓN completo →</a>
-                                <p style="font-size:0.78rem;color:#CBD5E1;margin-bottom:14px;line-height:1.45;">
-                                    Esta consola es <strong>100% invisible para los usuarios normales</strong> y se ha desbloqueado gracias a tu columna <code>staff_role</code> en Supabase. Como tu cuenta tiene privilegios internos, <strong>todas las pasarelas de pago están desactivadas para ti</strong>: puedes alternar de plan, rol, minutos y moderar usuarios al instante.
-                                </p>
-
-                                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;">
-                                    <!-- CAJA 1: CAMBIO INSTANTÁNEO DE PLAN Y ROL (0€ / SIN PASARELA) -->
-                                    <div style="background:rgba(4,6,10,0.82);border:1px solid var(--border-subtle);border-radius:14px;padding:14px;">
-                                        <span style="font-family:'Orbitron';font-size:0.72rem;font-weight:800;color:white;display:block;margin-bottom:8px;">⚡ 1. CAMBIAR MI PLAN Y ROL AL INSTANTE (SIN PASARELA)</span>
-                                        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
-                                            <button type="button" class="btn-secondary" style="margin:0;flex:1;padding:8px;font-size:0.64rem;" onclick="staffInstantSwitchTier('free')">Plan Free</button>
-                                            <button type="button" class="btn-primary" style="margin:0;flex:1;padding:8px;font-size:0.64rem;" onclick="staffInstantSwitchTier('pro')">Plan PRO</button>
-                                            <button type="button" class="btn-secondary" style="margin:0;flex:1;padding:8px;font-size:0.64rem;border-color:#F59E0B;color:#F59E0B;" onclick="staffInstantSwitchTier('club')">Plan Club</button>
-                                        </div>
-                                        <span style="font-family:'JetBrains Mono';font-size:0.6rem;color:var(--text-secondary);display:block;margin-bottom:6px;">SALTAR DE ROL EN 1 CLIC (MANTIENE TUS DATOS):</span>
-                                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                                            <button type="button" class="btn-secondary" style="margin:0;flex:1;padding:7px;font-size:0.62rem;border-color:#00FF88;color:#00FF88;" onclick="staffInstantSwitchRole('athlete')">⚡ Atleta</button>
-                                            <button type="button" class="btn-secondary" style="margin:0;flex:1;padding:7px;font-size:0.62rem;border-color:#F59E0B;color:#F59E0B;" onclick="staffInstantSwitchRole('staff')">🧠 Staff</button>
-                                            <button type="button" class="btn-secondary" style="margin:0;flex:1;padding:7px;font-size:0.62rem;border-color:#3B82F6;color:#3B82F6;" onclick="staffInstantSwitchRole('scout')">📡 Scout</button>
-                                        </div>
-                                    </div>
-
-                                    <!-- CAJA 2: INYECTAR MINUTOS DE VÍDEO Y RESETEAR LÍMITES EN MI CUENTA -->
-                                    <div style="background:rgba(4,6,10,0.82);border:1px solid var(--border-subtle);border-radius:14px;padding:14px;">
-                                        <span style="font-family:'Orbitron';font-size:0.72rem;font-weight:800;color:white;display:block;margin-bottom:8px;">🎬 2. CONTROL RÁPIDO DE MINUTOS Y CARTA EN MI CUENTA</span>
-                                        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
-                                            <button type="button" class="btn-secondary" style="margin:0;padding:7px 10px;font-size:0.62rem;" onclick="staffInstantSetBonusMins(0)">0 min</button>
-                                            <button type="button" class="btn-secondary" style="margin:0;padding:7px 10px;font-size:0.62rem;" onclick="staffInstantSetBonusMins(45)">45 min</button>
-                                            <button type="button" class="btn-secondary" style="margin:0;padding:7px 10px;font-size:0.62rem;" onclick="staffInstantSetBonusMins(150)">150 min</button>
-                                            <button type="button" class="btn-primary" style="margin:0;padding:7px 10px;font-size:0.62rem;" onclick="staffInstantSetBonusMins(595)">Máx 595m</button>
-                                        </div>
-                                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                                            <button type="button" class="btn-secondary" style="margin:0;flex:1;padding:7px;font-size:0.61rem;" onclick="staffInstantUnlockCardAndResetChat()">🔓 Desbloquear Carta IA + Resetear Chat 00:00h</button>
-                                        </div>
-                                    </div>
-
-                                    <!-- CAJA 3: GESTIÓN REMOTA DE OTROS USUARIOS Y MODERACIÓN (SUPABASE) -->
-                                    <div style="background:rgba(4,6,10,0.82);border:1px solid var(--border-subtle);border-radius:14px;padding:14px;">
-                                        <span style="font-family:'Orbitron';font-size:0.72rem;font-weight:800;color:white;display:block;margin-bottom:8px;">👮 3. MODERAR O DAR PRO A OTRO USUARIO (SUPABASE)</span>
-                                        <input type="text" id="mod-target-user-input" class="setting-input" style="width:100%;margin:0 0 8px 0;font-size:0.74rem;" placeholder="Correo o @usuario (ej: @naimtahri)">
-                                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
-                                            <select id="mod-target-tier-select" class="setting-select" style="width:100%;margin:0;font-size:0.72rem;padding:6px 8px;">
-                                                <option value="">-- Plan --</option>
-                                                <option value="free">Pasar a Free</option>
-                                                <option value="pro">Regalar PRO</option>
-                                                <option value="club">Regalar Club</option>
-                                            </select>
-                                            <input type="number" id="mod-target-mins-input" class="setting-input" style="width:100%;margin:0;font-size:0.72rem;padding:6px 8px;" placeholder="Bonos (0-595m)" min="0" max="595">
-                                        </div>
-                                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
-                                            <select id="mod-target-staff-select" class="setting-select" style="width:100%;margin:0;font-size:0.72rem;padding:6px 8px;">
-                                                <option value="">-- Rango Staff --</option>
-                                                <option value="none">Quitar Staff (Usuario normal)</option>
-                                                <option value="moderator">Moderador</option>
-                                                <option value="scout_verifier">Verificador Scout</option>
-                                                <option value="marketing">Marketing</option>
-                                                <option value="subadmin">Subjefe (Subadmin)</option>
-                                                <option value="superadmin">Jefe (Superadmin)</option>
-                                            </select>
-                                            <button type="button" class="btn-primary" style="margin:0;padding:7px;font-size:0.62rem;" onclick="executeRemoteStaffUserUpdate()">✓ Aplicar en Nube</button>
-                                        </div>
-                                        <div style="display:flex;gap:6px;">
-                                            <button type="button" class="btn-secondary" style="margin:0;flex:1;padding:6px;font-size:0.6rem;border-color:#00E5FF;color:#00E5FF;" onclick="executeRemoteVerifyScout()">✓ Verificar Scout/Club</button>
-                                            <button type="button" class="btn-danger" style="margin:0;flex:1;padding:6px;font-size:0.6rem;" onclick="executeRemoteBanUser(true)">🚫 Banear</button>
-                                            <button type="button" class="btn-secondary" style="margin:0;padding:6px 8px;font-size:0.6rem;" onclick="executeRemoteBanUser(false)">Desbanear</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -1044,6 +973,147 @@
                                     </div>
                                     <label class="switch">
                                         <input type="checkbox" id="setting-rainbow" onchange="stageAdvancedUI('rainbow', this.checked)">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-6">
+                            <div class="kinet-panel">
+                                <div class="panel-head">
+                                    <span class="panel-label">💡 Luz LED & Resplandor</span>
+                                    <button class="btn-secondary" style="padding:5px 10px; font-size:0.62rem;" onclick="stageResetLed()">↺ Valores por defecto</button>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>Estilo de luz</label>
+                                        <span>Cómo se mueve la luz alrededor de los cuadros</span>
+                                    </div>
+                                    <select id="setting-led-style" class="setting-select" onchange="stageLed('style', this.value)"><option value="cometa">Cometa · recorre el borde</option><option value="barrido">Barrido · línea inferior</option><option value="respiro">Respiro · late suave</option><option value="off">Apagada</option></select>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>Color de la luz</label>
+                                        <span>Sigue tu color de acento o elige otro</span>
+                                    </div>
+                                    <select id="setting-led-color" class="setting-select" onchange="stageLed('color', this.value)"><option value="rol">Color de acento (tu rol)</option><option value="dual">Acento + blanco</option><option value="arcoiris">Arcoíris</option><option value="custom">Color propio…</option></select>
+                                </div>
+                                <div class="setting-row" id="led-custom-row" style="display:none;">
+                                    <div class="setting-info"><label>Color propio</label><span>Cualquier color para la luz LED</span></div>
+                                    <input type="color" id="setting-led-custom" value="#00FF88" oninput="stageLed('custom', this.value)" style="width:48px; height:34px; border:1px solid var(--border-subtle); border-radius:8px; background:transparent; cursor:pointer;">
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>Velocidad</label>
+                                        <span>Ritmo del movimiento</span>
+                                    </div>
+                                    <select id="setting-led-speed" class="setting-select" onchange="stageLed('speed', this.value)"><option value="lenta">Lenta · elegante</option><option value="normal">Normal</option><option value="rapida">Rápida</option></select>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>Intensidad</label>
+                                        <span>Cuánto se nota la luz (y el resplandor de fondo)</span>
+                                    </div>
+                                    <select id="setting-led-intensity" class="setting-select" onchange="stageLed('intensity', this.value)"><option value="suave">Sutil</option><option value="media">Media</option><option value="alta">Alta</option></select>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>Grosor de la línea</label>
+                                        <span>Fina o marcada</span>
+                                    </div>
+                                    <select id="setting-led-width" class="setting-select" onchange="stageLed('width', this.value)"><option value="1">Fina</option><option value="2">Media</option><option value="3">Gruesa</option></select>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>Cuándo se ve</label>
+                                        <span>Siempre o solo al pasar el ratón por el cuadro</span>
+                                    </div>
+                                    <select id="setting-led-scope" class="setting-select" onchange="stageLed('scope', this.value)"><option value="all">Siempre</option><option value="hover">Solo al pasar el ratón</option></select>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>Resplandor ambiental</label>
+                                        <span>Una luz suave que se desplaza por detrás, atravesando el cristal de los cuadros</span>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" id="setting-led-ambient" checked onchange="stageLed('ambient', this.checked ? 'on' : 'off')">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-6">
+                            <div class="kinet-panel">
+                                <div class="panel-head">
+                                    <span class="panel-label">🎞️ Movimiento & Efectos</span>
+                                    <button class="btn-secondary" style="padding:5px 10px; font-size:0.62rem;" onclick="stageResetFx()">↺ Todo activado</button>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>Animación de entrada</label>
+                                        <span>El logo y la pantalla que se derrite la primera vez que abres KINET OS en la sesión</span>
+                                    </div>
+                                    <select id="setting-fx-intro" class="setting-select" onchange="stageFx('intro', this.value)"><option value="full">Completa</option><option value="off">Desactivada</option></select>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>Transiciones entre pantallas</label>
+                                        <span>La cortina que se derrite y reconstruye al cambiar de sección</span>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" id="setting-fx-transitions" checked onchange="stageFx('transitions', this.checked ? 'on' : 'off')">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>Cursor KINET</label>
+                                        <span>Punto y aro luminosos que siguen al ratón (solo ordenador; se aplica al recargar)</span>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" id="setting-fx-cursor" checked onchange="stageFx('cursor', this.checked ? 'on' : 'off')">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>Pulso al hacer clic</label>
+                                        <span>Onda de luz donde pulsas</span>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" id="setting-fx-pulse" checked onchange="stageFx('pulse', this.checked ? 'on' : 'off')">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>Botones magnéticos</label>
+                                        <span>Los botones principales se acercan un poco al cursor</span>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" id="setting-fx-magnet" checked onchange="stageFx('magnet', this.checked ? 'on' : 'off')">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>Barra de lectura</label>
+                                        <span>Línea fina de avance bajo la cabecera al hacer scroll</span>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" id="setting-fx-progress" checked onchange="stageFx('progress', this.checked ? 'on' : 'off')">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <label>Grano fino</label>
+                                        <span>Textura sutil que elimina el aspecto plano de los degradados (se aplica al recargar)</span>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" id="setting-fx-grain" checked onchange="stageFx('grain', this.checked ? 'on' : 'off')">
                                         <span class="slider"></span>
                                     </label>
                                 </div>
@@ -1634,6 +1704,8 @@
             draftSettings.cornerRadius = localStorage.getItem('kinet_corner_radius') || '20px';
             draftSettings.scanlines = localStorage.getItem('kinet_scanlines') === 'true';
             draftSettings.rainbow = localStorage.getItem('kinet_rainbow_mode') === 'true';
+            LED_KEYS.forEach(k => { draftSettings['led_' + k] = localStorage.getItem('kinet_led_' + k) || LED_DEFAULTS[k]; });
+            FX_KEYS.forEach(k => { draftSettings['fx_' + k] = localStorage.getItem('kinet_fx_' + k) || FX_DEFAULTS[k]; });
 
             document.getElementById('user-name-input').value = draftSettings.userName;
             document.getElementById('user-email-input').value = draftSettings.userEmail;
@@ -1645,6 +1717,7 @@
             document.getElementById('setting-corner-radius').value = draftSettings.cornerRadius;
             document.getElementById('setting-spotlight').checked = draftSettings.spotlight;
             document.getElementById('setting-scanlines').checked = draftSettings.scanlines;
+            syncLedFxControls();
             document.getElementById('setting-rainbow').checked = draftSettings.rainbow;
 
             // Sincronizar interruptores de privacidad y enlaces externos
@@ -1904,6 +1977,35 @@ function stageResetRoleColor() {
     markPendingChanges();
 }
 
+
+        // ── Luz LED y efectos de movimiento ──
+        const LED_KEYS = ['style', 'speed', 'intensity', 'color', 'custom', 'width', 'scope', 'ambient'];
+        const LED_DEFAULTS = { style: 'cometa', speed: 'normal', intensity: 'media', color: 'rol', custom: '#00FF88', width: '2', scope: 'all', ambient: 'on' };
+        const FX_KEYS = ['intro', 'transitions', 'cursor', 'pulse', 'magnet', 'progress', 'grain'];
+        const FX_DEFAULTS = { intro: 'full', transitions: 'on', cursor: 'on', pulse: 'on', magnet: 'on', progress: 'on', grain: 'on' };
+        function ledDraft() { const o = {}; LED_KEYS.forEach(k => { o[k] = draftSettings['led_' + k]; }); return o; }
+        function syncLedFxControls() {
+            LED_KEYS.forEach(k => {
+                const el = document.getElementById('setting-led-' + k); if (!el) return;
+                if (el.type === 'checkbox') el.checked = draftSettings['led_' + k] === 'on'; else el.value = draftSettings['led_' + k];
+            });
+            FX_KEYS.forEach(k => {
+                const el = document.getElementById('setting-fx-' + k); if (!el) return;
+                if (el.type === 'checkbox') el.checked = draftSettings['fx_' + k] !== 'off'; else el.value = draftSettings['fx_' + k];
+            });
+            const row = document.getElementById('led-custom-row');
+            if (row) row.style.display = draftSettings.led_color === 'custom' ? 'flex' : 'none';
+        }
+        function stageLed(key, val) {
+            draftSettings['led_' + key] = val;
+            if (key === 'color') { const row = document.getElementById('led-custom-row'); if (row) row.style.display = val === 'custom' ? 'flex' : 'none'; }
+            try { if (window.KinetFX && KinetFX.led) KinetFX.led.apply(ledDraft()); } catch (e) {}   // vista previa en directo
+            markPendingChanges();
+        }
+        function stageFx(key, val) { draftSettings['fx_' + key] = val; markPendingChanges(); }
+        function stageResetLed() { LED_KEYS.forEach(k => { draftSettings['led_' + k] = LED_DEFAULTS[k]; }); syncLedFxControls(); try { KinetFX.led.apply(ledDraft()); } catch (e) {} markPendingChanges(); }
+        function stageResetFx() { FX_KEYS.forEach(k => { draftSettings['fx_' + k] = FX_DEFAULTS[k]; }); syncLedFxControls(); markPendingChanges(); }
+
         function stageAdvancedUI(key, val) {
             draftSettings[key] = val;
             markPendingChanges();
@@ -1965,6 +2067,9 @@ function stageResetRoleColor() {
             localStorage.setItem('kinet_corner_radius', draftSettings.cornerRadius);
             localStorage.setItem('kinet_scanlines', String(draftSettings.scanlines));
             localStorage.setItem('kinet_rainbow_mode', String(draftSettings.rainbow));
+            LED_KEYS.forEach(k => localStorage.setItem('kinet_led_' + k, String(draftSettings['led_' + k])));
+            FX_KEYS.forEach(k => localStorage.setItem('kinet_fx_' + k, String(draftSettings['fx_' + k])));
+            try { if (window.KinetFX && KinetFX.led) KinetFX.led.apply(); } catch (e) {}
 
             if (window.KinetBackend && typeof window.KinetBackend.pushLocalStateToCloud === 'function') {
                 window.KinetBackend.pushLocalStateToCloud();
@@ -2408,6 +2513,16 @@ function stageResetRoleColor() {
             }
         }
         window.addEventListener('DOMContentLoaded', syncHiddenSupabaseStaffRoleUI);
+        // Salto de rol de prueba que se lanza desde el panel de GESTIÓN (Pruebas)
+        window.addEventListener('DOMContentLoaded', () => {
+            try {
+                const want = new URLSearchParams(location.search).get('asrole');
+                if (want && ['athlete', 'staff', 'scout'].includes(want) && isStaffSandboxAccount()) {
+                    history.replaceState(null, '', location.pathname);
+                    setTimeout(() => staffInstantSwitchRole(want), 400);
+                }
+            } catch (e) {}
+        });
         window.addEventListener('kinet:cloud-synced', syncHiddenSupabaseStaffRoleUI);
 
         const KINET_BONUS_CATALOG = {

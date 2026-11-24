@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script src="kinet-guard.js?v=22"></script>
-<script src="kinet-sport.js?v=22"></script>
+<script src="kinet-guard.js?v=23"></script>
+<script src="kinet-sport.js?v=23"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
@@ -48,9 +48,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <!-- SDK Oficial de Supabase + Motor Central KINET Backend + Config APIs -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="kinet-backend.js?v=22"></script>
-<script src="kinet-gestion.js?v=22"></script>
-    <script src="kinet-api-config.js?v=22"></script>
+    <script src="kinet-backend.js?v=23"></script>
+<script src="kinet-gestion.js?v=23"></script>
+    <script src="kinet-api-config.js?v=23"></script>
 
     <style>
         :root {
@@ -419,6 +419,19 @@
         }
 
         /* CONTENEDOR CHAT CON SPOTLIGHT DINÁMICO DE CURSOR */
+
+        /* Petición interrumpida · tarjeta de reanudar */
+        .kx-resume-card { margin: 10px 14px 0; padding: 14px 16px; border-radius: 16px; border: 1px solid rgba(var(--role-rgb), .45); background: linear-gradient(135deg, rgba(var(--role-rgb), .10), rgba(8,12,18,.92)); box-shadow: 0 10px 34px rgba(0,0,0,.45), 0 0 26px rgba(var(--role-rgb), .12); animation: kxResumeIn .55s cubic-bezier(.16, 1, .3, 1) both; }
+        .kx-resume-card.out { animation: kxResumeOut .3s ease forwards; }
+        @keyframes kxResumeIn { from { opacity: 0; transform: translateY(14px) scale(.98); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+        @keyframes kxResumeOut { to { opacity: 0; transform: translateY(8px) scale(.98); } }
+        .kx-resume-tag { font: 700 .62rem 'JetBrains Mono', monospace; letter-spacing: .16em; color: var(--role-color); margin-bottom: 8px; }
+        .kx-resume-q { font: 600 .86rem/1.45 Inter, sans-serif; color: #fff; margin-bottom: 6px; }
+        .kx-resume-sub { font: 500 .74rem/1.4 Inter, sans-serif; color: #94A3B8; margin-bottom: 12px; }
+        .kx-resume-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .kx-resume-go, .kx-resume-no { font: 700 .74rem Inter, sans-serif; border-radius: 10px; padding: 9px 14px; cursor: pointer; border: 1px solid rgba(var(--role-rgb), .5); }
+        .kx-resume-go { background: var(--role-gradient, var(--role-color)); color: #04060A; }
+        .kx-resume-no { background: transparent; color: #CBD5E1; border-color: rgba(255,255,255,.14); }
         .chat-container {
             display: grid;
             grid-template-columns: 325px 1fr;
@@ -1052,9 +1065,9 @@
         .chat-input:-webkit-autofill,.chat-input:-webkit-autofill:hover,.chat-input:-webkit-autofill:focus,.quick-input:-webkit-autofill,.kinet-input:-webkit-autofill{
             -webkit-box-shadow:0 0 0 1000px #0A0E16 inset !important;-webkit-text-fill-color:#F1F5F9 !important;caret-color:#F1F5F9;transition:background-color 99999s ease-in-out 0s}
 </style>
-    <link rel="stylesheet" href="kinet-mobile-fix.css?v=22">
-<link rel="stylesheet" href="kinet-fx.css?v=22">
-<script src="kinet-fx.js?v=22"></script>
+    <link rel="stylesheet" href="kinet-mobile-fix.css?v=23">
+<link rel="stylesheet" href="kinet-fx.css?v=23">
+<script src="kinet-fx.js?v=23"></script>
 </head>
 <body data-role="athlete">
 
@@ -2334,6 +2347,8 @@ Responde siempre en español con naturalidad y precisión técnica.`;
             renderCurrentChat();
             try { lastChatsRaw = localStorage.getItem(chatsStorageKey()); lastChatsMem = JSON.stringify(activeChatsState); } catch (e) {}
             bindSpotlightMouseEffect();
+            // Petición que se quedó a medias al salir de la página (y no viene una nueva desde otra pantalla)
+            if (!pendingQ) { const pend = readInflight(); if (pend) setTimeout(() => showResumePrompt(pend), 450); }
         });
 
         window.addEventListener('kinet:cloud-synced', updateQuotaHeaderUI);
@@ -2883,7 +2898,45 @@ Responde siempre en español con naturalidad y precisión técnica.`;
             if (existing) existing.remove();
         }
 
+        // ── Petición en curso: si sales de la página antes de que responda, se detiene y al volver te preguntamos ──
+        const INFLIGHT_KEY = 'kinet_ct_inflight';
+        function setInflight(text, agentKey) { try { localStorage.setItem(INFLIGHT_KEY, JSON.stringify({ text: String(text || '').slice(0, 1800), agent: agentKey, ts: Date.now() })); } catch (e) {} }
+        function clearInflight() { try { localStorage.removeItem(INFLIGHT_KEY); } catch (e) {} }
+        function readInflight() { try { const o = JSON.parse(localStorage.getItem(INFLIGHT_KEY) || 'null'); return o && o.text && (Date.now() - o.ts < 1000 * 60 * 60 * 24 * 2) ? o : null; } catch (e) { return null; } }
+        function showResumePrompt(o) {
+            const box = document.getElementById('chat-messages-box');
+            if (!box || document.getElementById('kinet-resume-card')) return;
+            const titles = (activeChatsState[o.agent] && activeChatsState[o.agent].title) || 'Cuerpo Técnico';
+            const card = document.createElement('div');
+            card.id = 'kinet-resume-card';
+            card.className = 'kx-resume-card';
+            const safe = String(o.text).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+            card.innerHTML = '<div class="kx-resume-tag">⏸ PETICIÓN INTERRUMPIDA · ' + titles + '</div>' +
+                '<div class="kx-resume-q">«' + (safe.length > 220 ? safe.slice(0, 220) + '…' : safe) + '»</div>' +
+                '<div class="kx-resume-sub">Saliste antes de recibir la respuesta y se detuvo. ¿Quieres continuar con tu última petición?</div>' +
+                '<div class="kx-resume-actions"><button type="button" class="kx-resume-go">Continuar petición →</button><button type="button" class="kx-resume-no">Descartar</button></div>';
+            box.parentNode.insertBefore(card, box.nextSibling);
+            const close = () => { card.classList.add('out'); setTimeout(() => card.remove(), 320); };
+            card.querySelector('.kx-resume-no').onclick = () => { clearInflight(); close(); };
+            card.querySelector('.kx-resume-go').onclick = () => {
+                close();
+                if (o.agent && activeChatsState[o.agent] && o.agent !== currentChatKey) {
+                    const el = document.querySelector('.contact-item[data-agent="' + o.agent + '"]');
+                    switchChat(o.agent, el);
+                }
+                const msgs = activeChatsState[currentChatKey].messages;
+                const last = msgs[msgs.length - 1];
+                if (!last || last.incoming || last.text !== o.text) {
+                    const d = new Date();
+                    msgs.push({ sender: 'Tú', text: o.text, time: String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'), incoming: false });
+                    saveChatHistoryToLocal(); renderCurrentChat();
+                }
+                processSpecialistReply(o.text, null);
+            };
+        }
+
         async function processSpecialistReply(userText, attachedImageUrl) {
+            setInflight(userText, currentChatKey);
             const now = new Date();
             const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
             const sportChosen = localStorage.getItem('kinet_sport') || 'Fútbol';
@@ -2901,6 +2954,7 @@ Responde siempre en español con naturalidad y precisión técnica.`;
                     time: timeStr,
                     incoming: true
                 });
+                clearInflight();
                 saveChatHistoryToLocal();
                 renderCurrentChat();
                 openLockerRoomCooldownModal();
@@ -2971,6 +3025,7 @@ Responde siempre en español con naturalidad y precisión técnica.`;
                     handoff: handoffObj
                 });
 
+                clearInflight();
                 saveChatHistoryToLocal();
                 renderCurrentChat();
             }, 520);

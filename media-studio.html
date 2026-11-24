@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script src="kinet-guard.js?v=22"></script>
-<script src="kinet-sport.js?v=22"></script>
-<script src="kinet-select.js?v=22"></script>
+<script src="kinet-guard.js?v=23"></script>
+<script src="kinet-sport.js?v=23"></script>
+<script src="kinet-select.js?v=23"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#06080E">
@@ -48,12 +48,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="kinet-backend.js?v=22"></script>
-<script src="kinet-gestion.js?v=22"></script>
-    <script src="kinet-api-config.js?v=22"></script>
-    <script src="kinet-spotify.js?v=22"></script>
-    <script src="kinet-moderation.js?v=22"></script>
-    <script src="kinet-video-edit.js?v=22"></script>
+    <script src="kinet-backend.js?v=23"></script>
+<script src="kinet-gestion.js?v=23"></script>
+    <script src="kinet-api-config.js?v=23"></script>
+    <script src="kinet-spotify.js?v=23"></script>
+    <script src="kinet-moderation.js?v=23"></script>
+    <script src="kinet-video-edit.js?v=23"></script>
 
     <style>
         :root {
@@ -469,6 +469,7 @@
         }
 
         .media-toggle-pills {
+            position: relative;
             display: inline-flex;
             background: rgba(4, 6, 10, 0.95);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -493,12 +494,24 @@
             transition: all 0.2s ease;
             letter-spacing: 0.04em;
         }
+        .media-mode-btn { position: relative; z-index: 1; }
         .media-mode-btn:hover { color: white; }
         .media-mode-btn.active {
-            background: var(--role-gradient);
+            background: transparent;
             color: #04060A;
-            box-shadow: 0 0 14px var(--role-glow);
         }
+        .media-toggle-pills.kx-ready .media-mode-btn.active { background: transparent; box-shadow: none; }
+        .media-toggle-pills:not(.kx-ready) .media-mode-btn.active { background: var(--role-gradient); box-shadow: 0 0 14px var(--role-glow); }
+        /* Pastilla deslizante: se desplaza y se estira entre Imagen y Vídeo */
+        .kx-thumb { position: absolute; top: 3px; bottom: 3px; left: 0; width: 0; border-radius: 8px; background: var(--role-gradient); box-shadow: 0 0 16px var(--role-glow); z-index: 0; pointer-events: none;
+            transition: translate .5s cubic-bezier(.2, .9, .2, 1.05), width .5s cubic-bezier(.2, .9, .2, 1.05); }
+        .kx-thumb.stretch { animation: kxThumbStretch .5s cubic-bezier(.2, .9, .2, 1.05); }
+        @keyframes kxThumbStretch { 0% { scale: 1 1; } 35% { scale: 1.12 .88; } 100% { scale: 1 1; } }
+        .media-mode-btn .svg-ic { transition: rotate .5s cubic-bezier(.2, .9, .2, 1.05), scale .4s ease; }
+        .media-mode-btn.active .svg-ic { rotate: 360deg; scale: 1.08; }
+        .media-mode-btn:not(.active) .svg-ic { rotate: 0deg; }
+        #studio-mode-pill.kx-swap { animation: kxPillSwap .45s cubic-bezier(.16, 1, .3, 1); }
+        @keyframes kxPillSwap { 0% { opacity: 0; translate: 0 6px; filter: blur(4px); } 100% { opacity: 1; translate: 0 0; filter: none; } }
 
         .preset-pills-strip {
             display: flex;
@@ -1001,9 +1014,9 @@
         }
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
-    <link rel="stylesheet" href="kinet-mobile-fix.css?v=22">
-<link rel="stylesheet" href="kinet-fx.css?v=22">
-<script src="kinet-fx.js?v=22"></script>
+    <link rel="stylesheet" href="kinet-mobile-fix.css?v=23">
+<link rel="stylesheet" href="kinet-fx.css?v=23">
+<script src="kinet-fx.js?v=23"></script>
 </head>
 <body data-role="athlete">
 
@@ -1799,7 +1812,25 @@
                 if (fileInput) fileInput.setAttribute('accept', 'image/*,video/*');
             }
             if (window.KinetStudio) KinetStudio.onModeChange(mode);
+            try { kxPlaceThumb(true); const sp = document.getElementById('studio-mode-pill'); if (sp) { sp.classList.remove('kx-swap'); void sp.offsetWidth; sp.classList.add('kx-swap'); } } catch (e) {}
         }
+
+        // Posiciona la pastilla deslizante bajo el botón activo
+        function kxPlaceThumb(animate) {
+            const wrap = document.querySelector('.media-toggle-pills'); if (!wrap) return;
+            const act = wrap.querySelector('.media-mode-btn.active'); if (!act) return;
+            let th = wrap.querySelector('.kx-thumb');
+            if (!th) { th = document.createElement('span'); th.className = 'kx-thumb'; wrap.insertBefore(th, wrap.firstChild); }
+            if (!animate) th.style.transition = 'none';
+            th.style.width = act.offsetWidth + 'px';
+            th.style.translate = act.offsetLeft + 'px 0';
+            if (animate) { th.classList.remove('stretch'); void th.offsetWidth; th.classList.add('stretch'); }
+            else { void th.offsetWidth; th.style.transition = ''; }
+            wrap.classList.add('kx-ready');
+        }
+        window.addEventListener('load', () => kxPlaceThumb(false));
+        window.addEventListener('resize', () => kxPlaceThumb(false));
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => kxPlaceThumb(false));
 
         function triggerFileSelect() {
             const fileInput = document.getElementById('hidden-media-file-input');
@@ -1969,7 +2000,7 @@
             window.addEventListener('kinet:cloud-synced', applyDespachoThemeSettings);
         })();
     </script>
-<script src="kinet-studio.js?v=22"></script>
+<script src="kinet-studio.js?v=23"></script>
 <script>
     // Textos de ejemplo y presets adaptados al deporte activo (evita ejemplos de fútbol en otros deportes)
     (function () {

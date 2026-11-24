@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es" class="h-full bg-[#080A0C]">
 <head>
-  <script src="kinet-spotlight.js?v=22" defer></script>
-  <link rel="stylesheet" href="kinet-motion.css?v=22">
+  <script src="kinet-spotlight.js?v=23" defer></script>
+  <link rel="stylesheet" href="kinet-motion.css?v=23">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>KINET OS - Multi-Sport Precision Calibration</title>
@@ -10,11 +10,11 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%2300FF66%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 font-weight=%22900%22 font-family=%22Orbitron, sans-serif%22 text-anchor=%22middle%22 fill=%22%23000%22>K</text></svg>">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="kinet-sport.js?v=22"></script>
-  <script src="kinet-text.js?v=22"></script>
-  <script src="kinet-onboarding.js?v=22"></script>
-<script src="kinet-backend.js?v=22"></script>
-  <script src="kinet-api-config.js?v=22"></script>
+  <script src="kinet-sport.js?v=23"></script>
+  <script src="kinet-text.js?v=23"></script>
+  <script src="kinet-onboarding.js?v=23"></script>
+<script src="kinet-backend.js?v=23"></script>
+  <script src="kinet-api-config.js?v=23"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -131,8 +131,8 @@
       box-shadow: 0 0 18px #00FF66; animation: revealScanBeam 1.8s infinite linear; pointer-events: none;
     }
   </style>
-<link rel="stylesheet" href="kinet-fx.css?v=22">
-<script src="kinet-fx.js?v=22"></script>
+<link rel="stylesheet" href="kinet-fx.css?v=23">
+<script src="kinet-fx.js?v=23"></script>
 </head>
 <body class="bg-cyber-pattern text-slate-100 font-sans min-h-screen flex items-center justify-center p-4">
 
@@ -375,7 +375,7 @@
       </div>
 
       <div>
-        <button id="btn-finish-onboarding" onclick="finishOnboarding()" class="w-full py-4 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(0,255,102,0.25)] text-center">
+        <button id="kx-finish-btn" onclick="finishOnboarding()" data-kx="1" class="w-full py-4 rounded-xl bg-kinet-neon text-black font-display font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(0,255,102,0.25)] text-center">
           FINALIZAR REGISTRO & ACTIVAR PERFIL
         </button>
       </div>
@@ -868,7 +868,7 @@
           say: (text, chips) => { appendChatBubble('ai', text); renderChips(chips); },
           summary: (S, pct, plan) => { renderConfig(S, pct, plan); syncInterviewToState(); },
           plan: () => {},
-          done: () => { syncInterviewToState(); const b = document.getElementById('btn-finish-onboarding'); if (b) { b.classList.add('animate-pulse'); setTimeout(() => b.classList.remove('animate-pulse'), 3000); } }
+          done: () => { kxUnlockFinish(); syncInterviewToState(); const b = document.getElementById('kx-finish-btn'); if (b) { b.classList.add('animate-pulse'); setTimeout(() => b.classList.remove('animate-pulse'), 3000); } }
         }
       });
       renderConfig(interview.S, 0, null);
@@ -888,8 +888,36 @@
       syncInterviewToState();
     }
 
+
+    // ── "Finalizar" solo se activa al terminar la configuración con la IA o al pulsar «Saltar» ──
+    let kxFinishLocked = true;
+    function kxFinishBtn() { return document.getElementById('kx-finish-btn'); }
+    function kxLockFinish() {
+      const b = kxFinishBtn(); if (!b) return;
+      kxFinishLocked = true; b.setAttribute('aria-disabled', 'true'); b.style.opacity = '.42'; b.style.cursor = 'not-allowed'; b.style.filter = 'grayscale(.5)'; b.style.boxShadow = 'none';
+      b.title = 'Termina la configuración con la IA o pulsa «Saltar» para continuar';
+      if (!document.getElementById('kx-finish-note')) {
+        const n = document.createElement('div'); n.id = 'kx-finish-note'; n.style.cssText = "font:600 11px/1.4 'JetBrains Mono',monospace;letter-spacing:.04em;text-align:center;color:#94A3B8;margin-top:10px";
+        n.textContent = 'Responde a la IA hasta completar tu configuración, o pulsa «Saltar» arriba.'; b.insertAdjacentElement('afterend', n);
+      }
+    }
+    function kxUnlockFinish() {
+      const b = kxFinishBtn(); if (!b || !kxFinishLocked) return;
+      kxFinishLocked = false; b.removeAttribute('aria-disabled'); b.style.opacity = ''; b.style.cursor = ''; b.style.filter = ''; b.style.boxShadow = ''; b.title = '';
+      const n = document.getElementById('kx-finish-note'); if (n) n.remove();
+      if (b.animate) b.animate([{ transform: 'scale(.97)' }, { transform: 'scale(1.03)' }, { transform: 'scale(1)' }], { duration: 520, easing: 'cubic-bezier(.16,1,.3,1)' });
+    }
+    function kxFinishBlocked() {
+      if (!kxFinishLocked) return false;
+      const b = kxFinishBtn(); if (b && b.animate) b.animate([{ translate: '0 0' }, { translate: '-7px 0' }, { translate: '7px 0' }, { translate: '-4px 0' }, { translate: '0 0' }], { duration: 340 });
+      const n = document.getElementById('kx-finish-note'); if (n) { n.style.color = '#F59E0B'; setTimeout(() => { n.style.color = '#94A3B8'; }, 1600); }
+      return true;
+    }
+    document.addEventListener('DOMContentLoaded', kxLockFinish);
+    if (document.readyState !== 'loading') kxLockFinish();
+
     function skipAiSetup() {
-      state.aiCompleted = false;
+      state.aiCompleted = false; kxUnlockFinish();
       document.getElementById('ai-incomplete-alert').classList.remove('hidden');
       appendChatBubble('ai', `⚡ Has saltado las preguntas restantes. Podrás completar los datos pendientes cuando quieras en **Mi Perfil**.`);
     }
@@ -1002,6 +1030,7 @@
     }
 
     async function finishOnboarding() {
+      if (kxFinishBlocked()) return;
       await enrichWithAI();
       state.altura = document.getElementById('slider-altura').value;
       state.peso = document.getElementById('slider-peso').value;
