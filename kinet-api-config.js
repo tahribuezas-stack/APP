@@ -50,35 +50,35 @@
     modelsByTier: {
       free: {
         gemini: 'gemini-2.5-flash-lite',     // motor barato: con el prompt de preparador rinde bien (modo directo; el servidor usa los mismos modelos)
-        geminiFallback: 'gemini-3.1-flash-lite',
+        geminiFallback: 'gemini-2.5-flash',
         openai: 'gpt-4o-mini',
         groq: 'llama-3.3-70b-versatile',
-        maxTokens: 1800,
+        maxTokens: 1500,
         temperature: 0.6,
         costEur: 0.0008
       },
       pro: {
-        gemini: 'gemini-3.1-flash-lite',     // motor de pago: rutinas, planes y derivaciones entre agentes
-        geminiFallback: 'gemini-3.5-flash-lite',
+        gemini: 'gemini-2.5-flash',          // motor FUERTE de pago (15 al día); al agotarse responde el básico (liteModel)
+        geminiFallback: 'gemini-2.5-flash-lite',
         openai: 'gpt-4o-mini',
         groq: 'llama-3.3-70b-versatile',
         maxTokens: 2600,
         temperature: 0.62,
-        costEur: 0.0015
+        costEur: 0.0036
       },
       club: {
-        gemini: 'gemini-3.1-flash-lite',
-        geminiFallback: 'gemini-3.5-flash-lite',
+        gemini: 'gemini-2.5-flash',          // motor FUERTE de pago (45 al día)
+        geminiFallback: 'gemini-2.5-flash-lite',
         openai: 'gpt-4o',
         groq: 'llama-3.3-70b-versatile',
         maxTokens: 3400,
         temperature: 0.62,
-        costEur: 0.0015
+        costEur: 0.0036
       }
     },
 
-    // Motor BÁSICO (casi gratis): se usa en el plan gratuito tras las 10 consultas potentes del día
-    // y en los planes de pago cuando se agota su presupuesto mensual de IA (33 % de lo que pagan).
+    // Motor BÁSICO (muy barato): es el único del plan gratuito (10 al día) y el que sigue en Pro/Club cuando se agota el cupo diario del motor fuerte
+    // o el presupuesto mensual de IA.
     liteModel: {
       gemini: 'gemini-2.5-flash-lite',
       geminiFallback: 'gemini-3.1-flash-lite',
@@ -91,8 +91,10 @@
 
     // Enlaces Oficiales de Stripe Payment Links (rellena tus URLs de buy.stripe.com)
     stripeLinks: {
-      plan_pro: '',          // Suscripción Pro Player (8,99€/mes)
-      plan_club: '',         // Suscripción Club & Scout (29,99€/mes)
+      plan_pro: '',          // Suscripción Pro Player MENSUAL (11,99€/mes)
+      plan_club: '',         // Suscripción Club & Scout MENSUAL (39,99€/mes)
+      plan_pro_year: '',     // Pro Player ANUAL (99€/año)
+      plan_club_year: '',    // Club & Scout ANUAL (399€/año)
       pack_45_free: '',      // Bono +45 min Tarifa Estándar Free (3,98€)
       pack_45_pro: '',       // Bono +45 min Tarifa Miembro PRO -50% (1,99€)
       pack_150_free: '',     // Bono +150 min Tarifa Estándar Free (7,98€)
@@ -112,16 +114,18 @@
     free: {
       tierName: 'Plan Gratuito',
       priceMonthly: 0,
-      dailyChatMessages: 10,
+      priceYearly: 0,
+      dailyChatMessages: 10,         // TOTAL de consultas al día (fuerte + básico). Gratis: solo motor básico
+      dailyStrongMessages: 0,        // de ellas, cuántas con el motor fuerte (el resto, con el básico)
       dailyCommunityBotMessages: 5,
-      dailySupportBotMessages: 10,
+      dailySupportBotMessages: 5,
       dailyTacticalAI: 3,
-      dailyImageGenerations: 3,
+      dailyImageGenerations: 0,
       dailyRoutineTemplates: 1,
       monthlyVideoMinutes: 0,
       maxVideoEditSeconds: 0,
       maxVideoEditClips: 0,
-      dailyLiteMessages: 0,        // gratis: 10 consultas y luego cuenta atrás hasta las 00:00
+      dailyLiteMessages: 10,       // = dailyChatMessages - dailyStrongMessages (informativo)
       bonusDiscountPct: 0,
       canUploadVideoShorts: false,
       canUseMediaStudioVideo: false,
@@ -131,17 +135,19 @@
     },
     pro: {
       tierName: 'Pro Player',
-      priceMonthly: 8.99,
-      dailyChatMessages: 30,
-      dailyCommunityBotMessages: 20,
-      dailySupportBotMessages: 30,
-      dailyTacticalAI: 20,
-      dailyImageGenerations: 30,
+      priceMonthly: 11.99,
+      priceYearly: 99,
+      dailyChatMessages: 50,         // 15 con el motor fuerte + 35 con el básico
+      dailyStrongMessages: 15,
+      dailyCommunityBotMessages: 10,
+      dailySupportBotMessages: 15,
+      dailyTacticalAI: 10,
+      dailyImageGenerations: 2,
       dailyRoutineTemplates: 999,
       monthlyVideoMinutes: 90,
       maxVideoEditSeconds: 60,
       maxVideoEditClips: 4,
-      dailyLiteMessages: 100,
+      dailyLiteMessages: 35,
       bonusDiscountPct: 50,
       canUploadVideoShorts: true,
       canUseMediaStudioVideo: true,
@@ -151,17 +157,19 @@
     },
     club: {
       tierName: 'Club & Scout Pro',
-      priceMonthly: 29.99,
-      dailyChatMessages: 100,
-      dailyCommunityBotMessages: 40,
-      dailySupportBotMessages: 60,
-      dailyTacticalAI: 50,
-      dailyImageGenerations: 100,
+      priceMonthly: 39.99,
+      priceYearly: 399,
+      dailyChatMessages: 125,        // 45 con el motor fuerte + 80 con el básico
+      dailyStrongMessages: 45,
+      dailyCommunityBotMessages: 20,
+      dailySupportBotMessages: 30,
+      dailyTacticalAI: 25,
+      dailyImageGenerations: 4,
       dailyRoutineTemplates: 999,
       monthlyVideoMinutes: 300,
       maxVideoEditSeconds: 120,
       maxVideoEditClips: 8,
-      dailyLiteMessages: 200,
+      dailyLiteMessages: 80,
       bonusDiscountPct: 50,
       canUploadVideoShorts: true,
       canUseMediaStudioVideo: true,
@@ -869,6 +877,8 @@ ${HUMAN_STYLE_BLOCK}
     return PLAN_LIMITS[t] ? t : 'free';
   }
 
+  // Avisa a la interfaz (medidor de uso de IA) de que algún contador ha cambiado
+  function pingUsage() { try { window.dispatchEvent(new Event('kinet:usage')); } catch (e) {} }
   function getTodayLocalKey() {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -886,19 +896,19 @@ ${HUMAN_STYLE_BLOCK}
   }
 
   function incrementDailyImageUsage() {
-    localStorage.setItem('kinet_ai_img_count', String(getDailyImageUsage() + 1));
+    localStorage.setItem('kinet_ai_img_count', String(getDailyImageUsage() + 1)); pingUsage();
   }
 
 
   // ==========================================================================
   // PRESUPUESTO DE IA: el gasto total estimado por usuario y mes nunca supera el 33 % de lo que paga
-  // (Pro 8,99 € → 2,97 € · Club 29,99 € → 9,90 €). Gratis: tope fijo muy bajo (lo paga la publicidad).
+  // (Pro 11,99 € → 3,96 € · Club 39,99 € → 13,20 €). Gratis: tope fijo muy bajo (lo paga la publicidad).
   // Es una estimación en el navegador (no es a prueba de manipulación); el control real irá en una Edge Function.
   // ==========================================================================
   const AI_BUDGET_SHARE = 0.33;
-  const FREE_MONTHLY_BUDGET_EUR = 0.60;
+  const FREE_MONTHLY_BUDGET_EUR = 0.35;
   const IMAGE_BUDGET_CEILING = 0.75;   // las imágenes/ediciones no pueden gastar más del 75 % del presupuesto (el resto, para chat)
-  const AI_COST_EUR = { strong: 0.005, strongVision: 0.009, lite: 0.0003, image: 0.04, imageEdit: 0.045, videoPlan: 0.015 };
+  const AI_COST_EUR = { strong: 0.0036, strongVision: 0.0065, lite: 0.0008, image: 0.04, imageEdit: 0.045, videoPlan: 0.015 };
   let _engineOverride = null;
 
   function monthKeyNow() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); }
@@ -936,28 +946,42 @@ ${HUMAN_STYLE_BLOCK}
     const n = parseInt(localStorage.getItem('kinet_ai_lite_count') || '0', 10);
     return isNaN(n) ? 0 : Math.max(0, n);
   }
-  // Qué motor atendería el próximo mensaje de chat: 'strong' (potente), 'lite' (básico) o null (agotado hoy)
+  // Consultas del día con el motor FUERTE (las de ambos motores suman en getDailyChatUsage)
+  function getStrongUsage() {
+    const today = getTodayLocalKey();
+    if (localStorage.getItem('kinet_ai_strong_date') !== today) {
+      localStorage.setItem('kinet_ai_strong_date', today); localStorage.setItem('kinet_ai_strong_count', '0'); return 0;
+    }
+    const n = parseInt(localStorage.getItem('kinet_ai_strong_count') || '0', 10);
+    return isNaN(n) ? 0 : Math.max(0, n);
+  }
+  // Qué motor atendería el próximo mensaje de chat: 'strong' (potente), 'lite' (básico) o null (agotado hoy).
+  // El total diario (dailyChatMessages) es la suma de ambos; primero se gasta el fuerte (dailyStrongMessages) y luego el básico.
   function peekChatSlot() {
     const tier = getCurrentTier();
     const lim = PLAN_LIMITS[tier] || PLAN_LIMITS.free;
-    if (lim.dailyChatMessages - getDailyChatUsage() > 0 && !getBudgetStatus().exhausted) return 'strong';
-    if (getLiteUsage() < (lim.dailyLiteMessages || 0)) return 'lite';
-    return null;
+    if (getDailyChatUsage() >= lim.dailyChatMessages) return null;
+    if (getStrongUsage() < (lim.dailyStrongMessages || 0) && !getBudgetStatus().exhausted) return 'strong';
+    return 'lite';
   }
   function commitChatSlot(slot) {
-    if (slot === 'strong') incrementDailyChatUsage();
+    incrementDailyChatUsage();
+    if (slot === 'strong') localStorage.setItem('kinet_ai_strong_count', String(getStrongUsage() + 1));
     else if (slot === 'lite') localStorage.setItem('kinet_ai_lite_count', String(getLiteUsage() + 1));
+    pingUsage();
   }
   function refundChatSlot(slot) {
     try {
-      if (slot === 'strong') { const n = Math.max(0, getDailyChatUsage() - 1); localStorage.setItem('kinet_ai_daily_used', String(n)); localStorage.setItem('kinet_ai_chat_count', String(n)); }
+      const n = Math.max(0, getDailyChatUsage() - 1); localStorage.setItem('kinet_ai_daily_used', String(n)); localStorage.setItem('kinet_ai_chat_count', String(n));
+      if (slot === 'strong') localStorage.setItem('kinet_ai_strong_count', String(Math.max(0, getStrongUsage() - 1)));
       else if (slot === 'lite') localStorage.setItem('kinet_ai_lite_count', String(Math.max(0, getLiteUsage() - 1)));
+      pingUsage();
     } catch (e) {}
   }
   function chatLimitMessage(q) {
     const l = PLAN_LIMITS[getCurrentTier()] || PLAN_LIMITS.free;
     if (getBudgetStatus().exhausted && getCurrentTier() !== 'free') return 'Has agotado el presupuesto de IA potente de este mes y el cupo del motor básico de hoy. Se renueva el día 1 y a las 00:00 h.';
-    if (getCurrentTier() === 'free') return `Has usado tus **${l.dailyChatMessages} consultas** gratuitas de hoy. ⏳ Se renuevan a las **00:00 h** (mira la cuenta atrás abajo a la derecha). Con **Pro** tienes ${PLAN_LIMITS.pro.dailyChatMessages} al día y el motor potente.`;
+    if (getCurrentTier() === 'free') return `Has usado tus **${l.dailyChatMessages} consultas** gratuitas de hoy. ⏳ Se renuevan a las **00:00 h** (mira la cuenta atrás abajo a la derecha). Con **Pro** tienes ${PLAN_LIMITS.pro.dailyChatMessages} al día, ${PLAN_LIMITS.pro.dailyStrongMessages} de ellas con el motor potente.`;
     return `Has alcanzado tu límite diario de **${l.dailyChatMessages} consultas** en el ${l.tierName}. Se reinicia a las 00:00 h.`;
   }
 
@@ -974,7 +998,7 @@ ${HUMAN_STYLE_BLOCK}
       el.id = 'kinet-limit-toast';
       el.setAttribute('role', 'status');
       el.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:99999;max-width:min(92vw,330px);background:rgba(8,11,16,.96);border:1px solid var(--role-color,#00FF88);border-radius:16px;padding:14px 16px;color:#E2E8F0;font-family:Inter,system-ui,sans-serif;box-shadow:0 0 28px rgba(0,255,136,.18);animation:kxLimIn .45s cubic-bezier(.2,.8,.2,1) both';
-      const upsell = tier === 'free' ? '<a href="despacho.html" style="color:var(--role-color,#00FF88);font-weight:700;text-decoration:underline;">Pasa a Pro</a> para tener 100 al día.' : 'Es un límite anti-abuso: se renueva solo.';
+      const upsell = tier === 'free' ? '<a href="despacho.html" style="color:var(--role-color,#00FF88);font-weight:700;text-decoration:underline;">Pasa a Pro</a> para tener 50 al día.' : 'Es un límite anti-abuso: se renueva solo.';
       el.innerHTML = '<style>@keyframes kxLimIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}</style>' +
         '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--role-color,#00FF88);font-weight:800">⏳ ' + (label || 'Cupo diario agotado') + '</div><button type="button" aria-label="Cerrar" style="background:none;border:0;color:#94A3B8;font-size:16px;line-height:1;cursor:pointer">×</button></div>' +
         '<div style="font:800 30px/1.1 \'JetBrains Mono\',ui-monospace,monospace;color:#fff;margin:8px 0 4px;letter-spacing:.04em" data-t>--:--:--</div>' +
@@ -1020,7 +1044,7 @@ ${HUMAN_STYLE_BLOCK}
   }
 
   function incrementCommunityBotUsage() {
-    localStorage.setItem('kinet_cbot_count', String(getCommunityBotUsage() + 1));
+    localStorage.setItem('kinet_cbot_count', String(getCommunityBotUsage() + 1)); pingUsage();
   }
 
   // Asistente de Soporte: contador diario propio
@@ -1035,7 +1059,7 @@ ${HUMAN_STYLE_BLOCK}
     return isNaN(n) ? 0 : Math.max(0, n);
   }
   function incrementSupportBotUsage() {
-    localStorage.setItem('kinet_sbot_count', String(getSupportBotUsage() + 1));
+    localStorage.setItem('kinet_sbot_count', String(getSupportBotUsage() + 1)); pingUsage();
   }
 
   // Prompt del bot de soporte: los números de planes salen de PLAN_LIMITS, así no se desactualizan.
@@ -1047,7 +1071,7 @@ ${HUMAN_STYLE_BLOCK}
 
 HECHOS OFICIALES DEL PRODUCTO (si algo no está aquí, di que no lo sabes y remite al formulario de contacto; NUNCA inventes funciones, precios, plazos ni políticas):
 - Módulos: Vestuario (resumen y calendario), Cuerpo Técnico IA (4 especialistas + sala de juntas), Ficha & KINET Card, Laboratorio de Vídeo (Vision Lab), Analizador & Pizarra 3D, Comunidad (KINET Pulse, Shorts, Radar y mensajes), Media Studio, Mi Perfil y Despacho & Ajustes.
-- Planes: Gratuito 0€ (${F.dailyChatMessages} consultas/día al Cuerpo Técnico IA, ${F.dailyImageGenerations} imágenes IA/día, KINET Card en modo manual, sin minutos de vídeo) · Pro Player ${P.priceMonthly.toString().replace('.', ',')}€/mes (${P.dailyChatMessages} consultas/día, ${P.dailyImageGenerations} imágenes/día, ${P.monthlyVideoMinutes} min/mes de vídeo IA, KINET Card AI Verified, bonos al -50%) · Club & Scout Pro ${C.priceMonthly.toString().replace('.', ',')}€/mes (${C.dailyChatMessages} consultas/día, ${C.dailyImageGenerations} imágenes/día, ${C.monthlyVideoMinutes} min/mes de vídeo, Pizarra 3D de equipo completa, modelos de IA más potentes, bonos al -50%).
+- Planes: Gratuito 0€ (${F.dailyChatMessages} consultas/día al Cuerpo Técnico IA, ${F.dailyImageGenerations ? F.dailyImageGenerations + ' imágenes IA/día' : 'sin imágenes IA'}, KINET Card en modo manual, sin minutos de vídeo) · Pro Player ${P.priceMonthly.toString().replace('.', ',')}€/mes (${P.dailyChatMessages} consultas/día, ${P.dailyImageGenerations} imágenes/día, ${P.monthlyVideoMinutes} min/mes de vídeo IA, KINET Card AI Verified, bonos al -50%) · Club & Scout Pro ${C.priceMonthly.toString().replace('.', ',')}€/mes (${C.dailyChatMessages} consultas/día, ${C.dailyImageGenerations} imágenes/día, ${C.monthlyVideoMinutes} min/mes de vídeo, Pizarra 3D de equipo completa, modelos de IA más potentes, bonos al -50%).
 - Bonos de minutos de vídeo (no caducan, tope de monedero 595 min): +45 min 3,98€ (1,99€ con Pro) · +150 min 7,98€ (3,99€) · +400 min 15,98€ (7,99€).
 - KINET Card en modo AI Verified muestra "??" hasta subir los 3 micro-clips de tu posición; con el Modo Custom Manual puedes simular notas libremente.
 - Los cambios de plan y los bonos se gestionan desde Despacho & Ajustes.
@@ -1091,7 +1115,7 @@ CONTEXTO DE QUIEN PREGUNTA: rol ${role}, deporte ${sport}.`;
     return isNaN(n) ? 0 : Math.max(0, n);
   }
   function incrementTacticalAIUsage() {
-    localStorage.setItem('kinet_tai_count', String(getTacticalAIUsage() + 1));
+    localStorage.setItem('kinet_tai_count', String(getTacticalAIUsage() + 1)); pingUsage();
   }
 
   const TACTICAL_EQUIP_TYPES = ['cone', 'pole', 'hurdle', 'ladder', 'minigoal', 'mannequin', 'ring', 'ball', 'zone'];
@@ -1209,7 +1233,7 @@ REGLAS: ${modeTxt && ctx.mode === 'match' ? '"plays" debe tener 2 o 3 jugadas. '
 PERFIL DE QUIEN PREGUNTA: ${roleLabel} · deporte: ${sport} · plan: ${tier}. No conoces nada más de esta persona.
 
 QUÉ PUEDES HACER:
-1. Resolver dudas sobre KINET OS: la Comunidad (KINET Pulse, Shorts, Mercado/Radar, mensajes directos, perfil social, seguir cuentas), la KINET Card, el Cuerpo Técnico IA, el Laboratorio de Vídeo, la Pizarra 3D, Media Studio y los planes (Gratis 0€, Pro Player 8,99€/mes, Club & Scout 29,99€/mes). Si no sabes un detalle concreto del producto, dilo y remite a Soporte; NO inventes funciones, precios ni condiciones.
+1. Resolver dudas sobre KINET OS: la Comunidad (KINET Pulse, Shorts, Mercado/Radar, mensajes directos, perfil social, seguir cuentas), la KINET Card, el Cuerpo Técnico IA, el Laboratorio de Vídeo, la Pizarra 3D, Media Studio y los planes (Gratis 0€, Pro Player 11,99€/mes (99€/año), Club & Scout 39,99€/mes (399€/año)). Si no sabes un detalle concreto del producto, dilo y remite a Soporte; NO inventes funciones, precios ni condiciones.
 2. Responder dudas deportivas generales (entrenamiento, técnica, táctica, recuperación, nutrición general, mentalidad, carrera deportiva, scouting y cómo moverse en el mercado) siempre adaptadas a ${sport}. Usa SOLO la jerga de ${sport}; no mezcles términos de otros deportes.
 3. Ayudar a escribir o mejorar una publicación, una bio o un mensaje a un club/ojeador.
 
@@ -1251,6 +1275,7 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
     const next = getDailyChatUsage() + 1;
     localStorage.setItem('kinet_ai_daily_used', String(next));
     localStorage.setItem('kinet_ai_chat_count', String(next));
+    pingUsage();
     if (window.KinetBackend && typeof window.KinetBackend.pushLocalStateToCloud === 'function') {
       window.KinetBackend.pushLocalStateToCloud();
     }
@@ -1438,8 +1463,13 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
       if (res.ok) return await res.json();
       // El servidor dice "límite alcanzado": se respeta (no se salta llamando directamente al proveedor)
       if (res.status === 429) { const j = await res.json().catch(() => ({})); return Object.assign({ limitReached: true }, j); }
+      // Fallo del servidor (502 proveedor, 500 tablas…): se guarda el motivo para el equipo y se prueba el modo directo
+      const ej = await res.json().catch(() => ({}));
+      window.__kinetLastAiError = { status: res.status, code: ej.error || '', kind: ej.code || '', detail: ej.detail || '', fn: functionName, at: Date.now() };
+      try { console.warn('[KINET IA] El servidor respondió', res.status, ej.error || '', ej.code || '', ej.detail || ''); } catch (e) {}
     } catch (e) {
       clearTimeout(timeoutId);
+      window.__kinetLastAiError = { status: 0, code: 'red', kind: 'red', detail: String(e && e.message || e).slice(0, 160), fn: functionName, at: Date.now() };
     }
     return null;
   }
@@ -1678,6 +1708,15 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
         isProOrClub: videoSt.isProOrClub,
         chatUsed: usedChat,
         chatRemaining: Math.max(0, limits.dailyChatMessages - usedChat),
+        strongRemaining: Math.max(0, (limits.dailyStrongMessages || 0) - getStrongUsage()),
+        strongUsed: Math.min(getStrongUsage(), limits.dailyStrongMessages || 0),
+        strongLimit: limits.dailyStrongMessages || 0,
+        supportUsed: getSupportBotUsage(),
+        supportLimit: limits.dailySupportBotMessages || 0,
+        tacticalUsed: getTacticalAIUsage(),
+        tacticalLimit: limits.dailyTacticalAI || 0,
+        planVideoMins: limits.monthlyVideoMinutes || 0,
+        isStaff: !!isStaffSandboxUser(),
         chatLimit: limits.dailyChatMessages,
         imageUsed: getDailyImageUsage(),
         imageLimit: limits.dailyImageGenerations,
@@ -1685,7 +1724,7 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
         communityBotUsed: getCommunityBotUsage(),
         communityBotLimit: limits.dailyCommunityBotMessages || 5,
         communityBotRemaining: Math.max(0, (limits.dailyCommunityBotMessages || 5) - getCommunityBotUsage()),
-        liteRemaining: Math.max(0, (limits.dailyLiteMessages || 0) - getLiteUsage()),
+        liteRemaining: Math.max(0, Math.max(0, limits.dailyChatMessages - usedChat) - Math.max(0, (limits.dailyStrongMessages || 0) - getStrongUsage())),
         engine: peekChatSlot() || 'locked',
         budget: getBudgetStatus(),
         maxVideoEditSeconds: limits.maxVideoEditSeconds || 0,
@@ -1725,7 +1764,7 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
         commitChatSlot(slot);
       }
       _engineOverride = slot;
-      const remainingAfter = Math.max(0, quota.chatRemaining - (consumeQuota && slot === 'strong' ? 1 : 0));
+      const remainingAfter = Math.max(0, quota.chatRemaining - (consumeQuota ? 1 : 0));
 
       const trainedPrompt = buildMasterTrainedSystemPrompt(agentId);
       try { pushSharedMemory(agentId, userMessage); } catch (e) {}
@@ -1788,11 +1827,16 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
       } catch (apiErr) {
         try { console.warn('[KINET IA]', apiErr && apiErr.message); } catch (e) {}
         if (consumeQuota) refundChatSlot(slot);
-        const raw = `⚠️ **[Respuesta del Servidor de API]**: ${apiErr.message}\n\n*(Solo visible para el equipo: revisa tu clave en el botón **"API IA"** de la cabecera del chat.)*`;
+        const le = window.__kinetLastAiError;
+        const srv = le && (Date.now() - le.at < 60000) ? `\n\n**Servidor (${le.fn}):** HTTP ${le.status} · ${le.code}${le.kind ? ' / ' + le.kind : ''}${le.detail ? ' · ' + le.detail : ''}` : '';
+        const raw = `⚠️ **[Respuesta del Servidor de API]**: ${apiErr.message}${srv}\n\n*(Solo visible para el equipo: si el servidor falla, mira el detalle de arriba; la clave de Gemini va como secreto en Supabase, no en el navegador.)*`;
+        let isGuestUser = false; try { isGuestUser = !!(window.KinetBackend && window.KinetBackend.isGuest && window.KinetBackend.isGuest()); } catch (e) {}
         return {
           ok: false,
           remainingAfter,
-          reply: isStaffSandboxUser() ? raw : 'Ahora mismo no puedo responderte: el servicio de IA no está disponible. Inténtalo de nuevo en unos minutos; tu consulta no se ha descontado.'
+          reply: isStaffSandboxUser() ? raw
+            : isGuestUser ? 'Para usar el Cuerpo Técnico IA necesitas una cuenta gratuita: crea la tuya (menos de un minuto) y tendrás 10 consultas al día.'
+            : 'Ahora mismo no puedo responderte: el servicio de IA no está disponible. Inténtalo de nuevo en unos minutos; tu consulta no se ha descontado.'
         };
       }
     },
@@ -2063,7 +2107,7 @@ Reglas: los días se codifican 0=domingo,1=lunes,2=martes,3=miércoles,4=jueves,
         return {
           ok: false,
           proRequired: true,
-          message: 'El análisis biomecánico de vídeo por IA requiere Plan Pro Player (8,99€/mes), Club & Scout o un Bono de Minutos activo.'
+          message: 'El análisis biomecánico de vídeo por IA requiere Plan Pro Player (11,99€/mes), Club & Scout o un Bono de Minutos activo.'
         };
       }
 
@@ -2408,7 +2452,7 @@ Reglas: usa valores realistas para el deporte, no inventes datos personales del 
         });
         const parsed = JSON.parse(String(raw).replace(/```json|```/g, '').trim());
         commitChatSlot(slot);
-        return { ok: true, plan: parsed, remaining: Math.max(0, quota.chatRemaining - (slot === 'strong' ? 1 : 0)) };
+        return { ok: true, plan: parsed, remaining: Math.max(0, quota.chatRemaining - 1) };
       } catch (err) {
         return { ok: false, error: (err && err.message) ? err.message : 'No se pudo generar el plan.' };
       }

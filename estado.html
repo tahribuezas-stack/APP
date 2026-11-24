@@ -33,15 +33,17 @@
   <button id="b-refresh" class="sec">Actualizar estado</button>
   <button id="b-force" class="sec">Forzar: copiar la nube a este dispositivo</button>
   <button id="b-relogin" class="sec">2 · Volver a iniciar sesión (conserva tus datos)</button>
+  <button id="b-ai" class="sec">3 · Probar la IA ahora</button>
+  <div id="ai-out" style="margin-top:8px;font-size:13px"></div>
   <p><small>"Forzar" borra las diferencias locales de este dispositivo y deja exactamente lo que hay guardado en tu cuenta (plan, deporte, chats, colores…).</small></p>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="kinet-api-config.js?v=34"></script>
-<script src="kinet-backend.js?v=34"></script>
+<script src="kinet-api-config.js?v=36"></script>
+<script src="kinet-backend.js?v=36"></script>
 <script>
 (function(){
-  var VERSION='v34';
+  var VERSION='v36';
   function esc(s){return String(s==null?'—':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
   function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
   function row(a,b,cls){return '<tr><td>'+esc(a)+'</td><td class="'+(cls||'')+'">'+esc(b)+'</td></tr>'}
@@ -97,6 +99,21 @@
   }
   document.getElementById('b-backup').onclick=function(){ alert(backup()?'Copia descargada. Guárdala por si acaso.':'No se pudo crear la copia.'); };
   document.getElementById('b-refresh').onclick=run;
+  document.getElementById('b-ai').onclick=async function(){
+    var out=document.getElementById('ai-out'); out.className=''; out.textContent='Probando la IA…';
+    try{
+      var sb=KinetBackend.getClient(); var ss=(await sb.auth.getSession()).data.session;
+      if(!ss){ out.className='bad'; out.textContent='No hay sesión: inicia sesión primero (los invitados no tienen IA).'; return; }
+      var base=(window.KINET_API_CONFIG&&KINET_API_CONFIG.EDGE_BASE_URL)||'';
+      var t0=Date.now();
+      var res=await fetch(base+'/kinet-ai-chat',{method:'POST',headers:{'Content-Type':'application/json','apikey':sb.supabaseKey||'','Authorization':'Bearer '+ss.access_token},body:JSON.stringify({agentId:'support',systemPrompt:'Eres un asistente de pruebas.',userMessage:'Responde solo con la palabra OK.',chatHistory:[]})});
+      var j={}; try{j=await res.json()}catch(e){}
+      var ms=Date.now()-t0;
+      if(res.ok&&j.reply){ out.className='ok'; out.innerHTML='✔ La IA responde ('+ms+' ms, motor '+esc(j.engine)+'): «'+esc(String(j.reply).slice(0,80))+'»'; }
+      else if(res.status===429){ out.className='warn'; out.innerHTML='Límite alcanzado: '+esc(j.reply||j.error); }
+      else { out.className='bad'; out.innerHTML='✖ HTTP '+res.status+' · '+esc(j.error)+(j.code?' / '+esc(j.code):'')+(j.detail?'<br>'+esc(j.detail):'')+'<br><small>'+({'sin-sesion':'La sesión no es válida: vuelve a iniciar sesión.','sin-tablas':'Falta ejecutar un SQL en Supabase (05_ia_limites.sql).','ia-no-disponible':'Google o Anthropic han rechazado la petición: mira el detalle de arriba (clave, cuota o modelo).'}[j.error]||'')+'</small>'; }
+    }catch(e){ out.className='bad'; out.textContent='No se pudo contactar con la función: '+String(e&&e.message||e)+' (¿está desplegada kinet-ai-chat?)'; }
+  };
   document.getElementById('b-force').onclick=async function(){
     var sb0=window.KinetBackend&&KinetBackend.getClient&&KinetBackend.getClient(); var ss0=null;
     try{ss0=sb0&&(await sb0.auth.getSession()).data.session}catch(e){}

@@ -172,7 +172,7 @@
   }
   function openTracking() {
     if (tier() !== 'club') {
-      box('kinet-tracking-modal', '🌐 SEGUIMIENTO EXTERNO', '<div style="' + CARD + '"><p style="' + P + '">El <strong>seguimiento de deportistas fuera de la app</strong> (club actual, minutos, resultados y noticias públicas de la prensa deportiva) es una función del plan <strong style="color:var(--role-color)">Club & Scout Pro</strong>.</p><button type="button" class="btn-primary" style="width:100%;padding:11px" onclick="document.getElementById(\'kinet-tracking-modal\').classList.remove(\'open\');if(typeof requestPlanUpgrade===\'function\')requestPlanUpgrade(\'club\')">Ver plan Club & Scout (29,99 €/mes)</button></div>');
+      box('kinet-tracking-modal', '🌐 SEGUIMIENTO EXTERNO', '<div style="' + CARD + '"><p style="' + P + '">El <strong>seguimiento de deportistas fuera de la app</strong> (club actual, minutos, resultados y noticias públicas de la prensa deportiva) es una función del plan <strong style="color:var(--role-color)">Club & Scout Pro</strong>.</p><button type="button" class="btn-primary" style="width:100%;padding:11px" onclick="document.getElementById(\'kinet-tracking-modal\').classList.remove(\'open\');if(typeof requestPlanUpgrade===\'function\')requestPlanUpgrade(\'club\')">Ver plan Club & Scout (39,99 €/mes)</button></div>');
       return;
     }
     var html = '<div style="' + CARD + '"><span style="' + H + '">➕ SEGUIR A UN DEPORTISTA</span>' +

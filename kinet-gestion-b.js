@@ -4,7 +4,7 @@
   var KGP = window.KGP, H = KGP.helpers, S = KGP.sections, esc = H.esc, $ = H.$, $$ = H.$$;
   var Gs = function () { return window.KinetGestion; };
   var B = function () { return window.KinetBackend; };
-  var PRICE = { pro: 8.99, club: 29.99 };
+  var PRICE = { pro: 11.99, club: 39.99 };
 
   async function loadCfg() {
     var rows = await B().fetchPublicConfig(); var c = { announcement: {}, maintenance: {}, flags: {} }, up = {};

@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   var KGP = window.KGP, H = KGP.helpers, S = KGP.sections, esc = H.esc, $ = H.$, $$ = H.$$;
-  var PRICE = { pro: 8.99, club: 29.99 };
+  var PRICE = { pro: 11.99, club: 39.99 };
 
   /* ═════════ PANEL GENERAL ═════════ */
   S.resumen = async function (ws, token) {
@@ -138,7 +138,7 @@
     var lst = await H.rpc('admin_list_users', { p_q: '', p_tier: '', p_role: '', p_flag: '', p_limit: 100, p_offset: 0 });
     var paidRows = (lst.rows || []).filter(function (u) { return u.account_tier === 'pro' || u.account_tier === 'club'; });
     ws.innerHTML = H.head('Negocio', 'Planes y minutos', 'Ingresos teóricos según el plan asignado, concesiones manuales y minutos de vídeo. Los cobros reales los ves en Stripe.', '') +
-      '<div class="grid g4" style="margin-bottom:16px">' + H.kpi('Ingreso mensual teórico', mrr, { pre: '', suf: ' €', dec: 2, sub: 'PRO ' + pro + ' × 8,99 € + CLUB ' + club + ' × 29,99 €', cls: 'ok' }) +
+      '<div class="grid g4" style="margin-bottom:16px">' + H.kpi('Ingreso mensual teórico', mrr, { pre: '', suf: ' €', dec: 2, sub: 'PRO ' + pro + ' × 11,99 € + CLUB ' + club + ' × 39,99 €', cls: 'ok' }) +
       H.kpi('Usuarios PRO', pro, {}) + H.kpi('Usuarios CLUB', club, {}) + H.kpi('Conversión a pago', o.users_total ? 100 * (pro + club) / o.users_total : 0, { dec: 1, suf: ' %', sub: 'Sobre ' + H.num(o.users_total || 0) + ' cuentas' }) + '</div>' +
       '<div class="grid g2" style="margin-bottom:16px"><div class="panel"><div class="p-h"><span class="p-l">Conceder plan o minutos</span></div>' +
       '<div class="row"><div class="field" style="flex:2 1 200px"><label>Correo o @usuario</label><input class="inp" id="pTarget" placeholder="nombre@correo.com"></div>' +

@@ -22,14 +22,14 @@
       id: 'ia', icon: '🧠', label: 'El Cuerpo Técnico IA no responde',
       re: /(cuerpo tecnico|entrenador ia|la ia no|ia no responde|no responde la ia|no contesta|error de api|api ia|clave de api|api key|se queda pensando)/,
       lead: 'Casi siempre es el cupo diario de consultas o un fallo temporal de conexión.',
-      steps: ['Mira tu cupo del día en la cabecera del chat: se reinicia a las 00:00 h.', 'Comprueba tu conexión y recarga la página (Ctrl + F5).', 'Si usas clave propia, revisa el botón «API IA» de la cabecera del chat y vuelve a guardarla.', 'Reformula la consulta de forma más concreta e inténtalo otra vez.'],
+      steps: ['Mira cuántas consultas te quedan en la tarjeta «Uso de IA» de la barra lateral o en la franja «IA HOY» del chat: se reinicia a las 00:00 h.', 'Comprueba tu conexión y recarga la página (Ctrl + F5).', 'Si usas clave propia, revisa el botón «API IA» de la cabecera del chat y vuelve a guardarla.', 'Reformula la consulta de forma más concreta e inténtalo otra vez.'],
       persist: 'envíanos el mensaje de error completo desde el formulario de contacto.'
     },
     {
       id: 'pagos', icon: '💳', label: 'Pagos, plan o suscripción',
       re: /(pago|cobro|cobrado|tarjeta|factura|suscripcion|plan pro|plan club|reembolso|cancelar|devolucion|stripe|bono|precio)/,
       lead: 'Los cambios de plan y la compra de bonos se gestionan desde tu cuenta; los cobros concretos los revisa el equipo.',
-      steps: ['Entra en «Despacho & Ajustes» → «Suscripción» para cambiar de plan o comprar bonos de minutos.', 'Tras pagar, recarga la página: el plan se actualiza en unos segundos.', 'Para facturas, reembolsos o cancelaciones, usa el formulario de contacto con el motivo «Pagos».'],
+      steps: ['Entra en «Despacho & Ajustes» → «Suscripción» para cambiar de plan (mensual o anual) o comprar bonos de minutos.', 'Tras pagar, recarga la página: el plan se actualiza en unos segundos.', 'Para facturas, reembolsos o cancelaciones, usa el formulario de contacto con el motivo «Pagos».'],
       persist: 'indícanos el correo de la cuenta y la fecha aproximada del cobro (nunca envíes datos de tu tarjeta).'
     },
     {
