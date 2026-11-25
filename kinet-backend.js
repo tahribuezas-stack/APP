@@ -884,6 +884,7 @@
         const style = document.createElement('style');
         style.id = 'kinet-global-sidebar-v5-style';
         style.textContent = `
+        /* v58: kinet-fx.js ya anima la entrada (cuadros + fundido). Esta animación CSS duplicada hacía que cada cuadro se animara dos veces (cortes de fps al cambiar de sección); solo se usa si fx no está activo */
         @keyframes pageEnter {
             from { opacity: 0; transform: translateY(10px) scale(0.992); }
             to { opacity: 1; transform: translateY(0) scale(1); }
@@ -892,19 +893,19 @@
             from { opacity: 0; transform: translateY(14px); }
             to { opacity: 1; transform: translateY(0); }
           }
-          .os-workspace,
-          main.workspace,
-          .analyzer-workspace {
+          html:not(.kx-cards) .os-workspace,
+          html:not(.kx-cards) main.workspace,
+          html:not(.kx-cards) .analyzer-workspace {
             animation: pageEnter 0.42s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
           }
-          .os-workspace .kinet-panel,
-          .os-workspace .kinet-network-toolbar {
+          html:not(.kx-cards) .os-workspace .kinet-panel,
+          html:not(.kx-cards) .os-workspace .kinet-network-toolbar {
             animation: kinetPanelCascade 0.48s cubic-bezier(0.16, 1, 0.3, 1) backwards;
           }
-          .os-workspace .bento-grid > div:nth-child(1) .kinet-panel { animation-delay: 0.04s; }
-          .os-workspace .bento-grid > div:nth-child(2) .kinet-panel { animation-delay: 0.09s; }
-          .os-workspace .bento-grid > div:nth-child(3) .kinet-panel { animation-delay: 0.14s; }
-          .os-workspace .bento-grid > div:nth-child(4) .kinet-panel { animation-delay: 0.18s; }
+          html:not(.kx-cards) .os-workspace .bento-grid > div:nth-child(1) .kinet-panel { animation-delay: 0.04s; }
+          html:not(.kx-cards) .os-workspace .bento-grid > div:nth-child(2) .kinet-panel { animation-delay: 0.09s; }
+          html:not(.kx-cards) .os-workspace .bento-grid > div:nth-child(3) .kinet-panel { animation-delay: 0.14s; }
+          html:not(.kx-cards) .os-workspace .bento-grid > div:nth-child(4) .kinet-panel { animation-delay: 0.18s; }
           .os-sidebar .sidebar-top-section {
             display: flex !important;
             flex-direction: column !important;
