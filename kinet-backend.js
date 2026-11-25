@@ -113,8 +113,17 @@
     if (isStrictlyAuthenticatedUser() && (_t === 'pro' || _t === 'club' || localStorage.getItem('kinet_is_pro') === 'true')) {
       const _st = document.createElement('style');
       _st.id = 'kinet-prehide-pro';
-      _st.textContent = '#nav-upgrade-pro,#drawer-upgrade-pro,#sidebar-pro-btn,[data-pro-upsell]{display:none!important}';
+      _st.textContent = '#nav-upgrade-pro,#drawer-upgrade-pro,#sidebar-pro-btn,#sidebar-upgrade-btn,[data-pro-upsell]{display:none!important}';
       (document.head || document.documentElement).appendChild(_st);
+    }
+  } catch (e) {}
+  // v58: «Config. Red Social» también se oculta antes del primer pintado si el perfil ya está configurado
+  try {
+    if (isStrictlyAuthenticatedUser() && profileLooksConfigured()) {
+      const _ss = document.createElement('style');
+      _ss.id = 'kinet-prehide-social';
+      _ss.textContent = '#nav-config-social,#drawer-config-social{display:none!important}';
+      (document.head || document.documentElement).appendChild(_ss);
     }
   } catch (e) {}
 
@@ -590,6 +599,7 @@
     try {
       const hide = isStrictlyAuthenticatedUser() && profileLooksConfigured();
       document.querySelectorAll('#nav-config-social, #drawer-config-social').forEach((el) => { el.style.display = hide ? 'none' : ''; });
+      if (!hide) { const _p = document.getElementById('kinet-prehide-social'); if (_p) _p.remove(); }
     } catch (e) {}
   }
   window.KinetSocialLinks = { refresh: syncSocialConfigLinks, configured: profileLooksConfigured };
