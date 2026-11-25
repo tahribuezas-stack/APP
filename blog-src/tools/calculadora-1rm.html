@@ -1,0 +1,39 @@
+slug: calculadora-1rm
+title: Calculadora de 1RM y porcentajes de carga
+desc: Estima tu repetición máxima (1RM) a partir de cualquier serie y obtén la tabla de cargas del 50 % al 95 % para planificar tu fuerza.
+cat: calc
+related: rutina-gimnasio-delanteros,rutina-fuerza-tenistas
+---
+<div class="grid3">
+ <div><label class="f" for="w">Peso levantado (kg)</label><input class="in" id="w" type="number" inputmode="decimal" min="1" step="0.5" value="80"></div>
+ <div><label class="f" for="r">Repeticiones</label><input class="in" id="r" type="number" inputmode="numeric" min="1" max="12" value="5"></div>
+ <div><label class="f" for="fm">Fórmula</label><select class="in" id="fm"><option value="avg">Media (recomendada)</option><option value="epley">Epley</option><option value="brzycki">Brzycki</option></select></div>
+</div>
+<div class="result" id="res"></div>
+<div class="actions"><button class="btn ghost sm" id="reset" type="button">Borrar datos</button></div>
+<script>
+(function(){
+ var w=document.getElementById('w'),r=document.getElementById('r'),fm=document.getElementById('fm');
+ var T=[[95,'2'],[90,'3–4'],[85,'5–6'],[80,'7–8'],[75,'9–10'],[70,'10–12'],[65,'12–15'],[60,'15–20'],[50,'20+']];
+ function rm(kg,n,f){var e=kg*(1+n/30),b=n>=37?e:kg*36/(37-n);return f==='epley'?e:f==='brzycki'?b:(e+b)/2}
+ function calc(){
+  var kg=+w.value,n=Math.round(+r.value),out=document.getElementById('res');
+  if(!(kg>0)||!(n>=1&&n<=12)){out.innerHTML='<p>Introduce un peso mayor que 0 y entre 1 y 12 repeticiones. Las estimaciones por encima de 12 repeticiones pierden precisión.</p>';return}
+  var one=n===1?kg:rm(kg,n,fm.value);
+  var h='<p>Tu 1RM estimado: <span class="big">'+(Math.round(one*2)/2)+' kg</span></p>'+(n>8?'<p class="note warn">Con más de 8 repeticiones la estimación es menos fiable. Para más precisión usa una serie de 3–5 repeticiones.</p>':'')+'<div class="tablewrap"><table><thead><tr><th>% del 1RM</th><th>Carga</th><th>Repeticiones aprox.</th></tr></thead><tbody>';
+  T.forEach(function(t){h+='<tr><td>'+t[0]+'%</td><td><b>'+(Math.round(one*t[0]/100/0.5)*0.5)+' kg</b></td><td>'+t[1]+'</td></tr>'});
+  out.innerHTML=h+'</tbody></table></div>';
+ }
+ KS.bind(['w','r','fm'],calc);
+ document.getElementById('reset').onclick=function(){KS.clear();w.value=80;r.value=5;fm.value='avg';calc()};
+})();
+</script>
+===
+<h2>Qué es el 1RM y para qué sirve</h2>
+<p>El <strong>1RM</strong> (una repetición máxima) es el peso máximo que puedes levantar una sola vez con buena técnica. Conocerlo —o estimarlo— permite programar las cargas como porcentaje: por ejemplo, trabajar al 80 % para series de fuerza o al 60 % para potencia con barra rápida.</p>
+<h2>Fórmulas utilizadas</h2>
+<ul><li><strong>Epley:</strong> 1RM = peso × (1 + repeticiones / 30)</li><li><strong>Brzycki:</strong> 1RM = peso × 36 / (37 − repeticiones)</li></ul>
+<p>Ambas funcionan mejor con series de 2 a 10 repeticiones. La opción «media» promedia las dos y reduce el sesgo de cada una.</p>
+<h2>Cómo usar el resultado con seguridad</h2>
+<ul><li>No necesitas hacer un 1RM real: estimarlo con una serie de 3–5 repeticiones es más seguro.</li><li>Usa la estimación como punto de partida y ajusta según la velocidad de la barra y tu técnica.</li><li>Si eres principiante, aprende primero el movimiento con cargas ligeras y busca supervisión.</li><li>Los porcentajes de la tabla son orientativos: cada persona y cada ejercicio responden distinto.</li></ul>
+<p>Si quieres ver cómo encajar las cargas en una semana real, mira la rutina de {{POST:rutina-gimnasio-delanteros|gimnasio para delanteros}} o la de {{POST:rutina-fuerza-tenistas|fuerza para tenistas}}.</p>

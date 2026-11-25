@@ -1,0 +1,68 @@
+slug: generador-alineacion
+title: Generador de alineación (once inicial) en imagen
+desc: Crea la alineación de tu equipo con el once inicial sobre el campo y descárgala como imagen PNG para compartirla en redes. Gratis y sin registro.
+cat: gen
+related: ficha-deportiva-ojeadores,microciclo-semanal-futbolista
+---
+<div class="grid2">
+ <div><label class="f" for="team">Nombre del equipo</label><input class="in" id="team" maxlength="28" value="Mi equipo"></div>
+ <div><label class="f" for="fmn">Formación</label><select class="in" id="fmn"><option>4-3-3</option><option>4-4-2</option><option>3-5-2</option><option>4-2-3-1</option></select></div>
+</div>
+<div class="grid2" style="margin-top:14px">
+ <div><label class="f" for="rival">Rival / jornada (opcional)</label><input class="in" id="rival" maxlength="34" placeholder="J12 · vs Atlético Norte"></div>
+ <div><label class="f" for="col">Color del equipo</label><select class="in" id="col"><option value="#00FF66">Verde neón</option><option value="#22D3EE">Cian</option><option value="#F472B6">Rosa</option><option value="#FACC15">Amarillo</option><option value="#F97316">Naranja</option><option value="#FFFFFF">Blanco</option></select></div>
+</div>
+<p style="margin:16px 0 8px;font-size:13px;color:var(--mut);font-weight:600">Jugadores (de portería a delantera)</p>
+<div class="grid2" id="names"></div>
+<div class="result"><canvas id="cv" width="1080" height="1350" style="width:100%;max-width:440px;height:auto;border-radius:16px;border:1px solid var(--line);display:block;margin:0 auto" aria-label="Vista previa de la alineación"></canvas></div>
+<div class="actions"><button class="btn" id="dl" type="button">Descargar PNG</button><button class="btn ghost" id="reset" type="button">Borrar datos</button></div>
+<script>
+(function(){
+ var ROWS={'4-3-3':[1,4,3,3],'4-4-2':[1,4,4,2],'3-5-2':[1,3,5,2],'4-2-3-1':[1,4,2,3,1]};
+ var team=document.getElementById('team'),fmn=document.getElementById('fmn'),rival=document.getElementById('rival'),col=document.getElementById('col'),box=document.getElementById('names'),cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+ var names=KS.get('names',[]);while(names.length<11)names.push('');
+ function build(){box.innerHTML='';for(var i=0;i<11;i++){(function(i){var d=document.createElement('div'),inp=document.createElement('input');inp.className='in';inp.maxLength=18;inp.placeholder='Jugador '+(i+1)+(i===0?' (portero)':'');inp.value=names[i]||'';inp.setAttribute('aria-label','Jugador '+(i+1));inp.oninput=function(){names[i]=inp.value;KS.set('names',names);draw()};d.appendChild(inp);box.appendChild(d)})(i)}}
+ function draw(){
+  var W=1080,H=1350,c=col.value,rows=ROWS[fmn.value];
+  var g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#0B1A12');g.addColorStop(1,'#07120C');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  for(var s=0;s<10;s++){ctx.fillStyle=s%2?'rgba(255,255,255,.015)':'rgba(255,255,255,.03)';ctx.fillRect(0,230+s*104,W,104)}
+  ctx.strokeStyle='rgba(255,255,255,.28)';ctx.lineWidth=4;ctx.strokeRect(60,230,W-120,1040);
+  ctx.beginPath();ctx.moveTo(60,750);ctx.lineTo(W-60,750);ctx.stroke();ctx.beginPath();ctx.arc(W/2,750,110,0,7);ctx.stroke();
+  ctx.strokeRect(300,230,W-600,170);ctx.strokeRect(300,1100,W-600,170);
+  ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='900 54px Orbitron, Arial Black, sans-serif';
+  var t=(team.value||'MI EQUIPO').toUpperCase();ctx.fillText(t.length>20?t.slice(0,20):t,W/2,110);
+  ctx.fillStyle=c;ctx.font='700 30px Arial, sans-serif';ctx.fillText('ONCE INICIAL · '+fmn.value,W/2,160);
+  if(rival.value){ctx.fillStyle='#94A3B8';ctx.font='600 26px Arial, sans-serif';ctx.fillText(rival.value,W/2,200)}
+  var idx=0,n=rows.length;
+  rows.forEach(function(cnt,ri){
+   var y=1160-(ri/(n-1))*850;
+   for(var k=0;k<cnt;k++){
+    var x=60+(W-120)*(k+1)/(cnt+1);
+    ctx.shadowColor=c;ctx.shadowBlur=22;ctx.fillStyle=c;ctx.beginPath();ctx.arc(x,y,40,0,7);ctx.fill();ctx.shadowBlur=0;
+    ctx.fillStyle='#04060A';ctx.font='900 34px Arial Black, Arial, sans-serif';ctx.fillText(String(idx+1),x,y+12);
+    var nm=(names[idx]||'').trim()||'—';ctx.fillStyle='#fff';ctx.font='700 27px Arial, sans-serif';
+    var w=ctx.measureText(nm).width;if(w>170){ctx.font='700 22px Arial, sans-serif'}
+    ctx.fillText(nm.toUpperCase(),x,y+82);idx++;
+   }
+  });
+  ctx.fillStyle='#64748B';ctx.font='600 22px Arial, sans-serif';ctx.fillText('Creado con kinetos.es',W/2,1318);
+ }
+ [team,fmn,rival,col].forEach(function(e){e.addEventListener('input',draw)});
+ KS.bind(['team','fmn','rival','col'],function(){draw()});
+ build();draw();
+ document.getElementById('dl').onclick=function(){cv.toBlob(function(b){var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='alineacion-'+(team.value||'equipo').toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.png';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500)},'image/png')};
+ document.getElementById('reset').onclick=function(){KS.clear();KS.del('names');names=[];while(names.length<11)names.push('');team.value='Mi equipo';fmn.selectedIndex=0;rival.value='';col.selectedIndex=0;build();draw()};
+})();
+</script>
+===
+<h2>Cómo usar el generador</h2>
+<ol><li>Escribe el nombre de tu equipo y elige la formación.</li><li>Rellena los once nombres, de portero a delantero (el orden sigue las líneas del campo).</li><li>Elige el color y pulsa <strong>Descargar PNG</strong>: obtendrás una imagen vertical 1080 × 1350 px, ideal para historias y publicaciones.</li></ol>
+<h2>Formaciones disponibles</h2>
+<div class="tablewrap"><table><thead><tr><th>Formación</th><th>Carácter</th></tr></thead><tbody>
+<tr><td><b>4-3-3</b></td><td>Equilibrio y amplitud; extremos abiertos y presión alta.</td></tr>
+<tr><td><b>4-4-2</b></td><td>Dos líneas compactas y dos delanteros; fácil de entender.</td></tr>
+<tr><td><b>3-5-2</b></td><td>Superioridad en el medio con carrileros largos.</td></tr>
+<tr><td><b>4-2-3-1</b></td><td>Doble pivote que protege la defensa y un mediapunta creativo.</td></tr></tbody></table></div>
+<h2>Consejos para que la imagen funcione</h2>
+<ul><li>Usa apellidos o apodos cortos: caben mejor y se leen en móvil.</li><li>Publícala 1–2 horas antes del partido con el nombre del rival.</li><li>Guarda la alineación para el siguiente partido: tus datos se mantienen si recargas, pero se borran al cerrar la pestaña, así que descarga la imagen antes de salir.</li></ul>
+<p>¿Quieres ir más allá? En KINET OS puedes preparar el once, analizar el partido con IA y generar la cartelería del día. Descubre cómo crear una {{POST:ficha-deportiva-ojeadores|ficha deportiva que los ojeadores lean}}.</p>

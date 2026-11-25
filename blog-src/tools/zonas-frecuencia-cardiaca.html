@@ -1,0 +1,41 @@
+slug: zonas-frecuencia-cardiaca
+title: Calculadora de zonas de frecuencia cardíaca
+desc: Calcula tus 5 zonas de pulsaciones por minuto con la fórmula de Tanaka y el método de Karvonen para entrenar a la intensidad correcta.
+cat: calc
+related: zonas-frecuencia-cardiaca-guia,microciclo-semanal-futbolista
+---
+<div class="grid3">
+ <div><label class="f" for="age">Edad (años)</label><input class="in" id="age" type="number" inputmode="numeric" min="10" max="90" value="25"></div>
+ <div><label class="f" for="rhr">Pulso en reposo (ppm)</label><input class="in" id="rhr" type="number" inputmode="numeric" min="30" max="110" value="60"></div>
+ <div><label class="f" for="mhr">FC máxima (opcional)</label><input class="in" id="mhr" type="number" inputmode="numeric" min="120" max="230" placeholder="auto"></div>
+</div>
+<div class="result" id="res"></div>
+<div class="actions"><button class="btn ghost sm" id="reset" type="button">Borrar datos</button></div>
+<script>
+(function(){
+ var Z=[['Z1 · Recuperación',50,60,'Paseo activo, vuelta a la calma, días de descarga.'],['Z2 · Base aeróbica',60,70,'Rodajes suaves, construir resistencia. Puedes hablar con frases completas.'],['Z3 · Tempo',70,80,'Ritmo "cómodamente duro". Mejora la economía de carrera.'],['Z4 · Umbral',80,90,'Esfuerzo intenso sostenido. Bloques de 4–10 min.'],['Z5 · Máximo',90,100,'Series cortas muy intensas. Solo en dosis pequeñas.']];
+ function calc(){
+  var age=+age_.value,rhr=+rhr_.value,m=+mhr_.value;
+  var out=document.getElementById('res');
+  if(!(age>=10&&age<=90)||!(rhr>=30&&rhr<=110)){out.innerHTML='<p>Introduce una edad entre 10 y 90 y un pulso en reposo entre 30 y 110.</p>';return}
+  var fmax=m>=120?m:Math.round(208-0.7*age);
+  if(fmax<=rhr+20){out.innerHTML='<p>La FC máxima debe ser claramente mayor que tu pulso en reposo.</p>';return}
+  var hrr=fmax-rhr;
+  var h='<p>FC máxima usada: <span class="big">'+fmax+'</span> ppm <small style="color:var(--mut)">'+(m>=120?'(la tuya)':'(Tanaka: 208 − 0,7 × edad)')+'</small></p><div class="tablewrap"><table><thead><tr><th>Zona</th><th>% reserva</th><th>Pulsaciones</th><th>Para qué sirve</th></tr></thead><tbody>';
+  Z.forEach(function(z){var a=Math.round(rhr+hrr*z[1]/100),b=Math.round(rhr+hrr*z[2]/100);h+='<tr><td><b>'+z[0]+'</b></td><td>'+z[1]+'–'+z[2]+'%</td><td><b>'+a+' – '+b+'</b> ppm</td><td>'+z[3]+'</td></tr>'});
+  out.innerHTML=h+'</tbody></table></div>';
+ }
+ var age_=document.getElementById('age'),rhr_=document.getElementById('rhr'),mhr_=document.getElementById('mhr');
+ KS.bind(['age','rhr','mhr'],calc);
+ document.getElementById('reset').onclick=function(){KS.clear();age_.value=25;rhr_.value=60;mhr_.value='';calc()};
+})();
+</script>
+===
+<h2>Cómo se calculan las zonas</h2>
+<p>La calculadora usa el <strong>método de Karvonen</strong>: primero obtiene tu reserva de frecuencia cardíaca (FC máxima − pulso en reposo) y después calcula cada zona como un porcentaje de esa reserva sumado al pulso en reposo. Es más ajustado que usar solo el porcentaje de la FC máxima porque tiene en cuenta tu nivel de forma.</p>
+<p>Si no conoces tu FC máxima real, se estima con la <strong>fórmula de Tanaka</strong> (208 − 0,7 × edad), que suele ser más fiable que la clásica 220 − edad, sobre todo a partir de los 40 años. Aun así es una estimación: la variación individual puede ser de ±10 ppm.</p>
+<h2>Cómo medir tu pulso en reposo</h2>
+<p>Mídelo al despertar, antes de levantarte, durante 3 o 4 mañanas seguidas, y quédate con la media. Si un día está 7–8 ppm por encima de lo habitual, es una señal de posible fatiga acumulada, mal descanso o enfermedad en camino.</p>
+<h2>Limitaciones</h2>
+<ul><li>Es una referencia orientativa, no un diagnóstico. Si tienes cualquier condición cardiaca o tomas medicación que afecte al pulso, consulta a tu médico.</li><li>El calor, la cafeína, el sueño y el estrés modifican las pulsaciones.</li><li>Los pulsómetros de muñeca pueden fallar en esfuerzos intensos; una banda pectoral es más precisa.</li></ul>
+<p>Para entender cómo usar cada zona en tu semana de entrenamiento, lee la guía completa: {{POST:zonas-frecuencia-cardiaca-guia|zonas de frecuencia cardíaca explicadas}}.</p>
