@@ -389,7 +389,7 @@
 <script>try{var w=sessionStorage.getItem('kb_warp');if(w&&Date.now()-JSON.parse(w).t<6000){document.documentElement.classList.add('kb-arriving');setTimeout(function(){document.documentElement.classList.remove('kb-arriving')},2400)}}catch(e){}</script>
 <link rel="stylesheet" href="/kb-warp.css?v=3"><link rel="stylesheet" href="/kb-nav.css?v=1"><link rel="stylesheet" href="/blog/fx.css?v=15"><link rel="stylesheet" href="/kb-home.css?v=2">
 <script>window.KB_FX_SEL=".glass-card,.plan-card-zoom"</script>
-<script src="/kb-nav.js?v=2" defer></script><script src="/kb-home.js?v=2" defer></script><script src="/blog/space.js?v=15" defer></script><script src="/blog/fx.js?v=15" defer></script>
+<script src="/kb-nav.js?v=3" defer></script><script src="/kb-home.js?v=2" defer></script><script src="/blog/space.js?v=15" defer></script><script src="/blog/fx.js?v=15" defer></script>
 <script src="kinet-stores.js?v=51"></script>
 <script src="kinet-launch.js?v=51"></script>
 </head>
@@ -1615,6 +1615,7 @@
     function smoothScrollTo(targetPosition, duration) {
       const startPosition = window.pageYOffset;
       const distance = targetPosition - startPosition;
+      duration = Math.max(800, Math.min(2800, 550 + Math.abs(distance) * 0.42)); // más larga cuanto más lejos, para que se vea fluido
       let startTime = null;
 
       function animation(currentTime) {
@@ -1628,10 +1629,8 @@
       }
 
       function easeInOutQuad(t, b, c, d) {
-        t /= d / 2;
-        if (t < 1) return c / 2 * t * t + b;
-        t--;
-        return -c / 2 * (t * (t - 2) - 1) + b;
+        const k = Math.min(1, t / d);
+        return b + c * (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
       }
 
       requestAnimationFrame(animation);

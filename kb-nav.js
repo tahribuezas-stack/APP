@@ -61,7 +61,7 @@
       var hd = document.querySelector('header.top'), off = (hd ? hd.offsetHeight : 0) + 8;
       var y = el.getBoundingClientRect().top + scrollY - off;
       y = Math.max(0, Math.min(y, document.documentElement.scrollHeight - innerHeight));
-      go(y, Math.max(650, Math.min(1500, 450 + Math.abs(y - scrollY) * .25)));
+      go(y, Math.max(800, Math.min(2800, 550 + Math.abs(y - scrollY) * .42)));
       try { history.replaceState(null, '', '#' + id); } catch (er) {}
     });
   })();
