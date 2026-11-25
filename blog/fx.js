@@ -25,6 +25,10 @@
             var w = document.createElement('span'), s = document.createElement('i'); w.className = 'fx-w'; s.style.setProperty('--i', Math.min(i++, 14)); s.textContent = p; w.appendChild(s); f.appendChild(w);
           });
           c.parentNode.replaceChild(f, c);
+        } else if (c.nodeType === 1 && c.classList.contains('w')) {
+          /* palabra ya montada (p. ej. el degradado por letras de la portada): se anima entera, como las demás */
+          var w2 = document.createElement('span'), s2 = document.createElement('i'); w2.className = 'fx-w'; s2.style.setProperty('--i', Math.min(i++, 14));
+          c.parentNode.replaceChild(w2, c); s2.appendChild(c); w2.appendChild(s2);
         } else if (c.nodeType === 1 && !/^(SCRIPT|STYLE|SVG|BR)$/i.test(c.tagName)) walk(c);
       });
     })(el);
@@ -33,8 +37,8 @@
     if (!RM) {
       $$('main h1').slice(0, 3).forEach(function (h) {
         if (h.dataset.fx) return; h.dataset.fx = 1; var lab = h.textContent.trim(); h.setAttribute('aria-label', lab); split(h); h.classList.add('fx-split');
-        requestAnimationFrame(function () { requestAnimationFrame(function () { h.classList.add('fx-go'); }); });
-        setTimeout(function () { h.classList.add('fx-done'); }, 1900);
+        /* en la portada se espera a que cargue la tipografía (clase kh-hold) para que el titular no salte */
+        (function go() { if (H.classList.contains('kh-hold')) { setTimeout(go, 50); return; } requestAnimationFrame(function () { requestAnimationFrame(function () { h.classList.add('fx-go'); }); }); setTimeout(function () { h.classList.add('fx-done'); }, 1900); })();
       });
       /* títulos de sección y textos de apoyo */
       var rv = $$('main h2, main .lead, .kg-how li, .foot h4').filter(function (e) { return !e.closest('.kbn-stage,.fx-split'); });
