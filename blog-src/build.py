@@ -6,10 +6,10 @@ Lee blog-src/posts/*.html y blog-src/tools/*.html y genera /blog, /herramientas,
 import os, sys, re, glob, json, html, shutil, datetime, hashlib
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import navdata
+import navdata, games_build
 SRC = os.path.join(ROOT, 'blog-src')
 SITE = 'https://kinetos.es'
-V = '6'   # versión de css/js: súbela si cambias el diseño
+V = '8'   # versión de css/js: súbela si cambias el diseño
 CATS = {
  'entrenamiento': 'Entrenamiento', 'futbol': 'Fútbol', 'tenis': 'Tenis y pádel', 'salud': 'Salud y recuperación',
  'carrera': 'Carrera deportiva', 'tecnologia': 'Tecnología y IA', 'nutricion': 'Nutrición', 'mental': 'Mente y rendimiento',
@@ -38,8 +38,8 @@ ICON = ('<link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" typ
         '<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#05070A">')
 FONTS = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Orbitron:wght@800;900&display=swap" rel="stylesheet">'
 
-MARK = ('<svg class="mk" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="kg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00FF88"/><stop offset="1" stop-color="#00B359"/></linearGradient></defs>'
-        '<rect width="100" height="100" rx="26" fill="url(#kg)"/><path d="M30 28H40V47L57 28H71L50 50L72 72H58L40 53V72H30Z" fill="#04060A"/></svg>')
+BRAND = ('<a class="brand" href="/" aria-label="KINET OS, inicio"><span class="bk" aria-hidden="true">K</span>'
+         '<span class="bt"><b>KINET OS</b><small>AI PRECISION</small></span></a>')
 ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
 BACK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>'
 TICON = {
@@ -84,15 +84,21 @@ def art(cat, seed):
                 f'<path {L} d="M320 56A112 112 0 0 1 420 218" stroke-width="10" opacity=".85"/><g class="fl"><circle cx="{470 + o}" cy="80" r="8" fill="currentColor"/></g>')
     return ''.join(f'<circle {L} cx="320" cy="168" r="{rr}" opacity="{1 - i * .17:.2f}"/>' for i, rr in enumerate([30, 62, 96, 132, 170])) + '<g class="fl"><circle cx="320" cy="168" r="8" fill="currentColor"/></g>'
 
-def cover(cat, slug, label='', num='', uid=''):
+def cover(cat, slug, label='', num='', uid='', wide=False):
+    """Portada generativa. wide=True: el dibujo se centra entero y el fondo se prolonga a los lados (sin recortar nada)."""
     acc = ACC.get(cat, '#00FF88'); u = 'c' + str(h(slug))[:6] + uid
-    return (f'<svg class="cv" viewBox="0 0 640 336" preserveAspectRatio="xMidYMid slice" style="color:{acc}" aria-hidden="true" focusable="false">'
-            f'<defs><radialGradient id="{u}" cx=".8" cy=".1" r="1"><stop offset="0" stop-color="{acc}" stop-opacity=".34"/><stop offset="1" stop-color="{acc}" stop-opacity="0"/></radialGradient>'
-            f'<pattern id="{u}p" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.1" fill="#fff" fill-opacity=".09"/></pattern></defs>'
-            f'<rect width="640" height="336" fill="#070B10"/><rect width="640" height="336" fill="url(#{u}p)"/><rect width="640" height="336" fill="url(#{u})"/>'
+    if wide:
+        par, bx, bw, by, bh = 'xMidYMid meet', -2400, 5440, -600, 1536
+        rg = f'<radialGradient id="{u}" gradientUnits="userSpaceOnUse" cx="540" cy="20" r="520"><stop offset="0" stop-color="{acc}" stop-opacity=".34"/><stop offset="1" stop-color="{acc}" stop-opacity="0"/></radialGradient>'
+    else:
+        par, bx, bw, by, bh = 'xMidYMid slice', 0, 640, 0, 336
+        rg = f'<radialGradient id="{u}" cx=".8" cy=".1" r="1"><stop offset="0" stop-color="{acc}" stop-opacity=".34"/><stop offset="1" stop-color="{acc}" stop-opacity="0"/></radialGradient>'
+    lab = '' if wide else f'<text x="26" y="312" font-family="JetBrains Mono,monospace" font-size="13" letter-spacing="3" fill="{acc}" fill-opacity=".85">{html.escape(label.upper())}</text>'
+    return (f'<svg class="cv" viewBox="0 0 640 336" preserveAspectRatio="{par}" style="color:{acc}" aria-hidden="true" focusable="false">'
+            f'<defs>{rg}<pattern id="{u}p" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.1" fill="#fff" fill-opacity=".09"/></pattern></defs>'
+            f'<rect x="{bx}" y="{by}" width="{bw}" height="{bh}" fill="#070B10"/><rect x="{bx}" y="{by}" width="{bw}" height="{bh}" fill="url(#{u}p)"/><rect x="{bx}" y="{by}" width="{bw}" height="{bh}" fill="url(#{u})"/>'
             f'<text x="612" y="320" text-anchor="end" font-family="Orbitron,sans-serif" font-weight="900" font-size="150" fill="none" stroke="{acc}" stroke-opacity=".13" stroke-width="2">{num}</text>'
-            f'<g style="filter:drop-shadow(0 0 7px {acc})">{art(cat, slug)}</g>'
-            f'<text x="26" y="312" font-family="JetBrains Mono,monospace" font-size="13" letter-spacing="3" fill="{acc}" fill-opacity=".85">{html.escape(label.upper())}</text></svg>')
+            f'<g style="filter:drop-shadow(0 0 7px {acc})">{art(cat, slug)}</g>{lab}</svg>')
 
 
 # ───────── estructura común ─────────
@@ -105,26 +111,31 @@ def seo_title(t, suffix=' | KINET OS'):
 
 def header(active, back=None):
     def on(k): return ' class="on"' if active == k else ''
-    b = f'<a class="kb-back" href="{back[0]}" aria-label="Volver">{BACK}<span>{back[1]}</span></a>' if back else ''
     return f'''<header class="top"><div class="top-in">
-{b}<a class="brand" href="/" aria-label="KINET OS">{MARK}<span>KINET OS<small>PERFORMANCE LAB</small></span></a>
-<nav class="top-nav" aria-label="Principal"><a href="/blog/"{on('blog')}>Blog</a><a href="/herramientas/"{on('tools')}>Herramientas gratis</a><a href="/soporte.html">Ayuda</a></nav>
+{BRAND}
+<nav class="top-nav" aria-label="Principal"><a href="/blog/"{on('blog')}>Blog</a><a href="/herramientas/"{on('tools')}>Herramientas gratis</a><a href="/juegos/"{on('games')}>Juegos</a><a href="/soporte.html">Ayuda</a></nav>
 <button class="kb-search" type="button" data-pal aria-label="Buscar"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Buscar</span><kbd>Ctrl K</kbd></button>
 <a class="btn sm hd" data-mag href="/?utm_source=blog&utm_medium=seo&utm_campaign=header">Abrir la app {ARROW}</a>
 </div></header>'''
 
 FOOTER = f'''<footer class="foot"><div class="foot-in">
-<div class="fb"><a class="brand" href="/" style="padding:0">{MARK}<span>KINET OS</span></a><p>El sistema operativo del deportista: cuerpo técnico de IA, KINET Card, análisis táctico 3D y comunidad. Gratis para empezar.</p></div>
-<div><h4>Explora</h4><a href="/blog/">Blog</a><a href="/herramientas/">Herramientas gratis</a><a href="/">KINET OS</a></div>
+<div class="fb">{BRAND}<p>El sistema operativo del deportista: cuerpo técnico de IA, KINET Card, análisis táctico 3D y comunidad. Gratis para empezar.</p></div>
+<div><h4>Explora</h4><a href="/blog/">Blog</a><a href="/herramientas/">Herramientas gratis</a><a href="/juegos/">Juegos</a><a href="/">KINET OS</a></div>
 <div><h4>Ayuda</h4><a href="/soporte.html">Centro de ayuda</a><a href="/legal.html">Aviso legal y privacidad</a></div>
 <div class="foot-legal"><p>Contenido con fines informativos y educativos. No sustituye el consejo de un médico, fisioterapeuta, nutricionista ni entrenador cualificado. Ante dolor, lesión o enfermedad, consulta a un profesional.</p><p>© KINET OS · kinetos.es</p></div>
 </div></footer>'''
+
+def backbar(back):
+    if not back or back[0] in ('/', '/blog/') and back[1] == 'Inicio': return ''
+    narrow = ' nr' if back[0] == '/herramientas/' else ''
+    return f'<div class="kb-backbar{narrow}"><a class="kb-back" href="{back[0]}" aria-label="{back[2] if len(back) > 2 else back[1]}">{BACK}<span>{back[1]}</span></a></div>'
 
 def page(title, desc, path, body, active, extra_head='', og_type='website', jsonld=None, scripts='', back=None):
     url = SITE + path
     ld = f'<script type="application/ld+json">{json.dumps(jsonld, ensure_ascii=False)}</script>' if jsonld else ''
     return f'''<!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8">
+<script>try{{var w=sessionStorage.getItem('kb_warp');if(w&&Date.now()-JSON.parse(w).t<6000){{document.documentElement.classList.add('kb-arriving');setTimeout(function(){{document.documentElement.classList.remove('kb-arriving')}},2400)}}}}catch(e){{}}</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>{html.escape(seo_title(title))}</title>
 <meta name="description" content="{html.escape(desc, quote=True)}">
@@ -132,10 +143,10 @@ def page(title, desc, path, body, active, extra_head='', og_type='website', json
 <meta property="og:type" content="{og_type}"><meta property="og:title" content="{html.escape(title, quote=True)}"><meta property="og:description" content="{html.escape(desc, quote=True)}"><meta property="og:url" content="{url}"><meta property="og:locale" content="es_ES"><meta property="og:site_name" content="KINET OS"><meta property="og:image" content="{SITE}/icons/icon-512.png">
 <meta name="twitter:card" content="summary">
 {ICON}{FONTS}<link rel="stylesheet" href="/blog/blog.css?v={V}">{extra_head}{ld}
-<script src="/blog/kb-index.js?v={V}" defer></script><script src="/blog/blog.js?v={V}" defer></script>
+<script src="/blog/kb-index.js?v={V}" defer></script><script src="/blog/space.js?v={V}" defer></script><script src="/blog/blog.js?v={V}" defer></script>
 </head><body>
 {header(active, back)}
-<main>{body}</main>
+{backbar(back)}<main>{body}</main>
 {FOOTER}{scripts}
 </body></html>'''
 
@@ -174,18 +185,18 @@ def render_tokens(body, slug, tools, kind='blog'):
 
 def post_card(m, i=0, mini=False):
     acc = ACC.get(m['cat'], '#00FF88')
-    cv = '' if mini else cover(m['cat'], m['slug'], CATS.get(m['cat'], ''), f'{i + 1:02d}')
+    cv = '' if mini else '<span class="cvbox">' + cover(m['cat'], m['slug'], CATS.get(m['cat'], ''), f'{i + 1:02d}') + '</span>'
     return (f'<a class="card rv{" mini" if mini else ""}" style="--acc:{acc}" data-cat="{m["cat"]}" data-t="{html.escape((m["title"] + " " + m["desc"]).lower(), quote=True)}" href="/blog/{m["slug"]}.html">{cv}'
             f'<div class="cb"><span class="k">{CATS.get(m["cat"], "")}<em>{m.get("mins", "6")} min</em></span><h3>{html.escape(m["title"])}</h3><p>{html.escape(m["desc"])}</p><span class="go">Leer artículo {ARROW}</span></div></a>')
 
 def tool_card(s, t):
     acc = ACC.get(t['cat'], '#22D3EE')
-    return (f'<a class="tt rv" style="--acc:{acc}" href="/herramientas/{s}.html"><span class="ic">{TICON.get(t["cat"], TICON["calc"])}</span>'
-            f'<span><b>{html.escape(t["title"])}</b><span class="d">{html.escape(t["desc"])}</span><span class="tag">Gratis · sin registro</span></span></a>')
+    return (f'<a class="tt rv" style="--acc:{acc}" href="/herramientas/{s}.html"><span class="ico">{TICON.get(t["cat"], TICON["calc"])}</span>'
+            f'<span class="tx"><b>{html.escape(t["title"])}</b><span class="d">{html.escape(t["desc"])}</span><span class="tag">Gratis · sin registro</span></span></a>')
 
 def tool_tile(s, t, i=0):
     acc = ACC.get(t['cat'], '#22D3EE')
-    return (f'<a class="tile rv" style="--acc:{acc}" href="/herramientas/{s}.html">{cover(t["cat"], s, TCATS.get(t["cat"], ""), f"{i + 1:02d}")}'
+    return (f'<a class="tile rv" style="--acc:{acc}" href="/herramientas/{s}.html"><span class="cvbox">{cover(t["cat"], s, TCATS.get(t["cat"], ""), f"{i + 1:02d}")}</span>'
             f'<div class="tb"><span class="tag">{TCATS.get(t["cat"], "")}<i>Gratis</i></span><h3>{html.escape(t["title"])}</h3><p>{html.escape(t["desc"])}</p><span class="go">Usar ahora {ARROW}</span></div></a>')
 
 def d_fmt(d):
@@ -208,6 +219,8 @@ def main():
     shutil.copy(os.path.join(SRC, 'blog.js'), os.path.join(ROOT, 'blog', 'blog.js'))
     shutil.copy(os.path.join(SRC, 'nav.css'), os.path.join(ROOT, 'blog', 'nav.css'))
     shutil.copy(os.path.join(SRC, 'nav.js'), os.path.join(ROOT, 'blog', 'nav.js'))
+    shutil.copy(os.path.join(SRC, 'space.js'), os.path.join(ROOT, 'blog', 'space.js'))
+    shutil.copy(os.path.join(SRC, 'art.js'), os.path.join(ROOT, 'blog', 'art.js'))
     shutil.copy(os.path.join(SRC, 'tools.js'), os.path.join(ROOT, 'herramientas', 'tools.js'))
     urls = [('/', '1.0'), ('/blog/', '0.8'), ('/herramientas/', '0.8'), ('/soporte.html', '0.4')]
     items = sorted(posts.values(), key=lambda x: x['date'], reverse=True)
@@ -271,14 +284,14 @@ def main():
 <span class="kicker">{cname}</span>
 <h1>{html.escape(m['title'])}</h1>
 <div class="meta"><span>📅 {d_fmt(d)}</span><span>⏱ {m.get('mins', '6')} min de lectura</span><span>✍ Equipo KINET OS</span></div>
-<div class="art-hero led">{cover(m['cat'], slug, cname, f'{order.index(slug) + 1:02d}')}</div>
+<div class="art-hero led">{cover(m['cat'], slug, cname, f'{order.index(slug) + 1:02d}', 'w', True)}</div>
 </div>
 <article>
 <p class="lead">{m['desc']}</p>
 {toc_m}
 {body}
 {cta(slug)}
-<div class="byline"><svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="26" fill="url(#kg)"/><path d="M30 28H40V47L57 28H71L50 50L72 72H58L40 53V72H30Z" fill="#04060A"/></svg><div><b>Equipo KINET OS</b>Preparadores, analistas y desarrolladores que construyen el sistema operativo del deportista.</div></div>
+<div class="byline"><span class="bk" aria-hidden="true">K</span><div><b>Equipo KINET OS</b>Preparadores, analistas y desarrolladores que construyen el sistema operativo del deportista.</div></div>
 {pn}
 {rel_html}
 </article>
@@ -287,7 +300,7 @@ def main():
 <div class="side-box"><b class="t">Compartir</b><div class="sharebtn"><button type="button" data-copy>Copiar enlace</button><a href="https://wa.me/?text={html.escape(m['title'], quote=True)}%20{SITE}/blog/{slug}.html" target="_blank" rel="noopener">WhatsApp</a></div></div>
 </aside>
 </div>'''
-        out = page(m['title'] + ' | KINET OS', m['desc'], f'/blog/{slug}.html', main_html, 'blog', og_type='article', jsonld=[ld, bc], back=('/blog/', 'Blog'))
+        out = page(m['title'] + ' | KINET OS', m['desc'], f'/blog/{slug}.html', main_html, 'blog', og_type='article', jsonld=[ld, bc], back=('/blog/', 'Volver a la órbita', 'Volver a la órbita del blog'))
         open(os.path.join(ROOT, 'blog', slug + '.html'), 'w', encoding='utf-8').write(out)
         urls.append((f'/blog/{slug}.html', '0.7'))
 
@@ -295,7 +308,7 @@ def main():
     used = [c for c in CATS if any(m['cat'] == c for m in items)]
     chips = '<button class="chip on" data-c="">Todo</button>' + ''.join(f'<button class="chip" style="--acc:{ACC[c]}" data-c="{c}">{CATS[c]}</button>' for c in used)
     first = items[0]
-    feat = (f'<a class="feat led rv" style="--acc:{ACC.get(first["cat"], "#00FF88")}" href="/blog/{first["slug"]}.html">{cover(first["cat"], first["slug"], CATS.get(first["cat"], ""), "01")}'
+    feat = (f'<a class="feat led rv" style="--acc:{ACC.get(first["cat"], "#00FF88")}" href="/blog/{first["slug"]}.html"><span class="cvbox">{cover(first["cat"], first["slug"], CATS.get(first["cat"], ""), "01")}</span>'
             f'<div class="fb"><span class="kicker" style="width:max-content">Último · {CATS.get(first["cat"], "")}</span><h2>{html.escape(first["title"])}</h2><p>{html.escape(first["desc"])}</p><span class="go">Leer ahora {ARROW}</span></div></a>')
     rest = items[1:]
     cards = ''.join(post_card(m, i + 1) for i, m in enumerate(rest))
@@ -306,7 +319,7 @@ def main():
 <section class="kbs" id="kb-nav" aria-label="Explorar por tema">
 <div class="kbs-intro hero">
 <span class="kicker">KINET LAB · Blog de rendimiento</span>
-<h1>Entrena mejor,<br><span class="rot gr"><span>rinde más.</span><span>decide con datos.</span><span>gestiona tu carrera.</span></span></h1>
+<h1>Entrena mejor,<br><span class="rot"><span>rinde más.</span><span>decide mejor.</span><span>crece rápido.</span></span></h1>
 <p class="lead">Guías prácticas de entrenamiento, recuperación, táctica y carrera deportiva para jugadores, entrenadores y ojeadores. Sin humo, con herramientas gratis para aplicarlas hoy.</p>
 <div class="stats"><div class="stat"><b data-count="{len(items)}">0</b><span>Guías</span></div><div class="stat"><b data-count="{len(tools)}">0</b><span>Herramientas gratis</span></div><div class="stat"><b><i>0</i> €</b><span>Sin registro</span></div></div>
 <div class="kbs-cta"><a class="btn" href="#kb-list">Ver todas las guías {ARROW}</a><a class="btn ghost" href="/herramientas/">Herramientas gratis</a></div>
@@ -329,7 +342,7 @@ def main():
 document.getElementById('q').addEventListener('input',function(e){{q=e.target.value.toLowerCase().trim();f()}});
 document.getElementById('chips').addEventListener('click',function(e){{var b=e.target.closest('.chip');if(!b)return;[].forEach.call(document.querySelectorAll('.chip'),function(x){{x.classList.remove('on')}});b.classList.add('on');c=b.dataset.c;f()}})}})();</script>'''
     ld = {"@context": "https://schema.org", "@type": "Blog", "name": "Blog KINET OS", "url": SITE + "/blog/", "inLanguage": "es"}
-    open(os.path.join(ROOT, 'blog', 'index.html'), 'w', encoding='utf-8').write(page('Blog de rendimiento deportivo | KINET OS', 'Guías prácticas de entrenamiento, recuperación, táctica y carrera deportiva para jugadores, entrenadores y ojeadores, con herramientas gratis.', '/blog/', blog_main, 'blog', extra_head=f'<link rel="stylesheet" href="/blog/nav.css?v={V}"><noscript><style>.kbn{{display:none}}</style></noscript>', scripts=f'<script src="/blog/nav.js?v={V}" defer></script>', jsonld=ld, back=('/', 'Inicio')))
+    open(os.path.join(ROOT, 'blog', 'index.html'), 'w', encoding='utf-8').write(page('Blog de rendimiento deportivo | KINET OS', 'Guías prácticas de entrenamiento, recuperación, táctica y carrera deportiva para jugadores, entrenadores y ojeadores, con herramientas gratis.', '/blog/', blog_main, 'blog', extra_head=f'<link rel="stylesheet" href="/blog/nav.css?v={V}"><noscript><style>.kbn{{display:none}}</style></noscript>', scripts=f'<script src="/blog/art.js?v={V}" defer></script><script src="/blog/nav.js?v={V}" defer></script>', jsonld=ld, back=('/', 'Inicio')))
 
     # ───── herramientas ─────
     for slug, t in tools.items():
@@ -366,7 +379,7 @@ document.getElementById('chips').addEventListener('click',function(e){{var b=e.t
         ld = {"@context": "https://schema.org", "@type": "WebApplication", "name": t['title'], "description": t['desc'], "url": f"{SITE}/herramientas/{slug}.html",
               "applicationCategory": "HealthApplication", "operatingSystem": "Web", "inLanguage": "es", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"},
               "publisher": {"@type": "Organization", "name": "KINET OS"}}
-        out = page(t['title'] + ' gratis | KINET OS', t['desc'], f'/herramientas/{slug}.html', main_html, 'tools', jsonld=ld, extra_head='<script src="/herramientas/tools.js?v=2"></script>', back=('/herramientas/', 'Herramientas'))
+        out = page(t['title'] + ' gratis | KINET OS', t['desc'], f'/herramientas/{slug}.html', main_html, 'tools', jsonld=ld, extra_head='<script src="/herramientas/tools.js?v=2"></script>', back=('/herramientas/', 'Volver a la órbita', 'Volver a las herramientas'))
         open(os.path.join(ROOT, 'herramientas', slug + '.html'), 'w', encoding='utf-8').write(out)
         urls.append((f'/herramientas/{slug}.html', '0.8'))
 
@@ -376,17 +389,22 @@ document.getElementById('chips').addEventListener('click',function(e){{var b=e.t
     for c in TCATS:
         if c in cats:
             sections += f'<h2>{TCATS[c]}</h2><div class="tiles">' + ''.join(tool_tile(s, tools[s], n) for n, s in enumerate(cats[c])) + '</div>'
-    hub = f'''<div class="wrap wide"><section class="hero"><span class="kicker">KINET LAB · Herramientas</span>
-<h1>Resultados en <span class="gr">5 segundos</span>.<br>Sin registro. Sin excusas.</h1>
-<p class="lead" style="max-width:700px">Calculadoras, planificadores y generadores para deportistas y entrenadores. Todo funciona en tu navegador: lo que escribes no sale de tu dispositivo.</p>
-<div class="stats"><div class="stat"><b data-count="{len(tools)}">0</b><span>Herramientas</span></div><div class="stat"><b><i>0</i> €</b><span>Para siempre</span></div><div class="stat"><b>100<i>%</i></b><span>Privado</span></div></div></section>
+    nav_hub = navdata.build_hub(tools, ACC)
+    hub = f'''<div class="wrap wide"><section class="kbs hub" id="kb-nav" aria-label="Elige una herramienta">
+<div class="kbs-intro hero"><span class="kicker">KINET LAB · Herramientas</span>
+<h1>Resultados en<br><span class="gr">5 segundos</span>.<br>Sin registro.</h1>
+<p class="lead">Calculadoras, planificadores y generadores para deportistas y entrenadores. Todo funciona en tu navegador: lo que escribes no sale de tu dispositivo.</p>
+<div class="stats"><div class="stat"><b data-count="{len(tools)}">0</b><span>Herramientas</span></div><div class="stat"><b><i>0</i> €</b><span>Para siempre</span></div><div class="stat"><b>100<i>%</i></b><span>Privado</span></div></div></div>
+{nav_hub}
+</section>
 {sections}
 <div class="sec-h"><h2>Aprende a usarlas</h2><a class="all" href="/blog/">Ir al blog {ARROW}</a></div>
 <div class="cards">{''.join(post_card(m, i) for i, m in enumerate(items[:3]))}</div>
 {cta('herramientas-home', kind='herramienta')}</div>'''
     ld = {"@context": "https://schema.org", "@type": "CollectionPage", "name": "Herramientas gratis para deportistas", "url": SITE + "/herramientas/", "inLanguage": "es"}
-    open(os.path.join(ROOT, 'herramientas', 'index.html'), 'w', encoding='utf-8').write(page('Herramientas gratis para deportistas | KINET OS', 'Calculadoras, planificadores y generadores gratis para deportistas y entrenadores. Sin registro: tus datos no salen de tu navegador.', '/herramientas/', hub, 'tools', jsonld=ld, back=('/', 'Inicio')))
+    open(os.path.join(ROOT, 'herramientas', 'index.html'), 'w', encoding='utf-8').write(page('Herramientas gratis para deportistas | KINET OS', 'Calculadoras, planificadores y generadores gratis para deportistas y entrenadores. Sin registro: tus datos no salen de tu navegador.', '/herramientas/', hub, 'tools', jsonld=ld, back=('/', 'Inicio'), extra_head=f'<link rel="stylesheet" href="/blog/nav.css?v={V}">', scripts=f'<script src="/blog/art.js?v={V}" defer></script><script src="/blog/nav.js?v={V}" defer></script>'))
 
+    urls += games_build.build(ROOT, SRC, V, page, BACK, ARROW)
     today = datetime.date.today().isoformat()
     sm = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + ''.join(f'<url><loc>{SITE}{u}</loc><lastmod>{today}</lastmod><priority>{p}</priority></url>\n' for u, p in urls) + '</urlset>\n'
     open(os.path.join(ROOT, 'sitemap.xml'), 'w').write(sm)

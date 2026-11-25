@@ -21,9 +21,12 @@ related: zonas-frecuencia-cardiaca-guia,microciclo-semanal-futbolista
   var fmax=m>=120?m:Math.round(208-0.7*age);
   if(fmax<=rhr+20){out.innerHTML='<p>La FC máxima debe ser claramente mayor que tu pulso en reposo.</p>';return}
   var hrr=fmax-rhr;
-  var h='<p>FC máxima usada: <span class="big">'+fmax+'</span> ppm <small style="color:var(--mut)">'+(m>=120?'(la tuya)':'(Tanaka: 208 − 0,7 × edad)')+'</small></p><div class="tablewrap"><table><thead><tr><th>Zona</th><th>% reserva</th><th>Pulsaciones</th><th>Para qué sirve</th></tr></thead><tbody>';
+  var COL=['#60A5FA','#34D399','#FACC15','#FB923C','#FB7185'];
+  var h='<div class="kpis"><div class="kpi"><b>'+fmax+'</b><span>FC máx. · '+(m>=120?'la tuya':'Tanaka')+'</span></div><div class="kpi"><b>'+rhr+'</b><span>Pulso en reposo</span></div><div class="kpi"><b>'+hrr+'</b><span>Reserva (Karvonen)</span></div></div><div class="zl">';
+  Z.forEach(function(z,i){var a=Math.round(rhr+hrr*z[1]/100),b=Math.round(rhr+hrr*z[2]/100);h+='<div class="zr"><div class="zn">'+z[0]+'<small>'+z[1]+'–'+z[2]+'% de la reserva</small></div><div class="zb" title="'+z[3]+'"><i style="--c:'+COL[i]+';left:'+z[1]+'%;width:'+(z[2]-z[1])+'%;--d:'+(i*.08)+'s"></i><b>'+a+' – '+b+' ppm</b></div></div>'});
+  h+='</div><details><summary style="cursor:pointer;color:var(--g);font-weight:700;margin:6px 0 10px">Ver detalle de cada zona</summary><div class="tablewrap"><table><thead><tr><th>Zona</th><th>% reserva</th><th>Pulsaciones</th><th>Para qué sirve</th></tr></thead><tbody>';
   Z.forEach(function(z){var a=Math.round(rhr+hrr*z[1]/100),b=Math.round(rhr+hrr*z[2]/100);h+='<tr><td><b>'+z[0]+'</b></td><td>'+z[1]+'–'+z[2]+'%</td><td><b>'+a+' – '+b+'</b> ppm</td><td>'+z[3]+'</td></tr>'});
-  out.innerHTML=h+'</tbody></table></div>';
+  out.innerHTML=h+'</tbody></table></div></details>';
  }
  var age_=document.getElementById('age'),rhr_=document.getElementById('rhr'),mhr_=document.getElementById('mhr');
  KS.bind(['age','rhr','mhr'],calc);

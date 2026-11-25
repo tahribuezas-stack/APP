@@ -20,9 +20,11 @@ related: rutina-gimnasio-delanteros,rutina-fuerza-tenistas
   var kg=+w.value,n=Math.round(+r.value),out=document.getElementById('res');
   if(!(kg>0)||!(n>=1&&n<=12)){out.innerHTML='<p>Introduce un peso mayor que 0 y entre 1 y 12 repeticiones. Las estimaciones por encima de 12 repeticiones pierden precisión.</p>';return}
   var one=n===1?kg:rm(kg,n,fm.value);
-  var h='<p>Tu 1RM estimado: <span class="big">'+(Math.round(one*2)/2)+' kg</span></p>'+(n>8?'<p class="note warn">Con más de 8 repeticiones la estimación es menos fiable. Para más precisión usa una serie de 3–5 repeticiones.</p>':'')+'<div class="tablewrap"><table><thead><tr><th>% del 1RM</th><th>Carga</th><th>Repeticiones aprox.</th></tr></thead><tbody>';
+  var h='<div class="kpis"><div class="kpi"><b>'+(Math.round(one*2)/2)+' kg</b><span>1RM estimado</span></div><div class="kpi"><b>'+(Math.round(one*0.8/0.5)*0.5)+' kg</b><span>Fuerza · 80 %</span></div><div class="kpi"><b>'+(Math.round(one*0.6/0.5)*0.5)+' kg</b><span>Potencia · 60 %</span></div></div>'+(n>8?'<p class="note warn">Con más de 8 repeticiones la estimación es menos fiable. Para más precisión usa una serie de 3–5 repeticiones.</p>':'')+'<div class="bars" aria-label="Cargas por porcentaje del 1RM">';
+  T.slice().reverse().forEach(function(t,i){h+='<div><b>'+(Math.round(one*t[0]/100/0.5)*0.5)+'</b><i style="height:'+t[0]*1.25+'px;--d:'+(i*.06)+'s;opacity:'+(.45+t[0]/180)+'"></i><span>'+t[0]+'%</span></div>'});
+  h+='</div><details><summary style="cursor:pointer;color:var(--g);font-weight:700;margin:6px 0 10px">Ver tabla de cargas y repeticiones</summary><div class="tablewrap"><table><thead><tr><th>% del 1RM</th><th>Carga</th><th>Repeticiones aprox.</th></tr></thead><tbody>';
   T.forEach(function(t){h+='<tr><td>'+t[0]+'%</td><td><b>'+(Math.round(one*t[0]/100/0.5)*0.5)+' kg</b></td><td>'+t[1]+'</td></tr>'});
-  out.innerHTML=h+'</tbody></table></div>';
+  out.innerHTML=h+'</tbody></table></div></details>';
  }
  KS.bind(['w','r','fm'],calc);
  document.getElementById('reset').onclick=function(){KS.clear();w.value=80;r.value=5;fm.value='avg';calc()};

@@ -35,6 +35,9 @@ def _calc():
     keys = ''.join(f'<circle class="i-key" style="animation-delay:{(r * 3 + c) * .11:.2f}s" cx="{23 + c * 9}" cy="{33 + r * 8}" r="2.4" fill="currentColor"/>' for r in range(3) for c in range(3))
     return f'<g class="i-calc"><rect x="13" y="7" width="38" height="50" rx="7"/><rect x="19" y="13" width="26" height="10" rx="2.5" fill="currentColor" fill-opacity=".25"/>{keys}</g>'
 
+def _joystick():
+    return ('<g class="i-js"><path d="M32 30V42"/><circle cx="32" cy="22" r="9" fill="currentColor" fill-opacity=".3"/><rect x="10" y="42" width="44" height="14" rx="5"/><circle cx="20" cy="49" r="2.2" fill="currentColor"/><circle cx="44" cy="49" r="2.2" fill="currentColor"/></g>')
+
 def _gear():
     n, ro, ri = 8, 25, 19
     p = []
@@ -44,7 +47,7 @@ def _gear():
             p.append(f'{32 + r * math.cos(math.radians(ang)):.1f},{32 + r * math.sin(math.radians(ang)):.1f}')
     return f'<g class="i-gear"><polygon points="{" ".join(p)}" stroke-linejoin="round"/><circle cx="32" cy="32" r="8"/><circle cx="32" cy="32" r="2.5" fill="currentColor"/></g>'
 
-ICONS = {'ball': _ball(), 'racket': _racket(), 'dumbbell': _dumbbell(), 'heart': _heart(), 'trophy': _trophy(), 'calc': _calc(), 'gear': _gear()}
+ICONS = {'ball': _ball(), 'racket': _racket(), 'dumbbell': _dumbbell(), 'heart': _heart(), 'trophy': _trophy(), 'calc': _calc(), 'gear': _gear(), 'joystick': _joystick()}
 
 def icon(name):
     return f'<svg class="ic ic-{name}" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">{ICONS[name]}</svg>'
@@ -61,6 +64,7 @@ TOPICS = [
      'items': ['zonas-frecuencia-cardiaca-guia', 'zonas-frecuencia-cardiaca']},
     {'id': 'carrera', 'n': 'Carrera deportiva', 'c': '#A78BFA', 'ico': 'trophy', 'sub': 'Que los ojeadores te lean: ficha deportiva y presentación de tu equipo.',
      'items': ['ficha-deportiva-ojeadores', 'generador-alineacion']},
+    {'id': 'juegos', 'n': 'Juegos', 'c': '#00FF88', 'ico': 'joystick', 'sub': 'Quizzes y minijuegos deportivos, gratis y sin registro.', 'href': '/juegos/'},
     {'id': 'tools', 'n': 'Herramientas', 'c': '#22D3EE', 'ico': 'calc', 'sub': 'Calculadoras y generadores gratis. Se abren al instante y sin registro.', 'items': '*tools'},
     {'id': 'how', 'n': 'Cómo funciona', 'c': '#E2E8F0', 'ico': 'gear', 'sub': 'Así funciona KINET OS por dentro.', 'how': True},
 ]
@@ -87,8 +91,10 @@ def build(posts, tools, cats, tcats, acc_map, cover, mins_default='6'):
                     'cv': cover(t['cat'], s, tcats.get(t['cat'], ''), '', 'k')}
     topics = []
     for tp in TOPICS:
-        o = {'id': tp['id'], 'n': tp['n'], 'c': tp['c'], 'sub': tp['sub'], 'ico': icon(tp['ico'])}
-        if tp.get('how'):
+        o = {'id': tp['id'], 'n': tp['n'], 'c': tp['c'], 'sub': tp['sub'], 'ico': icon(tp['ico']), 'm': tp['ico']}
+        if tp.get('href'):
+            o['href'] = tp['href']; o['ring'] = True
+        elif tp.get('how'):
             o['how'] = HOW
         else:
             sl = list(tools) if tp['items'] == '*tools' else [x for x in tp['items'] if x in items]
@@ -101,3 +107,19 @@ def build(posts, tools, cats, tcats, acc_map, cover, mins_default='6'):
     sec = ('<div class="kbn-stage" id="kbn-stage" data-mode="orbit" hidden></div>'
            f'<script type="application/json" id="kbn-data">{js}</script>')
     return sec
+
+
+HUB_NAME = {'calculadora-1rm': 'Calculadora 1RM', 'zonas-frecuencia-cardiaca': 'Zonas de pulso', 'generador-alineacion': 'Alineación'}
+HUB_RING = {'calculadora-1rm': 1, 'zonas-frecuencia-cardiaca': 0, 'generador-alineacion': 1}
+HUB_ICON = {'calculadora-1rm': 'dumbbell', 'zonas-frecuencia-cardiaca': 'heart', 'generador-alineacion': 'ball'}
+
+def build_hub(tools, acc_map):
+    """Órbita de la página de herramientas: cada herramienta es un planeta que viaja directo a su página."""
+    topics = []
+    for i, (s, t) in enumerate(tools.items()):
+        topics.append({'id': s, 'n': HUB_NAME.get(s, ' '.join(t['title'].split()[:3])), 'r': HUB_RING.get(s, 1), 'c': acc_map.get(t['cat'], '#22D3EE'), 'sub': t['desc'], 'ico': icon(HUB_ICON.get(s, 'calc')), 'm': HUB_ICON.get(s, 'calc'),
+                       'href': f'/herramientas/{s}.html', 'ring': i % 2 == 0, 'moon': i % 2 == 1})
+    topics.append({'id': 'juegos', 'n': 'Juegos', 'r': 1, 'c': '#00FF88', 'sub': 'Quizzes y minijuegos deportivos, gratis y sin registro.', 'ico': icon('joystick'), 'm': 'joystick', 'href': '/juegos/', 'ring': False, 'moon': False})
+    js = json.dumps({'items': {}, 'topics': topics, 'coreLabel': 'Elige una herramienta'}, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')
+    return ('<div class="kbn-stage" id="kbn-stage" data-mode="orbit" hidden></div>'
+            f'<script type="application/json" id="kbn-data">{js}</script>')

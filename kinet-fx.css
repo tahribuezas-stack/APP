@@ -237,3 +237,16 @@ html.kx-reduce .kx-led.kx-vis::after, html.kx-reduce .kx-led.kx-vis:hover::after
 #kx-ambient::after { animation: none !important; transform: translate3d(46vw, 30vh, 0); }
 .os-sidebar, .os-topbar, .mobile-bottom-nav { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; background-color: rgba(7, 10, 16, .95) !important; }
 .chat-container, .chat-wrapper, .kinet-modal-overlay:not(.open) { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+
+/* ───────── v64 · arcoíris sin lag: las superficies grandes que casi nunca se ven fijan el color,
+   así el cambio de tono no las invalida ni las repinta en cada paso ───────── */
+body.rainbow-mode .arena-3d-viewport, body.rainbow-mode .arena-3d-surface,
+body.rainbow-mode .kinet-modal-overlay:not(.open) .kinet-modal-box,
+body.rainbow-mode .ig-direct-modal-box, body.rainbow-mode .kx-setup-box,
+body.rainbow-mode #mobile-menu-drawer { --role-color:#00FF88; --role-rgb:0,255,136; --role-glow:rgba(0,255,136,.4); --role-gradient:linear-gradient(135deg,#00FF88,#00B359); }
+/* el halo radial del fondo (depende del color) pasa a su propia capa fija: al girar el arcoíris solo se repinta ese halo, no la rejilla ni todo el fondo */
+html:has(body.rainbow-mode), body.rainbow-mode {
+  background-image: linear-gradient(rgba(255,255,255,.012) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.012) 1px, transparent 1px) !important;
+  background-size: 40px 40px, 40px 40px !important; }
+body.rainbow-mode::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; will-change: transform;
+  background: radial-gradient(circle at 50% -20%, rgba(var(--role-rgb, 0,255,136), .14), transparent 60%); }
