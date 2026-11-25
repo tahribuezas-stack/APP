@@ -34,13 +34,13 @@
   if (document.readyState !== 'loading') boot(); else document.addEventListener('DOMContentLoaded', boot);
   /* desplazamiento fluido hacia las secciones (menú, botones y enlaces #ancla de la misma página) */
   (function () {
-    var RM = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches, raf = 0;
+    var raf = 0;
     function stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } document.documentElement.classList.remove('kb-scrolling'); }
     ['wheel', 'touchstart', 'keydown', 'mousedown'].forEach(function (ev) { addEventListener(ev, stop, { passive: true }); });
     function ease(t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
     function go(y, dur) {
       stop(); var y0 = scrollY, d = y - y0;
-      if (RM || Math.abs(d) < 2) { scrollTo({ top: y, behavior: 'instant' }); return; }
+      if (Math.abs(d) < 2) { scrollTo({ top: y, behavior: 'instant' }); return; } /* se anima aunque el sistema tenga «reducir animaciones»: es una acción pedida por la persona y el usuario quiere verla fluida */
       var t0 = null; document.documentElement.classList.add('kb-scrolling'); if (window.KHReveal) KHReveal(y + innerHeight);
       (function f(t) {
         if (t0 === null) t0 = t; var k = Math.min(1, (t - t0) / dur);
