@@ -43,13 +43,22 @@ FOOTER = '''<footer class="foot"><div class="foot-in">
 <p style="margin:0">© KINET OS · kinetos.es</p>
 </div></footer>'''
 
+def seo_title(t, suffix=' | KINET OS'):
+    # <title> ≤ 60 caracteres (Google recorta lo que pasa de ahí); og:title conserva el título completo
+    base = t[:-len(suffix)] if t.endswith(suffix) else t
+    import re as _re
+    cands = [base + suffix, base, base.split(':')[0] + suffix, base.split(':')[0], _re.sub(r'\s*\([^)]*\)', '', base)]
+    for c in cands:
+        if len(c) <= 60 and len(c) >= 18: return c
+    return base[:57].rsplit(' ', 1)[0] + '…'
+
 def page(title, desc, path, body, active, extra_head='', og_type='website', jsonld=None, scripts=''):
     url = SITE + path
     ld = f'<script type="application/ld+json">{json.dumps(jsonld, ensure_ascii=False)}</script>' if jsonld else ''
     return f'''<!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>{html.escape(title)}</title>
+<title>{html.escape(seo_title(title))}</title>
 <meta name="description" content="{html.escape(desc, quote=True)}">
 <link rel="canonical" href="{url}">
 <meta property="og:type" content="{og_type}"><meta property="og:title" content="{html.escape(title, quote=True)}"><meta property="og:description" content="{html.escape(desc, quote=True)}"><meta property="og:url" content="{url}"><meta property="og:locale" content="es_ES"><meta property="og:site_name" content="KINET OS"><meta property="og:image" content="{SITE}/icons/icon-512.png">
@@ -114,7 +123,7 @@ def main():
     os.makedirs(os.path.join(ROOT, 'herramientas'), exist_ok=True)
     shutil.copy(os.path.join(SRC, 'blog.css'), os.path.join(ROOT, 'blog', 'blog.css'))
     shutil.copy(os.path.join(SRC, 'tools.js'), os.path.join(ROOT, 'herramientas', 'tools.js'))
-    urls = [('/', '1.0'), ('/blog/', '0.8'), ('/herramientas/', '0.8')]
+    urls = [('/', '1.0'), ('/blog/', '0.8'), ('/herramientas/', '0.8'), ('/soporte.html', '0.4')]
 
     # artículos
     for slug, m in posts.items():

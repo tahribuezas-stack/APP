@@ -106,6 +106,18 @@
     return !isStrictlyAuthenticatedUser();
   }
 
+  // v58: los botones «Pásate a PRO» se ocultan ANTES del primer pintado si la cuenta ya es de pago
+  // (antes aparecían un instante al cambiar de sección hasta que el script de cada página los ocultaba).
+  try {
+    const _t = (localStorage.getItem('kinet_account_tier') || '').toLowerCase();
+    if (isStrictlyAuthenticatedUser() && (_t === 'pro' || _t === 'club' || localStorage.getItem('kinet_is_pro') === 'true')) {
+      const _st = document.createElement('style');
+      _st.id = 'kinet-prehide-pro';
+      _st.textContent = '#nav-upgrade-pro,#drawer-upgrade-pro,#sidebar-pro-btn,[data-pro-upsell]{display:none!important}';
+      (document.head || document.documentElement).appendChild(_st);
+    }
+  } catch (e) {}
+
   try {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('guest') === 'true') {
@@ -1063,6 +1075,7 @@
           el.style.removeProperty('display');
         }
       });
+      if (!isProOrClub) { const _ph = document.getElementById('kinet-prehide-pro'); if (_ph) _ph.remove(); }
     } catch (e) {}
   }
 
