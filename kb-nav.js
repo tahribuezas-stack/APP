@@ -32,4 +32,37 @@
     }
   }
   if (document.readyState !== 'loading') boot(); else document.addEventListener('DOMContentLoaded', boot);
+  /* desplazamiento fluido hacia las secciones (menú, botones y enlaces #ancla de la misma página) */
+  (function () {
+    var RM = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches, raf = 0;
+    function stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
+    ['wheel', 'touchstart', 'keydown', 'mousedown'].forEach(function (ev) { addEventListener(ev, stop, { passive: true }); });
+    function ease(t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+    function go(y, dur) {
+      stop(); var y0 = scrollY, d = y - y0;
+      if (RM || Math.abs(d) < 2) { scrollTo({ top: y, behavior: 'instant' }); return; }
+      var t0 = null;
+      (function f(t) {
+        if (t0 === null) t0 = t; var k = Math.min(1, (t - t0) / dur);
+        scrollTo({ top: y0 + d * ease(k), left: 0, behavior: 'instant' });
+        raf = k < 1 ? requestAnimationFrame(f) : 0;
+      })(performance.now());
+    }
+    function target(a) {
+      var h = a.getAttribute('href') || ''; if (h.charAt(0) === '#' && h.length > 1) return h.slice(1);
+      try { var u = new URL(a.href, location.href); if (u.origin === location.origin && u.hash.length > 1 && (u.pathname === location.pathname || (u.pathname === '/index.html' && location.pathname === '/') || (u.pathname === '/' && location.pathname === '/index.html'))) return decodeURIComponent(u.hash.slice(1)); } catch (e) {}
+      return null;
+    }
+    document.addEventListener('click', function (e) {
+      if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      var a = e.target.closest && e.target.closest('a[href]'); if (!a || a.target === '_blank') return;
+      var id = target(a), el = id && document.getElementById(id); if (!el) return;
+      e.preventDefault();
+      var hd = document.querySelector('header.top'), off = (hd ? hd.offsetHeight : 0) + 8;
+      var y = el.getBoundingClientRect().top + scrollY - off;
+      y = Math.max(0, Math.min(y, document.documentElement.scrollHeight - innerHeight));
+      go(y, Math.max(650, Math.min(1500, 450 + Math.abs(y - scrollY) * .25)));
+      try { history.replaceState(null, '', '#' + id); } catch (er) {}
+    });
+  })();
 })();

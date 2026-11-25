@@ -5,7 +5,7 @@ GAMES = [
     {'slug': 'ojeador-de-fichas', 'n': '01', 'js': 'g-ojeo.js', 'css': 'css-ojeo.css', 'tag': 'Quiz de ojo', 'time': '1 min',
      'h1': 'Ojeador <em>de fichas</em>', 'name': 'Ojeador de fichas', 'short': 'Detecta los fallos de una ficha antes de que se acabe el tiempo.',
      'title': 'Ojeador de fichas: encuentra los fallos del jugador | KINET OS',
-     'desc': 'Tienes 20 segundos para encontrar los fallos de la ficha de un jugador, como haría un ojeador. Juego gratis, sin registro, para fútbol, baloncesto, tenis y running.',
+     'desc': 'Tienes 20 segundos para encontrar los fallos de la ficha de un jugador, como un ojeador. Gratis y sin registro: fútbol, baloncesto, tenis y running.',
      'how': ['Elige tu deporte.', 'Se abre una ficha y empieza la cuenta atrás de 20 segundos.', 'Toca los datos que un ojeador descartaría: foto, vídeo, contacto, estadísticas, biografía…', 'Cuidado: marcar datos que estaban bien resta puntos. Al terminar verás qué detectaste, qué se te escapó y por qué importa.'],
      'seo': 'Un ojeador lee decenas de fichas al día y decide en segundos. Este juego te enseña los errores más comunes de una ficha deportiva: foto descuidada, vídeo eterno, contacto poco profesional, estadísticas sin contexto o biografías vacías. Aprende a evitarlos y crea tu ficha real en KINET.'},
     {'slug': 'torre-de-niveles', 'n': '02', 'js': 'g-reglas.js', 'deps': ['g-torre-data.js'], 'css': 'css-reglas.css', 'tag': 'Quiz de reglas', 'time': '3 min',
@@ -23,19 +23,19 @@ GAMES = [
     {'slug': 'reflejos', 'n': '04', 'js': 'g-reflejos.js', 'css': 'css-reflejos.css', 'tag': 'Arcade', 'time': '1 min',
      'h1': 'Reflejos <em>de campeón</em>', 'name': 'Reflejos', 'short': 'Un mini-juego distinto por deporte: portero, defensa, sprint y tenis.',
      'title': 'Reflejos: juego de reacción deportivo | KINET OS',
-     'desc': 'Cuatro mini-juegos de reflejos: para bajo los palos como portero, tapa lanzamientos en baloncesto, reacciona al pistoletazo en running y resta en un partido de tenis. Gratis, sin registro, en móvil y ordenador.',
+     'desc': 'Mini-juegos de reflejos: para como portero, tapa lanzamientos, reacciona al pistoletazo y resta en tenis. Gratis, sin registro, en móvil y ordenador.',
      'how': ['Elige tu deporte: cada uno es un juego distinto con su propio estadio.', 'Fútbol: mueve los guantes y ataja. Baloncesto: salta a tapar justo al soltar el balón, sin morder las fintas.', 'Running: espera el disparo (si sales antes, falsa salida) y pulsa rápido alternando los lados. Tenis: muévete y golpea cuando la bola entre en el aro.', 'Encadena aciertos para subir el multiplicador y bate tu récord.'],
      'seo': 'Entrena la velocidad de reacción con cuatro mini-juegos distintos: portero en fútbol, defensa de tiro en baloncesto, salida y sprint en atletismo y resto en tenis. Estadios con grada animada, controles para móvil, teclado y ratón, y dificultad que sube con el tiempo.'},
     {'slug': 'once-con-presupuesto', 'n': '05', 'js': 'g-once.js', 'deps': ['g-names.js'], 'css': 'css-once.css', 'tag': 'Estrategia', 'time': '4 min',
      'h1': 'Tu once con <em>presupuesto</em>', 'name': 'Once con presupuesto', 'short': 'Monta el mejor equipo con 100 puntos de presupuesto y reta a un amigo.',
      'title': 'Once con presupuesto: monta tu equipo y reta a un amigo | KINET OS',
-     'desc': 'Elige a tus jugadores con un presupuesto limitado y consigue la mejor nota de equipo. Fútbol, baloncesto, dobles y relevos. Gratis, sin registro y con enlace para retar a un amigo.',
+     'desc': 'Elige jugadores con presupuesto limitado y logra la mejor nota de equipo. Fútbol, baloncesto, dobles y relevos. Gratis y con enlace para retar a un amigo.',
      'how': ['Elige tu deporte y la formación.', 'Toca un hueco del campo y elige a un jugador de la lista.', 'Cuida el presupuesto: los mejores cuestan más. Las leyendas valen todavía más, pero conectan gratis con sus vecinos.', 'Las conexiones entre jugadores (mismo país o club) suman puntos. Si no te convence el mercado, puedes renovarlo hasta 3 veces. Comparte tu equipo y reta a un amigo.'],
      'seo': 'Un juego de gestión sencillo y adictivo: poco presupuesto, muchas decisiones. Aprende a equilibrar estrellas y relleno, a respetar posiciones y a crear química en el equipo, como hace un cuerpo técnico de verdad. Los nombres son de deportistas reales a modo de referencia; las valoraciones y los precios son inventados para el juego y no tienen ninguna relación oficial.'},
     {'slug': 'adivina-la-jugada', 'n': '06', 'js': 'g-jugada.js', 'css': 'css-jugada.css', 'tag': 'Táctica', 'time': '3 min',
      'h1': 'Adivina <em>la jugada</em>', 'name': 'Adivina la jugada', 'short': 'Jugadas en vídeo táctico, 5 niveles y rangos: decide mejor que el rival.',
      'title': 'Adivina la jugada: test de táctica deportiva | KINET OS',
-     'desc': 'Ves una jugada en un tablero táctico, se congela en el momento clave y eliges la mejor decisión. Cinco niveles de dificultad creciente con jugadas de varias decisiones en fútbol, baloncesto, tenis y running. Sube de rango hasta estratega. Gratis, sin registro.',
+     'desc': 'Ves una jugada táctica que se congela en el momento clave y eliges la mejor decisión. Cinco niveles y rangos hasta estratega. Gratis y sin registro.',
      'how': ['Elige tu deporte.', 'Mira la jugada hasta que se congele.', 'Elige la mejor entre varias opciones (A, B, C…). En los niveles altos la jugada continúa con nuevas decisiones.', 'Supera los 5 niveles y sube de rango: de aficionado a estratega.'],
      'seo': 'La táctica se aprende viendo y decidiendo. Con una sala de vídeo en miniatura, cada jugada se congela en el momento clave para que elijas la mejor opción y compruebes qué habría pasado. Así piensa un analista táctico.'},
     {'slug': 'sprint-60', 'n': '07', 'js': 'g-sprint.js', 'css': 'css-sprint.css', 'tag': 'Ritmo', 'time': '60 s',
@@ -47,13 +47,13 @@ GAMES = [
     {'slug': 'modo-carrera', 'n': '08', 'js': 'g-carrera.js', 'deps': ['g-names.js', 'g-carrera-data.js', 'g-partido.js'], 'css': 'css-carrera.css', 'tag': 'Carrera', 'time': '12 min',
      'h1': 'Modo <em>carrera</em>', 'name': 'Modo carrera', 'short': 'Monta tu equipo con cartas y juega la temporada partido a partido: controlas a tu jugador, pasas, chutas y decides desde la vista de portería.',
      'title': 'Modo carrera: gestiona tu equipo en una temporada rápida | KINET OS',
-     'desc': 'Elige tu equipo con cartas al azar y juega una temporada rápida contra clubes reales e inventados: partidos jugables con intro, repeticiones y celebraciones, y definición deslizando el dedo. Fútbol, baloncesto, tenis y running. Gratis y sin registro.',
+     'desc': 'Elige tu equipo con cartas, juega una temporada con partidos jugables y define deslizando el dedo. Fútbol, baloncesto, tenis y running. Gratis.',
      'how': ['Elige tu deporte y ponle nombre a tu equipo.', 'Ficha a tus jugadores: cada puesto te ofrece tres cartas al azar.', 'Antes de cada partido elige tu plan (ofensivo, equilibrado o defensivo) y juégalo: arrastra para mover a tu jugador, pasa y chuta. En tenis juegas los puntos y en running corres los relevos.', 'Cuando llegue la ocasión, desliza el dedo para definir y para parar los disparos rivales. Los dos primeros de la liga juegan la final.'],
      'seo': 'Un modo carrera exprés: draft con cartas, cinco jornadas jugables, final y tanda de desempate. Elige el plan de partido, mueve a tu equipo, combina con pases y define en la vista de portería. Los clubes y las selecciones aparecen solo como referencia: plantillas, valoraciones y resultados son ficticios y no oficiales.'},
     {'slug': 'duelo-online', 'n': '09', 'js': 'g-duelo.js', 'deps': ['g-carrera-data.js'], 'css': 'css-duelo.css', 'tag': 'Online', 'time': '4 min',
      'h1': 'Duelo del <em>míster</em> online', 'name': 'Duelo del míster online', 'short': 'Crea una sala, pasa el código a tus amigos y responded a la misma jugada táctica contra reloj. Sin registro y sin guardar nada.',
      'title': 'Duelo del míster online: juega con amigos sin registro | KINET OS',
-     'desc': 'Juego online gratis para jugar con amigos: crea una sala con código y decidid la mejor jugada táctica de fútbol, baloncesto, tenis o running a la vez. Sin registro y sin guardar datos.',
+     'desc': 'Juego online gratis con amigos: crea una sala con código y decidid la mejor jugada táctica a la vez. Sin registro y sin guardar datos.',
      'how': ['Elige tu deporte, pon un apodo y crea una sala. Te daremos un código corto (por ejemplo F-K7M2).', 'Pasa el código o el enlace a tus amigos: caben hasta seis jugadores.', 'Cada jugada aparece a la vez en todas las pantallas. Elige la mejor decisión antes de que se acabe el tiempo: acertar da puntos y ser rápido, más.', 'Tras ocho jugadas se corona al míster del grupo. Al salir, la sala desaparece y no queda nada guardado.'],
      'seo': 'Un juego multijugador sin cuentas ni base de datos: los mensajes viajan por un canal de tiempo real y no se almacenan. Solo se ve el apodo que escribas, y solo durante la partida. Las jugadas son de criterio táctico: ataque posicional, transiciones, presión, balón parado, ritmo y gestión del partido.'},
 ]
@@ -98,5 +98,5 @@ def build(ROOT, SRC, V, page, BACK, ARROW):
 <script type="application/json" id="kh-data">{data}</script></div>'''
     ld = {"@context": "https://schema.org", "@type": "CollectionPage", "name": "Juegos deportivos gratis", "url": "https://kinetos.es/juegos/", "inLanguage": "es"}
     scripts = f'<script src="/juegos/g-core.js?v={V}" defer></script><script src="/juegos/g-hub.js?v={V}" defer></script>'
-    open(os.path.join(out, 'index.html'), 'w', encoding='utf8').write(page('Juegos deportivos gratis, sin registro | KINET OS', 'Quizzes y juegos cortos para deportistas y entrenadores: ojo de ojeador, reglas, reflejos, táctica y ritmo. Fútbol, baloncesto, tenis y pádel y running. Sin registro.', '/juegos/', hub, 'games', extra_head=f'<link rel="stylesheet" href="/juegos/g.css?v={V}">', jsonld=ld, scripts=scripts))
+    open(os.path.join(out, 'index.html'), 'w', encoding='utf8').write(page('Juegos deportivos gratis, sin registro | KINET OS', 'Juegos deportivos gratis: ojeador, quiz de reglas, reflejos, táctica, modo carrera y duelo online. Fútbol, baloncesto, tenis y running. Sin registro.', '/juegos/', hub, 'games', extra_head=f'<link rel="stylesheet" href="/juegos/g.css?v={V}">', jsonld=ld, scripts=scripts))
     return urls

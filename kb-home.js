@@ -8,8 +8,8 @@
     var io = new IntersectionObserver(function (es) {
       es.forEach(function (e) {
         if (!e.isIntersecting) return; io.unobserve(e.target);
-        var el = e.target; el.classList.add('kh-in');
-        setTimeout(function () { el.classList.remove('kh-rv', 'kh-in'); el.style.removeProperty('--d'); }, 2600);
+        var el = e.target; el.classList.add('kh-show');
+        setTimeout(function () { el.classList.remove('kh-rv', 'kh-show'); el.style.removeProperty('--d'); }, 2600);
       });
     }, { rootMargin: '0px 0px -9% 0px', threshold: .1 });
     els.forEach(function (el) {

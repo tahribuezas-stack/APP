@@ -1,0 +1,49 @@
+# Compila los instaladores de escritorio de KINET OS (Windows .exe · Mac .dmg · Linux .AppImage)
+# Uso: GitHub → pestaña Actions → "Instaladores de escritorio" → Run workflow.
+# Al terminar, se crea/actualiza una Release "escritorio-latest" con los 3 archivos.
+name: Instaladores de escritorio
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: escritorio
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npx electron-builder --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: instalador-${{ matrix.os }}
+          path: |
+            escritorio/dist/KINET-OS-Setup.exe
+            escritorio/dist/KINET-OS.dmg
+            escritorio/dist/KINET-OS.AppImage
+          if-no-files-found: error
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: instaladores
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: escritorio-latest
+          name: KINET OS · Instaladores de escritorio
+          body: Instaladores sin firmar de la app de escritorio (Windows, Mac y Linux).
+          files: instaladores/*

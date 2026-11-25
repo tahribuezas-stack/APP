@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import navdata, games_build
 SRC = os.path.join(ROOT, 'blog-src')
 SITE = 'https://kinetos.es'
-V = '15'   # versión de css/js: súbela si cambias el diseño
+V = '16'   # versión de css/js: súbela si cambias el diseño
 CATS = {
  'entrenamiento': 'Entrenamiento', 'futbol': 'Fútbol', 'tenis': 'Tenis y pádel', 'salud': 'Salud y recuperación',
  'carrera': 'Carrera deportiva', 'tecnologia': 'Tecnología y IA', 'nutricion': 'Nutrición', 'mental': 'Mente y rendimiento',
@@ -134,8 +134,8 @@ def page(title, desc, path, body, active, extra_head='', og_type='website', json
 <title>{html.escape(seo_title(title))}</title>
 <meta name="description" content="{html.escape(desc, quote=True)}">
 <link rel="canonical" href="{url}">
-<meta property="og:type" content="{og_type}"><meta property="og:title" content="{html.escape(title, quote=True)}"><meta property="og:description" content="{html.escape(desc, quote=True)}"><meta property="og:url" content="{url}"><meta property="og:locale" content="es_ES"><meta property="og:site_name" content="KINET OS"><meta property="og:image" content="{SITE}/icons/icon-512.png">
-<meta name="twitter:card" content="summary">
+<meta property="og:type" content="{og_type}"><meta property="og:title" content="{html.escape(title, quote=True)}"><meta property="og:description" content="{html.escape(desc, quote=True)}"><meta property="og:url" content="{url}"><meta property="og:locale" content="es_ES"><meta property="og:site_name" content="KINET OS"><meta property="og:image" content="{SITE}/icons/og-kinet.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:image" content="{SITE}/icons/og-kinet.png">
+<meta name="twitter:card" content="summary_large_image">
 {ICON}{FONTS}<link rel="stylesheet" href="/blog/blog.css?v={V}"><link rel="stylesheet" href="/blog/fx.css?v={V}"><link rel="stylesheet" href="/kb-nav.css?v={V}">{extra_head}{ld}
 <script src="/kb-nav.js?v={V}" defer></script><script src="/blog/kb-index.js?v={V}" defer></script><script src="/blog/space.js?v={V}" defer></script><script src="/blog/blog.js?v={V}" defer></script><script src="/blog/fx.js?v={V}" defer></script>
 </head><body>
@@ -240,7 +240,13 @@ def main():
         c_ = ACC.get(m_['cat'], '#00FF88')
         pl += (f'          <a class="p" style="--c:{c_}" href="blog/{m_["slug"]}.html"><i class="n" style="font-style:normal">{i_ + 1:02d}</i>'
                f'<div><strong>{html.escape(m_["title"])}</strong><small>{CATS.get(m_["cat"], "Artículo")}</small></div><span class="ar">→</span></a>\n')
-    sec = open(os.path.join(SRC, 'home-section.html'), encoding='utf-8').read().replace('{{TOOLS}}', tl).replace('{{POSTS}}', pl)
+    _gb = games_build
+    gl = ''
+    for g_ in _gb.GAMES:
+        if not os.path.exists(os.path.join(SRC, 'games', g_['js'])): continue
+        gl += (f'          <a class="p" style="--c:#22D3EE" href="juegos/{g_["slug"]}.html"><i class="n" style="font-style:normal">{g_["n"]}</i>'
+               f'<div><strong>{html.escape(g_["name"])}</strong><small>{html.escape(g_["tag"])} · {html.escape(g_["time"])}</small></div><span class="ar">→</span></a>\n')
+    sec = open(os.path.join(SRC, 'home-section.html'), encoding='utf-8').read().replace('{{TOOLS}}', tl).replace('{{POSTS}}', pl).replace('{{GAMES}}', gl)
     ip = os.path.join(ROOT, 'index.html'); ih = open(ip, encoding='utf-8').read()
     a_, b_ = '<!--KB-HOME-START-->', '<!--KB-HOME-END-->'
     if a_ in ih and b_ in ih:

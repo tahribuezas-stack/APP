@@ -23,8 +23,7 @@
   <link rel="canonical" href="https://kinetos.es/">
   <meta property="og:url" content="https://kinetos.es/">
   <meta property="og:site_name" content="KINET OS">
-  <meta property="og:image" content="https://kinetos.es/icons/icon-512.png">
-  <meta name="twitter:card" content="summary">
+  <meta property="og:image" content="https://kinetos.es/icons/og-kinet.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:image" content="https://kinetos.es/icons/og-kinet.png"><meta name="twitter:card" content="summary_large_image">
   <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "@id": "https://kinetos.es/#org", "name": "KINET OS", "url": "https://kinetos.es/", "logo": "https://kinetos.es/icons/icon-512.png"}, {"@type": "WebSite", "@id": "https://kinetos.es/#web", "url": "https://kinetos.es/", "name": "KINET OS", "inLanguage": "es", "publisher": {"@id": "https://kinetos.es/#org"}}, {"@type": "SoftwareApplication", "name": "KINET OS", "applicationCategory": "SportsApplication", "operatingSystem": "Web, Android, iOS", "url": "https://kinetos.es/", "description": "Plataforma de rendimiento deportivo con agentes de IA, KINET Card, análisis de vídeo y pizarra táctica 3D.", "publisher": {"@id": "https://kinetos.es/#org"}}]}</script>
   <title>KINET OS | Plataforma de rendimiento deportivo con IA</title>
 
@@ -63,13 +62,13 @@
       scroll-padding-top: 100px;
       touch-action: pan-y pinch-zoom;
       -webkit-overflow-scrolling: touch;
-      overflow-x: hidden;
+      overflow-x: clip;
     }
     
     body {
       touch-action: pan-y pinch-zoom;
       -webkit-overflow-scrolling: touch;
-      overflow-x: hidden;
+      overflow-x: clip; /* clip (no hidden): con hidden el body se vuelve contenedor de scroll y la barra superior sticky dejaba de quedarse fija */
     }
 
     #dot-mesh-canvas {
@@ -78,7 +77,11 @@
 
     .bg-cyber-pattern {
       background-color: #080A0C;
-      background-image: radial-gradient(circle at 50% 15%, rgba(0, 255, 102, 0.12) 0%, rgba(59, 130, 246, 0.06) 45%, transparent 75%);
+    }
+    /* iluminación fija: el brillo verde acompaña a la pantalla y ya no cambia de intensidad según la altura de la página */
+    html::before {
+      content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background: radial-gradient(ellipse 70% 60% at 50% 12%, rgba(0, 255, 102, 0.10) 0%, rgba(59, 130, 246, 0.05) 45%, transparent 75%);
     }
     .glass-nav {
       background: rgba(13, 17, 23, 0.88);
@@ -384,9 +387,9 @@
 </style>
 <!-- barra común, aterrizaje espacial y efectos de la web pública (las animaciones de la app NO se cargan aquí) -->
 <script>try{var w=sessionStorage.getItem('kb_warp');if(w&&Date.now()-JSON.parse(w).t<6000){document.documentElement.classList.add('kb-arriving');setTimeout(function(){document.documentElement.classList.remove('kb-arriving')},2400)}}catch(e){}</script>
-<link rel="stylesheet" href="/kb-warp.css?v=3"><link rel="stylesheet" href="/kb-nav.css?v=1"><link rel="stylesheet" href="/blog/fx.css?v=15"><link rel="stylesheet" href="/kb-home.css?v=1">
+<link rel="stylesheet" href="/kb-warp.css?v=3"><link rel="stylesheet" href="/kb-nav.css?v=1"><link rel="stylesheet" href="/blog/fx.css?v=15"><link rel="stylesheet" href="/kb-home.css?v=2">
 <script>window.KB_FX_SEL=".glass-card,.plan-card-zoom"</script>
-<script src="/kb-nav.js?v=1" defer></script><script src="/kb-home.js?v=1" defer></script><script src="/blog/space.js?v=15" defer></script><script src="/blog/fx.js?v=15" defer></script>
+<script src="/kb-nav.js?v=2" defer></script><script src="/kb-home.js?v=2" defer></script><script src="/blog/space.js?v=15" defer></script><script src="/blog/fx.js?v=15" defer></script>
 <script src="kinet-stores.js?v=51"></script>
 <script src="kinet-launch.js?v=51"></script>
 </head>
@@ -832,7 +835,7 @@
     <!-- SECCIÓN: PLANES, SUSCRIPCIONES Y BONOS PAY-AS-YOU-GO (TARJETAS PLEGADAS CON PRECIO LIMPIO + DESPLIEGUE AL PULSAR) -->
     <!--KB-HOME-START-->
 <style>
-.kbh{--g:#00FF88;--cy:#22D3EE;position:relative;overflow:hidden}
+.kbh{--g:#00FF88;--cy:#22D3EE;position:relative;overflow:visible}
 .kbh .wrap{max-width:92rem;margin:0 auto;padding:0 clamp(16px,3.4vw,56px)}
 .kbh .head{display:flex;flex-wrap:wrap;gap:20px 40px;align-items:flex-end;justify-content:space-between}
 .kbh .head .cta{margin-top:0}
@@ -884,6 +887,7 @@
     <div class="cta">
       <a class="pr" href="herramientas/">🧮 Abrir herramientas</a>
       <a class="sc" href="blog/">📚 Entrar al blog</a>
+      <a class="sc" href="juegos/">🎮 Jugar gratis</a>
     </div>
     </div>
     <div class="grid">
@@ -893,6 +897,21 @@
           <a class="t" style="--c:#22D3EE" href="herramientas/calculadora-1rm.html"><span class="free">GRATIS</span><div class="ic">🏋️</div><strong>Calculadora de 1RM y porcentajes de carga</strong><span>Estima tu repetición máxima (1RM) a partir de cualquier serie y obtén la tabla de cargas…</span><em>Usar ahora →</em></a>
           <a class="t" style="--c:#00FF88" href="herramientas/generador-alineacion.html"><span class="free">GRATIS</span><div class="ic">⚽</div><strong>Generador de alineación (once inicial) en imagen</strong><span>Crea la alineación de tu equipo con el once inicial sobre el campo y descárgala como imagen…</span><em>Usar ahora →</em></a>
           <a class="t" style="--c:#22D3EE" href="herramientas/zonas-frecuencia-cardiaca.html"><span class="free">GRATIS</span><div class="ic">❤️‍🔥</div><strong>Calculadora de zonas de frecuencia cardíaca</strong><span>Calcula tus 5 zonas de pulsaciones por minuto con la fórmula de Tanaka y el método de…</span><em>Usar ahora →</em></a>
+
+        </div>
+      </div>
+      <div class="col">
+        <b><span>Juegos deportivos gratis</span><a href="juegos/">Ver todos →</a></b>
+        <div class="posts">
+          <a class="p" style="--c:#22D3EE" href="juegos/ojeador-de-fichas.html"><i class="n" style="font-style:normal">01</i><div><strong>Ojeador de fichas</strong><small>Quiz de ojo · 1 min</small></div><span class="ar">→</span></a>
+          <a class="p" style="--c:#22D3EE" href="juegos/torre-de-niveles.html"><i class="n" style="font-style:normal">02</i><div><strong>Torre de niveles</strong><small>Quiz de reglas · 3 min</small></div><span class="ar">→</span></a>
+          <a class="p" style="--c:#22D3EE" href="juegos/ficha-secreta.html"><i class="n" style="font-style:normal">03</i><div><strong>Ficha secreta</strong><small>Reto diario · 2 min</small></div><span class="ar">→</span></a>
+          <a class="p" style="--c:#22D3EE" href="juegos/reflejos.html"><i class="n" style="font-style:normal">04</i><div><strong>Reflejos</strong><small>Arcade · 1 min</small></div><span class="ar">→</span></a>
+          <a class="p" style="--c:#22D3EE" href="juegos/once-con-presupuesto.html"><i class="n" style="font-style:normal">05</i><div><strong>Once con presupuesto</strong><small>Estrategia · 4 min</small></div><span class="ar">→</span></a>
+          <a class="p" style="--c:#22D3EE" href="juegos/adivina-la-jugada.html"><i class="n" style="font-style:normal">06</i><div><strong>Adivina la jugada</strong><small>Táctica · 3 min</small></div><span class="ar">→</span></a>
+          <a class="p" style="--c:#22D3EE" href="juegos/sprint-60.html"><i class="n" style="font-style:normal">07</i><div><strong>Sprint 60</strong><small>Ritmo · 60 s</small></div><span class="ar">→</span></a>
+          <a class="p" style="--c:#22D3EE" href="juegos/modo-carrera.html"><i class="n" style="font-style:normal">08</i><div><strong>Modo carrera</strong><small>Carrera · 12 min</small></div><span class="ar">→</span></a>
+          <a class="p" style="--c:#22D3EE" href="juegos/duelo-online.html"><i class="n" style="font-style:normal">09</i><div><strong>Duelo del míster online</strong><small>Online · 4 min</small></div><span class="ar">→</span></a>
 
         </div>
       </div>
@@ -1602,7 +1621,7 @@
         if (startTime === null) startTime = currentTime;
         const timeElapsed = currentTime - startTime;
         const run = easeInOutQuad(timeElapsed, startPosition, distance, duration);
-        window.scrollTo(0, run);
+        window.scrollTo({ top: run, left: 0, behavior: 'instant' });
         if (timeElapsed < duration) {
           requestAnimationFrame(animation);
         }
