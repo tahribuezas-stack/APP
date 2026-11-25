@@ -1547,7 +1547,7 @@
         .m-nav-btn.active { color: var(--role-color); background: rgba(var(--role-rgb), 0.15); }
     </style>
     <link rel="stylesheet" href="kinet-mobile-fix.css?v=38">
-<link rel="stylesheet" href="kinet-fx.css?v=51">
+<link rel="stylesheet" href="kinet-fx.css?v=52">
 <script src="kinet-fx.js?v=53"></script>
 <script src="kinet-usage.js?v=46"></script>
     <script src="kinet-ads.js?v=38"></script>
@@ -3101,14 +3101,20 @@
                 document.getElementById('inline-video-canvas'),
                 document.getElementById('fs-video-canvas')
             ];
-            let frame = 0;
-            function draw() {
+            let frame = 0, last = 0, roleRgb = '0, 255, 136', rgbAt = 0;
+            function draw(ts) {
+                requestAnimationFrame(draw);
+                /* v61: solo dibuja si algún lienzo se ve y a ~30 fps (antes: 60 fps siempre, con getComputedStyle y realocando el lienzo en cada fotograma) */
+                if (document.hidden || ts - last < 33) return;
+                const vis = canvases.filter(cv => cv && cv.offsetParent !== null && cv.clientWidth > 0);
+                if (!vis.length) { last = ts; return; }
+                last = ts;
                 frame += 1;
-                const roleRgb = getComputedStyle(document.body).getPropertyValue('--role-rgb').trim() || '0, 255, 136';
-                canvases.forEach(cv => {
-                    if (!cv) return;
-                    const w = cv.width = cv.clientWidth || 380;
-                    const h = cv.height = cv.clientHeight || 540;
+                if (ts - rgbAt > 1000) { roleRgb = getComputedStyle(document.body).getPropertyValue('--role-rgb').trim() || '0, 255, 136'; rgbAt = ts; }
+                vis.forEach(cv => {
+                    const w = cv.clientWidth || 380, h = cv.clientHeight || 540;
+                    if (cv.width !== w) cv.width = w;
+                    if (cv.height !== h) cv.height = h;
                     const ctx = cv.getContext('2d');
                     ctx.clearRect(0, 0, w, h);
 
@@ -3120,7 +3126,7 @@
 
                     ctx.strokeStyle = `rgba(${roleRgb}, 0.12)`;
                     ctx.lineWidth = 1;
-                    const offset = (frame * 0.8) % 36;
+                    const offset = (frame * 1.6) % 36;
                     for (let y = offset; y < h; y += 36) {
                         ctx.beginPath();
                         ctx.moveTo(0, y);
@@ -3128,7 +3134,7 @@
                         ctx.stroke();
                     }
 
-                    const scanY = (Math.sin(frame * 0.035) * 0.32 + 0.45) * h;
+                    const scanY = (Math.sin(frame * 0.07) * 0.32 + 0.45) * h;
                     ctx.strokeStyle = `rgba(${roleRgb}, 0.75)`;
                     ctx.lineWidth = 2;
                     ctx.beginPath();
@@ -3136,7 +3142,6 @@
                     ctx.lineTo(w - 16, scanY);
                     ctx.stroke();
                 });
-                requestAnimationFrame(draw);
             }
             requestAnimationFrame(draw);
         }
@@ -5319,10 +5324,13 @@
 
                 if (rainbowOn) {
                     document.body.classList.add('rainbow-mode');
-                    let hue = 0, lastFav = 0;
+                    let hue = 0, lastFav = 0, lastStep = 0;
                     function stepRainbow(ts) {
                         if (localStorage.getItem('kinet_rainbow_mode') !== 'true') return;
-                        hue = (hue + 1.4) % 360;
+                        /* v61: el color cambia ~11 veces por segundo (antes 60): cada cambio recalcula los estilos de toda la página */
+                        if (ts - lastStep < 90) { requestAnimationFrame(stepRainbow); return; }
+                        lastStep = ts;
+                        hue = (hue + 7) % 360;
                         const c1 = hslToHexRgb(hue, 100, 54);
                         const c2 = hslToHexRgb((hue + 60) % 360, 100, 48);
                         document.body.style.setProperty('--role-color', c1.hex);
