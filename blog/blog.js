@@ -18,18 +18,6 @@
     function prog() { var h = document.documentElement, m = h.scrollHeight - h.clientHeight; pr.style.transform = 'scaleX(' + (m > 0 ? Math.min(1, h.scrollTop / m) : 0) + ')'; tk = false; }
     addEventListener('scroll', function () { if (!tk) { tk = true; requestAnimationFrame(prog); } }, { passive: true }); prog();
 
-    /* navegación: marcador deslizante */
-    var nav = $('nav.top-nav');
-    if (nav) {
-      var ind = document.createElement('i'); ind.className = 'ind'; nav.appendChild(ind);
-      var links = $$('a', nav), on = $('a.on', nav);
-      var go = function (a) { if (!a) { ind.style.opacity = 0; return; } ind.style.opacity = 1; ind.style.width = a.offsetWidth + 'px'; ind.style.transform = 'translateX(' + a.offsetLeft + 'px)'; };
-      go(on);
-      links.forEach(function (a) { a.addEventListener('mouseenter', function () { go(a); }); });
-      nav.addEventListener('mouseleave', function () { go(on); });
-      addEventListener('resize', function () { go(on); });
-    }
-
     /* aparición al hacer scroll */
     var rv = $$('.rv');
     if ('IntersectionObserver' in window && !RM) {

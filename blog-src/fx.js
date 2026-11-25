@@ -44,7 +44,7 @@
       }
     }
     /* luz de tarjetas */
-    var SEL = 'a.card,.tool,.cta,.stat,.note,.kh-info,.kh-c,.dk,.fc,.kg-how,.pn a,.related a.card,.cards .card';
+    var SEL = 'a.card,.tool,.cta,.stat,.note,.kh-info,.kh-c,.dk,.fc,.kg-how,.pn a,.related a.card,.cards .card' + (window.KB_FX_SEL ? ',' + window.KB_FX_SEL : '');
     var targets = [];
     function arm(el) {
       if (el.dataset.fxl) return; el.dataset.fxl = 1;

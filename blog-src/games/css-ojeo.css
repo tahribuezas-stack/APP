@@ -1,4 +1,4 @@
-/* Juego 1 · Ojeador en 10 segundos — dossier con escáner */
+/* Juego 1 · Ojeador de fichas — dossier con escáner */
 .oj{position:relative;padding:22px;min-height:560px;display:flex;flex-direction:column;gap:14px}
 .oj-hud{position:relative;z-index:2;display:flex;align-items:center;gap:18px;justify-content:space-between;padding:12px 16px;border-radius:18px;border:1px solid rgba(var(--kcr),.3);background:rgba(8,12,18,.7)}
 .oj-hud small{display:block;margin-bottom:6px}
@@ -7,17 +7,20 @@
 .oj-ring{position:relative;width:62px;height:62px;flex:none}
 .oj-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
 .oj-ring circle{fill:none;stroke-width:4}.oj-ring .bg{stroke:rgba(255,255,255,.1)}
-.oj-ring .fg{stroke:var(--kc);stroke-linecap:round;filter:drop-shadow(0 0 5px var(--kc));transition:stroke .3s}
+.oj-ring .fg{stroke:var(--kc);stroke-linecap:round;transition:stroke .3s}
+.oj-ring{border-radius:50%;box-shadow:0 0 22px rgba(var(--kcr),.4),inset 0 0 14px rgba(var(--kcr),.12);transition:box-shadow .3s}
+.oj-ring svg{overflow:visible}
 .oj-ring b{position:absolute;inset:0;display:grid;place-items:center;font:900 22px Orbitron,sans-serif;color:#fff}
-.oj-ring.lo .fg{stroke:#fb7185;filter:drop-shadow(0 0 6px #fb7185)}.oj-ring.lo b{color:#fb7185;animation:ojPulse .5s infinite alternate}
+.oj-ring.lo{box-shadow:0 0 26px rgba(251,113,133,.55),inset 0 0 14px rgba(251,113,133,.15)}.oj-ring.lo .fg{stroke:#fb7185}.oj-ring.lo b{color:#fb7185;animation:ojPulse .5s infinite alternate}
 @keyframes ojPulse{to{transform:scale(1.18)}}
 
-.oj-dos{position:relative;flex:1;display:grid;gap:10px;min-height:400px;padding:14px;border-radius:22px;border:1px solid rgba(var(--kcr),.35);background:linear-gradient(160deg,rgba(14,22,28,.9),rgba(6,9,14,.95));
-  grid-template-columns:1fr 1.15fr 1fr 1.05fr;grid-template-rows:1fr 1fr 1fr;
-  grid-template-areas:"foto pos pos stat" "foto phys tray stat" "vid vid con bio";overflow:hidden}
+.oj-dos{position:relative;flex:1;display:grid;gap:14px;min-height:380px;padding:22px;border-radius:22px;border:1px solid rgba(var(--kcr),.35);background:linear-gradient(160deg,rgba(14,22,28,.9),rgba(6,9,14,.95));
+  grid-template-columns:.9fr 1.2fr 1.2fr;grid-auto-rows:minmax(112px,1fr);
+  grid-template-areas:"foto pos phys" "foto stat tray" "vid con bio"}
+.oj-dos::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;overflow:hidden;background:repeating-linear-gradient(0deg,rgba(var(--kcr),.035) 0 1px,transparent 1px 16px)}
 .oj-m{position:relative;display:flex;flex-direction:column;justify-content:center;gap:6px;text-align:left;padding:13px 15px;border-radius:14px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.035);color:#e8edf4;font:600 13.5px/1.4 Inter,sans-serif;cursor:pointer;min-width:0;overflow:hidden;transition:border-color .25s,background .25s,box-shadow .25s,transform .25s var(--ease),filter .6s}
 .oj-m small{font:700 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--kc)}
-.oj-t{display:block}
+.oj-t{display:block;font-size:15px;line-height:1.45}
 .oj-ph{display:grid;place-items:center;flex:1;min-height:0}.oj-ph svg{width:62%;max-width:90px;fill:none;stroke:rgba(var(--kcr),.7);stroke-width:2.4;stroke-linecap:round}
 .oj-m[data-k=foto] .oj-t{font-size:12px;color:var(--mut)}
 .oj-fl{position:absolute;right:10px;top:8px;font-style:normal;color:#fbbf24;opacity:0;transform:scale(.4) rotate(-30deg);transition:all .3s var(--ease);font-size:16px}
@@ -34,12 +37,12 @@
 .oj-m.hit .oj-fl,.oj-m.miss .oj-fl,.oj-m.fp .oj-fl{opacity:0}
 @keyframes ojMiss{30%{transform:translateX(-5px)}60%{transform:translateX(4px)}}
 /* escáner */
-.oj-laser{position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,transparent,var(--kc),transparent);box-shadow:0 0 22px 6px rgba(var(--kcr),.55);opacity:0;pointer-events:none;z-index:3}
+.oj-laser{position:absolute;left:10px;right:10px;top:0;height:3px;background:linear-gradient(90deg,transparent,var(--kc),transparent);box-shadow:0 0 22px 6px rgba(var(--kcr),.55);opacity:0;pointer-events:none;z-index:3}
 .oj-dos.scan .oj-laser{opacity:1;animation:ojScan 2.4s linear infinite}
-@keyframes ojScan{from{top:0}to{top:100%}}
+@keyframes ojScan{from{top:10px}to{top:calc(100% - 12px)}}
 .oj-cv{position:absolute;width:20px;height:20px;border:2px solid var(--kc);pointer-events:none;z-index:3;opacity:.7}
 .oj-cv.c1{left:8px;top:8px;border-right:0;border-bottom:0}.oj-cv.c2{right:8px;top:8px;border-left:0;border-bottom:0}.oj-cv.c3{left:8px;bottom:8px;border-right:0;border-top:0}.oj-cv.c4{right:8px;bottom:8px;border-left:0;border-top:0}
-.oj-cover{position:absolute;inset:0;z-index:4;display:grid;place-items:center;text-align:center;padding:20px;background:rgba(5,8,12,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);transition:opacity .45s,visibility .45s}
+.oj-cover{position:absolute;inset:0;border-radius:inherit;z-index:4;display:grid;place-items:center;text-align:center;padding:20px;background:rgba(5,8,12,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);transition:opacity .45s,visibility .45s}
 .oj-cover.off{opacity:0;visibility:hidden}
 .oj-cover h2{font:900 clamp(24px,3.4vw,38px) Orbitron,sans-serif;color:#fff;margin:12px 0 8px}
 .oj-cover p{color:var(--mut);margin:0 0 20px}
@@ -64,7 +67,8 @@
   .oj{padding:12px}
   .oj-hud{padding:10px 12px;gap:10px}.oj-ring{width:50px;height:50px}.oj-ring b{font-size:18px}
   .oj-dos{grid-template-columns:1fr 1fr;grid-template-rows:auto;gap:8px;padding:10px;min-height:0;
-    grid-template-areas:"foto pos" "foto phys" "stat stat" "tray tray" "vid con" "bio bio"}
+    grid-template-areas:"foto pos" "foto phys" "stat stat" "tray tray" "vid con" "bio bio";grid-auto-rows:auto;padding:12px}
+  .oj-t{font-size:13.5px}
   .oj-m{padding:10px 12px;font-size:12.5px;min-height:62px}
   .oj-m[data-k=foto]{min-height:130px}
   .oj-cover{padding:14px}

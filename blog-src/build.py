@@ -3,13 +3,13 @@
 Uso:  python3 blog-src/build.py   (desde la raíz del repo)
 Lee blog-src/posts/*.html y blog-src/tools/*.html y genera /blog, /herramientas, sitemap.xml y robots.txt
 """
-import os, sys, re, glob, json, html, shutil, datetime, hashlib
+import kbnav, os, sys, re, glob, json, html, shutil, datetime, hashlib
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import navdata, games_build
 SRC = os.path.join(ROOT, 'blog-src')
 SITE = 'https://kinetos.es'
-V = '14'   # versión de css/js: súbela si cambias el diseño
+V = '15'   # versión de css/js: súbela si cambias el diseño
 CATS = {
  'entrenamiento': 'Entrenamiento', 'futbol': 'Fútbol', 'tenis': 'Tenis y pádel', 'salud': 'Salud y recuperación',
  'carrera': 'Carrera deportiva', 'tecnologia': 'Tecnología y IA', 'nutricion': 'Nutrición', 'mental': 'Mente y rendimiento',
@@ -110,13 +110,7 @@ def seo_title(t, suffix=' | KINET OS'):
     return base[:57].rsplit(' ', 1)[0] + '…'
 
 def header(active, back=None):
-    def on(k): return ' class="on"' if active == k else ''
-    return f'''<header class="top"><div class="top-in">
-{BRAND}
-<nav class="top-nav" aria-label="Principal"><a href="/blog/"{on('blog')}>Blog</a><a href="/herramientas/"{on('tools')}>Herramientas gratis</a><a href="/juegos/"{on('games')}>Juegos</a><a href="/soporte.html">Ayuda</a></nav>
-<button class="kb-search" type="button" data-pal aria-label="Buscar"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Buscar</span><kbd>Ctrl K</kbd></button>
-<a class="btn sm hd" data-mag href="/?utm_source=blog&utm_medium=seo&utm_campaign=header">Abrir la app {ARROW}</a>
-</div></header>'''
+    return kbnav.header_html(active)
 
 FOOTER = f'''<footer class="foot"><div class="foot-in">
 <div class="fb">{BRAND}<p>El sistema operativo del deportista: cuerpo técnico de IA, KINET Card, análisis táctico 3D y comunidad. Gratis para empezar.</p></div>
@@ -142,8 +136,8 @@ def page(title, desc, path, body, active, extra_head='', og_type='website', json
 <link rel="canonical" href="{url}">
 <meta property="og:type" content="{og_type}"><meta property="og:title" content="{html.escape(title, quote=True)}"><meta property="og:description" content="{html.escape(desc, quote=True)}"><meta property="og:url" content="{url}"><meta property="og:locale" content="es_ES"><meta property="og:site_name" content="KINET OS"><meta property="og:image" content="{SITE}/icons/icon-512.png">
 <meta name="twitter:card" content="summary">
-{ICON}{FONTS}<link rel="stylesheet" href="/blog/blog.css?v={V}"><link rel="stylesheet" href="/blog/fx.css?v={V}">{extra_head}{ld}
-<script src="/blog/kb-index.js?v={V}" defer></script><script src="/blog/space.js?v={V}" defer></script><script src="/blog/blog.js?v={V}" defer></script><script src="/blog/fx.js?v={V}" defer></script>
+{ICON}{FONTS}<link rel="stylesheet" href="/blog/blog.css?v={V}"><link rel="stylesheet" href="/blog/fx.css?v={V}"><link rel="stylesheet" href="/kb-nav.css?v={V}">{extra_head}{ld}
+<script src="/kb-nav.js?v={V}" defer></script><script src="/blog/kb-index.js?v={V}" defer></script><script src="/blog/space.js?v={V}" defer></script><script src="/blog/blog.js?v={V}" defer></script><script src="/blog/fx.js?v={V}" defer></script>
 </head><body>
 {header(active, back)}
 {backbar(back)}<main>{body}</main>
@@ -411,6 +405,7 @@ document.getElementById('chips').addEventListener('click',function(e){{var b=e.t
     today = datetime.date.today().isoformat()
     sm = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + ''.join(f'<url><loc>{SITE}{u}</loc><lastmod>{today}</lastmod><priority>{p}</priority></url>\n' for u, p in urls) + '</urlset>\n'
     open(os.path.join(ROOT, 'sitemap.xml'), 'w').write(sm)
+    kbnav.sync_root(ROOT, {'index.html': '', 'soporte.html': 'help', 'legal.html': '', 'privacidad.html': '', 'condiciones.html': ''})
     open(os.path.join(ROOT, 'robots.txt'), 'w').write(f'User-agent: *\nAllow: /\nDisallow: /admin.html\nDisallow: /gestion.html\nDisallow: /despacho.html\n\nSitemap: {SITE}/sitemap.xml\n')
     print(f'OK · {len(posts)} artículos · {len(tools)} herramientas · {len(urls)} URLs')
 
