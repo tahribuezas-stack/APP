@@ -30,7 +30,7 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script defer src="kinet-pdf.js?v=44"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="kinet-backend.js?v=44"></script>
+    <script src="kinet-backend.js?v=45"></script>
 <script src="kinet-gestion.js?v=38"></script>
     <script src="kinet-positions.js?v=38"></script>
     <script src="kinet-api-config.js?v=45"></script>
@@ -1520,7 +1520,7 @@
 <link rel="stylesheet" href="kinet-fx.css?v=51">
 <link rel="stylesheet" href="kinet-curtain.css?v=50">
 <script src="kinet-curtain.js?v=50"></script>
-<script src="kinet-fx.js?v=52"></script>
+<script src="kinet-fx.js?v=53"></script>
 <script src="kinet-menus.js?v=52"></script>
 <script src="kinet-usage.js?v=46"></script>
     <script src="kinet-ads.js?v=38"></script>
@@ -2908,11 +2908,13 @@ var r=n(localStorage.getItem('kinet_active_role'))||n(localStorage.getItem('kine
                 return;
             }
             try {
-                const { data } = await sb.from('profiles').select('*').order('updated_at', { ascending: false }).limit(35);
+                let { data, error: _pe } = await sb.from('profiles_public').select('*').order('updated_at', { ascending: false }).limit(35);
+                if (_pe) { const _r2 = await sb.from('profiles').select('*').order('updated_at', { ascending: false }).limit(35); data = _r2.data; }
+                if (Array.isArray(data) && window.KinetSafe) data = data.map(window.KinetSafe.profile);
                 if (Array.isArray(data) && data.length > 0) {
                     const myEmail = (localStorage.getItem('kinet_user_email') || '').toLowerCase();
                     data.forEach(prof => {
-                        if (!prof.full_name || (prof.email && prof.email.toLowerCase() === myEmail)) return;
+                        if (!prof.full_name || (prof.email && prof.email.toLowerCase() === myEmail) || (prof.id && String(prof.id) === String(localStorage.getItem('kinet_user_id') || ''))) return;
                         const pid = prof.id || prof.handle || prof.full_name;
                         const savedOverride = calibratedKinetOverrides[pid];
                         const avatarImg = prof.avatar_url || (prof.user_state && prof.user_state.kinet_user_avatar) || null;

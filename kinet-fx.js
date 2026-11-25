@@ -342,7 +342,7 @@
     document.addEventListener('scroll', upd, { passive: true, capture: true });
     window.addEventListener('resize', upd, { passive: true });
     setInterval(function () { if (!document.hidden) upd(); }, 1500);   // el contenido llega tarde: recalcula
-    upd(); setTimeout(upd, 600);
+    setTimeout(upd, 700);   // (antes se medía al arrancar y forzaba un cálculo de layout justo durante la entrada)
   }
   /* El contenido baja con la rueda y el teclado aunque el cursor esté en los márgenes, la cabecera o fuera de la columna central */
   function setupScrollAnywhere() {
@@ -422,16 +422,18 @@
   // La luz solo se anima en las tarjetas que se ven en pantalla (las demás no cuestan nada)
   var ledIO = null;
   try { if ('IntersectionObserver' in window) ledIO = new IntersectionObserver(function (es) { es.forEach(function (e) { e.target.classList.toggle('kx-vis', e.isIntersecting); }); }, { rootMargin: '40px' }); } catch (e) {}
-  var ledOn = false, ledMo = null, ledTimer = 0, ledSeen = (window.WeakSet ? new WeakSet() : { has: function () { return false; }, add: function () {} });
+  var firstLed = true, ledOn = false, ledMo = null, ledTimer = 0, ledSeen = (window.WeakSet ? new WeakSet() : { has: function () { return false; }, add: function () {} });
   function ledCfg(o) {
     var c = {}; Object.keys(LED_DEF).forEach(function (k) { c[k] = (o && o[k] != null) ? o[k] : (ls('kinet_led_' + k) || LED_DEF[k]); });
     return c;
   }
-  function ledTag() {
-    if (!ledOn) return;
-    var list = document.querySelectorAll(LED_SEL), n = 0;
-    for (var i = 0; i < list.length && n < 160; i++) {
-      var el = list[i]; if (el.classList.contains('kx-led') || ledSeen.has(el)) continue;
+  var ledQueue = null, ledQi = 0, ledBusy = false;
+  function ledStep() {
+    // Reparte el trabajo: máx. ~5 ms por fotograma para no cortar las animaciones de entrada
+    var t0 = performance.now(), n = 0;
+    while (ledQueue && ledQi < ledQueue.length && n < 160) {
+      var el = ledQueue[ledQi++];
+      if (el.classList.contains('kx-led') || ledSeen.has(el)) continue;
       ledSeen.add(el);
       if (el.closest('#kx-melt, .kg-switch')) continue;
       var cs; try { cs = getComputedStyle(el); } catch (e) { continue; }
@@ -442,7 +444,14 @@
       try { var rr = parseFloat(cs.borderTopLeftRadius); el.style.setProperty('--kx-r', (isNaN(rr) ? 14 : Math.min(rr, 60)) + 'px'); } catch (e) {}
       el.style.setProperty('--kx-led-d', (-Math.random() * 6).toFixed(2) + 's');
       if (ledIO) ledIO.observe(el); else el.classList.add('kx-vis');
+      if (performance.now() - t0 > 5) break;
     }
+    if (ledQueue && ledQi < ledQueue.length && n < 160) requestAnimationFrame(ledStep); else ledBusy = false;
+  }
+  function ledTag() {
+    if (!ledOn) return;
+    ledQueue = document.querySelectorAll(LED_SEL); ledQi = 0;
+    if (!ledBusy) { ledBusy = true; requestAnimationFrame(ledStep); }
   }
   function applyLed(override) {
     var c = ledCfg(override);
@@ -469,7 +478,7 @@
       requestAnimationFrame(function () { doc.classList.add('kx-amb-on'); });
     } else doc.classList.remove('kx-amb-on');
     if (ledOn) {
-      ledTag();
+      clearTimeout(ledTimer); ledTimer = setTimeout(ledTag, firstLed ? 900 : 40); firstLed = false;   // tras la entrada de los cuadros (evita el micro-corte)
       if (!ledMo && window.MutationObserver && document.body) {
         ledMo = new MutationObserver(function () { clearTimeout(ledTimer); ledTimer = setTimeout(ledTag, 350); });
         ledMo.observe(document.body, { childList: true, subtree: true });

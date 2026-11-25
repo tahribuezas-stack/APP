@@ -279,6 +279,60 @@
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;' }[c];
     });
   };
+  // ── SANEADO DE DATOS QUE LLEGAN DE LA NUBE (escritos por OTROS usuarios) ──
+  // Quita <, >, comillas, acentos graves y barras invertidas de los campos de identidad (nombre, @usuario, titular, club, ciudad, insignias…)
+  // para que no se puedan colar en HTML, atributos ni onclick. Las URLs solo pueden ser https:// o imágenes data:image.
+  const KinetSafe = {
+    id(v) { return String(v === null || v === undefined ? '' : v).replace(/[<>"'`\\]/g, '').replace(/[\u0000-\u001f\u2028\u2029]/g, ' ').slice(0, 300); },
+    url(v) {
+      v = String(v === null || v === undefined ? '' : v);
+      if (v === 'OFFICIAL_KINET_BRAND_LOGO') return v;
+      return /^(https:\/\/[^\s"'<>()\\`]{1,2000}|data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+\/=]{1,2000000})$/.test(v) ? v : '';
+    },
+    deep(o, depth) {
+      depth = depth || 0;
+      if (o === null || o === undefined || depth > 5) return o;
+      if (typeof o === 'string') return KinetSafe.id(o);
+      if (Array.isArray(o)) return o.slice(0, 100).map((x) => KinetSafe.deep(x, depth + 1));
+      if (typeof o === 'object') {
+        const out = {};
+        Object.keys(o).slice(0, 100).forEach((k) => {
+          const v = o[k];
+          out[KinetSafe.id(k)] = (typeof v === 'string' && /url|image|poster|thumb|src|avatar/i.test(k)) ? KinetSafe.url(v) : KinetSafe.deep(v, depth + 1);
+        });
+        return out;
+      }
+      return o;
+    },
+    post(r) {
+      if (!r || typeof r !== 'object') return r;
+      const o = Object.assign({}, r);
+      ['author_name', 'author_handle', 'author_role', 'author_headline', 'sport', 'mode', 'badge'].forEach((k) => { if (k in o) o[k] = KinetSafe.id(o[k]); });
+      if (o.reel_data) o.reel_data = KinetSafe.deep(o.reel_data);
+      return o;
+    },
+    dm(r) {
+      if (!r || typeof r !== 'object') return r;
+      const o = Object.assign({}, r);
+      ['sender_handle', 'receiver_handle'].forEach((k) => { if (k in o) o[k] = KinetSafe.id(o[k]); });
+      return o;   // message_text se escapa siempre al pintarlo
+    },
+    profile(r) {
+      if (!r || typeof r !== 'object') return r;
+      const o = Object.assign({}, r);
+      ['handle', 'full_name', 'bio', 'club', 'position', 'category', 'active_role', 'active_sport'].forEach((k) => { if (k in o) o[k] = KinetSafe.id(o[k]); });
+      if ('avatar_url' in o) o.avatar_url = KinetSafe.url(o.avatar_url);
+      if (o.user_state && typeof o.user_state === 'object') {
+        const us = Object.assign({}, o.user_state);
+        if ('kinet_user_city' in us) us.kinet_user_city = KinetSafe.id(us.kinet_user_city);
+        if ('kinet_user_avatar' in us) us.kinet_user_avatar = KinetSafe.url(us.kinet_user_avatar);
+        if ('kinet_custom_card_stats' in us && typeof us.kinet_custom_card_stats === 'string' && us.kinet_custom_card_stats.length > 20000) delete us.kinet_custom_card_stats;
+        o.user_state = us;
+      }
+      return o;
+    }
+  };
+  window.KinetSafe = KinetSafe;
   // Los @usuarios solo pueden contener letras, números, _ . - y @ (seguro también dentro de onclick)
   window.kinetHandle = function (v) {
     return String(v === null || v === undefined ? '' : v).replace(/[^\w@.\-]/g, '');
@@ -311,6 +365,7 @@
         k !== 'kinet_sync_base' &&
         k !== 'kinet_sync_seen' &&
         k !== 'kinet_sync_writer' &&
+        !/^kinet_(gemini_api_key|groq_api_key|ai_api_key|spotify_access_token|spotify_refresh_token)$/.test(k) &&
         !TEMP_KEY_RE.test(k)
       ) {
         const val = localStorage.getItem(k);
@@ -331,6 +386,8 @@
     kinet_sb_key: 1, kinet_saved_posts: 1, kinet_is_guest: 1, kinet_guest_session: 1, kinet_auth_session_token: 1,
     kinet_staff_admin_role: 1, kinet_device_id: 1, kinet_sync_base: 1, kinet_sync_seen: 1, kinet_sync_writer: 1,
     kinet_account_tier: 1, kinet_is_pro: 1, kinet_ct_inflight: 1,   // plan: lo decide solo el servidor
+    // Claves de API y tokens personales: se quedan SOLO en este dispositivo (nunca viajan a la nube)
+    kinet_gemini_api_key: 1, kinet_groq_api_key: 1, kinet_ai_api_key: 1, kinet_spotify_access_token: 1, kinet_spotify_refresh_token: 1,
     // Mensajes de un solo uso entre pantallas: NUNCA deben viajar a la nube (si no, al recargar se repiten)
     kinet_pending_question: 1, kinet_target_agent: 1, kinet_pending_dm_broadcast: 1, kinet_ct_consumed: 1,
     kinet_hk_day: 1, kinet_media_studio_auto_prompt: 1, kinet_media_studio_auto_preset: 1, kinet_vision_lab_import_target: 1,
@@ -371,6 +428,15 @@
     Object.keys(now).forEach((k) => { if (base[k] !== now[k]) set.add(k); });
     return set;
   }
+
+  // ── PROTECCIÓN CONTRA BORRADOS ACCIDENTALES ──
+  // Los datos del usuario (perfil, CV, chats, plantilla…) NUNCA se borran de la nube porque una clave "desaparezca" de un dispositivo
+  // (navegador limpiado, modo invitado, reinstalación, otro dispositivo con datos incompletos…). Solo se vacían si el usuario deja el campo
+  // vacío a propósito (queda como "" en la nube) y solo son borrables los ajustes de apariencia.
+  const DELETABLE_KEY_RE = /^kinet_(custom_accent_override|accent_color|theme_color_reset|rainbow_mode|led_|fx_)/;
+  function isProtectedKey(k) { return !DELETABLE_KEY_RE.test(k); }
+  // Si de golpe falta una parte grande de las claves, es un borrado accidental, no una decisión del usuario
+  function looksLikeWipe(missing, baseCount) { return missing >= 4 && missing >= Math.max(4, baseCount * 0.3); }
 
   // La sesión real (Supabase) manda: si el perfil guardado en este navegador no es el de la sesión, se limpia todo resto de otra cuenta.
   async function ensureSessionIdentity() {
@@ -649,6 +715,8 @@
         if (k === 'kinet_custom_accent_override' || k === 'kinet_accent_color') {
           if (cloudState.kinet_theme_color_reset === 'true') return;
         }
+        // Campo vaciado a propósito en otro dispositivo
+        if (cloudState[k] === '' && isProtectedKey(k) && !SYNC_SKIP[k] && !unsynced.has(k) && localStorage.getItem(k) !== null && localStorage.getItem(k) !== '') { originalSetItem.call(localStorage, k, ''); return; }
         if (k !== 'kinet_is_guest' && k !== 'kinet_guest_session' && cloudState[k] !== null && cloudState[k] !== undefined && String(cloudState[k]).trim() !== '') {
           if (k === 'kinet_user_name' && (cloudState[k] === 'Usuario KINET' || cloudState[k] === 'Atleta Invitado')) {
             return;
@@ -666,9 +734,9 @@
       });
       // Claves borradas en otro dispositivo: se borran aquí si no tenemos cambios locales pendientes en ellas
       if (baseBefore) {
-        Object.keys(baseBefore).forEach((k) => {
-          if (!(k in cloudState) && !unsynced.has(k) && !SYNC_SKIP[k]) originalRemoveItem.call(localStorage, k);
-        });
+        const gone = Object.keys(baseBefore).filter((k) => !(k in cloudState) && !unsynced.has(k) && !SYNC_SKIP[k]);
+        // Solo se borran aquí ajustes de apariencia; los datos del usuario se conservan y se re-suben a la nube (autoreparación)
+        if (!looksLikeWipe(gone.length, Object.keys(baseBefore).length)) gone.forEach((k) => { if (!isProtectedKey(k)) originalRemoveItem.call(localStorage, k); });
       }
 
       originalSetItem.call(localStorage, 'kinet_user_id', profileRow.id);
@@ -1319,7 +1387,7 @@
       try {
         const me = await resolveCurrentUserId();
         const esc = h.replace(/_/g, '\\_');
-        const rows = await supabaseRestRequest('profiles?handle=ilike.' + encodeURIComponent(esc) + '&select=id,handle&limit=5', 'GET');
+        const rows = await supabaseRestRequest('profiles_public?handle=ilike.' + encodeURIComponent(esc) + '&select=id,handle&limit=5', 'GET').catch(() => supabaseRestRequest('profiles?handle=ilike.' + encodeURIComponent(esc) + '&select=id,handle&limit=5', 'GET'));
         const taken = Array.isArray(rows) && rows.some((r) => String(r.handle || '').toLowerCase() === h.toLowerCase() && String(r.id) !== String(me));
         if (taken) return { ok: false, reason: 'taken', message: 'Ese @usuario ya lo usa otra persona. Prueba con otro.' };
       } catch (e) { /* sin red: lo volverá a comprobar el servidor */ }
@@ -1344,7 +1412,7 @@
     async getPinnedPostFor(handle) {
       try {
         const esc = String(handle || '').replace(/_/g, '\\_');
-        const rows = await supabaseRestRequest('profiles?handle=ilike.' + encodeURIComponent(esc) + '&select=handle,pinned_post_id&limit=5', 'GET');
+        const rows = await supabaseRestRequest('profiles_public?handle=ilike.' + encodeURIComponent(esc) + '&select=handle,pinned_post_id&limit=5', 'GET').catch(() => supabaseRestRequest('profiles?handle=ilike.' + encodeURIComponent(esc) + '&select=handle,pinned_post_id&limit=5', 'GET'));
         const r = Array.isArray(rows) && rows.find((x) => String(x.handle || '').toLowerCase() === String(handle || '').toLowerCase());
         return (r && r.pinned_post_id) || '';
       } catch (e) { return ''; }
@@ -1401,7 +1469,17 @@
         const changed = [], removed = [];
         Object.keys(nowHashes).forEach((k) => { if (!base || base[k] !== nowHashes[k]) changed.push(k); });
         if (base) Object.keys(base).forEach((k) => { if (!(k in nowHashes)) removed.push(k); });
-        if (existingRow && !changed.length && !removed.length) return { ok: true, noChange: true };
+        // Autoreparación: si la nube ha perdido datos que este dispositivo SÍ tiene, se vuelven a subir
+        if (existingRow) Object.keys(nowHashes).forEach((k) => { if (isProtectedKey(k) && !(k in cloudPrevState) && !changed.includes(k) && !String(localStorage.getItem(k) || '').includes('invitado_')) changed.push(k); });
+        // Borrados: nunca se propagan los de datos protegidos (salvo vaciado explícito del campo) ni los masivos
+        const wipeSuspect = !!base && looksLikeWipe(removed.length, Object.keys(base).length);
+        const removedReal = [], removedCleared = [], removedDropped = [];
+        removed.forEach((k) => {
+          if (!isProtectedKey(k)) { if (!wipeSuspect) removedReal.push(k); else removedDropped.push(k); }
+          else if (!wipeSuspect && localStorage.getItem(k) !== null) removedCleared.push(k);   // el campo existe y está vacío: lo vació el usuario
+          else removedDropped.push(k);
+        });
+        if (existingRow && !changed.length && !removedReal.length && !removedCleared.length && !removedDropped.length) return { ok: true, noChange: true };
         const has = (...ks) => !existingRow || ks.some((k) => changed.includes(k));
 
         const safeMergedState = { ...cloudPrevState };
@@ -1409,7 +1487,8 @@
           const val = localStorage.getItem(k);
           if (val !== null && val !== undefined && String(val).trim() !== '' && !String(val).includes('invitado_')) safeMergedState[k] = val;
         });
-        removed.forEach((k) => { delete safeMergedState[k]; });
+        removedReal.forEach((k) => { delete safeMergedState[k]; });
+        removedCleared.forEach((k) => { safeMergedState[k] = ''; });   // "vaciado a propósito": los otros dispositivos lo vacían también
         safeMergedState.kinet_sync_writer = deviceId;
 
         // Color de acento: solo se toca si ESTE dispositivo lo cambió
@@ -1534,7 +1613,7 @@
     async fetchCloudPosts() {
       try {
         const data = await supabaseRestRequest('posts?select=*&order=created_at.desc&limit=50', 'GET');
-        return Array.isArray(data) ? data : [];
+        return Array.isArray(data) ? data.map(KinetSafe.post) : [];
       } catch (err) {
         return [];
       }
@@ -1565,7 +1644,7 @@
           `direct_messages?or=(sender_handle.ilike.${encoded},receiver_handle.ilike.${encoded})&select=*&order=created_at.asc&limit=250`,
           'GET'
         );
-        return Array.isArray(rows) ? rows : [];
+        return Array.isArray(rows) ? rows.map(KinetSafe.dm) : [];
       } catch (err) {
         return [];
       }

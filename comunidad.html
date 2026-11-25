@@ -30,7 +30,7 @@
     
     <!-- SDK Oficial de Supabase + Motor Central KINET Backend + Config APIs -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="kinet-backend.js?v=44"></script>
+    <script src="kinet-backend.js?v=45"></script>
 <script src="kinet-gestion.js?v=38"></script>
     <script src="kinet-positions.js?v=38"></script>
     <script src="kinet-api-config.js?v=45"></script>
@@ -1547,7 +1547,7 @@
     </style>
     <link rel="stylesheet" href="kinet-mobile-fix.css?v=38">
 <link rel="stylesheet" href="kinet-fx.css?v=51">
-<script src="kinet-fx.js?v=52"></script>
+<script src="kinet-fx.js?v=53"></script>
 <script src="kinet-usage.js?v=46"></script>
     <script src="kinet-ads.js?v=38"></script>
 <link rel="stylesheet" href="kinet-mobile.css?v=46">
@@ -3805,7 +3805,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <span class="verified-badge" style="padding:4px 8px; font-size:0.58rem;">${p.badge || 'KINET PULSE'}</span>
+                            <span class="verified-badge" style="padding:4px 8px; font-size:0.58rem;">${kinetEsc(p.badge || 'KINET PULSE')}</span>
                         </div>
                         <p style="font-size:0.81rem; color:#E2E8F0; line-height:1.48; margin-bottom:10px;">${kinetEsc(p.text)}</p>
                         ${mediaHtml}
@@ -4538,10 +4538,10 @@
                                 </div>
                                 <div style="min-width:0;">
                                     <div style="font-size:0.76rem;font-weight:800;color:white;display:flex;align-items:center;gap:5px;">
-                                        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.shortName} ${muted ? '🔕' : ''}</span>
+                                        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${kinetEsc(u.shortName)} ${muted ? '🔕' : ''}</span>
                                         <span style="font-family:'JetBrains Mono';font-size:0.54rem;color:${borderCol};">${u.roleBadge}</span>
                                     </div>
-                                    <div style="font-size:0.65rem;color:${u.unread ? '#00FF88' : '#CBD5E1'};font-weight:${u.unread ? '700' : '400'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${tickPrefix}${lastMsg}</div>
+                                    <div style="font-size:0.65rem;color:${u.unread ? '#00FF88' : '#CBD5E1'};font-weight:${u.unread ? '700' : '400'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${tickPrefix}${kinetEsc(lastMsg)}</div>
                                 </div>
                             </div>
                             ${(u.unread && !muted) ? '<span class="dm-unread-dot" title="Mensaje nuevo sin leer"></span>' : ''}
@@ -4589,7 +4589,7 @@
                                     ${getAvatarInnerText(avUrl, u.initials)}
                                 </div>
                                 <div style="min-width:0;">
-                                    <div style="font-size:0.75rem;font-weight:800;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.shortName}</div>
+                                    <div style="font-size:0.75rem;font-weight:800;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${kinetEsc(u.shortName)}</div>
                                     <div style="font-family:'JetBrains Mono';font-size:0.56rem;color:var(--role-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u._prox.affinityTag}</div>
                                 </div>
                             </div>
@@ -5005,12 +5005,13 @@
 
                 let realProfiles = [];
                 if (sb) {
-                    const { data } = await sb
-                        .from('profiles')
+                    let { data, error: _pe } = await sb
+                        .from('profiles_public')
                         .select('*')
                         .order('updated_at', { ascending: false })
                         .limit(50);
-                    if (data) realProfiles = data;
+                    if (_pe) { const _r2 = await sb.from('profiles').select('*').order('updated_at', { ascending: false }).limit(50); data = _r2.data; }
+                    if (data) realProfiles = (window.KinetSafe ? data.map(window.KinetSafe.profile) : data);
                 }
 
                 if (realProfiles && realProfiles.length > 0) {
