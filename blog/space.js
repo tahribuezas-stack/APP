@@ -122,7 +122,12 @@
     if (RM) { running = true; frame(performance.now()); running = false; }
     else start();
     document.addEventListener('visibilitychange', function () { if (!document.hidden) start(); });
-    addEventListener('pageshow', function (e) { if (e.persisted) { navigating = false; H.classList.remove('kb-warp-out', 'kb-arriving'); flashT = 0; setWarp(0, 300); } });
+    addEventListener('pageshow', function (e) {
+      if (e.persisted) {   /* vuelta con «Atrás» desde la caché del navegador: se reinicia todo (si no, el velo del salto se quedaba congelado) */
+        navigating = false; H.classList.remove('kb-warp-out', 'kb-arriving', 'kb-arrive'); running = false; warp = 0; warpT = 0; flash = 0; flashT = 0; over = false; cv.style.zIndex = '0'; clearTimeout(liftTimer);
+        try { document.body.style.opacity = ''; } catch (x) {} start();
+      }
+    });
 
     if (arrive && !RM) {            /* aterrizaje: venimos de un salto, frenamos suavemente */
       colT = hex(arrive.c); col = colT.slice(); warp = 1; warpT = 1; flash = .85; flashT = .85; lift(true);
