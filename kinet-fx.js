@@ -34,7 +34,8 @@
   var navAt = parseInt(ss('kx_cover') || '0', 10);
   var fromNav = navAt && (Date.now() - navAt) < 5000;
   var introMode = ls('kinet_fx_intro') || 'full';     // full | off
-  var transOn = ls('kinet_fx_transitions') !== 'off';
+  var NOMELT = /^soporte\.html$/.test(path);   // estas páginas usan el salto espacial de la órbita (space.js), no el derretido
+  var transOn = ls('kinet_fx_transitions') !== 'off' && !NOMELT;
   var needIntro = SHELL && !reduce && introMode !== 'off' && ls('kinet_logged_in') === 'true' && !ss('kx_intro');
   var softAt = parseInt(ss('kx_soft') || '0', 10);
   var softIn = !reduce && SHELL && transOn && softAt && (Date.now() - softAt) < 5000 && !fromNav && !needIntro;
@@ -241,6 +242,12 @@
   // Pantalla completa SOLO al entrar en la app y al cambiar entre APP y GESTIÓN. El resto (cambiar de sección) anima solo el cuadro de contenido.
   function go(url, opts) {
     opts = opts || {};
+    var to0 = ''; try { to0 = (new URL(url, location.href).pathname.split('/').pop() || '').toLowerCase(); } catch (e) {}
+    if (to0 === 'soporte.html' && !reduce) {   // destino con salto espacial: salimos con un fundido corto y allí aterriza la animación
+      if (go.busy) return; go.busy = true; ss('kb_warp', JSON.stringify({ c: '#00FF88', t: Date.now() }));
+      try { document.body.style.transition = 'opacity .28s ease'; document.body.style.opacity = '0'; } catch (e) {}
+      setTimeout(function () { location.href = url; }, 280); setTimeout(function () { go.busy = false; try { document.body.style.opacity = ''; } catch (e) {} }, 3000); return;
+    }
     if (reduce || !transOn || !ensureMelt()) { location.href = url; return; }
     if (go.busy) return; go.busy = true;
     setTimeout(function () { go.busy = false; }, 3000);    // por si el navegador cancela la navegación
@@ -274,6 +281,7 @@
     });
   }
   function setupLinks() {
+    if (NOMELT) return;
     document.addEventListener('click', function (e) {
       if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       var a = e.target.closest && e.target.closest('a[href]'); if (!a) return;
