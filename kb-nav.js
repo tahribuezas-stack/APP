@@ -41,11 +41,11 @@
     function go(y, dur) {
       stop(); var y0 = scrollY, d = y - y0;
       if (RM || Math.abs(d) < 2) { scrollTo({ top: y, behavior: 'instant' }); return; }
-      var t0 = null; document.documentElement.classList.add('kb-scrolling');
+      var t0 = null; document.documentElement.classList.add('kb-scrolling'); if (window.KHReveal) KHReveal(y + innerHeight);
       (function f(t) {
         if (t0 === null) t0 = t; var k = Math.min(1, (t - t0) / dur);
         scrollTo({ top: y0 + d * ease(k), left: 0, behavior: 'instant' });
-        if (k < 1) raf = requestAnimationFrame(f); else { raf = 0; document.documentElement.classList.remove('kb-scrolling'); }
+        if (k < 1) raf = requestAnimationFrame(f); else { raf = 0; setTimeout(function () { if (!raf) document.documentElement.classList.remove('kb-scrolling'); }, 300); }
       })(performance.now());
     }
     function target(a) {

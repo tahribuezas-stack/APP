@@ -5,13 +5,19 @@
   var SEL = '#aprende .head,#aprende .col>b,#aprende .t,#aprende .p,#ecosistema .glass-card,#card-section>.glass-card,#vision-section>.glass-card,#analizador-section>.glass-card,#media-section>.glass-card,#plans-grid>.glass-card,#que-es>*';
   function boot() {
     var els = [].slice.call(document.querySelectorAll(SEL)), seen = new Map();
+    function show(el) {
+      el.classList.add('kh-show');
+      setTimeout(function () { el.classList.remove('kh-rv', 'kh-show'); el.style.removeProperty('--d'); }, 2600);
+    }
     var io = new IntersectionObserver(function (es) {
-      es.forEach(function (e) {
-        if (!e.isIntersecting) return; io.unobserve(e.target);
-        var el = e.target; el.classList.add('kh-show');
-        setTimeout(function () { el.classList.remove('kh-rv', 'kh-show'); el.style.removeProperty('--d'); }, 2600);
-      });
+      es.forEach(function (e) { if (!e.isIntersecting) return; io.unobserve(e.target); show(e.target); });
     }, { rootMargin: '0px 0px -9% 0px', threshold: .1 });
+    /* el desplazamiento por el menú pide mostrar de golpe todo lo que queda hasta el destino, para que no haya huecos ni parpadeos */
+    window.KHReveal = function (limit) {
+      els.forEach(function (el) {
+        if (el.classList.contains('kh-rv') && !el.classList.contains('kh-show') && el.getBoundingClientRect().top + scrollY < limit) { io.unobserve(el); show(el); }
+      });
+    };
     els.forEach(function (el) {
       var p = el.parentElement, n = seen.get(p) || 0; seen.set(p, n + 1);
       el.style.setProperty('--d', Math.min(n, 6) * .12 + 's'); el.classList.add('kh-rv'); io.observe(el);
