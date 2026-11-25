@@ -8,7 +8,9 @@
   var D; try { D = JSON.parse(dEl.textContent); } catch (e) { return; }
   var T = D.topics, IT = D.items || {};
   var RM = false, FINE = false, LOW = false;
-  try { RM = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  /* La órbita es el elemento central de la página: se mueve aunque el sistema pida «reducir movimiento» (muchos equipos lo traen activado sin saberlo).
+     En ese caso solo se suprimen los destellos y las rayas de luz del salto (CALM). */
+  var CALM = false; try { CALM = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
   try { FINE = matchMedia('(hover:hover) and (pointer:fine)').matches; } catch (e) {}
   try { LOW = (navigator.hardwareConcurrency || 8) <= 2; } catch (e) {}
   var TAU = Math.PI * 2;
@@ -206,7 +208,8 @@
     }
   }
 
-  var running = false;
+  var running = false, scrollT = -1e5, fcount = 0;
+  addEventListener('scroll', function () { scrollT = performance.now(); }, { passive: true });
   function frame(now) {
     if (!running) return;
     var raw = now - (last || now), dt = Math.min(.12, raw / 1000), rdt = dt * 1000; last = now;
@@ -221,7 +224,7 @@
     yaw = yawD + mxs * .5; pitch = PS + (mode === 'orbit' ? -mys * .16 : 0);
     var spin = Math.sin(pitch); sP = spin; cP = Math.cos(pitch); cY = Math.cos(yaw); sY = Math.sin(yaw);
     for (var i = 0; i < nodes.length; i++) { var n = nodes[i], tg = target(n, now); spring(n, tg, dt); paint(n, tg, now); }
-    draw(now);
+    var scr = now - scrollT < 140; if (!scr || (fcount++ & 1)) draw(now);   /* mientras se desplaza la página, el campo de partículas se redibuja a mitad de ritmo */
     var co = ((mode === 'orbit' || mode === 'spin') && live) ? (1 - wp) * (1 - spP * .85) : 0, cs = Math.max(0, Math.min(1, co)).toFixed(2), q = prj(0, 0, 0);
     core.style.opacity = cs; core.style.transform = 'translate3d(' + q.x.toFixed(1) + 'px,' + q.y.toFixed(1) + 'px,0) translate(-50%,-50%)';
     stage.style.setProperty('--wp', wp.toFixed(3));
@@ -286,8 +289,8 @@
   function travel(tp) {
     mode = 'travel'; stage.dataset.mode = 'travel'; spP = 0;
     stage.classList.add('flash'); setTimeout(function () { stage.classList.remove('flash'); }, 900);
-    if (window.KBSpace && !RM) KBSpace.burst(tp.c, 900);
-    wpT = RM ? 0 : 1;
+    if (window.KBSpace && !CALM) KBSpace.burst(tp.c, 900);
+    wpT = CALM ? 0 : 1;
     setTimeout(function () {
       mode = 'topic'; stage.dataset.mode = 'topic'; wpT = 0; cxT = W / 2; cyT = H * .5;
       if (tp.how) buildFan(tp); else buildDock(tp);
@@ -301,7 +304,7 @@
     var n = selNode;
     dock.classList.remove('is-in'); fan.classList.remove('is-in'); stage.classList.remove('open');
     setTimeout(function () {
-      mode = 'travel'; wpT = RM ? 0 : .9; if (window.KBSpace && !RM) KBSpace.burst(n ? n.tp.c : '#00FF88', 700);
+      mode = 'travel'; wpT = CALM ? 0 : .9; if (window.KBSpace && !CALM) KBSpace.burst(n ? n.tp.c : '#00FF88', 700);
       setTimeout(function () {
         mode = 'orbit'; stage.dataset.mode = 'orbit'; wpT = 0; if (n) n.el.classList.remove('sel'); selNode = null; t0 = performance.now(); hint.classList.add('on'); hint.innerHTML = HINT0;
         cxT = WIDE ? W * .675 : W / 2; cyT = M ? H * .25 : H * .52;

@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   var RM = false, FINE = false;
-  try { RM = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  /* animaciones siempre activas (ver nota en nav.js) */
   try { FINE = matchMedia('(hover:hover) and (pointer:fine)').matches; } catch (e) {}
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return [].slice.call((r || document).querySelectorAll(s)); };

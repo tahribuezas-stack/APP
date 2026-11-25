@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var RM = false, LOW = false;
-  try { RM = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  /* animaciones siempre activas (ver nota en nav.js) */
   try { LOW = (navigator.hardwareConcurrency || 8) <= 2 || (navigator.deviceMemory || 8) <= 2; } catch (e) {}
   var H = document.documentElement;
   var arrive = null;

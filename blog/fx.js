@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var RM = false, FINE = false, H = document.documentElement;
-  try { RM = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  /* animaciones siempre activas (ver nota en nav.js) */
   try { FINE = matchMedia('(hover:hover) and (pointer:fine)').matches; } catch (e) {}
   var $$ = function (s, r) { return [].slice.call((r || document).querySelectorAll(s)); };
 
@@ -80,6 +80,28 @@
         c.style.setProperty('--sx', (e.clientX - r.left).toFixed(0) + 'px'); c.style.setProperty('--sy', (e.clientY - r.top).toFixed(0) + 'px'); c.classList.add('fx-touch');
         clearTimeout(c._ft); c._ft = setTimeout(function () { c.classList.remove('fx-touch'); }, 1100);
       }, { passive: true });
+    }
+
+    /* desplazamiento suave con inercia para la rueda del ratón (el touchpad y el táctil ya son suaves) */
+    if (FINE) {
+      var tgt = null, sc = 0, sraf = 0;
+      var tick = function () {
+        sc += (tgt - sc) * .13;
+        if (Math.abs(tgt - sc) < .6) { sc = tgt; window.scrollTo({ top: sc, behavior: 'instant' }); sraf = 0; tgt = null; return; }
+        window.scrollTo({ top: sc, behavior: 'instant' }); sraf = requestAnimationFrame(tick);
+      };
+      addEventListener('wheel', function (e) {
+        if (e.ctrlKey || e.defaultPrevented || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+        if (e.deltaMode === 0 && Math.abs(e.deltaY) < 40) return;
+        for (var el = e.target; el && el !== document.body && el.nodeType === 1; el = el.parentElement) {
+          if (el.scrollHeight > el.clientHeight + 2) { var oy = getComputedStyle(el).overflowY; if (oy === 'auto' || oy === 'scroll') return; }
+        }
+        var dy = e.deltaMode === 1 ? e.deltaY * 40 : e.deltaY, max = H.scrollHeight - innerHeight;
+        if (max <= 0) return; e.preventDefault();
+        if (tgt === null) { sc = window.scrollY; tgt = sc; }
+        tgt = Math.max(0, Math.min(max, tgt + dy * 1.1)); if (!sraf) sraf = requestAnimationFrame(tick);
+      }, { passive: false });
+      addEventListener('scroll', function () { if (!sraf) tgt = null; }, { passive: true });
     }
   }
   if (document.body) boot(); else document.addEventListener('DOMContentLoaded', boot);

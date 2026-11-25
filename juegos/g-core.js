@@ -26,7 +26,7 @@
   KG.$$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   KG.el = function (tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
   KG.esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
-  KG.RM = false; try { KG.RM = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  KG.RM = false;
   KG.clamp = function (v, a, b) { return Math.max(a, Math.min(b, v)); };
   KG.lerp = function (a, b, t) { return a + (b - a) * t; };
 
