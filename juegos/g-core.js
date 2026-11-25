@@ -32,7 +32,11 @@
 
   /* ───── deporte activo y tema ───── */
   var root = null, listeners = [];
-  KG.sport = KG.get('sport', 'futbol'); if (!KG.sports[KG.sport]) KG.sport = 'futbol';
+  /* El deporte (y su color) NO se guarda entre visitas: cada visita empieza en Fútbol (verde KINET). Solo se recuerda dentro de la pestaña para pasar del menú a un juego. */
+  function ssGet() { try { return sessionStorage.getItem('kg_sport'); } catch (e) { return null; } }
+  function ssSet(v) { try { sessionStorage.setItem('kg_sport', v); } catch (e) {} }
+  try { localStorage.removeItem('kg_sport'); } catch (e) {}
+  KG.sport = ssGet() || 'futbol'; if (!KG.sports[KG.sport]) KG.sport = 'futbol';
   try { var q = new URLSearchParams(location.search).get('d'); if (q && KG.sports[q]) KG.sport = q; } catch (e) {}
   function applyTheme() {
     var s = KG.sports[KG.sport], r = document.documentElement;
@@ -40,7 +44,7 @@
     r.setAttribute('data-sport', KG.sport);
   }
   KG.setSport = function (k, silent) {
-    if (!KG.sports[k]) return; KG.sport = k; KG.set('sport', k); applyTheme();
+    if (!KG.sports[k]) return; KG.sport = k; ssSet(k); applyTheme();
     KG.$$('.kg-sp').forEach(function (b) { b.classList.toggle('on', b.dataset.k === k); b.setAttribute('aria-pressed', b.dataset.k === k); });
     if (!silent) listeners.forEach(function (f) { try { f(k); } catch (e) { console.error(e); } });
   };

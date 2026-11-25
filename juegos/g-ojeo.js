@@ -1,7 +1,7 @@
-/* KINET OS · Juego 1 · Ojeador en 10 segundos (escáner de fichas). Sin registro. */
+/* KINET OS · Juego 1 · Ojeador de fichas (escáner de fichas). Sin registro. */
 (function () {
   'use strict';
-  var T = 10, ROUNDS = 3, FLAWS = [3, 4, 5];
+  var T = 20, ROUNDS = 3, FLAWS = [3, 4, 5];
   /* cada módulo: [etiqueta, texto correcto, texto con fallo, consejo] */
   var SP = {
     futbol: { pos: ['Extremo derecho · pie derecho', 'Portero, delantero, central y mediapunta (polivalente)'], stat: ['24/25 · Juvenil A · 27 PJ · 9 goles · 6 asistencias', 'Muchos goles y asistencias esta temporada'], bio: ['Extremo veloz, bueno en el 1 contra 1 y con llegada. Busco un club con proyecto de cantera.', 'Soy el mejor, lo doy todo, un crack total. Ficha por mí ya.'], phys: ['1,76 m · 66 kg · 30 m en 4,3 s · salto 38 cm', 'Altura 2,31 m · Peso 41 kg · «muy rápido»'] },
@@ -34,8 +34,8 @@
 
   function intro() {
     var best = KG.get('ojeo_' + KG.sport, 0);
-    stage.innerHTML = '<div class="oj oj-intro"><div class="oj-ig"><small class="kg-mono">Modo ojeador · ' + KG.sports[KG.sport].n + '</small><h2>Tienes <em>10 segundos</em><br>por ficha.</h2><p>Un ojeador lee decenas de fichas al día. Detecta los datos que le harían descartar a un jugador antes de que termine la cuenta atrás.</p>' +
-      '<div class="tr-meta"><span><b>3</b>fichas</span><span><b>10 s</b>cada una</span><span><b>' + (best || '—') + '</b>tu récord</span></div><button class="kg-btn pri" id="oj-go" type="button">Empezar a ojear</button></div>' +
+    stage.innerHTML = '<div class="oj oj-intro"><div class="oj-ig"><small class="kg-mono">Modo ojeador · ' + KG.sports[KG.sport].n + '</small><h2>Tienes <em>20 segundos</em><br>por ficha.</h2><p>Un ojeador lee decenas de fichas al día. Detecta los datos que le harían descartar a un jugador antes de que termine la cuenta atrás.</p>' +
+      '<div class="tr-meta"><span><b>3</b>fichas</span><span><b>20 s</b>cada una</span><span><b>' + (best || '—') + '</b>tu récord</span></div><button class="kg-btn pri" id="oj-go" type="button">Empezar a ojear</button></div>' +
       '<div class="oj-demo" aria-hidden="true"><div class="oj-scanbox"><i></i><b></b><span>ESCANEANDO FICHA…</span></div></div></div>';
     KG.$('#oj-go').addEventListener('click', function () { R = { i: 0, score: 0, hit: 0, tot: 0, fp: 0, missTips: {} }; round(); });
   }
@@ -47,7 +47,7 @@
       '<div class="oj-fi"><span class="kg-mono">Marcados</span><b id="oj-cnt">0</b></div>' +
       '<div class="oj-ring"><svg viewBox="0 0 60 60"><circle class="bg" cx="30" cy="30" r="26"/><circle class="fg" id="oj-fg" cx="30" cy="30" r="26"/></svg><b id="oj-sec">' + T + '</b></div></div>' +
       '<div class="oj-dos" id="oj-dos">' + mods + '<div class="oj-laser"></div><div class="oj-cv c1"></div><div class="oj-cv c2"></div><div class="oj-cv c3"></div><div class="oj-cv c4"></div>' +
-      '<div class="oj-cover" id="oj-cover"><div><small class="kg-mono">Ficha lista</small><h2>Ficha ' + (R.i + 1) + ' de ' + ROUNDS + '</h2><p>Hay ' + f.nBad + ' fallos. Toca lo que un ojeador descartaría.</p><button class="kg-btn pri" id="oj-start" type="button">Mostrar ficha · 10 s</button></div></div></div>' +
+      '<div class="oj-cover" id="oj-cover"><div><small class="kg-mono">Ficha lista</small><h2>Ficha ' + (R.i + 1) + ' de ' + ROUNDS + '</h2><p>Hay ' + f.nBad + ' fallos. Toca lo que un ojeador descartaría. Ojo: cada falsa alarma resta puntos.</p><button class="kg-btn pri" id="oj-start" type="button">Mostrar ficha · ' + T + ' s</button></div></div></div>' +
       '<div class="oj-bt"><span class="oj-msg" id="oj-msg">Toca los datos sospechosos para marcarlos.</span><button class="kg-btn" id="oj-end" type="button" disabled>Enviar informe</button></div></div>';
     KG.$('#oj-start').addEventListener('click', go);
     KG.$$('.oj-m').forEach(function (b) { b.addEventListener('click', function () { if (R.state !== 'play') return; var k = b.dataset.k; R.flag[k] = !R.flag[k]; b.classList.toggle('flag', R.flag[k]); KG.beep(R.flag[k] ? 740 : 520, .05, 'triangle', .05); KG.$('#oj-cnt').textContent = Object.keys(R.flag).filter(function (x) { return R.flag[x]; }).length; }); });
@@ -59,7 +59,7 @@
     R.t0 = performance.now(); var fg = KG.$('#oj-fg'), sec = KG.$('#oj-sec'), C = 2 * Math.PI * 26; fg.style.strokeDasharray = C;
     (function tick() {
       var left = T - (performance.now() - R.t0) / 1000; if (R.state !== 'play') return;
-      fg.style.strokeDashoffset = C * (1 - Math.max(0, left) / T); sec.textContent = Math.max(0, Math.ceil(left)); KG.$('.oj-ring').classList.toggle('lo', left < 3.2);
+      fg.style.strokeDashoffset = C * (1 - Math.max(0, left) / T); sec.textContent = Math.max(0, Math.ceil(left)); KG.$('.oj-ring').classList.toggle('lo', left < 4.2);
       if (left <= 0) return finishRound(false);
       raf = requestAnimationFrame(tick);
     })();
@@ -75,24 +75,25 @@
       else if (!o.bad && fl) { fp++; b.classList.add('fp'); res.textContent = '≈ Estaba bien'; }
       else b.classList.add('okm');
     });
-    var pts = hit * 100 - fp * 40 + (early && hit === f.nBad && !fp ? Math.round(left * 12) : 0); pts = Math.max(0, pts);
+    var pts = hit * 120 - fp * 100 + (early && hit === f.nBad && !fp ? Math.round(left * 10) : 0); pts = Math.max(0, pts);
+    var nFl = hit + fp, spam = nFl >= f.nBad + 3;
     R.score += pts; R.hit += hit; R.tot += f.nBad; R.fp += fp; miss.forEach(function (o) { R.missTips[o.tip] = 1; });
     KG.$('#oj-dos').classList.remove('scan'); KG.$('#oj-dos').classList.add('done');
     if (hit === f.nBad && !fp) { KG.sfx.ok(); var r = KG.$('#oj-dos').getBoundingClientRect(); KG.burst(r.left + r.width / 2, r.top + r.height / 2, 'var(--kc)', 24); } else KG.sfx.bad();
-    var msg = KG.$('#oj-msg'); msg.innerHTML = '<b>' + hit + '/' + f.nBad + '</b> fallos detectados' + (fp ? ' · ' + fp + ' falsa' + (fp > 1 ? 's' : '') + ' alarma' + (fp > 1 ? 's' : '') : '') + ' · <b>+' + pts + '</b>' + (miss.length ? '<br><i>' + KG.esc(miss[0].tip) + '</i>' : '');
+    var msg = KG.$('#oj-msg'); msg.innerHTML = '<b>' + hit + '/' + f.nBad + '</b> fallos detectados' + (fp ? ' · ' + fp + ' falsa' + (fp > 1 ? 's' : '') + ' alarma' + (fp > 1 ? 's' : '') : '') + ' · <b>+' + pts + '</b>' + (spam ? '<br><i>Marcarlo casi todo no es ojear: cada falsa alarma resta 100 puntos.</i>' : miss.length ? '<br><i>' + KG.esc(miss[0].tip) + '</i>' : '');
     var end = KG.$('#oj-end'); end.disabled = false; end.textContent = R.i + 1 >= ROUNDS ? 'Ver informe final' : 'Siguiente ficha'; end.classList.add('pri');
     end.replaceWith(end.cloneNode(true)); KG.$('#oj-end').addEventListener('click', function () { R.i++; if (R.i >= ROUNDS) final(); else round(); });
   }
 
   function final() {
     var key = 'ojeo_' + KG.sport, best = KG.get(key, 0), rec = R.score > best; if (rec) KG.set(key, R.score);
-    var pct = Math.round(R.hit / R.tot * 100), t = pct >= 90 && R.fp === 0 ? 'Director deportivo' : pct >= 75 ? 'Ojeador senior' : pct >= 50 ? 'Ojeador' : 'Ojeador junior';
+    var pct = Math.round(Math.max(0, R.hit - R.fp * 0.85) / R.tot * 100), t = pct >= 92 ? 'Director deportivo' : pct >= 75 ? 'Ojeador senior' : pct >= 50 ? 'Ojeador' : pct >= 25 ? 'Ojeador junior' : 'Aún sin ojo clínico';
     var tips = Object.keys(R.missTips).slice(0, 2);
     KG.sheet({
-      game: 'ojeador-10-segundos', kicker: 'Informe de ojeo · ' + KG.sports[KG.sport].n, big: R.score, title: t, bigSize: 190,
-      lines: [R.hit + ' de ' + R.tot + ' fallos detectados (' + pct + ' %)', R.fp ? R.fp + ' falsas alarmas' : 'Sin falsas alarmas', rec ? '🏆 ¡Nuevo récord!' : 'Tu récord: ' + best],
+      game: 'ojeador-de-fichas', kicker: 'Informe de ojeo · ' + KG.sports[KG.sport].n, big: R.score, title: t, bigSize: 190,
+      lines: [R.hit + ' de ' + R.tot + ' fallos detectados · precisión neta ' + pct + ' %', R.fp ? R.fp + ' falsa' + (R.fp > 1 ? 's' : '') + ' alarma' + (R.fp > 1 ? 's' : '') + ' (restan puntos)' : 'Sin falsas alarmas', rec ? '🏆 ¡Nuevo récord!' : 'Tu récord: ' + best],
       tip: tips.length ? '<b>Para tu ficha real:</b> ' + KG.esc(tips[0]) : '<b>Para tu ficha real:</b> cuida foto, vídeo, contacto y datos con contexto. Así te lee un ojeador.',
-      shareText: 'Soy «' + t + '» en el juego Ojeador en 10 segundos: ' + pct + ' % de fallos detectados. ¿Y tú?', shareUrl: location.origin + '/juegos/ojeador-10-segundos.html?d=' + KG.sport,
+      shareText: 'Soy «' + t + '» en el juego Ojeador de fichas de KINET: ' + pct + ' % de precisión. ¿Y tú?', shareUrl: location.origin + '/juegos/ojeador-de-fichas.html?d=' + KG.sport,
       again: function () { R = { i: 0, score: 0, hit: 0, tot: 0, fp: 0, missTips: {} }; round(); }, ctaTitle: 'Crea tu ficha deportiva real', ctaText: 'La ficha PRO de KINET te ayuda a presentar foto, vídeo y datos como le gusta a un ojeador.', win: pct >= 50
     });
   }

@@ -13,7 +13,7 @@
   function norm(s) { return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
   function build(sport) {
     var S = SCH[sport], rnd = KG.rng(KG.hash('ficha-' + sport)), seen = {}, out = [], guard = 0;
-    while (out.length < 60 && guard++ < 400) {
+    while (out.length < 520 && guard++ < 4000) {
       var p = KG.person(rnd); if (seen[p.full]) continue; seen[p.full] = 1;
       var pos = KG.pick(S.c1[1], rnd), age = 17 + Math.floor(rnd() * 20), h = Math.round(S.h[pos] + (rnd() - .5) * 14), media = 62 + Math.floor(rnd() * 34);
       out.push({ name: p.full, v: [pos, age, h, KG.pick(KG.COUNTRIES, rnd), KG.pick(S.c5[1], rnd), media] });
@@ -53,9 +53,10 @@
     var right = '<div class="fs-main"><div class="fs-hd"><div><small class="kg-mono">' + (mode === 'free' ? 'Partida libre' : 'Reto del día') + ' · ' + KG.sports[KG.sport].n + '</small><b>' + G.length + '/' + MAXG + ' intentos</b></div>' +
       '<div class="fs-st"><span>🔥 ' + (streak.d >= KG.day() - 1 ? streak.n : 0) + '</span></div></div>' +
       '<div class="fs-legend"><span class="g">Acierto</span><span class="y">Cerca</span><span class="n">Fallo</span><span class="ar">↑ ↓ es más / menos</span></div>' +
+      (fin ? '' : '<div class="fs-in"><input id="fs-q" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Escribe un nombre o apellido… (' + P.length + ' jugadores)" aria-label="Nombre del jugador"><div class="fs-sug" id="fs-sug" role="listbox"></div></div>') +
       '<div class="fs-rows">' + rows + '</div>' +
       (fin ? '<div class="fs-end"><button class="kg-btn pri" id="fs-res" type="button">Ver resultado</button><button class="kg-btn" id="fs-free" type="button">Partida libre</button>' + (mode === 'free' ? '<button class="kg-btn" id="fs-day" type="button">Volver al reto del día</button>' : '') + '</div>' :
-        '<div class="fs-in"><input id="fs-q" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Escribe un nombre de jugador…" aria-label="Nombre del jugador"><div class="fs-sug" id="fs-sug" role="listbox"></div></div>') + '</div>';
+        '') + '</div>';
     stage.innerHTML = '<div class="fs">' + left + right + '</div>';
     if (fin) { KG.$('#fs-res').onclick = result; KG.$('#fs-free').onclick = function () { mode = 'free'; load(); }; var d = KG.$('#fs-day'); if (d) d.onclick = function () { mode = 'day'; load(); }; }
     else wire();
@@ -66,10 +67,11 @@
     var q = KG.$('#fs-q'), box = KG.$('#fs-sug');
     function render() {
       var v = norm(q.value.trim()), used = {}; G.forEach(function (g) { used[g.name] = 1; });
-      sug = v.length < 1 ? [] : P.filter(function (p) { return !used[p.name] && norm(p.name).indexOf(v) >= 0; }).slice(0, 6);
+      sug = v.length < 1 ? [] : P.filter(function (p) { return !used[p.name] && norm(p.name).indexOf(v) >= 0; }).slice(0, 12);
       if (sel >= sug.length) sel = sug.length - 1;
       box.innerHTML = sug.map(function (p, i) { return '<button type="button" role="option" class="' + (i === sel ? 'on' : '') + '" data-i="' + i + '"><b>' + KG.esc(p.name) + '</b><span>' + KG.esc(p.v[0] + ' · ' + p.v[3]) + '</span></button>'; }).join('');
       box.classList.toggle('open', sug.length > 0);
+      var on = box.querySelector('.on'); if (on && on.scrollIntoView) { var t = on.offsetTop, h = on.offsetHeight; if (t < box.scrollTop) box.scrollTop = t; else if (t + h > box.scrollTop + box.clientHeight) box.scrollTop = t + h - box.clientHeight; }
     }
     q.addEventListener('input', function () { sel = 0; render(); });
     q.addEventListener('keydown', function (e) {
