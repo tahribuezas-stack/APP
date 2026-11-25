@@ -64,6 +64,20 @@
       }, 2600);
     }
 
+    /* halo que acompaña al cursor + onda al pulsar (como en la app) */
+    if (FINE && !RM) {
+      var ring = document.createElement('div'); ring.id = 'kb-cur'; ring.setAttribute('aria-hidden', 'true'); document.body.appendChild(ring);
+      var H = document.documentElement, mx = -100, my = -100, rx = -100, ry = -100, craf = 0, first = true, HOT = 'a,button,[role=button],summary,select,label,.nd,.chip,.card,.dk,.fc';
+      var cloop = function () { rx += (mx - rx) * .22; ry += (my - ry) * .22; ring.style.transform = 'translate3d(' + rx.toFixed(1) + 'px,' + ry.toFixed(1) + 'px,0)'; craf = (Math.abs(mx - rx) > .1 || Math.abs(my - ry) > .1) ? requestAnimationFrame(cloop) : 0; };
+      document.addEventListener('mousemove', function (e) { mx = e.clientX; my = e.clientY; if (first) { first = false; rx = mx; ry = my; H.classList.add('kb-cur-on'); } if (!craf) craf = requestAnimationFrame(cloop); }, { passive: true });
+      document.addEventListener('mouseover', function (e) { var t = e.target; if (!t || !t.closest) return; H.classList.toggle('kb-cur-hot', !!t.closest(HOT)); H.classList.toggle('kb-cur-text', !!t.closest('input,textarea')); }, { passive: true });
+      document.addEventListener('mousedown', function () { H.classList.add('kb-cur-down'); }, { passive: true });
+      document.addEventListener('mouseup', function () { H.classList.remove('kb-cur-down'); }, { passive: true });
+      H.addEventListener('mouseleave', function () { H.classList.remove('kb-cur-on'); });
+      H.addEventListener('mouseenter', function () { if (!first) H.classList.add('kb-cur-on'); });
+      document.addEventListener('pointerdown', function (e) { if (e.button) return; var p = document.createElement('div'); p.className = 'kb-pulse'; p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px'; document.body.appendChild(p); setTimeout(function () { p.remove(); }, 750); }, { passive: true });
+    }
+
     /* foco que sigue al cursor + inclinación suave + imanes (solo ratón) */
     if (FINE && !RM) {
       var SP = '.card,.tt,.kcard,.cta,.tool,.side-box';
