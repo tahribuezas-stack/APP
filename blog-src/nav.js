@@ -52,7 +52,7 @@
   nodes.forEach(function (n) { n.a0 = (TAU * n.idx / perRing[n.ring]) + n.ring * .7 - 1.2; n.w = n.ring ? .000115 : .00021; });
 
   /* ───── geometría ───── */
-  var W = 0, H = 0, DPR = 1, cx = 0, cy = 0, cxT = 0, cyT = 0, M = false, WIDE = false, RMAX = 300, R = [0, 0], PS = .55, NZ = 96, F = 1500;
+  var W = 0, H = 0, CW = 0, CH = 0, OX = 0, OY = 0, DPR = 1, cx = 0, cy = 0, cxT = 0, cyT = 0, M = false, WIDE = false, RMAX = 300, R = [0, 0], PS = .55, NZ = 96, F = 1500;
   var PCOL = ['rgba(210,232,255,', 'rgba(0,255,136,', 'rgba(34,211,238,', 'rgba(167,139,250,'];
   var parts = [], neb = [], sprites = [], glow = null;
   function gauss() { return (Math.random() + Math.random() + Math.random() - 1.5) / 1.5; }
@@ -87,8 +87,13 @@
   function layout() {
     W = stage.clientWidth; H = stage.clientHeight; if (!W || !H) return;
     M = W < 640; WIDE = W >= 1160;
-    DPR = Math.min(window.devicePixelRatio || 1, M ? 1.5 : 1.75);
-    cvs.width = Math.round(W * DPR); cvs.height = Math.round(H * DPR); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    /* el lienzo es más grande que el escenario (sin bordes visibles): se extiende a todo el ancho de la ventana y 170px arriba y abajo */
+    var vw = document.documentElement.clientWidth || W; OX = Math.max(0, Math.round((vw - W) / 2)); OY = M ? 90 : 170;
+    CW = W + OX * 2; CH = H + OY * 2;
+    DPR = Math.min(window.devicePixelRatio || 1, M ? 1.5 : 1.25, Math.sqrt((M ? 2.2e6 : 2.6e6) / (CW * CH)));
+    cvs.width = Math.round(CW * DPR); cvs.height = Math.round(CH * DPR); ctx.setTransform(DPR, 0, 0, DPR, OX * DPR, OY * DPR);
+    cvs.style.cssText = 'left:' + (-OX) + 'px;top:' + (-OY) + 'px;width:' + CW + 'px;height:' + CH + 'px';
+    stage.style.setProperty('--ox', OX + 'px'); stage.style.setProperty('--oy', OY + 'px');
     if (M) { R[1] = Math.min(W * .4, 170); PS = .62; NZ = 47; cxT = W / 2; cyT = H * .25; }
     else if (WIDE) { R[1] = Math.min(W * .27, (H / 2 - 112) / .5, 420); PS = .5; NZ = 82; cxT = W * .675; cyT = H * .52; }
     else { R[1] = Math.min(W * .36, 300); PS = .52; NZ = 74; cxT = W / 2; cyT = H * .52; }
@@ -101,7 +106,7 @@
 
   /* ───── estado ───── */
   var mode = 'orbit', selNode = null, hov = null, t = 0, ts = 1, live = false, t0 = 0, last = 0;
-  var yawD = 0, yawV = 0, dragging = false, mxn = 0, myn = 0, mxs = 0, mys = 0, wp = 0, wpT = 0, tint = [0, 255, 136], tintT = [0, 255, 136];
+  var sp = null, spP = 0, yawD = 0, yawV = 0, dragging = false, mxn = 0, myn = 0, mxs = 0, mys = 0, wp = 0, wpT = 0, tint = [0, 255, 136], tintT = [0, 255, 136];
   var stride = 1, ema = 16, qT = 0, yaw = 0, pitch = .55, cY = 1, sY = 0, cP = 1, sP = 0, out = { x: 0, y: 0, k: 1, z: 0 };
 
   function prj(x, y, z) {
@@ -111,7 +116,7 @@
 
   /* ───── dibujo del campo de partículas ───── */
   function draw(now) {
-    ctx.clearRect(0, 0, W, H);
+    ctx.clearRect(-OX, -OY, CW, CH);
     var fade = mode === 'topic' ? .5 : 1;
     /* halo del núcleo */
     var gs = (M ? 330 : 520) * (RMAX / 380), pc = prj(0, 0, 0), gx = pc.x, gy = pc.y;
@@ -144,8 +149,8 @@
     }
     ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
     /* órbitas */
-    if (mode === 'orbit' || mode === 'travel') {
-      var ro = (mode === 'orbit' ? 1 : 0) * (1 - wp);
+    if (mode === 'orbit' || mode === 'spin' || mode === 'travel') {
+      var ro = (mode === 'orbit' || mode === 'spin' ? 1 - spP * .6 : 0) * (1 - wp);
       if (ro > .02) {
         for (var rg = 0; rg < 2; rg++) {
           var rad = R[rg], inc = rg ? .2 : -.12, ci = Math.cos(inc), si = Math.sin(inc), SEG = M ? 56 : 90, prevx, prevy;
@@ -173,16 +178,19 @@
     var rad = R[n.ring], a = n.a0 + t * n.w, inc = n.ring ? .2 : -.12, oz = Math.sin(a) * rad, q = prj(Math.cos(a) * rad, oz * Math.sin(inc), oz * Math.cos(inc));
     var dep = 1 - Math.min(1, Math.max(0, (q.z + rad) / (rad * 2)));    /* 1 = cerca de la cámara */
     var s = q.k * (.78 + dep * .28), o = .5 + .5 * dep, bob = RM ? 0 : Math.sin(now / 1100 + n.ph) * 3.5;
-    if (hov) { if (hov === n) { s = Math.max(s, 1.04) * 1.2; o = 1; } else o *= .5; }
-    return { x: q.x, y: q.y + bob, s: s * (NZ / 98), o: o, z: 4 + Math.round(dep * 14) + (hov === n ? 30 : 0), dep: dep };
+    if (mode === 'spin') { if (n === selNode) { s *= 1 + .42 * spP; o = 1; dep = 1; } else o *= 1 - .7 * spP; }
+    else if (hov) { if (hov === n) { s = Math.max(s, 1.04) * 1.2; o = 1; } else o *= .5; }
+    return { x: q.x, y: q.y + bob, s: s * (NZ / 98), o: o, z: mode === 'spin' && n === selNode ? 40 : 4 + Math.round(dep * 14) + (hov === n ? 30 : 0), dep: dep };
   }
   function spring(n, tg, dt) {
     if (RM) { n.x = tg.x; n.y = tg.y; n.s = tg.s; n.o = tg.o; return; }
-    var k = mode === 'travel' ? 120 : 190, d = mode === 'travel' ? 15 : 18;
-    n.vx += ((tg.x - n.x) * k - n.vx * d) * dt; n.x += n.vx * dt;
-    n.vy += ((tg.y - n.y) * k - n.vy * d) * dt; n.y += n.vy * dt;
-    n.vs += ((tg.s - n.s) * k - n.vs * d) * dt; n.s += n.vs * dt;
-    n.o += (tg.o - n.o) * Math.min(1, dt * (mode === 'travel' ? 12 : 8));
+    var k = mode === 'travel' ? 120 : 190, d = mode === 'travel' ? 15 : 18, m = Math.ceil(dt / .0167), h = dt / m;
+    for (var q = 0; q < m; q++) {
+      n.vx += ((tg.x - n.x) * k - n.vx * d) * h; n.x += n.vx * h;
+      n.vy += ((tg.y - n.y) * k - n.vy * d) * h; n.y += n.vy * h;
+      n.vs += ((tg.s - n.s) * k - n.vs * d) * h; n.s += n.vs * h;
+    }
+    n.o += (tg.o - n.o) * (1 - Math.exp(-dt * (mode === 'travel' ? 12 : 8)));
   }
   function paint(n, tg, now) {
     var s = Math.max(0, n.s), st = n.el.style;
@@ -191,7 +199,7 @@
     st.zIndex = n === selNode ? 40 : (tg.z || 1);
     st.pointerEvents = (n.o < .3 || mode !== 'orbit') ? 'none' : '';
     st.visibility = n.o < .01 && n.s < .05 ? 'hidden' : '';
-    if (mode === 'orbit') { var lo = tg.dep === undefined ? 1 : Math.max(0, Math.min(1, (tg.dep - .28) / .3)); if (hov === n) lo = 1; n.lo += (lo - n.lo) * .12; st.setProperty('--lo', n.lo.toFixed(2)); }
+    if (mode === 'orbit' || mode === 'spin') { var lo = tg.dep === undefined ? 1 : Math.max(0, Math.min(1, (tg.dep - .28) / .3)); if (hov === n) lo = 1; n.lo += (lo - n.lo) * .12; st.setProperty('--lo', n.lo.toFixed(2)); }
     if (n.moon) {
       var ma = now * n.ms + n.ph, mx = Math.cos(ma) * NZ * .8, my = Math.sin(ma) * NZ * .28 - 4, front = Math.sin(ma) > 0, ms = .82 + .32 * (Math.sin(ma) * .5 + .5);
       n.moon.style.transform = 'translate(' + mx.toFixed(1) + 'px,' + my.toFixed(1) + 'px) scale(' + ms.toFixed(2) + ')'; n.moon.style.zIndex = front ? 4 : 0;
@@ -201,19 +209,20 @@
   var running = false;
   function frame(now) {
     if (!running) return;
-    var raw = now - (last || now), dt = Math.min(.033, raw / 1000), rdt = dt * 1000; last = now;
+    var raw = now - (last || now), dt = Math.min(.12, raw / 1000), rdt = dt * 1000; last = now;
     if (window.KB_Q) stride = window.KB_Q; else if (raw > 0 && raw < 200) { ema += (raw - ema) * .06; if (now - qT > 1400) { if (ema > 26 && stride < 4) { stride++; qT = now; } else if (ema < 17.5 && stride > 1) { stride--; qT = now + 2500; } } }
-    ts += ((hov || mode !== 'orbit' || dragging ? .12 : 1) - ts) * Math.min(1, dt * 6);
+    ts += ((hov || (mode !== 'orbit' && mode !== 'spin') || dragging ? .12 : (mode === 'spin' ? .25 : 1)) - ts) * (1 - Math.exp(-dt * 6));
     if (!RM) t += rdt * ts;
     if (!dragging) { yawD += yawV * rdt; yawV *= Math.pow(.0045, dt); }
     mxs += (mxn - mxs) * .06; mys += (myn - mys) * .06;
-    wp += (wpT - wp) * Math.min(1, dt * (wpT > wp ? 5.2 : 3.4)); if (Math.abs(wp - wpT) < .003) wp = wpT;
-    cx += (cxT - cx) * Math.min(1, dt * 3.2); cy += (cyT - cy) * Math.min(1, dt * 3.2);
+    wp += (wpT - wp) * (1 - Math.exp(-dt * (wpT > wp ? 5.2 : 3.4))); if (Math.abs(wp - wpT) < .003) wp = wpT;
+    cx += (cxT - cx) * (1 - Math.exp(-dt * 3.2)); cy += (cyT - cy) * (1 - Math.exp(-dt * 3.2));
+    if (sp) { var u = Math.min(1, (now - sp.t0) / sp.d); spP = u; yawD = sp.a + (sp.b - sp.a) * (1 - Math.pow(1 - u, 3)); yawV = 0; if (u >= 1) { var f = sp.done; sp = null; f(); } }
     yaw = yawD + mxs * .5; pitch = PS + (mode === 'orbit' ? -mys * .16 : 0);
     var spin = Math.sin(pitch); sP = spin; cP = Math.cos(pitch); cY = Math.cos(yaw); sY = Math.sin(yaw);
     for (var i = 0; i < nodes.length; i++) { var n = nodes[i], tg = target(n, now); spring(n, tg, dt); paint(n, tg, now); }
     draw(now);
-    var co = (mode === 'orbit' && live) ? 1 - wp : 0, cs = Math.max(0, Math.min(1, co)).toFixed(2), q = prj(0, 0, 0);
+    var co = ((mode === 'orbit' || mode === 'spin') && live) ? (1 - wp) * (1 - spP * .85) : 0, cs = Math.max(0, Math.min(1, co)).toFixed(2), q = prj(0, 0, 0);
     core.style.opacity = cs; core.style.transform = 'translate3d(' + q.x.toFixed(1) + 'px,' + q.y.toFixed(1) + 'px,0) translate(-50%,-50%)';
     stage.style.setProperty('--wp', wp.toFixed(3));
     requestAnimationFrame(frame);
@@ -236,6 +245,7 @@
 
   /* arrastrar para girar (inercia) · el ratón además inclina la cámara */
   var dragX = 0, dragId = -1, justDragged = false, lastX = 0, lastT = 0;
+  stage.addEventListener('dragstart', function (e) { e.preventDefault(); });
   stage.addEventListener('pointerdown', function (e) {
     if (mode !== 'orbit' || e.button || (e.target.closest && e.target.closest('.kbn-back'))) return;
     dragging = true; dragX = e.clientX; lastX = e.clientX; lastT = performance.now(); dragId = e.pointerId; justDragged = false; yawV = 0;
@@ -263,19 +273,28 @@
     var tp = n.tp;
     if (tp.href) { n.el.classList.add('burst'); if (window.KBSpace) KBSpace.go(tp.href, tp.c); else location.assign(tp.href); return; }
     selNode = n; hov = null; n.el.classList.remove('hot'); n.el.classList.add('sel'); say(false);
-    mode = 'travel'; stage.dataset.mode = 'travel'; stage.style.setProperty('--tc', tp.c);
+    selT.textContent = tp.n; selS.textContent = tp.sub; stage.style.setProperty('--tc', tp.c);
+    var r = stage.getBoundingClientRect(); if (r.top < -20 || r.bottom > innerHeight + 20) stage.scrollIntoView({ behavior: RM ? 'auto' : 'smooth', block: 'center' });
+    dragging = false; stage.classList.remove('drag'); yawV = 0;
+    if (RM) return travel(tp);
+    /* 1) la órbita gira hasta traer el planeta al frente (ángulo más corto) */
+    var a = n.a0 + t * n.w, want = -Math.PI / 2 - a, dY = want - yawD; dY = dY - Math.round(dY / TAU) * TAU;
+    mode = 'spin'; stage.dataset.mode = 'spin'; spP = 0; hint.classList.remove('on');
+    sp = { a: yawD, b: yawD + dY, t0: performance.now(), d: Math.min(1000, 520 + Math.abs(dY) * 170), done: function () { travel(tp); } };
+  }
+  /* 2) salto espacial hacia el tema */
+  function travel(tp) {
+    mode = 'travel'; stage.dataset.mode = 'travel'; spP = 0;
     stage.classList.add('flash'); setTimeout(function () { stage.classList.remove('flash'); }, 900);
-    selT.textContent = tp.n; selS.textContent = tp.sub;
     if (window.KBSpace && !RM) KBSpace.burst(tp.c, 900);
     wpT = RM ? 0 : 1;
-    var r = stage.getBoundingClientRect(); if (r.top < -20 || r.bottom > innerHeight + 20) stage.scrollIntoView({ behavior: RM ? 'auto' : 'smooth', block: 'center' });
     setTimeout(function () {
       mode = 'topic'; stage.dataset.mode = 'topic'; wpT = 0; cxT = W / 2; cyT = H * .5;
       if (tp.how) buildFan(tp); else buildDock(tp);
       stage.classList.add('open');
       requestAnimationFrame(function () { requestAnimationFrame(function () { dock.classList.add('is-in'); fan.classList.add('is-in'); }); });
       try { backB.focus({ preventScroll: true }); } catch (e) {}
-    }, RM ? 0 : 780);
+    }, RM ? 0 : 700);
   }
   function back() {
     if (mode !== 'topic') return;
@@ -340,5 +359,5 @@
     new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { go(); if (!RM) start(); } else running = false; }); }, { threshold: .08 }).observe(stage);
   } else go();
   document.addEventListener('visibilitychange', function () { if (document.hidden) running = false; else if (live && !RM) start(); });
-  window.KBOrbit = { stage: stage };
+  window.KBOrbit = { stage: stage, get yaw() { return yawD; }, get mode() { return mode; } };
 })();

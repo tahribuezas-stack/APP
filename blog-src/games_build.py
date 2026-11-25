@@ -76,10 +76,11 @@ def build(ROOT, SRC, V, page, BACK, ARROW):
     # sala de juegos
     avail = [g for g in GAMES if os.path.exists(os.path.join(gdir, g['js']))]
     data = json.dumps([{k: g[k] for k in ('slug', 'n', 'name', 'short', 'tag', 'time')} for g in avail], ensure_ascii=False).replace('</', '<\\/')
-    hub = f'''<div class="kh" id="kh"><div class="kh-top"><div class="kh-ttl"><small>Juegos KINET · sin registro</small><h1>Entrena <em>jugando</em></h1><p>Quizzes y juegos cortos para mejorar tu ojo táctico, tus reflejos y tu ritmo. Elige tu deporte y entra: sin cuenta, sin descargas.</p></div>
-<div class="kg-ctl"><div class="kg-sports" id="kg-sports"></div><button class="kg-mute" id="kg-mute" type="button" aria-label="Sonido">{MUTE}</button></div></div>
-<div class="kh-stage" id="kh-stage"><div class="kh-floor"></div><div class="kh-ring" id="kh-ring"></div></div>
-<div class="kh-info" id="kh-info"></div><div class="kh-dots" id="kh-dots" role="tablist"></div>
+    AR_L = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>'; AR_R = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>'
+    hub = f'''<div class="kh" id="kh"><aside class="kh-side"><small class="kh-tag">Juegos KINET · sin registro</small><h1><span>Entrena</span> <em>jugando</em></h1><p>Quizzes y juegos cortos para mejorar tu ojo táctico, tus reflejos y tu ritmo. Elige tu deporte y entra: sin cuenta, sin descargas.</p><ol class="kh-list" id="kh-list"></ol></aside>
+<section class="kh-main"><div class="kh-wrap"><div class="kh-stage" id="kh-stage"><div class="kh-ring" id="kh-ring"></div></div><button class="kh-ar l" id="kh-prev" type="button" aria-label="Juego anterior">{AR_L}</button><button class="kh-ar r" id="kh-next" type="button" aria-label="Juego siguiente">{AR_R}</button><div class="kh-dots" id="kh-dots" role="tablist"></div></div>
+<div class="kg-ctl"><div class="kg-sports" id="kg-sports"></div><button class="kg-mute" id="kg-mute" type="button" aria-label="Sonido">{MUTE}</button></div>
+<div class="khgo" id="khgo"></div><div class="kh-info" id="kh-info"></div></section>
 <script type="application/json" id="kh-data">{data}</script></div>'''
     ld = {"@context": "https://schema.org", "@type": "CollectionPage", "name": "Juegos deportivos gratis", "url": "https://kinetos.es/juegos/", "inLanguage": "es"}
     scripts = f'<script src="/juegos/g-core.js?v={V}" defer></script><script src="/juegos/g-hub.js?v={V}" defer></script>'

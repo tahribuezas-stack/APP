@@ -1,0 +1,44 @@
+/* KINET OS · efectos comunes (blog, herramientas, juegos): luz del cursor, textos animados, entrada de página. */
+@property --sx{syntax:'<length-percentage>';inherits:true;initial-value:50%}
+@property --sy{syntax:'<length-percentage>';inherits:true;initial-value:50%}
+
+/* luz que sigue al cursor sobre la página (solo ratón) */
+.fx-cur{position:fixed;left:0;top:0;width:520px;height:520px;margin:-260px 0 0 -260px;z-index:4;pointer-events:none;opacity:0;transition:opacity .5s;will-change:transform;mix-blend-mode:screen;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--fxc,#00FF88) 15%,transparent),color-mix(in srgb,var(--fxc,#00FF88) 5%,transparent) 55%,transparent 100%)}
+.fx-cur.on{opacity:1}
+/* luz interior de tarjetas: sigue al cursor; en táctil deriva sola y sigue al dedo */
+.fx-t{position:relative}
+.fx-gl{position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .35s;z-index:3;mix-blend-mode:screen;
+  background:radial-gradient(280px circle at var(--sx) var(--sy),color-mix(in srgb,var(--fxa,#00FF88) 26%,transparent),transparent 66%)}
+.fx-t:hover>.fx-gl,.fx-t.fx-hot>.fx-gl{opacity:1}
+@media(hover:none),(pointer:coarse){
+  .fx-gl{opacity:0}
+  .fx-t.fx-vis>.fx-gl{opacity:.7;animation:fxDrift 6.5s ease-in-out infinite alternate;animation-delay:var(--fxd,0s)}
+  .fx-t.fx-touch>.fx-gl{animation:none;opacity:1;transition:opacity .15s}
+}
+@keyframes fxDrift{0%{--sx:15%;--sy:20%}50%{--sx:80%;--sy:35%}100%{--sx:35%;--sy:85%}}
+
+/* titulares: palabra a palabra */
+.fx-w{display:inline-block;overflow:hidden;vertical-align:bottom;padding-bottom:.12em;margin-bottom:-.12em}
+.fx-w>i{display:inline-block;font-style:inherit;transform:translateY(112%) rotate(3deg);opacity:0;filter:blur(6px);transition:transform .8s var(--ease,cubic-bezier(.2,.8,.2,1)) calc(var(--i)*70ms + 120ms),opacity .6s ease calc(var(--i)*70ms + 120ms),filter .7s ease calc(var(--i)*70ms + 120ms)}
+.fx-split.fx-done .fx-w{overflow:visible;padding-bottom:0;margin-bottom:0}
+.fx-split.fx-go .fx-w>i{transform:none;opacity:1;filter:none}
+/* títulos de sección y textos de apoyo al entrar en pantalla */
+.fx-rv{opacity:0;transform:translateY(22px);filter:blur(5px);transition:opacity .7s ease,transform .9s var(--ease,cubic-bezier(.2,.8,.2,1)),filter .7s ease;transition-delay:var(--fxd2,0s)}
+.fx-rv.fx-in{opacity:1;transform:none;filter:none}
+h2.fx-rv::before{transition:transform .9s var(--ease,cubic-bezier(.2,.8,.2,1)) .15s}
+h2.fx-rv:not(.fx-in)::before{transform:scaleY(0)}
+/* entrada de la página (cuando no llegas con el salto espacial) */
+html.fx-enter header.top{animation:fxDown .7s var(--ease,cubic-bezier(.2,.8,.2,1)) both}
+html.fx-enter main{animation:fxUp .9s var(--ease,cubic-bezier(.2,.8,.2,1)) .08s both}
+html.fx-enter footer.foot{animation:fxUp 1s ease .25s both}
+@keyframes fxDown{from{opacity:0;transform:translateY(-14px)}}
+@keyframes fxUp{from{opacity:0;transform:translateY(26px) scale(.992);filter:blur(6px)}}
+/* salida: la página se aleja antes del salto espacial */
+html.kb-warp-out main{filter:blur(5px)}
+html.kb-warp-out header.top{transform:translateY(-10px)}
+/* barra superior: enlaces neón como en la portada */
+nav.top-nav a:hover{color:var(--g,#00FF88)!important;text-shadow:0 0 14px rgba(0,255,136,.45)}
+nav.top-nav a.on{color:#fff}
+.kb-backbar .kb-back{transition:transform .35s var(--ease,cubic-bezier(.2,.8,.2,1)),color .25s}.kb-backbar .kb-back:hover{transform:translateX(-4px);color:var(--g,#00FF88)}
+@media (prefers-reduced-motion:reduce){.fx-w>i,.fx-rv{opacity:1!important;transform:none!important;filter:none!important;transition:none!important}.fx-gl,.fx-cur{display:none}html.fx-enter header.top,html.fx-enter main,html.fx-enter footer.foot{animation:none}}

@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import navdata, games_build
 SRC = os.path.join(ROOT, 'blog-src')
 SITE = 'https://kinetos.es'
-V = '8'   # versión de css/js: súbela si cambias el diseño
+V = '10'   # versión de css/js: súbela si cambias el diseño
 CATS = {
  'entrenamiento': 'Entrenamiento', 'futbol': 'Fútbol', 'tenis': 'Tenis y pádel', 'salud': 'Salud y recuperación',
  'carrera': 'Carrera deportiva', 'tecnologia': 'Tecnología y IA', 'nutricion': 'Nutrición', 'mental': 'Mente y rendimiento',
@@ -142,8 +142,8 @@ def page(title, desc, path, body, active, extra_head='', og_type='website', json
 <link rel="canonical" href="{url}">
 <meta property="og:type" content="{og_type}"><meta property="og:title" content="{html.escape(title, quote=True)}"><meta property="og:description" content="{html.escape(desc, quote=True)}"><meta property="og:url" content="{url}"><meta property="og:locale" content="es_ES"><meta property="og:site_name" content="KINET OS"><meta property="og:image" content="{SITE}/icons/icon-512.png">
 <meta name="twitter:card" content="summary">
-{ICON}{FONTS}<link rel="stylesheet" href="/blog/blog.css?v={V}">{extra_head}{ld}
-<script src="/blog/kb-index.js?v={V}" defer></script><script src="/blog/space.js?v={V}" defer></script><script src="/blog/blog.js?v={V}" defer></script>
+{ICON}{FONTS}<link rel="stylesheet" href="/blog/blog.css?v={V}"><link rel="stylesheet" href="/blog/fx.css?v={V}">{extra_head}{ld}
+<script src="/blog/kb-index.js?v={V}" defer></script><script src="/blog/space.js?v={V}" defer></script><script src="/blog/blog.js?v={V}" defer></script><script src="/blog/fx.js?v={V}" defer></script>
 </head><body>
 {header(active, back)}
 {backbar(back)}<main>{body}</main>
@@ -220,6 +220,8 @@ def main():
     shutil.copy(os.path.join(SRC, 'nav.css'), os.path.join(ROOT, 'blog', 'nav.css'))
     shutil.copy(os.path.join(SRC, 'nav.js'), os.path.join(ROOT, 'blog', 'nav.js'))
     shutil.copy(os.path.join(SRC, 'space.js'), os.path.join(ROOT, 'blog', 'space.js'))
+    shutil.copy(os.path.join(SRC, 'fx.js'), os.path.join(ROOT, 'blog', 'fx.js'))
+    shutil.copy(os.path.join(SRC, 'fx.css'), os.path.join(ROOT, 'blog', 'fx.css'))
     shutil.copy(os.path.join(SRC, 'art.js'), os.path.join(ROOT, 'blog', 'art.js'))
     shutil.copy(os.path.join(SRC, 'tools.js'), os.path.join(ROOT, 'herramientas', 'tools.js'))
     urls = [('/', '1.0'), ('/blog/', '0.8'), ('/herramientas/', '0.8'), ('/soporte.html', '0.4')]
