@@ -101,6 +101,8 @@
       }
     }
 
+    /* al desplegar un plan, solo crece esa tarjeta: las demás conservan su altura */
+    #plans-grid.plans-open { align-items: start !important; }
     .plan-card-zoom {
       transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
                   border-color 0.4s ease, 
@@ -377,8 +379,10 @@
 #precios h2{font-size:clamp(1.3rem,2.6vw,2rem) !important}
 @media (max-width:640px){#card-section>.glass-card,#vision-section>.glass-card,#analizador-section>.glass-card,#media-section>.glass-card{padding:12px !important}}
 </style>
-<link rel="stylesheet" href="kinet-fx.css?v=48">
-<script src="kinet-fx.js?v=48"></script>
+<link rel="stylesheet" href="kinet-fx.css?v=51">
+<script src="kinet-fx.js?v=51"></script>
+<script src="kinet-stores.js?v=51"></script>
+<script src="kinet-launch.js?v=51"></script>
 </head>
 <body style="--spotlight-color: rgba(0, 255, 102, 0.25);" class="bg-cyber-pattern text-slate-100 font-sans min-h-screen flex flex-col selection:bg-kinet-neon selection:text-black opacity-0 transition-opacity duration-300">
 
@@ -905,7 +909,7 @@
         <p class="text-xs sm:text-sm text-slate-400">Pulsa sobre cualquiera de las 3 tarjetas para desplegar todas las ventajas, modelos de IA y diferencias entre el plan individual y la suite de entrenadores/scouts.</p>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto items-stretch">
+      <div id="plans-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto items-stretch">
         
         <!-- PLAN 1: GRATUITO (0€) -->
         <div onclick="togglePlanDetail('plan-free')" class="glass-card plan-card-zoom p-5 sm:p-8 rounded-3xl flex flex-col justify-between space-y-5 border-slate-800 cursor-pointer relative group" id="plan-free">
@@ -1144,7 +1148,7 @@
       </div>
 
       <div class="flex items-center space-x-1.5 shrink-0">
-        <button onclick="cambiarPagina('app-redirect.html')" class="px-3 py-2 rounded-xl bg-kinet-neon text-black font-display font-black text-[10px] tracking-wider uppercase hover:bg-emerald-400 transition cursor-pointer shadow-[0_0_15px_rgba(0,255,102,0.35)] flex items-center space-x-1">
+        <button onclick="KinetLaunch.open()" aria-haspopup="dialog" class="px-3 py-2 rounded-xl bg-kinet-neon text-black font-display font-black text-[10px] tracking-wider uppercase hover:bg-emerald-400 transition cursor-pointer shadow-[0_0_15px_rgba(0,255,102,0.35)] flex items-center space-x-1">
           <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
           <span>Abrir App</span>
         </button>
@@ -1531,6 +1535,8 @@
         targetCard.classList.add('plan-expanded');
         if (targetIcon) targetIcon.style.transform = 'rotate(180deg)';
       }
+      const grid = document.getElementById('plans-grid');
+      if (grid) grid.classList.toggle('plans-open', !isAlreadyOpen);
     }
 
     function scrollToTop() {

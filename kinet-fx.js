@@ -22,9 +22,11 @@
   function ls(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 
   var path = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
-  var SHELL = /^(app|cuerpo-tecnico|ficha-pro|ojeador-live|analizador|comunidad|media-studio|despacho|perfil|gestion|estado)\.html$/.test(path);
+  var SHELL = /^(app|cuerpo-tecnico|ficha-pro|ojeador-live|analizador|comunidad|media-studio|despacho|perfil|gestion|estado|movil)\.html$/.test(path);
+  // El marco de luz que recorre el cuadro de contenido es solo de la app (no de portada, soporte, onboarding, login, legal…)
+  var FRAME = /^(app|cuerpo-tecnico|ficha-pro|ojeador-live|analizador|analizador2|analizador3|comunidad|media-studio|despacho|perfil|gestion|tutorial)\.html$/.test(path);
   var NAV_FROM = ss('kx_nav_from');   // se lee antes de que el menú lo consuma: dice desde qué opción venimos (avanzar o retroceder)
-  if (SHELL && path !== 'gestion.html') doc.classList.add('kx-cards');   // los cuadros se mueven igual que en Gestión
+  if ((SHELL || FRAME) && path !== 'gestion.html') doc.classList.add('kx-cards');   // los cuadros se mueven igual que en Gestión
   var NOFX_PAGES = false;   // (estado.html ya usa los efectos: intro, barra LED y cuadros)
   if (NOFX_PAGES) { window.KinetFX = { rebuild: function () {}, go: function (u) { location.href = u; } }; return; }
 
@@ -172,6 +174,11 @@
     var now = Date.now(); if (!o.force && now - lastRebuild < 350 && !o.page) return; lastRebuild = now;
     root = root || document.querySelector('.tab-content.active, .os-workspace') || document.querySelector('main') || document.body;
     var ws = o.page ? (document.querySelector('.os-workspace') || document.querySelector('main') || document.body) : root;
+    if (!SHELL && !FRAME) {   // portada, soporte, onboarding, login…: solo una subida suave de las tarjetas (sin marcos de luz)
+      var soft = [].slice.call(ws.querySelectorAll(CARD_SEL)).filter(visible).slice(0, 18);
+      soft.forEach(function (el, i) { if (el.animate) el.animate([{ opacity: 0, translate: '0 26px', scale: '.97' }, { opacity: 1, translate: '0 0', scale: '1' }], { duration: 780, delay: 130 + Math.min(i, 10) * 95, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' }); });
+      return;
+    }
     var gentle = !!o.quick;                       // cambio de pestaña dentro de la página: mismo movimiento, algo más rápido
     var dir = gentle ? 1 : navDir(), sx = innerWidth < 700 ? 24 : 56, EZ = 'cubic-bezier(.22,1,.36,1)';
     // 1) el contenido entra con un fundido corto (igual que en Gestión)
@@ -194,7 +201,7 @@
   var perim = null;
   function perimeter(box) {
     try {
-      if (!box || !box.getBoundingClientRect || !document.body || reduce) return;
+      if (!FRAME || !box || !box.getBoundingClientRect || !document.body || reduce) return;
       var r = box.getBoundingClientRect();
       // Toda la zona de contenido: de borde a borde de la parte derecha, justo debajo de la barra superior (no la columna centrada del contenido)
       var om = box.closest && box.closest('.os-main'), orr = om ? om.getBoundingClientRect() : r;
@@ -230,7 +237,7 @@
   }
 
   /* ───────── navegación con cortina ───────── */
-  function isShell(p) { return /^(app|cuerpo-tecnico|ficha-pro|ojeador-live|analizador|comunidad|media-studio|despacho|perfil|gestion|estado)\.html$/.test(p); }
+  function isShell(p) { return /^(app|cuerpo-tecnico|ficha-pro|ojeador-live|analizador|comunidad|media-studio|despacho|perfil|gestion|estado|movil)\.html$/.test(p); }
   // Pantalla completa SOLO al entrar en la app y al cambiar entre APP y GESTIÓN. El resto (cambiar de sección) anima solo el cuadro de contenido.
   function go(url, opts) {
     opts = opts || {};
@@ -316,6 +323,7 @@
   }
   function setupProgress() {
     if (ls('kinet_fx_progress') === 'off') return;
+    if (!FRAME && !SHELL) return;   // la barra LED de carga/scroll es solo de la app (no portada, onboarding, soporte, login…)
     var ws = document.querySelector('.os-workspace'), om = document.querySelector('.os-main');
     var bar = document.createElement('div'); bar.id = 'kx-progress'; bar.setAttribute('aria-hidden', 'true');
     var fill = document.createElement('i'); bar.appendChild(fill); document.body.appendChild(bar);

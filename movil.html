@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#06080E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="KINET OS">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>App móvil · Guía paso a paso · KINET OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script>
+(function () {
+  try {
+    var a = localStorage.getItem('kinet_custom_accent_override') || localStorage.getItem('kinet_accent_color');
+    var rb = localStorage.getItem('kinet_rainbow_mode') === 'true';
+    if (a && a.charAt(0) === '#' && !rb) {
+      var n = parseInt(a.slice(1), 16);
+      if (!isNaN(n)) {
+        var r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255, st = document.createElement('style');
+        st.textContent = ':root{--role-color:' + a + ' !important;--role-rgb:' + r + ',' + g + ',' + b + ' !important;--role-gradient:linear-gradient(135deg,' + a + ' 0%,rgba(' + r + ',' + g + ',' + b + ',0.75) 100%) !important}';
+        document.head.appendChild(st);
+      }
+    }
+  } catch (e) {}
+})();
+</script>
+<style>
+  :root{--role-color:#00FF88;--role-rgb:0,255,136;--role-gradient:linear-gradient(135deg,#00FF88 0%,rgba(0,255,136,.75) 100%);
+    --bg-void:#06080E;--bg-panel:rgba(13,17,26,.90);--line:rgba(255,255,255,.08);--txt:#F8FAFC;--mut:#94A3B8;--ok:#00FF88;--warn:#F59E0B;--r:18px}
+  @property --p{syntax:'<number>';inherits:false;initial-value:0}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;min-height:100%}
+  body{background-color:var(--bg-void);background-image:radial-gradient(circle at 50% -20%,rgba(var(--role-rgb),.16),transparent 60%),linear-gradient(rgba(255,255,255,.012) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.012) 1px,transparent 1px);background-size:auto,38px 38px,38px 38px;
+    color:var(--txt);font:14px/1.5 Inter,system-ui,sans-serif;padding:0 0 calc(70px + env(safe-area-inset-bottom));-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:inherit}
+  .top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top)) 18px 12px;background:rgba(6,8,14,.82);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
+  .logo{flex:0 0 auto;width:36px;height:36px;border-radius:11px;background:var(--role-gradient);color:#04060A;display:grid;place-items:center;font:900 1.05rem Orbitron,sans-serif;box-shadow:0 0 18px rgba(var(--role-rgb),.45)}
+  .top .t1{font:800 .95rem Orbitron,sans-serif;letter-spacing:.08em}
+  .top .t2{font:700 .58rem "JetBrains Mono",monospace;letter-spacing:.16em;color:var(--role-color);text-transform:uppercase}
+  .top a.back{margin-left:auto;text-decoration:none;font:700 .62rem "JetBrains Mono",monospace;letter-spacing:.1em;padding:9px 13px;border-radius:11px;border:1px solid rgba(var(--role-rgb),.35);background:rgba(var(--role-rgb),.07);white-space:nowrap;transition:border-color .2s,box-shadow .25s}
+  .top a.back:hover{border-color:var(--role-color);box-shadow:0 0 16px rgba(var(--role-rgb),.3)}
+  .wrap{max-width:900px;margin:0 auto;padding:22px 16px 0;display:flex;flex-direction:column;gap:16px}
+  .panel{position:relative;overflow:hidden;min-width:0;background:var(--bg-panel);border:1px solid var(--line);border-radius:var(--r);padding:20px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 14px 34px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06)}
+  .panel::before{content:"";position:absolute;left:0;top:0;right:0;height:2px;background:var(--role-gradient);opacity:.7}
+  .eyebrow{font:700 .58rem "JetBrains Mono",monospace;letter-spacing:.18em;color:var(--role-color);text-transform:uppercase;margin-bottom:6px}
+  h1{font:900 1.35rem/1.25 Orbitron,sans-serif;letter-spacing:.03em;margin:0 0 8px}
+  h2{font:900 1rem Orbitron,sans-serif;letter-spacing:.04em;margin:0 0 4px}
+  p{margin:0}
+  .sub{color:var(--mut);font-size:.86rem;max-width:62ch}
+
+  /* portada */
+  .hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center}
+  .ring{--p:0;position:relative;width:96px;height:96px;border-radius:50%;background:conic-gradient(var(--role-color) calc(var(--p) * 1%),rgba(255,255,255,.08) 0);display:grid;place-items:center;transition:--p .6s;filter:drop-shadow(0 0 12px rgba(var(--role-rgb),.35))}
+  .ring::before{content:"";position:absolute;inset:7px;border-radius:50%;background:#0B0F18}
+  .ring b{position:relative;font:900 1.1rem Orbitron,sans-serif}
+  .ring small{position:relative;display:block;font:700 .5rem "JetBrains Mono",monospace;letter-spacing:.14em;color:var(--mut);text-align:center;margin-top:-4px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;font:700 .62rem "JetBrains Mono",monospace;letter-spacing:.08em;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--mut)}
+  .chip.ok{color:var(--ok);border-color:rgba(0,255,136,.4);background:rgba(0,255,136,.07)}
+  .chip.warn{color:var(--warn);border-color:rgba(245,158,11,.45);background:rgba(245,158,11,.07)}
+  .warnbox{display:none;margin-top:14px;padding:12px 14px;border-radius:14px;border:1px solid rgba(245,158,11,.45);background:rgba(245,158,11,.08);color:#FCD34D;font-size:.82rem;line-height:1.5}
+  .warnbox.show{display:block}
+  .done-banner{display:none;margin-top:14px;padding:12px 14px;border-radius:14px;border:1px solid rgba(0,255,136,.4);background:rgba(0,255,136,.08);color:var(--ok);font-weight:700;font-size:.86rem}
+  .done-banner.show{display:block}
+
+  /* selector de móvil */
+  .seg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:5px;border-radius:15px;background:rgba(4,6,10,.8);border:1px solid var(--line);margin:14px 0 4px}
+  .seg button{all:unset;box-sizing:border-box;cursor:pointer;text-align:center;padding:10px 4px;border-radius:11px;font:800 .62rem Orbitron,sans-serif;letter-spacing:.04em;color:var(--mut);transition:color .2s,background .25s,box-shadow .25s}
+  .seg button .e{display:block;font-size:1.15rem;margin-bottom:2px}
+  .seg button:hover{color:var(--txt)}
+  .seg button.on{color:#04060A;background:var(--role-gradient);box-shadow:0 0 18px rgba(var(--role-rgb),.35)}
+  .seg button:focus-visible{outline:2px solid var(--role-color);outline-offset:2px}
+
+  /* pasos de instalación */
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:14px;margin-top:16px}
+  .step{display:flex;flex-direction:column;gap:10px;min-width:0;padding:14px;border-radius:16px;background:rgba(255,255,255,.025);border:1px solid var(--line)}
+  .step .n{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:9px;background:var(--role-gradient);color:#04060A;font:900 .72rem "JetBrains Mono",monospace}
+  .step h3{margin:0;font:800 .86rem Inter,sans-serif}
+  .step p{color:#CBD5E1;font-size:.8rem;line-height:1.55}
+  .step p b{color:var(--txt)}
+  .step .head{display:flex;align-items:center;gap:10px}
+  .tip{margin-top:14px;padding:11px 13px;border-radius:13px;background:rgba(var(--role-rgb),.06);border:1px solid rgba(var(--role-rgb),.25);color:#CBD5E1;font-size:.8rem;line-height:1.55}
+  .tip b{color:var(--role-color)}
+  .acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+  .btn{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;padding:12px 16px;min-height:44px;border-radius:12px;font:800 .68rem Orbitron,"JetBrains Mono",sans-serif;letter-spacing:.06em;color:var(--txt);border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.04);text-decoration:none;transition:border-color .2s,box-shadow .25s,background .2s}
+  .btn:hover{border-color:var(--role-color);box-shadow:0 0 18px rgba(var(--role-rgb),.28);background:rgba(var(--role-rgb),.08)}
+  .btn:focus-visible{outline:2px solid var(--role-color);outline-offset:2px}
+  .btn.pri{color:#04060A;background:var(--role-gradient);border-color:transparent}
+  .btn.pri:hover{box-shadow:0 0 22px rgba(var(--role-rgb),.55)}
+  .btn[hidden]{display:none}
+
+  /* teléfono ilustrado */
+  .phone{position:relative;width:132px;height:236px;margin:0 auto;border-radius:22px;background:#0A0E16;border:2px solid #2A3345;box-shadow:0 10px 28px rgba(0,0,0,.55),inset 0 0 0 4px #05070C;overflow:hidden;flex:0 0 auto}
+  .phone::after{content:"";position:absolute;top:5px;left:50%;width:34px;height:5px;margin-left:-17px;border-radius:4px;background:#1B2333}
+  .scr{position:absolute;inset:14px 6px 6px;border-radius:15px;background:#0F1522;overflow:hidden;font:600 7px/1.3 Inter,sans-serif;color:#CBD5E1}
+  .bar{position:absolute;left:6px;right:6px;height:20px;border-radius:9px;background:#1A2234;display:flex;align-items:center;justify-content:space-between;padding:0 7px;font-size:9px}
+  .bar.t{top:6px}.bar.b{bottom:6px;height:24px}
+  .bar .url{flex:1;margin:0 6px;padding:2px 6px;border-radius:6px;background:#0C111B;text-align:center;font-size:7px;color:#94A3B8}
+  .ico{width:18px;height:18px;border-radius:6px;display:grid;place-items:center;font-size:10px}
+  .hl{position:relative;color:var(--role-color)!important;background:rgba(var(--role-rgb),.18)!important;box-shadow:0 0 0 1.5px var(--role-color),0 0 10px rgba(var(--role-rgb),.6);animation:hlp 1.6s ease-in-out infinite}
+  @keyframes hlp{0%,100%{box-shadow:0 0 0 1.5px var(--role-color),0 0 6px rgba(var(--role-rgb),.4)}50%{box-shadow:0 0 0 2.5px var(--role-color),0 0 16px rgba(var(--role-rgb),.85)}}
+  .list{position:absolute;left:8px;right:8px;border-radius:10px;background:#1A2234;padding:4px;display:flex;flex-direction:column;gap:2px}
+  .list div{padding:6px 7px;border-radius:7px;font-size:7.5px}
+  .sheetp{position:absolute;left:0;right:0;bottom:0;border-radius:12px 12px 0 0;background:#1A2234;padding:8px 6px;display:flex;flex-direction:column;gap:3px}
+  .sheetp div{padding:6px 7px;border-radius:7px;background:rgba(255,255,255,.04);font-size:7.5px}
+  .dlg{position:absolute;left:10px;right:10px;top:50%;transform:translateY(-50%);border-radius:12px;background:#1A2234;padding:10px;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+  .dlg .k{width:30px;height:30px;margin:0 auto 6px;border-radius:9px;background:var(--role-gradient);color:#04060A;display:grid;place-items:center;font:900 13px Orbitron,sans-serif}
+  .dlg .row{display:flex;gap:5px;margin-top:8px}
+  .dlg .row span{flex:1;padding:5px 0;border-radius:7px;background:rgba(255,255,255,.07);font-size:7.5px;font-weight:700}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 6px}
+  .grid i{aspect-ratio:1;border-radius:9px;background:rgba(255,255,255,.07)}
+  .grid .kk{background:var(--role-gradient);display:grid;place-items:center;color:#04060A;font:900 11px Orbitron,sans-serif;animation:pop 1.4s ease-in-out infinite}
+  .grid .lb{grid-column:span 4;text-align:center;font-size:7px;color:var(--role-color);margin-top:-2px}
+  @keyframes pop{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+  .win{width:100%;max-width:230px;height:140px;margin:0 auto;border-radius:10px;background:#0A0E16;border:2px solid #2A3345;overflow:hidden;position:relative}
+  .win .bar{position:absolute;top:0;left:0;right:0;border-radius:0;height:24px}
+  .win .dlg{top:62%;left:auto;right:8px;width:130px;transform:translateY(-50%)}
+
+  /* primeros pasos */
+  .todo{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+  .item{display:flex;align-items:center;gap:12px;padding:12px 13px;border-radius:14px;background:rgba(255,255,255,.025);border:1px solid var(--line);transition:border-color .25s,background .25s}
+  .item:hover{border-color:rgba(var(--role-rgb),.35)}
+  .item.done{border-color:rgba(0,255,136,.35);background:rgba(0,255,136,.04)}
+  .item .box{flex:0 0 auto;width:26px;height:26px;border-radius:8px;border:2px solid rgba(255,255,255,.25);display:grid;place-items:center;cursor:pointer;font-weight:900;color:transparent;background:transparent;transition:all .2s}
+  .item.done .box{background:var(--role-color);border-color:var(--role-color);color:#04060A}
+  .item .tx{flex:1;min-width:0}
+  .item .tx b{display:block;font-size:.88rem}
+  .item .tx span{display:block;color:var(--mut);font-size:.76rem;line-height:1.45}
+  .item a.go{flex:0 0 auto;text-decoration:none;padding:9px 12px;border-radius:10px;font:800 .6rem "JetBrains Mono",monospace;letter-spacing:.08em;border:1px solid rgba(var(--role-rgb),.4);color:var(--role-color);white-space:nowrap;transition:background .2s}
+  .item a.go:hover{background:rgba(var(--role-rgb),.12)}
+
+  details{border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.02);margin-top:10px;transition:border-color .25s}
+  details[open]{border-color:rgba(var(--role-rgb),.35)}
+  summary{cursor:pointer;list-style:none;padding:13px 14px;font-weight:700;font-size:.86rem;display:flex;gap:10px;align-items:center}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";margin-left:auto;color:var(--role-color);font:800 1rem "JetBrains Mono",monospace;transition:rotate .3s}
+  details[open] summary::after{rotate:45deg}
+  details .body{padding:0 14px 14px;color:#CBD5E1;font-size:.82rem;line-height:1.6}
+  details .body b{color:var(--txt)}
+
+  .qrbox{display:none;align-items:center;gap:18px}
+  .qrbox.show{display:flex}
+  #qr{flex:0 0 auto;width:148px;height:148px;padding:8px;border-radius:14px;background:#fff;display:grid;place-items:center}
+  #qr svg{width:100%;height:100%;display:block}
+  .qrurl{font:600 .7rem "JetBrains Mono",monospace;color:var(--mut);word-break:break-all;margin-top:8px}
+  .foot{text-align:center;color:var(--mut);font-size:.72rem;padding:6px 0 0}
+
+  @media (max-width:560px){
+    h1{font-size:1.12rem}.panel{padding:16px}
+    .hero{grid-template-columns:minmax(0,1fr)}.ring{margin:0 auto;order:-1}
+    .seg button{font-size:.54rem;padding:9px 2px}
+    .item{flex-wrap:wrap}.item a.go{margin-left:38px}
+    .qrbox.show{flex-direction:column;text-align:center}
+    .acts .btn{flex:1 1 100%}
+    .top .t2{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<script src="kinet-stores.js?v=51"></script>
+<link rel="stylesheet" href="kinet-fx.css?v=51">
+<script src="kinet-fx.js?v=51"></script>
+</head>
+<body>
+<header class="top"><div class="logo">K</div><div><div class="t1">KINET OS</div><div class="t2">Guía · App móvil</div></div><a class="back" href="app.html">← VOLVER</a></header>
+
+<main class="wrap">
+
+  <section class="panel">
+    <div class="hero">
+      <div>
+        <div class="eyebrow">Paso a paso · 2 minutos</div>
+        <h1>Lleva KINET OS en tu móvil como una app</h1>
+        <p class="sub">No hace falta tienda de aplicaciones: se instala desde el navegador, ocupa casi nada, se abre a pantalla completa y se actualiza sola. Sigue los pasos de tu móvil y marca lo que vayas haciendo.</p>
+        <div class="chips" id="chips"></div>
+      </div>
+      <div class="ring" id="ring" role="img" aria-label="Progreso de la guía"><div><b id="pct">0%</b><small id="cnt">0 / 8</small></div></div>
+    </div>
+    <div class="warnbox" id="inapp"><b>Estás en el navegador de otra aplicación</b> (Instagram, WhatsApp, TikTok…). Desde ahí no se puede instalar. Pulsa <b>⋯</b> o el icono de la brújula y elige <b>«Abrir en el navegador»</b> (Safari en iPhone, Chrome en Android), y vuelve a esta guía.</div>
+    <div class="done-banner" id="isapp">✅ Ya estás usando KINET OS como app instalada. Salta al apartado «Primeros pasos».</div>
+  </section>
+
+  <section class="panel" id="install">
+    <div class="eyebrow">Parte 1</div>
+    <h2>Instalar la app</h2>
+    <p class="sub">Elige tu dispositivo (lo hemos detectado, pero puedes cambiarlo). Para ordenador pulsa la pestaña 💻.</p>
+    <div class="seg" id="seg" role="tablist" aria-label="Tipo de dispositivo">
+      <button data-p="ios" role="tab"><span class="e">🍎</span>iPhone</button>
+      <button data-p="android" role="tab"><span class="e">🤖</span>Android</button>
+      <button data-p="samsung" role="tab"><span class="e">📱</span>Samsung</button>
+      <button data-p="pc" role="tab"><span class="e">💻</span>Ordenador</button>
+    </div>
+    <div class="steps" id="steps"></div>
+    <div class="tip" id="platTip"></div>
+    <div class="acts">
+      <button class="btn pri" id="btnInstall" hidden>📲 Instalar ahora</button>
+      <button class="btn" id="btnDone">✔ Ya la he instalado</button>
+    </div>
+  </section>
+
+  <section class="panel" id="storesPanel" style="display:none">
+    <div class="eyebrow">También disponible en</div>
+    <h2>Descárgala desde la tienda</h2>
+    <p class="sub">Es la misma app: tu cuenta y tus datos se sincronizan.</p>
+    <div class="acts" id="storeBtns"></div>
+  </section>
+
+  <section class="panel" id="pcPanel" style="display:none">
+    <div class="eyebrow">App de ordenador</div>
+    <h2>Instaladores para Windows, Mac y Linux</h2>
+    <p class="sub">Si prefieres un instalador clásico en lugar de instalarla desde el navegador. Es la misma app y la misma cuenta.</p>
+    <div class="acts" id="pcBtns"></div>
+  </section>
+
+  <section class="panel" id="first">
+    <div class="eyebrow">Parte 2</div>
+    <h2>Primeros pasos dentro de la app</h2>
+    <p class="sub">Empiezas de cero: con estos siete pasos dejas la cuenta lista. Pulsa <b>Abrir</b> para ir directo a cada pantalla y marca el cuadro al terminar.</p>
+    <div class="todo" id="todo"></div>
+  </section>
+
+  <section class="panel qrbox" id="qrPanel">
+    <div id="qr" aria-label="Código QR para abrir KINET OS en el móvil"></div>
+    <div>
+      <div class="eyebrow">Estás en el ordenador</div>
+      <h2>Ábrela en tu móvil</h2>
+      <p class="sub">Escanea el código con la cámara del móvil y sigue los pasos de arriba desde allí.</p>
+      <div class="qrurl" id="qrUrl"></div>
+      <div class="acts"><button class="btn" id="btnCopy">Copiar enlace</button></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="eyebrow">Ayuda rápida</div>
+    <h2>Si algo no sale como esperabas</h2>
+    <details><summary>🔎 No veo la opción «Instalar»</summary><div class="body">Comprueba tres cosas: <b>1)</b> usa <b>Safari</b> en iPhone o <b>Chrome</b> en Android (no el navegador de Instagram, WhatsApp o TikTok); <b>2)</b> no estés en una pestaña de incógnito o privada; <b>3)</b> recarga la página y espera unos segundos. En Android, a veces la opción se llama <b>«Añadir a pantalla de inicio»</b>: sirve igual.</div></details>
+    <details><summary>🖼️ Se ve la barra del navegador, no pantalla completa</summary><div class="body">Entonces estás abriendo la web, no la app. Cierra el navegador y abre KINET OS <b>desde el icono nuevo de tu pantalla de inicio</b>. Si no lo ves, la instalación no terminó: repite los pasos.</div></details>
+    <details><summary>🔄 Cómo actualizar la app</summary><div class="body">Se actualiza sola cada vez que abres la app con internet. Si notas que te falta algo nuevo: ciérrala del todo (desliza hacia arriba en el selector de apps) y vuelve a abrirla.</div></details>
+    <details><summary>📶 ¿Funciona sin conexión?</summary><div class="body">Puedes abrirla sin internet y verás la última pantalla guardada, pero la IA, la nube y la comunidad necesitan conexión. Cuando vuelva la red todo se sincroniza.</div></details>
+    <details><summary>⚡ Atajos desde el icono</summary><div class="body">En Android, <b>mantén pulsado el icono</b> de KINET OS y salen accesos directos a Cuerpo Técnico IA, Ficha, Pizarra táctica y Comunidad.</div></details>
+    <details><summary>↔️ La pizarra táctica se ve pequeña</summary><div class="body">Gira el móvil en horizontal para tener el campo más grande. Si tu móvil bloquea la rotación, desactiva el bloqueo en el panel de ajustes rápidos.</div></details>
+    <details><summary>🗑️ Cómo desinstalarla</summary><div class="body"><b>iPhone:</b> mantén pulsado el icono → «Eliminar app». <b>Android:</b> mantén pulsado el icono → «Desinstalar». Tus datos siguen guardados en tu cuenta.</div></details>
+  </section>
+
+  <div class="acts" style="justify-content:center">
+    <a class="btn pri" href="app.html">Abrir KINET OS →</a>
+    <a class="btn" href="despacho.html?tab=tutorials">Tutorial interactivo</a>
+  </div>
+  <p class="foot">¿Dudas? Escríbenos desde Soporte dentro de la app.</p>
+</main>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  function ls(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  /* ───── detección ───── */
+  var ua = navigator.userAgent || '';
+  var isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var isAndroid = /Android/i.test(ua);
+  var isSamsung = /SamsungBrowser/i.test(ua);
+  var isInApp = /FBAN|FBAV|Instagram|Line\/|TikTok|musical_ly|Snapchat|Twitter|; wv\)|WhatsApp/i.test(ua);
+  var standalone = false;
+  try { standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch (e) {}
+  var plat = isIOS ? 'ios' : isSamsung ? 'samsung' : isAndroid ? 'android' : 'pc';
+  try { var hh = (location.hash || '').replace('#', ''); if (hh === 'pc' || hh === 'ios' || hh === 'android' || hh === 'samsung') plat = hh; } catch (e) {}
+  var browser = isIOS ? 'Safari' : isSamsung ? 'Samsung Internet' : /Edg\//.test(ua) ? 'Edge' : /Firefox/.test(ua) ? 'Firefox' : /Chrome|CriOS/.test(ua) ? 'Chrome' : 'tu navegador';
+  var NAMES = { ios: 'iPhone / iPad', android: 'Android', samsung: 'Samsung', pc: 'Ordenador' };
+
+  /* ───── dibujos de teléfono ───── */
+  function phone(inner) { return '<div class="phone" aria-hidden="true"><div class="scr">' + inner + '</div></div>'; }
+  var S = {
+    iosShare: phone('<div class="bar t"><span>AA</span><span class="url">kinetos.es</span><span>↻</span></div><div class="bar b"><span>‹</span><span>›</span><span class="ico hl">⬆</span><span>📖</span><span>⧉</span></div>'),
+    iosMenu: phone('<div class="sheetp"><div>Copiar</div><div>Añadir a marcadores</div><div class="hl">＋ Añadir a pantalla de inicio</div><div>Buscar en la página</div></div>'),
+    iosAdd: phone('<div class="bar t"><span>Cancelar</span><b>Añadir</b><span class="hl" style="padding:1px 5px;border-radius:5px">Añadir</span></div><div class="dlg" style="top:46%"><div class="k">K</div><div>KINET OS</div><div style="color:#94A3B8;margin-top:3px">kinetos.es</div></div>'),
+    home: phone('<div class="grid"><i></i><i></i><i></i><i></i><i></i><i class="kk">K</i><i></i><i></i><i></i><i></i><i></i><i></i><div class="lb">KINET OS</div></div>'),
+    andMenu: phone('<div class="bar t"><span>🔒</span><span class="url">kinetos.es</span><span class="ico hl">⋮</span></div><div class="list" style="top:30px"><div>Nueva pestaña</div><div>Historial</div><div class="hl">⬇ Instalar aplicación</div><div>Compartir…</div></div>'),
+    andBar: phone('<div class="bar t"><span>🔒</span><span class="url">kinetos.es</span><span class="ico hl">⋮</span></div><div style="padding:36px 10px;text-align:center;color:#94A3B8">KINET OS</div>'),
+    andOk: phone('<div class="dlg"><div class="k">K</div><div style="font-weight:700">¿Instalar app?</div><div style="color:#94A3B8">KINET OS</div><div class="row"><span>Cancelar</span><span class="hl">Instalar</span></div></div>'),
+    samMenu: phone('<div class="bar b"><span>‹</span><span>›</span><span>⌂</span><span>❐</span><span class="ico hl">≡</span></div><div class="list" style="bottom:36px"><div>Ajustes</div><div class="hl">＋ Añadir página a</div><div>Historial</div></div>'),
+    samHome: phone('<div class="list" style="top:36px"><div>Marcadores</div><div class="hl">Pantalla de inicio</div><div>Pestañas</div></div>'),
+    pcBar: '<div class="win" aria-hidden="true"><div class="bar"><span>🔒</span><span class="url">kinetos.es</span><span class="ico hl">⊕</span></div></div>',
+    pcOk: '<div class="win" aria-hidden="true"><div class="bar"><span>🔒</span><span class="url">kinetos.es</span><span class="ico">⊕</span></div><div class="dlg"><div class="k">K</div><div style="font-weight:700">¿Instalar KINET OS?</div><div class="row"><span>Cancelar</span><span class="hl">Instalar</span></div></div></div>'
+  };
+  var PLAT = {
+    ios: { tip: '<b>Importante en iPhone:</b> hay que hacerlo desde <b>Safari</b> (el icono de la brújula). Con otros navegadores, abre antes esta misma página en Safari. Necesitas iOS 16.4 o superior para recibir avisos de la app.',
+      steps: [
+        ['Abre KINET OS en Safari', 'Entra en <b>kinetos.es</b> y pulsa el botón <b>Compartir</b> ⬆ (abajo, en el centro de la barra).', S.iosShare],
+        ['Añadir a pantalla de inicio', 'Desliza la lista hacia arriba y toca <b>«Añadir a pantalla de inicio»</b>.', S.iosMenu],
+        ['Confirma', 'Deja el nombre <b>KINET OS</b> y toca <b>Añadir</b> (arriba a la derecha).', S.iosAdd],
+        ['¡Listo!', 'Verás el icono <b>K</b> junto a tus apps. Ábrelo desde ahí: se ve a pantalla completa.', S.home]] },
+    android: { tip: '<b>En Chrome:</b> si en el menú ves «Añadir a pantalla de inicio» en lugar de «Instalar aplicación», también vale. Si Chrome muestra un cartel de instalación abajo, puedes pulsarlo directamente.',
+      steps: [
+        ['Abre el menú de Chrome', 'Entra en <b>kinetos.es</b> y toca los <b>tres puntos ⋮</b> (arriba a la derecha).', S.andBar],
+        ['Instalar aplicación', 'Elige <b>«Instalar aplicación»</b> (o <b>«Añadir a pantalla de inicio»</b>).', S.andMenu],
+        ['Confirma', 'Toca <b>Instalar</b>. Tarda un par de segundos.', S.andOk],
+        ['¡Listo!', 'El icono <b>K</b> aparece en tu pantalla de inicio y en el cajón de apps.', S.home]] },
+    samsung: { tip: '<b>Samsung Internet:</b> si prefieres Chrome, usa la pestaña «Android». En ambos casos el resultado es el mismo: un icono de KINET OS en tu pantalla.',
+      steps: [
+        ['Abre el menú', 'Entra en <b>kinetos.es</b> y toca el menú <b>≡</b> (abajo a la derecha).', S.samMenu],
+        ['Añadir página a', 'Toca <b>«Añadir página a»</b>.', S.samMenu],
+        ['Pantalla de inicio', 'Elige <b>«Pantalla de inicio»</b> y confirma con <b>Añadir</b>.', S.samHome],
+        ['¡Listo!', 'Busca el icono <b>K</b> en tu pantalla de inicio y ábrelo desde ahí.', S.home]] },
+    pc: { tip: '<b>Dos formas en el ordenador:</b> (1) instalarla desde <b>Chrome o Edge</b> (gratis, se actualiza sola, es la recomendada) o (2) el instalador de Windows, Mac o Linux si lo tienes más abajo. En Safari de Mac: Archivo → «Añadir al Dock».',
+      steps: [
+        ['Busca el icono de instalar', 'En la barra de direcciones de Chrome o Edge aparece un icono <b>⊕</b> (a la derecha).', S.pcBar],
+        ['Instalar', 'Haz clic en él y pulsa <b>Instalar</b>.', S.pcOk],
+        ['¡Listo!', 'KINET OS se abre en su propia ventana y queda en tu escritorio o menú de inicio.', S.pcBar]] }
+  };
+
+  /* ───── progreso ───── */
+  var FIRST = [
+    ['login', 'Entra con tu cuenta', 'Inicia sesión o crea tu cuenta gratis. Con ella tu plan, tu deporte y tus chats se guardan en la nube.', 'login.html', 'ABRIR'],
+    ['rol', 'Elige tu rol y tu deporte', 'Atleta, Staff u Ojeador, y tu deporte principal: toda la app se adapta a ello.', 'app.html', 'ABRIR'],
+    ['checkin', 'Haz tu primer check-in', 'En Vestuario cuéntale a la app cómo estás hoy. Menos de 30 segundos.', 'app.html', 'ABRIR'],
+    ['ia', 'Pregunta al Cuerpo Técnico IA', 'Prueba con algo sencillo: «Dame un plan de entrenamiento para esta semana».', 'cuerpo-tecnico.html', 'ABRIR'],
+    ['ficha', 'Completa tu Ficha & KINET Card', 'Tu carta de presentación: datos, posición y estadísticas. Se puede exportar.', 'ficha-pro.html', 'ABRIR'],
+    ['pizarra', 'Mueve fichas en la pizarra táctica', 'Gira el móvil en horizontal y arrastra jugadores para montar tu primera jugada.', 'analizador.html', 'ABRIR'],
+    ['tuto', 'Mira el tutorial interactivo', 'Pantallas de demostración donde puedes tocar cada botón y ver qué hace, sin gastar nada.', 'despacho.html?tab=tutorials', 'VER']
+  ];
+  var KEY = 'kinet_mobile_steps';
+  var state = {}; try { state = JSON.parse(ls(KEY) || '{}') || {}; } catch (e) { state = {}; }
+  if (standalone) state.install = 1;
+  function save() { lsSet(KEY, JSON.stringify(state)); }
+  function total() { return 1 + FIRST.length; }
+  function count() { var n = state.install ? 1 : 0; FIRST.forEach(function (f) { if (state[f[0]]) n++; }); return n; }
+  function paint() {
+    var n = count(), t = total(), p = Math.round(100 * n / t);
+    $('#ring').style.setProperty('--p', p); $('#pct').textContent = p + '%'; $('#cnt').textContent = n + ' / ' + t;
+    var d = $('#btnDone'); d.textContent = state.install ? '✔ Instalada' : '✔ Ya la he instalado'; d.classList.toggle('pri', !!state.install && false);
+    FIRST.forEach(function (f) { var el = document.querySelector('[data-k="' + f[0] + '"]'); if (el) el.classList.toggle('done', !!state[f[0]]); });
+  }
+
+  /* ───── pintar ───── */
+  function renderChips() {
+    var h = '<span class="chip">' + (isIOS || isAndroid ? '📱' : '💻') + ' ' + (isIOS || isAndroid ? NAMES[plat] : 'Ordenador') + '</span><span class="chip">🌐 ' + browser + '</span>';
+    h += standalone ? '<span class="chip ok">✔ App instalada</span>' : '<span class="chip warn">Aún en el navegador</span>';
+    $('#chips').innerHTML = h;
+    $('#inapp').classList.toggle('show', isInApp && !standalone);
+    $('#isapp').classList.toggle('show', standalone);
+  }
+  function renderSteps(p) {
+    plat = p; var d = PLAT[p];
+    document.querySelectorAll('#seg button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-p') === p); b.setAttribute('aria-selected', b.getAttribute('data-p') === p); });
+    $('#steps').innerHTML = d.steps.map(function (s, i) {
+      return '<article class="step"><div class="head"><span class="n">' + (i + 1) + '</span><h3>' + s[0] + '</h3></div>' + s[2] + '<p>' + s[1] + '</p></article>';
+    }).join('');
+    $('#platTip').innerHTML = d.tip;
+    var steps = document.querySelectorAll('#steps .step');
+    if (window.KinetFX && KinetFX.rebuild && steps.length) { try { KinetFX.rebuild(document.getElementById('steps'), { quick: true, force: true, children: false }); } catch (e) {} }
+  }
+  function renderTodo() {
+    $('#todo').innerHTML = FIRST.map(function (f) {
+      return '<div class="item" data-k="' + f[0] + '"><div class="box" role="checkbox" tabindex="0" aria-label="Marcar: ' + f[1] + '">✓</div><div class="tx"><b>' + f[1] + '</b><span>' + f[2] + '</span></div><a class="go" href="' + f[3] + '">' + f[4] + ' →</a></div>';
+    }).join('');
+    $('#todo').addEventListener('click', function (e) {
+      var b = e.target.closest && e.target.closest('.box'); if (!b) return;
+      var k = b.parentNode.getAttribute('data-k'); state[k] = state[k] ? 0 : 1; save(); paint();
+    });
+    $('#todo').addEventListener('keydown', function (e) { if ((e.key === ' ' || e.key === 'Enter') && e.target.classList.contains('box')) { e.preventDefault(); e.target.click(); } });
+  }
+
+  /* ───── instalar ───── */
+  var deferred = null;
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferred = e; $('#btnInstall').hidden = false; });
+  window.addEventListener('appinstalled', function () { state.install = 1; save(); paint(); deferred = null; $('#btnInstall').hidden = true; });
+  $('#btnInstall').onclick = function () {
+    if (!deferred) return; var d = deferred; deferred = null; $('#btnInstall').hidden = true;
+    try { d.prompt(); d.userChoice.then(function (c) { if (c && c.outcome === 'accepted') { state.install = 1; save(); paint(); } }); } catch (e) {}
+  };
+  $('#btnDone').onclick = function () { state.install = state.install && !standalone ? 0 : 1; save(); paint(); if (state.install) { var f = $('#first'); if (f && f.scrollIntoView) f.scrollIntoView({ behavior: 'smooth', block: 'start' }); } };
+  $('#seg').addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('button'); if (b) renderSteps(b.getAttribute('data-p')); });
+  try { if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {}); } catch (e) {}
+
+  /* ───── QR para abrir en el móvil (solo en ordenador) ───── */
+  function setupQR() {
+    var desktop = false; try { desktop = matchMedia('(hover: hover) and (pointer: fine)').matches && innerWidth >= 900; } catch (e) {}
+    if (!desktop || isAndroid || isIOS) return;
+    var url = new URL('movil.html', location.href).href;
+    $('#qrPanel').classList.add('show'); $('#qrUrl').textContent = url;
+    $('#btnCopy').onclick = function () { var b = this; try { navigator.clipboard.writeText(url).then(function () { b.textContent = '✔ Copiado'; setTimeout(function () { b.textContent = 'Copiar enlace'; }, 1800); }); } catch (e) {} };
+    var s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js';
+    s.onload = function () {
+      try { var q = qrcode(0, 'M'); q.addData(url); q.make(); $('#qr').innerHTML = q.createSvgTag({ cellSize: 4, margin: 0, scalable: true }); } catch (e) { $('#qr').style.display = 'none'; }
+    };
+    s.onerror = function () { $('#qr').style.display = 'none'; };
+    document.head.appendChild(s);
+  }
+
+  function setupStores() {
+    var S = window.KINET_STORES || {}, h = '';
+    if (S.play) h += '<a class="btn pri" href="' + S.play + '" target="_blank" rel="noopener">▶ Google Play</a>';
+    if (S.appstore) h += '<a class="btn pri" href="' + S.appstore + '" target="_blank" rel="noopener">🍎 App Store</a>';
+    if (S.apk) h += '<a class="btn" href="' + S.apk + '" download>⬇ Descargar .apk</a>';
+    var pc = '';
+    if (S.windows) pc += '<a class="btn pri" href="' + S.windows + '" download>🪟 Windows</a>';
+    if (S.mac) pc += '<a class="btn pri" href="' + S.mac + '" download>🍏 Mac</a>';
+    if (S.linux) pc += '<a class="btn" href="' + S.linux + '" download>🐧 Linux</a>';
+    if (pc) { $('#pcBtns').innerHTML = pc; $('#pcPanel').style.display = ''; }
+    if (h) { $('#storeBtns').innerHTML = h; $('#storesPanel').style.display = ''; }
+  }
+  renderChips(); renderSteps(plat); renderTodo(); paint(); setupQR(); setupStores();
+})();
+</script>
+</body>
+</html>

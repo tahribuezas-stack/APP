@@ -56,6 +56,7 @@
     sheet('<div style="font:800 .8rem Orbitron,sans-serif;color:var(--role-color,#00FF88);letter-spacing:.08em;margin-bottom:6px">INSTALAR KINET OS</div>' +
       '<p style="font-size:.86rem;line-height:1.5;color:#94A3B8;margin-bottom:12px">Acceso directo en tu pantalla de inicio, a pantalla completa y sin barra del navegador.</p>' +
       '<ol style="margin:0 0 14px 18px;padding:0;font-size:.9rem;line-height:1.55;color:#E2E8F0">' + steps.map(function (s) { return '<li style="margin-bottom:6px">' + s + '</li>'; }).join('') + '</ol>' +
+      '<a href="movil.html" style="display:block;text-align:center;margin:0 0 10px;font-size:.82rem;font-weight:700;color:var(--role-color,#00FF88);text-decoration:underline">Ver la guía paso a paso con dibujos →</a>' +
       '<button data-close style="width:100%;min-height:46px;border-radius:14px;border:0;background:var(--role-gradient,#00FF88);color:#04060A;font-weight:800">Entendido</button>');
   }
   window.KinetInstall = { prompt: installApp, canPrompt: function () { return !!deferredPrompt; }, isStandalone: isStandalone };

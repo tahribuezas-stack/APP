@@ -34,8 +34,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="kinet-fx.css?v=48">
-<script src="kinet-fx.js?v=48"></script>
+<link rel="stylesheet" href="kinet-fx.css?v=51">
+<script src="kinet-fx.js?v=51"></script>
 <script src="kinet-select.js?v=38"></script>
 <script src="kinet-usage.js?v=46"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -176,8 +176,8 @@ table.tbl{width:100%;border-collapse:collapse;font-size:.78rem;min-width:640px}
 .toast{pointer-events:auto;min-width:240px;max-width:360px;padding:12px 14px;border-radius:14px;background:rgba(8,12,20,.96);border:1px solid var(--role-color);color:#E2E8F0;font-size:.8rem;line-height:1.4;box-shadow:0 10px 40px rgba(0,0,0,.6);animation:tIn .5s cubic-bezier(.16,1,.3,1)}
 .toast.bad{border-color:var(--bad)}.toast.warn{border-color:var(--warn)}
 @keyframes tIn{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:none}}
-.pal{position:fixed;left:50%;top:14vh;width:min(600px,92vw);transform:translate(-50%,-10px) scale(.97);opacity:0;pointer-events:none;z-index:9200;background:#0A0E16;border:1px solid rgba(var(--role-rgb),.45);border-radius:18px;box-shadow:0 30px 90px rgba(0,0,0,.7),0 0 50px rgba(var(--role-rgb),.14);transition:all .3s cubic-bezier(.16,1,.3,1);overflow:hidden}
-.pal.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.pal{visibility:hidden;position:fixed;left:50%;top:14vh;width:min(600px,92vw);transform:translate(-50%,-10px) scale(.97);opacity:0;pointer-events:none;z-index:9200;background:#0A0E16;border:1px solid rgba(var(--role-rgb),.45);border-radius:18px;box-shadow:0 30px 90px rgba(0,0,0,.7),0 0 50px rgba(var(--role-rgb),.14);transition:all .3s cubic-bezier(.16,1,.3,1);overflow:hidden}
+.pal.on{visibility:visible;opacity:1;transform:translate(-50%,0);pointer-events:auto}
 .pal input{width:100%;background:transparent;border:0;border-bottom:1px solid var(--border-subtle);padding:16px 18px;font-size:.95rem;outline:none}
 .pal .res{max-height:50vh;overflow-y:auto;padding:8px}
 .pal .it{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;cursor:pointer;font-size:.82rem}
@@ -255,6 +255,21 @@ html.kx-reduce *{animation-duration:.01ms!important;transition-duration:.01ms!im
 .confetti{position:fixed;inset:0;pointer-events:none;z-index:9500;overflow:hidden}.confetti span{position:absolute;top:55%;animation:conf 1.5s cubic-bezier(.16,.8,.3,1) forwards}
 @keyframes conf{to{transform:translate(var(--dx),-70vh) rotate(var(--dr));opacity:0}}
 </style>
+<script>
+/* Gestión: ningún campo debe parecer un formulario de acceso (evita que iOS ofrezca «Iniciar sesión» / contraseñas guardadas) */
+(function(){
+  function fix(el){
+    if(!el||el.__kgFixed||!/^(INPUT|TEXTAREA)$/.test(el.tagName))return; el.__kgFixed=1;
+    var t=(el.getAttribute('type')||'text').toLowerCase(); if(/^(checkbox|radio|button|submit|range|color|file)$/.test(t))return;
+    if(t==='password'||t==='email'){try{el.setAttribute('type','text');}catch(e){}}
+    el.setAttribute('autocomplete','off'); el.setAttribute('autocorrect','off'); el.setAttribute('autocapitalize','off'); el.setAttribute('spellcheck','false');
+    el.setAttribute('data-lpignore','true'); el.setAttribute('data-1p-ignore',''); el.setAttribute('data-form-type','other');
+    var n=(el.getAttribute('name')||''); if(!n||/mail|user|login|pass|usuario|correo/i.test(n)) el.setAttribute('name','kg-'+(el.id||Math.random().toString(36).slice(2,7)));
+  }
+  function scan(r){ (r||document).querySelectorAll('input,textarea').forEach(fix); }
+  scan(); document.addEventListener('DOMContentLoaded',function(){ scan(); try{ new MutationObserver(function(ms){ ms.forEach(function(m){ m.addedNodes.forEach(function(n){ if(n.nodeType===1){ fix(n); scan(n); } }); }); }).observe(document.body,{childList:true,subtree:true}); }catch(e){} });
+})();
+</script>
 </head>
 <body data-role="athlete">
 <div class="os-layout">
@@ -292,10 +307,10 @@ html.kx-reduce *{animation-duration:.01ms!important;transition-duration:.01ms!im
 <div class="veil" id="veil"></div>
 <aside class="drawer" id="drawer" aria-hidden="true"></aside>
 <div class="modal" id="modal" role="dialog" aria-modal="true"></div>
-<div class="pal" id="pal" role="dialog" aria-label="Buscar"><input id="palIn" placeholder="Escribe una sección, un correo o un @usuario…" autocomplete="off"><div class="res" id="palRes"></div></div>
+<div class="pal" id="pal" role="dialog" aria-label="Buscar"><input id="palIn" type="search" name="kg-q" placeholder="Busca una sección, una persona o un @nombre…" aria-label="Buscar en el panel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" data-lpignore="true" data-1p-ignore data-form-type="other"><div class="res" id="palRes"></div></div>
 <div class="toasts" id="toasts"></div>
 
-<script src="kinet-gestion-panel.js?v=38"></script>
+<script src="kinet-gestion-panel.js?v=51"></script>
 <script src="kinet-gestion-a.js?v=38"></script>
 <script src="kinet-gestion-b.js?v=38"></script>
 <script src="kinet-gestion-c.js?v=46"></script>

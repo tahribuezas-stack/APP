@@ -3,7 +3,8 @@
 (function () {
     'use strict';
     var T0 = (window.performance && performance.now) ? performance.now() : 0;
-    var MIN_SHOW_MS = 950;      // la cortina de llegada se ve como mínimo este tiempo
+    var MIN_SHOW_MS = 500;      // la cortina de llegada se ve como mínimo este tiempo (la de salida ya ha durado NAV_MS)
+    var NAV_MS = 2000;          // tiempo que se ve la cortina antes de cambiar de página (Plantilla ⇄ Estrategias)
     var FAILSAFE_MS = 5000;     // si algo falla, nunca se queda pegada
     var leaveTimer = null;
 
@@ -94,7 +95,7 @@
     function peek() {
         try {
             var r = JSON.parse(sessionStorage.getItem(STAMP) || 'null');
-            if (r && r.t && Date.now() - r.t >= 0 && Date.now() - r.t <= 4500) return r;
+            if (r && r.t && Date.now() - r.t >= 0 && Date.now() - r.t <= 7000) return r;
         } catch (e) {}
         return null;
     }
@@ -112,6 +113,7 @@
     }
 
     var KC = {
+        NAV_MS: NAV_MS,
         markup: markup,
         // Cortina ya visible al cargar la página (llamar justo después del <div id="kinet-funny-curtain">)
         fill: function (o) {

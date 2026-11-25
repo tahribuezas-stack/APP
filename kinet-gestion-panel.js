@@ -275,7 +275,7 @@
     $('#ws').innerHTML = '<div class="lock panel"><div class="brand-logo-icon" style="margin:0 auto 16px;width:54px;height:54px;font-size:1.5rem">K</div><h2 class="ctx-title" style="font-size:1.2rem">' + esc(title) + '</h2><p class="muted" style="margin:10px 0 18px;line-height:1.6">' + esc(text) + '</p>' + (extra || '') + '<a class="btn pri" href="app.html" style="text-decoration:none">← Volver a la app</a></div>';
   }
   async function waitSession() {
-    for (var i = 0; i < 16; i++) {
+    for (var i = 0; i < 26; i++) {
       try { var c = B && B.getClient && B.getClient(); if (c && c.auth) { var r = await c.auth.getSession(); if (r && r.data && r.data.session) return r.data.session; } } catch (e) {}
       await new Promise(function (r) { setTimeout(r, 400); });
     }
