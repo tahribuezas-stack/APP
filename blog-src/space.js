@@ -105,7 +105,7 @@
       if (navigating) return; navigating = true;
       if (RM) { location.assign(url); return; }
       colT = hex(color); try { sessionStorage.setItem('kb_warp', JSON.stringify({ c: color || '#00FF88', t: Date.now() })); } catch (e) {}
-      H.classList.add('kb-warp-out'); flashT = .85; setWarp(1, 0);
+      H.classList.add('kb-warp-out'); flashT = H.classList.contains('kb-soft') ? .3 : .85; setWarp(1, 0);
       setTimeout(function () { location.assign(url); }, 560);
       setTimeout(function () { if (navigating) { navigating = false; H.classList.remove('kb-warp-out'); flashT = 0; setWarp(0, 400); } }, 4200);   /* por si la navegación no llega a ocurrir */
     }
@@ -130,6 +130,11 @@
     });
 
     if (arrive && !RM) {            /* aterrizaje: venimos de un salto, frenamos suavemente */
+      if (H.classList.contains('kb-soft')) {   /* aterrizaje suave (soporte): la órbita frena por detrás y el contenido aparece con un fundido, sin velo ni destello */
+        colT = hex(arrive.c); col = colT.slice(); warp = .6; warpT = 0; flash = 0; flashT = 0;
+        requestAnimationFrame(function () { H.classList.add('kb-arrive'); H.classList.remove('kb-arriving'); });   /* kb-arrive se queda: si se quitara, la animación propia de la página (fadeIn) arrancaría otra vez y parpadearía */
+        start();
+      } else {
       colT = hex(arrive.c); col = colT.slice(); warp = 1; warpT = 1; flash = .85; flashT = .85; lift(true);
       requestAnimationFrame(function () {
         H.classList.add('kb-arrive'); H.classList.remove('kb-arriving');
@@ -137,6 +142,7 @@
         setTimeout(function () { H.classList.remove('kb-arrive'); }, 1500);
       });
       start();
+      }
     } else H.classList.remove('kb-arriving');
 
     /* todos los enlaces internos viajan */

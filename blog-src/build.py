@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import navdata, games_build
 SRC = os.path.join(ROOT, 'blog-src')
 SITE = 'https://kinetos.es'
-V = '13'   # versión de css/js: súbela si cambias el diseño
+V = '14'   # versión de css/js: súbela si cambias el diseño
 CATS = {
  'entrenamiento': 'Entrenamiento', 'futbol': 'Fútbol', 'tenis': 'Tenis y pádel', 'salud': 'Salud y recuperación',
  'carrera': 'Carrera deportiva', 'tecnologia': 'Tecnología y IA', 'nutricion': 'Nutrición', 'mental': 'Mente y rendimiento',
@@ -121,7 +121,7 @@ def header(active, back=None):
 FOOTER = f'''<footer class="foot"><div class="foot-in">
 <div class="fb">{BRAND}<p>El sistema operativo del deportista: cuerpo técnico de IA, KINET Card, análisis táctico 3D y comunidad. Gratis para empezar.</p></div>
 <div><h4>Explora</h4><a href="/blog/">Blog</a><a href="/herramientas/">Herramientas gratis</a><a href="/juegos/">Juegos</a><a href="/">KINET OS</a></div>
-<div><h4>Ayuda</h4><a href="/soporte.html">Centro de ayuda</a><a href="/legal.html">Aviso legal y privacidad</a></div>
+<div><h4>Ayuda</h4><a href="/soporte.html">Centro de ayuda</a><a href="/privacidad.html">Política de privacidad</a><a href="/condiciones.html">Condiciones</a><a href="/legal.html">Aviso legal</a></div>
 <div class="foot-legal"><p>Contenido con fines informativos y educativos. No sustituye el consejo de un médico, fisioterapeuta, nutricionista ni entrenador cualificado. Ante dolor, lesión o enfermedad, consulta a un profesional.</p><p>© KINET OS · kinetos.es</p></div>
 </div></footer>'''
 
@@ -407,6 +407,7 @@ document.getElementById('chips').addEventListener('click',function(e){{var b=e.t
     open(os.path.join(ROOT, 'herramientas', 'index.html'), 'w', encoding='utf-8').write(page('Herramientas gratis para deportistas | KINET OS', 'Calculadoras, planificadores y generadores gratis para deportistas y entrenadores. Sin registro: tus datos no salen de tu navegador.', '/herramientas/', hub, 'tools', jsonld=ld, back=('/', 'Inicio'), extra_head=f'<link rel="stylesheet" href="/blog/nav.css?v={V}">', scripts=f'<script src="/blog/art.js?v={V}" defer></script><script src="/blog/nav.js?v={V}" defer></script>'))
 
     urls += games_build.build(ROOT, SRC, V, page, BACK, ARROW)
+    urls += [('/privacidad.html', 0.3), ('/condiciones.html', 0.3)]
     today = datetime.date.today().isoformat()
     sm = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + ''.join(f'<url><loc>{SITE}{u}</loc><lastmod>{today}</lastmod><priority>{p}</priority></url>\n' for u, p in urls) + '</urlset>\n'
     open(os.path.join(ROOT, 'sitemap.xml'), 'w').write(sm)
