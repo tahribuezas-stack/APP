@@ -174,7 +174,7 @@
   function setFavicon() {
     try {
       var c = (getComputedStyle(document.body).getPropertyValue('--role-color') || '#00FF88').trim().replace('#', '') || '00FF88';
-      var href = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="#' + c + '"/><text x="50" y="72" font-size="65" font-weight="900" font-family="Orbitron, sans-serif" text-anchor="middle" fill="#04060A">K</text></svg>');
+      var href = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="26" fill="#' + c + '"/><path d="M30 28H40V47L57 28H71L50 50L72 72H58L40 53V72H30Z" fill="#04060A"/></svg>');
       $$('link[rel~="icon"]').forEach(function (l) { l.remove(); });
       var l = document.createElement('link'); l.rel = 'icon'; l.type = 'image/svg+xml'; l.id = 'dynamic-favicon'; l.href = href; document.head.appendChild(l);
     } catch (e) {}
