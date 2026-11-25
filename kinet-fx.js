@@ -643,3 +643,21 @@
   window.KinetFX = { motion: { system: sysReduce, respect: respectSys, active: !reduce }, led: { apply: applyLed, defaults: LED_DEF }, rebuild: rebuild, go: go, coverIn: coverIn, meltAway: meltAway,
     setCursor: function (on) { try { localStorage.setItem('kinet_fx_cursor', on ? 'on' : 'off'); } catch (e) {} location.reload(); } };
 })();
+
+/* ───────── Ajuste de textos en móvil: etiquetas y desplegables que se cortaban con «…» pasan a varias líneas ───────── */
+(function () {
+  try {
+    var s = document.createElement('style'); s.id = 'kx-fit-text';
+    s.textContent = '@media (max-width:700px){' +
+      '.context-tag{align-items:flex-start}' +
+      '.context-tag > span{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.3;min-width:0}' +
+      '.kinet-custom-select-trigger,.kinet-custom-dd-trigger{height:auto!important;min-height:36px;overflow:visible!important}' +
+      '.kinet-custom-select-label,.kinet-custom-select-trigger > span:not([class*="arrow"]),.kinet-custom-dd-trigger > span:not([class*="arrow"]){white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.25;text-align:left;word-break:break-word}' +
+      '.field-label{white-space:normal!important;line-height:1.3}' +
+      '.panel-head-left{min-width:0}' +
+      '.panel-head-left div{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}' +
+      '.minimal-mode-btn{white-space:normal!important;line-height:1.2;text-align:center}' +
+      '}';
+    (document.head || document.documentElement).appendChild(s);
+  } catch (e) {}
+})();

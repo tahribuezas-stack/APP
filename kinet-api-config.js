@@ -1433,7 +1433,15 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
   // ==========================================================================
   // 7. CLIENTE HTTP DE API REAL (GEMINI AIzaSy, VERTEX AQ., GROQ, OPENAI Y EDGE)
   // ==========================================================================
+  // Idioma de la interfaz → la IA responde en ese idioma (si es español no se añade nada)
+  function kinetLangDirective(sp) {
+    try {
+      const I = window.KinetI18n; if (!I || !I.lang || I.lang === 'es' || typeof sp !== 'string') return sp;
+      return sp + `\n\n[IDIOMA DE LA INTERFAZ: ${I.aiName}] Escribe todas tus respuestas y todo texto visible para el usuario en ${I.aiName}, aunque estas instrucciones estén en español. Mantén exactamente las claves JSON, los valores de enumeración y los nombres de producto (KINET Card, Bono Partido, KINET OS) tal como se indican.`;
+    } catch (e) { return sp; }
+  }
   async function invokeSupabaseEdgeFunction(functionName, payloadObj) {
+    if (payloadObj && typeof payloadObj.systemPrompt === 'string') payloadObj = Object.assign({}, payloadObj, { systemPrompt: kinetLangDirective(payloadObj.systemPrompt) });
     // Se activa con KINET_API_CONFIG.edgeFunctionsDeployed = true (tras desplegar supabase/functions/kinet-ai-chat)
     if (KINET_API_CONFIG.edgeFunctionsDeployed !== true && localStorage.getItem('kinet_edge_functions_deployed') !== 'true') {
       return null;
@@ -1490,6 +1498,7 @@ FORMATO: respuestas breves (máximo ~120 palabras salvo que pidan más), en text
   }
 
   async function _callProviderRaw({ systemPrompt, userPrompt, chatHistory = [], imagesBase64 = [], responseMimeType = 'text/plain', maxTokens = 0, grounded = false }, engine) {
+    systemPrompt = kinetLangDirective(systemPrompt);
     const tier = getCurrentTier();
     const baseCfg = KINET_API_CONFIG.modelsByTier[tier] || KINET_API_CONFIG.modelsByTier.free;
     const modelCfg = engine === 'lite' ? Object.assign({}, baseCfg, KINET_API_CONFIG.liteModel) : baseCfg;

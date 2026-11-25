@@ -2,7 +2,7 @@
    - Permite instalar la app (PWA) y que abra aunque no haya red (muestra la última versión guardada o una pantalla "sin conexión").
    - SOLO guarda archivos del propio sitio. Nunca toca Supabase, Stripe, Gemini ni nada de otros dominios, ni peticiones que no sean GET.
    - Estrategia "red primero": con internet siempre carga la versión más reciente; la copia local es solo el plan B. */
-const VERSION = 'kinet-v51';
+const VERSION = 'kinet-v56';
 const SHELL = ['offline.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {
