@@ -56,7 +56,17 @@
     document.addEventListener('click', function (e) {
       if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       var a = e.target.closest && e.target.closest('a[href]'); if (!a || a.target === '_blank') return;
-      var id = target(a), el = id && document.getElementById(id); if (!el) return;
+      var id = target(a), el = id && document.getElementById(id);
+      if (!el) {
+        /* enlace a la propia página sin ancla (p. ej. el logo en la portada): sube arriba con la misma animación, sin recargar */
+        var u2; try { u2 = new URL(a.href, location.href); } catch (x) { return; }
+        var norm = function (p) { return p.replace(/index\.html$/, '').replace(/\/+$/, '') || '/'; };
+        if (u2.origin === location.origin && !u2.hash && norm(u2.pathname) === norm(location.pathname) && u2.search === location.search) {
+          e.preventDefault(); go(0, Math.max(800, Math.min(2800, 550 + scrollY * .42)));
+          try { history.replaceState(null, '', location.pathname + location.search); } catch (er) {}
+        }
+        return;
+      }
       e.preventDefault();
       var hd = document.querySelector('header.top'), off = (hd ? hd.offsetHeight : 0) + 8;
       var y = el.getBoundingClientRect().top + scrollY - off;
